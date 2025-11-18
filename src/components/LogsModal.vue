@@ -7,49 +7,58 @@
     @close="emit('close')"
   >
     <div class="logs-toolbar">
-      <button class="toolbar-btn" @click="copyLogs">
-        <i class="pi pi-copy"></i>
+      <button
+        class="toolbar-btn"
+        @click="copyLogs"
+      >
+        <i class="pi pi-copy" />
         Copy
       </button>
-      <button class="toolbar-btn" @click="downloadLogs">
-        <i class="pi pi-download"></i>
+      <button
+        class="toolbar-btn"
+        @click="downloadLogs"
+      >
+        <i class="pi pi-download" />
         Download
       </button>
     </div>
-    <pre class="logs-output" ref="logsRef">{{ logs }}</pre>
+    <pre
+      ref="logsRef"
+      class="logs-output"
+    >{{ logs }}</pre>
   </BaseModal>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useNotificationsStore } from '@/stores/notifications'
-import BaseModal from './base/BaseModal.vue'
+import { ref } from "vue";
+import { useNotificationsStore } from "@/stores/notifications";
+import BaseModal from "./base/BaseModal.vue";
 
 const props = defineProps<{
-  visible: boolean
-  deploymentName: string
-  logs: string
-}>()
+  visible: boolean;
+  deploymentName: string;
+  logs: string;
+}>();
 
-const emit = defineEmits(['close'])
-const notifications = useNotificationsStore()
-const logsRef = ref<HTMLPreElement | null>(null)
+const emit = defineEmits(["close"]);
+const notifications = useNotificationsStore();
+const logsRef = ref<HTMLPreElement | null>(null);
 
 const copyLogs = () => {
-  navigator.clipboard.writeText(props.logs)
-  notifications.success('Copied', 'Logs copied to clipboard')
-}
+  navigator.clipboard.writeText(props.logs);
+  notifications.success("Copied", "Logs copied to clipboard");
+};
 
 const downloadLogs = () => {
-  const blob = new Blob([props.logs], { type: 'text/plain' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = `${props.deploymentName}-logs.txt`
-  a.click()
-  URL.revokeObjectURL(url)
-  notifications.success('Downloaded', 'Logs file downloaded')
-}
+  const blob = new Blob([props.logs], { type: "text/plain" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `${props.deploymentName}-logs.txt`;
+  a.click();
+  URL.revokeObjectURL(url);
+  notifications.success("Downloaded", "Logs file downloaded");
+};
 </script>
 
 <style scoped>

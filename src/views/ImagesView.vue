@@ -32,12 +32,22 @@
       :default-page-size="25"
     >
       <template #actions>
-        <button class="btn btn-primary" @click="showPullModal = true">
-          <i class="pi pi-download"></i>
+        <button
+          class="btn btn-primary"
+          @click="showPullModal = true"
+        >
+          <i class="pi pi-download" />
           Pull Image
         </button>
-        <button class="btn btn-secondary" @click="fetchImages" :disabled="loading">
-          <i class="pi pi-refresh" :class="{ 'pi-spin': loading }"></i>
+        <button
+          class="btn btn-secondary"
+          :disabled="loading"
+          @click="fetchImages"
+        >
+          <i
+            class="pi pi-refresh"
+            :class="{ 'pi-spin': loading }"
+          />
           Refresh
         </button>
       </template>
@@ -47,10 +57,17 @@
       </template>
 
       <template #cell-tag="{ item }">
-        <span class="tag-badge" v-for="tag in item.tags" :key="tag">
+        <span
+          v-for="tag in item.tags"
+          :key="tag"
+          class="tag-badge"
+        >
           {{ getTagName(tag) }}
         </span>
-        <span v-if="!item.tags?.length" class="no-tag">&lt;none&gt;</span>
+        <span
+          v-if="!item.tags?.length"
+          class="no-tag"
+        >&lt;none&gt;</span>
       </template>
 
       <template #cell-imageId="{ item }">
@@ -66,23 +83,30 @@
       </template>
 
       <template #cell-containers="{ item }">
-        <span class="container-count" :class="{ used: item.containers > 0 }">
+        <span
+          class="container-count"
+          :class="{ used: item.containers > 0 }"
+        >
           {{ item.containers }}
         </span>
       </template>
 
       <template #cell-actions="{ item }">
         <div class="table-actions">
-          <button class="action-btn" @click.stop="inspectImage(item.id)" title="Inspect">
-            <i class="pi pi-info-circle"></i>
+          <button
+            class="action-btn"
+            title="Inspect"
+            @click.stop="inspectImage(item.id)"
+          >
+            <i class="pi pi-info-circle" />
           </button>
           <button
             class="action-btn delete"
-            @click.stop="deleteImage(item.id)"
             :disabled="item.containers > 0"
             title="Remove"
+            @click.stop="deleteImage(item.id)"
           >
-            <i class="pi pi-trash"></i>
+            <i class="pi pi-trash" />
           </button>
         </div>
       </template>
@@ -99,16 +123,20 @@
               <input
                 type="checkbox"
                 :checked="selectedItems.includes(image.id)"
-                @change="toggleSelect(image.id)"
                 class="image-checkbox"
-              />
+                @change="toggleSelect(image.id)"
+              >
               <div class="image-icon">
-                <i class="pi pi-box"></i>
+                <i class="pi pi-box" />
               </div>
-              <div class="image-size">{{ formatSize(image.size) }}</div>
+              <div class="image-size">
+                {{ formatSize(image.size) }}
+              </div>
             </div>
             <div class="image-card-body">
-              <h4 class="image-name">{{ getImageName(image) }}</h4>
+              <h4 class="image-name">
+                {{ getImageName(image) }}
+              </h4>
               <div class="image-tags">
                 <span
                   v-for="tag in image.tags"
@@ -117,33 +145,44 @@
                 >
                   {{ getTagName(tag) }}
                 </span>
-                <span v-if="!image.tags?.length" class="no-tag">&lt;none&gt;</span>
+                <span
+                  v-if="!image.tags?.length"
+                  class="no-tag"
+                >&lt;none&gt;</span>
               </div>
               <div class="image-meta">
                 <span class="meta-item">
-                  <i class="pi pi-calendar"></i>
+                  <i class="pi pi-calendar" />
                   {{ formatDate(image.created) }}
                 </span>
                 <span class="meta-item">
-                  <i class="pi pi-box"></i>
+                  <i class="pi pi-box" />
                   {{ image.containers }} containers
                 </span>
               </div>
             </div>
             <div class="image-card-actions">
-              <button class="action-btn" @click="inspectImage(image.id)" title="Inspect">
-                <i class="pi pi-info-circle"></i>
+              <button
+                class="action-btn"
+                title="Inspect"
+                @click="inspectImage(image.id)"
+              >
+                <i class="pi pi-info-circle" />
               </button>
-              <button class="action-btn" @click="createContainer(image.id)" title="Create Container">
-                <i class="pi pi-play"></i>
+              <button
+                class="action-btn"
+                title="Create Container"
+                @click="createContainer(image.id)"
+              >
+                <i class="pi pi-play" />
               </button>
               <button
                 class="action-btn delete"
-                @click="deleteImage(image.id)"
                 title="Remove"
                 :disabled="image.containers > 0"
+                @click="deleteImage(image.id)"
               >
-                <i class="pi pi-trash"></i>
+                <i class="pi pi-trash" />
               </button>
             </div>
           </div>
@@ -151,22 +190,32 @@
       </template>
 
       <template #bulk-actions="{ selectedItems, clearSelection }">
-        <button class="btn btn-sm btn-danger" @click="bulkRemove(selectedItems, clearSelection)">
-          <i class="pi pi-trash"></i> Remove
+        <button
+          class="btn btn-sm btn-danger"
+          @click="bulkRemove(selectedItems, clearSelection)"
+        >
+          <i class="pi pi-trash" /> Remove
         </button>
       </template>
     </DataTable>
 
     <Teleport to="body">
-      <div v-if="showPullModal" class="modal-overlay" @click.self="showPullModal = false">
+      <div
+        v-if="showPullModal"
+        class="modal-overlay"
+        @click.self="showPullModal = false"
+      >
         <div class="pull-modal modal-container">
           <div class="modal-header">
             <h3>
-              <i class="pi pi-download"></i>
+              <i class="pi pi-download" />
               Pull Image
             </h3>
-            <button class="close-btn" @click="showPullModal = false">
-              <i class="pi pi-times"></i>
+            <button
+              class="close-btn"
+              @click="showPullModal = false"
+            >
+              <i class="pi pi-times" />
             </button>
           </div>
           <div class="modal-body">
@@ -177,15 +226,27 @@
                 type="text"
                 placeholder="nginx:latest"
                 class="form-input"
-              />
+              >
               <span class="form-hint">Format: repository:tag (e.g., nginx:latest, ubuntu:22.04)</span>
             </div>
           </div>
           <div class="modal-footer">
-            <button class="btn btn-secondary" @click="showPullModal = false">Cancel</button>
-            <button class="btn btn-primary" @click="pullImage" :disabled="!pullImageName || pulling">
-              <i v-if="pulling" class="pi pi-spin pi-spinner"></i>
-              {{ pulling ? 'Pulling...' : 'Pull Image' }}
+            <button
+              class="btn btn-secondary"
+              @click="showPullModal = false"
+            >
+              Cancel
+            </button>
+            <button
+              class="btn btn-primary"
+              :disabled="!pullImageName || pulling"
+              @click="pullImage"
+            >
+              <i
+                v-if="pulling"
+                class="pi pi-spin pi-spinner"
+              />
+              {{ pulling ? "Pulling..." : "Pull Image" }}
             </button>
           </div>
         </div>
@@ -195,131 +256,135 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { imagesApi } from '@/services/api'
-import DataTable from '@/components/DataTable.vue'
+import { ref, computed, onMounted } from "vue";
+import { imagesApi } from "@/services/api";
+import DataTable from "@/components/DataTable.vue";
 
 interface DockerImage {
-  id: string
-  tags: string[]
-  size: number
-  created: string
-  containers: number
+  id: string;
+  tags: string[];
+  size: number;
+  created: string;
+  containers: number;
 }
 
-const images = ref<DockerImage[]>([])
-const loading = ref(false)
-const showPullModal = ref(false)
-const pullImageName = ref('')
-const pulling = ref(false)
+const images = ref<DockerImage[]>([]);
+const loading = ref(false);
+const showPullModal = ref(false);
+const pullImageName = ref("");
+const pulling = ref(false);
 
 const columns = [
-  { key: 'repository', label: 'Repository', sortable: true },
-  { key: 'tag', label: 'Tag' },
-  { key: 'imageId', label: 'Image ID' },
-  { key: 'created', label: 'Created', sortable: true },
-  { key: 'size', label: 'Size', sortable: true },
-  { key: 'containers', label: 'Containers' },
-  { key: 'actions', label: 'Actions', width: '100px' }
-]
+  { key: "repository", label: "Repository", sortable: true },
+  { key: "tag", label: "Tag" },
+  { key: "imageId", label: "Image ID" },
+  { key: "created", label: "Created", sortable: true },
+  { key: "size", label: "Size", sortable: true },
+  { key: "containers", label: "Containers" },
+  { key: "actions", label: "Actions", width: "100px" },
+];
 
-const totalSize = computed(() => images.value.reduce((acc, img) => acc + img.size, 0))
-const unusedImages = computed(() => images.value.filter(img => img.containers === 0).length)
+const totalSize = computed(() =>
+  images.value.reduce((acc, img) => acc + img.size, 0),
+);
+const unusedImages = computed(
+  () => images.value.filter((img) => img.containers === 0).length,
+);
 
 const fetchImages = async () => {
-  loading.value = true
+  loading.value = true;
   try {
-    const response = await imagesApi.list()
-    images.value = response.data.images || []
+    const response = await imagesApi.list();
+    images.value = response.data.images || [];
   } catch (error) {
-    console.error('Failed to fetch images:', error)
+    console.error("Failed to fetch images:", error);
   } finally {
-    loading.value = false
+    loading.value = false;
   }
-}
+};
 
 const getImageName = (image: DockerImage) => {
-  if (!image.tags?.length) return '<none>'
-  const tag = image.tags[0]
-  const parts = tag.split(':')
-  return parts[0]
-}
+  if (!image.tags?.length) return "<none>";
+  const tag = image.tags[0];
+  const parts = tag.split(":");
+  return parts[0];
+};
 
 const getTagName = (tag: string) => {
-  const parts = tag.split(':')
-  return parts[1] || 'latest'
-}
+  const parts = tag.split(":");
+  return parts[1] || "latest";
+};
 
 const formatSize = (bytes: number) => {
-  if (bytes === 0) return '0 B'
-  const k = 1024
-  const sizes = ['B', 'KB', 'MB', 'GB']
-  const i = Math.floor(Math.log(bytes) / Math.log(k))
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i]
-}
+  if (bytes === 0) return "0 B";
+  const k = 1024;
+  const sizes = ["B", "KB", "MB", "GB"];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + " " + sizes[i];
+};
 
 const formatDate = (timestamp: string) => {
-  const date = new Date(timestamp)
-  const now = new Date()
-  const diff = now.getTime() - date.getTime()
-  const days = Math.floor(diff / (1000 * 60 * 60 * 24))
+  const date = new Date(timestamp);
+  const now = new Date();
+  const diff = now.getTime() - date.getTime();
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
 
-  if (days === 0) return 'Today'
-  if (days === 1) return 'Yesterday'
-  if (days < 30) return `${days} days ago`
-  if (days < 365) return `${Math.floor(days / 30)} months ago`
-  return `${Math.floor(days / 365)} years ago`
-}
+  if (days === 0) return "Today";
+  if (days === 1) return "Yesterday";
+  if (days < 30) return `${days} days ago`;
+  if (days < 365) return `${Math.floor(days / 30)} months ago`;
+  return `${Math.floor(days / 365)} years ago`;
+};
 
 const deleteImage = async (id: string) => {
-  if (!confirm('Are you sure you want to remove this image?')) return
+  if (!confirm("Are you sure you want to remove this image?")) return;
   try {
-    await imagesApi.remove(id)
-    await fetchImages()
+    await imagesApi.remove(id);
+    await fetchImages();
   } catch (error) {
-    console.error('Failed to remove image:', error)
+    console.error("Failed to remove image:", error);
   }
-}
+};
 
 const bulkRemove = async (ids: string[], clear: () => void) => {
-  if (!confirm(`Remove ${ids.length} images?`)) return
+  if (!confirm(`Remove ${ids.length} images?`)) return;
   for (const id of ids) {
     try {
-      await imagesApi.remove(id)
+      await imagesApi.remove(id);
     } catch (error) {
-      console.error(`Failed to remove image ${id}:`, error)
+      console.error(`Failed to remove image ${id}:`, error);
     }
   }
-  clear()
-  await fetchImages()
-}
+  clear();
+  await fetchImages();
+};
 
 const pullImage = async () => {
-  if (!pullImageName.value) return
-  pulling.value = true
+  if (!pullImageName.value) return;
+  pulling.value = true;
   try {
-    await imagesApi.pull(pullImageName.value)
-    showPullModal.value = false
-    pullImageName.value = ''
-    await fetchImages()
+    await imagesApi.pull(pullImageName.value);
+    showPullModal.value = false;
+    pullImageName.value = "";
+    await fetchImages();
   } catch (error) {
-    console.error('Failed to pull image:', error)
+    console.error("Failed to pull image:", error);
   } finally {
-    pulling.value = false
+    pulling.value = false;
   }
-}
+};
 
 const inspectImage = (id: string) => {
-  console.log('Inspect image:', id)
-}
+  console.log("Inspect image:", id);
+};
 
 const createContainer = (id: string) => {
-  console.log('Create container from image:', id)
-}
+  console.log("Create container from image:", id);
+};
 
 onMounted(() => {
-  fetchImages()
-})
+  fetchImages();
+});
 </script>
 
 <style scoped>

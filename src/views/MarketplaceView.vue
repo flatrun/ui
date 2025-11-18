@@ -3,13 +3,13 @@
     <div class="view-header">
       <div class="header-left">
         <div class="search-box">
-          <i class="pi pi-search"></i>
+          <i class="pi pi-search" />
           <input
             v-model="searchQuery"
             type="text"
             placeholder="Search apps..."
             class="search-input"
-          />
+          >
         </div>
         <div class="category-filters">
           <button
@@ -19,7 +19,7 @@
             :class="{ active: selectedCategory === cat.value }"
             @click="selectedCategory = cat.value"
           >
-            <i :class="cat.icon"></i>
+            <i :class="cat.icon" />
             {{ cat.label }}
           </button>
         </div>
@@ -32,7 +32,7 @@
         <p>Extend Flatrun with powerful apps and integrations</p>
       </div>
       <div class="banner-decoration">
-        <i class="pi pi-shopping-bag"></i>
+        <i class="pi pi-shopping-bag" />
       </div>
     </div>
 
@@ -43,20 +43,30 @@
         class="app-card"
       >
         <div class="app-card-header">
-          <div class="app-icon" :class="app.category">
-            <i :class="app.icon"></i>
+          <div
+            class="app-icon"
+            :class="app.category"
+          >
+            <i :class="app.icon" />
           </div>
-          <div v-if="app.featured" class="featured-badge">
-            <i class="pi pi-star-fill"></i>
+          <div
+            v-if="app.featured"
+            class="featured-badge"
+          >
+            <i class="pi pi-star-fill" />
             Featured
           </div>
         </div>
         <div class="app-card-body">
-          <h3 class="app-name">{{ app.name }}</h3>
-          <p class="app-description">{{ app.description }}</p>
+          <h3 class="app-name">
+            {{ app.name }}
+          </h3>
+          <p class="app-description">
+            {{ app.description }}
+          </p>
           <div class="app-meta">
             <span class="app-author">
-              <i class="pi pi-user"></i>
+              <i class="pi pi-user" />
               {{ app.author }}
             </span>
             <span class="app-version">v{{ app.version }}</span>
@@ -72,20 +82,26 @@
           </div>
         </div>
         <div class="app-card-footer">
-          <button class="btn btn-primary" :disabled="app.installed">
-            <i :class="app.installed ? 'pi pi-check' : 'pi pi-download'"></i>
-            {{ app.installed ? 'Installed' : 'Install' }}
+          <button
+            class="btn btn-primary"
+            :disabled="app.installed"
+          >
+            <i :class="app.installed ? 'pi pi-check' : 'pi pi-download'" />
+            {{ app.installed ? "Installed" : "Install" }}
           </button>
           <button class="btn btn-secondary">
-            <i class="pi pi-info-circle"></i>
+            <i class="pi pi-info-circle" />
             Details
           </button>
         </div>
       </div>
     </div>
 
-    <div v-if="filteredApps.length === 0" class="empty-state">
-      <i class="pi pi-search"></i>
+    <div
+      v-if="filteredApps.length === 0"
+      class="empty-state"
+    >
+      <i class="pi pi-search" />
       <h3>No Apps Found</h3>
       <p>Try adjusting your search or filters.</p>
     </div>
@@ -93,167 +109,177 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed } from "vue";
 
 interface MarketplaceApp {
-  id: string
-  name: string
-  description: string
-  author: string
-  version: string
-  icon: string
-  category: string
-  tags: string[]
-  featured: boolean
-  installed: boolean
+  id: string;
+  name: string;
+  description: string;
+  author: string;
+  version: string;
+  icon: string;
+  category: string;
+  tags: string[];
+  featured: boolean;
+  installed: boolean;
 }
 
-const searchQuery = ref('')
-const selectedCategory = ref('all')
+const searchQuery = ref("");
+const selectedCategory = ref("all");
 
 const categories = [
-  { value: 'all', label: 'All', icon: 'pi pi-th-large' },
-  { value: 'cms', label: 'CMS', icon: 'pi pi-globe' },
-  { value: 'database', label: 'Database', icon: 'pi pi-database' },
-  { value: 'email', label: 'Email', icon: 'pi pi-envelope' },
-  { value: 'security', label: 'Security', icon: 'pi pi-shield' },
-  { value: 'backup', label: 'Backup', icon: 'pi pi-save' },
-  { value: 'monitoring', label: 'Monitoring', icon: 'pi pi-chart-line' }
-]
+  { value: "all", label: "All", icon: "pi pi-th-large" },
+  { value: "cms", label: "CMS", icon: "pi pi-globe" },
+  { value: "database", label: "Database", icon: "pi pi-database" },
+  { value: "email", label: "Email", icon: "pi pi-envelope" },
+  { value: "security", label: "Security", icon: "pi pi-shield" },
+  { value: "backup", label: "Backup", icon: "pi pi-save" },
+  { value: "monitoring", label: "Monitoring", icon: "pi pi-chart-line" },
+];
 
 const apps = ref<MarketplaceApp[]>([
   {
-    id: 'wordpress-toolkit',
-    name: 'WordPress Toolkit',
-    description: 'Complete WordPress management: one-click installs, staging, cloning, security hardening, and automated updates.',
-    author: 'WhileSmart',
-    version: '3.0.0',
-    icon: 'pi pi-globe',
-    category: 'cms',
-    tags: ['wordpress', 'cms', 'staging', 'security'],
+    id: "wordpress-toolkit",
+    name: "WordPress Toolkit",
+    description:
+      "Complete WordPress management: one-click installs, staging, cloning, security hardening, and automated updates.",
+    author: "WhileSmart",
+    version: "3.0.0",
+    icon: "pi pi-globe",
+    category: "cms",
+    tags: ["wordpress", "cms", "staging", "security"],
     featured: true,
-    installed: false
+    installed: false,
   },
   {
-    id: 'laravel-toolkit',
-    name: 'Laravel Toolkit',
-    description: 'Laravel deployment automation with Composer, Artisan commands, queue workers, and scheduler management.',
-    author: 'WhileSmart',
-    version: '2.0.0',
-    icon: 'pi pi-code',
-    category: 'cms',
-    tags: ['laravel', 'php', 'composer', 'artisan'],
+    id: "laravel-toolkit",
+    name: "Laravel Toolkit",
+    description:
+      "Laravel deployment automation with Composer, Artisan commands, queue workers, and scheduler management.",
+    author: "WhileSmart",
+    version: "2.0.0",
+    icon: "pi pi-code",
+    category: "cms",
+    tags: ["laravel", "php", "composer", "artisan"],
     featured: true,
-    installed: false
+    installed: false,
   },
   {
-    id: 'database-manager',
-    name: 'Database Manager',
-    description: 'phpMyAdmin and pgAdmin integration with automated backups, user management, and query optimization.',
-    author: 'WhileSmart',
-    version: '2.5.0',
-    icon: 'pi pi-database',
-    category: 'database',
-    tags: ['mysql', 'postgres', 'phpmyadmin', 'pgadmin'],
+    id: "database-manager",
+    name: "Database Manager",
+    description:
+      "phpMyAdmin and pgAdmin integration with automated backups, user management, and query optimization.",
+    author: "WhileSmart",
+    version: "2.5.0",
+    icon: "pi pi-database",
+    category: "database",
+    tags: ["mysql", "postgres", "phpmyadmin", "pgadmin"],
     featured: true,
-    installed: false
+    installed: false,
   },
   {
-    id: 'mail-server',
-    name: 'Mail Server',
-    description: 'Full-featured mail server with SMTP, IMAP, POP3, spam filtering, DKIM, and webmail interface.',
-    author: 'WhileSmart',
-    version: '1.0.0',
-    icon: 'pi pi-envelope',
-    category: 'email',
-    tags: ['email', 'smtp', 'imap', 'spam'],
+    id: "mail-server",
+    name: "Mail Server",
+    description:
+      "Full-featured mail server with SMTP, IMAP, POP3, spam filtering, DKIM, and webmail interface.",
+    author: "WhileSmart",
+    version: "1.0.0",
+    icon: "pi pi-envelope",
+    category: "email",
+    tags: ["email", "smtp", "imap", "spam"],
     featured: true,
-    installed: false
+    installed: false,
   },
   {
-    id: 'backup-manager',
-    name: 'Backup Manager',
-    description: 'Automated backups with scheduling, retention policies, incremental backups, and cloud storage integration.',
-    author: 'WhileSmart',
-    version: '1.0.0',
-    icon: 'pi pi-save',
-    category: 'backup',
-    tags: ['backup', 'restore', 'scheduled', 's3'],
+    id: "backup-manager",
+    name: "Backup Manager",
+    description:
+      "Automated backups with scheduling, retention policies, incremental backups, and cloud storage integration.",
+    author: "WhileSmart",
+    version: "1.0.0",
+    icon: "pi pi-save",
+    category: "backup",
+    tags: ["backup", "restore", "scheduled", "s3"],
     featured: false,
-    installed: true
+    installed: true,
   },
   {
-    id: 'ssl-manager',
-    name: 'SSL Certificate Manager',
-    description: 'Automated SSL certificate management with Let\'s Encrypt, wildcard support, and auto-renewal.',
-    author: 'WhileSmart',
-    version: '2.0.0',
-    icon: 'pi pi-lock',
-    category: 'security',
-    tags: ['ssl', 'tls', 'letsencrypt', 'wildcard'],
+    id: "ssl-manager",
+    name: "SSL Certificate Manager",
+    description:
+      "Automated SSL certificate management with Let's Encrypt, wildcard support, and auto-renewal.",
+    author: "WhileSmart",
+    version: "2.0.0",
+    icon: "pi pi-lock",
+    category: "security",
+    tags: ["ssl", "tls", "letsencrypt", "wildcard"],
     featured: false,
-    installed: false
+    installed: false,
   },
   {
-    id: 'firewall-manager',
-    name: 'Firewall Manager',
-    description: 'Advanced firewall rules, fail2ban integration, IP blocking, and intrusion detection.',
-    author: 'WhileSmart',
-    version: '1.2.0',
-    icon: 'pi pi-shield',
-    category: 'security',
-    tags: ['firewall', 'fail2ban', 'security', 'ids'],
+    id: "firewall-manager",
+    name: "Firewall Manager",
+    description:
+      "Advanced firewall rules, fail2ban integration, IP blocking, and intrusion detection.",
+    author: "WhileSmart",
+    version: "1.2.0",
+    icon: "pi pi-shield",
+    category: "security",
+    tags: ["firewall", "fail2ban", "security", "ids"],
     featured: false,
-    installed: false
+    installed: false,
   },
   {
-    id: 'dns-manager',
-    name: 'DNS Manager',
-    description: 'Complete DNS zone management with record templates, DNSSEC support, and bulk operations.',
-    author: 'WhileSmart',
-    version: '1.5.0',
-    icon: 'pi pi-sitemap',
-    category: 'cms',
-    tags: ['dns', 'zones', 'dnssec', 'records'],
+    id: "dns-manager",
+    name: "DNS Manager",
+    description:
+      "Complete DNS zone management with record templates, DNSSEC support, and bulk operations.",
+    author: "WhileSmart",
+    version: "1.5.0",
+    icon: "pi pi-sitemap",
+    category: "cms",
+    tags: ["dns", "zones", "dnssec", "records"],
     featured: false,
-    installed: false
+    installed: false,
   },
   {
-    id: 'resource-monitor',
-    name: 'Resource Monitor',
-    description: 'Real-time CPU, memory, disk, and network monitoring with alerts and historical graphs.',
-    author: 'WhileSmart',
-    version: '1.8.0',
-    icon: 'pi pi-chart-line',
-    category: 'monitoring',
-    tags: ['monitoring', 'alerts', 'graphs', 'metrics'],
+    id: "resource-monitor",
+    name: "Resource Monitor",
+    description:
+      "Real-time CPU, memory, disk, and network monitoring with alerts and historical graphs.",
+    author: "WhileSmart",
+    version: "1.8.0",
+    icon: "pi pi-chart-line",
+    category: "monitoring",
+    tags: ["monitoring", "alerts", "graphs", "metrics"],
     featured: false,
-    installed: false
-  }
-])
+    installed: false,
+  },
+]);
 
 const filteredApps = computed(() => {
-  let result = apps.value
+  let result = apps.value;
 
-  if (selectedCategory.value !== 'all') {
-    result = result.filter(app => app.category === selectedCategory.value)
+  if (selectedCategory.value !== "all") {
+    result = result.filter((app) => app.category === selectedCategory.value);
   }
 
   if (searchQuery.value) {
-    const query = searchQuery.value.toLowerCase()
-    result = result.filter(app =>
-      app.name.toLowerCase().includes(query) ||
-      app.description.toLowerCase().includes(query) ||
-      app.tags.some(tag => tag.toLowerCase().includes(query))
-    )
+    const query = searchQuery.value.toLowerCase();
+    result = result.filter(
+      (app) =>
+        app.name.toLowerCase().includes(query) ||
+        app.description.toLowerCase().includes(query) ||
+        app.tags.some((tag) => tag.toLowerCase().includes(query)),
+    );
   }
 
   return result.sort((a, b) => {
-    if (a.featured && !b.featured) return -1
-    if (!a.featured && b.featured) return 1
-    return 0
-  })
-})
+    if (a.featured && !b.featured) return -1;
+    if (!a.featured && b.featured) return 1;
+    return 0;
+  });
+});
 </script>
 
 <style scoped>
@@ -335,7 +361,11 @@ const filteredApps = computed(() => {
 }
 
 .marketplace-banner {
-  background: linear-gradient(135deg, var(--color-primary-500) 0%, #8b5cf6 100%);
+  background: linear-gradient(
+    135deg,
+    var(--color-primary-500) 0%,
+    #8b5cf6 100%
+  );
   border-radius: var(--radius-lg);
   padding: var(--space-8);
   display: flex;

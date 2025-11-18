@@ -1,73 +1,71 @@
-import { defineStore } from 'pinia'
-import { ref } from 'vue'
-import { pluginsApi } from '@/services/api'
+import { defineStore } from "pinia";
+import { ref } from "vue";
+import { pluginsApi } from "@/services/api";
 
 export interface Plugin {
-  name: string
-  version: string
-  display_name: string
-  description: string
-  author: string
-  type: string
-  category: string
-  enabled: boolean
-  capabilities?: string[]
+  name: string;
+  version: string;
+  display_name: string;
+  description: string;
+  author: string;
+  type: string;
+  category: string;
+  enabled: boolean;
+  capabilities?: string[];
   widget?: {
-    enabled: boolean
-    position: string
-    size: string
-    refresh_interval: number
+    enabled: boolean;
+    position: string;
+    size: string;
+    refresh_interval: number;
     actions?: Array<{
-      name: string
-      label: string
-      icon: string
-    }>
-  }
+      name: string;
+      label: string;
+      icon: string;
+    }>;
+  };
   dashboard_extensions?: Array<{
-    location: string
-    component: string
-  }>
+    location: string;
+    component: string;
+  }>;
   api?: Array<{
-    path: string
-    method: string
-    handler: string
-  }>
+    path: string;
+    method: string;
+    handler: string;
+  }>;
 }
 
-export const usePluginsStore = defineStore('plugins', () => {
-  const plugins = ref<Plugin[]>([])
-  const loading = ref(false)
-  const error = ref('')
+export const usePluginsStore = defineStore("plugins", () => {
+  const plugins = ref<Plugin[]>([]);
+  const loading = ref(false);
+  const error = ref("");
 
   const fetchPlugins = async () => {
-    loading.value = true
-    error.value = ''
+    loading.value = true;
+    error.value = "";
 
     try {
-      const response = await pluginsApi.list()
-      plugins.value = response.data.plugins || []
+      const response = await pluginsApi.list();
+      plugins.value = response.data.plugins || [];
     } catch (e: any) {
-      error.value = e.message || 'Failed to load plugins'
+      error.value = e.message || "Failed to load plugins";
     } finally {
-      loading.value = false
+      loading.value = false;
     }
-  }
+  };
 
   const getPluginsByLocation = (location: string) => {
-    return plugins.value.filter(p =>
-      p.dashboard_extensions?.some(ext => ext.location === location)
-    )
-  }
+    return plugins.value.filter((p) =>
+      p.dashboard_extensions?.some((ext) => ext.location === location),
+    );
+  };
 
   const getPluginsByCapability = (capability: string) => {
-    return plugins.value.filter(p =>
-      p.capabilities?.includes(capability)
-    )
-  }
+    return plugins.value.filter((p) => p.capabilities?.includes(capability));
+  };
 
   const getWidgetPlugins = () => {
-    return plugins.value.filter(p => p.widget?.enabled)
-  }
+    return plugins.value.filter((p) => p.widget?.enabled);
+  };
 
   return {
     plugins,
@@ -76,6 +74,6 @@ export const usePluginsStore = defineStore('plugins', () => {
     fetchPlugins,
     getPluginsByLocation,
     getPluginsByCapability,
-    getWidgetPlugins
-  }
-})
+    getWidgetPlugins,
+  };
+});

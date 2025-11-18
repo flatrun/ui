@@ -6,8 +6,11 @@
         <p>Here's what's happening with your deployments today.</p>
       </div>
       <div class="welcome-actions">
-        <button class="btn btn-primary" @click="showNewDeployment = true">
-          <i class="pi pi-plus"></i>
+        <button
+          class="btn btn-primary"
+          @click="showNewDeployment = true"
+        >
+          <i class="pi pi-plus" />
           New Deployment
         </button>
       </div>
@@ -16,53 +19,53 @@
     <div class="stats-grid">
       <div class="stat-card">
         <div class="stat-icon total">
-          <i class="pi pi-box"></i>
+          <i class="pi pi-box" />
         </div>
         <div class="stat-info">
           <span class="stat-value">{{ stats.total_deployments }}</span>
           <span class="stat-label">Total Deployments</span>
         </div>
         <div class="stat-trend neutral">
-          <i class="pi pi-minus"></i>
+          <i class="pi pi-minus" />
         </div>
       </div>
 
       <div class="stat-card">
         <div class="stat-icon running">
-          <i class="pi pi-check-circle"></i>
+          <i class="pi pi-check-circle" />
         </div>
         <div class="stat-info">
           <span class="stat-value">{{ stats.running }}</span>
           <span class="stat-label">Running</span>
         </div>
         <div class="stat-trend up">
-          <i class="pi pi-arrow-up"></i>
+          <i class="pi pi-arrow-up" />
         </div>
       </div>
 
       <div class="stat-card">
         <div class="stat-icon stopped">
-          <i class="pi pi-stop-circle"></i>
+          <i class="pi pi-stop-circle" />
         </div>
         <div class="stat-info">
           <span class="stat-value">{{ stats.stopped }}</span>
           <span class="stat-label">Stopped</span>
         </div>
         <div class="stat-trend down">
-          <i class="pi pi-arrow-down"></i>
+          <i class="pi pi-arrow-down" />
         </div>
       </div>
 
       <div class="stat-card">
         <div class="stat-icon containers">
-          <i class="pi pi-server"></i>
+          <i class="pi pi-server" />
         </div>
         <div class="stat-info">
           <span class="stat-value">{{ containerStats.total }}</span>
           <span class="stat-label">Total Containers</span>
         </div>
         <div class="stat-trend neutral">
-          <i class="pi pi-minus"></i>
+          <i class="pi pi-minus" />
         </div>
       </div>
     </div>
@@ -71,40 +74,60 @@
       <div class="card deployments-list">
         <div class="card-header">
           <h3>
-            <i class="pi pi-list"></i>
+            <i class="pi pi-list" />
             Recent Deployments
           </h3>
-          <router-link to="/deployments" class="view-all">
+          <router-link
+            to="/deployments"
+            class="view-all"
+          >
             View All
-            <i class="pi pi-arrow-right"></i>
+            <i class="pi pi-arrow-right" />
           </router-link>
         </div>
         <div class="card-content">
-          <div v-if="loading" class="loading">
-            <i class="pi pi-spin pi-spinner"></i>
+          <div
+            v-if="loading"
+            class="loading"
+          >
+            <i class="pi pi-spin pi-spinner" />
             Loading...
           </div>
-          <div v-else-if="deployments.length === 0" class="empty">
-            <i class="pi pi-inbox"></i>
+          <div
+            v-else-if="deployments.length === 0"
+            class="empty"
+          >
+            <i class="pi pi-inbox" />
             <span>No deployments found</span>
           </div>
-          <div v-else class="deployment-items">
+          <div
+            v-else
+            class="deployment-items"
+          >
             <div
               v-for="deployment in deployments.slice(0, 5)"
               :key="deployment.name"
               class="deployment-item"
               @click="$router.push(`/deployments/${deployment.name}`)"
             >
-              <div class="deployment-status-indicator" :class="deployment.status"></div>
+              <div
+                class="deployment-status-indicator"
+                :class="deployment.status"
+              />
               <div class="deployment-info">
                 <span class="deployment-name">{{ deployment.name }}</span>
                 <span class="deployment-path">{{ deployment.path }}</span>
               </div>
               <div class="deployment-meta">
-                <span class="status-badge" :class="deployment.status">
+                <span
+                  class="status-badge"
+                  :class="deployment.status"
+                >
                   {{ deployment.status }}
                 </span>
-                <span class="deployment-time">{{ formatTime(deployment.updated_at) }}</span>
+                <span class="deployment-time">{{
+                  formatTime(deployment.updated_at)
+                }}</span>
               </div>
             </div>
           </div>
@@ -114,34 +137,48 @@
       <div class="card quick-actions">
         <div class="card-header">
           <h3>
-            <i class="pi pi-bolt"></i>
+            <i class="pi pi-bolt" />
             Quick Actions
           </h3>
         </div>
         <div class="card-content">
-          <button class="action-btn primary" @click="showNewDeployment = true">
-            <i class="pi pi-plus-circle"></i>
+          <button
+            class="action-btn primary"
+            @click="showNewDeployment = true"
+          >
+            <i class="pi pi-plus-circle" />
             <div class="action-text">
               <span class="action-title">New Deployment</span>
               <span class="action-desc">Create from Quick App or compose</span>
             </div>
           </button>
-          <button class="action-btn" @click="refreshData">
-            <i class="pi pi-refresh"></i>
+          <button
+            class="action-btn"
+            @click="refreshData"
+          >
+            <i class="pi pi-refresh" />
             <div class="action-text">
               <span class="action-title">Refresh Status</span>
               <span class="action-desc">Update all deployment statuses</span>
             </div>
           </button>
-          <button class="action-btn success" @click="startAllDeployments" :disabled="stats.stopped === 0">
-            <i class="pi pi-play"></i>
+          <button
+            class="action-btn success"
+            :disabled="stats.stopped === 0"
+            @click="startAllDeployments"
+          >
+            <i class="pi pi-play" />
             <div class="action-text">
               <span class="action-title">Start All</span>
               <span class="action-desc">Start all stopped deployments</span>
             </div>
           </button>
-          <button class="action-btn danger" @click="stopAllDeployments" :disabled="stats.running === 0">
-            <i class="pi pi-stop"></i>
+          <button
+            class="action-btn danger"
+            :disabled="stats.running === 0"
+            @click="stopAllDeployments"
+          >
+            <i class="pi pi-stop" />
             <div class="action-text">
               <span class="action-title">Stop All</span>
               <span class="action-desc">Stop all running deployments</span>
@@ -154,44 +191,52 @@
         <div class="card docker-info">
           <div class="card-header">
             <h3>
-              <i class="pi pi-database"></i>
+              <i class="pi pi-database" />
               Docker Resources
             </h3>
           </div>
           <div class="card-content">
             <div class="docker-stat">
               <div class="docker-stat-icon">
-                <i class="pi pi-box"></i>
+                <i class="pi pi-box" />
               </div>
               <div class="docker-stat-info">
-                <span class="docker-stat-value">{{ containerStats.running }}</span>
+                <span class="docker-stat-value">{{
+                  containerStats.running
+                }}</span>
                 <span class="docker-stat-label">Running Containers</span>
               </div>
             </div>
             <div class="docker-stat">
               <div class="docker-stat-icon">
-                <i class="pi pi-image"></i>
+                <i class="pi pi-image" />
               </div>
               <div class="docker-stat-info">
-                <span class="docker-stat-value">{{ dockerResources.images }}</span>
+                <span class="docker-stat-value">{{
+                  dockerResources.images
+                }}</span>
                 <span class="docker-stat-label">Images</span>
               </div>
             </div>
             <div class="docker-stat">
               <div class="docker-stat-icon">
-                <i class="pi pi-folder"></i>
+                <i class="pi pi-folder" />
               </div>
               <div class="docker-stat-info">
-                <span class="docker-stat-value">{{ dockerResources.volumes }}</span>
+                <span class="docker-stat-value">{{
+                  dockerResources.volumes
+                }}</span>
                 <span class="docker-stat-label">Volumes</span>
               </div>
             </div>
             <div class="docker-stat">
               <div class="docker-stat-icon">
-                <i class="pi pi-share-alt"></i>
+                <i class="pi pi-share-alt" />
               </div>
               <div class="docker-stat-info">
-                <span class="docker-stat-value">{{ dockerResources.networks }}</span>
+                <span class="docker-stat-value">{{
+                  dockerResources.networks
+                }}</span>
                 <span class="docker-stat-label">Networks</span>
               </div>
             </div>
@@ -201,11 +246,14 @@
         <div class="card system-health">
           <div class="card-header">
             <h3>
-              <i class="pi pi-heart-fill"></i>
+              <i class="pi pi-heart-fill" />
               System Health
             </h3>
-            <span class="health-status" :class="systemHealth.status">
-              <i class="pi pi-circle-fill"></i>
+            <span
+              class="health-status"
+              :class="systemHealth.status"
+            >
+              <i class="pi pi-circle-fill" />
               {{ systemHealth.label }}
             </span>
           </div>
@@ -217,7 +265,11 @@
                   <span class="health-value">{{ resources.cpu }}%</span>
                 </div>
                 <div class="health-bar">
-                  <div class="health-fill" :style="{ width: resources.cpu + '%' }" :class="getResourceClass(resources.cpu)"></div>
+                  <div
+                    class="health-fill"
+                    :style="{ width: resources.cpu + '%' }"
+                    :class="getResourceClass(resources.cpu)"
+                  />
                 </div>
               </div>
               <div class="health-item">
@@ -226,7 +278,11 @@
                   <span class="health-value">{{ resources.memory }}%</span>
                 </div>
                 <div class="health-bar">
-                  <div class="health-fill" :style="{ width: resources.memory + '%' }" :class="getResourceClass(resources.memory)"></div>
+                  <div
+                    class="health-fill"
+                    :style="{ width: resources.memory + '%' }"
+                    :class="getResourceClass(resources.memory)"
+                  />
                 </div>
               </div>
               <div class="health-item">
@@ -235,7 +291,11 @@
                   <span class="health-value">{{ resources.disk }}%</span>
                 </div>
                 <div class="health-bar">
-                  <div class="health-fill" :style="{ width: resources.disk + '%' }" :class="getResourceClass(resources.disk)"></div>
+                  <div
+                    class="health-fill"
+                    :style="{ width: resources.disk + '%' }"
+                    :class="getResourceClass(resources.disk)"
+                  />
                 </div>
               </div>
             </div>
@@ -244,159 +304,162 @@
       </div>
     </div>
 
-    <NewDeploymentModal v-model:visible="showNewDeployment" @created="onDeploymentCreated" />
+    <NewDeploymentModal
+      v-model:visible="showNewDeployment"
+      @created="onDeploymentCreated"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue'
-import { healthApi, deploymentsApi } from '@/services/api'
-import { useNotificationsStore } from '@/stores/notifications'
-import NewDeploymentModal from '@/components/NewDeploymentModal.vue'
-import type { Deployment } from '@/types'
+import { ref, reactive, computed, onMounted } from "vue";
+import { healthApi, deploymentsApi } from "@/services/api";
+import { useNotificationsStore } from "@/stores/notifications";
+import NewDeploymentModal from "@/components/NewDeploymentModal.vue";
+import type { Deployment } from "@/types";
 
-const notifications = useNotificationsStore()
+const notifications = useNotificationsStore();
 
 const stats = ref({
   total_deployments: 0,
   running: 0,
   stopped: 0,
   error: 0,
-  unknown: 0
-})
+  unknown: 0,
+});
 
 const containerStats = reactive({
   total: 0,
   running: 0,
-  stopped: 0
-})
+  stopped: 0,
+});
 
 const dockerResources = reactive({
   images: 0,
   volumes: 0,
-  networks: 0
-})
+  networks: 0,
+});
 
 const resources = reactive({
   cpu: 0,
   memory: 0,
-  disk: 0
-})
+  disk: 0,
+});
 
-const deployments = ref<Deployment[]>([])
-const loading = ref(true)
-const showNewDeployment = ref(false)
+const deployments = ref<Deployment[]>([]);
+const loading = ref(true);
+const showNewDeployment = ref(false);
 
 const systemHealth = computed(() => {
-  const maxUsage = Math.max(resources.cpu, resources.memory, resources.disk)
-  if (maxUsage > 90) return { status: 'critical', label: 'Critical' }
-  if (maxUsage > 75) return { status: 'warning', label: 'Warning' }
-  return { status: 'healthy', label: 'Healthy' }
-})
+  const maxUsage = Math.max(resources.cpu, resources.memory, resources.disk);
+  if (maxUsage > 90) return { status: "critical", label: "Critical" };
+  if (maxUsage > 75) return { status: "warning", label: "Warning" };
+  return { status: "healthy", label: "Healthy" };
+});
 
 const getResourceClass = (value: number) => {
-  if (value > 90) return 'critical'
-  if (value > 75) return 'warning'
-  return 'normal'
-}
+  if (value > 90) return "critical";
+  if (value > 75) return "warning";
+  return "normal";
+};
 
 const formatTime = (dateString: string) => {
-  if (!dateString) return 'N/A'
-  const date = new Date(dateString)
-  const now = new Date()
-  const diff = now.getTime() - date.getTime()
+  if (!dateString) return "N/A";
+  const date = new Date(dateString);
+  const now = new Date();
+  const diff = now.getTime() - date.getTime();
 
-  const minutes = Math.floor(diff / 60000)
-  if (minutes < 60) return `${minutes}m ago`
+  const minutes = Math.floor(diff / 60000);
+  if (minutes < 60) return `${minutes}m ago`;
 
-  const hours = Math.floor(minutes / 60)
-  if (hours < 24) return `${hours}h ago`
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
 
-  const days = Math.floor(hours / 24)
-  return `${days}d ago`
-}
+  const days = Math.floor(hours / 24);
+  return `${days}d ago`;
+};
 
 const fetchData = async () => {
-  loading.value = true
+  loading.value = true;
   try {
     const [healthRes, deploymentsRes, statsRes] = await Promise.all([
       healthApi.check(),
       deploymentsApi.list(),
-      healthApi.stats()
-    ])
+      healthApi.stats(),
+    ]);
 
     if (healthRes.data.stats) {
-      stats.value = healthRes.data.stats
+      stats.value = healthRes.data.stats;
     }
 
-    deployments.value = deploymentsRes.data.deployments || []
+    deployments.value = deploymentsRes.data.deployments || [];
 
     if (statsRes.data) {
-      const data = statsRes.data
-      containerStats.total = data.containers?.total || 0
-      containerStats.running = data.containers?.running || 0
-      containerStats.stopped = data.containers?.stopped || 0
-      dockerResources.images = data.images?.total || 0
-      dockerResources.volumes = data.volumes?.total || 0
-      dockerResources.networks = data.networks?.total || 0
+      const data = statsRes.data;
+      containerStats.total = data.containers?.total || 0;
+      containerStats.running = data.containers?.running || 0;
+      containerStats.stopped = data.containers?.stopped || 0;
+      dockerResources.images = data.images?.total || 0;
+      dockerResources.volumes = data.volumes?.total || 0;
+      dockerResources.networks = data.networks?.total || 0;
 
-      resources.cpu = Math.floor(Math.random() * 30 + 15)
-      resources.memory = Math.floor(Math.random() * 40 + 25)
-      resources.disk = Math.floor(Math.random() * 30 + 40)
+      resources.cpu = Math.floor(Math.random() * 30 + 15);
+      resources.memory = Math.floor(Math.random() * 40 + 25);
+      resources.disk = Math.floor(Math.random() * 30 + 40);
     }
   } catch (error) {
-    console.error('Failed to fetch data:', error)
+    console.error("Failed to fetch data:", error);
   } finally {
-    loading.value = false
+    loading.value = false;
   }
-}
+};
 
 const refreshData = () => {
-  notifications.info('Refreshing', 'Updating deployment statuses...')
+  notifications.info("Refreshing", "Updating deployment statuses...");
   fetchData().then(() => {
-    notifications.success('Updated', 'All statuses refreshed')
-  })
-}
+    notifications.success("Updated", "All statuses refreshed");
+  });
+};
 
 const startAllDeployments = async () => {
-  notifications.info('Starting', 'Starting all stopped deployments...')
+  notifications.info("Starting", "Starting all stopped deployments...");
   for (const deployment of deployments.value) {
-    if (deployment.status === 'stopped') {
+    if (deployment.status === "stopped") {
       try {
-        await deploymentsApi.start(deployment.name)
+        await deploymentsApi.start(deployment.name);
       } catch (e) {
-        console.error(`Failed to start ${deployment.name}`)
+        console.error(`Failed to start ${deployment.name}`);
       }
     }
   }
-  await fetchData()
-  notifications.success('Completed', 'All deployments started')
-}
+  await fetchData();
+  notifications.success("Completed", "All deployments started");
+};
 
 const stopAllDeployments = async () => {
-  notifications.info('Stopping', 'Stopping all running deployments...')
+  notifications.info("Stopping", "Stopping all running deployments...");
   for (const deployment of deployments.value) {
-    if (deployment.status === 'running') {
+    if (deployment.status === "running") {
       try {
-        await deploymentsApi.stop(deployment.name)
+        await deploymentsApi.stop(deployment.name);
       } catch (e) {
-        console.error(`Failed to stop ${deployment.name}`)
+        console.error(`Failed to stop ${deployment.name}`);
       }
     }
   }
-  await fetchData()
-  notifications.success('Completed', 'All deployments stopped')
-}
+  await fetchData();
+  notifications.success("Completed", "All deployments stopped");
+};
 
 const onDeploymentCreated = () => {
-  showNewDeployment.value = false
-  fetchData()
-  notifications.success('Created', 'Deployment created successfully')
-}
+  showNewDeployment.value = false;
+  fetchData();
+  notifications.success("Created", "Deployment created successfully");
+};
 
 onMounted(() => {
-  fetchData()
-})
+  fetchData();
+});
 </script>
 
 <style scoped>
@@ -440,7 +503,9 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 0.375rem;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
 }
 
 .welcome-actions .btn:hover {
@@ -462,7 +527,9 @@ onMounted(() => {
   align-items: center;
   gap: 1rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
   position: relative;
 }
 
@@ -678,7 +745,8 @@ onMounted(() => {
   background: linear-gradient(90deg, #ef4444, #dc2626);
 }
 
-.loading, .empty {
+.loading,
+.empty {
   text-align: center;
   padding: 2rem;
   color: #9ca3af;
@@ -688,7 +756,8 @@ onMounted(() => {
   gap: 0.5rem;
 }
 
-.loading i, .empty i {
+.loading i,
+.empty i {
   font-size: 1.5rem;
 }
 

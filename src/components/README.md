@@ -74,64 +74,64 @@ A generic, reusable table component with pagination, search, sorting, view toggl
 
 <script setup>
 const columns = [
-  { key: 'status', label: 'Status', width: '60px' },
-  { key: 'name', label: 'Name', sortable: true },
-  { key: 'image', label: 'Image', sortable: true },
-  { key: 'state', label: 'State' },
-  { key: 'created', label: 'Created', sortable: true },
-  { key: 'actions', label: 'Actions', width: '120px' }
-]
+  { key: "status", label: "Status", width: "60px" },
+  { key: "name", label: "Name", sortable: true },
+  { key: "image", label: "Image", sortable: true },
+  { key: "state", label: "State" },
+  { key: "created", label: "Created", sortable: true },
+  { key: "actions", label: "Actions", width: "120px" },
+];
 </script>
 ```
 
 ### Props
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `items` | `Array` | required | Array of data items |
-| `columns` | `Array<Column>` | required | Table column definitions |
-| `itemKey` | `String` | `'id'` | Property to use as unique key |
-| `loading` | `Boolean` | `false` | Show loading state |
-| `searchable` | `Boolean` | `true` | Enable search box |
-| `searchPlaceholder` | `String` | `'Search...'` | Search input placeholder |
-| `searchFields` | `Array<String>` | `[]` | Fields to search (supports nested: `'user.name'`) |
-| `selectable` | `Boolean` | `false` | Enable row selection |
-| `toggleable` | `Boolean` | `false` | Enable grid/table view toggle |
-| `emptyIcon` | `String` | `'pi pi-inbox'` | Icon for empty state |
-| `emptyTitle` | `String` | `'No items found'` | Title for empty state |
-| `emptyText` | `String` | `'...'` | Description for empty state |
-| `loadingText` | `String` | `'Loading...'` | Loading state text |
-| `defaultPageSize` | `Number` | `25` | Initial page size |
-| `defaultViewMode` | `'table' \| 'grid'` | `'table'` | Initial view mode |
+| Prop                | Type                | Default            | Description                                       |
+| ------------------- | ------------------- | ------------------ | ------------------------------------------------- |
+| `items`             | `Array`             | required           | Array of data items                               |
+| `columns`           | `Array<Column>`     | required           | Table column definitions                          |
+| `itemKey`           | `String`            | `'id'`             | Property to use as unique key                     |
+| `loading`           | `Boolean`           | `false`            | Show loading state                                |
+| `searchable`        | `Boolean`           | `true`             | Enable search box                                 |
+| `searchPlaceholder` | `String`            | `'Search...'`      | Search input placeholder                          |
+| `searchFields`      | `Array<String>`     | `[]`               | Fields to search (supports nested: `'user.name'`) |
+| `selectable`        | `Boolean`           | `false`            | Enable row selection                              |
+| `toggleable`        | `Boolean`           | `false`            | Enable grid/table view toggle                     |
+| `emptyIcon`         | `String`            | `'pi pi-inbox'`    | Icon for empty state                              |
+| `emptyTitle`        | `String`            | `'No items found'` | Title for empty state                             |
+| `emptyText`         | `String`            | `'...'`            | Description for empty state                       |
+| `loadingText`       | `String`            | `'Loading...'`     | Loading state text                                |
+| `defaultPageSize`   | `Number`            | `25`               | Initial page size                                 |
+| `defaultViewMode`   | `'table' \| 'grid'` | `'table'`          | Initial view mode                                 |
 
 ### Column Definition
 
 ```typescript
 interface Column {
-  key: string        // Data property key (supports nested: 'user.name')
-  label: string      // Column header text
-  width?: string     // Optional fixed width
-  sortable?: boolean // Enable sorting
+  key: string; // Data property key (supports nested: 'user.name')
+  label: string; // Column header text
+  width?: string; // Optional fixed width
+  sortable?: boolean; // Enable sorting
 }
 ```
 
 ### Slots
 
-| Slot | Props | Description |
-|------|-------|-------------|
-| `cell-{key}` | `{ item, value }` | Custom cell rendering |
-| `grid` | `{ items, selectedItems, toggleSelect }` | Grid view layout |
-| `bulk-actions` | `{ selectedItems, clearSelection }` | Bulk action buttons |
-| `filters` | - | Custom filter controls |
-| `actions` | - | Header action buttons |
-| `empty-action` | - | Empty state action button |
+| Slot           | Props                                    | Description               |
+| -------------- | ---------------------------------------- | ------------------------- |
+| `cell-{key}`   | `{ item, value }`                        | Custom cell rendering     |
+| `grid`         | `{ items, selectedItems, toggleSelect }` | Grid view layout          |
+| `bulk-actions` | `{ selectedItems, clearSelection }`      | Bulk action buttons       |
+| `filters`      | -                                        | Custom filter controls    |
+| `actions`      | -                                        | Header action buttons     |
+| `empty-action` | -                                        | Empty state action button |
 
 ### Events
 
-| Event | Payload | Description |
-|-------|---------|-------------|
+| Event             | Payload      | Description            |
+| ----------------- | ------------ | ---------------------- |
 | `update:selected` | `Array<any>` | Selected items changed |
-| `row-click` | `item` | Row was clicked |
+| `row-click`       | `item`       | Row was clicked        |
 
 ---
 
@@ -172,6 +172,7 @@ The design system provides CSS custom properties for consistent styling.
 ### Available Tokens
 
 #### Border Radius
+
 - `--radius-xs`: 2px
 - `--radius-sm`: 4px
 - `--radius-md`: 6px (buttons, inputs)
@@ -180,6 +181,7 @@ The design system provides CSS custom properties for consistent styling.
 - `--radius-full`: 9999px (pills, badges)
 
 #### Spacing Scale
+
 - `--space-1`: 0.25rem (4px)
 - `--space-2`: 0.5rem (8px)
 - `--space-3`: 0.75rem (12px)
@@ -189,6 +191,7 @@ The design system provides CSS custom properties for consistent styling.
 - `--space-8`: 2rem (32px)
 
 #### Typography
+
 - `--text-xs`: 0.6875rem (11px)
 - `--text-sm`: 0.75rem (12px)
 - `--text-base`: 0.8125rem (13px)
@@ -223,7 +226,9 @@ Use these classes from the design system:
 <input type="text" class="form-input" />
 
 <!-- Tables -->
-<table class="data-table">...</table>
+<table class="data-table">
+  ...
+</table>
 
 <!-- States -->
 <div class="empty-state">...</div>

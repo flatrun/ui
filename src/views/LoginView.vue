@@ -8,15 +8,15 @@
 
       <div class="features">
         <div class="feature">
-          <i class="pi pi-check-circle"></i>
+          <i class="pi pi-check-circle" />
           <span>Manage Docker deployments</span>
         </div>
         <div class="feature">
-          <i class="pi pi-check-circle"></i>
+          <i class="pi pi-check-circle" />
           <span>Monitor containers & resources</span>
         </div>
         <div class="feature">
-          <i class="pi pi-check-circle"></i>
+          <i class="pi pi-check-circle" />
           <span>Quick app deployment templates</span>
         </div>
       </div>
@@ -29,11 +29,14 @@
           <p>Enter your API key to access the dashboard</p>
         </div>
 
-        <form @submit.prevent="handleLogin" class="login-form">
+        <form
+          class="login-form"
+          @submit.prevent="handleLogin"
+        >
           <div class="form-group">
             <label for="apiKey">API Key</label>
             <div class="input-wrapper">
-              <i class="pi pi-key"></i>
+              <i class="pi pi-key" />
               <input
                 id="apiKey"
                 v-model="apiKey"
@@ -41,29 +44,39 @@
                 placeholder="Enter your API key"
                 :class="{ error: auth.error }"
                 autocomplete="current-password"
-              />
+              >
               <button
                 type="button"
                 class="toggle-visibility"
                 @click="showKey = !showKey"
               >
-                <i :class="showKey ? 'pi pi-eye-slash' : 'pi pi-eye'"></i>
+                <i :class="showKey ? 'pi pi-eye-slash' : 'pi pi-eye'" />
               </button>
             </div>
-            <span v-if="auth.error" class="error-text">
-              <i class="pi pi-exclamation-circle"></i>
+            <span
+              v-if="auth.error"
+              class="error-text"
+            >
+              <i class="pi pi-exclamation-circle" />
               {{ auth.error }}
             </span>
           </div>
 
-          <button type="submit" class="login-btn" :disabled="auth.loading || !apiKey">
-            <i v-if="auth.loading" class="pi pi-spin pi-spinner"></i>
+          <button
+            type="submit"
+            class="login-btn"
+            :disabled="auth.loading || !apiKey"
+          >
+            <i
+              v-if="auth.loading"
+              class="pi pi-spin pi-spinner"
+            />
             <span v-else>Sign In</span>
           </button>
         </form>
 
         <div class="help-text">
-          <i class="pi pi-info-circle"></i>
+          <i class="pi pi-info-circle" />
           <span>API keys are configured in the agent's config file</span>
         </div>
       </div>
@@ -72,21 +85,21 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { useAuthStore } from '@/stores/auth'
+import { ref } from "vue";
+import { useRouter } from "vue-router";
+import { useAuthStore } from "@/stores/auth";
 
-const router = useRouter()
-const auth = useAuthStore()
-const apiKey = ref('')
-const showKey = ref(false)
+const router = useRouter();
+const auth = useAuthStore();
+const apiKey = ref("");
+const showKey = ref(false);
 
 const handleLogin = async () => {
-  const success = await auth.login(apiKey.value)
+  const success = await auth.login(apiKey.value);
   if (success) {
-    router.push('/')
+    router.push("/");
   }
-}
+};
 </script>
 
 <style scoped>

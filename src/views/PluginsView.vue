@@ -7,7 +7,13 @@
       :loading="loading"
       :searchable="true"
       search-placeholder="Search apps..."
-      :search-fields="['display_name', 'name', 'description', 'category', 'author']"
+      :search-fields="[
+        'display_name',
+        'name',
+        'description',
+        'category',
+        'author',
+      ]"
       :toggleable="true"
       default-view-mode="grid"
       empty-icon="pi pi-th-large"
@@ -16,18 +22,31 @@
       loading-text="Loading apps..."
     >
       <template #actions>
-        <button class="btn btn-primary" @click="showInstallModal = true">
-          <i class="pi pi-plus"></i>
+        <button
+          class="btn btn-primary"
+          @click="showInstallModal = true"
+        >
+          <i class="pi pi-plus" />
           Install App
         </button>
-        <button class="btn btn-icon" @click="fetchPlugins" :disabled="loading">
-          <i class="pi pi-refresh" :class="{ 'pi-spin': loading }"></i>
+        <button
+          class="btn btn-icon"
+          :disabled="loading"
+          @click="fetchPlugins"
+        >
+          <i
+            class="pi pi-refresh"
+            :class="{ 'pi-spin': loading }"
+          />
         </button>
       </template>
 
       <template #empty-action>
-        <button class="btn btn-primary" @click="showInstallModal = true">
-          <i class="pi pi-plus"></i>
+        <button
+          class="btn btn-primary"
+          @click="showInstallModal = true"
+        >
+          <i class="pi pi-plus" />
           Install App
         </button>
       </template>
@@ -35,18 +54,25 @@
       <template #cell-display_name="{ item }">
         <div class="name-cell">
           <div class="plugin-icon-sm">
-            <i :class="getPluginIcon(item.category)"></i>
+            <i :class="getPluginIcon(item.category)" />
           </div>
           <div>
-            <div class="plugin-name">{{ item.display_name }}</div>
-            <div class="plugin-version">v{{ item.version }}</div>
+            <div class="plugin-name">
+              {{ item.display_name }}
+            </div>
+            <div class="plugin-version">
+              v{{ item.version }}
+            </div>
           </div>
         </div>
       </template>
 
       <template #cell-enabled="{ item }">
-        <span class="status-badge" :class="item.enabled ? 'enabled' : 'disabled'">
-          {{ item.enabled ? 'Enabled' : 'Disabled' }}
+        <span
+          class="status-badge"
+          :class="item.enabled ? 'enabled' : 'disabled'"
+        >
+          {{ item.enabled ? "Enabled" : "Disabled" }}
         </span>
       </template>
 
@@ -54,13 +80,19 @@
         {{ item.capabilities?.length || 0 }} capabilities
       </template>
 
-      <template #cell-actions="{ item }">
+      <template #cell-actions>
         <div class="table-actions">
-          <button class="btn-icon-xs" title="Configure">
-            <i class="pi pi-cog"></i>
+          <button
+            class="btn-icon-xs"
+            title="Configure"
+          >
+            <i class="pi pi-cog" />
           </button>
-          <button class="btn-icon-xs danger" title="Uninstall">
-            <i class="pi pi-trash"></i>
+          <button
+            class="btn-icon-xs danger"
+            title="Uninstall"
+          >
+            <i class="pi pi-trash" />
           </button>
         </div>
       </template>
@@ -74,21 +106,26 @@
           >
             <div class="plugin-header">
               <div class="plugin-icon">
-                <i :class="getPluginIcon(plugin.category)"></i>
+                <i :class="getPluginIcon(plugin.category)" />
               </div>
               <div class="plugin-meta">
                 <h4>{{ plugin.display_name }}</h4>
                 <span class="plugin-version">v{{ plugin.version }}</span>
               </div>
               <div class="plugin-status">
-                <span class="status-badge" :class="plugin.enabled ? 'enabled' : 'disabled'">
-                  {{ plugin.enabled ? 'Enabled' : 'Disabled' }}
+                <span
+                  class="status-badge"
+                  :class="plugin.enabled ? 'enabled' : 'disabled'"
+                >
+                  {{ plugin.enabled ? "Enabled" : "Disabled" }}
                 </span>
               </div>
             </div>
 
             <div class="plugin-body">
-              <p class="plugin-description">{{ plugin.description }}</p>
+              <p class="plugin-description">
+                {{ plugin.description }}
+              </p>
 
               <div class="plugin-info-grid">
                 <div class="info-item">
@@ -105,7 +142,10 @@
                 </div>
               </div>
 
-              <div v-if="plugin.capabilities?.length" class="capabilities-section">
+              <div
+                v-if="plugin.capabilities?.length"
+                class="capabilities-section"
+              >
                 <span class="section-label">Capabilities</span>
                 <div class="capabilities-list">
                   <span
@@ -118,7 +158,10 @@
                 </div>
               </div>
 
-              <div v-if="plugin.dashboard_extensions?.length" class="extensions-section">
+              <div
+                v-if="plugin.dashboard_extensions?.length"
+                class="extensions-section"
+              >
                 <span class="section-label">Dashboard Extensions</span>
                 <div class="extensions-list">
                   <div
@@ -126,14 +169,17 @@
                     :key="ext.location"
                     class="extension-item"
                   >
-                    <i class="pi pi-puzzle-piece"></i>
+                    <i class="pi pi-puzzle-piece" />
                     <span>{{ ext.component }}</span>
                     <span class="extension-location">@ {{ ext.location }}</span>
                   </div>
                 </div>
               </div>
 
-              <div v-if="plugin.api?.length" class="api-section">
+              <div
+                v-if="plugin.api?.length"
+                class="api-section"
+              >
                 <span class="section-label">API Endpoints ({{ plugin.api.length }})</span>
                 <div class="api-list">
                   <div
@@ -141,12 +187,18 @@
                     :key="endpoint.path"
                     class="api-item"
                   >
-                    <span class="api-method" :class="endpoint.method.toLowerCase()">
+                    <span
+                      class="api-method"
+                      :class="endpoint.method.toLowerCase()"
+                    >
                       {{ endpoint.method }}
                     </span>
                     <code>{{ endpoint.path }}</code>
                   </div>
-                  <div v-if="plugin.api.length > 3" class="api-more">
+                  <div
+                    v-if="plugin.api.length > 3"
+                    class="api-more"
+                  >
                     +{{ plugin.api.length - 3 }} more endpoints
                   </div>
                 </div>
@@ -155,11 +207,11 @@
 
             <div class="plugin-footer">
               <button class="btn btn-sm btn-secondary">
-                <i class="pi pi-cog"></i>
+                <i class="pi pi-cog" />
                 Configure
               </button>
               <button class="btn btn-sm btn-danger">
-                <i class="pi pi-trash"></i>
+                <i class="pi pi-trash" />
                 Uninstall
               </button>
             </div>
@@ -169,23 +221,38 @@
     </DataTable>
 
     <Teleport to="body">
-      <div v-if="showInstallModal" class="modal-overlay" @click.self="showInstallModal = false">
+      <div
+        v-if="showInstallModal"
+        class="modal-overlay"
+        @click.self="showInstallModal = false"
+      >
         <div class="modal-container">
           <div class="modal-header">
             <h3>
-              <i class="pi pi-download"></i>
+              <i class="pi pi-download" />
               Install App
             </h3>
-            <button class="close-btn" @click="showInstallModal = false">
-              <i class="pi pi-times"></i>
+            <button
+              class="close-btn"
+              @click="showInstallModal = false"
+            >
+              <i class="pi pi-times" />
             </button>
           </div>
           <div class="modal-body">
             <p>App installation from marketplace coming soon.</p>
-            <p class="hint">For now, manually place app folders in <code>.flatrun/plugins/</code></p>
+            <p class="hint">
+              For now, manually place app folders in
+              <code>.flatrun/plugins/</code>
+            </p>
           </div>
           <div class="modal-footer">
-            <button class="btn btn-secondary" @click="showInstallModal = false">Close</button>
+            <button
+              class="btn btn-secondary"
+              @click="showInstallModal = false"
+            >
+              Close
+            </button>
           </div>
         </div>
       </div>
@@ -194,45 +261,45 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { usePluginsStore } from '@/stores/plugins'
-import { storeToRefs } from 'pinia'
-import DataTable from '@/components/DataTable.vue'
+import { ref, onMounted } from "vue";
+import { usePluginsStore } from "@/stores/plugins";
+import { storeToRefs } from "pinia";
+import DataTable from "@/components/DataTable.vue";
 
-const pluginsStore = usePluginsStore()
-const { plugins, loading } = storeToRefs(pluginsStore)
-const { fetchPlugins } = pluginsStore
+const pluginsStore = usePluginsStore();
+const { plugins, loading } = storeToRefs(pluginsStore);
+const { fetchPlugins } = pluginsStore;
 
-const showInstallModal = ref(false)
+const showInstallModal = ref(false);
 
 const columns = [
-  { key: 'display_name', label: 'Name', sortable: true },
-  { key: 'enabled', label: 'Status', sortable: true },
-  { key: 'type', label: 'Type', sortable: true },
-  { key: 'category', label: 'Category', sortable: true },
-  { key: 'author', label: 'Author', sortable: true },
-  { key: 'capabilities', label: 'Capabilities' },
-  { key: 'actions', label: 'Actions', width: '100px' }
-]
+  { key: "display_name", label: "Name", sortable: true },
+  { key: "enabled", label: "Status", sortable: true },
+  { key: "type", label: "Type", sortable: true },
+  { key: "category", label: "Category", sortable: true },
+  { key: "author", label: "Author", sortable: true },
+  { key: "capabilities", label: "Capabilities" },
+  { key: "actions", label: "Actions", width: "100px" },
+];
 
 const getPluginIcon = (category: string) => {
   const icons: Record<string, string> = {
-    infrastructure: 'pi pi-server',
-    monitoring: 'pi pi-chart-line',
-    security: 'pi pi-shield',
-    database: 'pi pi-database',
-    web: 'pi pi-globe'
-  }
-  return icons[category] || 'pi pi-puzzle-piece'
-}
+    infrastructure: "pi pi-server",
+    monitoring: "pi pi-chart-line",
+    security: "pi pi-shield",
+    database: "pi pi-database",
+    web: "pi pi-globe",
+  };
+  return icons[category] || "pi pi-puzzle-piece";
+};
 
 const formatCapability = (cap: string) => {
-  return cap.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
-}
+  return cap.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
+};
 
 onMounted(() => {
-  fetchPlugins()
-})
+  fetchPlugins();
+});
 </script>
 
 <style scoped>
@@ -561,7 +628,7 @@ onMounted(() => {
 }
 
 .api-item code {
-  font-family: 'SF Mono', monospace;
+  font-family: "SF Mono", monospace;
   color: #6b7280;
 }
 

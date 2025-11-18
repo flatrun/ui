@@ -1,11 +1,16 @@
 <template>
-  <div class="plugin-widget" :class="[`size-${plugin.widget?.size || 'medium'}`]">
+  <div
+    class="plugin-widget"
+    :class="[`size-${plugin.widget?.size || 'medium'}`]"
+  >
     <div class="widget-header">
       <div class="widget-title">
-        <i :class="getPluginIcon(plugin.category)"></i>
+        <i :class="getPluginIcon(plugin.category)" />
         <span>{{ plugin.display_name }}</span>
       </div>
-      <div class="widget-version">v{{ plugin.version }}</div>
+      <div class="widget-version">
+        v{{ plugin.version }}
+      </div>
     </div>
 
     <div class="widget-body">
@@ -13,7 +18,10 @@
         {{ plugin.description }}
       </div>
 
-      <div v-if="plugin.capabilities?.length" class="widget-capabilities">
+      <div
+        v-if="plugin.capabilities?.length"
+        class="widget-capabilities"
+      >
         <span
           v-for="cap in plugin.capabilities"
           :key="cap"
@@ -24,14 +32,17 @@
       </div>
     </div>
 
-    <div v-if="plugin.widget?.actions?.length" class="widget-actions">
+    <div
+      v-if="plugin.widget?.actions?.length"
+      class="widget-actions"
+    >
       <button
         v-for="action in plugin.widget.actions"
         :key="action.name"
         class="widget-action-btn"
         @click="$emit('action', { plugin: plugin.name, action: action.name })"
       >
-        <i :class="'pi ' + action.icon"></i>
+        <i :class="'pi ' + action.icon" />
         {{ action.label }}
       </button>
     </div>
@@ -39,29 +50,29 @@
 </template>
 
 <script setup lang="ts">
-import type { Plugin } from '@/stores/plugins'
+import type { Plugin } from "@/stores/plugins";
 
 defineProps<{
-  plugin: Plugin
-}>()
+  plugin: Plugin;
+}>();
 
-defineEmits(['action'])
+defineEmits(["action"]);
 
 const getPluginIcon = (category: string) => {
   const icons: Record<string, string> = {
-    infrastructure: 'pi pi-server',
-    monitoring: 'pi pi-chart-line',
-    security: 'pi pi-shield',
-    database: 'pi pi-database',
-    web: 'pi pi-globe',
-    default: 'pi pi-puzzle-piece'
-  }
-  return icons[category] || icons.default
-}
+    infrastructure: "pi pi-server",
+    monitoring: "pi pi-chart-line",
+    security: "pi pi-shield",
+    database: "pi pi-database",
+    web: "pi pi-globe",
+    default: "pi pi-puzzle-piece",
+  };
+  return icons[category] || icons.default;
+};
 
 const formatCapability = (cap: string) => {
-  return cap.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
-}
+  return cap.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
+};
 </script>
 
 <style scoped>
