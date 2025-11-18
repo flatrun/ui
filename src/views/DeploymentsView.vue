@@ -1,191 +1,128 @@
 <template>
-  <div class="deployments-page">
-    <div class="page-toolbar">
-      <div class="toolbar-left">
+  <div class="deployments-view">
+    <DataTable
+      :items="deployments"
+      :columns="columns"
+      :loading="loading"
+      :searchable="true"
+      search-placeholder="Search deployments..."
+      :search-fields="['name', 'path', 'status']"
+      item-key="name"
+      empty-icon="pi pi-inbox"
+      empty-title="No Deployments Found"
+      empty-text="Create your first deployment to get started"
+      loading-text="Loading deployments..."
+      :default-page-size="12"
+      :toggleable="true"
+      default-view-mode="grid"
+    >
+      <template #actions>
         <button class="btn btn-primary" @click="showNewDeploymentModal = true">
           <i class="pi pi-plus"></i>
           New Deployment
         </button>
-        <button class="btn btn-outline" @click="refreshDeployments">
+        <button class="btn btn-secondary" @click="refreshDeployments" :disabled="loading">
           <i class="pi pi-refresh" :class="{ 'pi-spin': loading }"></i>
           Refresh
         </button>
-      </div>
-      <div class="toolbar-right">
-        <div class="search-box">
-          <i class="pi pi-search"></i>
-          <input
-            type="text"
-            v-model="searchQuery"
-            placeholder="Search deployments..."
-          />
+      </template>
+
+      <template #cell-status="{ item }">
+        <span class="status-indicator" :class="item.status"></span>
+      </template>
+
+      <template #cell-name="{ item }">
+        <div class="deployment-info">
+          <span class="deployment-name">{{ item.name }}</span>
+          <span class="deployment-status-text">{{ item.status }}</span>
         </div>
-        <div class="view-toggle">
+      </template>
+
+      <template #cell-path="{ item }">
+        <code class="path-tag">{{ item.path }}</code>
+      </template>
+
+      <template #cell-updated="{ item }">
+        <span class="updated-time">{{ formatDate(item.updated_at) }}</span>
+      </template>
+
+      <template #cell-actions="{ item }">
+        <div class="action-buttons">
           <button
-            :class="{ active: viewMode === 'grid' }"
-            @click="viewMode = 'grid'"
+            class="action-btn start"
+            @click.stop="handleOperation('start', item.name)"
+            title="Start"
           >
-            <i class="pi pi-th-large"></i>
+            <i class="pi pi-play"></i>
           </button>
           <button
-            :class="{ active: viewMode === 'table' }"
-            @click="viewMode = 'table'"
+            class="action-btn stop"
+            @click.stop="handleOperation('stop', item.name)"
+            title="Stop"
           >
-            <i class="pi pi-list"></i>
+            <i class="pi pi-stop"></i>
+          </button>
+          <button
+            class="action-btn restart"
+            @click.stop="handleOperation('restart', item.name)"
+            title="Restart"
+          >
+            <i class="pi pi-replay"></i>
+          </button>
+          <button
+            class="action-btn logs"
+            @click.stop="viewLogs(item.name)"
+            title="Logs"
+          >
+            <i class="pi pi-file-edit"></i>
           </button>
         </div>
-      </div>
-    </div>
+      </template>
 
-    <div v-if="loading && deployments.length === 0" class="loading-state">
-      <i class="pi pi-spin pi-spinner"></i>
-      <span>Loading deployments...</span>
-    </div>
-
-    <div v-else-if="error" class="error-state">
-      <i class="pi pi-exclamation-triangle"></i>
-      <h3>Failed to load deployments</h3>
-      <p>{{ error }}</p>
-      <button class="btn btn-primary" @click="refreshDeployments">Try Again</button>
-    </div>
-
-    <div v-else-if="filteredDeployments.length === 0" class="empty-state">
-      <i class="pi pi-inbox"></i>
-      <h3>No Deployments Found</h3>
-      <p v-if="searchQuery">No results for "{{ searchQuery }}"</p>
-      <p v-else>Create your first deployment to get started</p>
-    </div>
-
-    <template v-else>
-      <div v-if="viewMode === 'grid'" class="deployments-grid">
-        <div
-          v-for="deployment in paginatedDeployments"
-          :key="deployment.name"
-          class="deployment-card"
-          @click="goToDeployment(deployment.name)"
-        >
-          <div class="card-header">
-            <h3>{{ deployment.name }}</h3>
-            <span class="status-dot" :class="deployment.status"></span>
-          </div>
-          <div class="card-body">
-            <div class="info-item">
-              <span class="label">Status</span>
-              <span class="badge" :class="deployment.status">{{ deployment.status }}</span>
+      <template #grid="{ items }">
+        <div class="deployments-grid">
+          <div
+            v-for="deployment in items"
+            :key="deployment.name"
+            class="deployment-card"
+            @click="goToDeployment(deployment.name)"
+          >
+            <div class="card-header">
+              <h3>{{ deployment.name }}</h3>
+              <span class="status-dot" :class="deployment.status"></span>
             </div>
-            <div class="info-item">
-              <span class="label">Path</span>
-              <code>{{ deployment.path }}</code>
-            </div>
-            <div class="info-item">
-              <span class="label">Updated</span>
-              <span>{{ formatDate(deployment.updated_at) }}</span>
-            </div>
-          </div>
-          <div class="card-footer" @click.stop>
-            <button class="icon-btn success" @click="handleOperation('start', deployment.name)" title="Start">
-              <i class="pi pi-play"></i>
-            </button>
-            <button class="icon-btn danger" @click="handleOperation('stop', deployment.name)" title="Stop">
-              <i class="pi pi-stop"></i>
-            </button>
-            <button class="icon-btn primary" @click="handleOperation('restart', deployment.name)" title="Restart">
-              <i class="pi pi-refresh"></i>
-            </button>
-            <button class="icon-btn neutral" @click="viewLogs(deployment.name)" title="Logs">
-              <i class="pi pi-file"></i>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div v-else class="deployments-table">
-        <table>
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Status</th>
-              <th>Path</th>
-              <th>Updated</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr
-              v-for="deployment in paginatedDeployments"
-              :key="deployment.name"
-              @click="goToDeployment(deployment.name)"
-              class="clickable-row"
-            >
-              <td class="name-cell">
-                <span class="status-dot small" :class="deployment.status"></span>
-                {{ deployment.name }}
-              </td>
-              <td>
+            <div class="card-body">
+              <div class="info-item">
+                <span class="label">Status</span>
                 <span class="badge" :class="deployment.status">{{ deployment.status }}</span>
-              </td>
-              <td class="path-cell">
+              </div>
+              <div class="info-item">
+                <span class="label">Path</span>
                 <code>{{ deployment.path }}</code>
-              </td>
-              <td>{{ formatDate(deployment.updated_at) }}</td>
-              <td class="actions-cell" @click.stop>
-                <button class="icon-btn-sm success" @click="handleOperation('start', deployment.name)">
-                  <i class="pi pi-play"></i>
-                </button>
-                <button class="icon-btn-sm danger" @click="handleOperation('stop', deployment.name)">
-                  <i class="pi pi-stop"></i>
-                </button>
-                <button class="icon-btn-sm primary" @click="handleOperation('restart', deployment.name)">
-                  <i class="pi pi-refresh"></i>
-                </button>
-                <button class="icon-btn-sm neutral" @click="viewLogs(deployment.name)">
-                  <i class="pi pi-file"></i>
-                </button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <div class="pagination" v-if="totalPages > 1">
-        <button
-          class="page-btn"
-          :disabled="currentPage === 1"
-          @click="currentPage = 1"
-        >
-          <i class="pi pi-angle-double-left"></i>
-        </button>
-        <button
-          class="page-btn"
-          :disabled="currentPage === 1"
-          @click="currentPage--"
-        >
-          <i class="pi pi-angle-left"></i>
-        </button>
-        <span class="page-info">
-          Page {{ currentPage }} of {{ totalPages }}
-        </span>
-        <button
-          class="page-btn"
-          :disabled="currentPage === totalPages"
-          @click="currentPage++"
-        >
-          <i class="pi pi-angle-right"></i>
-        </button>
-        <button
-          class="page-btn"
-          :disabled="currentPage === totalPages"
-          @click="currentPage = totalPages"
-        >
-          <i class="pi pi-angle-double-right"></i>
-        </button>
-        <select v-model="pageSize" class="page-size-select">
-          <option :value="6">6 per page</option>
-          <option :value="12">12 per page</option>
-          <option :value="24">24 per page</option>
-        </select>
-      </div>
-    </template>
+              </div>
+              <div class="info-item">
+                <span class="label">Updated</span>
+                <span>{{ formatDate(deployment.updated_at) }}</span>
+              </div>
+            </div>
+            <div class="card-footer" @click.stop>
+              <button class="icon-btn start" @click="handleOperation('start', deployment.name)" title="Start">
+                <i class="pi pi-play"></i>
+              </button>
+              <button class="icon-btn stop" @click="handleOperation('stop', deployment.name)" title="Stop">
+                <i class="pi pi-stop"></i>
+              </button>
+              <button class="icon-btn restart" @click="handleOperation('restart', deployment.name)" title="Restart">
+                <i class="pi pi-replay"></i>
+              </button>
+              <button class="icon-btn logs" @click="viewLogs(deployment.name)" title="Logs">
+                <i class="pi pi-file-edit"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </template>
+    </DataTable>
 
     <OperationModal
       :visible="operationModal.visible"
@@ -213,11 +150,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { deploymentsApi } from '@/services/api'
 import { useNotificationsStore } from '@/stores/notifications'
 import type { Deployment } from '@/types'
+import DataTable from '@/components/DataTable.vue'
 import OperationModal from '@/components/OperationModal.vue'
 import LogsModal from '@/components/LogsModal.vue'
 import NewDeploymentModal from '@/components/NewDeploymentModal.vue'
@@ -226,11 +164,6 @@ const router = useRouter()
 const notifications = useNotificationsStore()
 const deployments = ref<Deployment[]>([])
 const loading = ref(true)
-const error = ref<string | null>(null)
-const viewMode = ref<'grid' | 'table'>('grid')
-const searchQuery = ref('')
-const currentPage = ref(1)
-const pageSize = ref(6)
 const showNewDeploymentModal = ref(false)
 
 const operationModal = ref({
@@ -248,34 +181,20 @@ const logsModal = ref({
   logs: ''
 })
 
-const filteredDeployments = computed(() => {
-  if (!searchQuery.value) return deployments.value
-  const query = searchQuery.value.toLowerCase()
-  return deployments.value.filter(d =>
-    d.name.toLowerCase().includes(query) ||
-    d.path.toLowerCase().includes(query) ||
-    d.status.toLowerCase().includes(query)
-  )
-})
-
-const totalPages = computed(() =>
-  Math.ceil(filteredDeployments.value.length / pageSize.value)
-)
-
-const paginatedDeployments = computed(() => {
-  const start = (currentPage.value - 1) * pageSize.value
-  return filteredDeployments.value.slice(start, start + pageSize.value)
-})
+const columns = [
+  { key: 'status', label: 'Status', width: '60px' },
+  { key: 'name', label: 'Deployment', sortable: true },
+  { key: 'path', label: 'Path', sortable: true },
+  { key: 'updated', label: 'Updated', sortable: true },
+  { key: 'actions', label: 'Actions', width: '140px' }
+]
 
 const fetchDeployments = async () => {
   loading.value = true
-  error.value = null
-
   try {
     const response = await deploymentsApi.list()
     deployments.value = response.data.deployments || []
   } catch (e: any) {
-    error.value = e.message || 'Failed to fetch deployments'
     notifications.error('Failed to load deployments', e.message)
   } finally {
     loading.value = false
@@ -307,7 +226,7 @@ const handleOperation = async (op: 'start' | 'stop' | 'restart', name: string) =
       response = await deploymentsApi.restart(name)
     }
 
-    operationModal.value.output = response.data.output || 'Operation completed'
+    operationModal.value.output = response?.data?.output || 'Operation completed'
     operationModal.value.isSuccess = true
     operationModal.value.isRunning = false
 
@@ -369,170 +288,92 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.deployments-page {
+.deployments-view {
   display: flex;
   flex-direction: column;
-  gap: var(--space-6);
-}
-
-.page-toolbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
   gap: var(--space-4);
 }
 
-.toolbar-left,
-.toolbar-right {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-}
-
-.btn {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  padding: 0.625rem var(--space-4);
-  border-radius: var(--radius-md);
-  font-weight: var(--font-medium);
-  font-size: var(--text-md);
-  cursor: pointer;
-  transition: all var(--transition-base);
-  border: none;
-}
-
-.btn-primary {
-  background: var(--color-primary-500);
-  color: white;
-}
-
-.btn-primary:hover {
-  background: var(--color-primary-600);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
-}
-
-.btn-outline {
-  background: white;
-  color: var(--color-gray-700);
-  border: 1px solid var(--color-gray-300);
-}
-
-.btn-outline:hover {
-  background: var(--color-gray-50);
-  border-color: var(--color-gray-400);
-}
-
-.search-box {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.search-box i {
-  position: absolute;
-  left: var(--space-3);
-  color: var(--color-gray-400);
-}
-
-.search-box input {
-  padding: 0.625rem var(--space-3) 0.625rem 2.25rem;
-  border: 1px solid var(--color-gray-300);
-  border-radius: var(--radius-md);
-  font-size: var(--text-md);
-  width: 240px;
-  transition: all var(--transition-base);
-}
-
-.search-box input:focus {
-  outline: none;
-  border-color: var(--color-primary-500);
-  box-shadow: 0 0 0 var(--ring-width) var(--ring-color);
-}
-
-.view-toggle {
-  display: flex;
-  background: var(--color-gray-100);
-  border-radius: var(--radius-md);
-  padding: var(--space-1);
-}
-
-.view-toggle button {
-  padding: var(--space-2) var(--space-3);
-  background: transparent;
-  border: none;
-  border-radius: var(--radius-md);
-  color: var(--color-gray-500);
-  cursor: pointer;
-  transition: all var(--transition-base);
-}
-
-.view-toggle button.active {
-  background: white;
-  color: var(--color-gray-900);
-  box-shadow: var(--shadow-sm);
-}
-
-.loading-state,
-.error-state,
-.empty-state {
+.deployment-info {
   display: flex;
   flex-direction: column;
+  gap: 0.125rem;
+}
+
+.deployment-name {
+  font-weight: var(--font-medium);
+  color: var(--color-gray-900);
+}
+
+.deployment-status-text {
+  font-size: var(--text-xs);
+  color: var(--color-gray-400);
+  text-transform: capitalize;
+}
+
+.path-tag {
+  font-size: var(--text-sm);
+  background: var(--color-gray-100);
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-sm);
+  color: var(--color-gray-600);
+}
+
+.updated-time {
+  font-size: var(--text-base);
+  color: var(--color-gray-500);
+}
+
+.action-buttons {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.action-btn {
+  width: 28px;
+  height: 28px;
+  display: flex;
   align-items: center;
   justify-content: center;
-  padding: var(--space-12) var(--space-8);
-  background: white;
-  border-radius: var(--radius-lg);
-  text-align: center;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition-base);
+  font-size: var(--text-base);
 }
 
-.loading-state i,
-.error-state i,
-.empty-state i {
-  font-size: 3rem;
-  margin-bottom: var(--space-4);
-  color: var(--color-gray-400);
-}
+.action-btn.start { background: var(--color-success-50); color: var(--color-success-700); }
+.action-btn.start:hover { background: var(--color-success-100); }
 
-.error-state i {
-  color: var(--color-danger-500);
-}
+.action-btn.stop { background: var(--color-warning-50); color: var(--color-warning-700); }
+.action-btn.stop:hover { background: var(--color-warning-100); }
 
-.loading-state span,
-.empty-state h3,
-.error-state h3 {
-  color: var(--color-gray-700);
-  font-weight: var(--font-semibold);
-}
+.action-btn.restart { background: var(--color-info-50); color: var(--color-info-700); }
+.action-btn.restart:hover { background: var(--color-info-100); }
 
-.empty-state p,
-.error-state p {
-  color: var(--color-gray-500);
-  margin-top: var(--space-2);
-}
+.action-btn.logs { background: var(--color-gray-100); color: var(--color-gray-600); }
+.action-btn.logs:hover { background: var(--color-gray-200); }
 
 .deployments-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
-  gap: var(--space-5);
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: var(--space-4);
 }
 
 .deployment-card {
   background: white;
   border-radius: var(--radius-lg);
   border: 1px solid var(--color-gray-200);
-  box-shadow: var(--shadow-sm);
-  transition: all var(--transition-base);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s;
   overflow: hidden;
   cursor: pointer;
 }
 
 .deployment-card:hover {
   transform: translateY(-2px);
-  box-shadow: var(--shadow-lg);
-  border-color: var(--color-primary-200);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+  border-color: var(--color-gray-300);
 }
 
 .deployment-card .card-header {
@@ -540,13 +381,15 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid var(--color-gray-100);
+  background: var(--color-gray-50);
+  border-bottom: 1px solid var(--color-gray-200);
 }
 
 .deployment-card h3 {
-  font-size: var(--text-xl);
-  font-weight: var(--font-semibold);
+  font-size: var(--text-lg);
+  font-weight: 600;
   color: var(--color-gray-900);
+  margin: 0;
 }
 
 .status-dot {
@@ -554,16 +397,11 @@ onMounted(() => {
   height: 10px;
   border-radius: var(--radius-full);
   background: var(--color-gray-500);
-}
-
-.status-dot.small {
-  width: 8px;
-  height: 8px;
+  flex-shrink: 0;
 }
 
 .status-dot.running {
   background: var(--color-success-500);
-  box-shadow: 0 0 8px rgba(34, 197, 94, 0.6);
 }
 
 .status-dot.stopped {
@@ -572,18 +410,19 @@ onMounted(() => {
 
 .status-dot.error {
   background: var(--color-danger-500);
-  box-shadow: 0 0 8px rgba(239, 68, 68, 0.6);
 }
 
 .card-body {
   padding: var(--space-4) var(--space-5);
+  background: white;
 }
 
 .info-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 0.625rem;
+  margin-bottom: var(--space-3);
+  padding: var(--space-1) 0;
 }
 
 .info-item:last-child {
@@ -591,8 +430,11 @@ onMounted(() => {
 }
 
 .info-item .label {
-  font-size: var(--text-base);
+  font-size: var(--text-xs);
+  font-weight: 500;
   color: var(--color-gray-500);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .info-item code {
@@ -600,8 +442,8 @@ onMounted(() => {
   background: var(--color-gray-100);
   padding: var(--space-1) var(--space-2);
   border-radius: var(--radius-sm);
-  font-family: 'SF Mono', monospace;
-  color: var(--color-gray-600);
+  font-family: var(--font-mono);
+  color: var(--color-gray-700);
   max-width: 180px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -609,12 +451,12 @@ onMounted(() => {
 }
 
 .badge {
-  padding: var(--space-1) 0.625rem;
+  padding: 3px 10px;
   border-radius: var(--radius-full);
-  font-size: var(--text-xs);
-  font-weight: var(--font-semibold);
+  font-size: 10px;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.03em;
 }
 
 .badge.running {
@@ -635,195 +477,93 @@ onMounted(() => {
 .card-footer {
   padding: var(--space-3) var(--space-5);
   background: var(--color-gray-50);
+  border-top: 1px solid var(--color-gray-200);
   display: flex;
   gap: var(--space-2);
 }
 
 .icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition-base);
+  font-size: var(--text-base);
+}
+
+.card-footer .icon-btn {
   flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   padding: var(--space-2);
-  border: none;
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  transition: all var(--transition-base);
-  font-size: var(--text-lg);
 }
 
-.icon-btn.success {
-  background: var(--color-success-50);
-  color: var(--color-success-600);
-}
+.icon-btn.start { background: var(--color-success-50); color: var(--color-success-700); }
+.icon-btn.start:hover { background: var(--color-success-100); }
 
-.icon-btn.success:hover {
-  background: var(--color-success-100);
-  transform: scale(1.05);
-}
+.icon-btn.stop { background: var(--color-warning-50); color: var(--color-warning-700); }
+.icon-btn.stop:hover { background: var(--color-warning-100); }
 
-.icon-btn.danger {
-  background: var(--color-danger-50);
-  color: var(--color-danger-600);
-}
+.icon-btn.restart { background: var(--color-info-50); color: var(--color-info-700); }
+.icon-btn.restart:hover { background: var(--color-info-100); }
 
-.icon-btn.danger:hover {
-  background: var(--color-danger-100);
-  transform: scale(1.05);
-}
+.icon-btn.logs { background: var(--color-gray-100); color: var(--color-gray-600); }
+.icon-btn.logs:hover { background: var(--color-gray-200); }
 
-.icon-btn.primary {
-  background: var(--color-info-50);
-  color: var(--color-primary-600);
-}
-
-.icon-btn.primary:hover {
-  background: var(--color-info-100);
-  transform: scale(1.05);
-}
-
-.icon-btn.neutral {
-  background: var(--color-gray-100);
-  color: var(--color-gray-600);
-}
-
-.icon-btn.neutral:hover {
-  background: var(--color-gray-200);
-  transform: scale(1.05);
-}
-
-.deployments-table {
-  background: white;
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  border: 1px solid var(--color-gray-200);
-  box-shadow: var(--shadow-sm);
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-th {
-  padding: var(--space-4) var(--space-5);
-  text-align: left;
-  font-size: var(--text-base);
-  font-weight: var(--font-semibold);
-  color: var(--color-gray-500);
-  background: var(--color-gray-50);
-  border-bottom: 1px solid var(--color-gray-200);
-}
-
-td {
-  padding: var(--space-4) var(--space-5);
-  font-size: var(--text-md);
-  color: var(--color-gray-700);
-  border-bottom: 1px solid var(--color-gray-100);
-}
-
-.clickable-row {
-  cursor: pointer;
-  transition: background var(--transition-base);
-}
-
-.clickable-row:hover td {
-  background: var(--color-gray-50);
-}
-
-.name-cell {
-  display: flex;
+.btn {
+  display: inline-flex;
   align-items: center;
-  gap: var(--space-3);
-  font-weight: var(--font-medium);
-}
-
-.path-cell code {
-  font-size: var(--text-sm);
-  background: var(--color-gray-100);
-  padding: var(--space-1) var(--space-2);
-  border-radius: var(--radius-sm);
-  font-family: 'SF Mono', monospace;
-}
-
-.actions-cell {
-  display: flex;
-  gap: 0.375rem;
-}
-
-.icon-btn-sm {
-  padding: 0.375rem;
-  border: none;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  transition: all var(--transition-base);
-  font-size: var(--text-base);
-}
-
-.icon-btn-sm.success {
-  background: var(--color-success-50);
-  color: var(--color-success-600);
-}
-
-.icon-btn-sm.danger {
-  background: var(--color-danger-50);
-  color: var(--color-danger-600);
-}
-
-.icon-btn-sm.primary {
-  background: var(--color-info-50);
-  color: var(--color-primary-600);
-}
-
-.icon-btn-sm.neutral {
-  background: var(--color-gray-100);
-  color: var(--color-gray-600);
-}
-
-.icon-btn-sm:hover {
-  transform: scale(1.1);
-}
-
-.pagination {
-  display: flex;
-  align-items: center;
-  justify-content: center;
   gap: var(--space-2);
-  margin-top: var(--space-4);
-}
-
-.page-btn {
-  padding: var(--space-2) var(--space-3);
-  background: white;
-  border: 1px solid var(--color-gray-300);
+  padding: var(--space-2) var(--space-4);
   border-radius: var(--radius-md);
+  font-weight: var(--font-medium);
+  font-size: var(--text-md);
   cursor: pointer;
   transition: all var(--transition-base);
+  border: none;
+}
+
+.btn-primary {
+  background: var(--color-primary-500);
+  color: white;
+}
+
+.btn-primary:hover {
+  background: var(--color-primary-600);
+}
+
+.btn-secondary {
+  background: white;
+  border: 1px solid var(--color-gray-200);
   color: var(--color-gray-700);
 }
 
-.page-btn:hover:not(:disabled) {
-  background: var(--color-gray-100);
+.btn-secondary:hover:not(:disabled) {
+  background: var(--color-gray-50);
 }
 
-.page-btn:disabled {
+.btn-secondary:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-.page-info {
-  padding: var(--space-2) var(--space-4);
-  color: var(--color-gray-500);
-  font-size: var(--text-md);
+.status-indicator {
+  width: 10px;
+  height: 10px;
+  border-radius: var(--radius-full);
+  background: var(--color-gray-500);
+  display: inline-block;
 }
 
-.page-size-select {
-  padding: var(--space-2);
-  border: 1px solid var(--color-gray-300);
-  border-radius: var(--radius-md);
-  font-size: var(--text-md);
-  color: var(--color-gray-700);
-  background: white;
-  margin-left: var(--space-4);
+.status-indicator.running {
+  background: var(--color-success-500);
+}
+
+.status-indicator.stopped {
+  background: var(--color-gray-400);
+}
+
+.status-indicator.error {
+  background: var(--color-danger-500);
 }
 </style>

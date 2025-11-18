@@ -431,35 +431,13 @@ const fetchDeployment = async () => {
       { key: 'API_PORT', value: '3000', hidden: false }
     ]
 
-    composeConfig.value = `version: '3.8'
-services:
-  web:
-    image: nginx:latest
-    ports:
-      - "80:80"
-      - "443:443"
-    depends_on:
-      - app
-
-  app:
-    image: node:18-alpine
-    ports:
-      - "3000:3000"
-    environment:
-      - NODE_ENV=production
-      - DATABASE_URL=postgres://user:pass@db:5432/app
-    depends_on:
-      - db
-
-  db:
-    image: postgres:15
-    ports:
-      - "5432:5432"
-    volumes:
-      - db_data:/var/lib/postgresql/data
-
-volumes:
-  db_data:`
+    try {
+      const composeResponse = await deploymentsApi.getComposeFile(route.params.name as string)
+      composeConfig.value = composeResponse.data.content || composeResponse.data || 'No compose file found'
+    } catch (composeErr) {
+      composeConfig.value = 'Error loading compose file'
+      console.error('Failed to load compose file:', composeErr)
+    }
 
     if (services.value.length > 0) {
       terminalService.value = services.value[0].name

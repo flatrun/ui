@@ -36,7 +36,8 @@ export const deploymentsApi = {
   start: (name: string) => apiClient.post(`/deployments/${name}/start`),
   stop: (name: string) => apiClient.post(`/deployments/${name}/stop`),
   restart: (name: string) => apiClient.post(`/deployments/${name}/restart`),
-  logs: (name: string) => apiClient.get(`/deployments/${name}/logs`)
+  logs: (name: string) => apiClient.get(`/deployments/${name}/logs`),
+  getComposeFile: (name: string) => apiClient.get(`/deployments/${name}/compose`)
 }
 
 export const networksApi = {
