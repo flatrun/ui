@@ -8,7 +8,7 @@
       search-placeholder="Search deployments..."
       :search-fields="['name', 'path', 'status']"
       item-key="name"
-      empty-icon="pi pi-inbox"
+      :empty-icon="Inbox"
       empty-title="No Deployments Found"
       empty-text="Create your first deployment to get started"
       loading-text="Loading deployments..."
@@ -17,18 +17,31 @@
       default-view-mode="grid"
     >
       <template #actions>
-        <button class="btn btn-primary" @click="showNewDeploymentModal = true">
-          <i class="pi pi-plus"></i>
+        <button
+          class="btn btn-primary"
+          @click="showNewDeploymentModal = true"
+        >
+          <Plus :size="16" />
           New Deployment
         </button>
-        <button class="btn btn-secondary" @click="refreshDeployments" :disabled="loading">
-          <i class="pi pi-refresh" :class="{ 'pi-spin': loading }"></i>
+        <button
+          class="btn btn-secondary"
+          :disabled="loading"
+          @click="refreshDeployments"
+        >
+          <RefreshCw
+            :size="16"
+            :class="{ spinning: loading }"
+          />
           Refresh
         </button>
       </template>
 
       <template #cell-status="{ item }">
-        <span class="status-indicator" :class="item.status"></span>
+        <span
+          class="status-indicator"
+          :class="item.status"
+        />
       </template>
 
       <template #cell-name="{ item }">
@@ -50,31 +63,31 @@
         <div class="action-buttons">
           <button
             class="action-btn start"
-            @click.stop="handleOperation('start', item.name)"
             title="Start"
+            @click.stop="handleOperation('start', item.name)"
           >
-            <i class="pi pi-play"></i>
+            <Play :size="14" />
           </button>
           <button
             class="action-btn stop"
-            @click.stop="handleOperation('stop', item.name)"
             title="Stop"
+            @click.stop="handleOperation('stop', item.name)"
           >
-            <i class="pi pi-stop"></i>
+            <Square :size="14" />
           </button>
           <button
             class="action-btn restart"
-            @click.stop="handleOperation('restart', item.name)"
             title="Restart"
+            @click.stop="handleOperation('restart', item.name)"
           >
-            <i class="pi pi-replay"></i>
+            <RotateCw :size="14" />
           </button>
           <button
             class="action-btn logs"
-            @click.stop="viewLogs(item.name)"
             title="Logs"
+            @click.stop="viewLogs(item.name)"
           >
-            <i class="pi pi-file-edit"></i>
+            <FileText :size="14" />
           </button>
         </div>
       </template>
@@ -89,12 +102,20 @@
           >
             <div class="card-header">
               <h3>{{ deployment.name }}</h3>
-              <span class="status-dot" :class="deployment.status"></span>
+              <span
+                class="status-dot"
+                :class="deployment.status"
+              />
             </div>
             <div class="card-body">
               <div class="info-item">
                 <span class="label">Status</span>
-                <span class="badge" :class="deployment.status">{{ deployment.status }}</span>
+                <span
+                  class="badge"
+                  :class="deployment.status"
+                >{{
+                  deployment.status
+                }}</span>
               </div>
               <div class="info-item">
                 <span class="label">Path</span>
@@ -105,18 +126,37 @@
                 <span>{{ formatDate(deployment.updated_at) }}</span>
               </div>
             </div>
-            <div class="card-footer" @click.stop>
-              <button class="icon-btn start" @click="handleOperation('start', deployment.name)" title="Start">
-                <i class="pi pi-play"></i>
+            <div
+              class="card-footer"
+              @click.stop
+            >
+              <button
+                class="icon-btn start"
+                title="Start"
+                @click="handleOperation('start', deployment.name)"
+              >
+                <Play :size="14" />
               </button>
-              <button class="icon-btn stop" @click="handleOperation('stop', deployment.name)" title="Stop">
-                <i class="pi pi-stop"></i>
+              <button
+                class="icon-btn stop"
+                title="Stop"
+                @click="handleOperation('stop', deployment.name)"
+              >
+                <Square :size="14" />
               </button>
-              <button class="icon-btn restart" @click="handleOperation('restart', deployment.name)" title="Restart">
-                <i class="pi pi-replay"></i>
+              <button
+                class="icon-btn restart"
+                title="Restart"
+                @click="handleOperation('restart', deployment.name)"
+              >
+                <RotateCw :size="14" />
               </button>
-              <button class="icon-btn logs" @click="viewLogs(deployment.name)" title="Logs">
-                <i class="pi pi-file-edit"></i>
+              <button
+                class="icon-btn logs"
+                title="Logs"
+                @click="viewLogs(deployment.name)"
+              >
+                <FileText :size="14" />
               </button>
             </div>
           </div>
@@ -150,141 +190,158 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { deploymentsApi } from '@/services/api'
-import { useNotificationsStore } from '@/stores/notifications'
-import type { Deployment } from '@/types'
-import DataTable from '@/components/DataTable.vue'
-import OperationModal from '@/components/OperationModal.vue'
-import LogsModal from '@/components/LogsModal.vue'
-import NewDeploymentModal from '@/components/NewDeploymentModal.vue'
+import { ref, onMounted } from "vue";
+import { useRouter } from "vue-router";
+import { deploymentsApi } from "@/services/api";
+import { useNotificationsStore } from "@/stores/notifications";
+import type { Deployment } from "@/types";
+import DataTable from "@/components/DataTable.vue";
+import OperationModal from "@/components/OperationModal.vue";
+import LogsModal from "@/components/LogsModal.vue";
+import NewDeploymentModal from "@/components/NewDeploymentModal.vue";
+import {
+  Plus,
+  RefreshCw,
+  Play,
+  Square,
+  RotateCw,
+  FileText,
+  Inbox,
+} from "lucide-vue-next";
 
-const router = useRouter()
-const notifications = useNotificationsStore()
-const deployments = ref<Deployment[]>([])
-const loading = ref(true)
-const showNewDeploymentModal = ref(false)
+const router = useRouter();
+const notifications = useNotificationsStore();
+const deployments = ref<Deployment[]>([]);
+const loading = ref(true);
+const showNewDeploymentModal = ref(false);
 
 const operationModal = ref({
   visible: false,
-  operation: 'start' as 'start' | 'stop' | 'restart',
-  deploymentName: '',
-  output: '',
+  operation: "start" as "start" | "stop" | "restart",
+  deploymentName: "",
+  output: "",
   isRunning: false,
-  isSuccess: null as boolean | null
-})
+  isSuccess: null as boolean | null,
+});
 
 const logsModal = ref({
   visible: false,
-  deploymentName: '',
-  logs: ''
-})
+  deploymentName: "",
+  logs: "",
+});
 
 const columns = [
-  { key: 'status', label: 'Status', width: '60px' },
-  { key: 'name', label: 'Deployment', sortable: true },
-  { key: 'path', label: 'Path', sortable: true },
-  { key: 'updated', label: 'Updated', sortable: true },
-  { key: 'actions', label: 'Actions', width: '140px' }
-]
+  { key: "status", label: "Status", width: "60px" },
+  { key: "name", label: "Deployment", sortable: true },
+  { key: "path", label: "Path", sortable: true },
+  { key: "updated", label: "Updated", sortable: true },
+  { key: "actions", label: "Actions", width: "140px" },
+];
 
 const fetchDeployments = async () => {
-  loading.value = true
+  loading.value = true;
   try {
-    const response = await deploymentsApi.list()
-    deployments.value = response.data.deployments || []
+    const response = await deploymentsApi.list();
+    deployments.value = response.data.deployments || [];
   } catch (e: any) {
-    notifications.error('Failed to load deployments', e.message)
+    notifications.error("Failed to load deployments", e.message);
   } finally {
-    loading.value = false
+    loading.value = false;
   }
-}
+};
 
 const refreshDeployments = () => {
-  fetchDeployments()
-  notifications.info('Refreshing', 'Fetching latest deployment status')
-}
+  fetchDeployments();
+  notifications.info("Refreshing", "Fetching latest deployment status");
+};
 
-const handleOperation = async (op: 'start' | 'stop' | 'restart', name: string) => {
+const handleOperation = async (
+  op: "start" | "stop" | "restart",
+  name: string,
+) => {
   operationModal.value = {
     visible: true,
     operation: op,
     deploymentName: name,
-    output: '',
+    output: "",
     isRunning: true,
-    isSuccess: null
-  }
+    isSuccess: null,
+  };
 
   try {
-    let response
-    if (op === 'start') {
-      response = await deploymentsApi.start(name)
-    } else if (op === 'stop') {
-      response = await deploymentsApi.stop(name)
+    let response;
+    if (op === "start") {
+      response = await deploymentsApi.start(name);
+    } else if (op === "stop") {
+      response = await deploymentsApi.stop(name);
     } else {
-      response = await deploymentsApi.restart(name)
+      response = await deploymentsApi.restart(name);
     }
 
-    operationModal.value.output = response?.data?.output || 'Operation completed'
-    operationModal.value.isSuccess = true
-    operationModal.value.isRunning = false
+    operationModal.value.output =
+      response?.data?.output || "Operation completed";
+    operationModal.value.isSuccess = true;
+    operationModal.value.isRunning = false;
 
-    notifications.success(`${op} successful`, `${name} ${op}ed successfully`)
-    await fetchDeployments()
+    notifications.success(`${op} successful`, `${name} ${op}ed successfully`);
+    await fetchDeployments();
   } catch (e: any) {
-    const errorMsg = e.response?.data?.output || e.response?.data?.error || e.message
-    operationModal.value.output = errorMsg
-    operationModal.value.isSuccess = false
-    operationModal.value.isRunning = false
+    const errorMsg =
+      e.response?.data?.output || e.response?.data?.error || e.message;
+    operationModal.value.output = errorMsg;
+    operationModal.value.isSuccess = false;
+    operationModal.value.isRunning = false;
 
-    notifications.error(`${op} failed`, errorMsg)
+    notifications.error(`${op} failed`, errorMsg);
   }
-}
+};
 
 const closeOperationModal = () => {
-  operationModal.value.visible = false
-}
+  operationModal.value.visible = false;
+};
 
 const viewLogs = async (name: string) => {
   logsModal.value = {
     visible: true,
     deploymentName: name,
-    logs: 'Loading...'
-  }
+    logs: "Loading...",
+  };
 
   try {
-    const response = await deploymentsApi.logs(name)
-    logsModal.value.logs = response.data.logs || 'No logs available'
+    const response = await deploymentsApi.logs(name);
+    logsModal.value.logs = response.data.logs || "No logs available";
   } catch (e: any) {
-    logsModal.value.logs = `Error: ${e.message}`
-    notifications.error('Failed to load logs', e.message)
+    logsModal.value.logs = `Error: ${e.message}`;
+    notifications.error("Failed to load logs", e.message);
   }
-}
+};
 
 const onDeploymentCreated = () => {
-  showNewDeploymentModal.value = false
-  fetchDeployments()
-  notifications.success('Deployment created', 'New deployment folder created successfully')
-}
+  showNewDeploymentModal.value = false;
+  fetchDeployments();
+  notifications.success(
+    "Deployment created",
+    "New deployment folder created successfully",
+  );
+};
 
 const goToDeployment = (name: string) => {
-  router.push(`/deployments/${name}`)
-}
+  router.push(`/deployments/${name}`);
+};
 
 const formatDate = (dateStr: string) => {
-  const date = new Date(dateStr)
-  return date.toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  })
-}
+  const date = new Date(dateStr);
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
 
 onMounted(() => {
-  fetchDeployments()
-})
+  fetchDeployments();
+});
 </script>
 
 <style scoped>
@@ -342,17 +399,37 @@ onMounted(() => {
   font-size: var(--text-base);
 }
 
-.action-btn.start { background: var(--color-success-50); color: var(--color-success-700); }
-.action-btn.start:hover { background: var(--color-success-100); }
+.action-btn.start {
+  background: var(--color-success-50);
+  color: var(--color-success-700);
+}
+.action-btn.start:hover {
+  background: var(--color-success-100);
+}
 
-.action-btn.stop { background: var(--color-warning-50); color: var(--color-warning-700); }
-.action-btn.stop:hover { background: var(--color-warning-100); }
+.action-btn.stop {
+  background: var(--color-warning-50);
+  color: var(--color-warning-700);
+}
+.action-btn.stop:hover {
+  background: var(--color-warning-100);
+}
 
-.action-btn.restart { background: var(--color-info-50); color: var(--color-info-700); }
-.action-btn.restart:hover { background: var(--color-info-100); }
+.action-btn.restart {
+  background: var(--color-info-50);
+  color: var(--color-info-700);
+}
+.action-btn.restart:hover {
+  background: var(--color-info-100);
+}
 
-.action-btn.logs { background: var(--color-gray-100); color: var(--color-gray-600); }
-.action-btn.logs:hover { background: var(--color-gray-200); }
+.action-btn.logs {
+  background: var(--color-gray-100);
+  color: var(--color-gray-600);
+}
+.action-btn.logs:hover {
+  background: var(--color-gray-200);
+}
 
 .deployments-grid {
   display: grid;
@@ -498,17 +575,37 @@ onMounted(() => {
   padding: var(--space-2);
 }
 
-.icon-btn.start { background: var(--color-success-50); color: var(--color-success-700); }
-.icon-btn.start:hover { background: var(--color-success-100); }
+.icon-btn.start {
+  background: var(--color-success-50);
+  color: var(--color-success-700);
+}
+.icon-btn.start:hover {
+  background: var(--color-success-100);
+}
 
-.icon-btn.stop { background: var(--color-warning-50); color: var(--color-warning-700); }
-.icon-btn.stop:hover { background: var(--color-warning-100); }
+.icon-btn.stop {
+  background: var(--color-warning-50);
+  color: var(--color-warning-700);
+}
+.icon-btn.stop:hover {
+  background: var(--color-warning-100);
+}
 
-.icon-btn.restart { background: var(--color-info-50); color: var(--color-info-700); }
-.icon-btn.restart:hover { background: var(--color-info-100); }
+.icon-btn.restart {
+  background: var(--color-info-50);
+  color: var(--color-info-700);
+}
+.icon-btn.restart:hover {
+  background: var(--color-info-100);
+}
 
-.icon-btn.logs { background: var(--color-gray-100); color: var(--color-gray-600); }
-.icon-btn.logs:hover { background: var(--color-gray-200); }
+.icon-btn.logs {
+  background: var(--color-gray-100);
+  color: var(--color-gray-600);
+}
+.icon-btn.logs:hover {
+  background: var(--color-gray-200);
+}
 
 .btn {
   display: inline-flex;
@@ -565,5 +662,18 @@ onMounted(() => {
 
 .status-indicator.error {
   background: var(--color-danger-500);
+}
+
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 </style>

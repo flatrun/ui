@@ -1,14 +1,21 @@
 <template>
   <Teleport to="body">
-    <div v-if="visible" class="modal-overlay" @click.self="handleClose">
+    <div
+      v-if="visible"
+      class="modal-overlay"
+      @click.self="handleClose"
+    >
       <div class="modal-container">
         <div class="modal-header">
           <h3>
-            <i class="pi pi-plus-circle"></i>
+            <i class="pi pi-plus-circle" />
             Create New Deployment
           </h3>
-          <button class="close-btn" @click="handleClose">
-            <i class="pi pi-times"></i>
+          <button
+            class="close-btn"
+            @click="handleClose"
+          >
+            <i class="pi pi-times" />
           </button>
         </div>
 
@@ -17,17 +24,28 @@
             <div class="left-column">
               <div class="templates-section">
                 <div class="section-header">
-                  <i class="pi pi-bolt"></i>
+                  <i class="pi pi-bolt" />
                   <h4>Quick Apps</h4>
-                  <span v-if="quickApps.length > 0" class="template-count">{{ quickApps.length }}</span>
+                  <span
+                    v-if="quickApps.length > 0"
+                    class="template-count"
+                  >{{
+                    quickApps.length
+                  }}</span>
                 </div>
 
-                <div v-if="loadingQuickApps" class="loading-state">
-                  <i class="pi pi-spin pi-spinner"></i>
+                <div
+                  v-if="loadingQuickApps"
+                  class="loading-state"
+                >
+                  <i class="pi pi-spin pi-spinner" />
                   <span>Loading quick apps...</span>
                 </div>
 
-                <div v-else-if="quickApps.length > 0" class="templates-list">
+                <div
+                  v-else-if="quickApps.length > 0"
+                  class="templates-list"
+                >
                   <button
                     v-for="app in quickApps"
                     :key="app.id"
@@ -35,8 +53,11 @@
                     :class="{ selected: selectedQuickApp === app.id }"
                     @click="selectQuickApp(app)"
                   >
-                    <div class="template-icon" :class="app.category">
-                      <i :class="app.icon || 'pi pi-box'"></i>
+                    <div
+                      class="template-icon"
+                      :class="app.category"
+                    >
+                      <i :class="app.icon || 'pi pi-box'" />
                     </div>
                     <div class="template-info">
                       <span class="template-name">{{ app.name }}</span>
@@ -45,19 +66,39 @@
                   </button>
                 </div>
 
-                <div v-else class="empty-state">
-                  <i class="pi pi-inbox"></i>
+                <div
+                  v-else
+                  class="empty-state"
+                >
+                  <i class="pi pi-inbox" />
                   <span>No quick apps found</span>
-                  <p class="empty-hint">Add apps to .flatrun/templates/</p>
+                  <p class="empty-hint">
+                    Add apps to .flatrun/templates/
+                  </p>
                 </div>
               </div>
 
               <div class="quick-templates">
                 <span class="label">Basic Starters:</span>
                 <div class="quick-btns">
-                  <button class="quick-btn" @click="useBasicTemplate('nginx')">Nginx</button>
-                  <button class="quick-btn" @click="useBasicTemplate('node')">Node.js</button>
-                  <button class="quick-btn" @click="useBasicTemplate('postgres')">PostgreSQL</button>
+                  <button
+                    class="quick-btn"
+                    @click="useBasicTemplate('nginx')"
+                  >
+                    Nginx
+                  </button>
+                  <button
+                    class="quick-btn"
+                    @click="useBasicTemplate('node')"
+                  >
+                    Node.js
+                  </button>
+                  <button
+                    class="quick-btn"
+                    @click="useBasicTemplate('postgres')"
+                  >
+                    PostgreSQL
+                  </button>
                 </div>
               </div>
             </div>
@@ -72,8 +113,13 @@
                     type="text"
                     placeholder="my-app"
                     :class="{ error: errors.name }"
-                  />
-                  <span v-if="errors.name" class="error-text">{{ errors.name }}</span>
+                  >
+                  <span
+                    v-if="errors.name"
+                    class="error-text"
+                  >{{
+                    errors.name
+                  }}</span>
                   <span class="hint">Lowercase letters, numbers, and hyphens only</span>
                 </div>
 
@@ -85,38 +131,65 @@
                     placeholder="Paste your docker-compose.yml content here..."
                     :class="{ error: errors.composeContent }"
                     rows="12"
-                  ></textarea>
-                  <span v-if="errors.composeContent" class="error-text">{{ errors.composeContent }}</span>
+                  />
+                  <span
+                    v-if="errors.composeContent"
+                    class="error-text"
+                  >{{
+                    errors.composeContent
+                  }}</span>
                 </div>
               </div>
 
               <div class="advanced-section">
-                <button class="advanced-toggle" @click="showAdvanced = !showAdvanced">
-                  <i :class="showAdvanced ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"></i>
+                <button
+                  class="advanced-toggle"
+                  @click="showAdvanced = !showAdvanced"
+                >
+                  <i
+                    :class="
+                      showAdvanced
+                        ? 'pi pi-chevron-down'
+                        : 'pi pi-chevron-right'
+                    "
+                  />
                   Advanced Options
                 </button>
 
-                <div v-if="showAdvanced" class="advanced-options">
+                <div
+                  v-if="showAdvanced"
+                  class="advanced-options"
+                >
                   <div class="form-group">
                     <label>Environment Variables</label>
                     <div class="env-vars">
-                      <div v-for="(env, index) in form.envVars" :key="index" class="env-row">
+                      <div
+                        v-for="(env, index) in form.envVars"
+                        :key="index"
+                        class="env-row"
+                      >
                         <input
                           v-model="env.key"
                           placeholder="KEY"
                           class="env-key"
-                        />
+                        >
                         <input
                           v-model="env.value"
                           placeholder="value"
                           class="env-value"
-                        />
-                        <button class="remove-btn" @click="removeEnvVar(index)">
-                          <i class="pi pi-times"></i>
+                        >
+                        <button
+                          class="remove-btn"
+                          @click="removeEnvVar(index)"
+                        >
+                          <i class="pi pi-times" />
                         </button>
                       </div>
-                      <button class="add-btn" @click="addEnvVar">
-                        <i class="pi pi-plus"></i>
+                      <button
+                        class="add-btn"
+                        @click="addEnvVar"
+                      >
+                        <i class="pi pi-plus" />
                         Add Variable
                       </button>
                     </div>
@@ -125,26 +198,36 @@
                   <div class="form-group">
                     <label>Port Mappings</label>
                     <div class="port-mappings">
-                      <div v-for="(port, index) in form.ports" :key="index" class="port-row">
+                      <div
+                        v-for="(port, index) in form.ports"
+                        :key="index"
+                        class="port-row"
+                      >
                         <input
                           v-model="port.host"
                           placeholder="Host"
                           type="number"
                           class="port-host"
-                        />
+                        >
                         <span class="port-separator">:</span>
                         <input
                           v-model="port.container"
                           placeholder="Container"
                           type="number"
                           class="port-container"
-                        />
-                        <button class="remove-btn" @click="removePort(index)">
-                          <i class="pi pi-times"></i>
+                        >
+                        <button
+                          class="remove-btn"
+                          @click="removePort(index)"
+                        >
+                          <i class="pi pi-times" />
                         </button>
                       </div>
-                      <button class="add-btn" @click="addPort">
-                        <i class="pi pi-plus"></i>
+                      <button
+                        class="add-btn"
+                        @click="addPort"
+                      >
+                        <i class="pi pi-plus" />
                         Add Port
                       </button>
                     </div>
@@ -153,24 +236,34 @@
                   <div class="form-group">
                     <label>Volume Mounts</label>
                     <div class="volume-mounts">
-                      <div v-for="(volume, index) in form.volumes" :key="index" class="volume-row">
+                      <div
+                        v-for="(volume, index) in form.volumes"
+                        :key="index"
+                        class="volume-row"
+                      >
                         <input
                           v-model="volume.host"
                           placeholder="Host path"
                           class="volume-host"
-                        />
+                        >
                         <span class="volume-separator">:</span>
                         <input
                           v-model="volume.container"
                           placeholder="Container path"
                           class="volume-container"
-                        />
-                        <button class="remove-btn" @click="removeVolume(index)">
-                          <i class="pi pi-times"></i>
+                        >
+                        <button
+                          class="remove-btn"
+                          @click="removeVolume(index)"
+                        >
+                          <i class="pi pi-times" />
                         </button>
                       </div>
-                      <button class="add-btn" @click="addVolume">
-                        <i class="pi pi-plus"></i>
+                      <button
+                        class="add-btn"
+                        @click="addVolume"
+                      >
+                        <i class="pi pi-plus" />
                         Add Volume
                       </button>
                     </div>
@@ -178,7 +271,10 @@
 
                   <div class="form-group">
                     <label class="checkbox-label">
-                      <input type="checkbox" v-model="form.autoStart" />
+                      <input
+                        v-model="form.autoStart"
+                        type="checkbox"
+                      >
                       <span>Start deployment after creation</span>
                     </label>
                   </div>
@@ -189,10 +285,22 @@
         </div>
 
         <div class="modal-footer">
-          <button class="btn btn-secondary" @click="handleClose">Cancel</button>
-          <button class="btn btn-primary" @click="handleCreate" :disabled="creating">
-            <i v-if="creating" class="pi pi-spin pi-spinner"></i>
-            {{ creating ? 'Creating...' : 'Create Deployment' }}
+          <button
+            class="btn btn-secondary"
+            @click="handleClose"
+          >
+            Cancel
+          </button>
+          <button
+            class="btn btn-primary"
+            :disabled="creating"
+            @click="handleCreate"
+          >
+            <i
+              v-if="creating"
+              class="pi pi-spin pi-spinner"
+            />
+            {{ creating ? "Creating..." : "Create Deployment" }}
           </button>
         </div>
       </div>
@@ -201,65 +309,68 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, watch } from 'vue'
-import { deploymentsApi, templatesApi } from '@/services/api'
-import { useNotificationsStore } from '@/stores/notifications'
+import { ref, reactive, watch } from "vue";
+import { deploymentsApi, templatesApi } from "@/services/api";
+import { useNotificationsStore } from "@/stores/notifications";
 
 interface QuickApp {
-  id: string
-  name: string
-  description: string
-  icon: string
-  category: string
-  content: string
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  category: string;
+  content: string;
 }
 
 const props = defineProps<{
-  visible: boolean
-}>()
+  visible: boolean;
+}>();
 
-const emit = defineEmits(['close', 'created'])
+const emit = defineEmits(["close", "created"]);
 
-const notifications = useNotificationsStore()
-const creating = ref(false)
-const loadingQuickApps = ref(false)
-const selectedQuickApp = ref('')
-const showAdvanced = ref(false)
-const quickApps = ref<QuickApp[]>([])
+const notifications = useNotificationsStore();
+const creating = ref(false);
+const loadingQuickApps = ref(false);
+const selectedQuickApp = ref("");
+const showAdvanced = ref(false);
+const quickApps = ref<QuickApp[]>([]);
 
 const form = reactive({
-  name: '',
-  composeContent: '',
+  name: "",
+  composeContent: "",
   envVars: [] as { key: string; value: string }[],
   ports: [] as { host: string; container: string }[],
   volumes: [] as { host: string; container: string }[],
-  autoStart: false
-})
+  autoStart: false,
+});
 
 const errors = reactive({
-  name: '',
-  composeContent: ''
-})
+  name: "",
+  composeContent: "",
+});
 
 const loadQuickApps = async () => {
-  loadingQuickApps.value = true
+  loadingQuickApps.value = true;
   try {
-    const response = await templatesApi.list()
-    quickApps.value = response.data.templates || []
+    const response = await templatesApi.list();
+    quickApps.value = response.data.templates || [];
   } catch {
-    quickApps.value = []
+    quickApps.value = [];
   } finally {
-    loadingQuickApps.value = false
+    loadingQuickApps.value = false;
   }
-}
+};
 
 const selectQuickApp = (app: QuickApp) => {
-  selectedQuickApp.value = app.id
-  form.composeContent = app.content.replace(/\$\{NAME\}/g, form.name || 'my-app')
+  selectedQuickApp.value = app.id;
+  form.composeContent = app.content.replace(
+    /\$\{NAME\}/g,
+    form.name || "my-app",
+  );
   if (!form.name) {
-    form.name = app.id
+    form.name = app.id;
   }
-}
+};
 
 const basicTemplates: Record<string, string> = {
   nginx: `services:
@@ -313,106 +424,112 @@ networks:
 networks:
   database:
     external: true
-`
-}
+`,
+};
 
 const useBasicTemplate = (name: string) => {
-  const template = basicTemplates[name]
+  const template = basicTemplates[name];
   if (template) {
-    selectedQuickApp.value = ''
-    form.composeContent = template.replace(/\$\{NAME\}/g, form.name || 'my-app')
+    selectedQuickApp.value = "";
+    form.composeContent = template.replace(
+      /\$\{NAME\}/g,
+      form.name || "my-app",
+    );
   }
-}
+};
 
 const addEnvVar = () => {
-  form.envVars.push({ key: '', value: '' })
-}
+  form.envVars.push({ key: "", value: "" });
+};
 
 const removeEnvVar = (index: number) => {
-  form.envVars.splice(index, 1)
-}
+  form.envVars.splice(index, 1);
+};
 
 const addPort = () => {
-  form.ports.push({ host: '', container: '' })
-}
+  form.ports.push({ host: "", container: "" });
+};
 
 const removePort = (index: number) => {
-  form.ports.splice(index, 1)
-}
+  form.ports.splice(index, 1);
+};
 
 const addVolume = () => {
-  form.volumes.push({ host: '', container: '' })
-}
+  form.volumes.push({ host: "", container: "" });
+};
 
 const removeVolume = (index: number) => {
-  form.volumes.splice(index, 1)
-}
+  form.volumes.splice(index, 1);
+};
 
-watch(() => props.visible, (val) => {
-  if (val) {
-    form.name = ''
-    form.composeContent = ''
-    form.envVars = []
-    form.ports = []
-    form.volumes = []
-    form.autoStart = false
-    errors.name = ''
-    errors.composeContent = ''
-    selectedQuickApp.value = ''
-    showAdvanced.value = false
-    loadQuickApps()
-  }
-})
+watch(
+  () => props.visible,
+  (val) => {
+    if (val) {
+      form.name = "";
+      form.composeContent = "";
+      form.envVars = [];
+      form.ports = [];
+      form.volumes = [];
+      form.autoStart = false;
+      errors.name = "";
+      errors.composeContent = "";
+      selectedQuickApp.value = "";
+      showAdvanced.value = false;
+      loadQuickApps();
+    }
+  },
+);
 
 const validate = () => {
-  errors.name = ''
-  errors.composeContent = ''
-  let valid = true
+  errors.name = "";
+  errors.composeContent = "";
+  let valid = true;
 
   if (!form.name.trim()) {
-    errors.name = 'Name is required'
-    valid = false
+    errors.name = "Name is required";
+    valid = false;
   } else if (!/^[a-z0-9-]+$/.test(form.name)) {
-    errors.name = 'Only lowercase letters, numbers, and hyphens allowed'
-    valid = false
+    errors.name = "Only lowercase letters, numbers, and hyphens allowed";
+    valid = false;
   }
 
   if (!form.composeContent.trim()) {
-    errors.composeContent = 'Compose configuration is required'
-    valid = false
+    errors.composeContent = "Compose configuration is required";
+    valid = false;
   }
 
-  return valid
-}
+  return valid;
+};
 
 const handleCreate = async () => {
-  if (!validate()) return
+  if (!validate()) return;
 
-  creating.value = true
+  creating.value = true;
 
   try {
     await deploymentsApi.create({
       name: form.name,
       compose_content: form.composeContent,
-      env_vars: form.envVars.filter(e => e.key),
-      ports: form.ports.filter(p => p.host && p.container),
-      volumes: form.volumes.filter(v => v.host && v.container),
-      auto_start: form.autoStart
-    })
-    emit('created')
+      env_vars: form.envVars.filter((e) => e.key),
+      ports: form.ports.filter((p) => p.host && p.container),
+      volumes: form.volumes.filter((v) => v.host && v.container),
+      auto_start: form.autoStart,
+    });
+    emit("created");
   } catch (e: any) {
-    const msg = e.response?.data?.error || e.message
-    notifications.error('Failed to create deployment', msg)
+    const msg = e.response?.data?.error || e.message;
+    notifications.error("Failed to create deployment", msg);
   } finally {
-    creating.value = false
+    creating.value = false;
   }
-}
+};
 
 const handleClose = () => {
   if (!creating.value) {
-    emit('close')
+    emit("close");
   }
-}
+};
 </script>
 
 <style scoped>

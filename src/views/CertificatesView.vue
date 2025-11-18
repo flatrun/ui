@@ -16,26 +16,39 @@
       loading-text="Loading certificates..."
     >
       <template #actions>
-        <button class="btn btn-icon" @click="fetchCertificates" :disabled="loading">
-          <i class="pi pi-refresh" :class="{ 'pi-spin': loading }"></i>
+        <button
+          class="btn btn-icon"
+          :disabled="loading"
+          @click="fetchCertificates"
+        >
+          <i
+            class="pi pi-refresh"
+            :class="{ 'pi-spin': loading }"
+          />
         </button>
       </template>
 
       <template #cell-domain="{ item }">
         <div class="domain-cell">
-          <i class="pi pi-lock"></i>
+          <i class="pi pi-lock" />
           {{ item.domain }}
         </div>
       </template>
 
       <template #cell-status="{ item }">
-        <span class="status-badge" :class="item.status">
+        <span
+          class="status-badge"
+          :class="item.status"
+        >
           {{ item.status }}
         </span>
       </template>
 
       <template #cell-days_left="{ item }">
-        <span class="days-left" :class="daysLeftClass(item.days_left)">
+        <span
+          class="days-left"
+          :class="daysLeftClass(item.days_left)"
+        >
           {{ item.days_left }} days
         </span>
       </template>
@@ -58,13 +71,16 @@
           >
             <div class="cert-header">
               <div class="cert-status">
-                <span class="status-badge" :class="cert.status">
-                  <i :class="statusIcon(cert.status)"></i>
+                <span
+                  class="status-badge"
+                  :class="cert.status"
+                >
+                  <i :class="statusIcon(cert.status)" />
                   {{ cert.status }}
                 </span>
               </div>
               <div class="cert-domain">
-                <i class="pi pi-lock"></i>
+                <i class="pi pi-lock" />
                 <span>{{ cert.domain }}</span>
               </div>
             </div>
@@ -77,24 +93,31 @@
                 </div>
                 <div class="info-item">
                   <span class="info-label">Days Left</span>
-                  <span class="info-value days-left" :class="daysLeftClass(cert.days_left)">
+                  <span
+                    class="info-value days-left"
+                    :class="daysLeftClass(cert.days_left)"
+                  >
                     {{ cert.days_left }} days
                   </span>
                 </div>
                 <div class="info-item">
                   <span class="info-label">Valid From</span>
-                  <span class="info-value">{{ formatDate(cert.not_before) }}</span>
+                  <span class="info-value">{{
+                    formatDate(cert.not_before)
+                  }}</span>
                 </div>
                 <div class="info-item">
                   <span class="info-label">Expires</span>
-                  <span class="info-value">{{ formatDate(cert.not_after) }}</span>
+                  <span class="info-value">{{
+                    formatDate(cert.not_after)
+                  }}</span>
                 </div>
               </div>
             </div>
 
             <div class="cert-footer">
               <div class="cert-path">
-                <i class="pi pi-folder"></i>
+                <i class="pi pi-folder" />
                 <span>{{ cert.path }}</span>
               </div>
             </div>
@@ -103,10 +126,13 @@
       </template>
     </DataTable>
 
-    <div v-if="certificates.length > 0" class="certificates-summary">
+    <div
+      v-if="certificates.length > 0"
+      class="certificates-summary"
+    >
       <div class="summary-card">
         <div class="summary-icon valid">
-          <i class="pi pi-check-circle"></i>
+          <i class="pi pi-check-circle" />
         </div>
         <div class="summary-info">
           <span class="summary-count">{{ validCount }}</span>
@@ -115,7 +141,7 @@
       </div>
       <div class="summary-card">
         <div class="summary-icon expiring">
-          <i class="pi pi-exclamation-circle"></i>
+          <i class="pi pi-exclamation-circle" />
         </div>
         <div class="summary-info">
           <span class="summary-count">{{ expiringCount }}</span>
@@ -124,7 +150,7 @@
       </div>
       <div class="summary-card">
         <div class="summary-icon expired">
-          <i class="pi pi-times-circle"></i>
+          <i class="pi pi-times-circle" />
         </div>
         <div class="summary-info">
           <span class="summary-count">{{ expiredCount }}</span>
@@ -136,73 +162,79 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { certificatesApi } from '@/services/api'
-import { useNotificationsStore } from '@/stores/notifications'
-import DataTable from '@/components/DataTable.vue'
-import type { Certificate } from '@/types'
+import { ref, computed, onMounted } from "vue";
+import { certificatesApi } from "@/services/api";
+import { useNotificationsStore } from "@/stores/notifications";
+import DataTable from "@/components/DataTable.vue";
+import type { Certificate } from "@/types";
 
-const notifications = useNotificationsStore()
-const certificates = ref<Certificate[]>([])
-const loading = ref(false)
+const notifications = useNotificationsStore();
+const certificates = ref<Certificate[]>([]);
+const loading = ref(false);
 
 const columns = [
-  { key: 'domain', label: 'Domain', sortable: true },
-  { key: 'status', label: 'Status', sortable: true },
-  { key: 'issuer', label: 'Issuer', sortable: true },
-  { key: 'days_left', label: 'Days Left', sortable: true },
-  { key: 'not_before', label: 'Valid From', sortable: true },
-  { key: 'not_after', label: 'Expires', sortable: true }
-]
+  { key: "domain", label: "Domain", sortable: true },
+  { key: "status", label: "Status", sortable: true },
+  { key: "issuer", label: "Issuer", sortable: true },
+  { key: "days_left", label: "Days Left", sortable: true },
+  { key: "not_before", label: "Valid From", sortable: true },
+  { key: "not_after", label: "Expires", sortable: true },
+];
 
-const validCount = computed(() => certificates.value.filter(c => c.status === 'valid').length)
-const expiringCount = computed(() => certificates.value.filter(c => c.status === 'expiring').length)
-const expiredCount = computed(() => certificates.value.filter(c => c.status === 'expired').length)
+const validCount = computed(
+  () => certificates.value.filter((c) => c.status === "valid").length,
+);
+const expiringCount = computed(
+  () => certificates.value.filter((c) => c.status === "expiring").length,
+);
+const expiredCount = computed(
+  () => certificates.value.filter((c) => c.status === "expired").length,
+);
 
 const fetchCertificates = async () => {
-  loading.value = true
+  loading.value = true;
 
   try {
-    const response = await certificatesApi.list()
-    certificates.value = response.data.certificates || []
+    const response = await certificatesApi.list();
+    certificates.value = response.data.certificates || [];
   } catch (e: any) {
-    notifications.error('Error', 'Failed to load certificates')
+    notifications.error("Error", "Failed to load certificates");
   } finally {
-    loading.value = false
+    loading.value = false;
   }
-}
+};
 
 const statusIcon = (status: string) => {
   switch (status) {
-    case 'valid':
-      return 'pi pi-check'
-    case 'expiring':
-      return 'pi pi-exclamation-triangle'
-    case 'expired':
-      return 'pi pi-times'
+    case "valid":
+      return "pi pi-check";
+    case "expiring":
+      return "pi pi-exclamation-triangle";
+    case "expired":
+      return "pi pi-times";
     default:
-      return 'pi pi-question'
+      return "pi pi-question";
   }
-}
+};
 
 const daysLeftClass = (days: number) => {
-  if (days <= 0) return 'critical'
-  if (days <= 30) return 'warning'
-  return 'good'
-}
+  if (days <= 0) return "critical";
+  if (days <= 30) return "warning";
+  return "good";
+};
 
 const formatDate = (dateString: string) => {
-  const date = new Date(dateString)
-  return date.toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric'
-  })
-}
+  const date = new Date(dateString);
+  return date.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+};
 
 onMounted(() => {
-  fetchCertificates()
-})
+  fetchCertificates();
+});
 </script>
 
 <style scoped>
@@ -386,7 +418,7 @@ onMounted(() => {
   gap: 0.5rem;
   font-size: 0.75rem;
   color: #6b7280;
-  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-family: "SF Mono", "Fira Code", monospace;
   word-break: break-all;
 }
 

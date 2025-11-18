@@ -16,24 +16,40 @@
       loading-text="Loading networks..."
     >
       <template #actions>
-        <button class="btn btn-primary" @click="showCreateModal = true">
-          <i class="pi pi-plus"></i>
+        <button
+          class="btn btn-primary"
+          @click="showCreateModal = true"
+        >
+          <i class="pi pi-plus" />
           Create Network
         </button>
-        <button class="btn btn-icon" @click="fetchNetworks" :disabled="loading">
-          <i class="pi pi-refresh" :class="{ 'pi-spin': loading }"></i>
+        <button
+          class="btn btn-icon"
+          :disabled="loading"
+          @click="fetchNetworks"
+        >
+          <i
+            class="pi pi-refresh"
+            :class="{ 'pi-spin': loading }"
+          />
         </button>
       </template>
 
       <template #empty-action>
-        <button class="btn btn-primary" @click="showCreateModal = true">
-          <i class="pi pi-plus"></i>
+        <button
+          class="btn btn-primary"
+          @click="showCreateModal = true"
+        >
+          <i class="pi pi-plus" />
           Create Network
         </button>
       </template>
 
       <template #cell-name="{ item }">
-        <span class="name-cell" :class="{ 'system-network': isSystemNetwork(item.name) }">
+        <span
+          class="name-cell"
+          :class="{ 'system-network': isSystemNetwork(item.name) }"
+        >
           {{ item.name }}
         </span>
       </template>
@@ -49,20 +65,20 @@
       <template #cell-actions="{ item }">
         <div class="table-actions">
           <button
-            class="btn-icon-xs"
-            @click="openConnectModal(item)"
-            title="Connect container"
             v-if="!isSystemNetwork(item.name)"
+            class="btn-icon-xs"
+            title="Connect container"
+            @click="openConnectModal(item)"
           >
-            <i class="pi pi-link"></i>
+            <i class="pi pi-link" />
           </button>
           <button
-            class="btn-icon-xs danger"
-            @click="confirmDelete(item)"
-            title="Delete"
             v-if="!isSystemNetwork(item.name)"
+            class="btn-icon-xs danger"
+            title="Delete"
+            @click="confirmDelete(item)"
           >
-            <i class="pi pi-trash"></i>
+            <i class="pi pi-trash" />
           </button>
         </div>
       </template>
@@ -80,13 +96,16 @@
                 <h4>{{ network.name }}</h4>
                 <span class="network-id">{{ network.id }}</span>
               </div>
-              <div class="network-actions" v-if="!isSystemNetwork(network.name)">
+              <div
+                v-if="!isSystemNetwork(network.name)"
+                class="network-actions"
+              >
                 <button
                   class="btn-icon-sm danger"
-                  @click="confirmDelete(network)"
                   title="Delete network"
+                  @click="confirmDelete(network)"
                 >
-                  <i class="pi pi-trash"></i>
+                  <i class="pi pi-trash" />
                 </button>
               </div>
             </div>
@@ -101,11 +120,17 @@
                   <span class="meta-label">Scope</span>
                   <span class="meta-value">{{ network.scope }}</span>
                 </div>
-                <div class="meta-item" v-if="network.subnet">
+                <div
+                  v-if="network.subnet"
+                  class="meta-item"
+                >
                   <span class="meta-label">Subnet</span>
                   <span class="meta-value">{{ network.subnet }}</span>
                 </div>
-                <div class="meta-item" v-if="network.gateway">
+                <div
+                  v-if="network.gateway"
+                  class="meta-item"
+                >
                   <span class="meta-label">Gateway</span>
                   <span class="meta-value">{{ network.gateway }}</span>
                 </div>
@@ -114,20 +139,23 @@
               <div class="containers-section">
                 <div class="containers-header">
                   <span class="containers-title">
-                    <i class="pi pi-box"></i>
+                    <i class="pi pi-box" />
                     Connected Containers ({{ network.containers?.length || 0 }})
                   </span>
                   <button
+                    v-if="!isSystemNetwork(network.name)"
                     class="btn-text"
                     @click="openConnectModal(network)"
-                    v-if="!isSystemNetwork(network.name)"
                   >
-                    <i class="pi pi-link"></i>
+                    <i class="pi pi-link" />
                     Connect
                   </button>
                 </div>
 
-                <div v-if="network.containers?.length > 0" class="containers-list">
+                <div
+                  v-if="network.containers?.length > 0"
+                  class="containers-list"
+                >
                   <div
                     v-for="container in network.containers"
                     :key="container.name"
@@ -138,16 +166,19 @@
                       <span class="container-ip">{{ container.ipv4 }}</span>
                     </div>
                     <button
-                      class="btn-icon-xs"
-                      @click="disconnectContainer(network.name, container.name)"
-                      title="Disconnect"
                       v-if="!isSystemNetwork(network.name)"
+                      class="btn-icon-xs"
+                      title="Disconnect"
+                      @click="disconnectContainer(network.name, container.name)"
                     >
-                      <i class="pi pi-times"></i>
+                      <i class="pi pi-times" />
                     </button>
                   </div>
                 </div>
-                <div v-else class="no-containers">
+                <div
+                  v-else
+                  class="no-containers"
+                >
                   No containers connected
                 </div>
               </div>
@@ -158,15 +189,22 @@
     </DataTable>
 
     <Teleport to="body">
-      <div v-if="showCreateModal" class="modal-overlay" @click.self="showCreateModal = false">
+      <div
+        v-if="showCreateModal"
+        class="modal-overlay"
+        @click.self="showCreateModal = false"
+      >
         <div class="modal-container">
           <div class="modal-header">
             <h3>
-              <i class="pi pi-plus-circle"></i>
+              <i class="pi pi-plus-circle" />
               Create Network
             </h3>
-            <button class="close-btn" @click="showCreateModal = false">
-              <i class="pi pi-times"></i>
+            <button
+              class="close-btn"
+              @click="showCreateModal = false"
+            >
+              <i class="pi pi-times" />
             </button>
           </div>
           <div class="modal-body">
@@ -177,24 +215,49 @@
                 type="text"
                 placeholder="my-network"
                 :class="{ error: createErrors.name }"
-              />
-              <span v-if="createErrors.name" class="error-text">{{ createErrors.name }}</span>
+              >
+              <span
+                v-if="createErrors.name"
+                class="error-text"
+              >{{
+                createErrors.name
+              }}</span>
             </div>
             <div class="form-group">
               <label>Driver</label>
               <select v-model="newNetwork.driver">
-                <option value="bridge">Bridge</option>
-                <option value="overlay">Overlay</option>
-                <option value="host">Host</option>
-                <option value="none">None</option>
+                <option value="bridge">
+                  Bridge
+                </option>
+                <option value="overlay">
+                  Overlay
+                </option>
+                <option value="host">
+                  Host
+                </option>
+                <option value="none">
+                  None
+                </option>
               </select>
             </div>
           </div>
           <div class="modal-footer">
-            <button class="btn btn-secondary" @click="showCreateModal = false">Cancel</button>
-            <button class="btn btn-primary" @click="createNetwork" :disabled="creating">
-              <i v-if="creating" class="pi pi-spin pi-spinner"></i>
-              {{ creating ? 'Creating...' : 'Create' }}
+            <button
+              class="btn btn-secondary"
+              @click="showCreateModal = false"
+            >
+              Cancel
+            </button>
+            <button
+              class="btn btn-primary"
+              :disabled="creating"
+              @click="createNetwork"
+            >
+              <i
+                v-if="creating"
+                class="pi pi-spin pi-spinner"
+              />
+              {{ creating ? "Creating..." : "Create" }}
             </button>
           </div>
         </div>
@@ -202,15 +265,22 @@
     </Teleport>
 
     <Teleport to="body">
-      <div v-if="showConnectModal" class="modal-overlay" @click.self="showConnectModal = false">
+      <div
+        v-if="showConnectModal"
+        class="modal-overlay"
+        @click.self="showConnectModal = false"
+      >
         <div class="modal-container">
           <div class="modal-header">
             <h3>
-              <i class="pi pi-link"></i>
+              <i class="pi pi-link" />
               Connect Container to {{ selectedNetwork?.name }}
             </h3>
-            <button class="close-btn" @click="showConnectModal = false">
-              <i class="pi pi-times"></i>
+            <button
+              class="close-btn"
+              @click="showConnectModal = false"
+            >
+              <i class="pi pi-times" />
             </button>
           </div>
           <div class="modal-body">
@@ -220,14 +290,26 @@
                 v-model="containerToConnect"
                 type="text"
                 placeholder="container-name"
-              />
+              >
             </div>
           </div>
           <div class="modal-footer">
-            <button class="btn btn-secondary" @click="showConnectModal = false">Cancel</button>
-            <button class="btn btn-primary" @click="connectContainer" :disabled="connecting">
-              <i v-if="connecting" class="pi pi-spin pi-spinner"></i>
-              {{ connecting ? 'Connecting...' : 'Connect' }}
+            <button
+              class="btn btn-secondary"
+              @click="showConnectModal = false"
+            >
+              Cancel
+            </button>
+            <button
+              class="btn btn-primary"
+              :disabled="connecting"
+              @click="connectContainer"
+            >
+              <i
+                v-if="connecting"
+                class="pi pi-spin pi-spinner"
+              />
+              {{ connecting ? "Connecting..." : "Connect" }}
             </button>
           </div>
         </div>
@@ -235,23 +317,47 @@
     </Teleport>
 
     <Teleport to="body">
-      <div v-if="showDeleteModal" class="modal-overlay" @click.self="showDeleteModal = false">
+      <div
+        v-if="showDeleteModal"
+        class="modal-overlay"
+        @click.self="showDeleteModal = false"
+      >
         <div class="modal-container modal-sm">
           <div class="modal-header">
             <h3>
-              <i class="pi pi-exclamation-triangle" style="color: #ef4444"></i>
+              <i
+                class="pi pi-exclamation-triangle"
+                style="color: #ef4444"
+              />
               Delete Network
             </h3>
           </div>
           <div class="modal-body">
-            <p>Are you sure you want to delete the network <strong>{{ networkToDelete?.name }}</strong>?</p>
-            <p class="warning-text">This action cannot be undone.</p>
+            <p>
+              Are you sure you want to delete the network
+              <strong>{{ networkToDelete?.name }}</strong>?
+            </p>
+            <p class="warning-text">
+              This action cannot be undone.
+            </p>
           </div>
           <div class="modal-footer">
-            <button class="btn btn-secondary" @click="showDeleteModal = false">Cancel</button>
-            <button class="btn btn-danger" @click="deleteNetwork" :disabled="deleting">
-              <i v-if="deleting" class="pi pi-spin pi-spinner"></i>
-              {{ deleting ? 'Deleting...' : 'Delete' }}
+            <button
+              class="btn btn-secondary"
+              @click="showDeleteModal = false"
+            >
+              Cancel
+            </button>
+            <button
+              class="btn btn-danger"
+              :disabled="deleting"
+              @click="deleteNetwork"
+            >
+              <i
+                v-if="deleting"
+                class="pi pi-spin pi-spinner"
+              />
+              {{ deleting ? "Deleting..." : "Delete" }}
             </button>
           </div>
         </div>
@@ -261,158 +367,173 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
-import { networksApi } from '@/services/api'
-import { useNotificationsStore } from '@/stores/notifications'
-import DataTable from '@/components/DataTable.vue'
-import type { Network } from '@/types'
+import { ref, reactive, onMounted } from "vue";
+import { networksApi } from "@/services/api";
+import { useNotificationsStore } from "@/stores/notifications";
+import DataTable from "@/components/DataTable.vue";
+import type { Network } from "@/types";
 
-const notifications = useNotificationsStore()
-const networks = ref<Network[]>([])
-const loading = ref(false)
+const notifications = useNotificationsStore();
+const networks = ref<Network[]>([]);
+const loading = ref(false);
 
 const columns = [
-  { key: 'name', label: 'Name', sortable: true },
-  { key: 'id', label: 'ID' },
-  { key: 'driver', label: 'Driver', sortable: true },
-  { key: 'scope', label: 'Scope', sortable: true },
-  { key: 'subnet', label: 'Subnet' },
-  { key: 'containers', label: 'Containers' },
-  { key: 'actions', label: 'Actions', width: '100px' }
-]
+  { key: "name", label: "Name", sortable: true },
+  { key: "id", label: "ID" },
+  { key: "driver", label: "Driver", sortable: true },
+  { key: "scope", label: "Scope", sortable: true },
+  { key: "subnet", label: "Subnet" },
+  { key: "containers", label: "Containers" },
+  { key: "actions", label: "Actions", width: "100px" },
+];
 
-const showCreateModal = ref(false)
-const showConnectModal = ref(false)
-const showDeleteModal = ref(false)
-const creating = ref(false)
-const connecting = ref(false)
-const deleting = ref(false)
+const showCreateModal = ref(false);
+const showConnectModal = ref(false);
+const showDeleteModal = ref(false);
+const creating = ref(false);
+const connecting = ref(false);
+const deleting = ref(false);
 
-const selectedNetwork = ref<Network | null>(null)
-const networkToDelete = ref<Network | null>(null)
-const containerToConnect = ref('')
+const selectedNetwork = ref<Network | null>(null);
+const networkToDelete = ref<Network | null>(null);
+const containerToConnect = ref("");
 
 const newNetwork = reactive({
-  name: '',
-  driver: 'bridge'
-})
+  name: "",
+  driver: "bridge",
+});
 
 const createErrors = reactive({
-  name: ''
-})
+  name: "",
+});
 
-const systemNetworks = ['bridge', 'host', 'none']
+const systemNetworks = ["bridge", "host", "none"];
 
-const isSystemNetwork = (name: string) => systemNetworks.includes(name)
+const isSystemNetwork = (name: string) => systemNetworks.includes(name);
 
 const fetchNetworks = async () => {
-  loading.value = true
+  loading.value = true;
 
   try {
-    const response = await networksApi.list()
-    networks.value = response.data.networks || []
+    const response = await networksApi.list();
+    networks.value = response.data.networks || [];
   } catch (e: any) {
-    notifications.error('Error', 'Failed to load networks')
+    notifications.error("Error", "Failed to load networks");
   } finally {
-    loading.value = false
+    loading.value = false;
   }
-}
+};
 
 const createNetwork = async () => {
-  createErrors.name = ''
+  createErrors.name = "";
 
   if (!newNetwork.name.trim()) {
-    createErrors.name = 'Network name is required'
-    return
+    createErrors.name = "Network name is required";
+    return;
   }
 
   if (!/^[a-zA-Z0-9][a-zA-Z0-9_.-]*$/.test(newNetwork.name)) {
-    createErrors.name = 'Invalid network name'
-    return
+    createErrors.name = "Invalid network name";
+    return;
   }
 
-  creating.value = true
+  creating.value = true;
 
   try {
     await networksApi.create({
       name: newNetwork.name,
-      driver: newNetwork.driver
-    })
-    notifications.success('Success', `Network ${newNetwork.name} created`)
-    showCreateModal.value = false
-    newNetwork.name = ''
-    newNetwork.driver = 'bridge'
-    await fetchNetworks()
+      driver: newNetwork.driver,
+    });
+    notifications.success("Success", `Network ${newNetwork.name} created`);
+    showCreateModal.value = false;
+    newNetwork.name = "";
+    newNetwork.driver = "bridge";
+    await fetchNetworks();
   } catch (e: any) {
-    const msg = e.response?.data?.error || e.message
-    notifications.error('Failed to create network', msg)
+    const msg = e.response?.data?.error || e.message;
+    notifications.error("Failed to create network", msg);
   } finally {
-    creating.value = false
+    creating.value = false;
   }
-}
+};
 
 const confirmDelete = (network: Network) => {
-  networkToDelete.value = network
-  showDeleteModal.value = true
-}
+  networkToDelete.value = network;
+  showDeleteModal.value = true;
+};
 
 const deleteNetwork = async () => {
-  if (!networkToDelete.value) return
+  if (!networkToDelete.value) return;
 
-  deleting.value = true
+  deleting.value = true;
 
   try {
-    await networksApi.delete(networkToDelete.value.name)
-    notifications.success('Success', `Network ${networkToDelete.value.name} deleted`)
-    showDeleteModal.value = false
-    networkToDelete.value = null
-    await fetchNetworks()
+    await networksApi.delete(networkToDelete.value.name);
+    notifications.success(
+      "Success",
+      `Network ${networkToDelete.value.name} deleted`,
+    );
+    showDeleteModal.value = false;
+    networkToDelete.value = null;
+    await fetchNetworks();
   } catch (e: any) {
-    const msg = e.response?.data?.error || e.message
-    notifications.error('Failed to delete network', msg)
+    const msg = e.response?.data?.error || e.message;
+    notifications.error("Failed to delete network", msg);
   } finally {
-    deleting.value = false
+    deleting.value = false;
   }
-}
+};
 
 const openConnectModal = (network: Network) => {
-  selectedNetwork.value = network
-  containerToConnect.value = ''
-  showConnectModal.value = true
-}
+  selectedNetwork.value = network;
+  containerToConnect.value = "";
+  showConnectModal.value = true;
+};
 
 const connectContainer = async () => {
-  if (!selectedNetwork.value || !containerToConnect.value.trim()) return
+  if (!selectedNetwork.value || !containerToConnect.value.trim()) return;
 
-  connecting.value = true
+  connecting.value = true;
 
   try {
-    await networksApi.connect(selectedNetwork.value.name, containerToConnect.value)
-    notifications.success('Success', `Container connected to ${selectedNetwork.value.name}`)
-    showConnectModal.value = false
-    await fetchNetworks()
+    await networksApi.connect(
+      selectedNetwork.value.name,
+      containerToConnect.value,
+    );
+    notifications.success(
+      "Success",
+      `Container connected to ${selectedNetwork.value.name}`,
+    );
+    showConnectModal.value = false;
+    await fetchNetworks();
   } catch (e: any) {
-    const msg = e.response?.data?.error || e.message
-    notifications.error('Failed to connect container', msg)
+    const msg = e.response?.data?.error || e.message;
+    notifications.error("Failed to connect container", msg);
   } finally {
-    connecting.value = false
+    connecting.value = false;
   }
-}
+};
 
-const disconnectContainer = async (networkName: string, containerName: string) => {
+const disconnectContainer = async (
+  networkName: string,
+  containerName: string,
+) => {
   try {
-    await networksApi.disconnect(networkName, containerName)
-    notifications.success('Success', `Container disconnected from ${networkName}`)
-    await fetchNetworks()
+    await networksApi.disconnect(networkName, containerName);
+    notifications.success(
+      "Success",
+      `Container disconnected from ${networkName}`,
+    );
+    await fetchNetworks();
   } catch (e: any) {
-    const msg = e.response?.data?.error || e.message
-    notifications.error('Failed to disconnect container', msg)
+    const msg = e.response?.data?.error || e.message;
+    notifications.error("Failed to disconnect container", msg);
   }
-}
+};
 
 onMounted(() => {
-  fetchNetworks()
-})
+  fetchNetworks();
+});
 </script>
 
 <style scoped>
@@ -557,7 +678,7 @@ onMounted(() => {
 }
 
 .id-cell {
-  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-family: "SF Mono", "Fira Code", monospace;
   font-size: 0.75rem;
   color: #9ca3af;
 }
@@ -604,7 +725,7 @@ onMounted(() => {
 .network-id {
   font-size: 0.75rem;
   color: #9ca3af;
-  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-family: "SF Mono", "Fira Code", monospace;
 }
 
 .network-body {
@@ -695,7 +816,7 @@ onMounted(() => {
 .container-ip {
   font-size: 0.6875rem;
   color: #6b7280;
-  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-family: "SF Mono", "Fira Code", monospace;
 }
 
 .no-containers {

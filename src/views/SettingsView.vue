@@ -2,21 +2,34 @@
   <div class="settings-view">
     <div class="view-header">
       <div class="header-actions">
-        <button class="btn btn-icon" @click="fetchSettings" :disabled="loading">
-          <i class="pi pi-refresh" :class="{ 'pi-spin': loading }"></i>
+        <button
+          class="btn btn-icon"
+          :disabled="loading"
+          @click="fetchSettings"
+        >
+          <i
+            class="pi pi-refresh"
+            :class="{ 'pi-spin': loading }"
+          />
         </button>
       </div>
     </div>
 
-    <div v-if="loading" class="loading-state">
-      <i class="pi pi-spin pi-spinner"></i>
+    <div
+      v-if="loading"
+      class="loading-state"
+    >
+      <i class="pi pi-spin pi-spinner" />
       <span>Loading settings...</span>
     </div>
 
-    <div v-else class="settings-content">
+    <div
+      v-else
+      class="settings-content"
+    >
       <div class="settings-section">
         <div class="section-header">
-          <i class="pi pi-cog"></i>
+          <i class="pi pi-cog" />
           <h3>Agent Configuration</h3>
         </div>
         <div class="section-body">
@@ -44,8 +57,11 @@
               <span class="setting-description">Cross-origin resource sharing</span>
             </div>
             <div class="setting-value">
-              <span class="status-badge" :class="settings.enable_cors ? 'enabled' : 'disabled'">
-                {{ settings.enable_cors ? 'Enabled' : 'Disabled' }}
+              <span
+                class="status-badge"
+                :class="settings.enable_cors ? 'enabled' : 'disabled'"
+              >
+                {{ settings.enable_cors ? "Enabled" : "Disabled" }}
               </span>
             </div>
           </div>
@@ -56,7 +72,10 @@
             </div>
             <div class="setting-value">
               <div class="origins-list">
-                <code v-for="origin in settings.allowed_origins" :key="origin">{{ origin }}</code>
+                <code
+                  v-for="origin in settings.allowed_origins"
+                  :key="origin"
+                >{{ origin }}</code>
               </div>
             </div>
           </div>
@@ -65,7 +84,7 @@
 
       <div class="settings-section">
         <div class="section-header">
-          <i class="pi pi-info-circle"></i>
+          <i class="pi pi-info-circle" />
           <h3>System Information</h3>
         </div>
         <div class="section-body">
@@ -98,21 +117,30 @@
 
       <div class="settings-section">
         <div class="section-header">
-          <i class="pi pi-database"></i>
+          <i class="pi pi-database" />
           <h3>Quick Actions</h3>
         </div>
         <div class="section-body">
           <div class="actions-grid">
-            <button class="action-card" @click="testConnection">
-              <i class="pi pi-check-circle"></i>
+            <button
+              class="action-card"
+              @click="testConnection"
+            >
+              <i class="pi pi-check-circle" />
               <span>Test Connection</span>
             </button>
-            <button class="action-card" @click="refreshData">
-              <i class="pi pi-sync"></i>
+            <button
+              class="action-card"
+              @click="refreshData"
+            >
+              <i class="pi pi-sync" />
               <span>Refresh All Data</span>
             </button>
-            <button class="action-card" @click="clearCache">
-              <i class="pi pi-trash"></i>
+            <button
+              class="action-card"
+              @click="clearCache"
+            >
+              <i class="pi pi-trash" />
               <span>Clear Cache</span>
             </button>
           </div>
@@ -121,15 +149,16 @@
 
       <div class="settings-section">
         <div class="section-header">
-          <i class="pi pi-file-edit"></i>
+          <i class="pi pi-file-edit" />
           <h3>Configuration File</h3>
         </div>
         <div class="section-body">
           <div class="config-note">
-            <i class="pi pi-info-circle"></i>
+            <i class="pi pi-info-circle" />
             <p>
-              To modify settings, edit the configuration file on your server and restart the agent.
-              The configuration file is typically located at <code>/etc/flatrun/config.yml</code> or passed via command line.
+              To modify settings, edit the configuration file on your server and
+              restart the agent. The configuration file is typically located at
+              <code>/etc/flatrun/config.yml</code> or passed via command line.
             </p>
           </div>
           <pre class="config-preview">{{ configYaml }}</pre>
@@ -140,21 +169,21 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue'
-import { settingsApi, healthApi } from '@/services/api'
-import { useNotificationsStore } from '@/stores/notifications'
+import { ref, reactive, computed, onMounted } from "vue";
+import { settingsApi, healthApi } from "@/services/api";
+import { useNotificationsStore } from "@/stores/notifications";
 
-const notifications = useNotificationsStore()
-const loading = ref(false)
+const notifications = useNotificationsStore();
+const loading = ref(false);
 
 const settings = reactive({
-  deployments_path: '',
+  deployments_path: "",
   api_port: 0,
   enable_cors: false,
-  allowed_origins: [] as string[]
-})
+  allowed_origins: [] as string[],
+});
 
-const uiVersion = '1.0.0'
+const uiVersion = "1.0.0";
 
 const configYaml = computed(() => {
   return `deployments_path: ${settings.deployments_path}
@@ -163,49 +192,49 @@ api:
   port: ${settings.api_port}
   enable_cors: ${settings.enable_cors}
   allowed_origins:
-${settings.allowed_origins.map(o => `    - ${o}`).join('\n')}
-`
-})
+${settings.allowed_origins.map((o) => `    - ${o}`).join("\n")}
+`;
+});
 
 const fetchSettings = async () => {
-  loading.value = true
+  loading.value = true;
 
   try {
-    const response = await settingsApi.get()
-    const data = response.data.settings
-    settings.deployments_path = data.deployments_path || ''
-    settings.api_port = data.api_port || 0
-    settings.enable_cors = data.enable_cors || false
-    settings.allowed_origins = data.allowed_origins || []
+    const response = await settingsApi.get();
+    const data = response.data.settings;
+    settings.deployments_path = data.deployments_path || "";
+    settings.api_port = data.api_port || 0;
+    settings.enable_cors = data.enable_cors || false;
+    settings.allowed_origins = data.allowed_origins || [];
   } catch (e: any) {
-    notifications.error('Error', 'Failed to load settings')
+    notifications.error("Error", "Failed to load settings");
   } finally {
-    loading.value = false
+    loading.value = false;
   }
-}
+};
 
 const testConnection = async () => {
   try {
-    await healthApi.check()
-    notifications.success('Connection OK', 'Agent is responding normally')
+    await healthApi.check();
+    notifications.success("Connection OK", "Agent is responding normally");
   } catch {
-    notifications.error('Connection Failed', 'Unable to reach the agent')
+    notifications.error("Connection Failed", "Unable to reach the agent");
   }
-}
+};
 
 const refreshData = () => {
-  notifications.info('Refreshing', 'Reloading all data...')
-  window.location.reload()
-}
+  notifications.info("Refreshing", "Reloading all data...");
+  window.location.reload();
+};
 
 const clearCache = () => {
-  localStorage.clear()
-  notifications.success('Cache Cleared', 'Local storage has been cleared')
-}
+  localStorage.clear();
+  notifications.success("Cache Cleared", "Local storage has been cleared");
+};
 
 onMounted(() => {
-  fetchSettings()
-})
+  fetchSettings();
+});
 </script>
 
 <style scoped>
@@ -337,7 +366,7 @@ onMounted(() => {
   background: #f3f4f6;
   padding: 0.25rem 0.5rem;
   border-radius: 4px;
-  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-family: "SF Mono", "Fira Code", monospace;
   font-size: 0.8125rem;
   color: #374151;
 }
@@ -371,7 +400,7 @@ onMounted(() => {
   background: #f3f4f6;
   padding: 0.25rem 0.5rem;
   border-radius: 4px;
-  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-family: "SF Mono", "Fira Code", monospace;
   font-size: 0.75rem;
   color: #374151;
 }
@@ -438,7 +467,7 @@ onMounted(() => {
   background: #dbeafe;
   padding: 0.125rem 0.375rem;
   border-radius: 4px;
-  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-family: "SF Mono", "Fira Code", monospace;
   font-size: 0.8125rem;
 }
 
@@ -447,7 +476,7 @@ onMounted(() => {
   color: #d1d5db;
   padding: 1.25rem;
   border-radius: 12px;
-  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-family: "SF Mono", "Fira Code", monospace;
   font-size: 0.8125rem;
   line-height: 1.6;
   overflow-x: auto;

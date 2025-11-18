@@ -9,7 +9,7 @@
       :search-fields="['name', 'image', 'id']"
       :selectable="true"
       item-key="id"
-      empty-icon="pi pi-box"
+      :empty-icon="Package"
       empty-title="No Containers Found"
       :empty-text="emptyText"
       loading-text="Loading containers..."
@@ -24,21 +24,36 @@
             :class="{ active: activeFilter === filter.value }"
             @click="activeFilter = filter.value"
           >
-            <span class="filter-count" :class="filter.value">{{ filter.count }}</span>
+            <span
+              class="filter-count"
+              :class="filter.value"
+            >{{
+              filter.count
+            }}</span>
             {{ filter.label }}
           </button>
         </div>
       </template>
 
       <template #actions>
-        <button class="btn btn-secondary" @click="fetchContainers" :disabled="loading">
-          <i class="pi pi-refresh" :class="{ 'pi-spin': loading }"></i>
+        <button
+          class="btn btn-secondary"
+          :disabled="loading"
+          @click="fetchContainers"
+        >
+          <RefreshCw
+            :size="16"
+            :class="{ spinning: loading }"
+          />
           Refresh
         </button>
       </template>
 
       <template #cell-status="{ item }">
-        <span class="status-indicator" :class="item.state"></span>
+        <span
+          class="status-indicator"
+          :class="item.state"
+        />
       </template>
 
       <template #cell-name="{ item }">
@@ -54,8 +69,17 @@
 
       <template #cell-ports="{ item }">
         <div class="ports-list">
-          <span v-for="port in item.ports" :key="port" class="port-badge">{{ port }}</span>
-          <span v-if="!item.ports?.length" class="no-ports">-</span>
+          <span
+            v-for="port in item.ports"
+            :key="port"
+            class="port-badge"
+          >{{
+            port
+          }}</span>
+          <span
+            v-if="!item.ports?.length"
+            class="no-ports"
+          >-</span>
         </div>
       </template>
 
@@ -68,66 +92,85 @@
           <button
             v-if="item.state === 'running'"
             class="action-btn stop"
-            @click.stop="stopContainer(item.id)"
             title="Stop"
+            @click.stop="stopContainer(item.id)"
           >
-            <i class="pi pi-stop"></i>
+            <Square :size="14" />
           </button>
           <button
             v-else
             class="action-btn start"
-            @click.stop="startContainer(item.id)"
             title="Start"
+            @click.stop="startContainer(item.id)"
           >
-            <i class="pi pi-play"></i>
+            <Play :size="14" />
           </button>
           <button
             class="action-btn restart"
-            @click.stop="restartContainer(item.id)"
             title="Restart"
+            @click.stop="restartContainer(item.id)"
           >
-            <i class="pi pi-replay"></i>
+            <RotateCw :size="14" />
           </button>
           <button
             class="action-btn logs"
-            @click.stop="showLogs(item.id)"
             title="Logs"
+            @click.stop="showLogs(item.id)"
           >
-            <i class="pi pi-file-edit"></i>
+            <FileText :size="14" />
           </button>
           <button
             class="action-btn delete"
-            @click.stop="deleteContainer(item.id)"
             title="Remove"
+            @click.stop="deleteContainer(item.id)"
           >
-            <i class="pi pi-trash"></i>
+            <Trash2 :size="14" />
           </button>
         </div>
       </template>
 
       <template #bulk-actions="{ selectedItems, clearSelection }">
-        <button class="btn btn-sm btn-secondary" @click="bulkStart(selectedItems, clearSelection)">
-          <i class="pi pi-play"></i> Start
+        <button
+          class="btn btn-sm btn-secondary"
+          @click="bulkStart(selectedItems, clearSelection)"
+        >
+          <Play :size="14" /> Start
         </button>
-        <button class="btn btn-sm btn-secondary" @click="bulkStop(selectedItems, clearSelection)">
-          <i class="pi pi-stop"></i> Stop
+        <button
+          class="btn btn-sm btn-secondary"
+          @click="bulkStop(selectedItems, clearSelection)"
+        >
+          <Square :size="14" /> Stop
         </button>
-        <button class="btn btn-sm btn-danger" @click="bulkRemove(selectedItems, clearSelection)">
-          <i class="pi pi-trash"></i> Remove
+        <button
+          class="btn btn-sm btn-danger"
+          @click="bulkRemove(selectedItems, clearSelection)"
+        >
+          <Trash2 :size="14" /> Remove
         </button>
       </template>
     </DataTable>
 
     <Teleport to="body">
-      <div v-if="showLogsModal" class="modal-overlay" @click.self="showLogsModal = false">
-        <div class="logs-modal modal-container" style="max-width: 1100px;">
+      <div
+        v-if="showLogsModal"
+        class="modal-overlay"
+        @click.self="showLogsModal = false"
+      >
+        <div
+          class="logs-modal modal-container"
+          style="max-width: 1100px"
+        >
           <div class="modal-header">
             <h3>
-              <i class="pi pi-file-edit"></i>
+              <FileText :size="20" />
               Container Logs
             </h3>
-            <button class="close-btn" @click="showLogsModal = false">
-              <i class="pi pi-times"></i>
+            <button
+              class="close-btn"
+              @click="showLogsModal = false"
+            >
+              <X :size="18" />
             </button>
           </div>
           <div class="logs-content">
@@ -140,124 +183,142 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { containersApi } from '@/services/api'
-import DataTable from '@/components/DataTable.vue'
+import { ref, computed, onMounted } from "vue";
+import { containersApi } from "@/services/api";
+import DataTable from "@/components/DataTable.vue";
+import {
+  RefreshCw,
+  Play,
+  Square,
+  RotateCw,
+  FileText,
+  Trash2,
+  X,
+  Package,
+} from "lucide-vue-next";
 
 interface Container {
-  id: string
-  name: string
-  image: string
-  state: string
-  status: string
-  ports: string[]
-  created: string
+  id: string;
+  name: string;
+  image: string;
+  state: string;
+  status: string;
+  ports: string[];
+  created: string;
 }
 
-const containers = ref<Container[]>([])
-const loading = ref(false)
-const activeFilter = ref('all')
-const showLogsModal = ref(false)
-const containerLogs = ref('')
+const containers = ref<Container[]>([]);
+const loading = ref(false);
+const activeFilter = ref("all");
+const showLogsModal = ref(false);
+const containerLogs = ref("");
 
 const columns = [
-  { key: 'status', label: 'Status', width: '60px' },
-  { key: 'name', label: 'Container', sortable: true },
-  { key: 'image', label: 'Image', sortable: true },
-  { key: 'ports', label: 'Ports' },
-  { key: 'created', label: 'Created', sortable: true },
-  { key: 'actions', label: 'Actions', width: '160px' }
-]
+  { key: "status", label: "Status", width: "60px" },
+  { key: "name", label: "Container", sortable: true },
+  { key: "image", label: "Image", sortable: true },
+  { key: "ports", label: "Ports" },
+  { key: "created", label: "Created", sortable: true },
+  { key: "actions", label: "Actions", width: "160px" },
+];
 
 const statusFilters = computed(() => [
-  { label: 'All', value: 'all', count: containers.value.length },
-  { label: 'Running', value: 'running', count: containers.value.filter(c => c.state === 'running').length },
-  { label: 'Stopped', value: 'exited', count: containers.value.filter(c => c.state === 'exited').length }
-])
+  { label: "All", value: "all", count: containers.value.length },
+  {
+    label: "Running",
+    value: "running",
+    count: containers.value.filter((c) => c.state === "running").length,
+  },
+  {
+    label: "Stopped",
+    value: "exited",
+    count: containers.value.filter((c) => c.state === "exited").length,
+  },
+]);
 
 const filteredContainers = computed(() => {
-  if (activeFilter.value === 'all') return containers.value
-  return containers.value.filter(c => c.state === activeFilter.value)
-})
+  if (activeFilter.value === "all") return containers.value;
+  return containers.value.filter((c) => c.state === activeFilter.value);
+});
 
 const emptyText = computed(() => {
-  if (activeFilter.value !== 'all') {
-    return 'Try adjusting your filters.'
+  if (activeFilter.value !== "all") {
+    return "Try adjusting your filters.";
   }
-  return 'No Docker containers are currently running.'
-})
+  return "No Docker containers are currently running.";
+});
 
 const fetchContainers = async () => {
-  loading.value = true
+  loading.value = true;
   try {
-    const response = await containersApi.list()
-    containers.value = response.data.containers || []
+    const response = await containersApi.list();
+    containers.value = response.data.containers || [];
   } catch (error) {
-    console.error('Failed to fetch containers:', error)
+    console.error("Failed to fetch containers:", error);
   } finally {
-    loading.value = false
+    loading.value = false;
   }
-}
+};
 
 const formatTime = (timestamp: string) => {
-  const date = new Date(timestamp)
-  const now = new Date()
-  const diff = now.getTime() - date.getTime()
-  const days = Math.floor(diff / (1000 * 60 * 60 * 24))
+  const date = new Date(timestamp);
+  const now = new Date();
+  const diff = now.getTime() - date.getTime();
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
 
-  if (days === 0) return 'Today'
-  if (days === 1) return 'Yesterday'
-  if (days < 7) return `${days} days ago`
-  return date.toLocaleDateString()
-}
+  if (days === 0) return "Today";
+  if (days === 1) return "Yesterday";
+  if (days < 7) return `${days} days ago`;
+  return date.toLocaleDateString();
+};
 
 const startContainer = async (id: string) => {
-  await containersApi.start(id)
-  await fetchContainers()
-}
+  await containersApi.start(id);
+  await fetchContainers();
+};
 
 const stopContainer = async (id: string) => {
-  await containersApi.stop(id)
-  await fetchContainers()
-}
+  await containersApi.stop(id);
+  await fetchContainers();
+};
 
 const restartContainer = async (id: string) => {
-  await containersApi.restart(id)
-  await fetchContainers()
-}
+  await containersApi.restart(id);
+  await fetchContainers();
+};
 
 const deleteContainer = async (id: string) => {
-  if (!confirm('Remove this container?')) return
-  await containersApi.remove(id)
-  await fetchContainers()
-}
+  if (!confirm("Remove this container?")) return;
+  await containersApi.remove(id);
+  await fetchContainers();
+};
 
 const showLogs = async (id: string) => {
-  const response = await containersApi.logs(id)
-  containerLogs.value = response.data.logs || 'No logs available'
-  showLogsModal.value = true
-}
+  const response = await containersApi.logs(id);
+  containerLogs.value = response.data.logs || "No logs available";
+  showLogsModal.value = true;
+};
 
 const bulkStart = async (ids: string[], clear: () => void) => {
-  for (const id of ids) await startContainer(id)
-  clear()
-}
+  for (const id of ids) await startContainer(id);
+  clear();
+};
 
 const bulkStop = async (ids: string[], clear: () => void) => {
-  for (const id of ids) await stopContainer(id)
-  clear()
-}
+  for (const id of ids) await stopContainer(id);
+  clear();
+};
 
 const bulkRemove = async (ids: string[], clear: () => void) => {
-  if (!confirm(`Remove ${ids.length} containers?`)) return
-  for (const id of ids) await containersApi.remove(id)
-  clear()
-  await fetchContainers()
-}
+  if (!confirm(`Remove ${ids.length} containers?`)) return;
+  for (const id of ids) await containersApi.remove(id);
+  clear();
+  await fetchContainers();
+};
 
 onMounted(() => {
-  fetchContainers()
-})
+  fetchContainers();
+});
 </script>
 
 <style scoped>
@@ -302,9 +363,18 @@ onMounted(() => {
   font-weight: var(--font-semibold);
 }
 
-.filter-count.all { background: var(--color-gray-200); color: var(--color-gray-700); }
-.filter-count.running { background: var(--color-success-50); color: var(--color-success-700); }
-.filter-count.exited { background: var(--color-danger-50); color: var(--color-danger-700); }
+.filter-count.all {
+  background: var(--color-gray-200);
+  color: var(--color-gray-700);
+}
+.filter-count.running {
+  background: var(--color-success-50);
+  color: var(--color-success-700);
+}
+.filter-count.exited {
+  background: var(--color-danger-50);
+  color: var(--color-danger-700);
+}
 
 .container-info {
   display: flex;
@@ -373,20 +443,45 @@ onMounted(() => {
   font-size: var(--text-base);
 }
 
-.action-btn.start { background: var(--color-success-50); color: var(--color-success-700); }
-.action-btn.start:hover { background: var(--color-success-100); }
+.action-btn.start {
+  background: var(--color-success-50);
+  color: var(--color-success-700);
+}
+.action-btn.start:hover {
+  background: var(--color-success-100);
+}
 
-.action-btn.stop { background: var(--color-warning-50); color: var(--color-warning-700); }
-.action-btn.stop:hover { background: var(--color-warning-100); }
+.action-btn.stop {
+  background: var(--color-warning-50);
+  color: var(--color-warning-700);
+}
+.action-btn.stop:hover {
+  background: var(--color-warning-100);
+}
 
-.action-btn.restart { background: var(--color-info-50); color: var(--color-info-700); }
-.action-btn.restart:hover { background: var(--color-info-100); }
+.action-btn.restart {
+  background: var(--color-info-50);
+  color: var(--color-info-700);
+}
+.action-btn.restart:hover {
+  background: var(--color-info-100);
+}
 
-.action-btn.logs { background: var(--color-gray-100); color: var(--color-gray-600); }
-.action-btn.logs:hover { background: var(--color-gray-200); }
+.action-btn.logs {
+  background: var(--color-gray-100);
+  color: var(--color-gray-600);
+}
+.action-btn.logs:hover {
+  background: var(--color-gray-200);
+}
 
-.action-btn.delete { background: var(--color-danger-50); color: var(--color-danger-600); }
-.action-btn.delete:hover { background: var(--color-danger-100); }
+.action-btn.delete {
+  background: var(--color-danger-50);
+  color: var(--color-danger-600);
+}
+.action-btn.delete:hover {
+  background: var(--color-danger-100);
+}
 
 .logs-content {
   padding: 0;
@@ -462,5 +557,18 @@ onMounted(() => {
 
 .btn-danger:hover {
   background: var(--color-danger-100);
+}
+
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 </style>

@@ -8,18 +8,27 @@
   >
     <template #header>
       <div class="header-info">
-        <span class="operation-badge" :class="operation">{{ operation }}</span>
+        <span
+          class="operation-badge"
+          :class="operation"
+        >{{ operation }}</span>
         <h3>{{ title }}</h3>
       </div>
     </template>
 
     <div class="status-section">
-      <div class="status-indicator" :class="statusClass">
-        <i :class="statusIcon"></i>
+      <div
+        class="status-indicator"
+        :class="statusClass"
+      >
+        <i :class="statusIcon" />
       </div>
       <div class="status-text">
         <span class="status-label">{{ statusLabel }}</span>
-        <span class="status-time" v-if="startTime">
+        <span
+          v-if="startTime"
+          class="status-time"
+        >
           {{ elapsedTime }}
         </span>
       </div>
@@ -28,16 +37,29 @@
     <div class="output-section">
       <div class="output-header">
         <span>Output</span>
-        <button class="copy-btn" @click="copyOutput" v-if="output">
-          <i class="pi pi-copy"></i>
+        <button
+          v-if="output"
+          class="copy-btn"
+          @click="copyOutput"
+        >
+          <i class="pi pi-copy" />
           Copy
         </button>
       </div>
-      <pre class="output-content" ref="outputRef">{{ output || 'Waiting for output...' }}</pre>
+      <pre
+        ref="outputRef"
+        class="output-content"
+      >{{
+        output || "Waiting for output..."
+      }}</pre>
     </div>
 
     <template #footer>
-      <button class="btn btn-secondary" @click="handleClose" :disabled="isRunning">
+      <button
+        class="btn btn-secondary"
+        :disabled="isRunning"
+        @click="handleClose"
+      >
         Close
       </button>
     </template>
@@ -45,102 +67,108 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, nextTick } from 'vue'
-import { useNotificationsStore } from '@/stores/notifications'
-import BaseModal from './base/BaseModal.vue'
+import { ref, computed, watch, nextTick } from "vue";
+import { useNotificationsStore } from "@/stores/notifications";
+import BaseModal from "./base/BaseModal.vue";
 
 const props = defineProps<{
-  visible: boolean
-  operation: 'start' | 'stop' | 'restart'
-  deploymentName: string
-  output: string
-  isRunning: boolean
-  isSuccess: boolean | null
-}>()
+  visible: boolean;
+  operation: "start" | "stop" | "restart";
+  deploymentName: string;
+  output: string;
+  isRunning: boolean;
+  isSuccess: boolean | null;
+}>();
 
-const emit = defineEmits(['close'])
+const emit = defineEmits(["close"]);
 
-const notifications = useNotificationsStore()
-const outputRef = ref<HTMLPreElement | null>(null)
-const startTime = ref<number | null>(null)
-const elapsedTime = ref('0s')
+const notifications = useNotificationsStore();
+const outputRef = ref<HTMLPreElement | null>(null);
+const startTime = ref<number | null>(null);
+const elapsedTime = ref("0s");
 
 const title = computed(() => {
   const ops: Record<string, string> = {
-    start: 'Starting',
-    stop: 'Stopping',
-    restart: 'Restarting'
-  }
-  return `${ops[props.operation]} ${props.deploymentName}`
-})
+    start: "Starting",
+    stop: "Stopping",
+    restart: "Restarting",
+  };
+  return `${ops[props.operation]} ${props.deploymentName}`;
+});
 
 const statusClass = computed(() => {
-  if (props.isRunning) return 'running'
-  if (props.isSuccess === true) return 'success'
-  if (props.isSuccess === false) return 'error'
-  return 'pending'
-})
+  if (props.isRunning) return "running";
+  if (props.isSuccess === true) return "success";
+  if (props.isSuccess === false) return "error";
+  return "pending";
+});
 
 const statusIcon = computed(() => {
-  if (props.isRunning) return 'pi pi-spin pi-spinner'
-  if (props.isSuccess === true) return 'pi pi-check'
-  if (props.isSuccess === false) return 'pi pi-times'
-  return 'pi pi-clock'
-})
+  if (props.isRunning) return "pi pi-spin pi-spinner";
+  if (props.isSuccess === true) return "pi pi-check";
+  if (props.isSuccess === false) return "pi pi-times";
+  return "pi pi-clock";
+});
 
 const statusLabel = computed(() => {
-  if (props.isRunning) return 'In Progress...'
-  if (props.isSuccess === true) return 'Completed Successfully'
-  if (props.isSuccess === false) return 'Failed'
-  return 'Pending'
-})
+  if (props.isRunning) return "In Progress...";
+  if (props.isSuccess === true) return "Completed Successfully";
+  if (props.isSuccess === false) return "Failed";
+  return "Pending";
+});
 
-watch(() => props.visible, (val) => {
-  if (val) {
-    startTime.value = Date.now()
-    updateElapsedTime()
-  } else {
-    startTime.value = null
-  }
-})
-
-watch(() => props.output, () => {
-  nextTick(() => {
-    if (outputRef.value) {
-      outputRef.value.scrollTop = outputRef.value.scrollHeight
+watch(
+  () => props.visible,
+  (val) => {
+    if (val) {
+      startTime.value = Date.now();
+      updateElapsedTime();
+    } else {
+      startTime.value = null;
     }
-  })
-})
+  },
+);
+
+watch(
+  () => props.output,
+  () => {
+    nextTick(() => {
+      if (outputRef.value) {
+        outputRef.value.scrollTop = outputRef.value.scrollHeight;
+      }
+    });
+  },
+);
 
 const updateElapsedTime = () => {
-  if (!startTime.value || !props.visible) return
+  if (!startTime.value || !props.visible) return;
 
-  const elapsed = Math.floor((Date.now() - startTime.value) / 1000)
+  const elapsed = Math.floor((Date.now() - startTime.value) / 1000);
   if (elapsed < 60) {
-    elapsedTime.value = `${elapsed}s`
+    elapsedTime.value = `${elapsed}s`;
   } else {
-    const mins = Math.floor(elapsed / 60)
-    const secs = elapsed % 60
-    elapsedTime.value = `${mins}m ${secs}s`
+    const mins = Math.floor(elapsed / 60);
+    const secs = elapsed % 60;
+    elapsedTime.value = `${mins}m ${secs}s`;
   }
 
   if (props.isRunning) {
-    setTimeout(updateElapsedTime, 1000)
+    setTimeout(updateElapsedTime, 1000);
   }
-}
+};
 
 const handleClose = () => {
   if (!props.isRunning) {
-    emit('close')
+    emit("close");
   }
-}
+};
 
 const copyOutput = () => {
   if (props.output) {
-    navigator.clipboard.writeText(props.output)
-    notifications.success('Copied', 'Output copied to clipboard')
+    navigator.clipboard.writeText(props.output);
+    notifications.success("Copied", "Output copied to clipboard");
   }
-}
+};
 </script>
 
 <style scoped>

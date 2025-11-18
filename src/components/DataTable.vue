@@ -2,57 +2,90 @@
   <div class="data-table-container">
     <div class="table-header">
       <div class="header-left">
-        <div v-if="searchable" class="search-box">
-          <i class="pi pi-search"></i>
+        <div
+          v-if="searchable"
+          class="search-box"
+        >
+          <Search :size="16" />
           <input
             v-model="searchQuery"
             type="text"
             :placeholder="searchPlaceholder"
             class="search-input"
-          />
+          >
         </div>
-        <slot name="filters"></slot>
+        <slot name="filters" />
       </div>
       <div class="header-right">
-        <slot name="actions"></slot>
-        <div v-if="toggleable" class="view-toggle">
+        <slot name="actions" />
+        <div
+          v-if="toggleable"
+          class="view-toggle"
+        >
           <button
             class="toggle-btn"
             :class="{ active: viewMode === 'grid' }"
             @click="viewMode = 'grid'"
           >
-            <i class="pi pi-th-large"></i>
+            <Grid3x3 :size="16" />
           </button>
           <button
             class="toggle-btn"
             :class="{ active: viewMode === 'table' }"
             @click="viewMode = 'table'"
           >
-            <i class="pi pi-list"></i>
+            <List :size="16" />
           </button>
         </div>
       </div>
     </div>
 
-    <div v-if="loading && items.length === 0" class="loading-state">
-      <i class="pi pi-spin pi-spinner"></i>
+    <div
+      v-if="loading && items.length === 0"
+      class="loading-state"
+    >
+      <Loader2
+        :size="48"
+        class="spinning"
+      />
       <span>{{ loadingText }}</span>
     </div>
 
-    <div v-else-if="filteredItems.length === 0" class="empty-state">
-      <i :class="emptyIcon"></i>
+    <div
+      v-else-if="filteredItems.length === 0"
+      class="empty-state"
+    >
+      <component
+        :is="emptyIcon"
+        v-if="emptyIcon && typeof emptyIcon !== 'string'"
+        :size="48"
+      />
+      <i
+        v-else-if="emptyIcon && typeof emptyIcon === 'string'"
+        :class="emptyIcon"
+      />
       <h3>{{ emptyTitle }}</h3>
       <p>{{ emptyText }}</p>
-      <slot name="empty-action"></slot>
+      <slot name="empty-action" />
     </div>
 
     <template v-else>
-      <div v-if="viewMode === 'table'" class="table-wrapper">
+      <div
+        v-if="viewMode === 'table'"
+        class="table-wrapper"
+      >
         <table class="data-table">
           <thead>
             <tr>
-              <th v-if="selectable" class="checkbox-col">
-                <input type="checkbox" v-model="selectAll" @change="toggleSelectAll" />
+              <th
+                v-if="selectable"
+                class="checkbox-col"
+              >
+                <input
+                  v-model="selectAll"
+                  type="checkbox"
+                  @change="toggleSelectAll"
+                >
               </th>
               <th
                 v-for="column in columns"
@@ -62,10 +95,24 @@
                 @click="column.sortable && sortBy(column.key)"
               >
                 {{ column.label }}
-                <i
-                  v-if="column.sortable && sortKey === column.key"
-                  :class="sortDirection === 'asc' ? 'pi pi-sort-up' : 'pi pi-sort-down'"
-                ></i>
+                <ArrowUp
+                  v-if="
+                    column.sortable &&
+                      sortKey === column.key &&
+                      sortDirection === 'asc'
+                  "
+                  :size="12"
+                  class="sort-icon"
+                />
+                <ArrowDown
+                  v-if="
+                    column.sortable &&
+                      sortKey === column.key &&
+                      sortDirection === 'desc'
+                  "
+                  :size="12"
+                  class="sort-icon"
+                />
               </th>
             </tr>
           </thead>
@@ -75,15 +122,25 @@
               :key="getItemKey(item)"
               :class="{ selected: selectedItems.includes(getItemKey(item)) }"
             >
-              <td v-if="selectable" class="checkbox-col">
+              <td
+                v-if="selectable"
+                class="checkbox-col"
+              >
                 <input
+                  v-model="selectedItems"
                   type="checkbox"
                   :value="getItemKey(item)"
-                  v-model="selectedItems"
-                />
+                >
               </td>
-              <td v-for="column in columns" :key="column.key">
-                <slot :name="`cell-${column.key}`" :item="item" :value="getNestedValue(item, column.key)">
+              <td
+                v-for="column in columns"
+                :key="column.key"
+              >
+                <slot
+                  :name="`cell-${column.key}`"
+                  :item="item"
+                  :value="getNestedValue(item, column.key)"
+                >
                   {{ getNestedValue(item, column.key) }}
                 </slot>
               </td>
@@ -92,13 +149,25 @@
         </table>
       </div>
 
-      <div v-else class="grid-view">
-        <slot name="grid" :items="paginatedItems" :selectedItems="selectedItems" :toggleSelect="toggleSelect"></slot>
+      <div
+        v-else
+        class="grid-view"
+      >
+        <slot
+          name="grid"
+          :items="paginatedItems"
+          :selected-items="selectedItems"
+          :toggle-select="toggleSelect"
+        />
       </div>
 
-      <div v-if="totalPages > 1" class="pagination">
+      <div
+        v-if="totalPages > 1"
+        class="pagination"
+      >
         <div class="pagination-info">
-          Showing {{ startIndex + 1 }}-{{ endIndex }} of {{ filteredItems.length }} items
+          Showing {{ startIndex + 1 }}-{{ endIndex }} of
+          {{ filteredItems.length }} items
         </div>
         <div class="pagination-controls">
           <button
@@ -106,14 +175,14 @@
             :disabled="currentPage === 1"
             @click="currentPage = 1"
           >
-            <i class="pi pi-angle-double-left"></i>
+            <ChevronsLeft :size="16" />
           </button>
           <button
             class="page-btn"
             :disabled="currentPage === 1"
             @click="currentPage--"
           >
-            <i class="pi pi-angle-left"></i>
+            <ChevronLeft :size="16" />
           </button>
           <div class="page-numbers">
             <button
@@ -131,31 +200,52 @@
             :disabled="currentPage === totalPages"
             @click="currentPage++"
           >
-            <i class="pi pi-angle-right"></i>
+            <ChevronRight :size="16" />
           </button>
           <button
             class="page-btn"
             :disabled="currentPage === totalPages"
             @click="currentPage = totalPages"
           >
-            <i class="pi pi-angle-double-right"></i>
+            <ChevronsRight :size="16" />
           </button>
         </div>
         <div class="page-size-selector">
-          <select v-model="pageSize" class="page-size-select">
-            <option :value="10">10 / page</option>
-            <option :value="25">25 / page</option>
-            <option :value="50">50 / page</option>
-            <option :value="100">100 / page</option>
+          <select
+            v-model="pageSize"
+            class="page-size-select"
+          >
+            <option :value="10">
+              10 / page
+            </option>
+            <option :value="25">
+              25 / page
+            </option>
+            <option :value="50">
+              50 / page
+            </option>
+            <option :value="100">
+              100 / page
+            </option>
           </select>
         </div>
       </div>
     </template>
 
-    <div v-if="selectedItems.length > 0" class="bulk-actions">
+    <div
+      v-if="selectedItems.length > 0"
+      class="bulk-actions"
+    >
       <span class="selection-count">{{ selectedItems.length }} selected</span>
-      <slot name="bulk-actions" :selectedItems="selectedItems" :clearSelection="clearSelection"></slot>
-      <button class="btn btn-ghost" @click="clearSelection">
+      <slot
+        name="bulk-actions"
+        :selected-items="selectedItems"
+        :clear-selection="clearSelection"
+      />
+      <button
+        class="btn btn-ghost"
+        @click="clearSelection"
+      >
         Clear selection
       </button>
     </div>
@@ -163,169 +253,188 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch } from "vue";
+import {
+  Search,
+  Grid3x3,
+  List,
+  ChevronsLeft,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsRight,
+  ArrowUp,
+  ArrowDown,
+  Loader2,
+} from "lucide-vue-next";
 
 interface Column {
-  key: string
-  label: string
-  width?: string
-  sortable?: boolean
+  key: string;
+  label: string;
+  width?: string;
+  sortable?: boolean;
 }
 
-const props = withDefaults(defineProps<{
-  items: any[]
-  columns: Column[]
-  itemKey?: string
-  loading?: boolean
-  searchable?: boolean
-  searchPlaceholder?: string
-  searchFields?: string[]
-  selectable?: boolean
-  toggleable?: boolean
-  emptyIcon?: string
-  emptyTitle?: string
-  emptyText?: string
-  loadingText?: string
-  defaultPageSize?: number
-  defaultViewMode?: 'table' | 'grid'
-}>(), {
-  itemKey: 'id',
-  loading: false,
-  searchable: true,
-  searchPlaceholder: 'Search...',
-  searchFields: () => [],
-  selectable: false,
-  toggleable: false,
-  emptyIcon: 'pi pi-inbox',
-  emptyTitle: 'No items found',
-  emptyText: 'There are no items to display.',
-  loadingText: 'Loading...',
-  defaultPageSize: 25,
-  defaultViewMode: 'table'
-})
+const props = withDefaults(
+  defineProps<{
+    items: any[];
+    columns: Column[];
+    itemKey?: string;
+    loading?: boolean;
+    searchable?: boolean;
+    searchPlaceholder?: string;
+    searchFields?: string[];
+    selectable?: boolean;
+    toggleable?: boolean;
+    emptyIcon?: any;
+    emptyTitle?: string;
+    emptyText?: string;
+    loadingText?: string;
+    defaultPageSize?: number;
+    defaultViewMode?: "table" | "grid";
+  }>(),
+  {
+    itemKey: "id",
+    loading: false,
+    searchable: true,
+    searchPlaceholder: "Search...",
+    searchFields: () => [],
+    selectable: false,
+    toggleable: false,
+    emptyIcon: undefined,
+    emptyTitle: "No items found",
+    emptyText: "There are no items to display.",
+    loadingText: "Loading...",
+    defaultPageSize: 25,
+    defaultViewMode: "table",
+  },
+);
 
-const emit = defineEmits(['update:selected', 'row-click'])
+const emit = defineEmits(["update:selected", "row-click"]);
 
-const searchQuery = ref('')
-const currentPage = ref(1)
-const pageSize = ref(props.defaultPageSize)
-const selectedItems = ref<any[]>([])
-const selectAll = ref(false)
-const viewMode = ref<'table' | 'grid'>(props.defaultViewMode)
-const sortKey = ref('')
-const sortDirection = ref<'asc' | 'desc'>('asc')
+const searchQuery = ref("");
+const currentPage = ref(1);
+const pageSize = ref(props.defaultPageSize);
+const selectedItems = ref<any[]>([]);
+const selectAll = ref(false);
+const viewMode = ref<"table" | "grid">(props.defaultViewMode);
+const sortKey = ref("");
+const sortDirection = ref<"asc" | "desc">("asc");
 
 const getItemKey = (item: any) => {
-  return item[props.itemKey]
-}
+  return item[props.itemKey];
+};
 
 const getNestedValue = (obj: any, path: string) => {
-  return path.split('.').reduce((o, p) => o?.[p], obj)
-}
+  return path.split(".").reduce((o, p) => o?.[p], obj);
+};
 
 const filteredItems = computed(() => {
-  let result = [...props.items]
+  let result = [...props.items];
 
   if (searchQuery.value && props.searchFields.length > 0) {
-    const query = searchQuery.value.toLowerCase()
-    result = result.filter(item =>
-      props.searchFields.some(field => {
-        const value = getNestedValue(item, field)
-        return value && String(value).toLowerCase().includes(query)
-      })
-    )
+    const query = searchQuery.value.toLowerCase();
+    result = result.filter((item) =>
+      props.searchFields.some((field) => {
+        const value = getNestedValue(item, field);
+        return value && String(value).toLowerCase().includes(query);
+      }),
+    );
   }
 
   if (sortKey.value) {
     result.sort((a, b) => {
-      const aVal = getNestedValue(a, sortKey.value)
-      const bVal = getNestedValue(b, sortKey.value)
-      const comparison = aVal > bVal ? 1 : aVal < bVal ? -1 : 0
-      return sortDirection.value === 'asc' ? comparison : -comparison
-    })
+      const aVal = getNestedValue(a, sortKey.value);
+      const bVal = getNestedValue(b, sortKey.value);
+      const comparison = aVal > bVal ? 1 : aVal < bVal ? -1 : 0;
+      return sortDirection.value === "asc" ? comparison : -comparison;
+    });
   }
 
-  return result
-})
+  return result;
+});
 
-const totalPages = computed(() => Math.ceil(filteredItems.value.length / pageSize.value))
-const startIndex = computed(() => (currentPage.value - 1) * pageSize.value)
-const endIndex = computed(() => Math.min(startIndex.value + pageSize.value, filteredItems.value.length))
+const totalPages = computed(() =>
+  Math.ceil(filteredItems.value.length / pageSize.value),
+);
+const startIndex = computed(() => (currentPage.value - 1) * pageSize.value);
+const endIndex = computed(() =>
+  Math.min(startIndex.value + pageSize.value, filteredItems.value.length),
+);
 
 const paginatedItems = computed(() => {
-  return filteredItems.value.slice(startIndex.value, endIndex.value)
-})
+  return filteredItems.value.slice(startIndex.value, endIndex.value);
+});
 
 const visiblePages = computed(() => {
-  const pages: number[] = []
-  const total = totalPages.value
-  const current = currentPage.value
+  const pages: number[] = [];
+  const total = totalPages.value;
+  const current = currentPage.value;
 
   if (total <= 7) {
-    for (let i = 1; i <= total; i++) pages.push(i)
+    for (let i = 1; i <= total; i++) pages.push(i);
   } else {
     if (current <= 4) {
-      for (let i = 1; i <= 5; i++) pages.push(i)
-      pages.push(-1) // ellipsis
-      pages.push(total)
+      for (let i = 1; i <= 5; i++) pages.push(i);
+      pages.push(-1); // ellipsis
+      pages.push(total);
     } else if (current >= total - 3) {
-      pages.push(1)
-      pages.push(-1)
-      for (let i = total - 4; i <= total; i++) pages.push(i)
+      pages.push(1);
+      pages.push(-1);
+      for (let i = total - 4; i <= total; i++) pages.push(i);
     } else {
-      pages.push(1)
-      pages.push(-1)
-      for (let i = current - 1; i <= current + 1; i++) pages.push(i)
-      pages.push(-1)
-      pages.push(total)
+      pages.push(1);
+      pages.push(-1);
+      for (let i = current - 1; i <= current + 1; i++) pages.push(i);
+      pages.push(-1);
+      pages.push(total);
     }
   }
 
-  return pages.filter(p => p !== -1)
-})
+  return pages.filter((p) => p !== -1);
+});
 
 const sortBy = (key: string) => {
   if (sortKey.value === key) {
-    sortDirection.value = sortDirection.value === 'asc' ? 'desc' : 'asc'
+    sortDirection.value = sortDirection.value === "asc" ? "desc" : "asc";
   } else {
-    sortKey.value = key
-    sortDirection.value = 'asc'
+    sortKey.value = key;
+    sortDirection.value = "asc";
   }
-}
+};
 
 const toggleSelectAll = () => {
   if (selectAll.value) {
-    selectedItems.value = paginatedItems.value.map(item => getItemKey(item))
+    selectedItems.value = paginatedItems.value.map((item) => getItemKey(item));
   } else {
-    selectedItems.value = []
+    selectedItems.value = [];
   }
-}
+};
 
 const toggleSelect = (key: any) => {
-  const index = selectedItems.value.indexOf(key)
+  const index = selectedItems.value.indexOf(key);
   if (index === -1) {
-    selectedItems.value.push(key)
+    selectedItems.value.push(key);
   } else {
-    selectedItems.value.splice(index, 1)
+    selectedItems.value.splice(index, 1);
   }
-}
+};
 
 const clearSelection = () => {
-  selectedItems.value = []
-  selectAll.value = false
-}
+  selectedItems.value = [];
+  selectAll.value = false;
+};
 
 watch(searchQuery, () => {
-  currentPage.value = 1
-})
+  currentPage.value = 1;
+});
 
 watch(pageSize, () => {
-  currentPage.value = 1
-})
+  currentPage.value = 1;
+});
 
 watch(selectedItems, () => {
-  emit('update:selected', selectedItems.value)
-})
+  emit("update:selected", selectedItems.value);
+});
 </script>
 
 <style scoped>
@@ -379,7 +488,8 @@ watch(selectedItems, () => {
 .search-input:focus {
   outline: none;
   border-color: var(--color-primary-500, #3b82f6);
-  box-shadow: 0 0 0 var(--ring-width, 2px) var(--ring-color, rgba(59, 130, 246, 0.1));
+  box-shadow: 0 0 0 var(--ring-width, 2px)
+    var(--ring-color, rgba(59, 130, 246, 0.1));
 }
 
 .view-toggle {
@@ -610,5 +720,24 @@ watch(selectedItems, () => {
 
 .btn-ghost:hover {
   color: white;
+}
+
+.sort-icon {
+  display: inline-block;
+  margin-left: 0.25rem;
+  vertical-align: middle;
+}
+
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 </style>

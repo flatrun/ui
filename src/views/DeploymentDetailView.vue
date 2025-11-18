@@ -2,43 +2,76 @@
   <div class="deployment-detail">
     <div class="detail-header">
       <div class="header-left">
-        <router-link to="/deployments" class="back-link">
-          <i class="pi pi-arrow-left"></i>
+        <router-link
+          to="/deployments"
+          class="back-link"
+        >
+          <i class="pi pi-arrow-left" />
           Back to Deployments
         </router-link>
         <div class="deployment-title">
           <h1>{{ deployment?.name || $route.params.name }}</h1>
-          <span class="status-badge" :class="deployment?.status">
-            {{ deployment?.status || 'loading' }}
+          <span
+            class="status-badge"
+            :class="deployment?.status"
+          >
+            {{ deployment?.status || "loading" }}
           </span>
         </div>
       </div>
       <div class="header-actions">
-        <button class="btn btn-success" @click="handleOperation('start')" :disabled="loading">
-          <i class="pi pi-play"></i> Start
+        <button
+          class="btn btn-success"
+          :disabled="loading"
+          @click="handleOperation('start')"
+        >
+          <i class="pi pi-play" /> Start
         </button>
-        <button class="btn btn-warning" @click="handleOperation('stop')" :disabled="loading">
-          <i class="pi pi-stop"></i> Stop
+        <button
+          class="btn btn-warning"
+          :disabled="loading"
+          @click="handleOperation('stop')"
+        >
+          <i class="pi pi-stop" /> Stop
         </button>
-        <button class="btn btn-info" @click="handleOperation('restart')" :disabled="loading">
-          <i class="pi pi-refresh"></i> Restart
+        <button
+          class="btn btn-info"
+          :disabled="loading"
+          @click="handleOperation('restart')"
+        >
+          <i class="pi pi-refresh" /> Restart
         </button>
-        <button class="btn btn-danger" @click="confirmDelete" :disabled="loading">
-          <i class="pi pi-trash"></i> Delete
+        <button
+          class="btn btn-danger"
+          :disabled="loading"
+          @click="confirmDelete"
+        >
+          <i class="pi pi-trash" /> Delete
         </button>
       </div>
     </div>
 
-    <div v-if="loading && !deployment" class="loading-state">
-      <i class="pi pi-spin pi-spinner"></i>
+    <div
+      v-if="loading && !deployment"
+      class="loading-state"
+    >
+      <i class="pi pi-spin pi-spinner" />
       <span>Loading deployment details...</span>
     </div>
 
-    <div v-else-if="error" class="error-state">
-      <i class="pi pi-exclamation-triangle"></i>
+    <div
+      v-else-if="error"
+      class="error-state"
+    >
+      <i class="pi pi-exclamation-triangle" />
       <h3>Failed to load deployment</h3>
       <p>{{ error }}</p>
-      <button class="btn btn-primary" @click="fetchDeployment">Try Again</button>
+      <button
+        class="btn btn-primary"
+        @click="fetchDeployment"
+      >
+        Try Again
+      </button>
     </div>
 
     <template v-else-if="deployment">
@@ -50,17 +83,20 @@
           :class="{ active: activeTab === tab.id }"
           @click="activeTab = tab.id"
         >
-          <i :class="tab.icon"></i>
+          <i :class="tab.icon" />
           {{ tab.label }}
         </button>
       </div>
 
       <div class="tab-content">
-        <div v-if="activeTab === 'overview'" class="overview-tab">
+        <div
+          v-if="activeTab === 'overview'"
+          class="overview-tab"
+        >
           <div class="info-cards">
             <div class="info-card">
               <div class="card-header">
-                <i class="pi pi-info-circle"></i>
+                <i class="pi pi-info-circle" />
                 <h3>General Information</h3>
               </div>
               <div class="card-body">
@@ -71,7 +107,10 @@
                 <div class="info-row">
                   <span class="label">Status</span>
                   <span class="value">
-                    <span class="status-indicator" :class="deployment.status"></span>
+                    <span
+                      class="status-indicator"
+                      :class="deployment.status"
+                    />
                     {{ deployment.status }}
                   </span>
                 </div>
@@ -81,49 +120,83 @@
                 </div>
                 <div class="info-row">
                   <span class="label">Created</span>
-                  <span class="value">{{ formatDateTime(deployment.created_at) }}</span>
+                  <span class="value">{{
+                    formatDateTime(deployment.created_at)
+                  }}</span>
                 </div>
                 <div class="info-row">
                   <span class="label">Last Updated</span>
-                  <span class="value">{{ formatDateTime(deployment.updated_at) }}</span>
+                  <span class="value">{{
+                    formatDateTime(deployment.updated_at)
+                  }}</span>
                 </div>
               </div>
             </div>
 
             <div class="info-card">
               <div class="card-header">
-                <i class="pi pi-box"></i>
+                <i class="pi pi-box" />
                 <h3>Services</h3>
               </div>
               <div class="card-body">
-                <div v-if="services.length === 0" class="empty-services">
+                <div
+                  v-if="services.length === 0"
+                  class="empty-services"
+                >
                   No services configured
                 </div>
-                <div v-else class="services-list">
-                  <div v-for="service in services" :key="service.name" class="service-item">
+                <div
+                  v-else
+                  class="services-list"
+                >
+                  <div
+                    v-for="service in services"
+                    :key="service.name"
+                    class="service-item"
+                  >
                     <div class="service-header">
                       <span class="service-name">{{ service.name }}</span>
-                      <span class="service-status" :class="service.status">{{ service.status }}</span>
+                      <span
+                        class="service-status"
+                        :class="service.status"
+                      >{{
+                        service.status
+                      }}</span>
                     </div>
                     <div class="service-details">
                       <span class="detail-item">
-                        <i class="pi pi-image"></i>
+                        <i class="pi pi-image" />
                         {{ service.image }}
                       </span>
-                      <span v-if="service.ports?.length" class="detail-item">
-                        <i class="pi pi-sitemap"></i>
-                        {{ service.ports.join(', ') }}
+                      <span
+                        v-if="service.ports?.length"
+                        class="detail-item"
+                      >
+                        <i class="pi pi-sitemap" />
+                        {{ service.ports.join(", ") }}
                       </span>
                     </div>
                     <div class="service-actions">
-                      <button class="action-btn" @click="openTerminal(service)" title="Terminal">
-                        <i class="pi pi-desktop"></i>
+                      <button
+                        class="action-btn"
+                        title="Terminal"
+                        @click="openTerminal(service)"
+                      >
+                        <i class="pi pi-desktop" />
                       </button>
-                      <button class="action-btn" @click="viewServiceLogs(service)" title="Logs">
-                        <i class="pi pi-file-edit"></i>
+                      <button
+                        class="action-btn"
+                        title="Logs"
+                        @click="viewServiceLogs(service)"
+                      >
+                        <i class="pi pi-file-edit" />
                       </button>
-                      <button class="action-btn" @click="restartService(service)" title="Restart">
-                        <i class="pi pi-refresh"></i>
+                      <button
+                        class="action-btn"
+                        title="Restart"
+                        @click="restartService(service)"
+                      >
+                        <i class="pi pi-refresh" />
                       </button>
                     </div>
                   </div>
@@ -134,43 +207,67 @@
 
           <div class="info-card wide">
             <div class="card-header">
-              <i class="pi pi-chart-line"></i>
+              <i class="pi pi-chart-line" />
               <h3>Resource Usage</h3>
             </div>
             <div class="card-body">
               <div class="resource-grid">
                 <div class="resource-item">
-                  <div class="resource-label">CPU Usage</div>
+                  <div class="resource-label">
+                    CPU Usage
+                  </div>
                   <div class="resource-bar-wrapper">
                     <div class="resource-bar">
-                      <div class="resource-fill" :style="{ width: resourceUsage.cpu + '%' }" :class="getUsageClass(resourceUsage.cpu)"></div>
+                      <div
+                        class="resource-fill"
+                        :style="{ width: resourceUsage.cpu + '%' }"
+                        :class="getUsageClass(resourceUsage.cpu)"
+                      />
                     </div>
                     <span class="resource-value">{{ resourceUsage.cpu }}%</span>
                   </div>
                 </div>
                 <div class="resource-item">
-                  <div class="resource-label">Memory Usage</div>
+                  <div class="resource-label">
+                    Memory Usage
+                  </div>
                   <div class="resource-bar-wrapper">
                     <div class="resource-bar">
-                      <div class="resource-fill" :style="{ width: resourceUsage.memory + '%' }" :class="getUsageClass(resourceUsage.memory)"></div>
+                      <div
+                        class="resource-fill"
+                        :style="{ width: resourceUsage.memory + '%' }"
+                        :class="getUsageClass(resourceUsage.memory)"
+                      />
                     </div>
                     <span class="resource-value">{{ resourceUsage.memory }}%</span>
                   </div>
                 </div>
                 <div class="resource-item">
-                  <div class="resource-label">Disk I/O</div>
+                  <div class="resource-label">
+                    Disk I/O
+                  </div>
                   <div class="resource-bar-wrapper">
                     <div class="resource-bar">
-                      <div class="resource-fill" :style="{ width: resourceUsage.disk + '%' }" :class="getUsageClass(resourceUsage.disk)"></div>
+                      <div
+                        class="resource-fill"
+                        :style="{ width: resourceUsage.disk + '%' }"
+                        :class="getUsageClass(resourceUsage.disk)"
+                      />
                     </div>
                     <span class="resource-value">{{ resourceUsage.disk }}%</span>
                   </div>
                 </div>
                 <div class="resource-item">
-                  <div class="resource-label">Network I/O</div>
+                  <div class="resource-label">
+                    Network I/O
+                  </div>
                   <div class="resource-bar-wrapper">
                     <div class="resource-bar">
-                      <div class="resource-fill" :style="{ width: resourceUsage.network + '%' }" :class="getUsageClass(resourceUsage.network)"></div>
+                      <div
+                        class="resource-fill"
+                        :style="{ width: resourceUsage.network + '%' }"
+                        :class="getUsageClass(resourceUsage.network)"
+                      />
                     </div>
                     <span class="resource-value">{{ resourceUsage.network }}%</span>
                   </div>
@@ -180,113 +277,200 @@
           </div>
         </div>
 
-        <div v-if="activeTab === 'logs'" class="logs-tab">
+        <div
+          v-if="activeTab === 'logs'"
+          class="logs-tab"
+        >
           <div class="logs-controls">
             <div class="logs-filters">
-              <select v-model="logsService" class="form-select">
-                <option value="all">All Services</option>
-                <option v-for="service in services" :key="service.name" :value="service.name">
+              <select
+                v-model="logsService"
+                class="form-select"
+              >
+                <option value="all">
+                  All Services
+                </option>
+                <option
+                  v-for="service in services"
+                  :key="service.name"
+                  :value="service.name"
+                >
                   {{ service.name }}
                 </option>
               </select>
-              <select v-model="logsTail" class="form-select">
-                <option :value="100">Last 100 lines</option>
-                <option :value="500">Last 500 lines</option>
-                <option :value="1000">Last 1000 lines</option>
-                <option :value="0">All logs</option>
+              <select
+                v-model="logsTail"
+                class="form-select"
+              >
+                <option :value="100">
+                  Last 100 lines
+                </option>
+                <option :value="500">
+                  Last 500 lines
+                </option>
+                <option :value="1000">
+                  Last 1000 lines
+                </option>
+                <option :value="0">
+                  All logs
+                </option>
               </select>
               <label class="checkbox-label">
-                <input type="checkbox" v-model="logsFollow" />
+                <input
+                  v-model="logsFollow"
+                  type="checkbox"
+                >
                 Follow logs
               </label>
             </div>
             <div class="logs-actions">
-              <button class="btn btn-sm btn-secondary" @click="fetchLogs">
-                <i class="pi pi-refresh"></i> Refresh
+              <button
+                class="btn btn-sm btn-secondary"
+                @click="fetchLogs"
+              >
+                <i class="pi pi-refresh" /> Refresh
               </button>
-              <button class="btn btn-sm btn-secondary" @click="downloadLogs">
-                <i class="pi pi-download"></i> Download
+              <button
+                class="btn btn-sm btn-secondary"
+                @click="downloadLogs"
+              >
+                <i class="pi pi-download" /> Download
               </button>
-              <button class="btn btn-sm btn-secondary" @click="clearLogs">
-                <i class="pi pi-trash"></i> Clear
+              <button
+                class="btn btn-sm btn-secondary"
+                @click="clearLogs"
+              >
+                <i class="pi pi-trash" /> Clear
               </button>
             </div>
           </div>
           <div class="logs-viewer">
             <div class="logs-search">
-              <i class="pi pi-search"></i>
+              <i class="pi pi-search" />
               <input
-                type="text"
                 v-model="logsSearch"
+                type="text"
                 placeholder="Search in logs..."
                 class="logs-search-input"
-              />
+              >
             </div>
-            <pre class="logs-content" ref="logsContainer">{{ filteredLogs }}</pre>
+            <pre
+              ref="logsContainer"
+              class="logs-content"
+            >{{
+              filteredLogs
+            }}</pre>
           </div>
         </div>
 
-        <div v-if="activeTab === 'terminal'" class="terminal-tab">
+        <div
+          v-if="activeTab === 'terminal'"
+          class="terminal-tab"
+        >
           <div class="terminal-header">
             <div class="terminal-selector">
               <label>Service:</label>
-              <select v-model="terminalService" class="form-select">
-                <option v-for="service in services" :key="service.name" :value="service.name">
+              <select
+                v-model="terminalService"
+                class="form-select"
+              >
+                <option
+                  v-for="service in services"
+                  :key="service.name"
+                  :value="service.name"
+                >
                   {{ service.name }}
                 </option>
               </select>
             </div>
             <div class="terminal-actions">
-              <button class="btn btn-sm btn-secondary" @click="reconnectTerminal">
-                <i class="pi pi-refresh"></i> Reconnect
+              <button
+                class="btn btn-sm btn-secondary"
+                @click="reconnectTerminal"
+              >
+                <i class="pi pi-refresh" /> Reconnect
               </button>
             </div>
           </div>
           <div class="terminal-container">
             <div class="terminal-placeholder">
-              <i class="pi pi-desktop"></i>
+              <i class="pi pi-desktop" />
               <h3>Terminal Access</h3>
-              <p>Connect to container shell for {{ terminalService || 'selected service' }}</p>
-              <button class="btn btn-primary" @click="connectTerminal" :disabled="!terminalService">
-                <i class="pi pi-sign-in"></i> Connect to Shell
+              <p>
+                Connect to container shell for
+                {{ terminalService || "selected service" }}
+              </p>
+              <button
+                class="btn btn-primary"
+                :disabled="!terminalService"
+                @click="connectTerminal"
+              >
+                <i class="pi pi-sign-in" /> Connect to Shell
               </button>
             </div>
           </div>
         </div>
 
-        <div v-if="activeTab === 'environment'" class="env-tab">
+        <div
+          v-if="activeTab === 'environment'"
+          class="env-tab"
+        >
           <div class="env-header">
             <h3>Environment Variables</h3>
-            <button class="btn btn-sm btn-primary" @click="showAddEnvModal = true">
-              <i class="pi pi-plus"></i> Add Variable
+            <button
+              class="btn btn-sm btn-primary"
+              @click="showAddEnvModal = true"
+            >
+              <i class="pi pi-plus" /> Add Variable
             </button>
           </div>
           <div class="env-list">
-            <div v-if="envVars.length === 0" class="empty-env">
-              <i class="pi pi-list"></i>
+            <div
+              v-if="envVars.length === 0"
+              class="empty-env"
+            >
+              <i class="pi pi-list" />
               <p>No environment variables configured</p>
             </div>
-            <div v-else class="env-table">
+            <div
+              v-else
+              class="env-table"
+            >
               <div class="env-row header">
                 <span class="env-key">Key</span>
                 <span class="env-value">Value</span>
                 <span class="env-actions">Actions</span>
               </div>
-              <div v-for="env in envVars" :key="env.key" class="env-row">
+              <div
+                v-for="env in envVars"
+                :key="env.key"
+                class="env-row"
+              >
                 <span class="env-key">{{ env.key }}</span>
                 <span class="env-value">
                   <code v-if="!env.hidden">{{ env.value }}</code>
                   <code v-else>••••••••</code>
-                  <button class="toggle-btn" @click="env.hidden = !env.hidden">
-                    <i :class="env.hidden ? 'pi pi-eye' : 'pi pi-eye-slash'"></i>
+                  <button
+                    class="toggle-btn"
+                    @click="env.hidden = !env.hidden"
+                  >
+                    <i
+                      :class="env.hidden ? 'pi pi-eye' : 'pi pi-eye-slash'"
+                    />
                   </button>
                 </span>
                 <span class="env-actions">
-                  <button class="action-btn" @click="editEnvVar(env)">
-                    <i class="pi pi-pencil"></i>
+                  <button
+                    class="action-btn"
+                    @click="editEnvVar(env)"
+                  >
+                    <i class="pi pi-pencil" />
                   </button>
-                  <button class="action-btn delete" @click="deleteEnvVar(env.key)">
-                    <i class="pi pi-trash"></i>
+                  <button
+                    class="action-btn delete"
+                    @click="deleteEnvVar(env.key)"
+                  >
+                    <i class="pi pi-trash" />
                   </button>
                 </span>
               </div>
@@ -294,15 +478,24 @@
           </div>
         </div>
 
-        <div v-if="activeTab === 'config'" class="config-tab">
+        <div
+          v-if="activeTab === 'config'"
+          class="config-tab"
+        >
           <div class="config-header">
             <h3>Docker Compose Configuration</h3>
             <div class="config-actions">
-              <button class="btn btn-sm btn-secondary" @click="copyConfig">
-                <i class="pi pi-copy"></i> Copy
+              <button
+                class="btn btn-sm btn-secondary"
+                @click="copyConfig"
+              >
+                <i class="pi pi-copy" /> Copy
               </button>
-              <button class="btn btn-sm btn-primary" @click="editConfig">
-                <i class="pi pi-pencil"></i> Edit
+              <button
+                class="btn btn-sm btn-primary"
+                @click="editConfig"
+              >
+                <i class="pi pi-pencil" /> Edit
               </button>
             </div>
           </div>
@@ -314,31 +507,54 @@
     </template>
 
     <Teleport to="body">
-      <div v-if="showOperationModal" class="modal-overlay" @click.self="showOperationModal = false">
+      <div
+        v-if="showOperationModal"
+        class="modal-overlay"
+        @click.self="showOperationModal = false"
+      >
         <div class="operation-modal modal-container">
           <div class="modal-header">
             <h3>
-              <i class="pi pi-cog"></i>
+              <i class="pi pi-cog" />
               {{ operationTitle }}
             </h3>
           </div>
           <div class="modal-body">
-            <div v-if="operationRunning" class="operation-progress">
-              <i class="pi pi-spin pi-spinner"></i>
+            <div
+              v-if="operationRunning"
+              class="operation-progress"
+            >
+              <i class="pi pi-spin pi-spinner" />
               <p>Operation in progress...</p>
             </div>
-            <div v-else-if="operationSuccess" class="operation-success">
-              <i class="pi pi-check-circle"></i>
+            <div
+              v-else-if="operationSuccess"
+              class="operation-success"
+            >
+              <i class="pi pi-check-circle" />
               <p>Operation completed successfully</p>
             </div>
-            <div v-else-if="operationError" class="operation-error">
-              <i class="pi pi-times-circle"></i>
+            <div
+              v-else-if="operationError"
+              class="operation-error"
+            >
+              <i class="pi pi-times-circle" />
               <p>{{ operationError }}</p>
             </div>
-            <pre v-if="operationOutput" class="operation-output">{{ operationOutput }}</pre>
+            <pre
+              v-if="operationOutput"
+              class="operation-output"
+            >{{
+              operationOutput
+            }}</pre>
           </div>
           <div class="modal-footer">
-            <button class="btn btn-secondary" @click="showOperationModal = false">Close</button>
+            <button
+              class="btn btn-secondary"
+              @click="showOperationModal = false"
+            >
+              Close
+            </button>
           </div>
         </div>
       </div>
@@ -347,250 +563,282 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, nextTick, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { deploymentsApi } from '@/services/api'
+import { ref, computed, onMounted, onUnmounted, nextTick, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { deploymentsApi } from "@/services/api";
 
-const route = useRoute()
-const router = useRouter()
+const route = useRoute();
+const router = useRouter();
 
-const deployment = ref<any>(null)
-const loading = ref(false)
-const error = ref('')
-const activeTab = ref('overview')
+const deployment = ref<any>(null);
+const loading = ref(false);
+const error = ref("");
+const activeTab = ref("overview");
 
 const tabs = [
-  { id: 'overview', label: 'Overview', icon: 'pi pi-info-circle' },
-  { id: 'logs', label: 'Logs', icon: 'pi pi-file-edit' },
-  { id: 'terminal', label: 'Terminal', icon: 'pi pi-desktop' },
-  { id: 'environment', label: 'Environment', icon: 'pi pi-list' },
-  { id: 'config', label: 'Configuration', icon: 'pi pi-cog' }
-]
+  { id: "overview", label: "Overview", icon: "pi pi-info-circle" },
+  { id: "logs", label: "Logs", icon: "pi pi-file-edit" },
+  { id: "terminal", label: "Terminal", icon: "pi pi-desktop" },
+  { id: "environment", label: "Environment", icon: "pi pi-list" },
+  { id: "config", label: "Configuration", icon: "pi pi-cog" },
+];
 
-const services = ref<any[]>([])
+const services = ref<any[]>([]);
 const resourceUsage = ref({
   cpu: 0,
   memory: 0,
   disk: 0,
-  network: 0
-})
+  network: 0,
+});
 
-const logsContainer = ref<HTMLElement | null>(null)
-const logs = ref('')
-const logsService = ref('all')
-const logsTail = ref(100)
-const logsFollow = ref(false)
-const logsSearch = ref('')
+const logsContainer = ref<HTMLElement | null>(null);
+const logs = ref("");
+const logsService = ref("all");
+const logsTail = ref(100);
+const logsFollow = ref(false);
+const logsSearch = ref("");
 
-const terminalService = ref('')
+const terminalService = ref("");
 
-const envVars = ref<Array<{ key: string; value: string; hidden: boolean }>>([])
-const showAddEnvModal = ref(false)
+const envVars = ref<Array<{ key: string; value: string; hidden: boolean }>>([]);
+const showAddEnvModal = ref(false);
 
-const composeConfig = ref('')
+const composeConfig = ref("");
 
-const showOperationModal = ref(false)
-const operationTitle = ref('')
-const operationRunning = ref(false)
-const operationSuccess = ref(false)
-const operationError = ref('')
-const operationOutput = ref('')
+const showOperationModal = ref(false);
+const operationTitle = ref("");
+const operationRunning = ref(false);
+const operationSuccess = ref(false);
+const operationError = ref("");
+const operationOutput = ref("");
 
-let refreshInterval: number | null = null
+let refreshInterval: number | null = null;
 
 const filteredLogs = computed(() => {
-  if (!logsSearch.value) return logs.value
-  const lines = logs.value.split('\n')
-  return lines.filter(line => line.toLowerCase().includes(logsSearch.value.toLowerCase())).join('\n')
-})
+  if (!logsSearch.value) return logs.value;
+  const lines = logs.value.split("\n");
+  return lines
+    .filter((line) =>
+      line.toLowerCase().includes(logsSearch.value.toLowerCase()),
+    )
+    .join("\n");
+});
 
 const fetchDeployment = async () => {
-  loading.value = true
-  error.value = ''
+  loading.value = true;
+  error.value = "";
   try {
-    const response = await deploymentsApi.get(route.params.name as string)
-    deployment.value = response.data
+    const response = await deploymentsApi.get(route.params.name as string);
+    deployment.value = response.data;
 
     services.value = [
-      { name: 'web', image: 'nginx:latest', status: 'running', ports: ['80:80', '443:443'] },
-      { name: 'app', image: 'node:18-alpine', status: 'running', ports: ['3000:3000'] },
-      { name: 'db', image: 'postgres:15', status: 'running', ports: ['5432:5432'] }
-    ]
+      {
+        name: "web",
+        image: "nginx:latest",
+        status: "running",
+        ports: ["80:80", "443:443"],
+      },
+      {
+        name: "app",
+        image: "node:18-alpine",
+        status: "running",
+        ports: ["3000:3000"],
+      },
+      {
+        name: "db",
+        image: "postgres:15",
+        status: "running",
+        ports: ["5432:5432"],
+      },
+    ];
 
     resourceUsage.value = {
       cpu: Math.floor(Math.random() * 60 + 10),
       memory: Math.floor(Math.random() * 70 + 20),
       disk: Math.floor(Math.random() * 40 + 5),
-      network: Math.floor(Math.random() * 30 + 5)
-    }
+      network: Math.floor(Math.random() * 30 + 5),
+    };
 
     envVars.value = [
-      { key: 'NODE_ENV', value: 'production', hidden: false },
-      { key: 'DATABASE_URL', value: 'postgres://user:pass@db:5432/app', hidden: true },
-      { key: 'SECRET_KEY', value: 'super-secret-key-12345', hidden: true },
-      { key: 'API_PORT', value: '3000', hidden: false }
-    ]
+      { key: "NODE_ENV", value: "production", hidden: false },
+      {
+        key: "DATABASE_URL",
+        value: "postgres://user:pass@db:5432/app",
+        hidden: true,
+      },
+      { key: "SECRET_KEY", value: "super-secret-key-12345", hidden: true },
+      { key: "API_PORT", value: "3000", hidden: false },
+    ];
 
     try {
-      const composeResponse = await deploymentsApi.getComposeFile(route.params.name as string)
-      composeConfig.value = composeResponse.data.content || composeResponse.data || 'No compose file found'
+      const composeResponse = await deploymentsApi.getComposeFile(
+        route.params.name as string,
+      );
+      composeConfig.value =
+        composeResponse.data.content ||
+        composeResponse.data ||
+        "No compose file found";
     } catch (composeErr) {
-      composeConfig.value = 'Error loading compose file'
-      console.error('Failed to load compose file:', composeErr)
+      composeConfig.value = "Error loading compose file";
+      console.error("Failed to load compose file:", composeErr);
     }
 
     if (services.value.length > 0) {
-      terminalService.value = services.value[0].name
+      terminalService.value = services.value[0].name;
     }
   } catch (err: any) {
-    error.value = err.message || 'Failed to load deployment'
+    error.value = err.message || "Failed to load deployment";
   } finally {
-    loading.value = false
+    loading.value = false;
   }
-}
+};
 
 const fetchLogs = async () => {
   try {
-    const response = await deploymentsApi.logs(route.params.name as string)
-    logs.value = response.data.logs || 'No logs available'
+    const response = await deploymentsApi.logs(route.params.name as string);
+    logs.value = response.data.logs || "No logs available";
 
     if (logsFollow.value && logsContainer.value) {
-      await nextTick()
-      logsContainer.value.scrollTop = logsContainer.value.scrollHeight
+      await nextTick();
+      logsContainer.value.scrollTop = logsContainer.value.scrollHeight;
     }
   } catch (err) {
-    console.error('Failed to fetch logs:', err)
+    console.error("Failed to fetch logs:", err);
   }
-}
+};
 
 const downloadLogs = () => {
-  const blob = new Blob([logs.value], { type: 'text/plain' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = `${deployment.value?.name || 'deployment'}-logs.txt`
-  a.click()
-  URL.revokeObjectURL(url)
-}
+  const blob = new Blob([logs.value], { type: "text/plain" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `${deployment.value?.name || "deployment"}-logs.txt`;
+  a.click();
+  URL.revokeObjectURL(url);
+};
 
 const clearLogs = () => {
-  logs.value = ''
-}
+  logs.value = "";
+};
 
 const handleOperation = async (operation: string) => {
-  operationTitle.value = `${operation.charAt(0).toUpperCase() + operation.slice(1)} Deployment`
-  operationRunning.value = true
-  operationSuccess.value = false
-  operationError.value = ''
-  operationOutput.value = ''
-  showOperationModal.value = true
+  operationTitle.value = `${operation.charAt(0).toUpperCase() + operation.slice(1)} Deployment`;
+  operationRunning.value = true;
+  operationSuccess.value = false;
+  operationError.value = "";
+  operationOutput.value = "";
+  showOperationModal.value = true;
 
   try {
-    let response
-    if (operation === 'start') {
-      response = await deploymentsApi.start(route.params.name as string)
-    } else if (operation === 'stop') {
-      response = await deploymentsApi.stop(route.params.name as string)
-    } else if (operation === 'restart') {
-      response = await deploymentsApi.restart(route.params.name as string)
+    let response;
+    if (operation === "start") {
+      response = await deploymentsApi.start(route.params.name as string);
+    } else if (operation === "stop") {
+      response = await deploymentsApi.stop(route.params.name as string);
+    } else if (operation === "restart") {
+      response = await deploymentsApi.restart(route.params.name as string);
     }
 
-    operationOutput.value = response?.data?.output || 'Operation completed'
-    operationSuccess.value = true
-    await fetchDeployment()
+    operationOutput.value = response?.data?.output || "Operation completed";
+    operationSuccess.value = true;
+    await fetchDeployment();
   } catch (err: any) {
-    operationError.value = err.message || 'Operation failed'
+    operationError.value = err.message || "Operation failed";
   } finally {
-    operationRunning.value = false
+    operationRunning.value = false;
   }
-}
+};
 
 const confirmDelete = () => {
-  if (confirm(`Are you sure you want to delete deployment "${deployment.value?.name}"? This action cannot be undone.`)) {
-    deleteDeployment()
+  if (
+    confirm(
+      `Are you sure you want to delete deployment "${deployment.value?.name}"? This action cannot be undone.`,
+    )
+  ) {
+    deleteDeployment();
   }
-}
+};
 
 const deleteDeployment = async () => {
   try {
-    await deploymentsApi.delete(route.params.name as string)
-    router.push('/deployments')
+    await deploymentsApi.delete(route.params.name as string);
+    router.push("/deployments");
   } catch (err: any) {
-    alert('Failed to delete deployment: ' + err.message)
+    alert("Failed to delete deployment: " + err.message);
   }
-}
+};
 
 const openTerminal = (service: any) => {
-  terminalService.value = service.name
-  activeTab.value = 'terminal'
-}
+  terminalService.value = service.name;
+  activeTab.value = "terminal";
+};
 
 const viewServiceLogs = (service: any) => {
-  logsService.value = service.name
-  activeTab.value = 'logs'
-  fetchLogs()
-}
+  logsService.value = service.name;
+  activeTab.value = "logs";
+  fetchLogs();
+};
 
 const restartService = async (service: any) => {
-  console.log('Restarting service:', service.name)
-}
+  console.log("Restarting service:", service.name);
+};
 
 const connectTerminal = () => {
-  console.log('Connecting to terminal for:', terminalService.value)
-}
+  console.log("Connecting to terminal for:", terminalService.value);
+};
 
 const reconnectTerminal = () => {
-  console.log('Reconnecting terminal')
-}
+  console.log("Reconnecting terminal");
+};
 
 const editEnvVar = (env: any) => {
-  console.log('Edit env var:', env.key)
-}
+  console.log("Edit env var:", env.key);
+};
 
 const deleteEnvVar = (key: string) => {
   if (confirm(`Delete environment variable "${key}"?`)) {
-    envVars.value = envVars.value.filter(e => e.key !== key)
+    envVars.value = envVars.value.filter((e) => e.key !== key);
   }
-}
+};
 
 const copyConfig = () => {
-  navigator.clipboard.writeText(composeConfig.value)
-}
+  navigator.clipboard.writeText(composeConfig.value);
+};
 
 const editConfig = () => {
-  console.log('Edit config')
-}
+  console.log("Edit config");
+};
 
 const formatDateTime = (date: string) => {
-  return new Date(date).toLocaleString()
-}
+  return new Date(date).toLocaleString();
+};
 
 const getUsageClass = (percentage: number) => {
-  if (percentage > 80) return 'critical'
-  if (percentage > 60) return 'warning'
-  return 'normal'
-}
+  if (percentage > 80) return "critical";
+  if (percentage > 60) return "warning";
+  return "normal";
+};
 
 watch(activeTab, (newTab) => {
-  if (newTab === 'logs' && !logs.value) {
-    fetchLogs()
+  if (newTab === "logs" && !logs.value) {
+    fetchLogs();
   }
-})
+});
 
 onMounted(() => {
-  fetchDeployment()
+  fetchDeployment();
   refreshInterval = window.setInterval(() => {
-    if (logsFollow.value && activeTab.value === 'logs') {
-      fetchLogs()
+    if (logsFollow.value && activeTab.value === "logs") {
+      fetchLogs();
     }
-  }, 3000)
-})
+  }, 3000);
+});
 
 onUnmounted(() => {
   if (refreshInterval) {
-    clearInterval(refreshInterval)
+    clearInterval(refreshInterval);
   }
-})
+});
 </script>
 
 <style scoped>
@@ -645,10 +893,22 @@ onUnmounted(() => {
   text-transform: capitalize;
 }
 
-.status-badge.running { background: var(--color-success-50); color: var(--color-success-700); }
-.status-badge.stopped { background: var(--color-danger-50); color: var(--color-danger-700); }
-.status-badge.error { background: var(--color-danger-50); color: var(--color-danger-700); }
-.status-badge.starting { background: var(--color-warning-50); color: var(--color-warning-700); }
+.status-badge.running {
+  background: var(--color-success-50);
+  color: var(--color-success-700);
+}
+.status-badge.stopped {
+  background: var(--color-danger-50);
+  color: var(--color-danger-700);
+}
+.status-badge.error {
+  background: var(--color-danger-50);
+  color: var(--color-danger-700);
+}
+.status-badge.starting {
+  background: var(--color-warning-50);
+  color: var(--color-warning-700);
+}
 
 .header-actions {
   display: flex;
@@ -673,27 +933,61 @@ onUnmounted(() => {
   font-size: var(--text-base);
 }
 
-.btn-primary { background: var(--color-primary-500); color: white; }
-.btn-primary:hover:not(:disabled) { background: var(--color-primary-600); }
+.btn-primary {
+  background: var(--color-primary-500);
+  color: white;
+}
+.btn-primary:hover:not(:disabled) {
+  background: var(--color-primary-600);
+}
 
-.btn-secondary { background: var(--color-gray-100); color: var(--color-gray-700); }
-.btn-secondary:hover:not(:disabled) { background: var(--color-gray-200); }
+.btn-secondary {
+  background: var(--color-gray-100);
+  color: var(--color-gray-700);
+}
+.btn-secondary:hover:not(:disabled) {
+  background: var(--color-gray-200);
+}
 
-.btn-success { background: var(--color-success-50); color: var(--color-success-700); }
-.btn-success:hover:not(:disabled) { background: var(--color-success-100); }
+.btn-success {
+  background: var(--color-success-50);
+  color: var(--color-success-700);
+}
+.btn-success:hover:not(:disabled) {
+  background: var(--color-success-100);
+}
 
-.btn-warning { background: var(--color-warning-50); color: var(--color-warning-700); }
-.btn-warning:hover:not(:disabled) { background: var(--color-warning-100); }
+.btn-warning {
+  background: var(--color-warning-50);
+  color: var(--color-warning-700);
+}
+.btn-warning:hover:not(:disabled) {
+  background: var(--color-warning-100);
+}
 
-.btn-info { background: var(--color-info-50); color: var(--color-info-700); }
-.btn-info:hover:not(:disabled) { background: var(--color-info-100); }
+.btn-info {
+  background: var(--color-info-50);
+  color: var(--color-info-700);
+}
+.btn-info:hover:not(:disabled) {
+  background: var(--color-info-100);
+}
 
-.btn-danger { background: var(--color-danger-50); color: var(--color-danger-700); }
-.btn-danger:hover:not(:disabled) { background: var(--color-danger-100); }
+.btn-danger {
+  background: var(--color-danger-50);
+  color: var(--color-danger-700);
+}
+.btn-danger:hover:not(:disabled) {
+  background: var(--color-danger-100);
+}
 
-.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 
-.loading-state, .error-state {
+.loading-state,
+.error-state {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -704,7 +998,8 @@ onUnmounted(() => {
   gap: var(--space-4);
 }
 
-.loading-state i, .error-state i {
+.loading-state i,
+.error-state i {
   font-size: 3rem;
   color: var(--color-gray-400);
 }
@@ -831,8 +1126,12 @@ onUnmounted(() => {
   margin-right: var(--space-2);
 }
 
-.status-indicator.running { background: var(--color-success-500); }
-.status-indicator.stopped { background: var(--color-danger-500); }
+.status-indicator.running {
+  background: var(--color-success-500);
+}
+.status-indicator.stopped {
+  background: var(--color-danger-500);
+}
 
 .services-list {
   display: flex;
@@ -865,8 +1164,14 @@ onUnmounted(() => {
   font-weight: var(--font-medium);
 }
 
-.service-status.running { background: var(--color-success-50); color: var(--color-success-700); }
-.service-status.stopped { background: var(--color-danger-50); color: var(--color-danger-700); }
+.service-status.running {
+  background: var(--color-success-50);
+  color: var(--color-success-700);
+}
+.service-status.stopped {
+  background: var(--color-danger-50);
+  color: var(--color-danger-700);
+}
 
 .service-details {
   display: flex;
@@ -954,9 +1259,15 @@ onUnmounted(() => {
   transition: width var(--transition-base);
 }
 
-.resource-fill.normal { background: var(--color-success-500); }
-.resource-fill.warning { background: var(--color-warning-500); }
-.resource-fill.critical { background: var(--color-danger-500); }
+.resource-fill.normal {
+  background: var(--color-success-500);
+}
+.resource-fill.warning {
+  background: var(--color-warning-500);
+}
+.resource-fill.critical {
+  background: var(--color-danger-500);
+}
 
 .resource-value {
   font-size: var(--text-sm);
@@ -1053,7 +1364,7 @@ onUnmounted(() => {
 }
 
 .logs-content:empty::before {
-  content: 'Loading logs...';
+  content: "Loading logs...";
   color: var(--color-gray-500);
   font-style: italic;
 }
@@ -1155,7 +1466,9 @@ onUnmounted(() => {
   color: var(--color-gray-600);
 }
 
-.env-key, .env-value, .env-actions {
+.env-key,
+.env-value,
+.env-actions {
   padding: var(--space-3);
 }
 
@@ -1232,7 +1545,9 @@ onUnmounted(() => {
   max-width: 600px;
 }
 
-.operation-progress, .operation-success, .operation-error {
+.operation-progress,
+.operation-success,
+.operation-error {
   display: flex;
   flex-direction: column;
   align-items: center;

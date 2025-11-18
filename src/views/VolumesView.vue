@@ -33,27 +33,40 @@
       default-view-mode="grid"
     >
       <template #actions>
-        <button class="btn btn-primary" @click="showCreateModal = true">
-          <i class="pi pi-plus"></i>
+        <button
+          class="btn btn-primary"
+          @click="showCreateModal = true"
+        >
+          <i class="pi pi-plus" />
           Create Volume
         </button>
-        <button class="btn btn-secondary" @click="fetchVolumes" :disabled="loading">
-          <i class="pi pi-refresh" :class="{ 'pi-spin': loading }"></i>
+        <button
+          class="btn btn-secondary"
+          :disabled="loading"
+          @click="fetchVolumes"
+        >
+          <i
+            class="pi pi-refresh"
+            :class="{ 'pi-spin': loading }"
+          />
           Refresh
         </button>
         <button
           class="btn btn-warning"
-          @click="pruneVolumes"
           :disabled="unusedVolumes === 0"
+          @click="pruneVolumes"
         >
-          <i class="pi pi-trash"></i>
+          <i class="pi pi-trash" />
           Prune Unused
         </button>
       </template>
 
       <template #empty-action>
-        <button class="btn btn-primary" @click="showCreateModal = true">
-          <i class="pi pi-plus"></i>
+        <button
+          class="btn btn-primary"
+          @click="showCreateModal = true"
+        >
+          <i class="pi pi-plus" />
           Create Volume
         </button>
       </template>
@@ -67,8 +80,11 @@
       </template>
 
       <template #cell-status="{ item }">
-        <span class="status-badge" :class="item.in_use ? 'in-use' : 'unused'">
-          {{ item.in_use ? 'In Use' : 'Unused' }}
+        <span
+          class="status-badge"
+          :class="item.in_use ? 'in-use' : 'unused'"
+        >
+          {{ item.in_use ? "In Use" : "Unused" }}
         </span>
       </template>
 
@@ -84,18 +100,18 @@
         <div class="table-actions">
           <button
             class="action-btn inspect"
-            @click.stop="inspectVolume(item.name)"
             title="Inspect"
+            @click.stop="inspectVolume(item.name)"
           >
-            <i class="pi pi-info-circle"></i>
+            <i class="pi pi-info-circle" />
           </button>
           <button
             class="action-btn delete"
-            @click.stop="deleteVolume(item.name)"
             title="Remove"
             :disabled="item.in_use"
+            @click.stop="deleteVolume(item.name)"
           >
-            <i class="pi pi-trash"></i>
+            <i class="pi pi-trash" />
           </button>
         </div>
       </template>
@@ -106,25 +122,36 @@
             v-for="volume in items"
             :key="volume.name"
             class="volume-card"
-            :class="{ unused: !volume.in_use, selected: selectedItems.includes(volume.name) }"
+            :class="{
+              unused: !volume.in_use,
+              selected: selectedItems.includes(volume.name),
+            }"
           >
             <div class="volume-card-header">
               <input
                 type="checkbox"
                 :checked="selectedItems.includes(volume.name)"
-                @change="toggleSelect(volume.name)"
                 class="volume-checkbox"
-              />
-              <div class="volume-icon" :class="{ unused: !volume.in_use }">
-                <i class="pi pi-database"></i>
+                @change="toggleSelect(volume.name)"
+              >
+              <div
+                class="volume-icon"
+                :class="{ unused: !volume.in_use }"
+              >
+                <i class="pi pi-database" />
               </div>
               <div class="volume-info">
-                <h4 class="volume-name">{{ volume.name }}</h4>
+                <h4 class="volume-name">
+                  {{ volume.name }}
+                </h4>
                 <span class="volume-driver">{{ volume.driver }}</span>
               </div>
               <div class="volume-status">
-                <span class="status-badge" :class="volume.in_use ? 'in-use' : 'unused'">
-                  {{ volume.in_use ? 'In Use' : 'Unused' }}
+                <span
+                  class="status-badge"
+                  :class="volume.in_use ? 'in-use' : 'unused'"
+                >
+                  {{ volume.in_use ? "In Use" : "Unused" }}
                 </span>
               </div>
             </div>
@@ -137,15 +164,25 @@
                 </div>
                 <div class="detail-item">
                   <span class="detail-label">Created</span>
-                  <span class="detail-value">{{ formatDate(volume.created) }}</span>
+                  <span class="detail-value">{{
+                    formatDate(volume.created)
+                  }}</span>
                 </div>
-                <div v-if="volume.size" class="detail-item">
+                <div
+                  v-if="volume.size"
+                  class="detail-item"
+                >
                   <span class="detail-label">Size</span>
-                  <span class="detail-value">{{ formatSize(volume.size) }}</span>
+                  <span class="detail-value">{{
+                    formatSize(volume.size)
+                  }}</span>
                 </div>
               </div>
 
-              <div v-if="volume.labels && Object.keys(volume.labels).length > 0" class="volume-labels">
+              <div
+                v-if="volume.labels && Object.keys(volume.labels).length > 0"
+                class="volume-labels"
+              >
                 <span class="labels-title">Labels</span>
                 <div class="labels-list">
                   <span
@@ -158,7 +195,10 @@
                 </div>
               </div>
 
-              <div v-if="volume.containers?.length" class="volume-containers">
+              <div
+                v-if="volume.containers?.length"
+                class="volume-containers"
+              >
                 <span class="containers-title">Mounted by</span>
                 <div class="containers-list">
                   <span
@@ -166,7 +206,7 @@
                     :key="container"
                     class="container-tag"
                   >
-                    <i class="pi pi-box"></i>
+                    <i class="pi pi-box" />
                     {{ container }}
                   </span>
                 </div>
@@ -176,18 +216,18 @@
             <div class="volume-card-actions">
               <button
                 class="action-btn inspect"
-                @click="inspectVolume(volume.name)"
                 title="Inspect"
+                @click="inspectVolume(volume.name)"
               >
-                <i class="pi pi-info-circle"></i>
+                <i class="pi pi-info-circle" />
               </button>
               <button
                 class="action-btn delete"
-                @click="deleteVolume(volume.name)"
                 title="Remove"
                 :disabled="volume.in_use"
+                @click="deleteVolume(volume.name)"
               >
-                <i class="pi pi-trash"></i>
+                <i class="pi pi-trash" />
               </button>
             </div>
           </div>
@@ -195,22 +235,32 @@
       </template>
 
       <template #bulk-actions="{ selectedItems, clearSelection }">
-        <button class="btn btn-sm btn-danger" @click="bulkRemove(selectedItems, clearSelection)">
-          <i class="pi pi-trash"></i> Remove
+        <button
+          class="btn btn-sm btn-danger"
+          @click="bulkRemove(selectedItems, clearSelection)"
+        >
+          <i class="pi pi-trash" /> Remove
         </button>
       </template>
     </DataTable>
 
     <Teleport to="body">
-      <div v-if="showCreateModal" class="modal-overlay" @click.self="showCreateModal = false">
+      <div
+        v-if="showCreateModal"
+        class="modal-overlay"
+        @click.self="showCreateModal = false"
+      >
         <div class="create-modal modal-container">
           <div class="modal-header">
             <h3>
-              <i class="pi pi-plus-circle"></i>
+              <i class="pi pi-plus-circle" />
               Create Volume
             </h3>
-            <button class="close-btn" @click="showCreateModal = false">
-              <i class="pi pi-times"></i>
+            <button
+              class="close-btn"
+              @click="showCreateModal = false"
+            >
+              <i class="pi pi-times" />
             </button>
           </div>
           <div class="modal-body">
@@ -221,12 +271,17 @@
                 type="text"
                 placeholder="my-volume"
                 class="form-input"
-              />
+              >
             </div>
             <div class="form-group">
               <label>Driver</label>
-              <select v-model="newVolumeDriver" class="form-input">
-                <option value="local">local</option>
+              <select
+                v-model="newVolumeDriver"
+                class="form-input"
+              >
+                <option value="local">
+                  local
+                </option>
               </select>
             </div>
             <div class="form-group">
@@ -242,33 +297,47 @@
                     type="text"
                     placeholder="key"
                     class="form-input small"
-                  />
+                  >
                   <input
                     v-model="label.value"
                     type="text"
                     placeholder="value"
                     class="form-input small"
-                  />
-                  <button class="remove-label" @click="removeLabel(index)">
-                    <i class="pi pi-times"></i>
+                  >
+                  <button
+                    class="remove-label"
+                    @click="removeLabel(index)"
+                  >
+                    <i class="pi pi-times" />
                   </button>
                 </div>
-                <button class="add-label-btn" @click="addLabel">
-                  <i class="pi pi-plus"></i>
+                <button
+                  class="add-label-btn"
+                  @click="addLabel"
+                >
+                  <i class="pi pi-plus" />
                   Add Label
                 </button>
               </div>
             </div>
           </div>
           <div class="modal-footer">
-            <button class="btn btn-secondary" @click="showCreateModal = false">Cancel</button>
+            <button
+              class="btn btn-secondary"
+              @click="showCreateModal = false"
+            >
+              Cancel
+            </button>
             <button
               class="btn btn-primary"
-              @click="createVolume"
               :disabled="!newVolumeName || creating"
+              @click="createVolume"
             >
-              <i v-if="creating" class="pi pi-spin pi-spinner"></i>
-              {{ creating ? 'Creating...' : 'Create Volume' }}
+              <i
+                v-if="creating"
+                class="pi pi-spin pi-spinner"
+              />
+              {{ creating ? "Creating..." : "Create Volume" }}
             </button>
           </div>
         </div>
@@ -278,138 +347,143 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { volumesApi } from '@/services/api'
-import DataTable from '@/components/DataTable.vue'
+import { ref, computed, onMounted } from "vue";
+import { volumesApi } from "@/services/api";
+import DataTable from "@/components/DataTable.vue";
 
 interface Volume {
-  name: string
-  driver: string
-  mountpoint: string
-  created: string
-  size?: number
-  in_use: boolean
-  labels?: Record<string, string>
-  containers?: string[]
+  name: string;
+  driver: string;
+  mountpoint: string;
+  created: string;
+  size?: number;
+  in_use: boolean;
+  labels?: Record<string, string>;
+  containers?: string[];
 }
 
-const volumes = ref<Volume[]>([])
-const loading = ref(false)
-const showCreateModal = ref(false)
-const newVolumeName = ref('')
-const newVolumeDriver = ref('local')
-const newVolumeLabels = ref<Array<{ key: string; value: string }>>([])
-const creating = ref(false)
+const volumes = ref<Volume[]>([]);
+const loading = ref(false);
+const showCreateModal = ref(false);
+const newVolumeName = ref("");
+const newVolumeDriver = ref("local");
+const newVolumeLabels = ref<Array<{ key: string; value: string }>>([]);
+const creating = ref(false);
 
 const columns = [
-  { key: 'name', label: 'Name', sortable: true },
-  { key: 'driver', label: 'Driver' },
-  { key: 'status', label: 'Status' },
-  { key: 'mountpoint', label: 'Mount Point' },
-  { key: 'created', label: 'Created', sortable: true },
-  { key: 'actions', label: 'Actions', width: '100px' }
-]
+  { key: "name", label: "Name", sortable: true },
+  { key: "driver", label: "Driver" },
+  { key: "status", label: "Status" },
+  { key: "mountpoint", label: "Mount Point" },
+  { key: "created", label: "Created", sortable: true },
+  { key: "actions", label: "Actions", width: "100px" },
+];
 
-const inUseVolumes = computed(() => volumes.value.filter(v => v.in_use).length)
-const unusedVolumes = computed(() => volumes.value.filter(v => !v.in_use).length)
+const inUseVolumes = computed(
+  () => volumes.value.filter((v) => v.in_use).length,
+);
+const unusedVolumes = computed(
+  () => volumes.value.filter((v) => !v.in_use).length,
+);
 
 const fetchVolumes = async () => {
-  loading.value = true
+  loading.value = true;
   try {
-    const response = await volumesApi.list()
-    volumes.value = response.data.volumes || []
+    const response = await volumesApi.list();
+    volumes.value = response.data.volumes || [];
   } catch (error) {
-    console.error('Failed to fetch volumes:', error)
+    console.error("Failed to fetch volumes:", error);
   } finally {
-    loading.value = false
+    loading.value = false;
   }
-}
+};
 
 const formatDate = (timestamp: string) => {
-  const date = new Date(timestamp)
-  return date.toLocaleDateString() + ' ' + date.toLocaleTimeString()
-}
+  const date = new Date(timestamp);
+  return date.toLocaleDateString() + " " + date.toLocaleTimeString();
+};
 
 const formatSize = (bytes: number) => {
-  if (bytes === 0) return '0 B'
-  const k = 1024
-  const sizes = ['B', 'KB', 'MB', 'GB']
-  const i = Math.floor(Math.log(bytes) / Math.log(k))
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i]
-}
+  if (bytes === 0) return "0 B";
+  const k = 1024;
+  const sizes = ["B", "KB", "MB", "GB"];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + " " + sizes[i];
+};
 
 const addLabel = () => {
-  newVolumeLabels.value.push({ key: '', value: '' })
-}
+  newVolumeLabels.value.push({ key: "", value: "" });
+};
 
 const removeLabel = (index: number) => {
-  newVolumeLabels.value.splice(index, 1)
-}
+  newVolumeLabels.value.splice(index, 1);
+};
 
 const createVolume = async () => {
-  if (!newVolumeName.value) return
-  creating.value = true
+  if (!newVolumeName.value) return;
+  creating.value = true;
   try {
-    const labels: Record<string, string> = {}
-    newVolumeLabels.value.forEach(l => {
-      if (l.key) labels[l.key] = l.value
-    })
+    const labels: Record<string, string> = {};
+    newVolumeLabels.value.forEach((l) => {
+      if (l.key) labels[l.key] = l.value;
+    });
     await volumesApi.create({
       name: newVolumeName.value,
       driver: newVolumeDriver.value,
-      labels
-    })
-    showCreateModal.value = false
-    newVolumeName.value = ''
-    newVolumeLabels.value = []
-    await fetchVolumes()
+      labels,
+    });
+    showCreateModal.value = false;
+    newVolumeName.value = "";
+    newVolumeLabels.value = [];
+    await fetchVolumes();
   } catch (error) {
-    console.error('Failed to create volume:', error)
+    console.error("Failed to create volume:", error);
   } finally {
-    creating.value = false
+    creating.value = false;
   }
-}
+};
 
 const deleteVolume = async (name: string) => {
-  if (!confirm(`Remove volume "${name}"? This cannot be undone.`)) return
+  if (!confirm(`Remove volume "${name}"? This cannot be undone.`)) return;
   try {
-    await volumesApi.remove(name)
-    await fetchVolumes()
+    await volumesApi.remove(name);
+    await fetchVolumes();
   } catch (error) {
-    console.error('Failed to remove volume:', error)
+    console.error("Failed to remove volume:", error);
   }
-}
+};
 
 const bulkRemove = async (names: string[], clear: () => void) => {
-  if (!confirm(`Remove ${names.length} volumes? This cannot be undone.`)) return
+  if (!confirm(`Remove ${names.length} volumes? This cannot be undone.`))
+    return;
   for (const name of names) {
     try {
-      await volumesApi.remove(name)
+      await volumesApi.remove(name);
     } catch (error) {
-      console.error(`Failed to remove volume ${name}:`, error)
+      console.error(`Failed to remove volume ${name}:`, error);
     }
   }
-  clear()
-  await fetchVolumes()
-}
+  clear();
+  await fetchVolumes();
+};
 
 const pruneVolumes = async () => {
-  if (!confirm('Remove all unused volumes? This cannot be undone.')) return
+  if (!confirm("Remove all unused volumes? This cannot be undone.")) return;
   try {
-    await volumesApi.prune()
-    await fetchVolumes()
+    await volumesApi.prune();
+    await fetchVolumes();
   } catch (error) {
-    console.error('Failed to prune volumes:', error)
+    console.error("Failed to prune volumes:", error);
   }
-}
+};
 
 const inspectVolume = (name: string) => {
-  console.log('Inspect volume:', name)
-}
+  console.log("Inspect volume:", name);
+};
 
 onMounted(() => {
-  fetchVolumes()
-})
+  fetchVolumes();
+});
 </script>
 
 <style scoped>

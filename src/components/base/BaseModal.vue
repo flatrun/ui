@@ -1,12 +1,22 @@
 <template>
   <Teleport to="body">
-    <div v-if="visible" class="modal-overlay" @click.self="handleOverlayClick">
-      <div class="modal-container" :class="[sizeClass]">
+    <div
+      v-if="visible"
+      class="modal-overlay"
+      @click.self="handleOverlayClick"
+    >
+      <div
+        class="modal-container"
+        :class="[sizeClass]"
+      >
         <div class="modal-header">
           <div class="header-content">
             <slot name="header">
               <h3>
-                <i v-if="icon" :class="icon"></i>
+                <i
+                  v-if="icon"
+                  :class="icon"
+                />
                 {{ title }}
               </h3>
             </slot>
@@ -14,19 +24,22 @@
           <button
             v-if="showClose"
             class="close-btn"
-            @click="emit('close')"
             :disabled="closeDisabled"
+            @click="emit('close')"
           >
-            <i class="pi pi-times"></i>
+            <i class="pi pi-times" />
           </button>
         </div>
 
         <div class="modal-body">
-          <slot></slot>
+          <slot />
         </div>
 
-        <div v-if="$slots.footer" class="modal-footer">
-          <slot name="footer"></slot>
+        <div
+          v-if="$slots.footer"
+          class="modal-footer"
+        >
+          <slot name="footer" />
         </div>
       </div>
     </div>
@@ -34,34 +47,37 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed } from "vue";
 
-const props = withDefaults(defineProps<{
-  visible: boolean
-  title?: string
-  icon?: string
-  size?: 'sm' | 'md' | 'lg' | 'xl'
-  showClose?: boolean
-  closeDisabled?: boolean
-  closeOnOverlay?: boolean
-}>(), {
-  title: '',
-  icon: '',
-  size: 'md',
-  showClose: true,
-  closeDisabled: false,
-  closeOnOverlay: true
-})
+const props = withDefaults(
+  defineProps<{
+    visible: boolean;
+    title?: string;
+    icon?: string;
+    size?: "sm" | "md" | "lg" | "xl";
+    showClose?: boolean;
+    closeDisabled?: boolean;
+    closeOnOverlay?: boolean;
+  }>(),
+  {
+    title: "",
+    icon: "",
+    size: "md",
+    showClose: true,
+    closeDisabled: false,
+    closeOnOverlay: true,
+  },
+);
 
-const emit = defineEmits(['close'])
+const emit = defineEmits(["close"]);
 
-const sizeClass = computed(() => `modal-${props.size}`)
+const sizeClass = computed(() => `modal-${props.size}`);
 
 const handleOverlayClick = () => {
   if (props.closeOnOverlay && !props.closeDisabled) {
-    emit('close')
+    emit("close");
   }
-}
+};
 </script>
 
 <style scoped>

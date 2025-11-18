@@ -8,16 +8,24 @@
         :class="notification.type"
       >
         <div class="toast-icon">
-          <i :class="getIcon(notification.type)"></i>
+          <i :class="getIcon(notification.type)" />
         </div>
         <div class="toast-content">
-          <div class="toast-title">{{ notification.title }}</div>
-          <div v-if="notification.message" class="toast-message">
+          <div class="toast-title">
+            {{ notification.title }}
+          </div>
+          <div
+            v-if="notification.message"
+            class="toast-message"
+          >
             {{ notification.message }}
           </div>
         </div>
-        <button class="toast-close" @click="remove(notification.id)">
-          <i class="pi pi-times"></i>
+        <button
+          class="toast-close"
+          @click="remove(notification.id)"
+        >
+          <i class="pi pi-times" />
         </button>
       </div>
     </TransitionGroup>
@@ -25,22 +33,22 @@
 </template>
 
 <script setup lang="ts">
-import { storeToRefs } from 'pinia'
-import { useNotificationsStore } from '@/stores/notifications'
+import { storeToRefs } from "pinia";
+import { useNotificationsStore } from "@/stores/notifications";
 
-const store = useNotificationsStore()
-const { notifications } = storeToRefs(store)
-const { remove } = store
+const store = useNotificationsStore();
+const { notifications } = storeToRefs(store);
+const { remove } = store;
 
 const getIcon = (type: string) => {
   const icons: Record<string, string> = {
-    success: 'pi pi-check-circle',
-    error: 'pi pi-times-circle',
-    warning: 'pi pi-exclamation-triangle',
-    info: 'pi pi-info-circle'
-  }
-  return icons[type] || 'pi pi-info-circle'
-}
+    success: "pi pi-check-circle",
+    error: "pi pi-times-circle",
+    warning: "pi pi-exclamation-triangle",
+    info: "pi pi-info-circle",
+  };
+  return icons[type] || "pi pi-info-circle";
+};
 </script>
 
 <style scoped>
@@ -63,7 +71,9 @@ const getIcon = (type: string) => {
   padding: 1rem;
   background: white;
   border-radius: 12px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15), 0 2px 10px rgba(0, 0, 0, 0.1);
+  box-shadow:
+    0 10px 40px rgba(0, 0, 0, 0.15),
+    0 2px 10px rgba(0, 0, 0, 0.1);
   border-left: 4px solid;
 }
 
