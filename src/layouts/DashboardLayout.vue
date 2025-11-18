@@ -1,32 +1,58 @@
 <template>
   <div class="dashboard-layout">
-    <aside class="sidebar" :class="{ collapsed: sidebarCollapsed }">
+    <aside
+      class="sidebar"
+      :class="{ collapsed: sidebarCollapsed }"
+    >
       <div class="logo">
-        <span class="logo-text">{{ sidebarCollapsed ? 'F' : 'FlatRun' }}</span>
+        <span class="logo-text">{{ sidebarCollapsed ? "F" : "FlatRun" }}</span>
       </div>
 
-      <div class="environment-selector" v-if="!sidebarCollapsed">
+      <div
+        v-if="!sidebarCollapsed"
+        class="environment-selector"
+      >
         <div class="env-current">
-          <i class="pi pi-server"></i>
+          <i class="pi pi-server" />
           <span>Local Environment</span>
-          <i class="pi pi-chevron-down"></i>
+          <i class="pi pi-chevron-down" />
         </div>
       </div>
 
       <nav class="nav-menu">
-        <router-link to="/" class="nav-item" exact-active-class="active">
-          <i class="pi pi-th-large"></i>
+        <router-link
+          to="/"
+          class="nav-item"
+          exact-active-class="active"
+        >
+          <i class="pi pi-th-large" />
           <span v-if="!sidebarCollapsed">Dashboard</span>
         </router-link>
 
         <div class="nav-group">
-          <div class="nav-group-header" @click="toggleGroup('stacks')">
-            <i class="pi pi-layers"></i>
+          <div
+            class="nav-group-header"
+            @click="toggleGroup('stacks')"
+          >
+            <i class="pi pi-layers" />
             <span v-if="!sidebarCollapsed">Stacks</span>
-            <i v-if="!sidebarCollapsed" class="pi chevron" :class="expandedGroups.stacks ? 'pi-chevron-down' : 'pi-chevron-right'"></i>
+            <i
+              v-if="!sidebarCollapsed"
+              class="pi chevron"
+              :class="
+                expandedGroups.stacks ? 'pi-chevron-down' : 'pi-chevron-right'
+              "
+            />
           </div>
-          <div class="nav-group-items" v-show="expandedGroups.stacks && !sidebarCollapsed">
-            <router-link to="/deployments" class="nav-subitem" active-class="active">
+          <div
+            v-show="expandedGroups.stacks && !sidebarCollapsed"
+            class="nav-group-items"
+          >
+            <router-link
+              to="/deployments"
+              class="nav-subitem"
+              active-class="active"
+            >
               <span class="nav-count">{{ stats.deployments }}</span>
               Deployments
             </router-link>
@@ -34,39 +60,91 @@
         </div>
 
         <div class="nav-group">
-          <div class="nav-group-header" @click="toggleGroup('docker')">
-            <i class="pi pi-box"></i>
+          <div
+            class="nav-group-header"
+            @click="toggleGroup('docker')"
+          >
+            <i class="pi pi-box" />
             <span v-if="!sidebarCollapsed">Docker</span>
-            <i v-if="!sidebarCollapsed" class="pi chevron" :class="expandedGroups.docker ? 'pi-chevron-down' : 'pi-chevron-right'"></i>
+            <i
+              v-if="!sidebarCollapsed"
+              class="pi chevron"
+              :class="
+                expandedGroups.docker ? 'pi-chevron-down' : 'pi-chevron-right'
+              "
+            />
           </div>
-          <div class="nav-group-items" v-show="expandedGroups.docker && !sidebarCollapsed">
-            <router-link to="/containers" class="nav-subitem" active-class="active">
+          <div
+            v-show="expandedGroups.docker && !sidebarCollapsed"
+            class="nav-group-items"
+          >
+            <router-link
+              to="/containers"
+              class="nav-subitem"
+              active-class="active"
+            >
               <span class="nav-count">{{ stats.containers }}</span>
               Containers
             </router-link>
-            <router-link to="/images" class="nav-subitem" active-class="active">
+            <router-link
+              to="/images"
+              class="nav-subitem"
+              active-class="active"
+            >
               <span class="nav-count">{{ stats.images }}</span>
               Images
             </router-link>
-            <router-link to="/volumes" class="nav-subitem" active-class="active">
+            <router-link
+              to="/volumes"
+              class="nav-subitem"
+              active-class="active"
+            >
               <span class="nav-count">{{ stats.volumes }}</span>
               Volumes
             </router-link>
-            <router-link to="/networks" class="nav-subitem" active-class="active">
+            <router-link
+              to="/networks"
+              class="nav-subitem"
+              active-class="active"
+            >
               <span class="nav-count">{{ stats.networks }}</span>
               Networks
+            </router-link>
+            <router-link
+              to="/ports"
+              class="nav-subitem"
+              active-class="active"
+            >
+              <span class="nav-count">{{ stats.ports }}</span>
+              Ports
             </router-link>
           </div>
         </div>
 
         <div class="nav-group">
-          <div class="nav-group-header" @click="toggleGroup('security')">
-            <i class="pi pi-shield"></i>
+          <div
+            class="nav-group-header"
+            @click="toggleGroup('security')"
+          >
+            <i class="pi pi-shield" />
             <span v-if="!sidebarCollapsed">Security</span>
-            <i v-if="!sidebarCollapsed" class="pi chevron" :class="expandedGroups.security ? 'pi-chevron-down' : 'pi-chevron-right'"></i>
+            <i
+              v-if="!sidebarCollapsed"
+              class="pi chevron"
+              :class="
+                expandedGroups.security ? 'pi-chevron-down' : 'pi-chevron-right'
+              "
+            />
           </div>
-          <div class="nav-group-items" v-show="expandedGroups.security && !sidebarCollapsed">
-            <router-link to="/certificates" class="nav-subitem" active-class="active">
+          <div
+            v-show="expandedGroups.security && !sidebarCollapsed"
+            class="nav-group-items"
+          >
+            <router-link
+              to="/certificates"
+              class="nav-subitem"
+              active-class="active"
+            >
               <span class="nav-count">{{ stats.certificates }}</span>
               Certificates
             </router-link>
@@ -74,30 +152,68 @@
         </div>
 
         <div class="nav-group">
-          <div class="nav-group-header" @click="toggleGroup('extensions')">
-            <i class="pi pi-th-large"></i>
+          <div
+            class="nav-group-header"
+            @click="toggleGroup('extensions')"
+          >
+            <i class="pi pi-th-large" />
             <span v-if="!sidebarCollapsed">Apps</span>
-            <i v-if="!sidebarCollapsed" class="pi chevron" :class="expandedGroups.extensions ? 'pi-chevron-down' : 'pi-chevron-right'"></i>
+            <i
+              v-if="!sidebarCollapsed"
+              class="pi chevron"
+              :class="
+                expandedGroups.extensions
+                  ? 'pi-chevron-down'
+                  : 'pi-chevron-right'
+              "
+            />
           </div>
-          <div class="nav-group-items" v-show="expandedGroups.extensions && !sidebarCollapsed">
-            <router-link to="/apps" class="nav-subitem" active-class="active">
+          <div
+            v-show="expandedGroups.extensions && !sidebarCollapsed"
+            class="nav-group-items"
+          >
+            <router-link
+              to="/apps"
+              class="nav-subitem"
+              active-class="active"
+            >
               <span class="nav-count">{{ stats.apps }}</span>
               Installed Apps
             </router-link>
-            <router-link to="/marketplace" class="nav-subitem" active-class="active">
+            <router-link
+              to="/marketplace"
+              class="nav-subitem"
+              active-class="active"
+            >
               Marketplace
             </router-link>
           </div>
         </div>
 
         <div class="nav-group">
-          <div class="nav-group-header" @click="toggleGroup('admin')">
-            <i class="pi pi-sliders-h"></i>
+          <div
+            class="nav-group-header"
+            @click="toggleGroup('admin')"
+          >
+            <i class="pi pi-sliders-h" />
             <span v-if="!sidebarCollapsed">Administration</span>
-            <i v-if="!sidebarCollapsed" class="pi chevron" :class="expandedGroups.admin ? 'pi-chevron-down' : 'pi-chevron-right'"></i>
+            <i
+              v-if="!sidebarCollapsed"
+              class="pi chevron"
+              :class="
+                expandedGroups.admin ? 'pi-chevron-down' : 'pi-chevron-right'
+              "
+            />
           </div>
-          <div class="nav-group-items" v-show="expandedGroups.admin && !sidebarCollapsed">
-            <router-link to="/settings" class="nav-subitem" active-class="active">
+          <div
+            v-show="expandedGroups.admin && !sidebarCollapsed"
+            class="nav-group-items"
+          >
+            <router-link
+              to="/settings"
+              class="nav-subitem"
+              active-class="active"
+            >
               Settings
             </router-link>
           </div>
@@ -105,14 +221,21 @@
       </nav>
 
       <div class="sidebar-footer">
-        <div class="resource-usage" v-if="!sidebarCollapsed">
+        <div
+          v-if="!sidebarCollapsed"
+          class="resource-usage"
+        >
           <div class="resource-item">
             <div class="resource-header">
               <span>CPU</span>
               <span>{{ stats.cpuUsage }}%</span>
             </div>
             <div class="resource-bar">
-              <div class="resource-fill" :style="{ width: stats.cpuUsage + '%' }" :class="getUsageClass(stats.cpuUsage)"></div>
+              <div
+                class="resource-fill"
+                :style="{ width: stats.cpuUsage + '%' }"
+                :class="getUsageClass(stats.cpuUsage)"
+              />
             </div>
           </div>
           <div class="resource-item">
@@ -121,52 +244,96 @@
               <span>{{ stats.memoryUsage }}%</span>
             </div>
             <div class="resource-bar">
-              <div class="resource-fill" :style="{ width: stats.memoryUsage + '%' }" :class="getUsageClass(stats.memoryUsage)"></div>
+              <div
+                class="resource-fill"
+                :style="{ width: stats.memoryUsage + '%' }"
+                :class="getUsageClass(stats.memoryUsage)"
+              />
             </div>
           </div>
         </div>
         <div class="agent-status">
-          <span class="status-dot" :class="{ online: agentOnline }"></span>
-          <span class="status-text" v-if="!sidebarCollapsed">{{ agentOnline ? 'Connected' : 'Disconnected' }}</span>
+          <span
+            class="status-dot"
+            :class="{ online: agentOnline }"
+          />
+          <span
+            v-if="!sidebarCollapsed"
+            class="status-text"
+          >{{
+            agentOnline ? "Connected" : "Disconnected"
+          }}</span>
         </div>
-        <button class="logout-btn" @click="handleLogout" v-if="!sidebarCollapsed">
-          <i class="pi pi-sign-out"></i>
+        <button
+          v-if="!sidebarCollapsed"
+          class="logout-btn"
+          @click="handleLogout"
+        >
+          <i class="pi pi-sign-out" />
           Sign Out
         </button>
-        <button class="collapse-btn" @click="sidebarCollapsed = !sidebarCollapsed">
-          <i :class="sidebarCollapsed ? 'pi pi-angle-double-right' : 'pi pi-angle-double-left'"></i>
+        <button
+          class="collapse-btn"
+          @click="sidebarCollapsed = !sidebarCollapsed"
+        >
+          <i
+            :class="
+              sidebarCollapsed
+                ? 'pi pi-angle-double-right'
+                : 'pi pi-angle-double-left'
+            "
+          />
         </button>
       </div>
     </aside>
 
-    <main class="main-content" :class="{ expanded: sidebarCollapsed }">
+    <main
+      class="main-content"
+      :class="{ expanded: sidebarCollapsed }"
+    >
       <header class="top-header">
         <div class="header-left">
           <div class="breadcrumb">
-            <span v-for="(crumb, idx) in breadcrumbs" :key="idx">
-              <router-link v-if="crumb.path" :to="crumb.path">{{ crumb.label }}</router-link>
+            <span
+              v-for="(crumb, idx) in breadcrumbs"
+              :key="idx"
+            >
+              <router-link
+                v-if="crumb.path"
+                :to="crumb.path"
+              >{{
+                crumb.label
+              }}</router-link>
               <span v-else>{{ crumb.label }}</span>
-              <i v-if="idx < breadcrumbs.length - 1" class="pi pi-angle-right"></i>
+              <i
+                v-if="idx < breadcrumbs.length - 1"
+                class="pi pi-angle-right"
+              />
             </span>
           </div>
-          <h1 class="page-title">{{ currentPageTitle }}</h1>
+          <h1 class="page-title">
+            {{ currentPageTitle }}
+          </h1>
         </div>
         <div class="header-right">
           <div class="quick-stats">
             <div class="stat-item running">
-              <i class="pi pi-play"></i>
+              <i class="pi pi-play" />
               <span>{{ stats.runningContainers }} Running</span>
             </div>
             <div class="stat-item stopped">
-              <i class="pi pi-stop"></i>
+              <i class="pi pi-stop" />
               <span>{{ stats.stoppedContainers }} Stopped</span>
             </div>
           </div>
-          <button class="header-btn" @click="refreshAll">
-            <i class="pi pi-refresh"></i>
+          <button
+            class="header-btn"
+            @click="refreshAll"
+          >
+            <i class="pi pi-refresh" />
           </button>
           <button class="header-btn">
-            <i class="pi pi-bell"></i>
+            <i class="pi pi-bell" />
           </button>
         </div>
       </header>
@@ -179,22 +346,28 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { healthApi, networksApi, certificatesApi, pluginsApi } from '@/services/api'
+import { ref, reactive, computed, onMounted } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import {
+  healthApi,
+  networksApi,
+  certificatesApi,
+  pluginsApi,
+  portsApi,
+} from "@/services/api";
 
-const route = useRoute()
-const router = useRouter()
-const agentOnline = ref(false)
-const sidebarCollapsed = ref(false)
+const route = useRoute();
+const router = useRouter();
+const agentOnline = ref(false);
+const sidebarCollapsed = ref(false);
 
 const expandedGroups = reactive({
   stacks: true,
   docker: true,
   security: false,
   extensions: false,
-  admin: false
-})
+  admin: false,
+});
 
 const stats = reactive({
   deployments: 0,
@@ -204,116 +377,124 @@ const stats = reactive({
   images: 0,
   volumes: 0,
   networks: 0,
+  ports: 0,
   certificates: 0,
   apps: 0,
   cpuUsage: 0,
-  memoryUsage: 0
-})
+  memoryUsage: 0,
+});
 
 const toggleGroup = (group: keyof typeof expandedGroups) => {
-  expandedGroups[group] = !expandedGroups[group]
-}
+  expandedGroups[group] = !expandedGroups[group];
+};
 
 const getUsageClass = (percentage: number) => {
-  if (percentage > 80) return 'critical'
-  if (percentage > 60) return 'warning'
-  return 'normal'
-}
+  if (percentage > 80) return "critical";
+  if (percentage > 60) return "warning";
+  return "normal";
+};
 
 const currentPageTitle = computed(() => {
   const titles: Record<string, string> = {
-    home: 'Dashboard',
-    deployments: 'Deployments',
-    'deployment-detail': 'Deployment Details',
-    containers: 'Containers',
-    images: 'Images',
-    volumes: 'Volumes',
-    networks: 'Networks',
-    certificates: 'SSL Certificates',
-    apps: 'Installed Apps',
-    marketplace: 'App Marketplace',
-    settings: 'Settings'
-  }
-  return titles[route.name as string] || 'Dashboard'
-})
+    home: "Dashboard",
+    deployments: "Deployments",
+    "deployment-detail": "Deployment Details",
+    containers: "Containers",
+    images: "Images",
+    volumes: "Volumes",
+    networks: "Networks",
+    ports: "Ports",
+    certificates: "SSL Certificates",
+    apps: "Installed Apps",
+    marketplace: "App Marketplace",
+    settings: "Settings",
+  };
+  return titles[route.name as string] || "Dashboard";
+});
 
 const breadcrumbs = computed(() => {
-  const crumbs = [{ label: 'Home', path: '/' }]
-  const routeName = route.name as string
+  const crumbs = [{ label: "Home", path: "/" }];
+  const routeName = route.name as string;
 
-  if (routeName === 'deployments') {
-    crumbs.push({ label: 'Stacks', path: '' })
-    crumbs.push({ label: 'Deployments', path: '' })
-  } else if (['containers', 'images', 'volumes', 'networks'].includes(routeName)) {
-    crumbs.push({ label: 'Docker', path: '' })
-    crumbs.push({ label: currentPageTitle.value, path: '' })
-  } else if (routeName === 'certificates') {
-    crumbs.push({ label: 'Security', path: '' })
-    crumbs.push({ label: 'Certificates', path: '' })
-  } else if (['apps', 'marketplace'].includes(routeName)) {
-    crumbs.push({ label: 'Apps', path: '' })
-    crumbs.push({ label: currentPageTitle.value, path: '' })
-  } else if (routeName === 'settings') {
-    crumbs.push({ label: 'Administration', path: '' })
-    crumbs.push({ label: currentPageTitle.value, path: '' })
-  } else if (routeName !== 'home') {
-    crumbs.push({ label: currentPageTitle.value, path: '' })
+  if (routeName === "deployments") {
+    crumbs.push({ label: "Stacks", path: "" });
+    crumbs.push({ label: "Deployments", path: "" });
+  } else if (
+    ["containers", "images", "volumes", "networks", "ports"].includes(routeName)
+  ) {
+    crumbs.push({ label: "Docker", path: "" });
+    crumbs.push({ label: currentPageTitle.value, path: "" });
+  } else if (routeName === "certificates") {
+    crumbs.push({ label: "Security", path: "" });
+    crumbs.push({ label: "Certificates", path: "" });
+  } else if (["apps", "marketplace"].includes(routeName)) {
+    crumbs.push({ label: "Apps", path: "" });
+    crumbs.push({ label: currentPageTitle.value, path: "" });
+  } else if (routeName === "settings") {
+    crumbs.push({ label: "Administration", path: "" });
+    crumbs.push({ label: currentPageTitle.value, path: "" });
+  } else if (routeName !== "home") {
+    crumbs.push({ label: currentPageTitle.value, path: "" });
   }
 
-  return crumbs
-})
+  return crumbs;
+});
 
 const checkAgentHealth = async () => {
   try {
-    const response = await healthApi.check()
-    agentOnline.value = response.data.status === 'healthy'
+    const response = await healthApi.check();
+    agentOnline.value = response.data.status === "healthy";
 
-    const statsResponse = await healthApi.stats()
+    const statsResponse = await healthApi.stats();
     if (statsResponse.data) {
-      const data = statsResponse.data
-      stats.deployments = data.deployments?.total_deployments || 0
-      stats.containers = data.containers?.total || 0
-      stats.runningContainers = data.containers?.running || 0
-      stats.stoppedContainers = data.containers?.stopped || 0
-      stats.images = data.images?.total || 0
-      stats.volumes = data.volumes?.total || 0
-      stats.cpuUsage = Math.floor(Math.random() * 30 + 10)
-      stats.memoryUsage = Math.floor(Math.random() * 40 + 20)
+      const data = statsResponse.data;
+      stats.deployments = data.deployments?.total_deployments || 0;
+      stats.containers = data.containers?.total || 0;
+      stats.runningContainers = data.containers?.running || 0;
+      stats.stoppedContainers = data.containers?.stopped || 0;
+      stats.images = data.images?.total || 0;
+      stats.volumes = data.volumes?.total || 0;
+      stats.cpuUsage = Math.floor(Math.random() * 30 + 10);
+      stats.memoryUsage = Math.floor(Math.random() * 40 + 20);
     }
 
-    const [networksRes, certsRes, pluginsRes] = await Promise.allSettled([
+    const [networksRes, certsRes, pluginsRes, portsRes] = await Promise.allSettled([
       networksApi.list(),
       certificatesApi.list(),
-      pluginsApi.list()
-    ])
+      pluginsApi.list(),
+      portsApi.list(),
+    ]);
 
-    if (networksRes.status === 'fulfilled') {
-      stats.networks = networksRes.value.data.networks?.length || 0
+    if (networksRes.status === "fulfilled") {
+      stats.networks = networksRes.value.data.networks?.length || 0;
     }
-    if (certsRes.status === 'fulfilled') {
-      stats.certificates = certsRes.value.data.certificates?.length || 0
+    if (certsRes.status === "fulfilled") {
+      stats.certificates = certsRes.value.data.certificates?.length || 0;
     }
-    if (pluginsRes.status === 'fulfilled') {
-      stats.apps = pluginsRes.value.data.plugins?.length || 0
+    if (pluginsRes.status === "fulfilled") {
+      stats.apps = pluginsRes.value.data.plugins?.length || 0;
+    }
+    if (portsRes.status === "fulfilled") {
+      stats.ports = portsRes.value.data.ports?.length || 0;
     }
   } catch {
-    agentOnline.value = false
+    agentOnline.value = false;
   }
-}
+};
 
 const refreshAll = () => {
-  checkAgentHealth()
-}
+  checkAgentHealth();
+};
 
 const handleLogout = () => {
-  localStorage.removeItem('auth_token')
-  router.push('/login')
-}
+  localStorage.removeItem("auth_token");
+  router.push("/login");
+};
 
 onMounted(() => {
-  checkAgentHealth()
-  setInterval(checkAgentHealth, 10000)
-})
+  checkAgentHealth();
+  setInterval(checkAgentHealth, 10000);
+});
 </script>
 
 <style scoped>
