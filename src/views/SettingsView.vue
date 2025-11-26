@@ -29,6 +29,92 @@
     >
       <div class="settings-section">
         <div class="section-header">
+          <i class="pi pi-globe" />
+          <h3>Domain Configuration</h3>
+        </div>
+        <div class="section-body">
+          <div class="setting-item editable">
+            <div class="setting-info">
+              <span class="setting-label">Default Domain</span>
+              <span class="setting-description">Base domain for auto-generated subdomains (e.g., example.com)</span>
+            </div>
+            <div class="setting-input">
+              <input
+                v-model="domainSettings.default_domain"
+                type="text"
+                placeholder="example.com"
+                class="form-input"
+              />
+            </div>
+          </div>
+          <div class="setting-item editable">
+            <div class="setting-info">
+              <span class="setting-label">Auto Subdomain</span>
+              <span class="setting-description">Automatically generate random subdomains for new deployments</span>
+            </div>
+            <div class="setting-input">
+              <label class="toggle-switch">
+                <input
+                  v-model="domainSettings.auto_subdomain"
+                  type="checkbox"
+                />
+                <span class="toggle-slider" />
+              </label>
+            </div>
+          </div>
+          <div class="setting-item editable">
+            <div class="setting-info">
+              <span class="setting-label">Auto SSL</span>
+              <span class="setting-description">Automatically request SSL certificates for new deployments</span>
+            </div>
+            <div class="setting-input">
+              <label class="toggle-switch">
+                <input
+                  v-model="domainSettings.auto_ssl"
+                  type="checkbox"
+                />
+                <span class="toggle-slider" />
+              </label>
+            </div>
+          </div>
+          <div class="setting-item editable">
+            <div class="setting-info">
+              <span class="setting-label">Subdomain Style</span>
+              <span class="setting-description">Format for auto-generated subdomains</span>
+            </div>
+            <div class="setting-input">
+              <select
+                v-model="domainSettings.subdomain_style"
+                class="form-select"
+              >
+                <option value="words">Words (swift-river-123)</option>
+                <option value="hex">Hex (a1b2c3d4)</option>
+                <option value="short">Short (swi-riv)</option>
+              </select>
+            </div>
+          </div>
+          <div class="setting-actions">
+            <button
+              class="btn btn-primary"
+              :disabled="savingDomain"
+              @click="saveDomainSettings"
+            >
+              <i
+                v-if="savingDomain"
+                class="pi pi-spin pi-spinner"
+              />
+              <i
+                v-else
+                class="pi pi-save"
+              />
+              <span>Save Domain Settings</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <div class="section-header">
           <i class="pi pi-cog" />
           <h3>Agent Configuration</h3>
         </div>
@@ -171,16 +257,25 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from "vue";
 import { settingsApi, healthApi } from "@/services/api";
+import type { DomainSettings } from "@/services/api";
 import { useNotificationsStore } from "@/stores/notifications";
 
 const notifications = useNotificationsStore();
 const loading = ref(false);
+const savingDomain = ref(false);
 
 const settings = reactive({
   deployments_path: "",
   api_port: 0,
   enable_cors: false,
   allowed_origins: [] as string[],
+});
+
+const domainSettings = reactive<DomainSettings>({
+  default_domain: "",
+  auto_subdomain: true,
+  auto_ssl: true,
+  subdomain_style: "words",
 });
 
 const uiVersion = "1.0.0";
@@ -193,6 +288,12 @@ api:
   enable_cors: ${settings.enable_cors}
   allowed_origins:
 ${settings.allowed_origins.map((o) => `    - ${o}`).join("\n")}
+
+domain:
+  default_domain: ${domainSettings.default_domain || ""}
+  auto_subdomain: ${domainSettings.auto_subdomain}
+  auto_ssl: ${domainSettings.auto_ssl}
+  subdomain_style: ${domainSettings.subdomain_style}
 `;
 });
 
@@ -206,10 +307,37 @@ const fetchSettings = async () => {
     settings.api_port = data.api_port || 0;
     settings.enable_cors = data.enable_cors || false;
     settings.allowed_origins = data.allowed_origins || [];
+
+    if (data.domain) {
+      domainSettings.default_domain = data.domain.default_domain || "";
+      domainSettings.auto_subdomain = data.domain.auto_subdomain ?? true;
+      domainSettings.auto_ssl = data.domain.auto_ssl ?? true;
+      domainSettings.subdomain_style = data.domain.subdomain_style || "words";
+    }
   } catch (e: any) {
     notifications.error("Error", "Failed to load settings");
   } finally {
     loading.value = false;
+  }
+};
+
+const saveDomainSettings = async () => {
+  savingDomain.value = true;
+
+  try {
+    await settingsApi.update({
+      domain: {
+        default_domain: domainSettings.default_domain,
+        auto_subdomain: domainSettings.auto_subdomain,
+        auto_ssl: domainSettings.auto_ssl,
+        subdomain_style: domainSettings.subdomain_style,
+      },
+    });
+    notifications.success("Settings Saved", "Domain configuration has been updated");
+  } catch (e: any) {
+    notifications.error("Error", "Failed to save domain settings");
+  } finally {
+    savingDomain.value = false;
   }
 };
 
@@ -483,6 +611,138 @@ onMounted(() => {
   margin: 0;
 }
 
+.setting-item.editable {
+  padding: 1rem 0;
+}
+
+.setting-input {
+  flex-shrink: 0;
+}
+
+.form-input {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  color: #374151;
+  background: white;
+  min-width: 200px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.form-input::placeholder {
+  color: #9ca3af;
+}
+
+.form-select {
+  padding: 0.5rem 2rem 0.5rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  color: #374151;
+  background: white url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e") right 0.5rem center/1.5em 1.5em no-repeat;
+  appearance: none;
+  cursor: pointer;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #d1d5db;
+  transition: 0.3s;
+  border-radius: 24px;
+}
+
+.toggle-slider::before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.3s;
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.toggle-switch input:checked + .toggle-slider {
+  background-color: #3b82f6;
+}
+
+.toggle-switch input:checked + .toggle-slider::before {
+  transform: translateX(20px);
+}
+
+.toggle-switch input:focus + .toggle-slider {
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.setting-actions {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #f3f4f6;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-primary {
+  background: #3b82f6;
+  color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #2563eb;
+}
+
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 @media (max-width: 768px) {
   .setting-item {
     flex-direction: column;
@@ -490,8 +750,22 @@ onMounted(() => {
     gap: 0.5rem;
   }
 
+  .setting-item.editable {
+    gap: 0.75rem;
+  }
+
   .setting-value {
     text-align: left;
+  }
+
+  .setting-input {
+    width: 100%;
+  }
+
+  .form-input,
+  .form-select {
+    width: 100%;
+    min-width: unset;
   }
 
   .origins-list {

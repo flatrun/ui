@@ -1,5 +1,12 @@
 import axios from "axios";
-import type { Deployment, Network, Certificate } from "@/types";
+import type {
+  Deployment,
+  Network,
+  Certificate,
+  ProxyStatus,
+  ProxySetupResult,
+  VirtualHost,
+} from "@/types";
 
 const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_URL || "/api",
@@ -62,11 +69,46 @@ export const networksApi = {
 
 export const certificatesApi = {
   list: () => apiClient.get<{ certificates: Certificate[] }>("/certificates"),
+  request: (domain: string) =>
+    apiClient.post<{ message: string; result: any }>("/certificates", {
+      domain,
+    }),
+  renew: () =>
+    apiClient.post<{ message: string; result: any }>("/certificates/renew"),
+  delete: (domain: string) => apiClient.delete(`/certificates/${domain}`),
 };
+
+export const proxyApi = {
+  getStatus: (name: string) =>
+    apiClient.get<{ status: ProxyStatus }>(`/proxy/status/${name}`),
+  setup: (name: string) =>
+    apiClient.post<{ message: string; result: ProxySetupResult }>(
+      `/proxy/setup/${name}`,
+    ),
+  teardown: (name: string) => apiClient.delete(`/proxy/${name}`),
+  listVirtualHosts: () =>
+    apiClient.get<{ virtual_hosts: VirtualHost[] }>("/proxy/vhosts"),
+};
+
+export interface DomainSettings {
+  default_domain: string;
+  auto_subdomain: boolean;
+  auto_ssl: boolean;
+  subdomain_style: string;
+}
+
+export interface SubdomainResponse {
+  subdomain: string;
+  full_domain: string;
+  default_domain: string;
+  auto_ssl: boolean;
+}
 
 export const settingsApi = {
   get: () => apiClient.get("/settings"),
   update: (data: any) => apiClient.put("/settings", data),
+  generateSubdomain: () =>
+    apiClient.get<SubdomainResponse>("/subdomain/generate"),
 };
 
 export const pluginsApi = {
