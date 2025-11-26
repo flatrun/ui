@@ -137,6 +137,13 @@
               <div class="card-header">
                 <i class="pi pi-globe" />
                 <h3>Domain & SSL</h3>
+                <button
+                  class="btn btn-sm btn-icon"
+                  title="Edit Domain Settings"
+                  @click="openDomainSettings"
+                >
+                  <i class="pi pi-pencil" />
+                </button>
               </div>
               <div class="card-body">
                 <template v-if="proxyStatus && proxyStatus.exposed">
@@ -372,11 +379,24 @@
         </div>
 
         <div
+          v-if="activeTab === 'files'"
+          class="files-tab"
+        >
+          <FileBrowser :deployment-name="(route.params.name as string)" />
+        </div>
+
+        <div
           v-if="activeTab === 'logs'"
           class="logs-tab"
         >
-          <div class="logs-controls">
-            <div class="logs-filters">
+          <LogViewer
+            :logs="logs"
+            :loading="logsLoading"
+            :file-name="`${deployment?.name || 'deployment'}-logs.txt`"
+            empty-message="No logs available"
+            @refresh="fetchLogs"
+          >
+            <template #filters>
               <select
                 v-model="logsService"
                 class="form-select"
@@ -409,52 +429,8 @@
                   All logs
                 </option>
               </select>
-              <label class="checkbox-label">
-                <input
-                  v-model="logsFollow"
-                  type="checkbox"
-                >
-                Follow logs
-              </label>
-            </div>
-            <div class="logs-actions">
-              <button
-                class="btn btn-sm btn-secondary"
-                @click="fetchLogs"
-              >
-                <i class="pi pi-refresh" /> Refresh
-              </button>
-              <button
-                class="btn btn-sm btn-secondary"
-                @click="downloadLogs"
-              >
-                <i class="pi pi-download" /> Download
-              </button>
-              <button
-                class="btn btn-sm btn-secondary"
-                @click="clearLogs"
-              >
-                <i class="pi pi-trash" /> Clear
-              </button>
-            </div>
-          </div>
-          <div class="logs-viewer">
-            <div class="logs-search">
-              <i class="pi pi-search" />
-              <input
-                v-model="logsSearch"
-                type="text"
-                placeholder="Search in logs..."
-                class="logs-search-input"
-              >
-            </div>
-            <pre
-              ref="logsContainer"
-              class="logs-content"
-            >{{
-              filteredLogs
-            }}</pre>
-          </div>
+            </template>
+          </LogViewer>
         </div>
 
         <div
@@ -562,7 +538,7 @@
                   </button>
                   <button
                     class="action-btn delete"
-                    @click="deleteEnvVar(env.key)"
+                    @click="confirmDeleteEnv(env.key)"
                   >
                     <i class="pi pi-trash" />
                   </button>
@@ -586,15 +562,35 @@
                 <i class="pi pi-copy" /> Copy
               </button>
               <button
+                v-if="!isEditingConfig"
                 class="btn btn-sm btn-primary"
-                @click="editConfig"
+                @click="isEditingConfig = true"
               >
                 <i class="pi pi-pencil" /> Edit
               </button>
+              <template v-else>
+                <button
+                  class="btn btn-sm btn-secondary"
+                  @click="cancelConfigEdit"
+                >
+                  Cancel
+                </button>
+                <button
+                  class="btn btn-sm btn-success"
+                  @click="saveConfig"
+                >
+                  <i class="pi pi-check" /> Save
+                </button>
+              </template>
             </div>
           </div>
-          <div class="config-viewer">
-            <pre class="config-content">{{ composeConfig }}</pre>
+          <div class="config-editor">
+            <Codemirror
+              v-model="composeConfig"
+              :extensions="configExtensions"
+              :disabled="!isEditingConfig"
+              :style="{ height: '500px' }"
+            />
           </div>
         </div>
       </div>
@@ -604,50 +600,163 @@
       <div
         v-if="showOperationModal"
         class="modal-overlay"
-        @click.self="showOperationModal = false"
+        @click.self="!operationRunning && (showOperationModal = false)"
       >
         <div class="operation-modal modal-container">
-          <div class="modal-header">
+          <div class="modal-header" :class="{ success: operationSuccess, error: operationError }">
             <h3>
-              <i class="pi pi-cog" />
+              <i :class="operationRunning ? 'pi pi-spin pi-spinner' : operationSuccess ? 'pi pi-check-circle' : operationError ? 'pi pi-times-circle' : 'pi pi-cog'" />
               {{ operationTitle }}
             </h3>
+            <span v-if="operationSuccess" class="status-text success">Completed</span>
+            <span v-else-if="operationError" class="status-text error">Failed</span>
+            <span v-else-if="operationRunning" class="status-text running">Running...</span>
           </div>
           <div class="modal-body">
-            <div
-              v-if="operationRunning"
-              class="operation-progress"
-            >
-              <i class="pi pi-spin pi-spinner" />
-              <p>Operation in progress...</p>
+            <div v-if="operationError && !operationOutput" class="error-message">
+              {{ operationError }}
             </div>
-            <div
-              v-else-if="operationSuccess"
-              class="operation-success"
-            >
-              <i class="pi pi-check-circle" />
-              <p>Operation completed successfully</p>
+            <div class="operation-logs">
+              <LogViewer
+                :logs="operationOutput"
+                :loading="operationRunning"
+                :file-name="`${deployment?.name || 'operation'}-output.txt`"
+                empty-message="Waiting for output..."
+              />
             </div>
-            <div
-              v-else-if="operationError"
-              class="operation-error"
-            >
-              <i class="pi pi-times-circle" />
-              <p>{{ operationError }}</p>
-            </div>
-            <pre
-              v-if="operationOutput"
-              class="operation-output"
-            >{{
-              operationOutput
-            }}</pre>
           </div>
           <div class="modal-footer">
             <button
               class="btn btn-secondary"
+              :disabled="operationRunning"
               @click="showOperationModal = false"
             >
               Close
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
+
+    <ConfirmModal
+      :visible="showDeleteDeploymentModal"
+      title="Delete Deployment"
+      :message="`Are you sure you want to delete '${deployment?.name}'? This will remove all containers, volumes, and configuration.`"
+      warning="This action cannot be undone."
+      variant="danger"
+      confirm-text="Delete"
+      :loading="deletingDeployment"
+      @confirm="deleteDeployment"
+      @cancel="showDeleteDeploymentModal = false"
+    />
+
+    <ConfirmModal
+      :visible="showDeleteEnvModal"
+      title="Delete Environment Variable"
+      :message="`Are you sure you want to delete '${envKeyToDelete}'?`"
+      variant="warning"
+      confirm-text="Delete"
+      @confirm="deleteEnvVar"
+      @cancel="showDeleteEnvModal = false"
+    />
+
+    <Teleport to="body">
+      <div
+        v-if="showDomainSettingsModal"
+        class="modal-overlay"
+        @click.self="showDomainSettingsModal = false"
+      >
+        <div class="domain-settings-modal modal-container">
+          <div class="modal-header">
+            <h3>
+              <i class="pi pi-globe" />
+              Domain & SSL Settings
+            </h3>
+            <button
+              class="close-btn"
+              @click="showDomainSettingsModal = false"
+            >
+              <i class="pi pi-times" />
+            </button>
+          </div>
+          <div class="modal-body">
+            <div class="form-group">
+              <label class="checkbox-label">
+                <input
+                  v-model="domainSettings.expose"
+                  type="checkbox"
+                >
+                <span>Expose to Internet</span>
+              </label>
+              <span class="hint">Enable reverse proxy for external access</span>
+            </div>
+
+            <template v-if="domainSettings.expose">
+              <div class="form-group">
+                <label>Domain</label>
+                <input
+                  v-model="domainSettings.domain"
+                  type="text"
+                  placeholder="app.example.com"
+                  class="form-input"
+                >
+                <span class="hint">The domain name for your deployment</span>
+              </div>
+
+              <div class="form-group">
+                <label>Container Port</label>
+                <input
+                  v-model.number="domainSettings.containerPort"
+                  type="number"
+                  placeholder="80"
+                  class="form-input"
+                >
+                <span class="hint">The port your application listens on</span>
+              </div>
+
+              <div class="form-group">
+                <label class="checkbox-label">
+                  <input
+                    v-model="domainSettings.sslEnabled"
+                    type="checkbox"
+                  >
+                  <span>Enable SSL</span>
+                </label>
+                <span class="hint">Secure your deployment with HTTPS</span>
+              </div>
+
+              <div
+                v-if="domainSettings.sslEnabled"
+                class="form-group"
+              >
+                <label class="checkbox-label">
+                  <input
+                    v-model="domainSettings.autoCert"
+                    type="checkbox"
+                  >
+                  <span>Auto-generate Certificate</span>
+                </label>
+                <span class="hint">Automatically request Let's Encrypt certificate</span>
+              </div>
+            </template>
+          </div>
+          <div class="modal-footer">
+            <button
+              class="btn btn-secondary"
+              @click="showDomainSettingsModal = false"
+            >
+              Cancel
+            </button>
+            <button
+              class="btn btn-primary"
+              :disabled="savingDomainSettings"
+              @click="saveDomainSettings"
+            >
+              <i
+                v-if="savingDomainSettings"
+                class="pi pi-spin pi-spinner"
+              />
+              {{ savingDomainSettings ? 'Saving...' : 'Save Settings' }}
             </button>
           </div>
         </div>
@@ -659,9 +768,15 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, nextTick, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import { Codemirror } from "vue-codemirror";
+import { yaml } from "@codemirror/lang-yaml";
+import { oneDark } from "@codemirror/theme-one-dark";
 import { deploymentsApi, proxyApi, certificatesApi } from "@/services/api";
 import { useNotificationsStore } from "@/stores/notifications";
 import type { ProxyStatus } from "@/types";
+import FileBrowser from "@/components/FileBrowser.vue";
+import LogViewer from "@/components/LogViewer.vue";
+import ConfirmModal from "@/components/ConfirmModal.vue";
 
 const route = useRoute();
 const router = useRouter();
@@ -677,6 +792,7 @@ const requestingCert = ref(false);
 
 const tabs = [
   { id: "overview", label: "Overview", icon: "pi pi-info-circle" },
+  { id: "files", label: "Files", icon: "pi pi-folder" },
   { id: "logs", label: "Logs", icon: "pi pi-file-edit" },
   { id: "terminal", label: "Terminal", icon: "pi pi-desktop" },
   { id: "environment", label: "Environment", icon: "pi pi-list" },
@@ -691,12 +807,10 @@ const resourceUsage = ref({
   network: 0,
 });
 
-const logsContainer = ref<HTMLElement | null>(null);
 const logs = ref("");
+const logsLoading = ref(false);
 const logsService = ref("all");
 const logsTail = ref(100);
-const logsFollow = ref(false);
-const logsSearch = ref("");
 
 const terminalService = ref("");
 
@@ -704,6 +818,8 @@ const envVars = ref<Array<{ key: string; value: string; hidden: boolean }>>([]);
 const showAddEnvModal = ref(false);
 
 const composeConfig = ref("");
+const isEditingConfig = ref(false);
+const configExtensions = [yaml(), oneDark];
 
 const showOperationModal = ref(false);
 const operationTitle = ref("");
@@ -712,17 +828,22 @@ const operationSuccess = ref(false);
 const operationError = ref("");
 const operationOutput = ref("");
 
-let refreshInterval: number | null = null;
+const showDeleteDeploymentModal = ref(false);
+const deletingDeployment = ref(false);
+const showDeleteEnvModal = ref(false);
+const envKeyToDelete = ref("");
 
-const filteredLogs = computed(() => {
-  if (!logsSearch.value) return logs.value;
-  const lines = logs.value.split("\n");
-  return lines
-    .filter((line) =>
-      line.toLowerCase().includes(logsSearch.value.toLowerCase()),
-    )
-    .join("\n");
+const showDomainSettingsModal = ref(false);
+const savingDomainSettings = ref(false);
+const domainSettings = ref({
+  expose: false,
+  domain: "",
+  containerPort: 80,
+  sslEnabled: false,
+  autoCert: false,
 });
+
+let refreshInterval: number | null = null;
 
 const fetchDeployment = async () => {
   loading.value = true;
@@ -835,31 +956,15 @@ const handleRequestCertificate = async () => {
 };
 
 const fetchLogs = async () => {
+  logsLoading.value = true;
   try {
     const response = await deploymentsApi.logs(route.params.name as string);
-    logs.value = response.data.logs || "No logs available";
-
-    if (logsFollow.value && logsContainer.value) {
-      await nextTick();
-      logsContainer.value.scrollTop = logsContainer.value.scrollHeight;
-    }
+    logs.value = response.data.logs || "";
   } catch (err) {
     console.error("Failed to fetch logs:", err);
+  } finally {
+    logsLoading.value = false;
   }
-};
-
-const downloadLogs = () => {
-  const blob = new Blob([logs.value], { type: "text/plain" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `${deployment.value?.name || "deployment"}-logs.txt`;
-  a.click();
-  URL.revokeObjectURL(url);
-};
-
-const clearLogs = () => {
-  logs.value = "";
 };
 
 const handleOperation = async (operation: string) => {
@@ -884,28 +989,30 @@ const handleOperation = async (operation: string) => {
     operationSuccess.value = true;
     await fetchDeployment();
   } catch (err: any) {
-    operationError.value = err.message || "Operation failed";
+    const errorOutput = err.response?.data?.output || err.response?.data?.error || err.message;
+    operationOutput.value = errorOutput;
+    operationError.value = "Operation failed";
   } finally {
     operationRunning.value = false;
   }
 };
 
 const confirmDelete = () => {
-  if (
-    confirm(
-      `Are you sure you want to delete deployment "${deployment.value?.name}"? This action cannot be undone.`,
-    )
-  ) {
-    deleteDeployment();
-  }
+  showDeleteDeploymentModal.value = true;
 };
 
 const deleteDeployment = async () => {
+  deletingDeployment.value = true;
   try {
     await deploymentsApi.delete(route.params.name as string);
+    showDeleteDeploymentModal.value = false;
+    notifications.success("Deleted", `Deployment "${deployment.value?.name}" has been deleted`);
     router.push("/deployments");
   } catch (err: any) {
-    alert("Failed to delete deployment: " + err.message);
+    const msg = err.response?.data?.error || err.message;
+    notifications.error("Delete Failed", msg);
+  } finally {
+    deletingDeployment.value = false;
   }
 };
 
@@ -936,19 +1043,104 @@ const editEnvVar = (env: any) => {
   console.log("Edit env var:", env.key);
 };
 
-const deleteEnvVar = (key: string) => {
-  if (confirm(`Delete environment variable "${key}"?`)) {
-    envVars.value = envVars.value.filter((e) => e.key !== key);
+const confirmDeleteEnv = (key: string) => {
+  envKeyToDelete.value = key;
+  showDeleteEnvModal.value = true;
+};
+
+const deleteEnvVar = () => {
+  envVars.value = envVars.value.filter((e) => e.key !== envKeyToDelete.value);
+  showDeleteEnvModal.value = false;
+  notifications.success("Deleted", `Environment variable "${envKeyToDelete.value}" removed`);
+  envKeyToDelete.value = "";
+};
+
+const openDomainSettings = () => {
+  const metadata = deployment.value?.metadata;
+  if (metadata) {
+    domainSettings.value = {
+      expose: metadata.networking?.expose || false,
+      domain: metadata.networking?.domain || "",
+      containerPort: metadata.networking?.container_port || 80,
+      sslEnabled: metadata.ssl?.enabled || false,
+      autoCert: metadata.ssl?.auto_cert || false,
+    };
+  } else {
+    domainSettings.value = {
+      expose: proxyStatus.value?.exposed || false,
+      domain: proxyStatus.value?.domain || "",
+      containerPort: 80,
+      sslEnabled: proxyStatus.value?.ssl_enabled || false,
+      autoCert: false,
+    };
+  }
+  showDomainSettingsModal.value = true;
+};
+
+const saveDomainSettings = async () => {
+  savingDomainSettings.value = true;
+  try {
+    await deploymentsApi.updateMetadata(route.params.name as string, {
+      name: deployment.value?.name || "",
+      type: deployment.value?.metadata?.type || "custom",
+      networking: {
+        expose: domainSettings.value.expose,
+        domain: domainSettings.value.domain,
+        container_port: domainSettings.value.containerPort,
+        protocol: "http",
+        proxy_type: "http",
+      },
+      ssl: {
+        enabled: domainSettings.value.sslEnabled,
+        auto_cert: domainSettings.value.autoCert,
+      },
+      healthcheck: {
+        path: "/",
+        interval: "30s",
+      },
+    });
+    showDomainSettingsModal.value = false;
+    notifications.success("Saved", "Domain settings updated successfully");
+    await fetchDeployment();
+  } catch (err: any) {
+    const msg = err.response?.data?.error || err.message;
+    notifications.error("Save Failed", msg);
+  } finally {
+    savingDomainSettings.value = false;
   }
 };
 
 const copyConfig = () => {
   navigator.clipboard.writeText(composeConfig.value);
+  notifications.success("Copied", "Configuration copied to clipboard");
 };
 
-const editConfig = () => {
-  console.log("Edit config");
+let originalConfig = "";
+
+const cancelConfigEdit = () => {
+  composeConfig.value = originalConfig;
+  isEditingConfig.value = false;
 };
+
+const saveConfig = async () => {
+  try {
+    await deploymentsApi.update(route.params.name as string, {
+      compose_content: composeConfig.value,
+    });
+    originalConfig = composeConfig.value;
+    isEditingConfig.value = false;
+    notifications.success("Saved", "Configuration saved successfully");
+  } catch (err: any) {
+    const msg = err.response?.data?.error || err.message;
+    notifications.error("Save Failed", msg);
+  }
+};
+
+watch(isEditingConfig, (editing) => {
+  if (editing) {
+    originalConfig = composeConfig.value;
+  }
+});
 
 const formatDateTime = (date: string) => {
   return new Date(date).toLocaleString();
@@ -1483,24 +1675,16 @@ onUnmounted(() => {
 }
 
 .logs-tab {
-  display: flex;
-  flex-direction: column;
   height: 600px;
 }
 
-.logs-controls {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: var(--space-3) var(--space-4);
-  border-bottom: 1px solid var(--color-gray-200);
-  background: var(--color-gray-50);
-}
-
-.logs-filters {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
+.logs-tab :deep(.form-select) {
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid #2a2e3d;
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+  background: #1a1b26;
+  color: #a9b1d6;
 }
 
 .form-select {
@@ -1509,70 +1693,6 @@ onUnmounted(() => {
   border-radius: var(--radius-md);
   font-size: var(--text-md);
   background: white;
-}
-
-.checkbox-label {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  font-size: var(--text-md);
-  color: var(--color-gray-700);
-}
-
-.logs-actions {
-  display: flex;
-  gap: var(--space-2);
-}
-
-.logs-viewer {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.logs-search {
-  position: relative;
-  padding: var(--space-3) var(--space-4);
-  border-bottom: 1px solid var(--color-gray-200);
-}
-
-.logs-search i {
-  position: absolute;
-  left: calc(var(--space-4) + var(--space-3));
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--color-gray-400);
-}
-
-.logs-search-input {
-  width: 100%;
-  padding: var(--space-2) var(--space-3) var(--space-2) 2.5rem;
-  border: 1px solid var(--color-gray-200);
-  border-radius: var(--radius-md);
-  font-size: var(--text-md);
-}
-
-.logs-content {
-  flex: 1;
-  margin: 0;
-  padding: var(--space-4);
-  background: var(--color-gray-950);
-  color: #e2e8f0;
-  font-family: var(--font-mono);
-  font-size: var(--text-sm);
-  line-height: 1.6;
-  overflow: auto;
-  white-space: pre-wrap;
-  word-break: break-all;
-  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
-  min-height: 400px;
-}
-
-.logs-content:empty::before {
-  content: "Loading logs...";
-  color: var(--color-gray-500);
-  font-style: italic;
 }
 
 .terminal-tab {
@@ -1732,59 +1852,190 @@ onUnmounted(() => {
   gap: var(--space-2);
 }
 
-.config-viewer {
-  background: var(--color-gray-950);
+.config-editor {
   border-radius: var(--radius-md);
   overflow: hidden;
+  border: 1px solid var(--color-gray-200);
 }
 
-.config-content {
-  margin: 0;
-  padding: var(--space-4);
-  color: #e2e8f0;
-  font-family: var(--font-mono);
+.config-editor :deep(.cm-editor) {
   font-size: var(--text-sm);
-  line-height: 1.6;
+}
+
+.config-editor :deep(.cm-editor.cm-focused) {
+  outline: none;
 }
 
 .operation-modal {
-  max-width: 600px;
+  width: 800px;
+  max-width: 90vw;
 }
 
-.operation-progress,
-.operation-success,
-.operation-error {
+.operation-modal .modal-header {
   display: flex;
-  flex-direction: column;
+  justify-content: space-between;
   align-items: center;
-  padding: var(--space-6);
-  gap: var(--space-3);
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--color-gray-200);
 }
 
-.operation-progress i {
-  font-size: 2rem;
-  color: var(--color-primary-500);
+.operation-modal .modal-header.success {
+  background: var(--color-success-50);
+  border-bottom-color: var(--color-success-200);
 }
 
-.operation-success i {
-  font-size: 2rem;
-  color: var(--color-success-500);
+.operation-modal .modal-header.success h3 {
+  color: var(--color-success-700);
 }
 
-.operation-error i {
-  font-size: 2rem;
-  color: var(--color-danger-500);
+.operation-modal .modal-header.error {
+  background: var(--color-danger-50);
+  border-bottom-color: var(--color-danger-200);
 }
 
-.operation-output {
-  background: var(--color-gray-950);
-  color: #e2e8f0;
-  padding: var(--space-3);
-  border-radius: var(--radius-sm);
-  font-family: var(--font-mono);
-  font-size: var(--text-sm);
-  max-height: 300px;
-  overflow: auto;
+.operation-modal .modal-header.error h3 {
+  color: var(--color-danger-700);
+}
+
+.operation-modal .modal-header h3 {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
   margin: 0;
+  font-size: var(--text-lg);
+}
+
+.status-text {
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
+}
+
+.status-text.success {
+  background: var(--color-success-100);
+  color: var(--color-success-700);
+}
+
+.status-text.error {
+  background: var(--color-danger-100);
+  color: var(--color-danger-700);
+}
+
+.status-text.running {
+  background: var(--color-primary-100);
+  color: var(--color-primary-700);
+}
+
+.operation-modal .modal-body {
+  padding: 0;
+}
+
+.error-message {
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-danger-50);
+  color: var(--color-danger-700);
+  border-bottom: 1px solid var(--color-danger-100);
+}
+
+.operation-logs {
+  height: 400px;
+}
+
+.operation-modal .modal-footer {
+  padding: var(--space-3) var(--space-4);
+  border-top: 1px solid var(--color-gray-200);
+  display: flex;
+  justify-content: flex-end;
+}
+
+.files-tab {
+  height: 600px;
+}
+
+.domain-settings-modal {
+  max-width: 500px;
+}
+
+.form-group {
+  margin-bottom: var(--space-4);
+}
+
+.form-group:last-child {
+  margin-bottom: 0;
+}
+
+.form-group label {
+  display: block;
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--color-gray-700);
+  margin-bottom: var(--space-2);
+}
+
+.form-input {
+  width: 100%;
+  padding: var(--space-3);
+  border: 1px solid var(--color-gray-200);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  transition: all var(--transition-base);
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--color-primary-500);
+  box-shadow: 0 0 0 3px var(--color-primary-100);
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  cursor: pointer;
+  font-weight: var(--font-medium);
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+.hint {
+  display: block;
+  font-size: var(--text-xs);
+  color: var(--color-gray-500);
+  margin-top: var(--space-1);
+}
+
+.btn-icon {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background: var(--color-gray-100);
+  border: none;
+  border-radius: var(--radius-md);
+  color: var(--color-gray-600);
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+.btn-icon:hover {
+  background: var(--color-gray-200);
+  color: var(--color-gray-900);
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.card-header .btn-icon {
+  margin-left: auto;
 }
 </style>

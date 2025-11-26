@@ -35,23 +35,13 @@
     </div>
 
     <div class="output-section">
-      <div class="output-header">
-        <span>Output</span>
-        <button
-          v-if="output"
-          class="copy-btn"
-          @click="copyOutput"
-        >
-          <i class="pi pi-copy" />
-          Copy
-        </button>
-      </div>
-      <pre
-        ref="outputRef"
-        class="output-content"
-      >{{
-        output || "Waiting for output..."
-      }}</pre>
+      <LogViewer
+        :logs="output"
+        :loading="isRunning && !output"
+        empty-message="Waiting for output..."
+        :file-name="`${deploymentName}-${operation}.txt`"
+        :max-height="300"
+      />
     </div>
 
     <template #footer>
@@ -67,9 +57,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, nextTick } from "vue";
-import { useNotificationsStore } from "@/stores/notifications";
+import { ref, computed, watch } from "vue";
 import BaseModal from "./base/BaseModal.vue";
+import LogViewer from "./LogViewer.vue";
 
 const props = defineProps<{
   visible: boolean;
@@ -82,8 +72,6 @@ const props = defineProps<{
 
 const emit = defineEmits(["close"]);
 
-const notifications = useNotificationsStore();
-const outputRef = ref<HTMLPreElement | null>(null);
 const startTime = ref<number | null>(null);
 const elapsedTime = ref("0s");
 
@@ -129,17 +117,6 @@ watch(
   },
 );
 
-watch(
-  () => props.output,
-  () => {
-    nextTick(() => {
-      if (outputRef.value) {
-        outputRef.value.scrollTop = outputRef.value.scrollHeight;
-      }
-    });
-  },
-);
-
 const updateElapsedTime = () => {
   if (!startTime.value || !props.visible) return;
 
@@ -160,13 +137,6 @@ const updateElapsedTime = () => {
 const handleClose = () => {
   if (!props.isRunning) {
     emit("close");
-  }
-};
-
-const copyOutput = () => {
-  if (props.output) {
-    navigator.clipboard.writeText(props.output);
-    notifications.success("Copied", "Output copied to clipboard");
   }
 };
 </script>
@@ -270,56 +240,7 @@ const copyOutput = () => {
 }
 
 .output-section {
-  display: flex;
-  flex-direction: column;
-}
-
-.output-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: var(--space-3);
-  font-size: var(--text-sm);
-  font-weight: var(--font-semibold);
-  color: var(--color-gray-700);
-}
-
-.copy-btn {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-2) var(--space-3);
-  background: white;
-  border: 1px solid var(--color-gray-200);
-  border-radius: var(--radius-md);
-  font-size: var(--text-sm);
-  font-weight: var(--font-medium);
-  color: var(--color-gray-500);
-  cursor: pointer;
-  transition: all var(--transition-base);
-}
-
-.copy-btn:hover {
-  background: var(--color-gray-50);
-  border-color: var(--color-gray-300);
-  color: var(--color-gray-700);
-}
-
-.output-content {
-  margin: 0;
-  padding: var(--space-4);
-  background: var(--color-gray-950);
-  color: var(--color-gray-300);
-  font-family: var(--font-mono);
-  font-size: var(--text-sm);
-  line-height: 1.6;
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--color-gray-800);
-  overflow: auto;
-  white-space: pre-wrap;
-  word-break: break-all;
-  min-height: 200px;
-  max-height: 300px;
+  margin-top: var(--space-4);
 }
 
 .btn {

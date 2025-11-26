@@ -41,22 +41,79 @@
         <span
           class="status-indicator"
           :class="item.status"
+          :title="item.status"
         />
       </template>
 
       <template #cell-name="{ item }">
-        <div class="deployment-info">
+        <div
+          class="deployment-info clickable"
+          @click="goToDeployment(item.name)"
+        >
           <span class="deployment-name">{{ item.name }}</span>
-          <span class="deployment-status-text">{{ item.status }}</span>
+          <span
+            v-if="item.metadata?.networking?.domain"
+            class="deployment-domain"
+          >
+            {{ item.metadata.networking.domain }}
+          </span>
+          <span
+            v-else-if="getMainImage(item)"
+            class="deployment-image"
+          >
+            {{ getMainImage(item) }}
+          </span>
         </div>
       </template>
 
-      <template #cell-path="{ item }">
-        <code class="path-tag">{{ item.path }}</code>
+      <template #cell-services="{ item }">
+        <div class="table-services">
+          <span
+            v-for="service in (item.services || []).slice(0, 3)"
+            :key="service.name"
+            class="table-service-tag"
+            :class="getServiceClass(service)"
+          >
+            {{ service.name }}
+          </span>
+          <span
+            v-if="(item.services || []).length > 3"
+            class="table-service-tag more"
+          >
+            +{{ item.services.length - 3 }}
+          </span>
+          <span
+            v-if="!item.services?.length"
+            class="no-services"
+          >
+            —
+          </span>
+        </div>
+      </template>
+
+      <template #cell-ports="{ item }">
+        <div class="table-ports">
+          <a
+            v-for="mapping in getPortMappings(item)"
+            :key="mapping.host"
+            :href="`http://localhost:${mapping.host}`"
+            target="_blank"
+            class="table-port-link"
+            @click.stop
+          >
+            :{{ mapping.host }}
+          </a>
+          <span
+            v-if="!getPortMappings(item).length"
+            class="no-ports"
+          >
+            —
+          </span>
+        </div>
       </template>
 
       <template #cell-updated="{ item }">
-        <span class="updated-time">{{ formatDate(item.updated_at) }}</span>
+        <span class="updated-time">{{ formatRelativeTime(item.updated_at) }}</span>
       </template>
 
       <template #cell-actions="{ item }">
@@ -98,32 +155,164 @@
             v-for="deployment in items"
             :key="deployment.name"
             class="deployment-card"
+            :class="deployment.status"
             @click="goToDeployment(deployment.name)"
           >
-            <div class="card-header">
-              <h3>{{ deployment.name }}</h3>
-              <span
-                class="status-dot"
-                :class="deployment.status"
-              />
+            <div
+              class="card-header"
+              :class="deployment.status"
+            >
+              <div class="header-content">
+                <h3>{{ deployment.name }}</h3>
+                <span
+                  class="status-badge"
+                  :class="deployment.status"
+                >
+                  <span class="status-dot" />
+                  {{ deployment.status }}
+                </span>
+              </div>
             </div>
             <div class="card-body">
-              <div class="info-item">
-                <span class="label">Status</span>
+              <!-- Domain Link -->
+              <div
+                v-if="deployment.metadata?.networking?.expose && deployment.metadata?.networking?.domain"
+                class="domain-link"
+                @click.stop
+              >
+                <Globe :size="14" />
+                <a
+                  :href="(deployment.metadata?.ssl?.enabled ? 'https://' : 'http://') + deployment.metadata.networking.domain"
+                  target="_blank"
+                  class="app-link"
+                >
+                  {{ deployment.metadata.networking.domain }}
+                  <ExternalLink :size="12" />
+                </a>
                 <span
-                  class="badge"
-                  :class="deployment.status"
-                >{{
-                  deployment.status
-                }}</span>
+                  v-if="deployment.metadata?.ssl?.enabled"
+                  class="ssl-badge"
+                >
+                  SSL
+                </span>
               </div>
-              <div class="info-item">
-                <span class="label">Path</span>
-                <code>{{ deployment.path }}</code>
+
+              <!-- Port Links (shown when no domain but has port mappings) -->
+              <div
+                v-else-if="getPortMappings(deployment).length"
+                class="port-links"
+                @click.stop
+              >
+                <a
+                  v-for="mapping in getPortMappings(deployment)"
+                  :key="mapping.host"
+                  :href="`http://localhost:${mapping.host}`"
+                  target="_blank"
+                  class="port-link"
+                >
+                  <Plug :size="14" />
+                  <span class="port-url">localhost:{{ mapping.host }}</span>
+                  <span class="port-mapping">{{ mapping.host }}:{{ mapping.container }}</span>
+                  <ExternalLink :size="12" />
+                </a>
               </div>
-              <div class="info-item">
-                <span class="label">Updated</span>
-                <span>{{ formatDate(deployment.updated_at) }}</span>
+
+              <!-- Image Info (shown when no domain and no ports) -->
+              <div
+                v-else-if="getMainImage(deployment)"
+                class="image-info"
+              >
+                <Container :size="14" />
+                <span class="image-name">{{ getMainImage(deployment) }}</span>
+                <span
+                  v-if="getImageVersion(deployment)"
+                  class="image-version"
+                >
+                  {{ getImageVersion(deployment) }}
+                </span>
+              </div>
+
+              <!-- Service Tags -->
+              <div
+                v-if="deployment.services?.length"
+                class="service-tags"
+              >
+                <span
+                  v-for="service in deployment.services.slice(0, 4)"
+                  :key="service.name"
+                  class="service-tag"
+                  :class="getServiceClass(service)"
+                >
+                  <span
+                    class="service-dot"
+                    :class="service.status"
+                  />
+                  {{ service.name }}
+                </span>
+                <span
+                  v-if="deployment.services.length > 4"
+                  class="service-tag more"
+                >
+                  +{{ deployment.services.length - 4 }}
+                </span>
+              </div>
+
+              <!-- Info Pills -->
+              <div class="info-pills">
+                <div
+                  v-if="getMainImage(deployment)"
+                  class="info-pill image"
+                >
+                  <Layers :size="12" />
+                  {{ getMainImage(deployment) }}
+                </div>
+                <div
+                  v-if="hasDatabase(deployment)"
+                  class="info-pill database"
+                >
+                  <Database :size="12" />
+                  {{ getDatabaseType(deployment) }}
+                </div>
+                <div
+                  v-if="getNetworks(deployment).length"
+                  class="info-pill network"
+                >
+                  <Network :size="12" />
+                  {{ getNetworks(deployment)[0] }}
+                </div>
+                <div
+                  v-for="mapping in getPortMappings(deployment)"
+                  :key="mapping.host"
+                  class="info-pill port"
+                >
+                  <Plug :size="12" />
+                  {{ mapping.host }}:{{ mapping.container }}
+                </div>
+                <div
+                  v-if="deployment.metadata?.type"
+                  class="info-pill type"
+                >
+                  <Box :size="12" />
+                  {{ deployment.metadata.type }}
+                </div>
+              </div>
+
+              <!-- Card Meta -->
+              <div class="card-meta">
+                <div class="meta-item">
+                  <Heart :size="12" />
+                  <span class="meta-value health">
+                    {{ getHealthyCount(deployment).healthy }}/{{ getHealthyCount(deployment).total }}
+                  </span>
+                </div>
+                <div class="meta-item">
+                  <Layers :size="12" />
+                  <span class="meta-value">{{ deployment.services?.length || 0 }} services</span>
+                </div>
+                <div class="meta-item">
+                  <Clock :size="12" />
+                  <span class="meta-value">{{ formatRelativeTime(deployment.updated_at) }}</span>
+                </div>
               </div>
             </div>
             <div
@@ -158,6 +347,13 @@
               >
                 <FileText :size="14" />
               </button>
+              <button
+                class="icon-btn settings"
+                title="Settings"
+                @click="goToDeployment(deployment.name)"
+              >
+                <Settings :size="14" />
+              </button>
             </div>
           </div>
         </div>
@@ -176,7 +372,7 @@
 
     <LogsModal
       :visible="logsModal.visible"
-      :deployment-name="logsModal.deploymentName"
+      :title="logsModal.deploymentName"
       :logs="logsModal.logs"
       @close="logsModal.visible = false"
     />
@@ -207,7 +403,20 @@ import {
   RotateCw,
   FileText,
   Inbox,
+  Settings,
+  ExternalLink,
+  Globe,
+  Database,
+  Network,
+  Plug,
+  Box,
+  Container,
+  Tag,
+  Clock,
+  Heart,
+  Layers,
 } from "lucide-vue-next";
+import type { Service } from "@/types";
 
 const router = useRouter();
 const notifications = useNotificationsStore();
@@ -231,11 +440,12 @@ const logsModal = ref({
 });
 
 const columns = [
-  { key: "status", label: "Status", width: "60px" },
+  { key: "status", label: "", width: "40px" },
   { key: "name", label: "Deployment", sortable: true },
-  { key: "path", label: "Path", sortable: true },
-  { key: "updated", label: "Updated", sortable: true },
-  { key: "actions", label: "Actions", width: "140px" },
+  { key: "services", label: "Services", width: "180px" },
+  { key: "ports", label: "Ports", width: "140px" },
+  { key: "updated", label: "Updated", sortable: true, width: "120px" },
+  { key: "actions", label: "", width: "140px" },
 ];
 
 const fetchDeployments = async () => {
@@ -329,6 +539,139 @@ const goToDeployment = (name: string) => {
   router.push(`/deployments/${name}`);
 };
 
+const getServiceClass = (service: Service) => {
+  const image = service.image?.toLowerCase() || "";
+  if (image.includes("mysql") || image.includes("mariadb")) return "database";
+  if (image.includes("postgres")) return "database";
+  if (image.includes("mongo")) return "database";
+  if (image.includes("redis")) return "cache";
+  if (image.includes("nginx") || image.includes("traefik")) return "proxy";
+  return "app";
+};
+
+const hasDatabase = (deployment: Deployment) => {
+  return deployment.services?.some((s) => {
+    const image = s.image?.toLowerCase() || "";
+    return (
+      image.includes("mysql") ||
+      image.includes("mariadb") ||
+      image.includes("postgres") ||
+      image.includes("mongo") ||
+      image.includes("redis")
+    );
+  });
+};
+
+const getDatabaseType = (deployment: Deployment) => {
+  const dbService = deployment.services?.find((s) => {
+    const image = s.image?.toLowerCase() || "";
+    return (
+      image.includes("mysql") ||
+      image.includes("mariadb") ||
+      image.includes("postgres") ||
+      image.includes("mongo")
+    );
+  });
+  if (!dbService) return "";
+  const image = dbService.image?.toLowerCase() || "";
+  if (image.includes("mysql")) return "MySQL";
+  if (image.includes("mariadb")) return "MariaDB";
+  if (image.includes("postgres")) return "PostgreSQL";
+  if (image.includes("mongo")) return "MongoDB";
+  return "Database";
+};
+
+const getNetworks = (deployment: Deployment) => {
+  const networks = new Set<string>();
+  deployment.services?.forEach((s) => {
+    s.networks?.forEach((n) => networks.add(n));
+  });
+  return Array.from(networks);
+};
+
+const getMainImage = (deployment: Deployment) => {
+  const appService = deployment.services?.find((s) => {
+    const image = s.image?.toLowerCase() || "";
+    return !image.includes("mysql") && !image.includes("mariadb") &&
+           !image.includes("postgres") && !image.includes("mongo") &&
+           !image.includes("redis");
+  });
+  if (!appService?.image) return null;
+  const image = appService.image;
+  const parts = image.split("/");
+  const nameWithTag = parts[parts.length - 1];
+  return nameWithTag.split(":")[0];
+};
+
+const getImageVersion = (deployment: Deployment) => {
+  const appService = deployment.services?.find((s) => {
+    const image = s.image?.toLowerCase() || "";
+    return !image.includes("mysql") && !image.includes("mariadb") &&
+           !image.includes("postgres") && !image.includes("mongo") &&
+           !image.includes("redis");
+  });
+  if (!appService?.image) return null;
+  const parts = appService.image.split(":");
+  return parts.length > 1 ? parts[1] : "latest";
+};
+
+const getHealthyCount = (deployment: Deployment) => {
+  if (!deployment.services?.length) return { healthy: 0, total: 0 };
+  const healthy = deployment.services.filter((s) =>
+    s.status === "running" || s.health === "healthy"
+  ).length;
+  return { healthy, total: deployment.services.length };
+};
+
+const getPortMappings = (deployment: Deployment) => {
+  const mappings: { host: string; container: string }[] = [];
+  const seen = new Set<string>();
+
+  deployment.services?.forEach((s) => {
+    s.ports?.forEach((p) => {
+      let host: string | null = null;
+      let container: string | null = null;
+
+      // Format: "0.0.0.0:8080->80/tcp" (runtime)
+      const runtimeMatch = p.match(/(?:[\d.]+:)?(\d+)->(\d+)/);
+      if (runtimeMatch) {
+        host = runtimeMatch[1];
+        container = runtimeMatch[2];
+      } else {
+        // Format: "8080:80" (compose host:container)
+        const composeMatch = p.match(/^(\d+):(\d+)$/);
+        if (composeMatch) {
+          host = composeMatch[1];
+          container = composeMatch[2];
+        } else {
+          // Format: "80" (single port - same for host and container)
+          const singleMatch = p.match(/^(\d+)$/);
+          if (singleMatch) {
+            host = singleMatch[1];
+            container = singleMatch[1];
+          }
+        }
+      }
+
+      if (host && container) {
+        const key = `${host}:${container}`;
+        if (!seen.has(key)) {
+          seen.add(key);
+          mappings.push({ host, container });
+        }
+      }
+    });
+  });
+
+  // Fallback to metadata container port
+  if (mappings.length === 0 && deployment.metadata?.networking?.container_port) {
+    const port = String(deployment.metadata.networking.container_port);
+    mappings.push({ host: port, container: port });
+  }
+
+  return mappings.slice(0, 3);
+};
+
 const formatDate = (dateStr: string) => {
   const date = new Date(dateStr);
   return date.toLocaleDateString("en-US", {
@@ -337,6 +680,21 @@ const formatDate = (dateStr: string) => {
     hour: "2-digit",
     minute: "2-digit",
   });
+};
+
+const formatRelativeTime = (dateStr: string) => {
+  const date = new Date(dateStr);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMins / 60);
+  const diffDays = Math.floor(diffHours / 24);
+
+  if (diffMins < 1) return "just now";
+  if (diffMins < 60) return `${diffMins}m ago`;
+  if (diffHours < 24) return `${diffHours}h ago`;
+  if (diffDays < 7) return `${diffDays}d ago`;
+  return formatDate(dateStr);
 };
 
 onMounted(() => {
@@ -366,6 +724,90 @@ onMounted(() => {
   font-size: var(--text-xs);
   color: var(--color-gray-400);
   text-transform: capitalize;
+}
+
+.deployment-info.clickable {
+  cursor: pointer;
+}
+
+.deployment-info.clickable:hover .deployment-name {
+  color: var(--color-primary-600);
+}
+
+.deployment-domain {
+  font-size: var(--text-xs);
+  color: var(--color-primary-500);
+}
+
+.deployment-image {
+  font-size: var(--text-xs);
+  color: var(--color-gray-500);
+}
+
+/* Table Services */
+.table-services {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.table-service-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  background: var(--color-gray-100);
+  color: var(--color-gray-600);
+  font-size: var(--text-xs);
+  border-radius: var(--radius-full);
+}
+
+.table-service-tag.database {
+  background: var(--color-info-50);
+  color: var(--color-info-700);
+}
+
+.table-service-tag.cache {
+  background: var(--color-warning-50);
+  color: var(--color-warning-700);
+}
+
+.table-service-tag.proxy {
+  background: var(--color-primary-50);
+  color: var(--color-primary-700);
+}
+
+.table-service-tag.more {
+  background: var(--color-gray-200);
+  color: var(--color-gray-500);
+}
+
+.no-services,
+.no-ports {
+  color: var(--color-gray-400);
+  font-size: var(--text-sm);
+}
+
+/* Table Ports */
+.table-ports {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.table-port-link {
+  display: inline-flex;
+  padding: 2px 8px;
+  background: var(--color-warning-50);
+  color: var(--color-warning-700);
+  font-size: var(--text-xs);
+  font-weight: 500;
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  transition: background 0.15s;
+}
+
+.table-port-link:hover {
+  background: var(--color-warning-100);
 }
 
 .path-tag {
@@ -433,7 +875,7 @@ onMounted(() => {
 
 .deployments-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: var(--space-4);
 }
 
@@ -445,21 +887,50 @@ onMounted(() => {
   transition: all 0.2s;
   overflow: hidden;
   cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  min-height: 220px;
 }
 
 .deployment-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
-  border-color: var(--color-gray-300);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+}
+
+.deployment-card.running {
+  border-color: var(--color-success-200);
+}
+
+.deployment-card.stopped {
+  border-color: var(--color-gray-200);
+}
+
+.deployment-card.error {
+  border-color: var(--color-danger-200);
 }
 
 .deployment-card .card-header {
   padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--color-gray-100);
+}
+
+.deployment-card .card-header.running {
+  background: linear-gradient(135deg, var(--color-success-50) 0%, var(--color-success-100) 100%);
+}
+
+.deployment-card .card-header.stopped {
+  background: linear-gradient(135deg, var(--color-gray-50) 0%, var(--color-gray-100) 100%);
+}
+
+.deployment-card .card-header.error {
+  background: linear-gradient(135deg, var(--color-danger-50) 0%, var(--color-danger-100) 100%);
+}
+
+.header-content {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: var(--color-gray-50);
-  border-bottom: 1px solid var(--color-gray-200);
+  width: 100%;
 }
 
 .deployment-card h3 {
@@ -469,62 +940,310 @@ onMounted(() => {
   margin: 0;
 }
 
-.status-dot {
-  width: 10px;
-  height: 10px;
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-3);
   border-radius: var(--radius-full);
-  background: var(--color-gray-500);
-  flex-shrink: 0;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  text-transform: capitalize;
 }
 
-.status-dot.running {
+.status-badge .status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+}
+
+.status-badge.running {
+  background: var(--color-success-100);
+  color: var(--color-success-700);
+}
+
+.status-badge.running .status-dot {
   background: var(--color-success-500);
+  box-shadow: 0 0 0 2px var(--color-success-200);
+  animation: pulse 2s infinite;
 }
 
-.status-dot.stopped {
+.status-badge.stopped {
+  background: var(--color-gray-100);
+  color: var(--color-gray-600);
+}
+
+.status-badge.stopped .status-dot {
   background: var(--color-gray-400);
 }
 
-.status-dot.error {
+.status-badge.error {
+  background: var(--color-danger-100);
+  color: var(--color-danger-700);
+}
+
+.status-badge.error .status-dot {
   background: var(--color-danger-500);
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
 }
 
 .card-body {
   padding: var(--space-4) var(--space-5);
   background: white;
-}
-
-.info-item {
+  flex: 1;
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+}
+
+.domain-link {
+  display: flex;
   align-items: center;
-  margin-bottom: var(--space-3);
-  padding: var(--space-1) 0;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  background: var(--color-primary-50);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-4);
+  color: var(--color-primary-600);
 }
 
-.info-item:last-child {
-  margin-bottom: 0;
-}
-
-.info-item .label {
-  font-size: var(--text-xs);
-  font-weight: 500;
-  color: var(--color-gray-500);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.info-item code {
-  font-size: var(--text-sm);
-  background: var(--color-gray-100);
-  padding: var(--space-1) var(--space-2);
-  border-radius: var(--radius-sm);
-  font-family: var(--font-mono);
-  color: var(--color-gray-700);
-  max-width: 180px;
+.domain-link .app-link {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--color-primary-600);
+  font-weight: var(--font-medium);
+  text-decoration: none;
+  flex: 1;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.domain-link .app-link:hover {
+  text-decoration: underline;
+}
+
+.ssl-badge {
+  padding: 2px 6px;
+  background: var(--color-success-100);
+  color: var(--color-success-700);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+}
+
+/* Port Links */
+.port-links {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+
+.port-link {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-warning-50);
+  border-radius: var(--radius-md);
+  color: var(--color-warning-700);
+  text-decoration: none;
+  transition: background 0.15s;
+}
+
+.port-link:hover {
+  background: var(--color-warning-100);
+}
+
+.port-link .port-url {
+  font-weight: var(--font-medium);
+  flex: 1;
+}
+
+.port-link .port-mapping {
+  font-size: var(--text-xs);
+  padding: 2px 6px;
+  background: var(--color-warning-100);
+  border-radius: var(--radius-sm);
+  color: var(--color-warning-600);
+}
+
+/* Service Tags */
+.service-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  margin-bottom: var(--space-3);
+}
+
+.service-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  background: var(--color-gray-100);
+  color: var(--color-gray-700);
+  font-size: var(--text-xs);
+  font-weight: 500;
+  border-radius: var(--radius-full);
+}
+
+.service-tag.database {
+  background: var(--color-info-50);
+  color: var(--color-info-700);
+}
+
+.service-tag.cache {
+  background: var(--color-warning-50);
+  color: var(--color-warning-700);
+}
+
+.service-tag.proxy {
+  background: var(--color-primary-50);
+  color: var(--color-primary-700);
+}
+
+.service-tag.more {
+  background: var(--color-gray-200);
+  color: var(--color-gray-600);
+}
+
+.service-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-gray-400);
+}
+
+.service-dot.running {
+  background: var(--color-success-500);
+}
+
+.service-dot.exited {
+  background: var(--color-danger-500);
+}
+
+/* Info Pills */
+.info-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+
+.info-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  background: var(--color-gray-50);
+  border: 1px solid var(--color-gray-200);
+  color: var(--color-gray-600);
+  font-size: var(--text-xs);
+  font-weight: 500;
+  border-radius: var(--radius-md);
+}
+
+.info-pill.database {
+  background: var(--color-info-50);
+  border-color: var(--color-info-200);
+  color: var(--color-info-700);
+}
+
+.info-pill.network {
+  background: var(--color-primary-50);
+  border-color: var(--color-primary-200);
+  color: var(--color-primary-700);
+}
+
+.info-pill.port {
+  background: var(--color-warning-50);
+  border-color: var(--color-warning-200);
+  color: var(--color-warning-700);
+}
+
+.info-pill.type {
+  background: var(--color-gray-100);
+  border-color: var(--color-gray-300);
+  color: var(--color-gray-700);
+}
+
+.info-pill.image {
+  background: var(--color-success-50);
+  border-color: var(--color-success-200);
+  color: var(--color-success-700);
+}
+
+/* Image Info (fallback when no domain) */
+.image-info {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-gray-50);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-3);
+  color: var(--color-gray-600);
+}
+
+.image-info .image-name {
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--color-gray-700);
+}
+
+.image-info .image-version {
+  font-size: var(--text-xs);
+  padding: 2px 6px;
+  background: var(--color-gray-200);
+  border-radius: var(--radius-sm);
+  color: var(--color-gray-600);
+}
+
+.card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  margin-top: auto;
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-gray-100);
+}
+
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-gray-500);
+}
+
+.meta-label {
+  font-size: var(--text-xs);
+  color: var(--color-gray-500);
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+.meta-value {
+  font-size: var(--text-xs);
+  color: var(--color-gray-600);
+  font-weight: var(--font-medium);
+}
+
+.meta-value.health {
+  color: var(--color-success-600);
+}
+
+.meta-item.ssl .meta-value {
+  color: var(--color-success-600);
 }
 
 .badge {
@@ -605,6 +1324,14 @@ onMounted(() => {
 }
 .icon-btn.logs:hover {
   background: var(--color-gray-200);
+}
+
+.icon-btn.settings {
+  background: var(--color-primary-50);
+  color: var(--color-primary-600);
+}
+.icon-btn.settings:hover {
+  background: var(--color-primary-100);
 }
 
 .btn {
