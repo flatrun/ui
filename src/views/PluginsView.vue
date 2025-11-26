@@ -7,13 +7,7 @@
       :loading="loading"
       :searchable="true"
       search-placeholder="Search apps..."
-      :search-fields="[
-        'display_name',
-        'name',
-        'description',
-        'category',
-        'author',
-      ]"
+      :search-fields="['display_name', 'name', 'description', 'category', 'author']"
       :toggleable="true"
       default-view-mode="grid"
       empty-icon="pi pi-th-large"
@@ -22,30 +16,17 @@
       loading-text="Loading apps..."
     >
       <template #actions>
-        <button
-          class="btn btn-primary"
-          @click="showInstallModal = true"
-        >
+        <button class="btn btn-primary" @click="showInstallModal = true">
           <i class="pi pi-plus" />
           Install App
         </button>
-        <button
-          class="btn btn-icon"
-          :disabled="loading"
-          @click="fetchPlugins"
-        >
-          <i
-            class="pi pi-refresh"
-            :class="{ 'pi-spin': loading }"
-          />
+        <button class="btn btn-icon" :disabled="loading" @click="fetchPlugins">
+          <i class="pi pi-refresh" :class="{ 'pi-spin': loading }" />
         </button>
       </template>
 
       <template #empty-action>
-        <button
-          class="btn btn-primary"
-          @click="showInstallModal = true"
-        >
+        <button class="btn btn-primary" @click="showInstallModal = true">
           <i class="pi pi-plus" />
           Install App
         </button>
@@ -60,18 +41,13 @@
             <div class="plugin-name">
               {{ item.display_name }}
             </div>
-            <div class="plugin-version">
-              v{{ item.version }}
-            </div>
+            <div class="plugin-version">v{{ item.version }}</div>
           </div>
         </div>
       </template>
 
       <template #cell-enabled="{ item }">
-        <span
-          class="status-badge"
-          :class="item.enabled ? 'enabled' : 'disabled'"
-        >
+        <span class="status-badge" :class="item.enabled ? 'enabled' : 'disabled'">
           {{ item.enabled ? "Enabled" : "Disabled" }}
         </span>
       </template>
@@ -82,16 +58,10 @@
 
       <template #cell-actions>
         <div class="table-actions">
-          <button
-            class="btn-icon-xs"
-            title="Configure"
-          >
+          <button class="btn-icon-xs" title="Configure">
             <i class="pi pi-cog" />
           </button>
-          <button
-            class="btn-icon-xs danger"
-            title="Uninstall"
-          >
+          <button class="btn-icon-xs danger" title="Uninstall">
             <i class="pi pi-trash" />
           </button>
         </div>
@@ -99,11 +69,7 @@
 
       <template #grid="{ items }">
         <div class="plugins-grid">
-          <div
-            v-for="plugin in items"
-            :key="plugin.name"
-            class="plugin-card"
-          >
+          <div v-for="plugin in items" :key="plugin.name" class="plugin-card">
             <div class="plugin-header">
               <div class="plugin-icon">
                 <i :class="getPluginIcon(plugin.category)" />
@@ -113,10 +79,7 @@
                 <span class="plugin-version">v{{ plugin.version }}</span>
               </div>
               <div class="plugin-status">
-                <span
-                  class="status-badge"
-                  :class="plugin.enabled ? 'enabled' : 'disabled'"
-                >
+                <span class="status-badge" :class="plugin.enabled ? 'enabled' : 'disabled'">
                   {{ plugin.enabled ? "Enabled" : "Disabled" }}
                 </span>
               </div>
@@ -142,26 +105,16 @@
                 </div>
               </div>
 
-              <div
-                v-if="plugin.capabilities?.length"
-                class="capabilities-section"
-              >
+              <div v-if="plugin.capabilities?.length" class="capabilities-section">
                 <span class="section-label">Capabilities</span>
                 <div class="capabilities-list">
-                  <span
-                    v-for="cap in plugin.capabilities"
-                    :key="cap"
-                    class="capability-tag"
-                  >
+                  <span v-for="cap in plugin.capabilities" :key="cap" class="capability-tag">
                     {{ formatCapability(cap) }}
                   </span>
                 </div>
               </div>
 
-              <div
-                v-if="plugin.dashboard_extensions?.length"
-                class="extensions-section"
-              >
+              <div v-if="plugin.dashboard_extensions?.length" class="extensions-section">
                 <span class="section-label">Dashboard Extensions</span>
                 <div class="extensions-list">
                   <div
@@ -176,10 +129,7 @@
                 </div>
               </div>
 
-              <div
-                v-if="plugin.api?.length"
-                class="api-section"
-              >
+              <div v-if="plugin.api?.length" class="api-section">
                 <span class="section-label">API Endpoints ({{ plugin.api.length }})</span>
                 <div class="api-list">
                   <div
@@ -187,18 +137,12 @@
                     :key="endpoint.path"
                     class="api-item"
                   >
-                    <span
-                      class="api-method"
-                      :class="endpoint.method.toLowerCase()"
-                    >
+                    <span class="api-method" :class="endpoint.method.toLowerCase()">
                       {{ endpoint.method }}
                     </span>
                     <code>{{ endpoint.path }}</code>
                   </div>
-                  <div
-                    v-if="plugin.api.length > 3"
-                    class="api-more"
-                  >
+                  <div v-if="plugin.api.length > 3" class="api-more">
                     +{{ plugin.api.length - 3 }} more endpoints
                   </div>
                 </div>
@@ -221,21 +165,14 @@
     </DataTable>
 
     <Teleport to="body">
-      <div
-        v-if="showInstallModal"
-        class="modal-overlay"
-        @click.self="showInstallModal = false"
-      >
+      <div v-if="showInstallModal" class="modal-overlay" @click.self="showInstallModal = false">
         <div class="modal-container">
           <div class="modal-header">
             <h3>
               <i class="pi pi-download" />
               Install App
             </h3>
-            <button
-              class="close-btn"
-              @click="showInstallModal = false"
-            >
+            <button class="close-btn" @click="showInstallModal = false">
               <i class="pi pi-times" />
             </button>
           </div>
@@ -247,12 +184,7 @@
             </p>
           </div>
           <div class="modal-footer">
-            <button
-              class="btn btn-secondary"
-              @click="showInstallModal = false"
-            >
-              Close
-            </button>
+            <button class="btn btn-secondary" @click="showInstallModal = false">Close</button>
           </div>
         </div>
       </div>

@@ -58,8 +58,7 @@ export const deploymentsApi = {
   list: () => apiClient.get<{ deployments: Deployment[] }>("/deployments"),
   get: (name: string) => apiClient.get<Deployment>(`/deployments/${name}`),
   create: (data: any) => apiClient.post("/deployments", data),
-  update: (name: string, data: any) =>
-    apiClient.put(`/deployments/${name}`, data),
+  update: (name: string, data: any) => apiClient.put(`/deployments/${name}`, data),
   updateMetadata: (name: string, metadata: ServiceMetadata) =>
     apiClient.put(`/deployments/${name}/metadata`, metadata),
   delete: (name: string) => apiClient.delete(`/deployments/${name}`),
@@ -67,17 +66,13 @@ export const deploymentsApi = {
   stop: (name: string) => apiClient.post(`/deployments/${name}/stop`),
   restart: (name: string) => apiClient.post(`/deployments/${name}/restart`),
   logs: (name: string) => apiClient.get(`/deployments/${name}/logs`),
-  getComposeFile: (name: string) =>
-    apiClient.get(`/deployments/${name}/compose`),
+  getComposeFile: (name: string) => apiClient.get(`/deployments/${name}/compose`),
 };
 
 export const networksApi = {
   list: () => apiClient.get<{ networks: Network[] }>("/networks"),
-  create: (data: {
-    name: string;
-    driver?: string;
-    labels?: Record<string, string>;
-  }) => apiClient.post("/networks", data),
+  create: (data: { name: string; driver?: string; labels?: Record<string, string> }) =>
+    apiClient.post("/networks", data),
   delete: (name: string) => apiClient.delete(`/networks/${name}`),
   connect: (networkName: string, containerName: string) =>
     apiClient.post(`/networks/${networkName}/connect`, {
@@ -95,21 +90,16 @@ export const certificatesApi = {
     apiClient.post<{ message: string; result: any }>("/certificates", {
       domain,
     }),
-  renew: () =>
-    apiClient.post<{ message: string; result: any }>("/certificates/renew"),
+  renew: () => apiClient.post<{ message: string; result: any }>("/certificates/renew"),
   delete: (domain: string) => apiClient.delete(`/certificates/${domain}`),
 };
 
 export const proxyApi = {
-  getStatus: (name: string) =>
-    apiClient.get<{ status: ProxyStatus }>(`/proxy/status/${name}`),
+  getStatus: (name: string) => apiClient.get<{ status: ProxyStatus }>(`/proxy/status/${name}`),
   setup: (name: string) =>
-    apiClient.post<{ message: string; result: ProxySetupResult }>(
-      `/proxy/setup/${name}`,
-    ),
+    apiClient.post<{ message: string; result: ProxySetupResult }>(`/proxy/setup/${name}`),
   teardown: (name: string) => apiClient.delete(`/proxy/${name}`),
-  listVirtualHosts: () =>
-    apiClient.get<{ virtual_hosts: VirtualHost[] }>("/proxy/vhosts"),
+  listVirtualHosts: () => apiClient.get<{ virtual_hosts: VirtualHost[] }>("/proxy/vhosts"),
 };
 
 export interface DomainSettings {
@@ -129,8 +119,7 @@ export interface SubdomainResponse {
 export const settingsApi = {
   get: () => apiClient.get("/settings"),
   update: (data: any) => apiClient.put("/settings", data),
-  generateSubdomain: () =>
-    apiClient.get<SubdomainResponse>("/subdomain/generate"),
+  generateSubdomain: () => apiClient.get<SubdomainResponse>("/subdomain/generate"),
 };
 
 export const pluginsApi = {
@@ -161,11 +150,8 @@ export const imagesApi = {
 
 export const volumesApi = {
   list: () => apiClient.get<{ volumes: any[] }>("/volumes"),
-  create: (data: {
-    name: string;
-    driver?: string;
-    labels?: Record<string, string>;
-  }) => apiClient.post("/volumes", data),
+  create: (data: { name: string; driver?: string; labels?: Record<string, string> }) =>
+    apiClient.post("/volumes", data),
   remove: (name: string) => apiClient.delete(`/volumes/${name}`),
   prune: () => apiClient.post("/volumes/prune"),
 };
@@ -192,10 +178,9 @@ export interface FilesInfo {
 
 export const filesApi = {
   list: (deploymentName: string, path: string = "/", root: boolean = false) =>
-    apiClient.get<{ files: FileInfo[]; root: boolean }>(
-      `/deployments/${deploymentName}/files`,
-      { params: { path, root: root ? "true" : undefined } },
-    ),
+    apiClient.get<{ files: FileInfo[]; root: boolean }>(`/deployments/${deploymentName}/files`, {
+      params: { path, root: root ? "true" : undefined },
+    }),
   getInfo: (deploymentName: string) =>
     apiClient.get<FilesInfo>(`/deployments/${deploymentName}/files-info`),
   download: (deploymentName: string, path: string, root: boolean = false) =>
@@ -206,11 +191,9 @@ export const filesApi = {
   upload: (deploymentName: string, path: string, file: File) => {
     const formData = new FormData();
     formData.append("file", file);
-    return apiClient.post(
-      `/deployments/${deploymentName}/files${path}`,
-      formData,
-      { headers: { "Content-Type": "multipart/form-data" } },
-    );
+    return apiClient.post(`/deployments/${deploymentName}/files${path}`, formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
   },
   createDir: (deploymentName: string, path: string) =>
     apiClient.post(`/deployments/${deploymentName}/mkdir${path}`),
@@ -223,8 +206,86 @@ export const portsApi = {
   kill: (pid: number) => apiClient.post(`/ports/${pid}/kill`),
 };
 
+export const systemServicesApi = {
+  list: () => apiClient.get<{ services: any[] }>("/system/services"),
+  start: (name: string) => apiClient.post(`/system/services/${name}/start`),
+  stop: (name: string) => apiClient.post(`/system/services/${name}/stop`),
+  restart: (name: string) => apiClient.post(`/system/services/${name}/restart`),
+};
+
 export const authApi = {
   status: () => apiClient.get("/auth/status"),
   login: (apiKey: string) => apiClient.post("/auth/login", { api_key: apiKey }),
   validate: () => apiClient.get("/auth/validate"),
+};
+
+export interface DatabaseConnectionConfig {
+  type: string;
+  host: string;
+  port: number;
+  username: string;
+  password: string;
+  database?: string;
+  container?: string;
+}
+
+export interface DatabaseInfo {
+  name: string;
+  size?: string;
+  tables?: number;
+}
+
+export interface TableInfo {
+  name: string;
+  rows?: number;
+  size?: string;
+  engine?: string;
+}
+
+export interface UserInfo {
+  name: string;
+  host?: string;
+}
+
+export const databasesApi = {
+  testConnection: (config: DatabaseConnectionConfig) =>
+    apiClient.post<{ success: boolean; message?: string; error?: string }>(
+      "/databases/test",
+      config,
+    ),
+  listDatabases: (config: DatabaseConnectionConfig) =>
+    apiClient.post<{ databases: DatabaseInfo[] }>("/databases/list", config),
+  listTables: (config: DatabaseConnectionConfig, database: string) =>
+    apiClient.post<{ tables: TableInfo[] }>("/databases/tables", {
+      ...config,
+      database,
+    }),
+  listUsers: (config: DatabaseConnectionConfig) =>
+    apiClient.post<{ users: UserInfo[] }>("/databases/users", config),
+  createDatabase: (config: DatabaseConnectionConfig, dbName: string) =>
+    apiClient.post("/databases/create", { ...config, db_name: dbName }),
+  createUser: (
+    config: DatabaseConnectionConfig,
+    username: string,
+    password: string,
+    host?: string,
+  ) =>
+    apiClient.post("/databases/users/create", {
+      ...config,
+      username,
+      user_password: password,
+      user_host: host,
+    }),
+  grantPrivileges: (
+    config: DatabaseConnectionConfig,
+    username: string,
+    database: string,
+    host?: string,
+  ) =>
+    apiClient.post("/databases/privileges/grant", {
+      ...config,
+      username,
+      database,
+      user_host: host,
+    }),
 };

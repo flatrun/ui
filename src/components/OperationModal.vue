@@ -8,27 +8,18 @@
   >
     <template #header>
       <div class="header-info">
-        <span
-          class="operation-badge"
-          :class="operation"
-        >{{ operation }}</span>
+        <span class="operation-badge" :class="operation">{{ operation }}</span>
         <h3>{{ title }}</h3>
       </div>
     </template>
 
     <div class="status-section">
-      <div
-        class="status-indicator"
-        :class="statusClass"
-      >
+      <div class="status-indicator" :class="statusClass">
         <i :class="statusIcon" />
       </div>
       <div class="status-text">
         <span class="status-label">{{ statusLabel }}</span>
-        <span
-          v-if="startTime"
-          class="status-time"
-        >
+        <span v-if="startTime" class="status-time">
           {{ elapsedTime }}
         </span>
       </div>
@@ -45,13 +36,7 @@
     </div>
 
     <template #footer>
-      <button
-        class="btn btn-secondary"
-        :disabled="isRunning"
-        @click="handleClose"
-      >
-        Close
-      </button>
+      <button class="btn btn-secondary" :disabled="isRunning" @click="handleClose">Close</button>
     </template>
   </BaseModal>
 </template>

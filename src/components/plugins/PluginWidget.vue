@@ -1,16 +1,11 @@
 <template>
-  <div
-    class="plugin-widget"
-    :class="[`size-${plugin.widget?.size || 'medium'}`]"
-  >
+  <div class="plugin-widget" :class="[`size-${plugin.widget?.size || 'medium'}`]">
     <div class="widget-header">
       <div class="widget-title">
         <i :class="getPluginIcon(plugin.category)" />
         <span>{{ plugin.display_name }}</span>
       </div>
-      <div class="widget-version">
-        v{{ plugin.version }}
-      </div>
+      <div class="widget-version">v{{ plugin.version }}</div>
     </div>
 
     <div class="widget-body">
@@ -18,24 +13,14 @@
         {{ plugin.description }}
       </div>
 
-      <div
-        v-if="plugin.capabilities?.length"
-        class="widget-capabilities"
-      >
-        <span
-          v-for="cap in plugin.capabilities"
-          :key="cap"
-          class="capability-badge"
-        >
+      <div v-if="plugin.capabilities?.length" class="widget-capabilities">
+        <span v-for="cap in plugin.capabilities" :key="cap" class="capability-badge">
           {{ formatCapability(cap) }}
         </span>
       </div>
     </div>
 
-    <div
-      v-if="plugin.widget?.actions?.length"
-      class="widget-actions"
-    >
+    <div v-if="plugin.widget?.actions?.length" class="widget-actions">
       <button
         v-for="action in plugin.widget.actions"
         :key="action.name"

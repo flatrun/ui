@@ -29,10 +29,7 @@
           <p>Enter your API key to access the dashboard</p>
         </div>
 
-        <form
-          class="login-form"
-          @submit.prevent="handleLogin"
-        >
+        <form class="login-form" @submit.prevent="handleLogin">
           <div class="form-group">
             <label for="apiKey">API Key</label>
             <div class="input-wrapper">
@@ -44,33 +41,19 @@
                 placeholder="Enter your API key"
                 :class="{ error: auth.error }"
                 autocomplete="current-password"
-              >
-              <button
-                type="button"
-                class="toggle-visibility"
-                @click="showKey = !showKey"
-              >
+              />
+              <button type="button" class="toggle-visibility" @click="showKey = !showKey">
                 <i :class="showKey ? 'pi pi-eye-slash' : 'pi pi-eye'" />
               </button>
             </div>
-            <span
-              v-if="auth.error"
-              class="error-text"
-            >
+            <span v-if="auth.error" class="error-text">
               <i class="pi pi-exclamation-circle" />
               {{ auth.error }}
             </span>
           </div>
 
-          <button
-            type="submit"
-            class="login-btn"
-            :disabled="auth.loading || !apiKey"
-          >
-            <i
-              v-if="auth.loading"
-              class="pi pi-spin pi-spinner"
-            />
+          <button type="submit" class="login-btn" :disabled="auth.loading || !apiKey">
+            <i v-if="auth.loading" class="pi pi-spin pi-spinner" />
             <span v-else>Sign In</span>
           </button>
         </form>

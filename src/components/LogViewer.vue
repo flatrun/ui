@@ -44,7 +44,11 @@
         <button class="toolbar-btn" title="Refresh" :disabled="loading" @click="$emit('refresh')">
           <i :class="loading ? 'pi pi-spin pi-spinner' : 'pi pi-refresh'" />
         </button>
-        <button class="toolbar-btn" :title="isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'" @click="toggleFullscreen">
+        <button
+          class="toolbar-btn"
+          :title="isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'"
+          @click="toggleFullscreen"
+        >
           <i :class="isFullscreen ? 'pi pi-window-minimize' : 'pi pi-window-maximize'" />
         </button>
       </div>
@@ -83,7 +87,7 @@ const props = withDefaults(
     theme: "dark",
     fontSize: 13,
     lineHeight: 1.4,
-  }
+  },
 );
 
 const emit = defineEmits<{
@@ -195,9 +199,7 @@ const initTerminal = () => {
 const writeLogs = (logs: string) => {
   if (!terminal) return;
 
-  const newContent = logs.startsWith(currentLogs)
-    ? logs.slice(currentLogs.length)
-    : logs;
+  const newContent = logs.startsWith(currentLogs) ? logs.slice(currentLogs.length) : logs;
 
   if (newContent !== logs) {
     terminal.write(newContent);
@@ -294,7 +296,7 @@ watch(
     if (newLogs) {
       writeLogs(newLogs);
     }
-  }
+  },
 );
 
 watch(
@@ -303,7 +305,7 @@ watch(
     if (terminal) {
       terminal.options.theme = themeConfig[newTheme];
     }
-  }
+  },
 );
 
 onMounted(() => {

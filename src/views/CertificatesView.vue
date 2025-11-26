@@ -16,33 +16,16 @@
       loading-text="Loading certificates..."
     >
       <template #actions>
-        <button
-          class="btn btn-primary"
-          @click="showRequestModal = true"
-        >
+        <button class="btn btn-primary" @click="showRequestModal = true">
           <i class="pi pi-plus" />
           Request Certificate
         </button>
-        <button
-          class="btn btn-secondary"
-          :disabled="renewingAll"
-          @click="handleRenewAll"
-        >
-          <i
-            class="pi pi-sync"
-            :class="{ 'pi-spin': renewingAll }"
-          />
+        <button class="btn btn-secondary" :disabled="renewingAll" @click="handleRenewAll">
+          <i class="pi pi-sync" :class="{ 'pi-spin': renewingAll }" />
           Renew All
         </button>
-        <button
-          class="btn btn-icon"
-          :disabled="loading"
-          @click="fetchCertificates"
-        >
-          <i
-            class="pi pi-refresh"
-            :class="{ 'pi-spin': loading }"
-          />
+        <button class="btn btn-icon" :disabled="loading" @click="fetchCertificates">
+          <i class="pi pi-refresh" :class="{ 'pi-spin': loading }" />
         </button>
       </template>
 
@@ -54,19 +37,13 @@
       </template>
 
       <template #cell-status="{ item }">
-        <span
-          class="status-badge"
-          :class="item.status"
-        >
+        <span class="status-badge" :class="item.status">
           {{ item.status }}
         </span>
       </template>
 
       <template #cell-days_left="{ item }">
-        <span
-          class="days-left"
-          :class="daysLeftClass(item.days_left)"
-        >
+        <span class="days-left" :class="daysLeftClass(item.days_left)">
           {{ item.days_left }} days
         </span>
       </template>
@@ -81,18 +58,10 @@
 
       <template #grid="{ items }">
         <div class="certificates-grid">
-          <div
-            v-for="cert in items"
-            :key="cert.domain"
-            class="cert-card"
-            :class="cert.status"
-          >
+          <div v-for="cert in items" :key="cert.domain" class="cert-card" :class="cert.status">
             <div class="cert-header">
               <div class="cert-status">
-                <span
-                  class="status-badge"
-                  :class="cert.status"
-                >
+                <span class="status-badge" :class="cert.status">
                   <i :class="statusIcon(cert.status)" />
                   {{ cert.status }}
                 </span>
@@ -111,24 +80,17 @@
                 </div>
                 <div class="info-item">
                   <span class="info-label">Days Left</span>
-                  <span
-                    class="info-value days-left"
-                    :class="daysLeftClass(cert.days_left)"
-                  >
+                  <span class="info-value days-left" :class="daysLeftClass(cert.days_left)">
                     {{ cert.days_left }} days
                   </span>
                 </div>
                 <div class="info-item">
                   <span class="info-label">Valid From</span>
-                  <span class="info-value">{{
-                    formatDate(cert.not_before)
-                  }}</span>
+                  <span class="info-value">{{ formatDate(cert.not_before) }}</span>
                 </div>
                 <div class="info-item">
                   <span class="info-label">Expires</span>
-                  <span class="info-value">{{
-                    formatDate(cert.not_after)
-                  }}</span>
+                  <span class="info-value">{{ formatDate(cert.not_after) }}</span>
                 </div>
               </div>
             </div>
@@ -143,13 +105,7 @@
                 :disabled="deleting === cert.domain"
                 @click.stop="handleDelete(cert.domain)"
               >
-                <i
-                  :class="
-                    deleting === cert.domain
-                      ? 'pi pi-spin pi-spinner'
-                      : 'pi pi-trash'
-                  "
-                />
+                <i :class="deleting === cert.domain ? 'pi pi-spin pi-spinner' : 'pi pi-trash'" />
               </button>
             </div>
           </div>
@@ -170,21 +126,14 @@
     />
 
     <Teleport to="body">
-      <div
-        v-if="showRequestModal"
-        class="modal-overlay"
-        @click.self="showRequestModal = false"
-      >
+      <div v-if="showRequestModal" class="modal-overlay" @click.self="showRequestModal = false">
         <div class="modal-container">
           <div class="modal-header">
             <h3>
               <i class="pi pi-shield" />
               Request SSL Certificate
             </h3>
-            <button
-              class="close-btn"
-              @click="showRequestModal = false"
-            >
+            <button class="close-btn" @click="showRequestModal = false">
               <i class="pi pi-times" />
             </button>
           </div>
@@ -198,7 +147,7 @@
                 type="text"
                 placeholder="example.com"
                 :disabled="requesting"
-              >
+              />
               <span class="hint">Enter the domain to request a Let's Encrypt certificate for</span>
             </div>
           </div>
@@ -216,10 +165,7 @@
               :disabled="requesting || !newDomain.trim()"
               @click="handleRequest"
             >
-              <i
-                v-if="requesting"
-                class="pi pi-spin pi-spinner"
-              />
+              <i v-if="requesting" class="pi pi-spin pi-spinner" />
               {{ requesting ? "Requesting..." : "Request Certificate" }}
             </button>
           </div>
@@ -227,10 +173,7 @@
       </div>
     </Teleport>
 
-    <div
-      v-if="certificates.length > 0"
-      class="certificates-summary"
-    >
+    <div v-if="certificates.length > 0" class="certificates-summary">
       <div class="summary-card">
         <div class="summary-icon valid">
           <i class="pi pi-check-circle" />
@@ -291,9 +234,7 @@ const columns = [
   { key: "not_after", label: "Expires", sortable: true },
 ];
 
-const validCount = computed(
-  () => certificates.value.filter((c) => c.status === "valid").length,
-);
+const validCount = computed(() => certificates.value.filter((c) => c.status === "valid").length);
 const expiringCount = computed(
   () => certificates.value.filter((c) => c.status === "expiring").length,
 );
@@ -363,7 +304,10 @@ const confirmDelete = async () => {
 
   try {
     await certificatesApi.delete(domainToDelete.value);
-    notifications.success("Certificate Deleted", `Certificate for ${domainToDelete.value} has been deleted`);
+    notifications.success(
+      "Certificate Deleted",
+      `Certificate for ${domainToDelete.value} has been deleted`,
+    );
     await fetchCertificates();
   } catch (e: any) {
     const msg = e.response?.data?.error || e.message;

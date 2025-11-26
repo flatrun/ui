@@ -36,7 +36,7 @@ withDefaults(
     subtitle: "Container logs output",
     loading: false,
     emptyMessage: "No logs available",
-  }
+  },
 );
 
 const emit = defineEmits(["close", "refresh"]);

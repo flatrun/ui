@@ -15,15 +15,8 @@
       :default-page-size="25"
     >
       <template #actions>
-        <button
-          class="btn btn-secondary"
-          :disabled="loading"
-          @click="fetchPorts"
-        >
-          <RefreshCw
-            :size="16"
-            :class="{ spinning: loading }"
-          />
+        <button class="btn btn-secondary" :disabled="loading" @click="fetchPorts">
+          <RefreshCw :size="16" :class="{ spinning: loading }" />
           Refresh
         </button>
       </template>
@@ -47,10 +40,7 @@
       </template>
 
       <template #cell-state="{ item }">
-        <span
-          class="state-badge"
-          :class="item.state?.toLowerCase()"
-        >
+        <span class="state-badge" :class="item.state?.toLowerCase()">
           {{ item.state || "UNKNOWN" }}
         </span>
       </template>
@@ -70,21 +60,14 @@
     </DataTable>
 
     <Teleport to="body">
-      <div
-        v-if="showKillModal"
-        class="modal-overlay"
-        @click.self="showKillModal = false"
-      >
+      <div v-if="showKillModal" class="modal-overlay" @click.self="showKillModal = false">
         <div class="kill-modal modal-container">
           <div class="modal-header">
             <h3>
               <AlertTriangle :size="20" />
               Kill Process
             </h3>
-            <button
-              class="close-btn"
-              @click="showKillModal = false"
-            >
+            <button class="close-btn" @click="showKillModal = false">
               <X :size="18" />
             </button>
           </div>
@@ -97,9 +80,7 @@
               </div>
               <div class="detail-row">
                 <span class="label">Process:</span>
-                <span class="value">{{
-                  selectedPort?.process || "Unknown"
-                }}</span>
+                <span class="value">{{ selectedPort?.process || "Unknown" }}</span>
               </div>
               <div class="detail-row">
                 <span class="label">PID:</span>
@@ -108,31 +89,14 @@
             </div>
             <div class="warning-message">
               <AlertTriangle :size="16" />
-              <span>This action cannot be undone. The process will be terminated
-                immediately.</span>
+              <span>This action cannot be undone. The process will be terminated immediately.</span>
             </div>
           </div>
           <div class="modal-footer">
-            <button
-              class="btn btn-secondary"
-              @click="showKillModal = false"
-            >
-              Cancel
-            </button>
-            <button
-              class="btn btn-danger"
-              :disabled="killing"
-              @click="killProcess"
-            >
-              <Trash2
-                v-if="!killing"
-                :size="16"
-              />
-              <RefreshCw
-                v-else
-                :size="16"
-                class="spinning"
-              />
+            <button class="btn btn-secondary" @click="showKillModal = false">Cancel</button>
+            <button class="btn btn-danger" :disabled="killing" @click="killProcess">
+              <Trash2 v-if="!killing" :size="16" />
+              <RefreshCw v-else :size="16" class="spinning" />
               {{ killing ? "Killing..." : "Kill Process" }}
             </button>
           </div>

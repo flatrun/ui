@@ -9,7 +9,7 @@
             type="text"
             placeholder="Search apps..."
             class="search-input"
-          >
+          />
         </div>
         <div class="category-filters">
           <button
@@ -37,22 +37,12 @@
     </div>
 
     <div class="apps-grid">
-      <div
-        v-for="app in filteredApps"
-        :key="app.id"
-        class="app-card"
-      >
+      <div v-for="app in filteredApps" :key="app.id" class="app-card">
         <div class="app-card-header">
-          <div
-            class="app-icon"
-            :class="app.category"
-          >
+          <div class="app-icon" :class="app.category">
             <i :class="app.icon" />
           </div>
-          <div
-            v-if="app.featured"
-            class="featured-badge"
-          >
+          <div v-if="app.featured" class="featured-badge">
             <i class="pi pi-star-fill" />
             Featured
           </div>
@@ -72,20 +62,13 @@
             <span class="app-version">v{{ app.version }}</span>
           </div>
           <div class="app-tags">
-            <span
-              v-for="tag in app.tags"
-              :key="tag"
-              class="app-tag"
-            >
+            <span v-for="tag in app.tags" :key="tag" class="app-tag">
               {{ tag }}
             </span>
           </div>
         </div>
         <div class="app-card-footer">
-          <button
-            class="btn btn-primary"
-            :disabled="app.installed"
-          >
+          <button class="btn btn-primary" :disabled="app.installed">
             <i :class="app.installed ? 'pi pi-check' : 'pi pi-download'" />
             {{ app.installed ? "Installed" : "Install" }}
           </button>
@@ -97,10 +80,7 @@
       </div>
     </div>
 
-    <div
-      v-if="filteredApps.length === 0"
-      class="empty-state"
-    >
+    <div v-if="filteredApps.length === 0" class="empty-state">
       <i class="pi pi-search" />
       <h3>No Apps Found</h3>
       <p>Try adjusting your search or filters.</p>
@@ -361,11 +341,7 @@ const filteredApps = computed(() => {
 }
 
 .marketplace-banner {
-  background: linear-gradient(
-    135deg,
-    var(--color-primary-500) 0%,
-    #8b5cf6 100%
-  );
+  background: linear-gradient(135deg, var(--color-primary-500) 0%, #8b5cf6 100%);
   border-radius: var(--radius-lg);
   padding: var(--space-8);
   display: flex;

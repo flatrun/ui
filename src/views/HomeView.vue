@@ -6,10 +6,7 @@
         <p>Here's what's happening with your deployments today.</p>
       </div>
       <div class="welcome-actions">
-        <button
-          class="btn btn-primary"
-          @click="showNewDeployment = true"
-        >
+        <button class="btn btn-primary" @click="showNewDeployment = true">
           <i class="pi pi-plus" />
           New Deployment
         </button>
@@ -77,57 +74,37 @@
             <i class="pi pi-list" />
             Recent Deployments
           </h3>
-          <router-link
-            to="/deployments"
-            class="view-all"
-          >
+          <router-link to="/deployments" class="view-all">
             View All
             <i class="pi pi-arrow-right" />
           </router-link>
         </div>
         <div class="card-content">
-          <div
-            v-if="loading"
-            class="loading"
-          >
+          <div v-if="loading" class="loading">
             <i class="pi pi-spin pi-spinner" />
             Loading...
           </div>
-          <div
-            v-else-if="deployments.length === 0"
-            class="empty"
-          >
+          <div v-else-if="deployments.length === 0" class="empty">
             <i class="pi pi-inbox" />
             <span>No deployments found</span>
           </div>
-          <div
-            v-else
-            class="deployment-items"
-          >
+          <div v-else class="deployment-items">
             <div
               v-for="deployment in deployments.slice(0, 5)"
               :key="deployment.name"
               class="deployment-item"
               @click="$router.push(`/deployments/${deployment.name}`)"
             >
-              <div
-                class="deployment-status-indicator"
-                :class="deployment.status"
-              />
+              <div class="deployment-status-indicator" :class="deployment.status" />
               <div class="deployment-info">
                 <span class="deployment-name">{{ deployment.name }}</span>
                 <span class="deployment-path">{{ deployment.path }}</span>
               </div>
               <div class="deployment-meta">
-                <span
-                  class="status-badge"
-                  :class="deployment.status"
-                >
+                <span class="status-badge" :class="deployment.status">
                   {{ deployment.status }}
                 </span>
-                <span class="deployment-time">{{
-                  formatTime(deployment.updated_at)
-                }}</span>
+                <span class="deployment-time">{{ formatTime(deployment.updated_at) }}</span>
               </div>
             </div>
           </div>
@@ -142,20 +119,14 @@
           </h3>
         </div>
         <div class="card-content">
-          <button
-            class="action-btn primary"
-            @click="showNewDeployment = true"
-          >
+          <button class="action-btn primary" @click="showNewDeployment = true">
             <i class="pi pi-plus-circle" />
             <div class="action-text">
               <span class="action-title">New Deployment</span>
               <span class="action-desc">Create from Quick App or compose</span>
             </div>
           </button>
-          <button
-            class="action-btn"
-            @click="refreshData"
-          >
+          <button class="action-btn" @click="refreshData">
             <i class="pi pi-refresh" />
             <div class="action-text">
               <span class="action-title">Refresh Status</span>
@@ -201,9 +172,7 @@
                 <i class="pi pi-box" />
               </div>
               <div class="docker-stat-info">
-                <span class="docker-stat-value">{{
-                  containerStats.running
-                }}</span>
+                <span class="docker-stat-value">{{ containerStats.running }}</span>
                 <span class="docker-stat-label">Running Containers</span>
               </div>
             </div>
@@ -212,9 +181,7 @@
                 <i class="pi pi-image" />
               </div>
               <div class="docker-stat-info">
-                <span class="docker-stat-value">{{
-                  dockerResources.images
-                }}</span>
+                <span class="docker-stat-value">{{ dockerResources.images }}</span>
                 <span class="docker-stat-label">Images</span>
               </div>
             </div>
@@ -223,9 +190,7 @@
                 <i class="pi pi-folder" />
               </div>
               <div class="docker-stat-info">
-                <span class="docker-stat-value">{{
-                  dockerResources.volumes
-                }}</span>
+                <span class="docker-stat-value">{{ dockerResources.volumes }}</span>
                 <span class="docker-stat-label">Volumes</span>
               </div>
             </div>
@@ -234,9 +199,7 @@
                 <i class="pi pi-share-alt" />
               </div>
               <div class="docker-stat-info">
-                <span class="docker-stat-value">{{
-                  dockerResources.networks
-                }}</span>
+                <span class="docker-stat-value">{{ dockerResources.networks }}</span>
                 <span class="docker-stat-label">Networks</span>
               </div>
             </div>
@@ -249,10 +212,7 @@
               <i class="pi pi-heart-fill" />
               System Health
             </h3>
-            <span
-              class="health-status"
-              :class="systemHealth.status"
-            >
+            <span class="health-status" :class="systemHealth.status">
               <i class="pi pi-circle-fill" />
               {{ systemHealth.label }}
             </span>
@@ -305,7 +265,8 @@
     </div>
 
     <NewDeploymentModal
-      v-model:visible="showNewDeployment"
+      :visible="showNewDeployment"
+      @close="showNewDeployment = false"
       @created="onDeploymentCreated"
     />
   </div>

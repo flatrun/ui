@@ -2,31 +2,18 @@
   <div class="settings-view">
     <div class="view-header">
       <div class="header-actions">
-        <button
-          class="btn btn-icon"
-          :disabled="loading"
-          @click="fetchSettings"
-        >
-          <i
-            class="pi pi-refresh"
-            :class="{ 'pi-spin': loading }"
-          />
+        <button class="btn btn-icon" :disabled="loading" @click="fetchSettings">
+          <i class="pi pi-refresh" :class="{ 'pi-spin': loading }" />
         </button>
       </div>
     </div>
 
-    <div
-      v-if="loading"
-      class="loading-state"
-    >
+    <div v-if="loading" class="loading-state">
       <i class="pi pi-spin pi-spinner" />
       <span>Loading settings...</span>
     </div>
 
-    <div
-      v-else
-      class="settings-content"
-    >
+    <div v-else class="settings-content">
       <div class="settings-section">
         <div class="section-header">
           <i class="pi pi-globe" />
@@ -36,7 +23,9 @@
           <div class="setting-item editable">
             <div class="setting-info">
               <span class="setting-label">Default Domain</span>
-              <span class="setting-description">Base domain for auto-generated subdomains (e.g., example.com)</span>
+              <span class="setting-description"
+                >Base domain for auto-generated subdomains (e.g., example.com)</span
+              >
             </div>
             <div class="setting-input">
               <input
@@ -50,14 +39,13 @@
           <div class="setting-item editable">
             <div class="setting-info">
               <span class="setting-label">Auto Subdomain</span>
-              <span class="setting-description">Automatically generate random subdomains for new deployments</span>
+              <span class="setting-description"
+                >Automatically generate random subdomains for new deployments</span
+              >
             </div>
             <div class="setting-input">
               <label class="toggle-switch">
-                <input
-                  v-model="domainSettings.auto_subdomain"
-                  type="checkbox"
-                />
+                <input v-model="domainSettings.auto_subdomain" type="checkbox" />
                 <span class="toggle-slider" />
               </label>
             </div>
@@ -65,14 +53,13 @@
           <div class="setting-item editable">
             <div class="setting-info">
               <span class="setting-label">Auto SSL</span>
-              <span class="setting-description">Automatically request SSL certificates for new deployments</span>
+              <span class="setting-description"
+                >Automatically request SSL certificates for new deployments</span
+              >
             </div>
             <div class="setting-input">
               <label class="toggle-switch">
-                <input
-                  v-model="domainSettings.auto_ssl"
-                  type="checkbox"
-                />
+                <input v-model="domainSettings.auto_ssl" type="checkbox" />
                 <span class="toggle-slider" />
               </label>
             </div>
@@ -83,10 +70,7 @@
               <span class="setting-description">Format for auto-generated subdomains</span>
             </div>
             <div class="setting-input">
-              <select
-                v-model="domainSettings.subdomain_style"
-                class="form-select"
-              >
+              <select v-model="domainSettings.subdomain_style" class="form-select">
                 <option value="words">Words (swift-river-123)</option>
                 <option value="hex">Hex (a1b2c3d4)</option>
                 <option value="short">Short (swi-riv)</option>
@@ -94,19 +78,9 @@
             </div>
           </div>
           <div class="setting-actions">
-            <button
-              class="btn btn-primary"
-              :disabled="savingDomain"
-              @click="saveDomainSettings"
-            >
-              <i
-                v-if="savingDomain"
-                class="pi pi-spin pi-spinner"
-              />
-              <i
-                v-else
-                class="pi pi-save"
-              />
+            <button class="btn btn-primary" :disabled="savingDomain" @click="saveDomainSettings">
+              <i v-if="savingDomain" class="pi pi-spin pi-spinner" />
+              <i v-else class="pi pi-save" />
               <span>Save Domain Settings</span>
             </button>
           </div>
@@ -143,10 +117,7 @@
               <span class="setting-description">Cross-origin resource sharing</span>
             </div>
             <div class="setting-value">
-              <span
-                class="status-badge"
-                :class="settings.enable_cors ? 'enabled' : 'disabled'"
-              >
+              <span class="status-badge" :class="settings.enable_cors ? 'enabled' : 'disabled'">
                 {{ settings.enable_cors ? "Enabled" : "Disabled" }}
               </span>
             </div>
@@ -158,10 +129,7 @@
             </div>
             <div class="setting-value">
               <div class="origins-list">
-                <code
-                  v-for="origin in settings.allowed_origins"
-                  :key="origin"
-                >{{ origin }}</code>
+                <code v-for="origin in settings.allowed_origins" :key="origin">{{ origin }}</code>
               </div>
             </div>
           </div>
@@ -208,24 +176,15 @@
         </div>
         <div class="section-body">
           <div class="actions-grid">
-            <button
-              class="action-card"
-              @click="testConnection"
-            >
+            <button class="action-card" @click="testConnection">
               <i class="pi pi-check-circle" />
               <span>Test Connection</span>
             </button>
-            <button
-              class="action-card"
-              @click="refreshData"
-            >
+            <button class="action-card" @click="refreshData">
               <i class="pi pi-sync" />
               <span>Refresh All Data</span>
             </button>
-            <button
-              class="action-card"
-              @click="clearCache"
-            >
+            <button class="action-card" @click="clearCache">
               <i class="pi pi-trash" />
               <span>Clear Cache</span>
             </button>
@@ -242,8 +201,8 @@
           <div class="config-note">
             <i class="pi pi-info-circle" />
             <p>
-              To modify settings, edit the configuration file on your server and
-              restart the agent. The configuration file is typically located at
+              To modify settings, edit the configuration file on your server and restart the agent.
+              The configuration file is typically located at
               <code>/etc/flatrun/config.yml</code> or passed via command line.
             </p>
           </div>
@@ -627,7 +586,9 @@ onMounted(() => {
   color: #374151;
   background: white;
   min-width: 200px;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
 }
 
 .form-input:focus {
@@ -646,10 +607,14 @@ onMounted(() => {
   border-radius: 8px;
   font-size: 0.875rem;
   color: #374151;
-  background: white url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e") right 0.5rem center/1.5em 1.5em no-repeat;
+  background: white
+    url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")
+    right 0.5rem center/1.5em 1.5em no-repeat;
   appearance: none;
   cursor: pointer;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
 }
 
 .form-select:focus {

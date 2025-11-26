@@ -16,40 +16,24 @@
       loading-text="Loading networks..."
     >
       <template #actions>
-        <button
-          class="btn btn-primary"
-          @click="showCreateModal = true"
-        >
+        <button class="btn btn-primary" @click="showCreateModal = true">
           <i class="pi pi-plus" />
           Create Network
         </button>
-        <button
-          class="btn btn-icon"
-          :disabled="loading"
-          @click="fetchNetworks"
-        >
-          <i
-            class="pi pi-refresh"
-            :class="{ 'pi-spin': loading }"
-          />
+        <button class="btn btn-icon" :disabled="loading" @click="fetchNetworks">
+          <i class="pi pi-refresh" :class="{ 'pi-spin': loading }" />
         </button>
       </template>
 
       <template #empty-action>
-        <button
-          class="btn btn-primary"
-          @click="showCreateModal = true"
-        >
+        <button class="btn btn-primary" @click="showCreateModal = true">
           <i class="pi pi-plus" />
           Create Network
         </button>
       </template>
 
       <template #cell-name="{ item }">
-        <span
-          class="name-cell"
-          :class="{ 'system-network': isSystemNetwork(item.name) }"
-        >
+        <span class="name-cell" :class="{ 'system-network': isSystemNetwork(item.name) }">
           {{ item.name }}
         </span>
       </template>
@@ -96,10 +80,7 @@
                 <h4>{{ network.name }}</h4>
                 <span class="network-id">{{ network.id }}</span>
               </div>
-              <div
-                v-if="!isSystemNetwork(network.name)"
-                class="network-actions"
-              >
+              <div v-if="!isSystemNetwork(network.name)" class="network-actions">
                 <button
                   class="btn-icon-sm danger"
                   title="Delete network"
@@ -120,17 +101,11 @@
                   <span class="meta-label">Scope</span>
                   <span class="meta-value">{{ network.scope }}</span>
                 </div>
-                <div
-                  v-if="network.subnet"
-                  class="meta-item"
-                >
+                <div v-if="network.subnet" class="meta-item">
                   <span class="meta-label">Subnet</span>
                   <span class="meta-value">{{ network.subnet }}</span>
                 </div>
-                <div
-                  v-if="network.gateway"
-                  class="meta-item"
-                >
+                <div v-if="network.gateway" class="meta-item">
                   <span class="meta-label">Gateway</span>
                   <span class="meta-value">{{ network.gateway }}</span>
                 </div>
@@ -152,10 +127,7 @@
                   </button>
                 </div>
 
-                <div
-                  v-if="network.containers?.length > 0"
-                  class="containers-list"
-                >
+                <div v-if="network.containers?.length > 0" class="containers-list">
                   <div
                     v-for="container in network.containers"
                     :key="container.name"
@@ -175,12 +147,7 @@
                     </button>
                   </div>
                 </div>
-                <div
-                  v-else
-                  class="no-containers"
-                >
-                  No containers connected
-                </div>
+                <div v-else class="no-containers">No containers connected</div>
               </div>
             </div>
           </div>
@@ -189,21 +156,14 @@
     </DataTable>
 
     <Teleport to="body">
-      <div
-        v-if="showCreateModal"
-        class="modal-overlay"
-        @click.self="showCreateModal = false"
-      >
+      <div v-if="showCreateModal" class="modal-overlay" @click.self="showCreateModal = false">
         <div class="modal-container">
           <div class="modal-header">
             <h3>
               <i class="pi pi-plus-circle" />
               Create Network
             </h3>
-            <button
-              class="close-btn"
-              @click="showCreateModal = false"
-            >
+            <button class="close-btn" @click="showCreateModal = false">
               <i class="pi pi-times" />
             </button>
           </div>
@@ -215,48 +175,23 @@
                 type="text"
                 placeholder="my-network"
                 :class="{ error: createErrors.name }"
-              >
-              <span
-                v-if="createErrors.name"
-                class="error-text"
-              >{{
-                createErrors.name
-              }}</span>
+              />
+              <span v-if="createErrors.name" class="error-text">{{ createErrors.name }}</span>
             </div>
             <div class="form-group">
               <label>Driver</label>
               <select v-model="newNetwork.driver">
-                <option value="bridge">
-                  Bridge
-                </option>
-                <option value="overlay">
-                  Overlay
-                </option>
-                <option value="host">
-                  Host
-                </option>
-                <option value="none">
-                  None
-                </option>
+                <option value="bridge">Bridge</option>
+                <option value="overlay">Overlay</option>
+                <option value="host">Host</option>
+                <option value="none">None</option>
               </select>
             </div>
           </div>
           <div class="modal-footer">
-            <button
-              class="btn btn-secondary"
-              @click="showCreateModal = false"
-            >
-              Cancel
-            </button>
-            <button
-              class="btn btn-primary"
-              :disabled="creating"
-              @click="createNetwork"
-            >
-              <i
-                v-if="creating"
-                class="pi pi-spin pi-spinner"
-              />
+            <button class="btn btn-secondary" @click="showCreateModal = false">Cancel</button>
+            <button class="btn btn-primary" :disabled="creating" @click="createNetwork">
+              <i v-if="creating" class="pi pi-spin pi-spinner" />
               {{ creating ? "Creating..." : "Create" }}
             </button>
           </div>
@@ -265,50 +200,27 @@
     </Teleport>
 
     <Teleport to="body">
-      <div
-        v-if="showConnectModal"
-        class="modal-overlay"
-        @click.self="showConnectModal = false"
-      >
+      <div v-if="showConnectModal" class="modal-overlay" @click.self="showConnectModal = false">
         <div class="modal-container">
           <div class="modal-header">
             <h3>
               <i class="pi pi-link" />
               Connect Container to {{ selectedNetwork?.name }}
             </h3>
-            <button
-              class="close-btn"
-              @click="showConnectModal = false"
-            >
+            <button class="close-btn" @click="showConnectModal = false">
               <i class="pi pi-times" />
             </button>
           </div>
           <div class="modal-body">
             <div class="form-group">
               <label>Container Name</label>
-              <input
-                v-model="containerToConnect"
-                type="text"
-                placeholder="container-name"
-              >
+              <input v-model="containerToConnect" type="text" placeholder="container-name" />
             </div>
           </div>
           <div class="modal-footer">
-            <button
-              class="btn btn-secondary"
-              @click="showConnectModal = false"
-            >
-              Cancel
-            </button>
-            <button
-              class="btn btn-primary"
-              :disabled="connecting"
-              @click="connectContainer"
-            >
-              <i
-                v-if="connecting"
-                class="pi pi-spin pi-spinner"
-              />
+            <button class="btn btn-secondary" @click="showConnectModal = false">Cancel</button>
+            <button class="btn btn-primary" :disabled="connecting" @click="connectContainer">
+              <i v-if="connecting" class="pi pi-spin pi-spinner" />
               {{ connecting ? "Connecting..." : "Connect" }}
             </button>
           </div>
@@ -317,46 +229,26 @@
     </Teleport>
 
     <Teleport to="body">
-      <div
-        v-if="showDeleteModal"
-        class="modal-overlay"
-        @click.self="showDeleteModal = false"
-      >
+      <div v-if="showDeleteModal" class="modal-overlay" @click.self="showDeleteModal = false">
         <div class="modal-container modal-sm">
           <div class="modal-header">
             <h3>
-              <i
-                class="pi pi-exclamation-triangle"
-                style="color: #ef4444"
-              />
+              <i class="pi pi-exclamation-triangle" style="color: #ef4444" />
               Delete Network
             </h3>
           </div>
           <div class="modal-body">
             <p>
               Are you sure you want to delete the network
-              <strong>{{ networkToDelete?.name }}</strong>?
+              <strong>{{ networkToDelete?.name }}</strong
+              >?
             </p>
-            <p class="warning-text">
-              This action cannot be undone.
-            </p>
+            <p class="warning-text">This action cannot be undone.</p>
           </div>
           <div class="modal-footer">
-            <button
-              class="btn btn-secondary"
-              @click="showDeleteModal = false"
-            >
-              Cancel
-            </button>
-            <button
-              class="btn btn-danger"
-              :disabled="deleting"
-              @click="deleteNetwork"
-            >
-              <i
-                v-if="deleting"
-                class="pi pi-spin pi-spinner"
-              />
+            <button class="btn btn-secondary" @click="showDeleteModal = false">Cancel</button>
+            <button class="btn btn-danger" :disabled="deleting" @click="deleteNetwork">
+              <i v-if="deleting" class="pi pi-spin pi-spinner" />
               {{ deleting ? "Deleting..." : "Delete" }}
             </button>
           </div>
@@ -469,10 +361,7 @@ const deleteNetwork = async () => {
 
   try {
     await networksApi.delete(networkToDelete.value.name);
-    notifications.success(
-      "Success",
-      `Network ${networkToDelete.value.name} deleted`,
-    );
+    notifications.success("Success", `Network ${networkToDelete.value.name} deleted`);
     showDeleteModal.value = false;
     networkToDelete.value = null;
     await fetchNetworks();
@@ -496,14 +385,8 @@ const connectContainer = async () => {
   connecting.value = true;
 
   try {
-    await networksApi.connect(
-      selectedNetwork.value.name,
-      containerToConnect.value,
-    );
-    notifications.success(
-      "Success",
-      `Container connected to ${selectedNetwork.value.name}`,
-    );
+    await networksApi.connect(selectedNetwork.value.name, containerToConnect.value);
+    notifications.success("Success", `Container connected to ${selectedNetwork.value.name}`);
     showConnectModal.value = false;
     await fetchNetworks();
   } catch (e: any) {
@@ -514,16 +397,10 @@ const connectContainer = async () => {
   }
 };
 
-const disconnectContainer = async (
-  networkName: string,
-  containerName: string,
-) => {
+const disconnectContainer = async (networkName: string, containerName: string) => {
   try {
     await networksApi.disconnect(networkName, containerName);
-    notifications.success(
-      "Success",
-      `Container disconnected from ${networkName}`,
-    );
+    notifications.success("Success", `Container disconnected from ${networkName}`);
     await fetchNetworks();
   } catch (e: any) {
     const msg = e.response?.data?.error || e.message;

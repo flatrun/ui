@@ -14,17 +14,11 @@
           <div class="toast-title">
             {{ notification.title }}
           </div>
-          <div
-            v-if="notification.message"
-            class="toast-message"
-          >
+          <div v-if="notification.message" class="toast-message">
             {{ notification.message }}
           </div>
         </div>
-        <button
-          class="toast-close"
-          @click="remove(notification.id)"
-        >
+        <button class="toast-close" @click="remove(notification.id)">
           <i class="pi pi-times" />
         </button>
       </div>
