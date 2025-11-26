@@ -63,6 +63,21 @@
         </div>
       </template>
 
+      <template #cell-deployment="{ item }">
+        <button
+          v-if="item.deployment"
+          class="deployment-link"
+          @click.stop="goToDeployment(item.deployment)"
+        >
+          <Link :size="12" />
+          {{ item.deployment }}
+        </button>
+        <span
+          v-else
+          class="no-deployment"
+        >-</span>
+      </template>
+
       <template #cell-image="{ item }">
         <code class="image-tag">{{ item.image }}</code>
       </template>
@@ -115,7 +130,7 @@
           <button
             class="action-btn logs"
             title="Logs"
-            @click.stop="showLogs(item.id)"
+            @click.stop="showLogs(item.id, item.name)"
           >
             <FileText :size="14" />
           </button>
@@ -151,41 +166,47 @@
       </template>
     </DataTable>
 
-    <Teleport to="body">
-      <div
-        v-if="showLogsModal"
-        class="modal-overlay"
-        @click.self="showLogsModal = false"
-      >
-        <div
-          class="logs-modal modal-container"
-          style="max-width: 1100px"
-        >
-          <div class="modal-header">
-            <h3>
-              <FileText :size="20" />
-              Container Logs
-            </h3>
-            <button
-              class="close-btn"
-              @click="showLogsModal = false"
-            >
-              <X :size="18" />
-            </button>
-          </div>
-          <div class="logs-content">
-            <pre>{{ containerLogs }}</pre>
-          </div>
-        </div>
-      </div>
-    </Teleport>
+    <LogsModal
+      :visible="showLogsModal"
+      :title="selectedContainerName"
+      subtitle="Container logs output"
+      :logs="containerLogs"
+      @close="showLogsModal = false"
+    />
+
+    <ConfirmModal
+      :visible="showDeleteModal"
+      title="Remove Container"
+      :message="`Are you sure you want to remove this container?`"
+      warning="The container will be permanently removed."
+      variant="danger"
+      confirm-text="Remove"
+      :loading="deleting"
+      @confirm="confirmDeleteContainer"
+      @cancel="showDeleteModal = false"
+    />
+
+    <ConfirmModal
+      :visible="showBulkDeleteModal"
+      title="Remove Containers"
+      :message="`Are you sure you want to remove ${bulkDeleteIds.length} containers?`"
+      warning="These containers will be permanently removed."
+      variant="danger"
+      confirm-text="Remove All"
+      :loading="bulkDeleting"
+      @confirm="confirmBulkRemove"
+      @cancel="showBulkDeleteModal = false"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
+import { useRouter } from "vue-router";
 import { containersApi } from "@/services/api";
 import DataTable from "@/components/DataTable.vue";
+import LogsModal from "@/components/LogsModal.vue";
+import ConfirmModal from "@/components/ConfirmModal.vue";
 import {
   RefreshCw,
   Play,
@@ -193,9 +214,11 @@ import {
   RotateCw,
   FileText,
   Trash2,
-  X,
   Package,
+  Link,
 } from "lucide-vue-next";
+
+const router = useRouter();
 
 interface Container {
   id: string;
@@ -205,17 +228,48 @@ interface Container {
   status: string;
   ports: string[];
   created: string;
+  deployment?: string;
 }
+
+const parseDeploymentFromContainer = (name: string): string | undefined => {
+  if (name.startsWith("flatrun-")) {
+    const parts = name.slice(8).split("-");
+    if (parts.length >= 2) {
+      parts.pop();
+      return parts.join("-");
+    }
+  }
+  const labelMatch = name.match(/^([a-z0-9-]+)-(app|db|web|api|worker|redis|cache|nginx)(-\d+)?$/i);
+  if (labelMatch) {
+    return labelMatch[1];
+  }
+  return undefined;
+};
+
+const goToDeployment = (name: string) => {
+  router.push(`/deployments/${name}`);
+};
 
 const containers = ref<Container[]>([]);
 const loading = ref(false);
 const activeFilter = ref("all");
 const showLogsModal = ref(false);
 const containerLogs = ref("");
+const selectedContainerName = ref("");
+
+const showDeleteModal = ref(false);
+const containerToDelete = ref<string | null>(null);
+const deleting = ref(false);
+
+const showBulkDeleteModal = ref(false);
+const bulkDeleteIds = ref<string[]>([]);
+const bulkDeleteClearFn = ref<(() => void) | null>(null);
+const bulkDeleting = ref(false);
 
 const columns = [
   { key: "status", label: "Status", width: "60px" },
   { key: "name", label: "Container", sortable: true },
+  { key: "deployment", label: "Deployment", sortable: true },
   { key: "image", label: "Image", sortable: true },
   { key: "ports", label: "Ports" },
   { key: "created", label: "Created", sortable: true },
@@ -252,7 +306,11 @@ const fetchContainers = async () => {
   loading.value = true;
   try {
     const response = await containersApi.list();
-    containers.value = response.data.containers || [];
+    const rawContainers = response.data.containers || [];
+    containers.value = rawContainers.map((c: Container) => ({
+      ...c,
+      deployment: parseDeploymentFromContainer(c.name),
+    }));
   } catch (error) {
     console.error("Failed to fetch containers:", error);
   } finally {
@@ -287,15 +345,28 @@ const restartContainer = async (id: string) => {
   await fetchContainers();
 };
 
-const deleteContainer = async (id: string) => {
-  if (!confirm("Remove this container?")) return;
-  await containersApi.remove(id);
-  await fetchContainers();
+const deleteContainer = (id: string) => {
+  containerToDelete.value = id;
+  showDeleteModal.value = true;
 };
 
-const showLogs = async (id: string) => {
+const confirmDeleteContainer = async () => {
+  if (!containerToDelete.value) return;
+  deleting.value = true;
+  try {
+    await containersApi.remove(containerToDelete.value);
+    await fetchContainers();
+  } finally {
+    deleting.value = false;
+    showDeleteModal.value = false;
+    containerToDelete.value = null;
+  }
+};
+
+const showLogs = async (id: string, name: string) => {
+  selectedContainerName.value = name;
   const response = await containersApi.logs(id);
-  containerLogs.value = response.data.logs || "No logs available";
+  containerLogs.value = response.data.logs || "";
   showLogsModal.value = true;
 };
 
@@ -309,11 +380,26 @@ const bulkStop = async (ids: string[], clear: () => void) => {
   clear();
 };
 
-const bulkRemove = async (ids: string[], clear: () => void) => {
-  if (!confirm(`Remove ${ids.length} containers?`)) return;
-  for (const id of ids) await containersApi.remove(id);
-  clear();
-  await fetchContainers();
+const bulkRemove = (ids: string[], clear: () => void) => {
+  bulkDeleteIds.value = ids;
+  bulkDeleteClearFn.value = clear;
+  showBulkDeleteModal.value = true;
+};
+
+const confirmBulkRemove = async () => {
+  bulkDeleting.value = true;
+  try {
+    for (const id of bulkDeleteIds.value) {
+      await containersApi.remove(id);
+    }
+    if (bulkDeleteClearFn.value) bulkDeleteClearFn.value();
+    await fetchContainers();
+  } finally {
+    bulkDeleting.value = false;
+    showBulkDeleteModal.value = false;
+    bulkDeleteIds.value = [];
+    bulkDeleteClearFn.value = null;
+  }
 };
 
 onMounted(() => {
@@ -390,6 +476,29 @@ onMounted(() => {
 .container-id {
   font-size: var(--text-xs);
   font-family: var(--font-mono);
+  color: var(--color-gray-400);
+}
+
+.deployment-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  background: var(--color-primary-50);
+  color: var(--color-primary-700);
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: var(--text-xs);
+  font-weight: var(--font-medium);
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+.deployment-link:hover {
+  background: var(--color-primary-100);
+}
+
+.no-deployment {
   color: var(--color-gray-400);
 }
 
@@ -481,40 +590,6 @@ onMounted(() => {
 }
 .action-btn.delete:hover {
   background: var(--color-danger-100);
-}
-
-.logs-content {
-  padding: 0;
-  overflow: auto;
-  flex: 1;
-  background: var(--color-gray-950);
-  max-height: 500px;
-}
-
-.logs-content pre {
-  background: transparent;
-  color: #e2e8f0;
-  padding: var(--space-4) var(--space-5);
-  font-family: var(--font-mono);
-  font-size: var(--text-base);
-  line-height: 1.7;
-  margin: 0;
-  white-space: pre-wrap;
-  word-break: break-all;
-  min-height: 400px;
-}
-
-.close-btn {
-  background: none;
-  border: none;
-  color: var(--color-gray-400);
-  cursor: pointer;
-  padding: 0.375rem;
-  border-radius: var(--radius-sm);
-}
-
-.close-btn:hover {
-  background: var(--color-gray-200);
 }
 
 .btn {

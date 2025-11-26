@@ -199,6 +199,30 @@
       </template>
     </DataTable>
 
+    <ConfirmModal
+      :visible="showDeleteModal"
+      title="Remove Image"
+      message="Are you sure you want to remove this image?"
+      warning="This action cannot be undone."
+      variant="danger"
+      confirm-text="Remove"
+      :loading="deleting"
+      @confirm="confirmDeleteImage"
+      @cancel="showDeleteModal = false"
+    />
+
+    <ConfirmModal
+      :visible="showBulkDeleteModal"
+      title="Remove Images"
+      :message="`Are you sure you want to remove ${bulkDeleteIds.length} images?`"
+      warning="This action cannot be undone."
+      variant="danger"
+      confirm-text="Remove All"
+      :loading="bulkDeleting"
+      @confirm="confirmBulkRemove"
+      @cancel="showBulkDeleteModal = false"
+    />
+
     <Teleport to="body">
       <div
         v-if="showPullModal"
@@ -259,6 +283,7 @@
 import { ref, computed, onMounted } from "vue";
 import { imagesApi } from "@/services/api";
 import DataTable from "@/components/DataTable.vue";
+import ConfirmModal from "@/components/ConfirmModal.vue";
 
 interface DockerImage {
   id: string;
@@ -273,6 +298,15 @@ const loading = ref(false);
 const showPullModal = ref(false);
 const pullImageName = ref("");
 const pulling = ref(false);
+
+const showDeleteModal = ref(false);
+const imageToDelete = ref<string | null>(null);
+const deleting = ref(false);
+
+const showBulkDeleteModal = ref(false);
+const bulkDeleteIds = ref<string[]>([]);
+const bulkDeleteClearFn = ref<(() => void) | null>(null);
+const bulkDeleting = ref(false);
 
 const columns = [
   { key: "repository", label: "Repository", sortable: true },
@@ -336,27 +370,50 @@ const formatDate = (timestamp: string) => {
   return `${Math.floor(days / 365)} years ago`;
 };
 
-const deleteImage = async (id: string) => {
-  if (!confirm("Are you sure you want to remove this image?")) return;
+const deleteImage = (id: string) => {
+  imageToDelete.value = id;
+  showDeleteModal.value = true;
+};
+
+const confirmDeleteImage = async () => {
+  if (!imageToDelete.value) return;
+  deleting.value = true;
   try {
-    await imagesApi.remove(id);
+    await imagesApi.remove(imageToDelete.value);
     await fetchImages();
   } catch (error) {
     console.error("Failed to remove image:", error);
+  } finally {
+    deleting.value = false;
+    showDeleteModal.value = false;
+    imageToDelete.value = null;
   }
 };
 
-const bulkRemove = async (ids: string[], clear: () => void) => {
-  if (!confirm(`Remove ${ids.length} images?`)) return;
-  for (const id of ids) {
-    try {
-      await imagesApi.remove(id);
-    } catch (error) {
-      console.error(`Failed to remove image ${id}:`, error);
+const bulkRemove = (ids: string[], clear: () => void) => {
+  bulkDeleteIds.value = ids;
+  bulkDeleteClearFn.value = clear;
+  showBulkDeleteModal.value = true;
+};
+
+const confirmBulkRemove = async () => {
+  bulkDeleting.value = true;
+  try {
+    for (const id of bulkDeleteIds.value) {
+      try {
+        await imagesApi.remove(id);
+      } catch (error) {
+        console.error(`Failed to remove image ${id}:`, error);
+      }
     }
+    if (bulkDeleteClearFn.value) bulkDeleteClearFn.value();
+    await fetchImages();
+  } finally {
+    bulkDeleting.value = false;
+    showBulkDeleteModal.value = false;
+    bulkDeleteIds.value = [];
+    bulkDeleteClearFn.value = null;
   }
-  clear();
-  await fetchImages();
 };
 
 const pullImage = async () => {

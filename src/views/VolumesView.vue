@@ -244,6 +244,42 @@
       </template>
     </DataTable>
 
+    <ConfirmModal
+      :visible="showDeleteModal"
+      title="Remove Volume"
+      :message="`Remove volume '${volumeToDelete}'?`"
+      warning="This cannot be undone."
+      variant="danger"
+      confirm-text="Remove"
+      :loading="deleting"
+      @confirm="confirmDeleteVolume"
+      @cancel="showDeleteModal = false"
+    />
+
+    <ConfirmModal
+      :visible="showBulkDeleteModal"
+      title="Remove Volumes"
+      :message="`Remove ${bulkDeleteNames.length} volumes?`"
+      warning="This cannot be undone."
+      variant="danger"
+      confirm-text="Remove All"
+      :loading="bulkDeleting"
+      @confirm="confirmBulkRemove"
+      @cancel="showBulkDeleteModal = false"
+    />
+
+    <ConfirmModal
+      :visible="showPruneModal"
+      title="Prune Unused Volumes"
+      message="Remove all unused volumes?"
+      warning="This cannot be undone."
+      variant="warning"
+      confirm-text="Prune"
+      :loading="pruning"
+      @confirm="confirmPrune"
+      @cancel="showPruneModal = false"
+    />
+
     <Teleport to="body">
       <div
         v-if="showCreateModal"
@@ -350,6 +386,7 @@
 import { ref, computed, onMounted } from "vue";
 import { volumesApi } from "@/services/api";
 import DataTable from "@/components/DataTable.vue";
+import ConfirmModal from "@/components/ConfirmModal.vue";
 
 interface Volume {
   name: string;
@@ -369,6 +406,18 @@ const newVolumeName = ref("");
 const newVolumeDriver = ref("local");
 const newVolumeLabels = ref<Array<{ key: string; value: string }>>([]);
 const creating = ref(false);
+
+const showDeleteModal = ref(false);
+const volumeToDelete = ref<string | null>(null);
+const deleting = ref(false);
+
+const showBulkDeleteModal = ref(false);
+const bulkDeleteNames = ref<string[]>([]);
+const bulkDeleteClearFn = ref<(() => void) | null>(null);
+const bulkDeleting = ref(false);
+
+const showPruneModal = ref(false);
+const pruning = ref(false);
 
 const columns = [
   { key: "name", label: "Name", sortable: true },
@@ -443,37 +492,66 @@ const createVolume = async () => {
   }
 };
 
-const deleteVolume = async (name: string) => {
-  if (!confirm(`Remove volume "${name}"? This cannot be undone.`)) return;
+const deleteVolume = (name: string) => {
+  volumeToDelete.value = name;
+  showDeleteModal.value = true;
+};
+
+const confirmDeleteVolume = async () => {
+  if (!volumeToDelete.value) return;
+  deleting.value = true;
   try {
-    await volumesApi.remove(name);
+    await volumesApi.remove(volumeToDelete.value);
     await fetchVolumes();
   } catch (error) {
     console.error("Failed to remove volume:", error);
+  } finally {
+    deleting.value = false;
+    showDeleteModal.value = false;
+    volumeToDelete.value = null;
   }
 };
 
-const bulkRemove = async (names: string[], clear: () => void) => {
-  if (!confirm(`Remove ${names.length} volumes? This cannot be undone.`))
-    return;
-  for (const name of names) {
-    try {
-      await volumesApi.remove(name);
-    } catch (error) {
-      console.error(`Failed to remove volume ${name}:`, error);
+const bulkRemove = (names: string[], clear: () => void) => {
+  bulkDeleteNames.value = names;
+  bulkDeleteClearFn.value = clear;
+  showBulkDeleteModal.value = true;
+};
+
+const confirmBulkRemove = async () => {
+  bulkDeleting.value = true;
+  try {
+    for (const name of bulkDeleteNames.value) {
+      try {
+        await volumesApi.remove(name);
+      } catch (error) {
+        console.error(`Failed to remove volume ${name}:`, error);
+      }
     }
+    if (bulkDeleteClearFn.value) bulkDeleteClearFn.value();
+    await fetchVolumes();
+  } finally {
+    bulkDeleting.value = false;
+    showBulkDeleteModal.value = false;
+    bulkDeleteNames.value = [];
+    bulkDeleteClearFn.value = null;
   }
-  clear();
-  await fetchVolumes();
 };
 
-const pruneVolumes = async () => {
-  if (!confirm("Remove all unused volumes? This cannot be undone.")) return;
+const pruneVolumes = () => {
+  showPruneModal.value = true;
+};
+
+const confirmPrune = async () => {
+  pruning.value = true;
   try {
     await volumesApi.prune();
     await fetchVolumes();
   } catch (error) {
     console.error("Failed to prune volumes:", error);
+  } finally {
+    pruning.value = false;
+    showPruneModal.value = false;
   }
 };
 

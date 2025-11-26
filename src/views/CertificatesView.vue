@@ -157,6 +157,18 @@
       </template>
     </DataTable>
 
+    <ConfirmModal
+      :visible="showDeleteModal"
+      title="Delete Certificate"
+      :message="`Are you sure you want to delete the certificate for ${domainToDelete}?`"
+      warning="This action cannot be undone."
+      variant="danger"
+      confirm-text="Delete"
+      :loading="!!deleting"
+      @confirm="confirmDelete"
+      @cancel="showDeleteModal = false"
+    />
+
     <Teleport to="body">
       <div
         v-if="showRequestModal"
@@ -255,6 +267,7 @@ import { ref, computed, onMounted } from "vue";
 import { certificatesApi } from "@/services/api";
 import { useNotificationsStore } from "@/stores/notifications";
 import DataTable from "@/components/DataTable.vue";
+import ConfirmModal from "@/components/ConfirmModal.vue";
 import type { Certificate } from "@/types";
 
 const notifications = useNotificationsStore();
@@ -265,6 +278,9 @@ const newDomain = ref("");
 const requesting = ref(false);
 const renewingAll = ref(false);
 const deleting = ref<string | null>(null);
+
+const showDeleteModal = ref(false);
+const domainToDelete = ref<string | null>(null);
 
 const columns = [
   { key: "domain", label: "Domain", sortable: true },
@@ -335,22 +351,27 @@ const handleRenewAll = async () => {
   }
 };
 
-const handleDelete = async (domain: string) => {
-  if (!confirm(`Are you sure you want to delete the certificate for ${domain}?`)) {
-    return;
-  }
+const handleDelete = (domain: string) => {
+  domainToDelete.value = domain;
+  showDeleteModal.value = true;
+};
 
-  deleting.value = domain;
+const confirmDelete = async () => {
+  if (!domainToDelete.value) return;
+
+  deleting.value = domainToDelete.value;
 
   try {
-    await certificatesApi.delete(domain);
-    notifications.success("Certificate Deleted", `Certificate for ${domain} has been deleted`);
+    await certificatesApi.delete(domainToDelete.value);
+    notifications.success("Certificate Deleted", `Certificate for ${domainToDelete.value} has been deleted`);
     await fetchCertificates();
   } catch (e: any) {
     const msg = e.response?.data?.error || e.message;
     notifications.error("Delete Failed", msg);
   } finally {
     deleting.value = null;
+    showDeleteModal.value = false;
+    domainToDelete.value = null;
   }
 };
 

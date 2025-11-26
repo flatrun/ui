@@ -11,7 +11,10 @@
   >
     <div class="wizard-container">
       <!-- Progress Steps -->
-      <div class="wizard-progress">
+      <div
+        v-if="currentStep > 0"
+        class="wizard-progress"
+      >
         <div class="progress-track">
           <div
             class="progress-fill"
@@ -46,9 +49,62 @@
           name="slide"
           mode="out-in"
         >
+          <!-- Step 0: Mode Selection -->
+          <div
+            v-if="currentStep === 0"
+            class="step-panel mode-selection-panel"
+          >
+            <div class="mode-selection">
+              <h3 class="mode-title">How would you like to deploy?</h3>
+              <p class="mode-subtitle">Choose the deployment method that works best for you</p>
+
+              <div class="deployment-modes">
+                <button
+                  class="deployment-mode-card"
+                  :class="{ selected: deploymentMode === 'easy' }"
+                  @click="deploymentMode = 'easy'"
+                >
+                  <div class="mode-card-icon easy">
+                    <i class="pi pi-sparkles" />
+                  </div>
+                  <div class="mode-card-content">
+                    <h4>Easy Mode</h4>
+                    <p>Guided setup with templates</p>
+                    <ul class="mode-features">
+                      <li><i class="pi pi-check" /> Choose from pre-built templates</li>
+                      <li><i class="pi pi-check" /> Auto-configure database</li>
+                      <li><i class="pi pi-check" /> Domain & SSL setup</li>
+                    </ul>
+                  </div>
+                  <div class="mode-badge recommended">Recommended</div>
+                </button>
+
+                <button
+                  class="deployment-mode-card"
+                  :class="{ selected: deploymentMode === 'compose' }"
+                  @click="deploymentMode = 'compose'"
+                >
+                  <div class="mode-card-icon compose">
+                    <i class="pi pi-code" />
+                  </div>
+                  <div class="mode-card-content">
+                    <h4>Compose Mode</h4>
+                    <p>Full control with docker-compose</p>
+                    <ul class="mode-features">
+                      <li><i class="pi pi-check" /> Write your own compose file</li>
+                      <li><i class="pi pi-check" /> Advanced configuration</li>
+                      <li><i class="pi pi-check" /> For power users</li>
+                    </ul>
+                  </div>
+                  <div class="mode-badge">Advanced</div>
+                </button>
+              </div>
+            </div>
+          </div>
+
           <!-- Step 1: Basic Info -->
           <div
-            v-if="currentStep === 1"
+            v-else-if="currentStep === 1"
             class="step-panel"
           >
             <div class="step1-grid">
@@ -174,8 +230,11 @@
                 </div>
               </div>
 
-              <!-- Right: Template Selection -->
-              <div class="step1-right">
+              <!-- Right: Template Selection (Easy Mode Only) -->
+              <div
+                v-if="deploymentMode === 'easy'"
+                class="step1-right"
+              >
                 <div class="section-card templates-card">
                   <div class="section-header compact">
                     <div class="section-icon small">
@@ -238,9 +297,459 @@
             </div>
           </div>
 
-          <!-- Step 2: Configuration -->
+          <!-- Step 2: Database -->
           <div
             v-else-if="currentStep === 2"
+            class="step-panel"
+          >
+            <div class="database-step">
+              <div class="section-card">
+                <div class="section-header compact">
+                  <div class="section-icon small">
+                    <i class="pi pi-database" />
+                  </div>
+                  <h4>Database Type</h4>
+                </div>
+
+                <div class="database-options">
+                  <button
+                    class="db-option"
+                    :class="{ selected: form.database.type === 'none' }"
+                    @click="selectDatabaseType('none')"
+                  >
+                    <div class="db-option-icon none">
+                      <i class="pi pi-times-circle" />
+                    </div>
+                    <div class="db-option-info">
+                      <span class="db-option-name">No Database</span>
+                      <span class="db-option-desc">Skip database setup</span>
+                    </div>
+                    <i
+                      v-if="form.database.type === 'none'"
+                      class="pi pi-check db-check"
+                    />
+                  </button>
+
+                  <button
+                    class="db-option"
+                    :class="{ selected: form.database.type === 'mysql' }"
+                    @click="selectDatabaseType('mysql')"
+                  >
+                    <div class="db-option-icon mysql">
+                      <i class="pi pi-database" />
+                    </div>
+                    <div class="db-option-info">
+                      <span class="db-option-name">MySQL</span>
+                      <span class="db-option-desc">Popular relational database</span>
+                    </div>
+                    <i
+                      v-if="form.database.type === 'mysql'"
+                      class="pi pi-check db-check"
+                    />
+                  </button>
+
+                  <button
+                    class="db-option"
+                    :class="{ selected: form.database.type === 'postgres' }"
+                    @click="selectDatabaseType('postgres')"
+                  >
+                    <div class="db-option-icon postgres">
+                      <i class="pi pi-database" />
+                    </div>
+                    <div class="db-option-info">
+                      <span class="db-option-name">PostgreSQL</span>
+                      <span class="db-option-desc">Advanced open source database</span>
+                    </div>
+                    <i
+                      v-if="form.database.type === 'postgres'"
+                      class="pi pi-check db-check"
+                    />
+                  </button>
+
+                  <button
+                    class="db-option"
+                    :class="{ selected: form.database.type === 'mariadb' }"
+                    @click="selectDatabaseType('mariadb')"
+                  >
+                    <div class="db-option-icon mariadb">
+                      <i class="pi pi-database" />
+                    </div>
+                    <div class="db-option-info">
+                      <span class="db-option-name">MariaDB</span>
+                      <span class="db-option-desc">MySQL-compatible fork</span>
+                    </div>
+                    <i
+                      v-if="form.database.type === 'mariadb'"
+                      class="pi pi-check db-check"
+                    />
+                  </button>
+
+                  <button
+                    class="db-option"
+                    :class="{ selected: form.database.type === 'mongodb' }"
+                    @click="selectDatabaseType('mongodb')"
+                  >
+                    <div class="db-option-icon mongodb">
+                      <i class="pi pi-database" />
+                    </div>
+                    <div class="db-option-info">
+                      <span class="db-option-name">MongoDB</span>
+                      <span class="db-option-desc">NoSQL document database</span>
+                    </div>
+                    <i
+                      v-if="form.database.type === 'mongodb'"
+                      class="pi pi-check db-check"
+                    />
+                  </button>
+                </div>
+              </div>
+
+              <Transition name="expand">
+                <div
+                  v-if="form.database.type !== 'none'"
+                  class="database-config"
+                >
+                  <!-- Connection Mode -->
+                  <div class="section-card">
+                    <div class="section-header compact">
+                      <div class="section-icon small">
+                        <i class="pi pi-link" />
+                      </div>
+                      <h4>Connection Mode</h4>
+                    </div>
+
+                    <div class="mode-options three-col">
+                      <button
+                        class="mode-option"
+                        :class="{ selected: form.database.mode === 'create' }"
+                        @click="form.database.mode = 'create'"
+                      >
+                        <div class="mode-icon">
+                          <i class="pi pi-plus-circle" />
+                        </div>
+                        <div class="mode-info">
+                          <span class="mode-name">Create New</span>
+                          <span class="mode-desc">Add database to app stack</span>
+                        </div>
+                      </button>
+
+                      <button
+                        class="mode-option"
+                        :class="{ selected: form.database.mode === 'existing' }"
+                        @click="form.database.mode = 'existing'"
+                      >
+                        <div class="mode-icon">
+                          <i class="pi pi-server" />
+                        </div>
+                        <div class="mode-info">
+                          <span class="mode-name">Use Existing</span>
+                          <span class="mode-desc">Connect to local container</span>
+                        </div>
+                      </button>
+
+                      <button
+                        class="mode-option"
+                        :class="{ selected: form.database.mode === 'external' }"
+                        @click="form.database.mode = 'external'"
+                      >
+                        <div class="mode-icon">
+                          <i class="pi pi-globe" />
+                        </div>
+                        <div class="mode-info">
+                          <span class="mode-name">External</span>
+                          <span class="mode-desc">Connect to remote server</span>
+                        </div>
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Existing Container Selection -->
+                  <Transition name="expand">
+                    <div
+                      v-if="form.database.mode === 'existing'"
+                      class="section-card"
+                    >
+                      <div class="section-header compact">
+                        <div class="section-icon small">
+                          <i class="pi pi-server" />
+                        </div>
+                        <h4>Select Container</h4>
+                        <button
+                          class="refresh-btn"
+                          :disabled="loadingDbContainers"
+                          @click="loadExistingDbContainers"
+                        >
+                          <i
+                            class="pi pi-refresh"
+                            :class="{ 'pi-spin': loadingDbContainers }"
+                          />
+                        </button>
+                      </div>
+
+                      <div class="existing-containers">
+                        <div
+                          v-if="loadingDbContainers"
+                          class="loading-containers"
+                        >
+                          <i class="pi pi-spin pi-spinner" />
+                          <span>Loading containers...</span>
+                        </div>
+                        <div
+                          v-else-if="filteredDbContainers.length === 0"
+                          class="no-containers"
+                        >
+                          <i class="pi pi-info-circle" />
+                          <span>No {{ form.database.type }} containers found</span>
+                          <button
+                            class="switch-mode-btn"
+                            @click="form.database.mode = 'create'"
+                          >
+                            Create new instead
+                          </button>
+                        </div>
+                        <div
+                          v-else
+                          class="container-list"
+                        >
+                          <button
+                            v-for="container in filteredDbContainers"
+                            :key="container.id"
+                            class="container-option"
+                            :class="{ selected: form.database.existingContainer === container.name }"
+                            @click="selectExistingContainer(container)"
+                          >
+                            <div class="container-icon">
+                              <i class="pi pi-database" />
+                            </div>
+                            <div class="container-details">
+                              <span class="container-name">{{ container.name }}</span>
+                              <span class="container-image">{{ container.image }}</span>
+                            </div>
+                            <i
+                              v-if="form.database.existingContainer === container.name"
+                              class="pi pi-check"
+                            />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </Transition>
+
+                  <!-- External Database Config -->
+                  <Transition name="expand">
+                    <div
+                      v-if="form.database.mode === 'external'"
+                      class="section-card"
+                    >
+                      <div class="section-header compact">
+                        <div class="section-icon small">
+                          <i class="pi pi-globe" />
+                        </div>
+                        <h4>Server Details</h4>
+                      </div>
+
+                      <div class="credentials-form">
+                        <div class="form-row">
+                          <div class="form-field flex-grow">
+                            <label for="externalHost">
+                              Host
+                              <span class="required">*</span>
+                            </label>
+                            <input
+                              id="externalHost"
+                              v-model="form.database.externalHost"
+                              type="text"
+                              placeholder="db.example.com"
+                            >
+                          </div>
+                          <div class="form-field port-field">
+                            <label for="externalPort">
+                              Port
+                              <span class="required">*</span>
+                            </label>
+                            <input
+                              id="externalPort"
+                              v-model="form.database.externalPort"
+                              type="text"
+                              :placeholder="getDefaultPort(form.database.type)"
+                            >
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </Transition>
+
+                  <!-- Credentials -->
+                  <div class="section-card">
+                    <div class="section-header compact">
+                      <div class="section-icon small">
+                        <i class="pi pi-key" />
+                      </div>
+                      <h4>Credentials</h4>
+                    </div>
+
+                    <div class="credentials-form">
+                      <div class="form-field">
+                        <label for="dbName">Database Name</label>
+                        <input
+                          id="dbName"
+                          v-model="form.database.dbName"
+                          type="text"
+                          :placeholder="form.name ? form.name.replace(/-/g, '_') : 'app_db'"
+                        >
+                      </div>
+
+                      <div class="form-row">
+                        <div class="form-field">
+                          <label for="dbUser">Username</label>
+                          <input
+                            id="dbUser"
+                            v-model="form.database.dbUser"
+                            type="text"
+                            placeholder="app"
+                          >
+                        </div>
+
+                        <div class="form-field">
+                          <label for="dbPassword">
+                            Password
+                            <span
+                              v-if="form.database.mode === 'create'"
+                              class="required"
+                            >*</span>
+                          </label>
+                          <input
+                            id="dbPassword"
+                            v-model="form.database.dbPassword"
+                            type="password"
+                            placeholder="••••••••"
+                          >
+                        </div>
+                      </div>
+
+                      <Transition name="expand">
+                        <div
+                          v-if="form.database.mode === 'create'"
+                          class="form-field"
+                        >
+                          <label for="dbRootPassword">Root Password</label>
+                          <input
+                            id="dbRootPassword"
+                            v-model="form.database.dbRootPassword"
+                            type="password"
+                            placeholder="Leave empty to use same as password"
+                          >
+                          <span class="field-hint">Admin password for new database</span>
+                        </div>
+                      </Transition>
+                    </div>
+                  </div>
+
+                  <!-- Connection Test -->
+                  <div
+                    v-if="form.database.mode === 'external' || form.database.mode === 'existing'"
+                    class="section-card connection-test"
+                  >
+                    <div class="connection-test-content">
+                      <div class="connection-status">
+                        <div
+                          v-if="form.database.connectionStatus === 'checking'"
+                          class="status checking"
+                        >
+                          <i class="pi pi-spin pi-spinner" />
+                          <span>Testing connection...</span>
+                        </div>
+                        <div
+                          v-else-if="form.database.connectionStatus === 'success'"
+                          class="status success"
+                        >
+                          <i class="pi pi-check-circle" />
+                          <span>Connection successful</span>
+                        </div>
+                        <div
+                          v-else-if="form.database.connectionStatus === 'error'"
+                          class="status error"
+                        >
+                          <i class="pi pi-times-circle" />
+                          <span>{{ form.database.connectionError || 'Connection failed' }}</span>
+                        </div>
+                        <div
+                          v-else
+                          class="status idle"
+                        >
+                          <i class="pi pi-info-circle" />
+                          <span>Test connection before proceeding</span>
+                        </div>
+                      </div>
+                      <button
+                        class="test-btn"
+                        :disabled="form.database.connectionStatus === 'checking'"
+                        @click="checkDatabaseConnection"
+                      >
+                        <i class="pi pi-bolt" />
+                        Test
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Configuration Preview for External/Existing -->
+                  <div
+                    v-if="form.database.mode === 'external' || form.database.mode === 'existing'"
+                    class="section-card config-preview"
+                  >
+                    <div class="section-header compact">
+                      <div class="section-icon small">
+                        <i class="pi pi-eye" />
+                      </div>
+                      <h4>Configuration Preview</h4>
+                    </div>
+                    <div class="preview-content">
+                      <div class="preview-item">
+                        <span class="preview-label">Connection</span>
+                        <code class="preview-value">{{ form.database.mode === 'existing' ? form.database.existingContainer : form.database.externalHost }}:{{ form.database.externalPort || getDefaultPort(form.database.type) }}</code>
+                      </div>
+                      <div class="preview-item">
+                        <span class="preview-label">Database</span>
+                        <code class="preview-value">{{ form.database.dbName || (form.name ? form.name.replace(/-/g, '_') : 'app_db') }}</code>
+                      </div>
+                      <div class="preview-item">
+                        <span class="preview-label">User</span>
+                        <code class="preview-value">{{ form.database.dbUser || 'app' }}</code>
+                      </div>
+                      <div class="preview-hint">
+                        <i class="pi pi-info-circle" />
+                        Environment variables will be automatically added to your app
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Create Mode Preview -->
+                  <div
+                    v-if="form.database.mode === 'create'"
+                    class="section-card config-preview"
+                  >
+                    <div class="section-header compact">
+                      <div class="section-icon small">
+                        <i class="pi pi-code" />
+                      </div>
+                      <h4>Service Preview</h4>
+                    </div>
+                    <div class="preview-content">
+                      <pre class="compose-preview">{{ getDatabaseServiceYaml().trim() }}</pre>
+                      <div class="preview-hint">
+                        <i class="pi pi-info-circle" />
+                        This database service will be added to your compose stack
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </Transition>
+            </div>
+          </div>
+
+          <!-- Step 3: Configuration -->
+          <div
+            v-else-if="currentStep === 3"
             class="step-panel"
           >
             <div class="step2-layout">
@@ -384,9 +893,9 @@
             </div>
           </div>
 
-          <!-- Step 3: Review -->
+          <!-- Step 4: Review -->
           <div
-            v-else
+            v-else-if="currentStep === 4"
             class="step-panel"
           >
             <div class="review-container">
@@ -465,12 +974,12 @@
     <template #footer>
       <div class="footer-left">
         <button
-          v-if="currentStep > 1"
+          v-if="currentStep > 0"
           class="btn btn-ghost"
           @click="currentStep--"
         >
           <i class="pi pi-arrow-left" />
-          Back
+          {{ currentStep === 1 ? 'Change Mode' : 'Back' }}
         </button>
       </div>
       <div class="footer-right">
@@ -482,12 +991,12 @@
           Cancel
         </button>
         <button
-          v-if="currentStep < 3"
+          v-if="currentStep < steps.length"
           class="btn btn-primary"
           :disabled="!canProceed"
           @click="nextStep"
         >
-          Continue
+          {{ currentStep === 0 ? 'Get Started' : 'Continue' }}
           <i class="pi pi-arrow-right" />
         </button>
         <button
@@ -517,7 +1026,7 @@ import { Codemirror } from "vue-codemirror";
 import { yaml } from "@codemirror/lang-yaml";
 import { oneDark } from "@codemirror/theme-one-dark";
 import BaseModal from "@/components/base/BaseModal.vue";
-import { deploymentsApi, templatesApi, settingsApi } from "@/services/api";
+import { deploymentsApi, templatesApi, settingsApi, containersApi } from "@/services/api";
 import { useNotificationsStore } from "@/stores/notifications";
 
 interface QuickApp {
@@ -544,13 +1053,45 @@ const currentStep = ref(1);
 const generatedSubdomain = ref("");
 const generatedDomain = ref("");
 
+interface DbContainer {
+  id: string;
+  name: string;
+  image: string;
+  type: "mysql" | "postgres" | "mariadb" | "mongodb" | "unknown";
+}
+const existingDbContainers = ref<DbContainer[]>([]);
+const loadingDbContainers = ref(false);
+
 const extensions = shallowRef([yaml(), oneDark]);
 
-const steps = [
+const deploymentMode = ref<"" | "easy" | "compose">("");
+
+const easySteps = [
   { id: "basics", label: "Basics" },
+  { id: "database", label: "Database" },
   { id: "configure", label: "Configure" },
   { id: "review", label: "Review" },
 ];
+
+const composeSteps = [
+  { id: "basics", label: "Basics" },
+  { id: "compose", label: "Compose" },
+  { id: "review", label: "Review" },
+];
+
+const steps = computed(() => {
+  if (deploymentMode.value === "compose") return composeSteps;
+  return easySteps;
+});
+
+const generatePassword = () => {
+  const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  let password = "";
+  for (let i = 0; i < 16; i++) {
+    password += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return password;
+};
 
 const domainSettings = reactive({
   default_domain: "",
@@ -575,6 +1116,20 @@ const form = reactive({
     enabled: false,
     autoCert: false,
   },
+  database: {
+    enabled: false,
+    type: "none" as "none" | "mysql" | "postgres" | "mariadb" | "mongodb",
+    mode: "create" as "create" | "existing" | "external",
+    existingContainer: "",
+    externalHost: "",
+    externalPort: "",
+    dbName: "",
+    dbUser: "app",
+    dbPassword: "",
+    dbRootPassword: "",
+    connectionStatus: null as null | "checking" | "success" | "error",
+    connectionError: "",
+  },
 });
 
 const errors = reactive({
@@ -583,7 +1138,8 @@ const errors = reactive({
 });
 
 const progressWidth = computed(() => {
-  return `${((currentStep.value - 1) / (steps.length - 1)) * 100}%`;
+  const totalSteps = steps.value.length;
+  return `${((currentStep.value - 1) / (totalSteps - 1)) * 100}%`;
 });
 
 const displayedQuickApps = computed(() => quickApps.value.slice(0, 6));
@@ -606,16 +1162,43 @@ const effectiveDomain = computed(() => {
 });
 
 const canProceed = computed(() => {
+  if (currentStep.value === 0) {
+    return deploymentMode.value !== "";
+  }
+
   if (currentStep.value === 1) {
-    return (
-      form.name.trim() &&
-      /^[a-z0-9-]+$/.test(form.name) &&
-      selectedQuickApp.value !== ""
-    );
+    const nameValid = form.name.trim() && /^[a-z0-9-]+$/.test(form.name);
+    if (deploymentMode.value === "compose") {
+      return nameValid;
+    }
+    return nameValid && selectedQuickApp.value !== "";
   }
-  if (currentStep.value === 2) {
-    return form.composeContent.trim().length > 0;
+
+  if (deploymentMode.value === "easy") {
+    if (currentStep.value === 2) {
+      if (form.database.type !== "none") {
+        if (form.database.mode === "existing" && !form.database.existingContainer) {
+          return false;
+        }
+        if (form.database.mode === "external") {
+          if (!form.database.externalHost.trim() || !form.database.externalPort.trim()) {
+            return false;
+          }
+        }
+      }
+      return true;
+    }
+    if (currentStep.value === 3) {
+      return form.composeContent.trim().length > 0;
+    }
   }
+
+  if (deploymentMode.value === "compose") {
+    if (currentStep.value === 2) {
+      return form.composeContent.trim().length > 0;
+    }
+  }
+
   return true;
 });
 
@@ -690,6 +1273,230 @@ const selectCustom = () => {
   form.composeContent = defaultComposeTemplate.replace(/\$\{NAME\}/g, form.name || "my-app");
 };
 
+const selectDatabaseType = (type: "none" | "mysql" | "postgres" | "mariadb" | "mongodb") => {
+  form.database.type = type;
+  form.database.dbName = form.name ? form.name.replace(/-/g, "_") : "app_db";
+  form.database.connectionStatus = null;
+  form.database.connectionError = "";
+
+  if (type !== "none") {
+    if (!form.database.dbPassword) {
+      form.database.dbPassword = generatePassword();
+    }
+    loadExistingDbContainers();
+  }
+};
+
+const getDefaultPort = (dbType: string): string => {
+  switch (dbType) {
+    case "mysql":
+    case "mariadb":
+      return "3306";
+    case "postgres":
+      return "5432";
+    case "mongodb":
+      return "27017";
+    default:
+      return "3306";
+  }
+};
+
+const loadExistingDbContainers = async () => {
+  loadingDbContainers.value = true;
+  try {
+    const response = await containersApi.list();
+    const containers = response.data.containers || [];
+
+    existingDbContainers.value = containers
+      .filter((c: any) => {
+        const image = c.image.toLowerCase();
+        return (
+          image.includes("mysql") ||
+          image.includes("postgres") ||
+          image.includes("mariadb") ||
+          image.includes("mongo")
+        );
+      })
+      .map((c: any) => {
+        const image = c.image.toLowerCase();
+        let type: DbContainer["type"] = "unknown";
+        if (image.includes("mysql") && !image.includes("mariadb")) type = "mysql";
+        else if (image.includes("postgres")) type = "postgres";
+        else if (image.includes("mariadb")) type = "mariadb";
+        else if (image.includes("mongo")) type = "mongodb";
+
+        return {
+          id: c.id,
+          name: c.name,
+          image: c.image,
+          type,
+        };
+      });
+  } catch (error) {
+    existingDbContainers.value = [];
+  } finally {
+    loadingDbContainers.value = false;
+  }
+};
+
+const filteredDbContainers = computed(() => {
+  if (form.database.type === "none") return [];
+  return existingDbContainers.value.filter(
+    (c) => c.type === form.database.type || c.type === "unknown"
+  );
+});
+
+const selectExistingContainer = (container: DbContainer) => {
+  form.database.existingContainer = container.name;
+  form.database.connectionStatus = null;
+};
+
+const checkDatabaseConnection = async () => {
+  form.database.connectionStatus = "checking";
+  form.database.connectionError = "";
+
+  try {
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+
+    if (form.database.mode === "external") {
+      const host = form.database.externalHost;
+      const port = form.database.externalPort;
+
+      if (!host || !port) {
+        throw new Error("Host and port are required");
+      }
+    }
+
+    form.database.connectionStatus = "success";
+    notifications.success("Connection successful", "Database is reachable");
+  } catch (error: any) {
+    form.database.connectionStatus = "error";
+    form.database.connectionError = error.message || "Failed to connect to database";
+    notifications.error("Connection failed", form.database.connectionError);
+  }
+};
+
+const getDatabaseEnvVars = () => {
+  const envVars: { key: string; value: string }[] = [];
+  const db = form.database;
+  const dbName = db.dbName || (form.name ? form.name.replace(/-/g, "_") : "app_db");
+
+  let dbHost: string;
+  let dbPort: string;
+
+  if (db.mode === "external") {
+    dbHost = db.externalHost;
+    dbPort = db.externalPort || getDefaultPort(db.type);
+  } else if (db.mode === "existing") {
+    dbHost = db.existingContainer;
+    dbPort = getDefaultPort(db.type);
+  } else {
+    dbHost = "db";
+    dbPort = getDefaultPort(db.type);
+  }
+
+  if (db.type === "mysql" || db.type === "mariadb") {
+    envVars.push({ key: "DB_HOST", value: dbHost });
+    envVars.push({ key: "DB_PORT", value: dbPort });
+    envVars.push({ key: "DB_DATABASE", value: dbName });
+    envVars.push({ key: "DB_USERNAME", value: db.dbUser || "app" });
+    envVars.push({ key: "DB_PASSWORD", value: db.dbPassword });
+    envVars.push({ key: "DATABASE_URL", value: `mysql://${db.dbUser || "app"}:${db.dbPassword}@${dbHost}:${dbPort}/${dbName}` });
+  } else if (db.type === "postgres") {
+    envVars.push({ key: "DB_HOST", value: dbHost });
+    envVars.push({ key: "DB_PORT", value: dbPort });
+    envVars.push({ key: "DB_DATABASE", value: dbName });
+    envVars.push({ key: "DB_USERNAME", value: db.dbUser || "app" });
+    envVars.push({ key: "DB_PASSWORD", value: db.dbPassword });
+    envVars.push({ key: "DATABASE_URL", value: `postgres://${db.dbUser || "app"}:${db.dbPassword}@${dbHost}:${dbPort}/${dbName}` });
+  } else if (db.type === "mongodb") {
+    envVars.push({ key: "MONGO_HOST", value: dbHost });
+    envVars.push({ key: "MONGO_PORT", value: dbPort });
+    envVars.push({ key: "MONGO_DATABASE", value: dbName });
+    envVars.push({ key: "MONGO_USERNAME", value: db.dbUser || "app" });
+    envVars.push({ key: "MONGO_PASSWORD", value: db.dbPassword });
+    envVars.push({ key: "MONGODB_URI", value: `mongodb://${db.dbUser || "app"}:${db.dbPassword}@${dbHost}:${dbPort}/${dbName}` });
+  }
+
+  return envVars;
+};
+
+const getDatabaseServiceYaml = () => {
+  const db = form.database;
+  if (db.type === "none" || db.mode !== "create") return "";
+
+  const dbName = db.dbName || (form.name ? form.name.replace(/-/g, "_") : "app_db");
+  const rootPassword = db.dbRootPassword || db.dbPassword;
+
+  if (db.type === "mysql") {
+    return `
+  db:
+    image: mysql:8
+    container_name: ${form.name}-db
+    environment:
+      MYSQL_ROOT_PASSWORD: ${rootPassword}
+      MYSQL_DATABASE: ${dbName}
+      MYSQL_USER: ${db.dbUser || "app"}
+      MYSQL_PASSWORD: ${db.dbPassword}
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - web
+    restart: unless-stopped`;
+  } else if (db.type === "mariadb") {
+    return `
+  db:
+    image: mariadb:10
+    container_name: ${form.name}-db
+    environment:
+      MYSQL_ROOT_PASSWORD: ${rootPassword}
+      MYSQL_DATABASE: ${dbName}
+      MYSQL_USER: ${db.dbUser || "app"}
+      MYSQL_PASSWORD: ${db.dbPassword}
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - web
+    restart: unless-stopped`;
+  } else if (db.type === "postgres") {
+    return `
+  db:
+    image: postgres:15
+    container_name: ${form.name}-db
+    environment:
+      POSTGRES_DB: ${dbName}
+      POSTGRES_USER: ${db.dbUser || "app"}
+      POSTGRES_PASSWORD: ${db.dbPassword}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    networks:
+      - web
+    restart: unless-stopped`;
+  } else if (db.type === "mongodb") {
+    return `
+  db:
+    image: mongo:6
+    container_name: ${form.name}-db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${db.dbUser || "app"}
+      MONGO_INITDB_ROOT_PASSWORD: ${db.dbPassword}
+      MONGO_INITDB_DATABASE: ${dbName}
+    volumes:
+      - db_data:/data/db
+    networks:
+      - web
+    restart: unless-stopped`;
+  }
+  return "";
+};
+
+const getDatabaseVolumeYaml = () => {
+  if (form.database.type === "none" || form.database.mode !== "create") return "";
+  return `
+volumes:
+  db_data:`;
+};
+
 const defaultComposeTemplate = `services:
   app:
     image: nginx:alpine
@@ -724,7 +1531,18 @@ const removeEnvVar = (index: number) => {
 };
 
 const nextStep = () => {
-  if (canProceed.value && currentStep.value < steps.length) {
+  if (!canProceed.value) return;
+
+  if (currentStep.value === 0) {
+    currentStep.value = 1;
+    if (deploymentMode.value === "compose") {
+      selectedQuickApp.value = "custom";
+      form.composeContent = defaultComposeTemplate.replace(/\$\{NAME\}/g, form.name || "my-app");
+    }
+    return;
+  }
+
+  if (currentStep.value < steps.value.length) {
     currentStep.value++;
   }
 };
@@ -745,10 +1563,26 @@ watch(
         protocol: "http",
       };
       form.ssl = { enabled: false, autoCert: false };
+      form.database = {
+        enabled: false,
+        type: "none",
+        mode: "create",
+        existingContainer: "",
+        externalHost: "",
+        externalPort: "",
+        dbName: "",
+        dbUser: "app",
+        dbPassword: "",
+        dbRootPassword: "",
+        connectionStatus: null,
+        connectionError: "",
+      };
+      existingDbContainers.value = [];
       errors.name = "";
       errors.composeContent = "";
       selectedQuickApp.value = "";
-      currentStep.value = 1;
+      deploymentMode.value = "";
+      currentStep.value = 0;
       generatedSubdomain.value = "";
       generatedDomain.value = "";
 
@@ -769,6 +1603,121 @@ watch(
       );
     }
   },
+);
+
+const rebuildComposeWithDatabase = () => {
+  if (deploymentMode.value !== "easy" || form.database.type === "none") return;
+
+  const baseCompose = getBaseComposeWithoutDb();
+  let compose = baseCompose;
+
+  if (form.database.mode === "create") {
+    const dbService = getDatabaseServiceYaml();
+    const dbVolume = getDatabaseVolumeYaml();
+
+    if (dbService) {
+      // Add depends_on to app service if not already present
+      if (!compose.includes("depends_on:")) {
+        compose = compose.replace(
+          /(services:\s*\n\s*app:.*?\n)((\s+\S.*\n)*)/m,
+          (match, serviceStart, props) => {
+            return serviceStart + `    depends_on:\n      - db\n` + props;
+          }
+        );
+      }
+
+      // Insert db service at the end of services section
+      const networksMatch = compose.match(/\nnetworks:/m);
+      const volumesMatch = compose.match(/\nvolumes:/m);
+
+      if (networksMatch) {
+        const insertPos = compose.indexOf(networksMatch[0]);
+        compose = compose.slice(0, insertPos) + dbService + "\n" + compose.slice(insertPos);
+      } else if (volumesMatch) {
+        const insertPos = compose.indexOf(volumesMatch[0]);
+        compose = compose.slice(0, insertPos) + dbService + "\n" + compose.slice(insertPos);
+      } else {
+        compose = compose.trimEnd() + dbService + "\n";
+      }
+
+      // Add volumes section if needed
+      if (!compose.includes("volumes:") && dbVolume) {
+        compose = compose.trimEnd() + "\n" + dbVolume;
+      } else if (compose.includes("volumes:") && !compose.includes("db_data:")) {
+        compose = compose.replace(/volumes:\s*\n/, "volumes:\n  db_data:\n");
+      }
+    }
+  } else if (form.database.mode === "existing" && form.database.existingContainer) {
+    const networkConfig = getExistingDbNetworkYaml();
+    if (networkConfig && !compose.includes("shared:")) {
+      if (compose.includes("networks:")) {
+        compose = compose.replace(/networks:\s*\n/, "networks:\n  shared:\n    external: true\n");
+      } else {
+        compose = compose.trimEnd() + "\n" + networkConfig;
+      }
+    }
+  }
+
+  form.composeContent = compose;
+
+  // Update environment variables
+  const dbEnvVars = getDatabaseEnvVars();
+  const dbKeys = ["DB_HOST", "DB_PORT", "DB_DATABASE", "DB_USERNAME", "DB_PASSWORD", "DATABASE_URL", "MONGO_HOST", "MONGO_PORT", "MONGO_DATABASE", "MONGO_USERNAME", "MONGO_PASSWORD", "MONGODB_URI"];
+  form.envVars = form.envVars.filter((e) => !dbKeys.includes(e.key));
+  for (const env of dbEnvVars) {
+    form.envVars.push(env);
+  }
+};
+
+const getBaseComposeWithoutDb = () => {
+  let compose = form.composeContent;
+
+  // Remove db service block (handles various indentation)
+  compose = compose.replace(/\n\s*db:\n(\s{4,}[^\n]+\n)*/g, "\n");
+
+  // Remove depends_on db entry from app service
+  compose = compose.replace(/\s*depends_on:\s*\n\s*-\s*db\s*\n/g, "\n");
+
+  // Remove db_data from volumes
+  compose = compose.replace(/\s*db_data:\s*\n?/g, "");
+
+  // Remove empty volumes section
+  compose = compose.replace(/\nvolumes:\s*\n(?=\n|$)/g, "");
+
+  // Remove shared network if it was added for existing db
+  compose = compose.replace(/\s*shared:\s*\n\s*external:\s*true\s*\n?/g, "");
+
+  // Remove empty networks section
+  compose = compose.replace(/\nnetworks:\s*\n(?=\n|$)/g, "");
+
+  // Clean up multiple consecutive newlines
+  compose = compose.replace(/\n{3,}/g, "\n\n");
+
+  return compose;
+};
+
+const getExistingDbNetworkYaml = () => {
+  if (form.database.mode !== "existing" || !form.database.existingContainer) return "";
+  return `
+networks:
+  shared:
+    external: true`;
+};
+
+watch(currentStep, (newStep, oldStep) => {
+  if (deploymentMode.value === "easy" && newStep === 3 && oldStep === 2 && form.database.type !== "none") {
+    rebuildComposeWithDatabase();
+  }
+});
+
+watch(
+  () => [form.database.mode, form.database.existingContainer, form.database.type],
+  () => {
+    if (currentStep.value === 2 && deploymentMode.value === "easy") {
+      // Preview will be updated when moving to next step
+    }
+  },
+  { deep: true }
 );
 
 const validate = () => {
@@ -1654,6 +2603,584 @@ const handleClose = () => {
   max-height: 0;
 }
 
+/* Mode Selection Step */
+.mode-selection-panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+}
+
+.mode-selection {
+  text-align: center;
+  max-width: 700px;
+  width: 100%;
+}
+
+.mode-title {
+  font-size: var(--text-2xl);
+  font-weight: var(--font-semibold);
+  color: var(--color-gray-900);
+  margin: 0 0 var(--space-2);
+}
+
+.mode-subtitle {
+  font-size: var(--text-md);
+  color: var(--color-gray-500);
+  margin: 0 0 var(--space-8);
+}
+
+.deployment-modes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+}
+
+.deployment-mode-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: var(--space-6);
+  background: white;
+  border: 2px solid var(--color-gray-200);
+  border-radius: var(--radius-xl);
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s ease;
+}
+
+.deployment-mode-card:hover {
+  border-color: var(--color-primary-300);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.deployment-mode-card.selected {
+  border-color: var(--color-primary-500);
+  background: var(--color-primary-50);
+}
+
+.mode-card-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  margin-bottom: var(--space-4);
+}
+
+.mode-card-icon.easy {
+  background: linear-gradient(135deg, var(--color-primary-100), var(--color-primary-200));
+  color: var(--color-primary-600);
+}
+
+.mode-card-icon.compose {
+  background: linear-gradient(135deg, var(--color-gray-100), var(--color-gray-200));
+  color: var(--color-gray-600);
+}
+
+.deployment-mode-card.selected .mode-card-icon {
+  background: var(--color-primary-500);
+  color: white;
+}
+
+.mode-card-content h4 {
+  font-size: var(--text-lg);
+  font-weight: var(--font-semibold);
+  color: var(--color-gray-900);
+  margin: 0 0 var(--space-1);
+}
+
+.mode-card-content p {
+  font-size: var(--text-sm);
+  color: var(--color-gray-500);
+  margin: 0 0 var(--space-3);
+}
+
+.mode-features {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.mode-features li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--color-gray-600);
+  margin-bottom: var(--space-1);
+}
+
+.mode-features li i {
+  color: var(--color-success-500);
+  font-size: 0.75rem;
+}
+
+.mode-badge {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+  padding: var(--space-1) var(--space-2);
+  background: var(--color-gray-100);
+  color: var(--color-gray-600);
+  font-size: var(--text-xs);
+  font-weight: var(--font-medium);
+  border-radius: var(--radius-sm);
+}
+
+.mode-badge.recommended {
+  background: var(--color-primary-100);
+  color: var(--color-primary-700);
+}
+
+/* Database Step */
+.database-step {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.database-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: var(--space-2);
+  padding: var(--space-3);
+}
+
+.db-option {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  background: white;
+  border: 1px solid var(--color-gray-200);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s ease;
+}
+
+.db-option:hover {
+  border-color: var(--color-primary-300);
+  background: var(--color-gray-50);
+}
+
+.db-option.selected {
+  border-color: var(--color-primary-500);
+  background: var(--color-primary-50);
+}
+
+.db-option-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 1.125rem;
+}
+
+.db-option-icon.none {
+  background: var(--color-gray-100);
+  color: var(--color-gray-500);
+}
+
+.db-option-icon.mysql {
+  background: #00758f20;
+  color: #00758f;
+}
+
+.db-option-icon.postgres {
+  background: #33679120;
+  color: #336791;
+}
+
+.db-option-icon.mariadb {
+  background: #c0765a20;
+  color: #c0765a;
+}
+
+.db-option-icon.mongodb {
+  background: #00ed6420;
+  color: #00684a;
+}
+
+.db-option.selected .db-option-icon {
+  background: var(--color-primary-100);
+  color: var(--color-primary-600);
+}
+
+.db-option-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.db-option-name {
+  display: block;
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--color-gray-900);
+}
+
+.db-option-desc {
+  display: block;
+  font-size: var(--text-xs);
+  color: var(--color-gray-500);
+  margin-top: 2px;
+}
+
+.db-check {
+  color: var(--color-primary-500);
+}
+
+.database-config {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.mode-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+  padding: var(--space-3);
+}
+
+.mode-options.three-col {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.mode-option {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: white;
+  border: 2px solid var(--color-gray-200);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s ease;
+}
+
+.mode-option:hover {
+  border-color: var(--color-primary-300);
+}
+
+.mode-option.selected {
+  border-color: var(--color-primary-500);
+  background: var(--color-primary-50);
+}
+
+.mode-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  background: var(--color-gray-100);
+  color: var(--color-gray-500);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.mode-option.selected .mode-icon {
+  background: var(--color-primary-500);
+  color: white;
+}
+
+.mode-info {
+  flex: 1;
+}
+
+.mode-name {
+  display: block;
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  color: var(--color-gray-900);
+}
+
+.mode-desc {
+  display: block;
+  font-size: var(--text-xs);
+  color: var(--color-gray-500);
+  margin-top: var(--space-1);
+  line-height: 1.4;
+}
+
+.credentials-form {
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+}
+
+.form-row .form-field {
+  padding: 0;
+}
+
+.form-field.flex-grow {
+  flex: 1;
+}
+
+.form-field.port-field {
+  width: 100px;
+  flex-shrink: 0;
+}
+
+/* Existing containers */
+.section-header .refresh-btn {
+  margin-left: auto;
+  background: none;
+  border: none;
+  color: var(--color-gray-500);
+  cursor: pointer;
+  padding: var(--space-1);
+  border-radius: var(--radius-sm);
+  transition: all 0.2s ease;
+}
+
+.section-header .refresh-btn:hover {
+  background: var(--color-gray-100);
+  color: var(--color-primary-600);
+}
+
+.existing-containers {
+  padding: var(--space-3);
+}
+
+.loading-containers,
+.no-containers {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-6);
+  color: var(--color-gray-500);
+  text-align: center;
+}
+
+.no-containers i {
+  font-size: 1.5rem;
+  color: var(--color-gray-400);
+}
+
+.switch-mode-btn {
+  margin-top: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  background: var(--color-primary-50);
+  color: var(--color-primary-600);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.switch-mode-btn:hover {
+  background: var(--color-primary-100);
+}
+
+.container-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.container-option {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  background: white;
+  border: 1px solid var(--color-gray-200);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s ease;
+}
+
+.container-option:hover {
+  border-color: var(--color-primary-300);
+  background: var(--color-gray-50);
+}
+
+.container-option.selected {
+  border-color: var(--color-primary-500);
+  background: var(--color-primary-50);
+}
+
+.container-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  background: var(--color-gray-100);
+  color: var(--color-gray-500);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.container-option.selected .container-icon {
+  background: var(--color-primary-500);
+  color: white;
+}
+
+.container-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.container-details .container-name {
+  display: block;
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--color-gray-900);
+}
+
+.container-details .container-image {
+  display: block;
+  font-size: var(--text-xs);
+  color: var(--color-gray-500);
+  font-family: var(--font-mono);
+  margin-top: 2px;
+}
+
+/* Connection test */
+.connection-test {
+  background: var(--color-gray-50);
+}
+
+.connection-test-content {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-4);
+}
+
+.connection-status {
+  flex: 1;
+}
+
+.connection-status .status {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+}
+
+.connection-status .status.idle {
+  color: var(--color-gray-500);
+}
+
+.connection-status .status.checking {
+  color: var(--color-primary-600);
+}
+
+.connection-status .status.success {
+  color: var(--color-success-600);
+}
+
+.connection-status .status.error {
+  color: var(--color-danger-600);
+}
+
+.test-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  background: var(--color-primary-500);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.test-btn:hover:not(:disabled) {
+  background: var(--color-primary-600);
+}
+
+.test-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Configuration Preview */
+.config-preview {
+  background: var(--color-gray-50);
+}
+
+.preview-content {
+  padding: var(--space-4);
+}
+
+.preview-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--color-gray-200);
+}
+
+.preview-item:last-of-type {
+  border-bottom: none;
+}
+
+.preview-label {
+  font-size: var(--text-sm);
+  color: var(--color-gray-500);
+}
+
+.preview-value {
+  font-size: var(--text-sm);
+  background: var(--color-gray-100);
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  color: var(--color-gray-700);
+}
+
+.preview-hint {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: 1px dashed var(--color-gray-300);
+  font-size: var(--text-xs);
+  color: var(--color-gray-500);
+}
+
+.compose-preview {
+  background: var(--color-gray-900);
+  color: var(--color-gray-100);
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  font-size: var(--text-xs);
+  font-family: var(--font-mono);
+  overflow-x: auto;
+  white-space: pre;
+  margin: 0 0 var(--space-2);
+  max-height: 200px;
+  overflow-y: auto;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .step1-grid {
@@ -1671,6 +3198,34 @@ const handleClose = () => {
 
   .review-grid {
     grid-template-columns: 1fr;
+  }
+
+  .database-options {
+    grid-template-columns: 1fr;
+  }
+
+  .mode-options {
+    grid-template-columns: 1fr;
+  }
+
+  .mode-options.three-col {
+    grid-template-columns: 1fr;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .form-field.port-field {
+    width: 100%;
+  }
+
+  .deployment-modes {
+    grid-template-columns: 1fr;
+  }
+
+  .mode-selection-panel {
+    min-height: 300px;
   }
 }
 </style>
