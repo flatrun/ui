@@ -135,6 +135,100 @@
 
             <div class="info-card">
               <div class="card-header">
+                <i class="pi pi-globe" />
+                <h3>Domain & SSL</h3>
+              </div>
+              <div class="card-body">
+                <template v-if="proxyStatus && proxyStatus.exposed">
+                  <div class="info-row">
+                    <span class="label">Domain</span>
+                    <span class="value domain-link">
+                      <a
+                        :href="(proxyStatus.ssl_enabled ? 'https://' : 'http://') + proxyStatus.domain"
+                        target="_blank"
+                      >
+                        {{ proxyStatus.domain }}
+                        <i class="pi pi-external-link" />
+                      </a>
+                    </span>
+                  </div>
+                  <div class="info-row">
+                    <span class="label">Virtual Host</span>
+                    <span class="value">
+                      <span
+                        class="status-badge"
+                        :class="proxyStatus.virtual_host_exists ? 'running' : 'stopped'"
+                      >
+                        {{ proxyStatus.virtual_host_exists ? 'Configured' : 'Not Configured' }}
+                      </span>
+                    </span>
+                  </div>
+                  <div class="info-row">
+                    <span class="label">SSL</span>
+                    <span class="value">
+                      <span
+                        class="status-badge"
+                        :class="proxyStatus.ssl_enabled ? 'running' : 'stopped'"
+                      >
+                        {{ proxyStatus.ssl_enabled ? 'Enabled' : 'Disabled' }}
+                      </span>
+                    </span>
+                  </div>
+                  <template v-if="proxyStatus.ssl_enabled && proxyStatus.certificate">
+                    <div class="info-row">
+                      <span class="label">Certificate</span>
+                      <span class="value">
+                        <span
+                          class="status-badge"
+                          :class="proxyStatus.certificate.status"
+                        >
+                          {{ proxyStatus.certificate.status }}
+                        </span>
+                      </span>
+                    </div>
+                    <div class="info-row">
+                      <span class="label">Expires</span>
+                      <span
+                        class="value"
+                        :class="{ 'text-warning': proxyStatus.certificate.days_left <= 30 }"
+                      >
+                        {{ proxyStatus.certificate.days_left }} days ({{ formatDateTime(proxyStatus.certificate.not_after) }})
+                      </span>
+                    </div>
+                  </template>
+                  <div class="proxy-actions">
+                    <button
+                      v-if="!proxyStatus.virtual_host_exists"
+                      class="btn btn-sm btn-primary"
+                      :disabled="settingUpProxy"
+                      @click="handleSetupProxy"
+                    >
+                      <i :class="settingUpProxy ? 'pi pi-spin pi-spinner' : 'pi pi-cog'" />
+                      Setup Proxy
+                    </button>
+                    <button
+                      v-if="proxyStatus.ssl_enabled && !proxyStatus.certificate_exists"
+                      class="btn btn-sm btn-success"
+                      :disabled="requestingCert"
+                      @click="handleRequestCertificate"
+                    >
+                      <i :class="requestingCert ? 'pi pi-spin pi-spinner' : 'pi pi-shield'" />
+                      Request SSL
+                    </button>
+                  </div>
+                </template>
+                <template v-else>
+                  <div class="empty-proxy">
+                    <i class="pi pi-globe" />
+                    <p>No domain configured</p>
+                    <span class="hint">Configure domain exposure in deployment settings</span>
+                  </div>
+                </template>
+              </div>
+            </div>
+
+            <div class="info-card">
+              <div class="card-header">
                 <i class="pi pi-box" />
                 <h3>Services</h3>
               </div>
@@ -565,15 +659,21 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, nextTick, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { deploymentsApi } from "@/services/api";
+import { deploymentsApi, proxyApi, certificatesApi } from "@/services/api";
+import { useNotificationsStore } from "@/stores/notifications";
+import type { ProxyStatus } from "@/types";
 
 const route = useRoute();
 const router = useRouter();
+const notifications = useNotificationsStore();
 
 const deployment = ref<any>(null);
 const loading = ref(false);
 const error = ref("");
 const activeTab = ref("overview");
+const proxyStatus = ref<ProxyStatus | null>(null);
+const settingUpProxy = ref(false);
+const requestingCert = ref(false);
 
 const tabs = [
   { id: "overview", label: "Overview", icon: "pi pi-info-circle" },
@@ -629,7 +729,18 @@ const fetchDeployment = async () => {
   error.value = "";
   try {
     const response = await deploymentsApi.get(route.params.name as string);
-    deployment.value = response.data;
+    deployment.value = response.data.deployment || response.data;
+
+    if (response.data.proxy_status) {
+      proxyStatus.value = response.data.proxy_status;
+    } else {
+      try {
+        const proxyResponse = await proxyApi.getStatus(route.params.name as string);
+        proxyStatus.value = proxyResponse.data.status;
+      } catch {
+        proxyStatus.value = null;
+      }
+    }
 
     services.value = [
       {
@@ -690,6 +801,36 @@ const fetchDeployment = async () => {
     error.value = err.message || "Failed to load deployment";
   } finally {
     loading.value = false;
+  }
+};
+
+const handleSetupProxy = async () => {
+  settingUpProxy.value = true;
+  try {
+    await proxyApi.setup(route.params.name as string);
+    notifications.success("Proxy Setup", "Virtual host has been configured");
+    await fetchDeployment();
+  } catch (err: any) {
+    const msg = err.response?.data?.error || err.message;
+    notifications.error("Setup Failed", msg);
+  } finally {
+    settingUpProxy.value = false;
+  }
+};
+
+const handleRequestCertificate = async () => {
+  if (!proxyStatus.value?.domain) return;
+
+  requestingCert.value = true;
+  try {
+    await certificatesApi.request(proxyStatus.value.domain);
+    notifications.success("Certificate Requested", `SSL certificate for ${proxyStatus.value.domain} has been requested`);
+    await fetchDeployment();
+  } catch (err: any) {
+    const msg = err.response?.data?.error || err.message;
+    notifications.error("Request Failed", msg);
+  } finally {
+    requestingCert.value = false;
   }
 };
 
@@ -1131,6 +1272,71 @@ onUnmounted(() => {
 }
 .status-indicator.stopped {
   background: var(--color-danger-500);
+}
+
+.status-badge.valid,
+.status-badge.expiring {
+  background: var(--color-success-50);
+  color: var(--color-success-700);
+}
+
+.status-badge.expiring {
+  background: var(--color-warning-50);
+  color: var(--color-warning-700);
+}
+
+.status-badge.expired {
+  background: var(--color-danger-50);
+  color: var(--color-danger-700);
+}
+
+.domain-link a {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--color-primary-600);
+  text-decoration: none;
+}
+
+.domain-link a:hover {
+  text-decoration: underline;
+}
+
+.domain-link i {
+  font-size: var(--text-xs);
+}
+
+.text-warning {
+  color: var(--color-warning-600);
+}
+
+.proxy-actions {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-gray-100);
+}
+
+.empty-proxy {
+  text-align: center;
+  padding: var(--space-4);
+  color: var(--color-gray-400);
+}
+
+.empty-proxy i {
+  font-size: 2rem;
+  margin-bottom: var(--space-2);
+}
+
+.empty-proxy p {
+  margin: 0 0 var(--space-1) 0;
+  color: var(--color-gray-500);
+}
+
+.empty-proxy .hint {
+  font-size: var(--text-xs);
+  color: var(--color-gray-400);
 }
 
 .services-list {

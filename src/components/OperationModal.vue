@@ -180,10 +180,11 @@ const copyOutput = () => {
 
 .operation-badge {
   padding: var(--space-1) var(--space-3);
-  border-radius: var(--radius-md);
-  font-size: var(--text-sm);
+  border-radius: var(--radius-full);
+  font-size: var(--text-xs);
   font-weight: var(--font-semibold);
   text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .operation-badge.start {
@@ -212,20 +213,22 @@ const copyOutput = () => {
   display: flex;
   align-items: center;
   gap: var(--space-4);
-  padding: var(--space-4);
-  background: var(--color-gray-50);
+  padding: var(--space-5);
+  background: linear-gradient(135deg, var(--color-gray-50), white);
+  border: 1px solid var(--color-gray-100);
   border-radius: var(--radius-lg);
   margin-bottom: var(--space-6);
 }
 
 .status-indicator {
-  width: 48px;
-  height: 48px;
-  border-radius: var(--radius-lg);
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-xl);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.25rem;
+  font-size: 1.5rem;
+  transition: all 0.3s ease;
 }
 
 .status-indicator.pending {
@@ -234,8 +237,9 @@ const copyOutput = () => {
 }
 
 .status-indicator.running {
-  background: var(--color-info-50);
+  background: linear-gradient(135deg, var(--color-primary-50), var(--color-info-50));
   color: var(--color-primary-600);
+  box-shadow: 0 0 0 4px var(--color-primary-50);
 }
 
 .status-indicator.success {
@@ -251,17 +255,18 @@ const copyOutput = () => {
 .status-text {
   display: flex;
   flex-direction: column;
+  gap: var(--space-1);
 }
 
 .status-label {
+  font-size: var(--text-lg);
   font-weight: var(--font-semibold);
   color: var(--color-gray-900);
 }
 
 .status-time {
-  font-size: var(--text-md);
+  font-size: var(--text-sm);
   color: var(--color-gray-500);
-  margin-top: var(--space-1);
 }
 
 .output-section {
@@ -274,6 +279,7 @@ const copyOutput = () => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: var(--space-3);
+  font-size: var(--text-sm);
   font-weight: var(--font-semibold);
   color: var(--color-gray-700);
 }
@@ -282,30 +288,33 @@ const copyOutput = () => {
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  padding: 0.375rem var(--space-3);
-  background: var(--color-gray-100);
-  border: none;
+  padding: var(--space-2) var(--space-3);
+  background: white;
+  border: 1px solid var(--color-gray-200);
   border-radius: var(--radius-md);
   font-size: var(--text-sm);
+  font-weight: var(--font-medium);
   color: var(--color-gray-500);
   cursor: pointer;
   transition: all var(--transition-base);
 }
 
 .copy-btn:hover {
-  background: var(--color-gray-200);
+  background: var(--color-gray-50);
+  border-color: var(--color-gray-300);
   color: var(--color-gray-700);
 }
 
 .output-content {
   margin: 0;
   padding: var(--space-4);
-  background: var(--color-gray-900);
+  background: var(--color-gray-950);
   color: var(--color-gray-300);
   font-family: var(--font-mono);
-  font-size: var(--text-base);
+  font-size: var(--text-sm);
   line-height: 1.6;
   border-radius: var(--radius-lg);
+  border: 1px solid var(--color-gray-800);
   overflow: auto;
   white-space: pre-wrap;
   word-break: break-all;
@@ -314,7 +323,10 @@ const copyOutput = () => {
 }
 
 .btn {
-  padding: 0.625rem var(--space-5);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-5);
   border-radius: var(--radius-md);
   font-weight: var(--font-medium);
   font-size: var(--text-md);
@@ -323,13 +335,13 @@ const copyOutput = () => {
 }
 
 .btn-secondary {
-  background: var(--color-gray-100);
-  border: 1px solid var(--color-gray-300);
+  background: white;
+  border: 1px solid var(--color-gray-200);
   color: var(--color-gray-700);
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background: var(--color-gray-200);
+  background: var(--color-gray-50);
 }
 
 .btn-secondary:disabled {

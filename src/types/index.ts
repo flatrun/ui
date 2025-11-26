@@ -71,4 +71,36 @@ export interface Certificate {
   days_left: number;
   status: "valid" | "expiring" | "expired";
   path: string;
+  auto_renew?: boolean;
+  deployment_id?: string;
+}
+
+export interface ProxyStatus {
+  deployment_name: string;
+  exposed: boolean;
+  domain?: string;
+  virtual_host_exists: boolean;
+  ssl_enabled: boolean;
+  certificate_exists: boolean;
+  certificate?: Certificate;
+}
+
+export interface ProxySetupResult {
+  deployment_name: string;
+  domain?: string;
+  success: boolean;
+  skipped: boolean;
+  message?: string;
+  virtual_host_created: boolean;
+  nginx_reloaded: boolean;
+  certificate_requested: boolean;
+  certificate_exists: boolean;
+  ssl_message?: string;
+  ssl_error?: string;
+}
+
+export interface VirtualHost {
+  name: string;
+  config_file: string;
+  modified_at: number;
 }
