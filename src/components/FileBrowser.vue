@@ -13,10 +13,10 @@
             </button>
           </template>
         </div>
-        <label class="view-toggle" :class="{ active: showAllFiles }">
-          <input v-model="showAllFiles" type="checkbox" />
-          <i class="pi pi-cog" />
-          All Files
+        <label class="view-toggle" :class="{ active: showHiddenFiles }">
+          <input v-model="showHiddenFiles" type="checkbox" />
+          <i class="pi pi-eye" />
+          Hidden
         </label>
         <div class="view-mode-toggle">
           <button
@@ -41,17 +41,15 @@
         <button class="btn btn-sm btn-secondary" @click="refreshFiles" :disabled="loading">
           <i :class="loading ? 'pi pi-spin pi-spinner' : 'pi pi-refresh'" />
         </button>
-        <template v-if="!showAllFiles">
-          <button class="btn btn-sm btn-secondary" @click="showNewFolderModal = true">
-            <i class="pi pi-folder-plus" />
-            New Folder
-          </button>
-          <label class="btn btn-sm btn-primary upload-btn">
-            <i class="pi pi-upload" />
-            Upload
-            <input type="file" multiple @change="handleFileSelect" hidden />
-          </label>
-        </template>
+        <button class="btn btn-sm btn-secondary" @click="showNewFolderModal = true">
+          <i class="pi pi-folder-plus" />
+          New Folder
+        </button>
+        <label class="btn btn-sm btn-primary upload-btn">
+          <i class="pi pi-upload" />
+          Upload
+          <input type="file" multiple @change="handleFileSelect" hidden />
+        </label>
       </div>
     </div>
 
@@ -77,15 +75,12 @@
       <div v-else-if="files.length === 0" class="empty-state">
         <i class="pi pi-folder-open" />
         <h3>No files yet</h3>
-        <p v-if="showAllFiles">No deployment files found</p>
-        <template v-else>
-          <p>Upload files or create folders to mount in your containers</p>
-          <label class="btn btn-primary upload-btn">
-            <i class="pi pi-upload" />
-            Upload Files
-            <input type="file" multiple @change="handleFileSelect" hidden />
-          </label>
-        </template>
+        <p>Upload files or create folders to get started</p>
+        <label class="btn btn-primary upload-btn">
+          <i class="pi pi-upload" />
+          Upload Files
+          <input type="file" multiple @change="handleFileSelect" hidden />
+        </label>
       </div>
 
       <div v-else-if="viewMode === 'list'" class="file-list">
@@ -118,6 +113,14 @@
           </span>
           <span class="col-actions" @click.stop>
             <button
+              v-if="!file.is_dir && isTextFile(file)"
+              class="action-btn"
+              title="View/Edit"
+              @click="openFileEditor(file)"
+            >
+              <i class="pi pi-pencil" />
+            </button>
+            <button
               v-if="!file.is_dir"
               class="action-btn"
               title="Download"
@@ -125,12 +128,7 @@
             >
               <i class="pi pi-download" />
             </button>
-            <button
-              v-if="!showAllFiles"
-              class="action-btn delete"
-              title="Delete"
-              @click="confirmDelete(file)"
-            >
+            <button class="action-btn delete" title="Delete" @click="confirmDelete(file)">
               <i class="pi pi-trash" />
             </button>
           </span>
@@ -161,6 +159,14 @@
           </div>
           <div class="grid-item-actions" @click.stop>
             <button
+              v-if="!file.is_dir && isTextFile(file)"
+              class="action-btn"
+              title="View/Edit"
+              @click="openFileEditor(file)"
+            >
+              <i class="pi pi-pencil" />
+            </button>
+            <button
               v-if="!file.is_dir"
               class="action-btn"
               title="Download"
@@ -168,12 +174,7 @@
             >
               <i class="pi pi-download" />
             </button>
-            <button
-              v-if="!showAllFiles"
-              class="action-btn delete"
-              title="Delete"
-              @click="confirmDelete(file)"
-            >
+            <button class="action-btn delete" title="Delete" @click="confirmDelete(file)">
               <i class="pi pi-trash" />
             </button>
           </div>
@@ -248,12 +249,56 @@
           </div>
         </div>
       </div>
+
+      <div v-if="showEditorModal" class="modal-overlay" @click.self="closeFileEditor">
+        <div class="modal-container editor-modal">
+          <div class="modal-header">
+            <h3>
+              <i class="pi pi-file-edit" />
+              {{ editingFile?.name }}
+            </h3>
+            <button class="close-btn" @click="closeFileEditor">
+              <i class="pi pi-times" />
+            </button>
+          </div>
+          <div class="modal-body editor-body">
+            <div v-if="loadingFileContent" class="loading-editor">
+              <i class="pi pi-spin pi-spinner" />
+              Loading file...
+            </div>
+            <Codemirror
+              v-else
+              v-model="fileContent"
+              :extensions="editorExtensions"
+              :style="{ height: '100%' }"
+            />
+          </div>
+          <div class="modal-footer">
+            <span v-if="fileModified" class="modified-indicator">
+              <i class="pi pi-circle-fill" />
+              Modified
+            </span>
+            <button class="btn btn-secondary" @click="closeFileEditor">Cancel</button>
+            <button
+              class="btn btn-primary"
+              :disabled="!fileModified || savingFile"
+              @click="saveFile"
+            >
+              <i :class="savingFile ? 'pi pi-spin pi-spinner' : 'pi pi-save'" />
+              Save
+            </button>
+          </div>
+        </div>
+      </div>
     </Teleport>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from "vue";
+import { Codemirror } from "vue-codemirror";
+import { yaml } from "@codemirror/lang-yaml";
+import { oneDark } from "@codemirror/theme-one-dark";
 import { filesApi, type FileInfo } from "@/services/api";
 import { useNotificationsStore } from "@/stores/notifications";
 
@@ -282,8 +327,19 @@ const showDeleteModal = ref(false);
 const fileToDelete = ref<FileInfo | null>(null);
 const deleting = ref(false);
 
-const showAllFiles = ref(false);
+const showHiddenFiles = ref(true);
 const viewMode = ref<"list" | "grid">("list");
+
+const showEditorModal = ref(false);
+const editingFile = ref<FileInfo | null>(null);
+const fileContent = ref("");
+const originalContent = ref("");
+const loadingFileContent = ref(false);
+const savingFile = ref(false);
+
+const editorExtensions = [yaml(), oneDark];
+
+const fileModified = computed(() => fileContent.value !== originalContent.value);
 
 const pathParts = computed(() => {
   return currentPath.value.split("/").filter((p) => p.length > 0);
@@ -302,12 +358,12 @@ const fetchFiles = async () => {
   loading.value = true;
   error.value = "";
   try {
-    const response = await filesApi.list(
-      props.deploymentName,
-      currentPath.value,
-      showAllFiles.value,
-    );
-    files.value = response.data.files || [];
+    const response = await filesApi.list(props.deploymentName, currentPath.value);
+    let fileList = response.data.files || [];
+    if (!showHiddenFiles.value) {
+      fileList = fileList.filter((f) => !f.name.startsWith("."));
+    }
+    files.value = fileList;
   } catch (err: any) {
     error.value = err.response?.data?.error || err.message || "Failed to load files";
     files.value = [];
@@ -382,7 +438,7 @@ const uploadFile = async (file: File) => {
 
 const downloadFile = async (file: FileInfo) => {
   try {
-    const response = await filesApi.download(props.deploymentName, file.path, showAllFiles.value);
+    const response = await filesApi.download(props.deploymentName, file.path);
     const blob = new Blob([response.data]);
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -493,13 +549,107 @@ const formatDate = (dateStr: string): string => {
   );
 };
 
+const textExtensions = [
+  "txt",
+  "md",
+  "json",
+  "js",
+  "ts",
+  "jsx",
+  "tsx",
+  "html",
+  "css",
+  "scss",
+  "yaml",
+  "yml",
+  "xml",
+  "env",
+  "sh",
+  "bash",
+  "py",
+  "rb",
+  "php",
+  "go",
+  "rs",
+  "toml",
+  "ini",
+  "conf",
+  "cfg",
+  "log",
+  "sql",
+  "dockerfile",
+  "gitignore",
+  "editorconfig",
+];
+
+const isTextFile = (file: FileInfo): boolean => {
+  const ext = file.name.split(".").pop()?.toLowerCase() || "";
+  const baseName = file.name.toLowerCase();
+  return (
+    textExtensions.includes(ext) ||
+    baseName === "dockerfile" ||
+    baseName === ".gitignore" ||
+    baseName === ".env" ||
+    baseName === ".editorconfig" ||
+    baseName.startsWith(".env")
+  );
+};
+
+const openFileEditor = async (file: FileInfo) => {
+  editingFile.value = file;
+  showEditorModal.value = true;
+  loadingFileContent.value = true;
+  fileContent.value = "";
+  originalContent.value = "";
+
+  try {
+    const response = await filesApi.getContent(props.deploymentName, file.path);
+    fileContent.value = response.data;
+    originalContent.value = response.data;
+  } catch (err: any) {
+    const msg = err.response?.data?.error || err.message || "Failed to load file";
+    notifications.error("Error", msg);
+    showEditorModal.value = false;
+  } finally {
+    loadingFileContent.value = false;
+  }
+};
+
+const closeFileEditor = () => {
+  if (fileModified.value) {
+    if (!confirm("You have unsaved changes. Are you sure you want to close?")) {
+      return;
+    }
+  }
+  showEditorModal.value = false;
+  editingFile.value = null;
+  fileContent.value = "";
+  originalContent.value = "";
+};
+
+const saveFile = async () => {
+  if (!editingFile.value) return;
+
+  savingFile.value = true;
+  try {
+    const blob = new Blob([fileContent.value], { type: "text/plain" });
+    const file = new File([blob], editingFile.value.name);
+    await filesApi.upload(props.deploymentName, editingFile.value.path, file);
+    originalContent.value = fileContent.value;
+    notifications.success("Saved", `${editingFile.value.name} saved successfully`);
+  } catch (err: any) {
+    const msg = err.response?.data?.error || err.message || "Failed to save file";
+    notifications.error("Save Failed", msg);
+  } finally {
+    savingFile.value = false;
+  }
+};
+
 watch(currentPath, () => {
   fetchFiles();
 });
 
-watch(showAllFiles, () => {
-  currentPath.value = "/";
-  selectedFiles.value = [];
+watch(showHiddenFiles, () => {
   fetchFiles();
 });
 
@@ -1044,5 +1194,77 @@ onMounted(() => {
     opacity: 1;
     transform: scale(1) translateY(0);
   }
+}
+
+.editor-modal {
+  width: 90vw;
+  max-width: 1200px;
+  height: 80vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.editor-modal .modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.editor-modal .modal-header h3 {
+  flex: 1;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  padding: var(--space-2);
+  cursor: pointer;
+  color: var(--color-gray-500);
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-base);
+}
+
+.close-btn:hover {
+  background: var(--color-gray-100);
+  color: var(--color-gray-700);
+}
+
+.editor-body {
+  flex: 1;
+  overflow: hidden;
+  padding: 0 !important;
+}
+
+.loading-editor {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: var(--space-2);
+  color: var(--color-gray-500);
+}
+
+.loading-editor i {
+  font-size: 2rem;
+}
+
+.modified-indicator {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--color-warning-500);
+  font-size: var(--text-sm);
+  margin-right: auto;
+}
+
+.modified-indicator i {
+  font-size: 8px;
+}
+
+.editor-modal .modal-footer {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
 }
 </style>

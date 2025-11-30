@@ -401,34 +401,89 @@
         </div>
 
         <div v-if="activeTab === 'config'" class="config-tab">
-          <div class="config-header">
-            <h3>Docker Compose Configuration</h3>
-            <div class="config-actions">
-              <button class="btn btn-sm btn-secondary" @click="copyConfig">
-                <i class="pi pi-copy" /> Copy
-              </button>
-              <button
-                v-if="!isEditingConfig"
-                class="btn btn-sm btn-primary"
-                @click="isEditingConfig = true"
-              >
-                <i class="pi pi-pencil" /> Edit
-              </button>
-              <template v-else>
-                <button class="btn btn-sm btn-secondary" @click="cancelConfigEdit">Cancel</button>
-                <button class="btn btn-sm btn-success" @click="saveConfig">
-                  <i class="pi pi-check" /> Save
+          <div class="config-sub-tabs">
+            <button
+              class="config-sub-tab"
+              :class="{ active: activeConfigTab === 'compose' }"
+              @click="activeConfigTab = 'compose'"
+            >
+              <i class="pi pi-file" />
+              docker-compose.yml
+            </button>
+            <button
+              class="config-sub-tab"
+              :class="{ active: activeConfigTab === 'service' }"
+              @click="activeConfigTab = 'service'"
+            >
+              <i class="pi pi-cog" />
+              service.yml
+            </button>
+          </div>
+
+          <div v-if="activeConfigTab === 'compose'" class="config-section">
+            <div class="config-header">
+              <h3>Docker Compose Configuration</h3>
+              <div class="config-actions">
+                <button class="btn btn-sm btn-secondary" @click="copyConfig">
+                  <i class="pi pi-copy" /> Copy
                 </button>
-              </template>
+                <button
+                  v-if="!isEditingConfig"
+                  class="btn btn-sm btn-primary"
+                  @click="isEditingConfig = true"
+                >
+                  <i class="pi pi-pencil" /> Edit
+                </button>
+                <template v-else>
+                  <button class="btn btn-sm btn-secondary" @click="cancelConfigEdit">Cancel</button>
+                  <button class="btn btn-sm btn-success" @click="saveConfig">
+                    <i class="pi pi-check" /> Save
+                  </button>
+                </template>
+              </div>
+            </div>
+            <div class="config-editor">
+              <Codemirror
+                v-model="composeConfig"
+                :extensions="configExtensions"
+                :disabled="!isEditingConfig"
+                :style="{ height: '500px' }"
+              />
             </div>
           </div>
-          <div class="config-editor">
-            <Codemirror
-              v-model="composeConfig"
-              :extensions="configExtensions"
-              :disabled="!isEditingConfig"
-              :style="{ height: '500px' }"
-            />
+
+          <div v-if="activeConfigTab === 'service'" class="config-section">
+            <div class="config-header">
+              <h3>Service Configuration</h3>
+              <div class="config-actions">
+                <button class="btn btn-sm btn-secondary" @click="copyServiceConfig">
+                  <i class="pi pi-copy" /> Copy
+                </button>
+                <button
+                  v-if="!isEditingServiceConfig"
+                  class="btn btn-sm btn-primary"
+                  @click="isEditingServiceConfig = true"
+                >
+                  <i class="pi pi-pencil" /> Edit
+                </button>
+                <template v-else>
+                  <button class="btn btn-sm btn-secondary" @click="cancelServiceConfigEdit">
+                    Cancel
+                  </button>
+                  <button class="btn btn-sm btn-success" @click="saveServiceConfig">
+                    <i class="pi pi-check" /> Save
+                  </button>
+                </template>
+              </div>
+            </div>
+            <div class="config-editor">
+              <Codemirror
+                v-model="serviceConfig"
+                :extensions="configExtensions"
+                :disabled="!isEditingServiceConfig"
+                :style="{ height: '500px' }"
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -598,7 +653,7 @@ import { useRoute, useRouter } from "vue-router";
 import { Codemirror } from "vue-codemirror";
 import { yaml } from "@codemirror/lang-yaml";
 import { oneDark } from "@codemirror/theme-one-dark";
-import { deploymentsApi, proxyApi, certificatesApi } from "@/services/api";
+import { deploymentsApi, proxyApi, certificatesApi, filesApi } from "@/services/api";
 import { useNotificationsStore } from "@/stores/notifications";
 import type { ProxyStatus } from "@/types";
 import FileBrowser from "@/components/FileBrowser.vue";
@@ -647,7 +702,10 @@ const showAddEnvModal = ref(false);
 
 const composeConfig = ref("");
 const isEditingConfig = ref(false);
+const serviceConfig = ref("");
+const isEditingServiceConfig = ref(false);
 const configExtensions = [yaml(), oneDark];
+const activeConfigTab = ref<"compose" | "service">("compose");
 
 const showOperationModal = ref(false);
 const operationTitle = ref("");
@@ -738,6 +796,18 @@ const fetchDeployment = async () => {
     } catch (composeErr) {
       composeConfig.value = "Error loading compose file";
       console.error("Failed to load compose file:", composeErr);
+    }
+
+    try {
+      const serviceResponse = await filesApi.getContent(
+        route.params.name as string,
+        "/service.yml",
+      );
+      serviceConfig.value = serviceResponse.data || "No service.yml found";
+    } catch (serviceErr) {
+      serviceConfig.value =
+        "# Service configuration not found\n# This file will be created when you save";
+      console.error("Failed to load service.yml:", serviceErr);
     }
 
     if (services.value.length > 0) {
@@ -943,11 +1013,22 @@ const copyConfig = () => {
   notifications.success("Copied", "Configuration copied to clipboard");
 };
 
+const copyServiceConfig = () => {
+  navigator.clipboard.writeText(serviceConfig.value);
+  notifications.success("Copied", "Service configuration copied to clipboard");
+};
+
 let originalConfig = "";
+let originalServiceConfig = "";
 
 const cancelConfigEdit = () => {
   composeConfig.value = originalConfig;
   isEditingConfig.value = false;
+};
+
+const cancelServiceConfigEdit = () => {
+  serviceConfig.value = originalServiceConfig;
+  isEditingServiceConfig.value = false;
 };
 
 const saveConfig = async () => {
@@ -964,9 +1045,30 @@ const saveConfig = async () => {
   }
 };
 
+const saveServiceConfig = async () => {
+  try {
+    const blob = new Blob([serviceConfig.value], { type: "text/yaml" });
+    const file = new File([blob], "service.yml", { type: "text/yaml" });
+    await filesApi.upload(route.params.name as string, "/service.yml", file);
+    originalServiceConfig = serviceConfig.value;
+    isEditingServiceConfig.value = false;
+    notifications.success("Saved", "Service configuration saved successfully");
+    await fetchDeployment();
+  } catch (err: any) {
+    const msg = err.response?.data?.error || err.message;
+    notifications.error("Save Failed", msg);
+  }
+};
+
 watch(isEditingConfig, (editing) => {
   if (editing) {
     originalConfig = composeConfig.value;
+  }
+});
+
+watch(isEditingServiceConfig, (editing) => {
+  if (editing) {
+    originalServiceConfig = serviceConfig.value;
   }
 });
 
@@ -1661,11 +1763,56 @@ onUnmounted(() => {
   padding: var(--space-4);
 }
 
+.config-sub-tabs {
+  display: flex;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+  border-bottom: 1px solid var(--color-gray-200);
+  padding-bottom: var(--space-2);
+}
+
+.config-sub-tab {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  border: none;
+  background: transparent;
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--color-gray-500);
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+.config-sub-tab:hover {
+  color: var(--color-gray-700);
+  background: var(--color-gray-100);
+}
+
+.config-sub-tab.active {
+  color: var(--color-primary-600);
+  background: var(--color-primary-50);
+}
+
+.config-sub-tab i {
+  font-size: var(--text-sm);
+}
+
+.config-section {
+  display: flex;
+  flex-direction: column;
+}
+
+.config-section .config-header {
+  margin-bottom: var(--space-3);
+}
+
 .config-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: var(--space-4);
 }
 
 .config-header h3 {
