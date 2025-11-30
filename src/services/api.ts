@@ -177,16 +177,15 @@ export interface FilesInfo {
 }
 
 export const filesApi = {
-  list: (deploymentName: string, path: string = "/", root: boolean = false) =>
-    apiClient.get<{ files: FileInfo[]; root: boolean }>(`/deployments/${deploymentName}/files`, {
-      params: { path, root: root ? "true" : undefined },
+  list: (deploymentName: string, path: string = "/") =>
+    apiClient.get<{ files: FileInfo[] }>(`/deployments/${deploymentName}/files`, {
+      params: { path },
     }),
   getInfo: (deploymentName: string) =>
     apiClient.get<FilesInfo>(`/deployments/${deploymentName}/files-info`),
-  download: (deploymentName: string, path: string, root: boolean = false) =>
+  download: (deploymentName: string, path: string) =>
     apiClient.get(`/deployments/${deploymentName}/files${path}`, {
       responseType: "blob",
-      params: { root: root ? "true" : undefined },
     }),
   upload: (deploymentName: string, path: string, file: File) => {
     const formData = new FormData();
@@ -199,6 +198,10 @@ export const filesApi = {
     apiClient.post(`/deployments/${deploymentName}/mkdir${path}`),
   delete: (deploymentName: string, path: string) =>
     apiClient.delete(`/deployments/${deploymentName}/files${path}`),
+  getContent: (deploymentName: string, path: string) =>
+    apiClient.get<string>(`/deployments/${deploymentName}/files${path}`, {
+      responseType: "text",
+    }),
 };
 
 export const portsApi = {

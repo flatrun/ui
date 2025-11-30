@@ -257,7 +257,15 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { healthApi, networksApi, certificatesApi, pluginsApi, portsApi } from "@/services/api";
+import {
+  healthApi,
+  networksApi,
+  certificatesApi,
+  pluginsApi,
+  portsApi,
+  systemServicesApi,
+  containersApi,
+} from "@/services/api";
 import Logo from "@/components/base/Logo.vue";
 
 const route = useRoute();
@@ -374,12 +382,15 @@ const checkAgentHealth = async () => {
       stats.memoryUsage = Math.floor(Math.random() * 40 + 20);
     }
 
-    const [networksRes, certsRes, pluginsRes, portsRes] = await Promise.allSettled([
-      networksApi.list(),
-      certificatesApi.list(),
-      pluginsApi.list(),
-      portsApi.list(),
-    ]);
+    const [networksRes, certsRes, pluginsRes, portsRes, servicesRes, containersRes] =
+      await Promise.allSettled([
+        networksApi.list(),
+        certificatesApi.list(),
+        pluginsApi.list(),
+        portsApi.list(),
+        systemServicesApi.list(),
+        containersApi.list(),
+      ]);
 
     if (networksRes.status === "fulfilled") {
       stats.networks = networksRes.value.data.networks?.length || 0;
@@ -392,6 +403,19 @@ const checkAgentHealth = async () => {
     }
     if (portsRes.status === "fulfilled") {
       stats.ports = portsRes.value.data.ports?.length || 0;
+    }
+    if (servicesRes.status === "fulfilled") {
+      stats.services = servicesRes.value.data.services?.length || 0;
+    }
+    if (containersRes.status === "fulfilled") {
+      const containers = containersRes.value.data.containers || [];
+      let portCount = 0;
+      for (const container of containers) {
+        if (Array.isArray(container.ports)) {
+          portCount += container.ports.length;
+        }
+      }
+      stats.dockerPorts = portCount;
     }
 
     try {
