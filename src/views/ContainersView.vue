@@ -24,36 +24,21 @@
             :class="{ active: activeFilter === filter.value }"
             @click="activeFilter = filter.value"
           >
-            <span
-              class="filter-count"
-              :class="filter.value"
-            >{{
-              filter.count
-            }}</span>
+            <span class="filter-count" :class="filter.value">{{ filter.count }}</span>
             {{ filter.label }}
           </button>
         </div>
       </template>
 
       <template #actions>
-        <button
-          class="btn btn-secondary"
-          :disabled="loading"
-          @click="fetchContainers"
-        >
-          <RefreshCw
-            :size="16"
-            :class="{ spinning: loading }"
-          />
+        <button class="btn btn-secondary" :disabled="loading" @click="fetchContainers">
+          <RefreshCw :size="16" :class="{ spinning: loading }" />
           Refresh
         </button>
       </template>
 
       <template #cell-status="{ item }">
-        <span
-          class="status-indicator"
-          :class="item.state"
-        />
+        <span class="status-indicator" :class="item.state" />
       </template>
 
       <template #cell-name="{ item }">
@@ -72,10 +57,7 @@
           <Link :size="12" />
           {{ item.deployment }}
         </button>
-        <span
-          v-else
-          class="no-deployment"
-        >-</span>
+        <span v-else class="no-deployment">-</span>
       </template>
 
       <template #cell-image="{ item }">
@@ -84,17 +66,8 @@
 
       <template #cell-ports="{ item }">
         <div class="ports-list">
-          <span
-            v-for="port in item.ports"
-            :key="port"
-            class="port-badge"
-          >{{
-            port
-          }}</span>
-          <span
-            v-if="!item.ports?.length"
-            class="no-ports"
-          >-</span>
+          <span v-for="port in item.ports" :key="port" class="port-badge">{{ port }}</span>
+          <span v-if="!item.ports?.length" class="no-ports">-</span>
         </div>
       </template>
 
@@ -127,40 +100,23 @@
           >
             <RotateCw :size="14" />
           </button>
-          <button
-            class="action-btn logs"
-            title="Logs"
-            @click.stop="showLogs(item.id, item.name)"
-          >
+          <button class="action-btn logs" title="Logs" @click.stop="showLogs(item.id, item.name)">
             <FileText :size="14" />
           </button>
-          <button
-            class="action-btn delete"
-            title="Remove"
-            @click.stop="deleteContainer(item.id)"
-          >
+          <button class="action-btn delete" title="Remove" @click.stop="deleteContainer(item.id)">
             <Trash2 :size="14" />
           </button>
         </div>
       </template>
 
       <template #bulk-actions="{ selectedItems, clearSelection }">
-        <button
-          class="btn btn-sm btn-secondary"
-          @click="bulkStart(selectedItems, clearSelection)"
-        >
+        <button class="btn btn-sm btn-secondary" @click="bulkStart(selectedItems, clearSelection)">
           <Play :size="14" /> Start
         </button>
-        <button
-          class="btn btn-sm btn-secondary"
-          @click="bulkStop(selectedItems, clearSelection)"
-        >
+        <button class="btn btn-sm btn-secondary" @click="bulkStop(selectedItems, clearSelection)">
           <Square :size="14" /> Stop
         </button>
-        <button
-          class="btn btn-sm btn-danger"
-          @click="bulkRemove(selectedItems, clearSelection)"
-        >
+        <button class="btn btn-sm btn-danger" @click="bulkRemove(selectedItems, clearSelection)">
           <Trash2 :size="14" /> Remove
         </button>
       </template>

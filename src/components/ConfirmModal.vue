@@ -1,11 +1,7 @@
 <template>
   <Teleport to="body">
     <Transition name="modal">
-      <div
-        v-if="visible"
-        class="modal-overlay"
-        @click.self="!loading && emit('cancel')"
-      >
+      <div v-if="visible" class="modal-overlay" @click.self="!loading && emit('cancel')">
         <div class="confirm-modal" :class="variant">
           <div class="modal-header">
             <div class="header-icon" :class="variant">
@@ -18,11 +14,7 @@
             <p v-if="warning" class="warning-text">{{ warning }}</p>
           </div>
           <div class="modal-footer">
-            <button
-              class="btn btn-secondary"
-              :disabled="loading"
-              @click="emit('cancel')"
-            >
+            <button class="btn btn-secondary" :disabled="loading" @click="emit('cancel')">
               {{ cancelText }}
             </button>
             <button
@@ -60,7 +52,7 @@ const props = withDefaults(
     confirmText: "Confirm",
     cancelText: "Cancel",
     loading: false,
-  }
+  },
 );
 
 const emit = defineEmits<{

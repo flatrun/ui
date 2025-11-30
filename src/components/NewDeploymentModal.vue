@@ -11,15 +11,9 @@
   >
     <div class="wizard-container">
       <!-- Progress Steps -->
-      <div
-        v-if="currentStep > 0"
-        class="wizard-progress"
-      >
+      <div v-if="currentStep > 0" class="wizard-progress">
         <div class="progress-track">
-          <div
-            class="progress-fill"
-            :style="{ width: progressWidth }"
-          />
+          <div class="progress-fill" :style="{ width: progressWidth }" />
         </div>
         <div class="steps-row">
           <div
@@ -32,10 +26,7 @@
             }"
           >
             <div class="step-indicator">
-              <i
-                v-if="currentStep > index + 1"
-                class="pi pi-check"
-              />
+              <i v-if="currentStep > index + 1" class="pi pi-check" />
               <span v-else>{{ index + 1 }}</span>
             </div>
             <span class="step-label">{{ step.label }}</span>
@@ -45,15 +36,9 @@
 
       <!-- Step Content -->
       <div class="wizard-content">
-        <Transition
-          name="slide"
-          mode="out-in"
-        >
+        <Transition name="slide" mode="out-in">
           <!-- Step 0: Mode Selection -->
-          <div
-            v-if="currentStep === 0"
-            class="step-panel mode-selection-panel"
-          >
+          <div v-if="currentStep === 0" class="step-panel mode-selection-panel">
             <div class="mode-selection">
               <h3 class="mode-title">How would you like to deploy?</h3>
               <p class="mode-subtitle">Choose the deployment method that works best for you</p>
@@ -103,10 +88,7 @@
           </div>
 
           <!-- Step 1: Basic Info -->
-          <div
-            v-else-if="currentStep === 1"
-            class="step-panel"
-          >
+          <div v-else-if="currentStep === 1" class="step-panel">
             <div class="step1-grid">
               <!-- Left: Name & Domain -->
               <div class="step1-left">
@@ -131,22 +113,13 @@
                         placeholder="my-app"
                         :class="{ error: errors.name }"
                         @input="onNameChange"
-                      >
-                      <span
-                        v-if="form.name && !errors.name"
-                        class="input-icon success"
-                      >
+                      />
+                      <span v-if="form.name && !errors.name" class="input-icon success">
                         <i class="pi pi-check" />
                       </span>
                     </div>
-                    <span
-                      v-if="errors.name"
-                      class="field-error"
-                    >{{ errors.name }}</span>
-                    <span
-                      v-else
-                      class="field-hint"
-                    >Lowercase letters, numbers, and hyphens</span>
+                    <span v-if="errors.name" class="field-error">{{ errors.name }}</span>
+                    <span v-else class="field-hint">Lowercase letters, numbers, and hyphens</span>
                   </div>
                 </div>
 
@@ -158,13 +131,10 @@
                     <h4>Domain</h4>
                   </div>
 
-                  <div
-                    v-if="domainSettings.default_domain"
-                    class="domain-preview"
-                  >
+                  <div v-if="domainSettings.default_domain" class="domain-preview">
                     <div class="domain-url">
                       <span class="protocol">https://</span>
-                      <span class="domain-text">{{ generatedDomain || 'generating...' }}</span>
+                      <span class="domain-text">{{ generatedDomain || "generating..." }}</span>
                       <button
                         class="refresh-domain-btn"
                         title="Generate new subdomain"
@@ -177,10 +147,7 @@
 
                   <div class="toggle-option">
                     <label class="toggle-label">
-                      <input
-                        v-model="form.useCustomDomain"
-                        type="checkbox"
-                      >
+                      <input v-model="form.useCustomDomain" type="checkbox" />
                       <span class="toggle-text">Use custom domain</span>
                     </label>
                   </div>
@@ -197,7 +164,7 @@
                           v-model="form.networking.domain"
                           type="text"
                           placeholder="app.example.com"
-                        >
+                        />
                       </div>
                     </div>
                   </Transition>
@@ -205,23 +172,14 @@
                   <div class="ssl-options">
                     <div class="toggle-option">
                       <label class="toggle-label">
-                        <input
-                          v-model="form.ssl.enabled"
-                          type="checkbox"
-                        >
+                        <input v-model="form.ssl.enabled" type="checkbox" />
                         <span class="toggle-text">Enable HTTPS</span>
                       </label>
                     </div>
                     <Transition name="expand">
-                      <div
-                        v-if="form.ssl.enabled"
-                        class="toggle-option nested"
-                      >
+                      <div v-if="form.ssl.enabled" class="toggle-option nested">
                         <label class="toggle-label">
-                          <input
-                            v-model="form.ssl.autoCert"
-                            type="checkbox"
-                          >
+                          <input v-model="form.ssl.autoCert" type="checkbox" />
                           <span class="toggle-text">Auto-provision certificate</span>
                         </label>
                       </div>
@@ -231,10 +189,7 @@
               </div>
 
               <!-- Right: Template Selection (Easy Mode Only) -->
-              <div
-                v-if="deploymentMode === 'easy'"
-                class="step1-right"
-              >
+              <div v-if="deploymentMode === 'easy'" class="step1-right">
                 <div class="section-card templates-card">
                   <div class="section-header compact">
                     <div class="section-icon small">
@@ -243,17 +198,11 @@
                     <h4>Template</h4>
                   </div>
 
-                  <div
-                    v-if="loadingQuickApps"
-                    class="templates-loading"
-                  >
+                  <div v-if="loadingQuickApps" class="templates-loading">
                     <i class="pi pi-spin pi-spinner" />
                   </div>
 
-                  <div
-                    v-else
-                    class="templates-list"
-                  >
+                  <div v-else class="templates-list">
                     <button
                       v-for="app in displayedQuickApps"
                       :key="app.id"
@@ -266,12 +215,11 @@
                       </div>
                       <div class="template-info">
                         <span class="template-name">{{ app.name }}</span>
-                        <span class="template-desc">{{ app.description || 'Ready to deploy' }}</span>
+                        <span class="template-desc">{{
+                          app.description || "Ready to deploy"
+                        }}</span>
                       </div>
-                      <i
-                        v-if="selectedQuickApp === app.id"
-                        class="pi pi-check template-check"
-                      />
+                      <i v-if="selectedQuickApp === app.id" class="pi pi-check template-check" />
                     </button>
 
                     <button
@@ -286,10 +234,7 @@
                         <span class="template-name">Custom</span>
                         <span class="template-desc">Write your own compose</span>
                       </div>
-                      <i
-                        v-if="selectedQuickApp === 'custom'"
-                        class="pi pi-check template-check"
-                      />
+                      <i v-if="selectedQuickApp === 'custom'" class="pi pi-check template-check" />
                     </button>
                   </div>
                 </div>
@@ -298,10 +243,7 @@
           </div>
 
           <!-- Step 2: Database -->
-          <div
-            v-else-if="currentStep === 2"
-            class="step-panel"
-          >
+          <div v-else-if="currentStep === 2" class="step-panel">
             <div class="database-step">
               <div class="section-card">
                 <div class="section-header compact">
@@ -324,10 +266,7 @@
                       <span class="db-option-name">No Database</span>
                       <span class="db-option-desc">Skip database setup</span>
                     </div>
-                    <i
-                      v-if="form.database.type === 'none'"
-                      class="pi pi-check db-check"
-                    />
+                    <i v-if="form.database.type === 'none'" class="pi pi-check db-check" />
                   </button>
 
                   <button
@@ -342,10 +281,7 @@
                       <span class="db-option-name">MySQL</span>
                       <span class="db-option-desc">Popular relational database</span>
                     </div>
-                    <i
-                      v-if="form.database.type === 'mysql'"
-                      class="pi pi-check db-check"
-                    />
+                    <i v-if="form.database.type === 'mysql'" class="pi pi-check db-check" />
                   </button>
 
                   <button
@@ -360,10 +296,7 @@
                       <span class="db-option-name">PostgreSQL</span>
                       <span class="db-option-desc">Advanced open source database</span>
                     </div>
-                    <i
-                      v-if="form.database.type === 'postgres'"
-                      class="pi pi-check db-check"
-                    />
+                    <i v-if="form.database.type === 'postgres'" class="pi pi-check db-check" />
                   </button>
 
                   <button
@@ -378,10 +311,7 @@
                       <span class="db-option-name">MariaDB</span>
                       <span class="db-option-desc">MySQL-compatible fork</span>
                     </div>
-                    <i
-                      v-if="form.database.type === 'mariadb'"
-                      class="pi pi-check db-check"
-                    />
+                    <i v-if="form.database.type === 'mariadb'" class="pi pi-check db-check" />
                   </button>
 
                   <button
@@ -396,19 +326,13 @@
                       <span class="db-option-name">MongoDB</span>
                       <span class="db-option-desc">NoSQL document database</span>
                     </div>
-                    <i
-                      v-if="form.database.type === 'mongodb'"
-                      class="pi pi-check db-check"
-                    />
+                    <i v-if="form.database.type === 'mongodb'" class="pi pi-check db-check" />
                   </button>
                 </div>
               </div>
 
               <Transition name="expand">
-                <div
-                  v-if="form.database.type !== 'none'"
-                  class="database-config"
-                >
+                <div v-if="form.database.type !== 'none'" class="database-config">
                   <!-- Connection Mode -->
                   <div class="section-card">
                     <div class="section-header compact">
@@ -465,10 +389,7 @@
 
                   <!-- Existing Container Selection -->
                   <Transition name="expand">
-                    <div
-                      v-if="form.database.mode === 'existing'"
-                      class="section-card"
-                    >
+                    <div v-if="form.database.mode === 'existing'" class="section-card">
                       <div class="section-header compact">
                         <div class="section-icon small">
                           <i class="pi pi-server" />
@@ -479,43 +400,30 @@
                           :disabled="loadingDbContainers"
                           @click="loadExistingDbContainers"
                         >
-                          <i
-                            class="pi pi-refresh"
-                            :class="{ 'pi-spin': loadingDbContainers }"
-                          />
+                          <i class="pi pi-refresh" :class="{ 'pi-spin': loadingDbContainers }" />
                         </button>
                       </div>
 
                       <div class="existing-containers">
-                        <div
-                          v-if="loadingDbContainers"
-                          class="loading-containers"
-                        >
+                        <div v-if="loadingDbContainers" class="loading-containers">
                           <i class="pi pi-spin pi-spinner" />
                           <span>Loading containers...</span>
                         </div>
-                        <div
-                          v-else-if="filteredDbContainers.length === 0"
-                          class="no-containers"
-                        >
+                        <div v-else-if="filteredDbContainers.length === 0" class="no-containers">
                           <i class="pi pi-info-circle" />
                           <span>No {{ form.database.type }} containers found</span>
-                          <button
-                            class="switch-mode-btn"
-                            @click="form.database.mode = 'create'"
-                          >
+                          <button class="switch-mode-btn" @click="form.database.mode = 'create'">
                             Create new instead
                           </button>
                         </div>
-                        <div
-                          v-else
-                          class="container-list"
-                        >
+                        <div v-else class="container-list">
                           <button
                             v-for="container in filteredDbContainers"
                             :key="container.id"
                             class="container-option"
-                            :class="{ selected: form.database.existingContainer === container.name }"
+                            :class="{
+                              selected: form.database.existingContainer === container.name,
+                            }"
                             @click="selectExistingContainer(container)"
                           >
                             <div class="container-icon">
@@ -537,10 +445,7 @@
 
                   <!-- External Database Config -->
                   <Transition name="expand">
-                    <div
-                      v-if="form.database.mode === 'external'"
-                      class="section-card"
-                    >
+                    <div v-if="form.database.mode === 'external'" class="section-card">
                       <div class="section-header compact">
                         <div class="section-icon small">
                           <i class="pi pi-globe" />
@@ -560,7 +465,7 @@
                               v-model="form.database.externalHost"
                               type="text"
                               placeholder="db.example.com"
-                            >
+                            />
                           </div>
                           <div class="form-field port-field">
                             <label for="externalPort">
@@ -572,7 +477,7 @@
                               v-model="form.database.externalPort"
                               type="text"
                               :placeholder="getDefaultPort(form.database.type)"
-                            >
+                            />
                           </div>
                         </div>
                       </div>
@@ -596,7 +501,7 @@
                           v-model="form.database.dbName"
                           type="text"
                           :placeholder="form.name ? form.name.replace(/-/g, '_') : 'app_db'"
-                        >
+                        />
                       </div>
 
                       <div class="form-row">
@@ -607,38 +512,32 @@
                             v-model="form.database.dbUser"
                             type="text"
                             placeholder="app"
-                          >
+                          />
                         </div>
 
                         <div class="form-field">
                           <label for="dbPassword">
                             Password
-                            <span
-                              v-if="form.database.mode === 'create'"
-                              class="required"
-                            >*</span>
+                            <span v-if="form.database.mode === 'create'" class="required">*</span>
                           </label>
                           <input
                             id="dbPassword"
                             v-model="form.database.dbPassword"
                             type="password"
                             placeholder="••••••••"
-                          >
+                          />
                         </div>
                       </div>
 
                       <Transition name="expand">
-                        <div
-                          v-if="form.database.mode === 'create'"
-                          class="form-field"
-                        >
+                        <div v-if="form.database.mode === 'create'" class="form-field">
                           <label for="dbRootPassword">Root Password</label>
                           <input
                             id="dbRootPassword"
                             v-model="form.database.dbRootPassword"
                             type="password"
                             placeholder="Leave empty to use same as password"
-                          >
+                          />
                           <span class="field-hint">Admin password for new database</span>
                         </div>
                       </Transition>
@@ -671,12 +570,9 @@
                           class="status error"
                         >
                           <i class="pi pi-times-circle" />
-                          <span>{{ form.database.connectionError || 'Connection failed' }}</span>
+                          <span>{{ form.database.connectionError || "Connection failed" }}</span>
                         </div>
-                        <div
-                          v-else
-                          class="status idle"
-                        >
+                        <div v-else class="status idle">
                           <i class="pi pi-info-circle" />
                           <span>Test connection before proceeding</span>
                         </div>
@@ -706,15 +602,26 @@
                     <div class="preview-content">
                       <div class="preview-item">
                         <span class="preview-label">Connection</span>
-                        <code class="preview-value">{{ form.database.mode === 'existing' ? form.database.existingContainer : form.database.externalHost }}:{{ form.database.externalPort || getDefaultPort(form.database.type) }}</code>
+                        <code class="preview-value"
+                          >{{
+                            form.database.mode === "existing"
+                              ? form.database.existingContainer
+                              : form.database.externalHost
+                          }}:{{
+                            form.database.externalPort || getDefaultPort(form.database.type)
+                          }}</code
+                        >
                       </div>
                       <div class="preview-item">
                         <span class="preview-label">Database</span>
-                        <code class="preview-value">{{ form.database.dbName || (form.name ? form.name.replace(/-/g, '_') : 'app_db') }}</code>
+                        <code class="preview-value">{{
+                          form.database.dbName ||
+                          (form.name ? form.name.replace(/-/g, "_") : "app_db")
+                        }}</code>
                       </div>
                       <div class="preview-item">
                         <span class="preview-label">User</span>
-                        <code class="preview-value">{{ form.database.dbUser || 'app' }}</code>
+                        <code class="preview-value">{{ form.database.dbUser || "app" }}</code>
                       </div>
                       <div class="preview-hint">
                         <i class="pi pi-info-circle" />
@@ -724,10 +631,7 @@
                   </div>
 
                   <!-- Create Mode Preview -->
-                  <div
-                    v-if="form.database.mode === 'create'"
-                    class="section-card config-preview"
-                  >
+                  <div v-if="form.database.mode === 'create'" class="section-card config-preview">
                     <div class="section-header compact">
                       <div class="section-icon small">
                         <i class="pi pi-code" />
@@ -748,10 +652,7 @@
           </div>
 
           <!-- Step 3: Configuration -->
-          <div
-            v-else-if="currentStep === 3"
-            class="step-panel"
-          >
+          <div v-else-if="currentStep === 3" class="step-panel">
             <div class="step2-layout">
               <!-- Compose Editor -->
               <div class="compose-section">
@@ -761,18 +662,10 @@
                     <span>docker-compose.yml</span>
                   </div>
                   <div class="compose-actions">
-                    <button
-                      class="action-btn"
-                      title="Format"
-                      @click="formatCompose"
-                    >
+                    <button class="action-btn" title="Format" @click="formatCompose">
                       <i class="pi pi-align-left" />
                     </button>
-                    <button
-                      class="action-btn"
-                      title="Copy"
-                      @click="copyCompose"
-                    >
+                    <button class="action-btn" title="Copy" @click="copyCompose">
                       <i class="pi pi-copy" />
                     </button>
                   </div>
@@ -786,10 +679,7 @@
                     placeholder="# Docker Compose configuration..."
                   />
                 </div>
-                <div
-                  v-if="errors.composeContent"
-                  class="compose-error"
-                >
+                <div v-if="errors.composeContent" class="compose-error">
                   <i class="pi pi-exclamation-circle" />
                   {{ errors.composeContent }}
                 </div>
@@ -806,32 +696,14 @@
                     <h4>Environment</h4>
                   </div>
                   <div class="env-section">
-                    <div
-                      v-for="(env, index) in form.envVars"
-                      :key="index"
-                      class="env-row"
-                    >
-                      <input
-                        v-model="env.key"
-                        placeholder="KEY"
-                        class="env-key"
-                      >
-                      <input
-                        v-model="env.value"
-                        placeholder="value"
-                        class="env-value"
-                      >
-                      <button
-                        class="env-remove"
-                        @click="removeEnvVar(index)"
-                      >
+                    <div v-for="(env, index) in form.envVars" :key="index" class="env-row">
+                      <input v-model="env.key" placeholder="KEY" class="env-key" />
+                      <input v-model="env.value" placeholder="value" class="env-value" />
+                      <button class="env-remove" @click="removeEnvVar(index)">
                         <i class="pi pi-times" />
                       </button>
                     </div>
-                    <button
-                      class="add-env-btn"
-                      @click="addEnvVar"
-                    >
+                    <button class="add-env-btn" @click="addEnvVar">
                       <i class="pi pi-plus" />
                       Add Variable
                     </button>
@@ -854,14 +726,11 @@
                         v-model.number="form.networking.containerPort"
                         type="number"
                         placeholder="80"
-                      >
+                      />
                     </div>
                     <div class="form-field compact">
                       <label for="protocol">Protocol</label>
-                      <select
-                        id="protocol"
-                        v-model="form.networking.protocol"
-                      >
+                      <select id="protocol" v-model="form.networking.protocol">
                         <option value="http">HTTP</option>
                         <option value="https">HTTPS</option>
                       </select>
@@ -880,10 +749,7 @@
                   <div class="options-section">
                     <div class="toggle-option">
                       <label class="toggle-label">
-                        <input
-                          v-model="form.autoStart"
-                          type="checkbox"
-                        >
+                        <input v-model="form.autoStart" type="checkbox" />
                         <span class="toggle-text">Start after creation</span>
                       </label>
                     </div>
@@ -894,10 +760,7 @@
           </div>
 
           <!-- Step 4: Review -->
-          <div
-            v-else-if="currentStep === 4"
-            class="step-panel"
-          >
+          <div v-else-if="currentStep === 4" class="step-panel">
             <div class="review-container">
               <div class="review-card">
                 <div class="review-header">
@@ -919,10 +782,7 @@
                     <span class="review-label">Template</span>
                     <span class="review-value">{{ selectedQuickAppName }}</span>
                   </div>
-                  <div
-                    v-if="effectiveDomain"
-                    class="review-item full-width"
-                  >
+                  <div v-if="effectiveDomain" class="review-item full-width">
                     <span class="review-label">Domain</span>
                     <span class="review-value domain">
                       <i class="pi pi-link" />
@@ -931,28 +791,21 @@
                   </div>
                   <div class="review-item">
                     <span class="review-label">SSL</span>
-                    <span
-                      class="review-badge"
-                      :class="form.ssl.enabled ? 'success' : 'neutral'"
-                    >
-                      {{ form.ssl.enabled ? 'Enabled' : 'Disabled' }}
+                    <span class="review-badge" :class="form.ssl.enabled ? 'success' : 'neutral'">
+                      {{ form.ssl.enabled ? "Enabled" : "Disabled" }}
                     </span>
                   </div>
                   <div class="review-item">
                     <span class="review-label">Auto Start</span>
-                    <span
-                      class="review-badge"
-                      :class="form.autoStart ? 'success' : 'neutral'"
-                    >
-                      {{ form.autoStart ? 'Yes' : 'No' }}
+                    <span class="review-badge" :class="form.autoStart ? 'success' : 'neutral'">
+                      {{ form.autoStart ? "Yes" : "No" }}
                     </span>
                   </div>
-                  <div
-                    v-if="form.envVars.length"
-                    class="review-item"
-                  >
+                  <div v-if="form.envVars.length" class="review-item">
                     <span class="review-label">Env Vars</span>
-                    <span class="review-value">{{ form.envVars.filter(e => e.key).length }} defined</span>
+                    <span class="review-value"
+                      >{{ form.envVars.filter((e) => e.key).length }} defined</span
+                    >
                   </div>
                 </div>
 
@@ -962,7 +815,10 @@
                     <span>Docker Compose</span>
                     <span class="compose-lines">{{ composeLineCount }} lines</span>
                   </div>
-                  <pre class="compose-preview-code">{{ form.composeContent.slice(0, 400) }}{{ form.composeContent.length > 400 ? '\n...' : '' }}</pre>
+                  <pre class="compose-preview-code"
+                    >{{ form.composeContent.slice(0, 400)
+                    }}{{ form.composeContent.length > 400 ? "\n..." : "" }}</pre
+                  >
                 </div>
               </div>
             </div>
@@ -973,30 +829,20 @@
 
     <template #footer>
       <div class="footer-left">
-        <button
-          v-if="currentStep > 0"
-          class="btn btn-ghost"
-          @click="currentStep--"
-        >
+        <button v-if="currentStep > 0" class="btn btn-ghost" @click="currentStep--">
           <i class="pi pi-arrow-left" />
-          {{ currentStep === 1 ? 'Change Mode' : 'Back' }}
+          {{ currentStep === 1 ? "Change Mode" : "Back" }}
         </button>
       </div>
       <div class="footer-right">
-        <button
-          class="btn btn-secondary"
-          :disabled="creating"
-          @click="handleClose"
-        >
-          Cancel
-        </button>
+        <button class="btn btn-secondary" :disabled="creating" @click="handleClose">Cancel</button>
         <button
           v-if="currentStep < steps.length"
           class="btn btn-primary"
           :disabled="!canProceed"
           @click="nextStep"
         >
-          {{ currentStep === 0 ? 'Get Started' : 'Continue' }}
+          {{ currentStep === 0 ? "Get Started" : "Continue" }}
           <i class="pi pi-arrow-right" />
         </button>
         <button
@@ -1005,14 +851,8 @@
           :disabled="creating"
           @click="handleCreate"
         >
-          <i
-            v-if="creating"
-            class="pi pi-spin pi-spinner"
-          />
-          <i
-            v-else
-            class="pi pi-rocket"
-          />
+          <i v-if="creating" class="pi pi-spin pi-spinner" />
+          <i v-else class="pi pi-rocket" />
           {{ creating ? "Creating..." : "Deploy" }}
         </button>
       </div>
@@ -1342,7 +1182,7 @@ const loadExistingDbContainers = async () => {
 const filteredDbContainers = computed(() => {
   if (form.database.type === "none") return [];
   return existingDbContainers.value.filter(
-    (c) => c.type === form.database.type || c.type === "unknown"
+    (c) => c.type === form.database.type || c.type === "unknown",
   );
 });
 
@@ -1401,21 +1241,30 @@ const getDatabaseEnvVars = () => {
     envVars.push({ key: "DB_DATABASE", value: dbName });
     envVars.push({ key: "DB_USERNAME", value: db.dbUser || "app" });
     envVars.push({ key: "DB_PASSWORD", value: db.dbPassword });
-    envVars.push({ key: "DATABASE_URL", value: `mysql://${db.dbUser || "app"}:${db.dbPassword}@${dbHost}:${dbPort}/${dbName}` });
+    envVars.push({
+      key: "DATABASE_URL",
+      value: `mysql://${db.dbUser || "app"}:${db.dbPassword}@${dbHost}:${dbPort}/${dbName}`,
+    });
   } else if (db.type === "postgres") {
     envVars.push({ key: "DB_HOST", value: dbHost });
     envVars.push({ key: "DB_PORT", value: dbPort });
     envVars.push({ key: "DB_DATABASE", value: dbName });
     envVars.push({ key: "DB_USERNAME", value: db.dbUser || "app" });
     envVars.push({ key: "DB_PASSWORD", value: db.dbPassword });
-    envVars.push({ key: "DATABASE_URL", value: `postgres://${db.dbUser || "app"}:${db.dbPassword}@${dbHost}:${dbPort}/${dbName}` });
+    envVars.push({
+      key: "DATABASE_URL",
+      value: `postgres://${db.dbUser || "app"}:${db.dbPassword}@${dbHost}:${dbPort}/${dbName}`,
+    });
   } else if (db.type === "mongodb") {
     envVars.push({ key: "MONGO_HOST", value: dbHost });
     envVars.push({ key: "MONGO_PORT", value: dbPort });
     envVars.push({ key: "MONGO_DATABASE", value: dbName });
     envVars.push({ key: "MONGO_USERNAME", value: db.dbUser || "app" });
     envVars.push({ key: "MONGO_PASSWORD", value: db.dbPassword });
-    envVars.push({ key: "MONGODB_URI", value: `mongodb://${db.dbUser || "app"}:${db.dbPassword}@${dbHost}:${dbPort}/${dbName}` });
+    envVars.push({
+      key: "MONGODB_URI",
+      value: `mongodb://${db.dbUser || "app"}:${db.dbPassword}@${dbHost}:${dbPort}/${dbName}`,
+    });
   }
 
   return envVars;
@@ -1551,6 +1400,7 @@ watch(
   () => props.visible,
   async (val) => {
     if (val) {
+      creating.value = false;
       form.name = "";
       form.composeContent = "";
       form.envVars = [];
@@ -1622,7 +1472,7 @@ const rebuildComposeWithDatabase = () => {
           /(services:\s*\n\s*app:.*?\n)((\s+\S.*\n)*)/m,
           (match, serviceStart, props) => {
             return serviceStart + `    depends_on:\n      - db\n` + props;
-          }
+          },
         );
       }
 
@@ -1662,7 +1512,20 @@ const rebuildComposeWithDatabase = () => {
 
   // Update environment variables
   const dbEnvVars = getDatabaseEnvVars();
-  const dbKeys = ["DB_HOST", "DB_PORT", "DB_DATABASE", "DB_USERNAME", "DB_PASSWORD", "DATABASE_URL", "MONGO_HOST", "MONGO_PORT", "MONGO_DATABASE", "MONGO_USERNAME", "MONGO_PASSWORD", "MONGODB_URI"];
+  const dbKeys = [
+    "DB_HOST",
+    "DB_PORT",
+    "DB_DATABASE",
+    "DB_USERNAME",
+    "DB_PASSWORD",
+    "DATABASE_URL",
+    "MONGO_HOST",
+    "MONGO_PORT",
+    "MONGO_DATABASE",
+    "MONGO_USERNAME",
+    "MONGO_PASSWORD",
+    "MONGODB_URI",
+  ];
   form.envVars = form.envVars.filter((e) => !dbKeys.includes(e.key));
   for (const env of dbEnvVars) {
     form.envVars.push(env);
@@ -1705,7 +1568,12 @@ networks:
 };
 
 watch(currentStep, (newStep, oldStep) => {
-  if (deploymentMode.value === "easy" && newStep === 3 && oldStep === 2 && form.database.type !== "none") {
+  if (
+    deploymentMode.value === "easy" &&
+    newStep === 3 &&
+    oldStep === 2 &&
+    form.database.type !== "none"
+  ) {
     rebuildComposeWithDatabase();
   }
 });
@@ -1717,7 +1585,7 @@ watch(
       // Preview will be updated when moving to next step
     }
   },
-  { deep: true }
+  { deep: true },
 );
 
 const validate = () => {
@@ -1791,9 +1659,7 @@ const handleCreate = async () => {
 };
 
 const handleClose = () => {
-  if (!creating.value) {
-    emit("close");
-  }
+  emit("close");
 };
 </script>
 
@@ -1888,8 +1754,14 @@ const handleClose = () => {
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateX(10px); }
-  to { opacity: 1; transform: translateX(0); }
+  from {
+    opacity: 0;
+    transform: translateX(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 /* Section Cards */

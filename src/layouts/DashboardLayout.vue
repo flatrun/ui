@@ -1,17 +1,11 @@
 <template>
   <div class="dashboard-layout">
-    <aside
-      class="sidebar"
-      :class="{ collapsed: sidebarCollapsed }"
-    >
+    <aside class="sidebar" :class="{ collapsed: sidebarCollapsed }">
       <div class="logo">
         <span class="logo-text">{{ sidebarCollapsed ? "F" : "FlatRun" }}</span>
       </div>
 
-      <div
-        v-if="!sidebarCollapsed"
-        class="environment-selector"
-      >
+      <div v-if="!sidebarCollapsed" class="environment-selector">
         <div class="env-current">
           <i class="pi pi-server" />
           <span>Local Environment</span>
@@ -20,39 +14,23 @@
       </div>
 
       <nav class="nav-menu">
-        <router-link
-          to="/"
-          class="nav-item"
-          exact-active-class="active"
-        >
+        <router-link to="/" class="nav-item" exact-active-class="active">
           <i class="pi pi-th-large" />
           <span v-if="!sidebarCollapsed">Dashboard</span>
         </router-link>
 
         <div class="nav-group">
-          <div
-            class="nav-group-header"
-            @click="toggleGroup('stacks')"
-          >
+          <div class="nav-group-header" @click="toggleGroup('stacks')">
             <i class="pi pi-layers" />
             <span v-if="!sidebarCollapsed">Stacks</span>
             <i
               v-if="!sidebarCollapsed"
               class="pi chevron"
-              :class="
-                expandedGroups.stacks ? 'pi-chevron-down' : 'pi-chevron-right'
-              "
+              :class="expandedGroups.stacks ? 'pi-chevron-down' : 'pi-chevron-right'"
             />
           </div>
-          <div
-            v-show="expandedGroups.stacks && !sidebarCollapsed"
-            class="nav-group-items"
-          >
-            <router-link
-              to="/deployments"
-              class="nav-subitem"
-              active-class="active"
-            >
+          <div v-show="expandedGroups.stacks && !sidebarCollapsed" class="nav-group-items">
+            <router-link to="/deployments" class="nav-subitem" active-class="active">
               <span class="nav-count">{{ stats.deployments }}</span>
               Deployments
             </router-link>
@@ -60,91 +38,91 @@
         </div>
 
         <div class="nav-group">
-          <div
-            class="nav-group-header"
-            @click="toggleGroup('docker')"
-          >
+          <div class="nav-group-header" @click="toggleGroup('docker')">
             <i class="pi pi-box" />
             <span v-if="!sidebarCollapsed">Docker</span>
             <i
               v-if="!sidebarCollapsed"
               class="pi chevron"
-              :class="
-                expandedGroups.docker ? 'pi-chevron-down' : 'pi-chevron-right'
-              "
+              :class="expandedGroups.docker ? 'pi-chevron-down' : 'pi-chevron-right'"
             />
           </div>
-          <div
-            v-show="expandedGroups.docker && !sidebarCollapsed"
-            class="nav-group-items"
-          >
-            <router-link
-              to="/containers"
-              class="nav-subitem"
-              active-class="active"
-            >
+          <div v-show="expandedGroups.docker && !sidebarCollapsed" class="nav-group-items">
+            <router-link to="/containers" class="nav-subitem" active-class="active">
               <span class="nav-count">{{ stats.containers }}</span>
               Containers
             </router-link>
-            <router-link
-              to="/images"
-              class="nav-subitem"
-              active-class="active"
-            >
+            <router-link to="/images" class="nav-subitem" active-class="active">
               <span class="nav-count">{{ stats.images }}</span>
               Images
             </router-link>
-            <router-link
-              to="/volumes"
-              class="nav-subitem"
-              active-class="active"
-            >
+            <router-link to="/volumes" class="nav-subitem" active-class="active">
               <span class="nav-count">{{ stats.volumes }}</span>
               Volumes
             </router-link>
-            <router-link
-              to="/networks"
-              class="nav-subitem"
-              active-class="active"
-            >
+            <router-link to="/networks" class="nav-subitem" active-class="active">
               <span class="nav-count">{{ stats.networks }}</span>
               Networks
             </router-link>
-            <router-link
-              to="/ports"
-              class="nav-subitem"
-              active-class="active"
-            >
-              <span class="nav-count">{{ stats.ports }}</span>
-              Ports
+            <router-link to="/docker-ports" class="nav-subitem" active-class="active">
+              <span class="nav-count">{{ stats.dockerPorts }}</span>
+              Port Mappings
             </router-link>
           </div>
         </div>
 
         <div class="nav-group">
-          <div
-            class="nav-group-header"
-            @click="toggleGroup('security')"
-          >
+          <div class="nav-group-header" @click="toggleGroup('system')">
+            <i class="pi pi-server" />
+            <span v-if="!sidebarCollapsed">System</span>
+            <i
+              v-if="!sidebarCollapsed"
+              class="pi chevron"
+              :class="expandedGroups.system ? 'pi-chevron-down' : 'pi-chevron-right'"
+            />
+          </div>
+          <div v-show="expandedGroups.system && !sidebarCollapsed" class="nav-group-items">
+            <router-link to="/system-ports" class="nav-subitem" active-class="active">
+              <span class="nav-count">{{ stats.ports }}</span>
+              Ports
+            </router-link>
+            <router-link to="/services" class="nav-subitem" active-class="active">
+              <span class="nav-count">{{ stats.services }}</span>
+              Services
+            </router-link>
+          </div>
+        </div>
+
+        <div class="nav-group">
+          <div class="nav-group-header" @click="toggleGroup('databases')">
+            <i class="pi pi-database" />
+            <span v-if="!sidebarCollapsed">Databases</span>
+            <i
+              v-if="!sidebarCollapsed"
+              class="pi chevron"
+              :class="expandedGroups.databases ? 'pi-chevron-down' : 'pi-chevron-right'"
+            />
+          </div>
+          <div v-show="expandedGroups.databases && !sidebarCollapsed" class="nav-group-items">
+            <router-link to="/databases" class="nav-subitem" active-class="active">
+              <span class="nav-count">{{ stats.databases }}</span>
+              Servers
+            </router-link>
+          </div>
+        </div>
+
+        <div class="nav-group">
+          <div class="nav-group-header" @click="toggleGroup('security')">
             <i class="pi pi-shield" />
             <span v-if="!sidebarCollapsed">Security</span>
             <i
               v-if="!sidebarCollapsed"
               class="pi chevron"
-              :class="
-                expandedGroups.security ? 'pi-chevron-down' : 'pi-chevron-right'
-              "
+              :class="expandedGroups.security ? 'pi-chevron-down' : 'pi-chevron-right'"
             />
           </div>
-          <div
-            v-show="expandedGroups.security && !sidebarCollapsed"
-            class="nav-group-items"
-          >
-            <router-link
-              to="/certificates"
-              class="nav-subitem"
-              active-class="active"
-            >
+          <div v-show="expandedGroups.security && !sidebarCollapsed" class="nav-group-items">
+            <router-link to="/certificates" class="nav-subitem" active-class="active">
               <span class="nav-count">{{ stats.certificates }}</span>
               Certificates
             </router-link>
@@ -152,68 +130,38 @@
         </div>
 
         <div class="nav-group">
-          <div
-            class="nav-group-header"
-            @click="toggleGroup('extensions')"
-          >
+          <div class="nav-group-header" @click="toggleGroup('extensions')">
             <i class="pi pi-th-large" />
             <span v-if="!sidebarCollapsed">Apps</span>
             <i
               v-if="!sidebarCollapsed"
               class="pi chevron"
-              :class="
-                expandedGroups.extensions
-                  ? 'pi-chevron-down'
-                  : 'pi-chevron-right'
-              "
+              :class="expandedGroups.extensions ? 'pi-chevron-down' : 'pi-chevron-right'"
             />
           </div>
-          <div
-            v-show="expandedGroups.extensions && !sidebarCollapsed"
-            class="nav-group-items"
-          >
-            <router-link
-              to="/apps"
-              class="nav-subitem"
-              active-class="active"
-            >
+          <div v-show="expandedGroups.extensions && !sidebarCollapsed" class="nav-group-items">
+            <router-link to="/apps" class="nav-subitem" active-class="active">
               <span class="nav-count">{{ stats.apps }}</span>
               Installed Apps
             </router-link>
-            <router-link
-              to="/marketplace"
-              class="nav-subitem"
-              active-class="active"
-            >
+            <router-link to="/marketplace" class="nav-subitem" active-class="active">
               Marketplace
             </router-link>
           </div>
         </div>
 
         <div class="nav-group">
-          <div
-            class="nav-group-header"
-            @click="toggleGroup('admin')"
-          >
+          <div class="nav-group-header" @click="toggleGroup('admin')">
             <i class="pi pi-sliders-h" />
             <span v-if="!sidebarCollapsed">Administration</span>
             <i
               v-if="!sidebarCollapsed"
               class="pi chevron"
-              :class="
-                expandedGroups.admin ? 'pi-chevron-down' : 'pi-chevron-right'
-              "
+              :class="expandedGroups.admin ? 'pi-chevron-down' : 'pi-chevron-right'"
             />
           </div>
-          <div
-            v-show="expandedGroups.admin && !sidebarCollapsed"
-            class="nav-group-items"
-          >
-            <router-link
-              to="/settings"
-              class="nav-subitem"
-              active-class="active"
-            >
+          <div v-show="expandedGroups.admin && !sidebarCollapsed" class="nav-group-items">
+            <router-link to="/settings" class="nav-subitem" active-class="active">
               Settings
             </router-link>
           </div>
@@ -221,10 +169,7 @@
       </nav>
 
       <div class="sidebar-footer">
-        <div
-          v-if="!sidebarCollapsed"
-          class="resource-usage"
-        >
+        <div v-if="!sidebarCollapsed" class="resource-usage">
           <div class="resource-item">
             <div class="resource-header">
               <span>CPU</span>
@@ -253,62 +198,29 @@
           </div>
         </div>
         <div class="agent-status">
-          <span
-            class="status-dot"
-            :class="{ online: agentOnline }"
-          />
-          <span
-            v-if="!sidebarCollapsed"
-            class="status-text"
-          >{{
+          <span class="status-dot" :class="{ online: agentOnline }" />
+          <span v-if="!sidebarCollapsed" class="status-text">{{
             agentOnline ? "Connected" : "Disconnected"
           }}</span>
         </div>
-        <button
-          v-if="!sidebarCollapsed"
-          class="logout-btn"
-          @click="handleLogout"
-        >
+        <button v-if="!sidebarCollapsed" class="logout-btn" @click="handleLogout">
           <i class="pi pi-sign-out" />
           Sign Out
         </button>
-        <button
-          class="collapse-btn"
-          @click="sidebarCollapsed = !sidebarCollapsed"
-        >
-          <i
-            :class="
-              sidebarCollapsed
-                ? 'pi pi-angle-double-right'
-                : 'pi pi-angle-double-left'
-            "
-          />
+        <button class="collapse-btn" @click="sidebarCollapsed = !sidebarCollapsed">
+          <i :class="sidebarCollapsed ? 'pi pi-angle-double-right' : 'pi pi-angle-double-left'" />
         </button>
       </div>
     </aside>
 
-    <main
-      class="main-content"
-      :class="{ expanded: sidebarCollapsed }"
-    >
+    <main class="main-content" :class="{ expanded: sidebarCollapsed }">
       <header class="top-header">
         <div class="header-left">
           <div class="breadcrumb">
-            <span
-              v-for="(crumb, idx) in breadcrumbs"
-              :key="idx"
-            >
-              <router-link
-                v-if="crumb.path"
-                :to="crumb.path"
-              >{{
-                crumb.label
-              }}</router-link>
+            <span v-for="(crumb, idx) in breadcrumbs" :key="idx">
+              <router-link v-if="crumb.path" :to="crumb.path">{{ crumb.label }}</router-link>
               <span v-else>{{ crumb.label }}</span>
-              <i
-                v-if="idx < breadcrumbs.length - 1"
-                class="pi pi-angle-right"
-              />
+              <i v-if="idx < breadcrumbs.length - 1" class="pi pi-angle-right" />
             </span>
           </div>
           <h1 class="page-title">
@@ -326,10 +238,7 @@
               <span>{{ stats.stoppedContainers }} Stopped</span>
             </div>
           </div>
-          <button
-            class="header-btn"
-            @click="refreshAll"
-          >
+          <button class="header-btn" @click="refreshAll">
             <i class="pi pi-refresh" />
           </button>
           <button class="header-btn">
@@ -348,13 +257,7 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import {
-  healthApi,
-  networksApi,
-  certificatesApi,
-  pluginsApi,
-  portsApi,
-} from "@/services/api";
+import { healthApi, networksApi, certificatesApi, pluginsApi, portsApi } from "@/services/api";
 
 const route = useRoute();
 const router = useRouter();
@@ -364,6 +267,8 @@ const sidebarCollapsed = ref(false);
 const expandedGroups = reactive({
   stacks: true,
   docker: true,
+  system: false,
+  databases: false,
   security: false,
   extensions: false,
   admin: false,
@@ -378,6 +283,9 @@ const stats = reactive({
   volumes: 0,
   networks: 0,
   ports: 0,
+  dockerPorts: 0,
+  services: 0,
+  databases: 0,
   certificates: 0,
   apps: 0,
   cpuUsage: 0,
@@ -403,7 +311,10 @@ const currentPageTitle = computed(() => {
     images: "Images",
     volumes: "Volumes",
     networks: "Networks",
-    ports: "Ports",
+    "docker-ports": "Port Mappings",
+    "system-ports": "System Ports",
+    services: "System Services",
+    databases: "Database Servers",
     certificates: "SSL Certificates",
     apps: "Installed Apps",
     marketplace: "App Marketplace",
@@ -419,11 +330,15 @@ const breadcrumbs = computed(() => {
   if (routeName === "deployments") {
     crumbs.push({ label: "Stacks", path: "" });
     crumbs.push({ label: "Deployments", path: "" });
-  } else if (
-    ["containers", "images", "volumes", "networks", "ports"].includes(routeName)
-  ) {
+  } else if (["containers", "images", "volumes", "networks", "docker-ports"].includes(routeName)) {
     crumbs.push({ label: "Docker", path: "" });
     crumbs.push({ label: currentPageTitle.value, path: "" });
+  } else if (["system-ports", "services"].includes(routeName)) {
+    crumbs.push({ label: "System", path: "" });
+    crumbs.push({ label: currentPageTitle.value, path: "" });
+  } else if (routeName === "databases") {
+    crumbs.push({ label: "Databases", path: "" });
+    crumbs.push({ label: "Servers", path: "" });
   } else if (routeName === "certificates") {
     crumbs.push({ label: "Security", path: "" });
     crumbs.push({ label: "Certificates", path: "" });
@@ -476,6 +391,15 @@ const checkAgentHealth = async () => {
     }
     if (portsRes.status === "fulfilled") {
       stats.ports = portsRes.value.data.ports?.length || 0;
+    }
+
+    try {
+      const dbConnections = localStorage.getItem("db_connections");
+      if (dbConnections) {
+        stats.databases = JSON.parse(dbConnections).length || 0;
+      }
+    } catch {
+      stats.databases = 0;
     }
   } catch {
     agentOnline.value = false;

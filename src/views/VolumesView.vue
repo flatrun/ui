@@ -33,39 +33,22 @@
       default-view-mode="grid"
     >
       <template #actions>
-        <button
-          class="btn btn-primary"
-          @click="showCreateModal = true"
-        >
+        <button class="btn btn-primary" @click="showCreateModal = true">
           <i class="pi pi-plus" />
           Create Volume
         </button>
-        <button
-          class="btn btn-secondary"
-          :disabled="loading"
-          @click="fetchVolumes"
-        >
-          <i
-            class="pi pi-refresh"
-            :class="{ 'pi-spin': loading }"
-          />
+        <button class="btn btn-secondary" :disabled="loading" @click="fetchVolumes">
+          <i class="pi pi-refresh" :class="{ 'pi-spin': loading }" />
           Refresh
         </button>
-        <button
-          class="btn btn-warning"
-          :disabled="unusedVolumes === 0"
-          @click="pruneVolumes"
-        >
+        <button class="btn btn-warning" :disabled="unusedVolumes === 0" @click="pruneVolumes">
           <i class="pi pi-trash" />
           Prune Unused
         </button>
       </template>
 
       <template #empty-action>
-        <button
-          class="btn btn-primary"
-          @click="showCreateModal = true"
-        >
+        <button class="btn btn-primary" @click="showCreateModal = true">
           <i class="pi pi-plus" />
           Create Volume
         </button>
@@ -80,10 +63,7 @@
       </template>
 
       <template #cell-status="{ item }">
-        <span
-          class="status-badge"
-          :class="item.in_use ? 'in-use' : 'unused'"
-        >
+        <span class="status-badge" :class="item.in_use ? 'in-use' : 'unused'">
           {{ item.in_use ? "In Use" : "Unused" }}
         </span>
       </template>
@@ -98,11 +78,7 @@
 
       <template #cell-actions="{ item }">
         <div class="table-actions">
-          <button
-            class="action-btn inspect"
-            title="Inspect"
-            @click.stop="inspectVolume(item.name)"
-          >
+          <button class="action-btn inspect" title="Inspect" @click.stop="inspectVolume(item.name)">
             <i class="pi pi-info-circle" />
           </button>
           <button
@@ -133,11 +109,8 @@
                 :checked="selectedItems.includes(volume.name)"
                 class="volume-checkbox"
                 @change="toggleSelect(volume.name)"
-              >
-              <div
-                class="volume-icon"
-                :class="{ unused: !volume.in_use }"
-              >
+              />
+              <div class="volume-icon" :class="{ unused: !volume.in_use }">
                 <i class="pi pi-database" />
               </div>
               <div class="volume-info">
@@ -147,10 +120,7 @@
                 <span class="volume-driver">{{ volume.driver }}</span>
               </div>
               <div class="volume-status">
-                <span
-                  class="status-badge"
-                  :class="volume.in_use ? 'in-use' : 'unused'"
-                >
+                <span class="status-badge" :class="volume.in_use ? 'in-use' : 'unused'">
                   {{ volume.in_use ? "In Use" : "Unused" }}
                 </span>
               </div>
@@ -164,18 +134,11 @@
                 </div>
                 <div class="detail-item">
                   <span class="detail-label">Created</span>
-                  <span class="detail-value">{{
-                    formatDate(volume.created)
-                  }}</span>
+                  <span class="detail-value">{{ formatDate(volume.created) }}</span>
                 </div>
-                <div
-                  v-if="volume.size"
-                  class="detail-item"
-                >
+                <div v-if="volume.size" class="detail-item">
                   <span class="detail-label">Size</span>
-                  <span class="detail-value">{{
-                    formatSize(volume.size)
-                  }}</span>
+                  <span class="detail-value">{{ formatSize(volume.size) }}</span>
                 </div>
               </div>
 
@@ -185,20 +148,13 @@
               >
                 <span class="labels-title">Labels</span>
                 <div class="labels-list">
-                  <span
-                    v-for="(value, key) in volume.labels"
-                    :key="key"
-                    class="label-tag"
-                  >
+                  <span v-for="(value, key) in volume.labels" :key="key" class="label-tag">
                     {{ key }}: {{ value }}
                   </span>
                 </div>
               </div>
 
-              <div
-                v-if="volume.containers?.length"
-                class="volume-containers"
-              >
+              <div v-if="volume.containers?.length" class="volume-containers">
                 <span class="containers-title">Mounted by</span>
                 <div class="containers-list">
                   <span
@@ -235,10 +191,7 @@
       </template>
 
       <template #bulk-actions="{ selectedItems, clearSelection }">
-        <button
-          class="btn btn-sm btn-danger"
-          @click="bulkRemove(selectedItems, clearSelection)"
-        >
+        <button class="btn btn-sm btn-danger" @click="bulkRemove(selectedItems, clearSelection)">
           <i class="pi pi-trash" /> Remove
         </button>
       </template>
@@ -281,21 +234,14 @@
     />
 
     <Teleport to="body">
-      <div
-        v-if="showCreateModal"
-        class="modal-overlay"
-        @click.self="showCreateModal = false"
-      >
+      <div v-if="showCreateModal" class="modal-overlay" @click.self="showCreateModal = false">
         <div class="create-modal modal-container">
           <div class="modal-header">
             <h3>
               <i class="pi pi-plus-circle" />
               Create Volume
             </h3>
-            <button
-              class="close-btn"
-              @click="showCreateModal = false"
-            >
+            <button class="close-btn" @click="showCreateModal = false">
               <i class="pi pi-times" />
             </button>
           </div>
@@ -307,50 +253,35 @@
                 type="text"
                 placeholder="my-volume"
                 class="form-input"
-              >
+              />
             </div>
             <div class="form-group">
               <label>Driver</label>
-              <select
-                v-model="newVolumeDriver"
-                class="form-input"
-              >
-                <option value="local">
-                  local
-                </option>
+              <select v-model="newVolumeDriver" class="form-input">
+                <option value="local">local</option>
               </select>
             </div>
             <div class="form-group">
               <label>Labels (optional)</label>
               <div class="labels-input">
-                <div
-                  v-for="(label, index) in newVolumeLabels"
-                  :key="index"
-                  class="label-row"
-                >
+                <div v-for="(label, index) in newVolumeLabels" :key="index" class="label-row">
                   <input
                     v-model="label.key"
                     type="text"
                     placeholder="key"
                     class="form-input small"
-                  >
+                  />
                   <input
                     v-model="label.value"
                     type="text"
                     placeholder="value"
                     class="form-input small"
-                  >
-                  <button
-                    class="remove-label"
-                    @click="removeLabel(index)"
-                  >
+                  />
+                  <button class="remove-label" @click="removeLabel(index)">
                     <i class="pi pi-times" />
                   </button>
                 </div>
-                <button
-                  class="add-label-btn"
-                  @click="addLabel"
-                >
+                <button class="add-label-btn" @click="addLabel">
                   <i class="pi pi-plus" />
                   Add Label
                 </button>
@@ -358,21 +289,13 @@
             </div>
           </div>
           <div class="modal-footer">
-            <button
-              class="btn btn-secondary"
-              @click="showCreateModal = false"
-            >
-              Cancel
-            </button>
+            <button class="btn btn-secondary" @click="showCreateModal = false">Cancel</button>
             <button
               class="btn btn-primary"
               :disabled="!newVolumeName || creating"
               @click="createVolume"
             >
-              <i
-                v-if="creating"
-                class="pi pi-spin pi-spinner"
-              />
+              <i v-if="creating" class="pi pi-spin pi-spinner" />
               {{ creating ? "Creating..." : "Create Volume" }}
             </button>
           </div>
@@ -428,12 +351,8 @@ const columns = [
   { key: "actions", label: "Actions", width: "100px" },
 ];
 
-const inUseVolumes = computed(
-  () => volumes.value.filter((v) => v.in_use).length,
-);
-const unusedVolumes = computed(
-  () => volumes.value.filter((v) => !v.in_use).length,
-);
+const inUseVolumes = computed(() => volumes.value.filter((v) => v.in_use).length);
+const unusedVolumes = computed(() => volumes.value.filter((v) => !v.in_use).length);
 
 const fetchVolumes = async () => {
   loading.value = true;

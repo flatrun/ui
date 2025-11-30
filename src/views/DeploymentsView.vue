@@ -17,50 +17,27 @@
       default-view-mode="grid"
     >
       <template #actions>
-        <button
-          class="btn btn-primary"
-          @click="showNewDeploymentModal = true"
-        >
+        <button class="btn btn-primary" @click="showNewDeploymentModal = true">
           <Plus :size="16" />
           New Deployment
         </button>
-        <button
-          class="btn btn-secondary"
-          :disabled="loading"
-          @click="refreshDeployments"
-        >
-          <RefreshCw
-            :size="16"
-            :class="{ spinning: loading }"
-          />
+        <button class="btn btn-secondary" :disabled="loading" @click="refreshDeployments">
+          <RefreshCw :size="16" :class="{ spinning: loading }" />
           Refresh
         </button>
       </template>
 
       <template #cell-status="{ item }">
-        <span
-          class="status-indicator"
-          :class="item.status"
-          :title="item.status"
-        />
+        <span class="status-indicator" :class="item.status" :title="item.status" />
       </template>
 
       <template #cell-name="{ item }">
-        <div
-          class="deployment-info clickable"
-          @click="goToDeployment(item.name)"
-        >
+        <div class="deployment-info clickable" @click="goToDeployment(item.name)">
           <span class="deployment-name">{{ item.name }}</span>
-          <span
-            v-if="item.metadata?.networking?.domain"
-            class="deployment-domain"
-          >
+          <span v-if="item.metadata?.networking?.domain" class="deployment-domain">
             {{ item.metadata.networking.domain }}
           </span>
-          <span
-            v-else-if="getMainImage(item)"
-            class="deployment-image"
-          >
+          <span v-else-if="getMainImage(item)" class="deployment-image">
             {{ getMainImage(item) }}
           </span>
         </div>
@@ -76,18 +53,10 @@
           >
             {{ service.name }}
           </span>
-          <span
-            v-if="(item.services || []).length > 3"
-            class="table-service-tag more"
-          >
+          <span v-if="(item.services || []).length > 3" class="table-service-tag more">
             +{{ item.services.length - 3 }}
           </span>
-          <span
-            v-if="!item.services?.length"
-            class="no-services"
-          >
-            —
-          </span>
+          <span v-if="!item.services?.length" class="no-services"> — </span>
         </div>
       </template>
 
@@ -103,12 +72,7 @@
           >
             :{{ mapping.host }}
           </a>
-          <span
-            v-if="!getPortMappings(item).length"
-            class="no-ports"
-          >
-            —
-          </span>
+          <span v-if="!getPortMappings(item).length" class="no-ports"> — </span>
         </div>
       </template>
 
@@ -139,11 +103,7 @@
           >
             <RotateCw :size="14" />
           </button>
-          <button
-            class="action-btn logs"
-            title="Logs"
-            @click.stop="viewLogs(item.name)"
-          >
+          <button class="action-btn logs" title="Logs" @click.stop="viewLogs(item.name)">
             <FileText :size="14" />
           </button>
         </div>
@@ -158,16 +118,10 @@
             :class="deployment.status"
             @click="goToDeployment(deployment.name)"
           >
-            <div
-              class="card-header"
-              :class="deployment.status"
-            >
+            <div class="card-header" :class="deployment.status">
               <div class="header-content">
                 <h3>{{ deployment.name }}</h3>
-                <span
-                  class="status-badge"
-                  :class="deployment.status"
-                >
+                <span class="status-badge" :class="deployment.status">
                   <span class="status-dot" />
                   {{ deployment.status }}
                 </span>
@@ -176,33 +130,29 @@
             <div class="card-body">
               <!-- Domain Link -->
               <div
-                v-if="deployment.metadata?.networking?.expose && deployment.metadata?.networking?.domain"
+                v-if="
+                  deployment.metadata?.networking?.expose && deployment.metadata?.networking?.domain
+                "
                 class="domain-link"
                 @click.stop
               >
                 <Globe :size="14" />
                 <a
-                  :href="(deployment.metadata?.ssl?.enabled ? 'https://' : 'http://') + deployment.metadata.networking.domain"
+                  :href="
+                    (deployment.metadata?.ssl?.enabled ? 'https://' : 'http://') +
+                    deployment.metadata.networking.domain
+                  "
                   target="_blank"
                   class="app-link"
                 >
                   {{ deployment.metadata.networking.domain }}
                   <ExternalLink :size="12" />
                 </a>
-                <span
-                  v-if="deployment.metadata?.ssl?.enabled"
-                  class="ssl-badge"
-                >
-                  SSL
-                </span>
+                <span v-if="deployment.metadata?.ssl?.enabled" class="ssl-badge"> SSL </span>
               </div>
 
               <!-- Port Links (shown when no domain but has port mappings) -->
-              <div
-                v-else-if="getPortMappings(deployment).length"
-                class="port-links"
-                @click.stop
-              >
+              <div v-else-if="getPortMappings(deployment).length" class="port-links" @click.stop>
                 <a
                   v-for="mapping in getPortMappings(deployment)"
                   :key="mapping.host"
@@ -218,65 +168,41 @@
               </div>
 
               <!-- Image Info (shown when no domain and no ports) -->
-              <div
-                v-else-if="getMainImage(deployment)"
-                class="image-info"
-              >
+              <div v-else-if="getMainImage(deployment)" class="image-info">
                 <Container :size="14" />
                 <span class="image-name">{{ getMainImage(deployment) }}</span>
-                <span
-                  v-if="getImageVersion(deployment)"
-                  class="image-version"
-                >
+                <span v-if="getImageVersion(deployment)" class="image-version">
                   {{ getImageVersion(deployment) }}
                 </span>
               </div>
 
               <!-- Service Tags -->
-              <div
-                v-if="deployment.services?.length"
-                class="service-tags"
-              >
+              <div v-if="deployment.services?.length" class="service-tags">
                 <span
                   v-for="service in deployment.services.slice(0, 4)"
                   :key="service.name"
                   class="service-tag"
                   :class="getServiceClass(service)"
                 >
-                  <span
-                    class="service-dot"
-                    :class="service.status"
-                  />
+                  <span class="service-dot" :class="service.status" />
                   {{ service.name }}
                 </span>
-                <span
-                  v-if="deployment.services.length > 4"
-                  class="service-tag more"
-                >
+                <span v-if="deployment.services.length > 4" class="service-tag more">
                   +{{ deployment.services.length - 4 }}
                 </span>
               </div>
 
               <!-- Info Pills -->
               <div class="info-pills">
-                <div
-                  v-if="getMainImage(deployment)"
-                  class="info-pill image"
-                >
+                <div v-if="getMainImage(deployment)" class="info-pill image">
                   <Layers :size="12" />
                   {{ getMainImage(deployment) }}
                 </div>
-                <div
-                  v-if="hasDatabase(deployment)"
-                  class="info-pill database"
-                >
+                <div v-if="hasDatabase(deployment)" class="info-pill database">
                   <Database :size="12" />
                   {{ getDatabaseType(deployment) }}
                 </div>
-                <div
-                  v-if="getNetworks(deployment).length"
-                  class="info-pill network"
-                >
+                <div v-if="getNetworks(deployment).length" class="info-pill network">
                   <Network :size="12" />
                   {{ getNetworks(deployment)[0] }}
                 </div>
@@ -288,10 +214,7 @@
                   <Plug :size="12" />
                   {{ mapping.host }}:{{ mapping.container }}
                 </div>
-                <div
-                  v-if="deployment.metadata?.type"
-                  class="info-pill type"
-                >
+                <div v-if="deployment.metadata?.type" class="info-pill type">
                   <Box :size="12" />
                   {{ deployment.metadata.type }}
                 </div>
@@ -302,7 +225,9 @@
                 <div class="meta-item">
                   <Heart :size="12" />
                   <span class="meta-value health">
-                    {{ getHealthyCount(deployment).healthy }}/{{ getHealthyCount(deployment).total }}
+                    {{ getHealthyCount(deployment).healthy }}/{{
+                      getHealthyCount(deployment).total
+                    }}
                   </span>
                 </div>
                 <div class="meta-item">
@@ -315,10 +240,7 @@
                 </div>
               </div>
             </div>
-            <div
-              class="card-footer"
-              @click.stop
-            >
+            <div class="card-footer" @click.stop>
               <button
                 class="icon-btn start"
                 title="Start"
@@ -340,11 +262,7 @@
               >
                 <RotateCw :size="14" />
               </button>
-              <button
-                class="icon-btn logs"
-                title="Logs"
-                @click="viewLogs(deployment.name)"
-              >
+              <button class="icon-btn logs" title="Logs" @click="viewLogs(deployment.name)">
                 <FileText :size="14" />
               </button>
               <button
@@ -465,10 +383,7 @@ const refreshDeployments = () => {
   notifications.info("Refreshing", "Fetching latest deployment status");
 };
 
-const handleOperation = async (
-  op: "start" | "stop" | "restart",
-  name: string,
-) => {
+const handleOperation = async (op: "start" | "stop" | "restart", name: string) => {
   operationModal.value = {
     visible: true,
     operation: op,
@@ -488,16 +403,14 @@ const handleOperation = async (
       response = await deploymentsApi.restart(name);
     }
 
-    operationModal.value.output =
-      response?.data?.output || "Operation completed";
+    operationModal.value.output = response?.data?.output || "Operation completed";
     operationModal.value.isSuccess = true;
     operationModal.value.isRunning = false;
 
     notifications.success(`${op} successful`, `${name} ${op}ed successfully`);
     await fetchDeployments();
   } catch (e: any) {
-    const errorMsg =
-      e.response?.data?.output || e.response?.data?.error || e.message;
+    const errorMsg = e.response?.data?.output || e.response?.data?.error || e.message;
     operationModal.value.output = errorMsg;
     operationModal.value.isSuccess = false;
     operationModal.value.isRunning = false;
@@ -529,10 +442,7 @@ const viewLogs = async (name: string) => {
 const onDeploymentCreated = () => {
   showNewDeploymentModal.value = false;
   fetchDeployments();
-  notifications.success(
-    "Deployment created",
-    "New deployment folder created successfully",
-  );
+  notifications.success("Deployment created", "New deployment folder created successfully");
 };
 
 const goToDeployment = (name: string) => {
@@ -592,9 +502,13 @@ const getNetworks = (deployment: Deployment) => {
 const getMainImage = (deployment: Deployment) => {
   const appService = deployment.services?.find((s) => {
     const image = s.image?.toLowerCase() || "";
-    return !image.includes("mysql") && !image.includes("mariadb") &&
-           !image.includes("postgres") && !image.includes("mongo") &&
-           !image.includes("redis");
+    return (
+      !image.includes("mysql") &&
+      !image.includes("mariadb") &&
+      !image.includes("postgres") &&
+      !image.includes("mongo") &&
+      !image.includes("redis")
+    );
   });
   if (!appService?.image) return null;
   const image = appService.image;
@@ -606,9 +520,13 @@ const getMainImage = (deployment: Deployment) => {
 const getImageVersion = (deployment: Deployment) => {
   const appService = deployment.services?.find((s) => {
     const image = s.image?.toLowerCase() || "";
-    return !image.includes("mysql") && !image.includes("mariadb") &&
-           !image.includes("postgres") && !image.includes("mongo") &&
-           !image.includes("redis");
+    return (
+      !image.includes("mysql") &&
+      !image.includes("mariadb") &&
+      !image.includes("postgres") &&
+      !image.includes("mongo") &&
+      !image.includes("redis")
+    );
   });
   if (!appService?.image) return null;
   const parts = appService.image.split(":");
@@ -617,8 +535,8 @@ const getImageVersion = (deployment: Deployment) => {
 
 const getHealthyCount = (deployment: Deployment) => {
   if (!deployment.services?.length) return { healthy: 0, total: 0 };
-  const healthy = deployment.services.filter((s) =>
-    s.status === "running" || s.health === "healthy"
+  const healthy = deployment.services.filter(
+    (s) => s.status === "running" || s.health === "healthy",
   ).length;
   return { healthy, total: deployment.services.length };
 };
@@ -987,7 +905,8 @@ onMounted(() => {
 }
 
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
   }
   50% {

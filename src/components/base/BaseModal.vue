@@ -1,35 +1,18 @@
 <template>
   <Teleport to="body">
     <Transition name="modal">
-      <div
-        v-if="visible"
-        class="modal-overlay"
-        @click.self="handleOverlayClick"
-      >
-        <div
-          class="modal-container"
-          :class="[sizeClass, { 'modal-fullscreen': fullscreen }]"
-        >
-          <div
-            class="modal-header"
-            :class="{ 'header-accent': accentHeader }"
-          >
+      <div v-if="visible" class="modal-overlay" @click.self="handleOverlayClick">
+        <div class="modal-container" :class="[sizeClass, { 'modal-fullscreen': fullscreen }]">
+          <div class="modal-header" :class="{ 'header-accent': accentHeader }">
             <div class="header-content">
               <slot name="header">
                 <div class="header-title">
-                  <div
-                    v-if="icon"
-                    class="header-icon"
-                    :class="iconColorClass"
-                  >
+                  <div v-if="icon" class="header-icon" :class="iconColorClass">
                     <i :class="icon" />
                   </div>
                   <div class="header-text">
                     <h3>{{ title }}</h3>
-                    <p
-                      v-if="subtitle"
-                      class="header-subtitle"
-                    >
+                    <p v-if="subtitle" class="header-subtitle">
                       {{ subtitle }}
                     </p>
                   </div>
@@ -50,10 +33,7 @@
             <slot />
           </div>
 
-          <div
-            v-if="$slots.footer"
-            class="modal-footer"
-          >
+          <div v-if="$slots.footer" class="modal-footer">
             <slot name="footer" />
           </div>
         </div>

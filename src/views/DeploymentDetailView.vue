@@ -2,76 +2,43 @@
   <div class="deployment-detail">
     <div class="detail-header">
       <div class="header-left">
-        <router-link
-          to="/deployments"
-          class="back-link"
-        >
+        <router-link to="/deployments" class="back-link">
           <i class="pi pi-arrow-left" />
           Back to Deployments
         </router-link>
         <div class="deployment-title">
           <h1>{{ deployment?.name || $route.params.name }}</h1>
-          <span
-            class="status-badge"
-            :class="deployment?.status"
-          >
+          <span class="status-badge" :class="deployment?.status">
             {{ deployment?.status || "loading" }}
           </span>
         </div>
       </div>
       <div class="header-actions">
-        <button
-          class="btn btn-success"
-          :disabled="loading"
-          @click="handleOperation('start')"
-        >
+        <button class="btn btn-success" :disabled="loading" @click="handleOperation('start')">
           <i class="pi pi-play" /> Start
         </button>
-        <button
-          class="btn btn-warning"
-          :disabled="loading"
-          @click="handleOperation('stop')"
-        >
+        <button class="btn btn-warning" :disabled="loading" @click="handleOperation('stop')">
           <i class="pi pi-stop" /> Stop
         </button>
-        <button
-          class="btn btn-info"
-          :disabled="loading"
-          @click="handleOperation('restart')"
-        >
+        <button class="btn btn-info" :disabled="loading" @click="handleOperation('restart')">
           <i class="pi pi-refresh" /> Restart
         </button>
-        <button
-          class="btn btn-danger"
-          :disabled="loading"
-          @click="confirmDelete"
-        >
+        <button class="btn btn-danger" :disabled="loading" @click="confirmDelete">
           <i class="pi pi-trash" /> Delete
         </button>
       </div>
     </div>
 
-    <div
-      v-if="loading && !deployment"
-      class="loading-state"
-    >
+    <div v-if="loading && !deployment" class="loading-state">
       <i class="pi pi-spin pi-spinner" />
       <span>Loading deployment details...</span>
     </div>
 
-    <div
-      v-else-if="error"
-      class="error-state"
-    >
+    <div v-else-if="error" class="error-state">
       <i class="pi pi-exclamation-triangle" />
       <h3>Failed to load deployment</h3>
       <p>{{ error }}</p>
-      <button
-        class="btn btn-primary"
-        @click="fetchDeployment"
-      >
-        Try Again
-      </button>
+      <button class="btn btn-primary" @click="fetchDeployment">Try Again</button>
     </div>
 
     <template v-else-if="deployment">
@@ -89,10 +56,7 @@
       </div>
 
       <div class="tab-content">
-        <div
-          v-if="activeTab === 'overview'"
-          class="overview-tab"
-        >
+        <div v-if="activeTab === 'overview'" class="overview-tab">
           <div class="info-cards">
             <div class="info-card">
               <div class="card-header">
@@ -107,10 +71,7 @@
                 <div class="info-row">
                   <span class="label">Status</span>
                   <span class="value">
-                    <span
-                      class="status-indicator"
-                      :class="deployment.status"
-                    />
+                    <span class="status-indicator" :class="deployment.status" />
                     {{ deployment.status }}
                   </span>
                 </div>
@@ -120,15 +81,11 @@
                 </div>
                 <div class="info-row">
                   <span class="label">Created</span>
-                  <span class="value">{{
-                    formatDateTime(deployment.created_at)
-                  }}</span>
+                  <span class="value">{{ formatDateTime(deployment.created_at) }}</span>
                 </div>
                 <div class="info-row">
                   <span class="label">Last Updated</span>
-                  <span class="value">{{
-                    formatDateTime(deployment.updated_at)
-                  }}</span>
+                  <span class="value">{{ formatDateTime(deployment.updated_at) }}</span>
                 </div>
               </div>
             </div>
@@ -151,7 +108,9 @@
                     <span class="label">Domain</span>
                     <span class="value domain-link">
                       <a
-                        :href="(proxyStatus.ssl_enabled ? 'https://' : 'http://') + proxyStatus.domain"
+                        :href="
+                          (proxyStatus.ssl_enabled ? 'https://' : 'http://') + proxyStatus.domain
+                        "
                         target="_blank"
                       >
                         {{ proxyStatus.domain }}
@@ -166,7 +125,7 @@
                         class="status-badge"
                         :class="proxyStatus.virtual_host_exists ? 'running' : 'stopped'"
                       >
-                        {{ proxyStatus.virtual_host_exists ? 'Configured' : 'Not Configured' }}
+                        {{ proxyStatus.virtual_host_exists ? "Configured" : "Not Configured" }}
                       </span>
                     </span>
                   </div>
@@ -177,7 +136,7 @@
                         class="status-badge"
                         :class="proxyStatus.ssl_enabled ? 'running' : 'stopped'"
                       >
-                        {{ proxyStatus.ssl_enabled ? 'Enabled' : 'Disabled' }}
+                        {{ proxyStatus.ssl_enabled ? "Enabled" : "Disabled" }}
                       </span>
                     </span>
                   </div>
@@ -185,10 +144,7 @@
                     <div class="info-row">
                       <span class="label">Certificate</span>
                       <span class="value">
-                        <span
-                          class="status-badge"
-                          :class="proxyStatus.certificate.status"
-                        >
+                        <span class="status-badge" :class="proxyStatus.certificate.status">
                           {{ proxyStatus.certificate.status }}
                         </span>
                       </span>
@@ -199,7 +155,9 @@
                         class="value"
                         :class="{ 'text-warning': proxyStatus.certificate.days_left <= 30 }"
                       >
-                        {{ proxyStatus.certificate.days_left }} days ({{ formatDateTime(proxyStatus.certificate.not_after) }})
+                        {{ proxyStatus.certificate.days_left }} days ({{
+                          formatDateTime(proxyStatus.certificate.not_after)
+                        }})
                       </span>
                     </div>
                   </template>
@@ -240,27 +198,14 @@
                 <h3>Services</h3>
               </div>
               <div class="card-body">
-                <div
-                  v-if="services.length === 0"
-                  class="empty-services"
-                >
+                <div v-if="services.length === 0" class="empty-services">
                   No services configured
                 </div>
-                <div
-                  v-else
-                  class="services-list"
-                >
-                  <div
-                    v-for="service in services"
-                    :key="service.name"
-                    class="service-item"
-                  >
+                <div v-else class="services-list">
+                  <div v-for="service in services" :key="service.name" class="service-item">
                     <div class="service-header">
                       <span class="service-name">{{ service.name }}</span>
-                      <span
-                        class="service-status"
-                        :class="service.status"
-                      >{{
+                      <span class="service-status" :class="service.status">{{
                         service.status
                       }}</span>
                     </div>
@@ -269,34 +214,19 @@
                         <i class="pi pi-image" />
                         {{ service.image }}
                       </span>
-                      <span
-                        v-if="service.ports?.length"
-                        class="detail-item"
-                      >
+                      <span v-if="service.ports?.length" class="detail-item">
                         <i class="pi pi-sitemap" />
                         {{ service.ports.join(", ") }}
                       </span>
                     </div>
                     <div class="service-actions">
-                      <button
-                        class="action-btn"
-                        title="Terminal"
-                        @click="openTerminal(service)"
-                      >
+                      <button class="action-btn" title="Terminal" @click="openTerminal(service)">
                         <i class="pi pi-desktop" />
                       </button>
-                      <button
-                        class="action-btn"
-                        title="Logs"
-                        @click="viewServiceLogs(service)"
-                      >
+                      <button class="action-btn" title="Logs" @click="viewServiceLogs(service)">
                         <i class="pi pi-file-edit" />
                       </button>
-                      <button
-                        class="action-btn"
-                        title="Restart"
-                        @click="restartService(service)"
-                      >
+                      <button class="action-btn" title="Restart" @click="restartService(service)">
                         <i class="pi pi-refresh" />
                       </button>
                     </div>
@@ -314,9 +244,7 @@
             <div class="card-body">
               <div class="resource-grid">
                 <div class="resource-item">
-                  <div class="resource-label">
-                    CPU Usage
-                  </div>
+                  <div class="resource-label">CPU Usage</div>
                   <div class="resource-bar-wrapper">
                     <div class="resource-bar">
                       <div
@@ -329,9 +257,7 @@
                   </div>
                 </div>
                 <div class="resource-item">
-                  <div class="resource-label">
-                    Memory Usage
-                  </div>
+                  <div class="resource-label">Memory Usage</div>
                   <div class="resource-bar-wrapper">
                     <div class="resource-bar">
                       <div
@@ -344,9 +270,7 @@
                   </div>
                 </div>
                 <div class="resource-item">
-                  <div class="resource-label">
-                    Disk I/O
-                  </div>
+                  <div class="resource-label">Disk I/O</div>
                   <div class="resource-bar-wrapper">
                     <div class="resource-bar">
                       <div
@@ -359,9 +283,7 @@
                   </div>
                 </div>
                 <div class="resource-item">
-                  <div class="resource-label">
-                    Network I/O
-                  </div>
+                  <div class="resource-label">Network I/O</div>
                   <div class="resource-bar-wrapper">
                     <div class="resource-bar">
                       <div
@@ -378,17 +300,11 @@
           </div>
         </div>
 
-        <div
-          v-if="activeTab === 'files'"
-          class="files-tab"
-        >
-          <FileBrowser :deployment-name="(route.params.name as string)" />
+        <div v-if="activeTab === 'files'" class="files-tab">
+          <FileBrowser :deployment-name="route.params.name as string" />
         </div>
 
-        <div
-          v-if="activeTab === 'logs'"
-          class="logs-tab"
-        >
+        <div v-if="activeTab === 'logs'" class="logs-tab">
           <LogViewer
             :logs="logs"
             :loading="logsLoading"
@@ -397,67 +313,34 @@
             @refresh="fetchLogs"
           >
             <template #filters>
-              <select
-                v-model="logsService"
-                class="form-select"
-              >
-                <option value="all">
-                  All Services
-                </option>
-                <option
-                  v-for="service in services"
-                  :key="service.name"
-                  :value="service.name"
-                >
+              <select v-model="logsService" class="form-select">
+                <option value="all">All Services</option>
+                <option v-for="service in services" :key="service.name" :value="service.name">
                   {{ service.name }}
                 </option>
               </select>
-              <select
-                v-model="logsTail"
-                class="form-select"
-              >
-                <option :value="100">
-                  Last 100 lines
-                </option>
-                <option :value="500">
-                  Last 500 lines
-                </option>
-                <option :value="1000">
-                  Last 1000 lines
-                </option>
-                <option :value="0">
-                  All logs
-                </option>
+              <select v-model="logsTail" class="form-select">
+                <option :value="100">Last 100 lines</option>
+                <option :value="500">Last 500 lines</option>
+                <option :value="1000">Last 1000 lines</option>
+                <option :value="0">All logs</option>
               </select>
             </template>
           </LogViewer>
         </div>
 
-        <div
-          v-if="activeTab === 'terminal'"
-          class="terminal-tab"
-        >
+        <div v-if="activeTab === 'terminal'" class="terminal-tab">
           <div class="terminal-header">
             <div class="terminal-selector">
               <label>Service:</label>
-              <select
-                v-model="terminalService"
-                class="form-select"
-              >
-                <option
-                  v-for="service in services"
-                  :key="service.name"
-                  :value="service.name"
-                >
+              <select v-model="terminalService" class="form-select">
+                <option v-for="service in services" :key="service.name" :value="service.name">
                   {{ service.name }}
                 </option>
               </select>
             </div>
             <div class="terminal-actions">
-              <button
-                class="btn btn-sm btn-secondary"
-                @click="reconnectTerminal"
-              >
+              <button class="btn btn-sm btn-secondary" @click="reconnectTerminal">
                 <i class="pi pi-refresh" /> Reconnect
               </button>
             </div>
@@ -470,76 +353,45 @@
                 Connect to container shell for
                 {{ terminalService || "selected service" }}
               </p>
-              <button
-                class="btn btn-primary"
-                :disabled="!terminalService"
-                @click="connectTerminal"
-              >
+              <button class="btn btn-primary" :disabled="!terminalService" @click="connectTerminal">
                 <i class="pi pi-sign-in" /> Connect to Shell
               </button>
             </div>
           </div>
         </div>
 
-        <div
-          v-if="activeTab === 'environment'"
-          class="env-tab"
-        >
+        <div v-if="activeTab === 'environment'" class="env-tab">
           <div class="env-header">
             <h3>Environment Variables</h3>
-            <button
-              class="btn btn-sm btn-primary"
-              @click="showAddEnvModal = true"
-            >
+            <button class="btn btn-sm btn-primary" @click="showAddEnvModal = true">
               <i class="pi pi-plus" /> Add Variable
             </button>
           </div>
           <div class="env-list">
-            <div
-              v-if="envVars.length === 0"
-              class="empty-env"
-            >
+            <div v-if="envVars.length === 0" class="empty-env">
               <i class="pi pi-list" />
               <p>No environment variables configured</p>
             </div>
-            <div
-              v-else
-              class="env-table"
-            >
+            <div v-else class="env-table">
               <div class="env-row header">
                 <span class="env-key">Key</span>
                 <span class="env-value">Value</span>
                 <span class="env-actions">Actions</span>
               </div>
-              <div
-                v-for="env in envVars"
-                :key="env.key"
-                class="env-row"
-              >
+              <div v-for="env in envVars" :key="env.key" class="env-row">
                 <span class="env-key">{{ env.key }}</span>
                 <span class="env-value">
                   <code v-if="!env.hidden">{{ env.value }}</code>
                   <code v-else>••••••••</code>
-                  <button
-                    class="toggle-btn"
-                    @click="env.hidden = !env.hidden"
-                  >
-                    <i
-                      :class="env.hidden ? 'pi pi-eye' : 'pi pi-eye-slash'"
-                    />
+                  <button class="toggle-btn" @click="env.hidden = !env.hidden">
+                    <i :class="env.hidden ? 'pi pi-eye' : 'pi pi-eye-slash'" />
                   </button>
                 </span>
                 <span class="env-actions">
-                  <button
-                    class="action-btn"
-                    @click="editEnvVar(env)"
-                  >
+                  <button class="action-btn" @click="editEnvVar(env)">
                     <i class="pi pi-pencil" />
                   </button>
-                  <button
-                    class="action-btn delete"
-                    @click="confirmDeleteEnv(env.key)"
-                  >
+                  <button class="action-btn delete" @click="confirmDeleteEnv(env.key)">
                     <i class="pi pi-trash" />
                   </button>
                 </span>
@@ -548,17 +400,11 @@
           </div>
         </div>
 
-        <div
-          v-if="activeTab === 'config'"
-          class="config-tab"
-        >
+        <div v-if="activeTab === 'config'" class="config-tab">
           <div class="config-header">
             <h3>Docker Compose Configuration</h3>
             <div class="config-actions">
-              <button
-                class="btn btn-sm btn-secondary"
-                @click="copyConfig"
-              >
+              <button class="btn btn-sm btn-secondary" @click="copyConfig">
                 <i class="pi pi-copy" /> Copy
               </button>
               <button
@@ -569,16 +415,8 @@
                 <i class="pi pi-pencil" /> Edit
               </button>
               <template v-else>
-                <button
-                  class="btn btn-sm btn-secondary"
-                  @click="cancelConfigEdit"
-                >
-                  Cancel
-                </button>
-                <button
-                  class="btn btn-sm btn-success"
-                  @click="saveConfig"
-                >
+                <button class="btn btn-sm btn-secondary" @click="cancelConfigEdit">Cancel</button>
+                <button class="btn btn-sm btn-success" @click="saveConfig">
                   <i class="pi pi-check" /> Save
                 </button>
               </template>
@@ -605,7 +443,17 @@
         <div class="operation-modal modal-container">
           <div class="modal-header" :class="{ success: operationSuccess, error: operationError }">
             <h3>
-              <i :class="operationRunning ? 'pi pi-spin pi-spinner' : operationSuccess ? 'pi pi-check-circle' : operationError ? 'pi pi-times-circle' : 'pi pi-cog'" />
+              <i
+                :class="
+                  operationRunning
+                    ? 'pi pi-spin pi-spinner'
+                    : operationSuccess
+                      ? 'pi pi-check-circle'
+                      : operationError
+                        ? 'pi pi-times-circle'
+                        : 'pi pi-cog'
+                "
+              />
               {{ operationTitle }}
             </h3>
             <span v-if="operationSuccess" class="status-text success">Completed</span>
@@ -672,20 +520,14 @@
               <i class="pi pi-globe" />
               Domain & SSL Settings
             </h3>
-            <button
-              class="close-btn"
-              @click="showDomainSettingsModal = false"
-            >
+            <button class="close-btn" @click="showDomainSettingsModal = false">
               <i class="pi pi-times" />
             </button>
           </div>
           <div class="modal-body">
             <div class="form-group">
               <label class="checkbox-label">
-                <input
-                  v-model="domainSettings.expose"
-                  type="checkbox"
-                >
+                <input v-model="domainSettings.expose" type="checkbox" />
                 <span>Expose to Internet</span>
               </label>
               <span class="hint">Enable reverse proxy for external access</span>
@@ -699,7 +541,7 @@
                   type="text"
                   placeholder="app.example.com"
                   class="form-input"
-                >
+                />
                 <span class="hint">The domain name for your deployment</span>
               </div>
 
@@ -710,30 +552,21 @@
                   type="number"
                   placeholder="80"
                   class="form-input"
-                >
+                />
                 <span class="hint">The port your application listens on</span>
               </div>
 
               <div class="form-group">
                 <label class="checkbox-label">
-                  <input
-                    v-model="domainSettings.sslEnabled"
-                    type="checkbox"
-                  >
+                  <input v-model="domainSettings.sslEnabled" type="checkbox" />
                   <span>Enable SSL</span>
                 </label>
                 <span class="hint">Secure your deployment with HTTPS</span>
               </div>
 
-              <div
-                v-if="domainSettings.sslEnabled"
-                class="form-group"
-              >
+              <div v-if="domainSettings.sslEnabled" class="form-group">
                 <label class="checkbox-label">
-                  <input
-                    v-model="domainSettings.autoCert"
-                    type="checkbox"
-                  >
+                  <input v-model="domainSettings.autoCert" type="checkbox" />
                   <span>Auto-generate Certificate</span>
                 </label>
                 <span class="hint">Automatically request Let's Encrypt certificate</span>
@@ -741,10 +574,7 @@
             </template>
           </div>
           <div class="modal-footer">
-            <button
-              class="btn btn-secondary"
-              @click="showDomainSettingsModal = false"
-            >
+            <button class="btn btn-secondary" @click="showDomainSettingsModal = false">
               Cancel
             </button>
             <button
@@ -752,11 +582,8 @@
               :disabled="savingDomainSettings"
               @click="saveDomainSettings"
             >
-              <i
-                v-if="savingDomainSettings"
-                class="pi pi-spin pi-spinner"
-              />
-              {{ savingDomainSettings ? 'Saving...' : 'Save Settings' }}
+              <i v-if="savingDomainSettings" class="pi pi-spin pi-spinner" />
+              {{ savingDomainSettings ? "Saving..." : "Save Settings" }}
             </button>
           </div>
         </div>
@@ -811,6 +638,7 @@ const logs = ref("");
 const logsLoading = ref(false);
 const logsService = ref("all");
 const logsTail = ref(100);
+const logsFollow = ref(false);
 
 const terminalService = ref("");
 
@@ -850,10 +678,11 @@ const fetchDeployment = async () => {
   error.value = "";
   try {
     const response = await deploymentsApi.get(route.params.name as string);
-    deployment.value = response.data.deployment || response.data;
+    const data = response.data as any;
+    deployment.value = data.deployment || data;
 
-    if (response.data.proxy_status) {
-      proxyStatus.value = response.data.proxy_status;
+    if (data.proxy_status) {
+      proxyStatus.value = data.proxy_status;
     } else {
       try {
         const proxyResponse = await proxyApi.getStatus(route.params.name as string);
@@ -903,13 +732,9 @@ const fetchDeployment = async () => {
     ];
 
     try {
-      const composeResponse = await deploymentsApi.getComposeFile(
-        route.params.name as string,
-      );
+      const composeResponse = await deploymentsApi.getComposeFile(route.params.name as string);
       composeConfig.value =
-        composeResponse.data.content ||
-        composeResponse.data ||
-        "No compose file found";
+        composeResponse.data.content || composeResponse.data || "No compose file found";
     } catch (composeErr) {
       composeConfig.value = "Error loading compose file";
       console.error("Failed to load compose file:", composeErr);
@@ -945,7 +770,10 @@ const handleRequestCertificate = async () => {
   requestingCert.value = true;
   try {
     await certificatesApi.request(proxyStatus.value.domain);
-    notifications.success("Certificate Requested", `SSL certificate for ${proxyStatus.value.domain} has been requested`);
+    notifications.success(
+      "Certificate Requested",
+      `SSL certificate for ${proxyStatus.value.domain} has been requested`,
+    );
     await fetchDeployment();
   } catch (err: any) {
     const msg = err.response?.data?.error || err.message;

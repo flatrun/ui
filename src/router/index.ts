@@ -50,9 +50,29 @@ const routes: RouteRecordRaw[] = [
         component: () => import("@/views/NetworksView.vue"),
       },
       {
-        path: "ports",
-        name: "ports",
-        component: () => import("@/views/PortsView.vue"),
+        path: "docker-ports",
+        name: "docker-ports",
+        component: () => import("@/views/DockerPortsView.vue"),
+      },
+      {
+        path: "system-ports",
+        name: "system-ports",
+        component: () => import("@/views/SystemPortsView.vue"),
+      },
+      {
+        path: "services",
+        name: "services",
+        component: () => import("@/views/ServicesView.vue"),
+      },
+      {
+        path: "databases",
+        name: "databases",
+        component: () => import("@/views/DatabasesView.vue"),
+      },
+      {
+        path: "databases/:id",
+        name: "database-manager",
+        component: () => import("@/views/DatabaseManagerView.vue"),
       },
       {
         path: "certificates",
@@ -85,9 +105,7 @@ const router = createRouter({
 
 router.beforeEach((to, _from, next) => {
   const token = localStorage.getItem("auth_token");
-  const requiresAuth = to.matched.some(
-    (record) => record.meta.requiresAuth !== false,
-  );
+  const requiresAuth = to.matched.some((record) => record.meta.requiresAuth !== false);
 
   if (requiresAuth && !token) {
     next("/login");

@@ -3,21 +3,12 @@
     <div class="browser-toolbar">
       <div class="toolbar-left">
         <div class="breadcrumb">
-          <button
-            class="breadcrumb-item"
-            @click="navigateTo('/')"
-          >
+          <button class="breadcrumb-item" @click="navigateTo('/')">
             <i class="pi pi-home" />
           </button>
-          <template
-            v-for="(part, index) in pathParts"
-            :key="index"
-          >
+          <template v-for="(part, index) in pathParts" :key="index">
             <i class="pi pi-chevron-right breadcrumb-separator" />
-            <button
-              class="breadcrumb-item"
-              @click="navigateTo(getPathUpTo(index))"
-            >
+            <button class="breadcrumb-item" @click="navigateTo(getPathUpTo(index))">
               {{ part }}
             </button>
           </template>
@@ -27,77 +18,63 @@
           <i class="pi pi-cog" />
           All Files
         </label>
+        <div class="view-mode-toggle">
+          <button
+            class="view-mode-btn"
+            :class="{ active: viewMode === 'list' }"
+            title="List View"
+            @click="viewMode = 'list'"
+          >
+            <i class="pi pi-list" />
+          </button>
+          <button
+            class="view-mode-btn"
+            :class="{ active: viewMode === 'grid' }"
+            title="Grid View"
+            @click="viewMode = 'grid'"
+          >
+            <i class="pi pi-th-large" />
+          </button>
+        </div>
       </div>
       <div class="toolbar-actions">
-        <button
-          class="btn btn-sm btn-secondary"
-          @click="refreshFiles"
-          :disabled="loading"
-        >
+        <button class="btn btn-sm btn-secondary" @click="refreshFiles" :disabled="loading">
           <i :class="loading ? 'pi pi-spin pi-spinner' : 'pi pi-refresh'" />
         </button>
         <template v-if="!showAllFiles">
-          <button
-            class="btn btn-sm btn-secondary"
-            @click="showNewFolderModal = true"
-          >
+          <button class="btn btn-sm btn-secondary" @click="showNewFolderModal = true">
             <i class="pi pi-folder-plus" />
             New Folder
           </button>
           <label class="btn btn-sm btn-primary upload-btn">
             <i class="pi pi-upload" />
             Upload
-            <input
-              type="file"
-              multiple
-              @change="handleFileSelect"
-              hidden
-            />
+            <input type="file" multiple @change="handleFileSelect" hidden />
           </label>
         </template>
       </div>
     </div>
 
-    <div
-      v-if="uploading"
-      class="upload-progress"
-    >
+    <div v-if="uploading" class="upload-progress">
       <div class="progress-bar">
-        <div
-          class="progress-fill"
-          :style="{ width: uploadProgress + '%' }"
-        />
+        <div class="progress-fill" :style="{ width: uploadProgress + '%' }" />
       </div>
       <span class="progress-text">Uploading {{ uploadFileName }}...</span>
     </div>
 
     <div class="browser-content">
-      <div
-        v-if="loading && files.length === 0"
-        class="loading-state"
-      >
+      <div v-if="loading && files.length === 0" class="loading-state">
         <i class="pi pi-spin pi-spinner" />
         <span>Loading files...</span>
       </div>
 
-      <div
-        v-else-if="error"
-        class="error-state"
-      >
+      <div v-else-if="error" class="error-state">
         <i class="pi pi-exclamation-triangle" />
         <p>{{ error }}</p>
-        <button
-          class="btn btn-sm btn-primary"
-          @click="refreshFiles"
-        >
-          Retry
-        </button>
+        <button class="btn btn-sm btn-primary" @click="refreshFiles">Retry</button>
       </div>
 
-      <div
-        v-else-if="files.length === 0"
-        class="empty-state"
-      >
+      <div v-else-if="files.length === 0" class="empty-state">
         <i class="pi pi-folder-open" />
         <h3>No files yet</h3>
         <p v-if="showAllFiles">No deployment files found</p>
@@ -106,20 +83,12 @@
           <label class="btn btn-primary upload-btn">
             <i class="pi pi-upload" />
             Upload Files
-            <input
-              type="file"
-              multiple
-              @change="handleFileSelect"
-              hidden
-            />
+            <input type="file" multiple @change="handleFileSelect" hidden />
           </label>
         </template>
       </div>
 
-      <div
-        v-else
-        class="file-list"
-      >
+      <div v-else-if="viewMode === 'list'" class="file-list">
         <div class="file-list-header">
           <span class="col-name">Name</span>
           <span class="col-size">Size</span>
@@ -137,23 +106,17 @@
           <span class="col-name">
             <i :class="getFileIcon(file)" />
             <span class="file-name">{{ file.name }}</span>
-            <span
-              v-if="file.is_dir && file.child_count !== undefined"
-              class="child-count"
-            >
+            <span v-if="file.is_dir && file.child_count !== undefined" class="child-count">
               {{ file.child_count }} items
             </span>
           </span>
           <span class="col-size">
-            {{ file.is_dir ? '-' : formatSize(file.size) }}
+            {{ file.is_dir ? "-" : formatSize(file.size) }}
           </span>
           <span class="col-modified">
             {{ formatDate(file.mod_time) }}
           </span>
-          <span
-            class="col-actions"
-            @click.stop
-          >
+          <span class="col-actions" @click.stop>
             <button
               v-if="!file.is_dir"
               class="action-btn"
@@ -173,22 +136,58 @@
           </span>
         </div>
       </div>
+
+      <div v-else class="file-grid">
+        <div
+          v-for="file in files"
+          :key="file.path"
+          class="grid-item"
+          :class="{ 'is-dir': file.is_dir, selected: selectedFiles.includes(file.path) }"
+          @click="handleItemClick(file)"
+          @dblclick="handleItemDblClick(file)"
+        >
+          <div class="grid-item-icon">
+            <i :class="getFileIcon(file)" />
+          </div>
+          <div class="grid-item-name">{{ file.name }}</div>
+          <div class="grid-item-meta">
+            {{
+              file.is_dir
+                ? file.child_count !== undefined
+                  ? `${file.child_count} items`
+                  : "Folder"
+                : formatSize(file.size)
+            }}
+          </div>
+          <div class="grid-item-actions" @click.stop>
+            <button
+              v-if="!file.is_dir"
+              class="action-btn"
+              title="Download"
+              @click="downloadFile(file)"
+            >
+              <i class="pi pi-download" />
+            </button>
+            <button
+              v-if="!showAllFiles"
+              class="action-btn delete"
+              title="Delete"
+              @click="confirmDelete(file)"
+            >
+              <i class="pi pi-trash" />
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <div
-      v-if="filesInfo"
-      class="browser-footer"
-    >
+    <div v-if="filesInfo" class="browser-footer">
       <span>{{ filesInfo.file_count }} items</span>
       <span>{{ formatSize(filesInfo.total_size) }} total</span>
     </div>
 
     <Teleport to="body">
-      <div
-        v-if="showNewFolderModal"
-        class="modal-overlay"
-        @click.self="showNewFolderModal = false"
-      >
+      <div v-if="showNewFolderModal" class="modal-overlay" @click.self="showNewFolderModal = false">
         <div class="modal-container small">
           <div class="modal-header">
             <h3>
@@ -209,12 +208,7 @@
             </div>
           </div>
           <div class="modal-footer">
-            <button
-              class="btn btn-secondary"
-              @click="showNewFolderModal = false"
-            >
-              Cancel
-            </button>
+            <button class="btn btn-secondary" @click="showNewFolderModal = false">Cancel</button>
             <button
               class="btn btn-primary"
               :disabled="!newFolderName.trim() || creatingFolder"
@@ -227,11 +221,7 @@
         </div>
       </div>
 
-      <div
-        v-if="showDeleteModal"
-        class="modal-overlay"
-        @click.self="showDeleteModal = false"
-      >
+      <div v-if="showDeleteModal" class="modal-overlay" @click.self="showDeleteModal = false">
         <div class="modal-container small">
           <div class="modal-header danger">
             <h3>
@@ -242,27 +232,16 @@
           <div class="modal-body">
             <p>
               Are you sure you want to delete
-              <strong>{{ fileToDelete?.name }}</strong>?
+              <strong>{{ fileToDelete?.name }}</strong
+              >?
             </p>
-            <p
-              v-if="fileToDelete?.is_dir"
-              class="warning-text"
-            >
+            <p v-if="fileToDelete?.is_dir" class="warning-text">
               This will delete all contents inside the folder.
             </p>
           </div>
           <div class="modal-footer">
-            <button
-              class="btn btn-secondary"
-              @click="showDeleteModal = false"
-            >
-              Cancel
-            </button>
-            <button
-              class="btn btn-danger"
-              :disabled="deleting"
-              @click="deleteFile"
-            >
+            <button class="btn btn-secondary" @click="showDeleteModal = false">Cancel</button>
+            <button class="btn btn-danger" :disabled="deleting" @click="deleteFile">
               <i :class="deleting ? 'pi pi-spin pi-spinner' : 'pi pi-trash'" />
               Delete
             </button>
@@ -304,11 +283,10 @@ const fileToDelete = ref<FileInfo | null>(null);
 const deleting = ref(false);
 
 const showAllFiles = ref(false);
+const viewMode = ref<"list" | "grid">("list");
 
 const pathParts = computed(() => {
-  return currentPath.value
-    .split("/")
-    .filter((p) => p.length > 0);
+  return currentPath.value.split("/").filter((p) => p.length > 0);
 });
 
 const getPathUpTo = (index: number) => {
@@ -327,7 +305,7 @@ const fetchFiles = async () => {
     const response = await filesApi.list(
       props.deploymentName,
       currentPath.value,
-      showAllFiles.value
+      showAllFiles.value,
     );
     files.value = response.data.files || [];
   } catch (err: any) {
@@ -387,9 +365,8 @@ const uploadFile = async (file: File) => {
   uploadFileName.value = file.name;
 
   try {
-    const targetPath = currentPath.value === "/"
-      ? `/${file.name}`
-      : `${currentPath.value}/${file.name}`;
+    const targetPath =
+      currentPath.value === "/" ? `/${file.name}` : `${currentPath.value}/${file.name}`;
 
     await filesApi.upload(props.deploymentName, targetPath, file);
     uploadProgress.value = 100;
@@ -405,11 +382,7 @@ const uploadFile = async (file: File) => {
 
 const downloadFile = async (file: FileInfo) => {
   try {
-    const response = await filesApi.download(
-      props.deploymentName,
-      file.path,
-      showAllFiles.value
-    );
+    const response = await filesApi.download(props.deploymentName, file.path, showAllFiles.value);
     const blob = new Blob([response.data]);
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -428,9 +401,10 @@ const createFolder = async () => {
 
   creatingFolder.value = true;
   try {
-    const targetPath = currentPath.value === "/"
-      ? `/${newFolderName.value}`
-      : `${currentPath.value}/${newFolderName.value}`;
+    const targetPath =
+      currentPath.value === "/"
+        ? `/${newFolderName.value}`
+        : `${currentPath.value}/${newFolderName.value}`;
 
     await filesApi.createDir(props.deploymentName, targetPath);
     notifications.success("Folder Created", `${newFolderName.value} created successfully`);
@@ -512,7 +486,11 @@ const formatSize = (bytes: number): string => {
 
 const formatDate = (dateStr: string): string => {
   const date = new Date(dateStr);
-  return date.toLocaleDateString() + " " + date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  return (
+    date.toLocaleDateString() +
+    " " +
+    date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+  );
 };
 
 watch(currentPath, () => {
@@ -934,6 +912,118 @@ onMounted(() => {
 .btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.view-mode-toggle {
+  display: flex;
+  border: 1px solid var(--color-gray-200);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  margin-left: var(--space-2);
+}
+
+.view-mode-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 28px;
+  border: none;
+  background: white;
+  color: var(--color-gray-400);
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+.view-mode-btn:first-child {
+  border-right: 1px solid var(--color-gray-200);
+}
+
+.view-mode-btn:hover {
+  color: var(--color-gray-600);
+  background: var(--color-gray-50);
+}
+
+.view-mode-btn.active {
+  background: var(--color-primary-50);
+  color: var(--color-primary-600);
+}
+
+.file-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: var(--space-3);
+  padding: var(--space-4);
+}
+
+.grid-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--space-3);
+  border: 1px solid var(--color-gray-200);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-base);
+  position: relative;
+}
+
+.grid-item:hover {
+  background: var(--color-gray-50);
+  border-color: var(--color-gray-300);
+}
+
+.grid-item.selected {
+  background: var(--color-primary-50);
+  border-color: var(--color-primary-300);
+}
+
+.grid-item.is-dir {
+  background: var(--color-gray-50);
+}
+
+.grid-item-icon {
+  font-size: 2.5rem;
+  margin-bottom: var(--space-2);
+  color: var(--color-gray-400);
+}
+
+.grid-item.is-dir .grid-item-icon {
+  color: var(--color-warning-500);
+}
+
+.grid-item-name {
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--color-gray-900);
+  text-align: center;
+  word-break: break-word;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.grid-item-meta {
+  font-size: var(--text-xs);
+  color: var(--color-gray-500);
+  margin-top: var(--space-1);
+}
+
+.grid-item-actions {
+  position: absolute;
+  top: var(--space-1);
+  right: var(--space-1);
+  display: flex;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity var(--transition-base);
+}
+
+.grid-item:hover .grid-item-actions {
+  opacity: 1;
 }
 
 @keyframes fadeIn {

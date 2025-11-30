@@ -32,22 +32,12 @@
       :default-page-size="25"
     >
       <template #actions>
-        <button
-          class="btn btn-primary"
-          @click="showPullModal = true"
-        >
+        <button class="btn btn-primary" @click="showPullModal = true">
           <i class="pi pi-download" />
           Pull Image
         </button>
-        <button
-          class="btn btn-secondary"
-          :disabled="loading"
-          @click="fetchImages"
-        >
-          <i
-            class="pi pi-refresh"
-            :class="{ 'pi-spin': loading }"
-          />
+        <button class="btn btn-secondary" :disabled="loading" @click="fetchImages">
+          <i class="pi pi-refresh" :class="{ 'pi-spin': loading }" />
           Refresh
         </button>
       </template>
@@ -57,17 +47,10 @@
       </template>
 
       <template #cell-tag="{ item }">
-        <span
-          v-for="tag in item.tags"
-          :key="tag"
-          class="tag-badge"
-        >
+        <span v-for="tag in item.tags" :key="tag" class="tag-badge">
           {{ getTagName(tag) }}
         </span>
-        <span
-          v-if="!item.tags?.length"
-          class="no-tag"
-        >&lt;none&gt;</span>
+        <span v-if="!item.tags?.length" class="no-tag">&lt;none&gt;</span>
       </template>
 
       <template #cell-imageId="{ item }">
@@ -83,21 +66,14 @@
       </template>
 
       <template #cell-containers="{ item }">
-        <span
-          class="container-count"
-          :class="{ used: item.containers > 0 }"
-        >
+        <span class="container-count" :class="{ used: item.containers > 0 }">
           {{ item.containers }}
         </span>
       </template>
 
       <template #cell-actions="{ item }">
         <div class="table-actions">
-          <button
-            class="action-btn"
-            title="Inspect"
-            @click.stop="inspectImage(item.id)"
-          >
+          <button class="action-btn" title="Inspect" @click.stop="inspectImage(item.id)">
             <i class="pi pi-info-circle" />
           </button>
           <button
@@ -125,7 +101,7 @@
                 :checked="selectedItems.includes(image.id)"
                 class="image-checkbox"
                 @change="toggleSelect(image.id)"
-              >
+              />
               <div class="image-icon">
                 <i class="pi pi-box" />
               </div>
@@ -138,17 +114,10 @@
                 {{ getImageName(image) }}
               </h4>
               <div class="image-tags">
-                <span
-                  v-for="tag in image.tags"
-                  :key="tag"
-                  class="image-tag"
-                >
+                <span v-for="tag in image.tags" :key="tag" class="image-tag">
                   {{ getTagName(tag) }}
                 </span>
-                <span
-                  v-if="!image.tags?.length"
-                  class="no-tag"
-                >&lt;none&gt;</span>
+                <span v-if="!image.tags?.length" class="no-tag">&lt;none&gt;</span>
               </div>
               <div class="image-meta">
                 <span class="meta-item">
@@ -162,11 +131,7 @@
               </div>
             </div>
             <div class="image-card-actions">
-              <button
-                class="action-btn"
-                title="Inspect"
-                @click="inspectImage(image.id)"
-              >
+              <button class="action-btn" title="Inspect" @click="inspectImage(image.id)">
                 <i class="pi pi-info-circle" />
               </button>
               <button
@@ -190,10 +155,7 @@
       </template>
 
       <template #bulk-actions="{ selectedItems, clearSelection }">
-        <button
-          class="btn btn-sm btn-danger"
-          @click="bulkRemove(selectedItems, clearSelection)"
-        >
+        <button class="btn btn-sm btn-danger" @click="bulkRemove(selectedItems, clearSelection)">
           <i class="pi pi-trash" /> Remove
         </button>
       </template>
@@ -224,21 +186,14 @@
     />
 
     <Teleport to="body">
-      <div
-        v-if="showPullModal"
-        class="modal-overlay"
-        @click.self="showPullModal = false"
-      >
+      <div v-if="showPullModal" class="modal-overlay" @click.self="showPullModal = false">
         <div class="pull-modal modal-container">
           <div class="modal-header">
             <h3>
               <i class="pi pi-download" />
               Pull Image
             </h3>
-            <button
-              class="close-btn"
-              @click="showPullModal = false"
-            >
+            <button class="close-btn" @click="showPullModal = false">
               <i class="pi pi-times" />
             </button>
           </div>
@@ -250,26 +205,20 @@
                 type="text"
                 placeholder="nginx:latest"
                 class="form-input"
+              />
+              <span class="form-hint"
+                >Format: repository:tag (e.g., nginx:latest, ubuntu:22.04)</span
               >
-              <span class="form-hint">Format: repository:tag (e.g., nginx:latest, ubuntu:22.04)</span>
             </div>
           </div>
           <div class="modal-footer">
-            <button
-              class="btn btn-secondary"
-              @click="showPullModal = false"
-            >
-              Cancel
-            </button>
+            <button class="btn btn-secondary" @click="showPullModal = false">Cancel</button>
             <button
               class="btn btn-primary"
               :disabled="!pullImageName || pulling"
               @click="pullImage"
             >
-              <i
-                v-if="pulling"
-                class="pi pi-spin pi-spinner"
-              />
+              <i v-if="pulling" class="pi pi-spin pi-spinner" />
               {{ pulling ? "Pulling..." : "Pull Image" }}
             </button>
           </div>
@@ -318,12 +267,8 @@ const columns = [
   { key: "actions", label: "Actions", width: "100px" },
 ];
 
-const totalSize = computed(() =>
-  images.value.reduce((acc, img) => acc + img.size, 0),
-);
-const unusedImages = computed(
-  () => images.value.filter((img) => img.containers === 0).length,
-);
+const totalSize = computed(() => images.value.reduce((acc, img) => acc + img.size, 0));
+const unusedImages = computed(() => images.value.filter((img) => img.containers === 0).length);
 
 const fetchImages = async () => {
   loading.value = true;

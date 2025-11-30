@@ -2,26 +2,20 @@
   <div class="data-table-container">
     <div class="table-header">
       <div class="header-left">
-        <div
-          v-if="searchable"
-          class="search-box"
-        >
+        <div v-if="searchable" class="search-box">
           <Search :size="16" />
           <input
             v-model="searchQuery"
             type="text"
             :placeholder="searchPlaceholder"
             class="search-input"
-          >
+          />
         </div>
         <slot name="filters" />
       </div>
       <div class="header-right">
         <slot name="actions" />
-        <div
-          v-if="toggleable"
-          class="view-toggle"
-        >
+        <div v-if="toggleable" class="view-toggle">
           <button
             class="toggle-btn"
             :class="{ active: viewMode === 'grid' }"
@@ -40,52 +34,26 @@
       </div>
     </div>
 
-    <div
-      v-if="loading && items.length === 0"
-      class="loading-state"
-    >
-      <Loader2
-        :size="48"
-        class="spinning"
-      />
+    <div v-if="loading && items.length === 0" class="loading-state">
+      <Loader2 :size="48" class="spinning" />
       <span>{{ loadingText }}</span>
     </div>
 
-    <div
-      v-else-if="filteredItems.length === 0"
-      class="empty-state"
-    >
-      <component
-        :is="emptyIcon"
-        v-if="emptyIcon && typeof emptyIcon !== 'string'"
-        :size="48"
-      />
-      <i
-        v-else-if="emptyIcon && typeof emptyIcon === 'string'"
-        :class="emptyIcon"
-      />
+    <div v-else-if="filteredItems.length === 0" class="empty-state">
+      <component :is="emptyIcon" v-if="emptyIcon && typeof emptyIcon !== 'string'" :size="48" />
+      <i v-else-if="emptyIcon && typeof emptyIcon === 'string'" :class="emptyIcon" />
       <h3>{{ emptyTitle }}</h3>
       <p>{{ emptyText }}</p>
       <slot name="empty-action" />
     </div>
 
     <template v-else>
-      <div
-        v-if="viewMode === 'table'"
-        class="table-wrapper"
-      >
+      <div v-if="viewMode === 'table'" class="table-wrapper">
         <table class="data-table">
           <thead>
             <tr>
-              <th
-                v-if="selectable"
-                class="checkbox-col"
-              >
-                <input
-                  v-model="selectAll"
-                  type="checkbox"
-                  @change="toggleSelectAll"
-                >
+              <th v-if="selectable" class="checkbox-col">
+                <input v-model="selectAll" type="checkbox" @change="toggleSelectAll" />
               </th>
               <th
                 v-for="column in columns"
@@ -96,20 +64,12 @@
               >
                 {{ column.label }}
                 <ArrowUp
-                  v-if="
-                    column.sortable &&
-                      sortKey === column.key &&
-                      sortDirection === 'asc'
-                  "
+                  v-if="column.sortable && sortKey === column.key && sortDirection === 'asc'"
                   :size="12"
                   class="sort-icon"
                 />
                 <ArrowDown
-                  v-if="
-                    column.sortable &&
-                      sortKey === column.key &&
-                      sortDirection === 'desc'
-                  "
+                  v-if="column.sortable && sortKey === column.key && sortDirection === 'desc'"
                   :size="12"
                   class="sort-icon"
                 />
@@ -122,20 +82,10 @@
               :key="getItemKey(item)"
               :class="{ selected: selectedItems.includes(getItemKey(item)) }"
             >
-              <td
-                v-if="selectable"
-                class="checkbox-col"
-              >
-                <input
-                  v-model="selectedItems"
-                  type="checkbox"
-                  :value="getItemKey(item)"
-                >
+              <td v-if="selectable" class="checkbox-col">
+                <input v-model="selectedItems" type="checkbox" :value="getItemKey(item)" />
               </td>
-              <td
-                v-for="column in columns"
-                :key="column.key"
-              >
+              <td v-for="column in columns" :key="column.key">
                 <slot
                   :name="`cell-${column.key}`"
                   :item="item"
@@ -149,10 +99,7 @@
         </table>
       </div>
 
-      <div
-        v-else
-        class="grid-view"
-      >
+      <div v-else class="grid-view">
         <slot
           name="grid"
           :items="paginatedItems"
@@ -161,27 +108,15 @@
         />
       </div>
 
-      <div
-        v-if="totalPages > 1"
-        class="pagination"
-      >
+      <div v-if="totalPages > 1" class="pagination">
         <div class="pagination-info">
-          Showing {{ startIndex + 1 }}-{{ endIndex }} of
-          {{ filteredItems.length }} items
+          Showing {{ startIndex + 1 }}-{{ endIndex }} of {{ filteredItems.length }} items
         </div>
         <div class="pagination-controls">
-          <button
-            class="page-btn"
-            :disabled="currentPage === 1"
-            @click="currentPage = 1"
-          >
+          <button class="page-btn" :disabled="currentPage === 1" @click="currentPage = 1">
             <ChevronsLeft :size="16" />
           </button>
-          <button
-            class="page-btn"
-            :disabled="currentPage === 1"
-            @click="currentPage--"
-          >
+          <button class="page-btn" :disabled="currentPage === 1" @click="currentPage--">
             <ChevronLeft :size="16" />
           </button>
           <div class="page-numbers">
@@ -195,11 +130,7 @@
               {{ page }}
             </button>
           </div>
-          <button
-            class="page-btn"
-            :disabled="currentPage === totalPages"
-            @click="currentPage++"
-          >
+          <button class="page-btn" :disabled="currentPage === totalPages" @click="currentPage++">
             <ChevronRight :size="16" />
           </button>
           <button
@@ -211,43 +142,20 @@
           </button>
         </div>
         <div class="page-size-selector">
-          <select
-            v-model="pageSize"
-            class="page-size-select"
-          >
-            <option :value="10">
-              10 / page
-            </option>
-            <option :value="25">
-              25 / page
-            </option>
-            <option :value="50">
-              50 / page
-            </option>
-            <option :value="100">
-              100 / page
-            </option>
+          <select v-model="pageSize" class="page-size-select">
+            <option :value="10">10 / page</option>
+            <option :value="25">25 / page</option>
+            <option :value="50">50 / page</option>
+            <option :value="100">100 / page</option>
           </select>
         </div>
       </div>
     </template>
 
-    <div
-      v-if="selectedItems.length > 0"
-      class="bulk-actions"
-    >
+    <div v-if="selectedItems.length > 0" class="bulk-actions">
       <span class="selection-count">{{ selectedItems.length }} selected</span>
-      <slot
-        name="bulk-actions"
-        :selected-items="selectedItems"
-        :clear-selection="clearSelection"
-      />
-      <button
-        class="btn btn-ghost"
-        @click="clearSelection"
-      >
-        Clear selection
-      </button>
+      <slot name="bulk-actions" :selected-items="selectedItems" :clear-selection="clearSelection" />
+      <button class="btn btn-ghost" @click="clearSelection">Clear selection</button>
     </div>
   </div>
 </template>
@@ -353,9 +261,7 @@ const filteredItems = computed(() => {
   return result;
 });
 
-const totalPages = computed(() =>
-  Math.ceil(filteredItems.value.length / pageSize.value),
-);
+const totalPages = computed(() => Math.ceil(filteredItems.value.length / pageSize.value));
 const startIndex = computed(() => (currentPage.value - 1) * pageSize.value);
 const endIndex = computed(() =>
   Math.min(startIndex.value + pageSize.value, filteredItems.value.length),
@@ -488,8 +394,7 @@ watch(selectedItems, () => {
 .search-input:focus {
   outline: none;
   border-color: var(--color-primary-500, #3b82f6);
-  box-shadow: 0 0 0 var(--ring-width, 2px)
-    var(--ring-color, rgba(59, 130, 246, 0.1));
+  box-shadow: 0 0 0 var(--ring-width, 2px) var(--ring-color, rgba(59, 130, 246, 0.1));
 }
 
 .view-toggle {
