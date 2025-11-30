@@ -2,7 +2,7 @@
   <div class="login-page">
     <div class="login-left">
       <div class="brand">
-        <h1>FlatRun</h1>
+        <Logo variant="full" size="lg" />
         <p>Docker Deployment Manager</p>
       </div>
 
@@ -71,6 +71,7 @@
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
+import Logo from "@/components/base/Logo.vue";
 
 const router = useRouter();
 const auth = useAuthStore();
@@ -105,15 +106,10 @@ const handleLogin = async () => {
   margin-bottom: 3rem;
 }
 
-.brand h1 {
-  font-size: 2.5rem;
-  font-weight: 700;
-  margin-bottom: 0.5rem;
-}
-
 .brand p {
   font-size: 1.125rem;
   color: #94a3b8;
+  margin-top: 0.75rem;
 }
 
 .features {

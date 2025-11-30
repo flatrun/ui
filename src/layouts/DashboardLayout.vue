@@ -2,7 +2,7 @@
   <div class="dashboard-layout">
     <aside class="sidebar" :class="{ collapsed: sidebarCollapsed }">
       <div class="logo">
-        <span class="logo-text">{{ sidebarCollapsed ? "F" : "FlatRun" }}</span>
+        <Logo :variant="sidebarCollapsed ? 'icon' : 'full'" size="md" link-to="/" />
       </div>
 
       <div v-if="!sidebarCollapsed" class="environment-selector">
@@ -258,6 +258,7 @@
 import { ref, reactive, computed, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { healthApi, networksApi, certificatesApi, pluginsApi, portsApi } from "@/services/api";
+import Logo from "@/components/base/Logo.vue";
 
 const route = useRoute();
 const router = useRouter();
@@ -455,17 +456,11 @@ onMounted(() => {
 }
 
 .logo {
-  padding: 1.25rem;
   display: flex;
   align-items: center;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.logo-text {
-  font-size: 1.25rem;
-  font-weight: 700;
-  white-space: nowrap;
-  letter-spacing: -0.02em;
+  justify-content: center;
+  margin: 0.75rem 0;
+  height: 60px;
 }
 
 .environment-selector {
