@@ -1,11 +1,21 @@
 <template>
   <div class="settings-view">
     <div class="view-header">
-      <div class="header-actions">
-        <button class="btn btn-icon" :disabled="loading" @click="fetchSettings">
-          <i class="pi pi-refresh" :class="{ 'pi-spin': loading }" />
+      <div class="tabs">
+        <button
+          v-for="tab in tabs"
+          :key="tab.id"
+          class="tab"
+          :class="{ active: activeTab === tab.id }"
+          @click="activeTab = tab.id"
+        >
+          <i :class="tab.icon" />
+          <span>{{ tab.label }}</span>
         </button>
       </div>
+      <button class="btn btn-icon" :disabled="loading" @click="fetchSettings">
+        <i class="pi pi-refresh" :class="{ 'pi-spin': loading }" />
+      </button>
     </div>
 
     <div v-if="loading" class="loading-state">
@@ -14,199 +24,335 @@
     </div>
 
     <div v-else class="settings-content">
-      <div class="settings-section">
-        <div class="section-header">
-          <i class="pi pi-globe" />
-          <h3>Domain Configuration</h3>
-        </div>
-        <div class="section-body">
-          <div class="setting-item editable">
-            <div class="setting-info">
-              <span class="setting-label">Default Domain</span>
-              <span class="setting-description"
-                >Base domain for auto-generated subdomains (e.g., example.com)</span
-              >
+      <!-- General Tab -->
+      <div v-show="activeTab === 'general'" class="tab-content">
+        <div class="content-grid">
+          <div class="settings-card">
+            <div class="card-header">
+              <i class="pi pi-info-circle" />
+              <h3>System Information</h3>
             </div>
-            <div class="setting-input">
-              <input
-                v-model="domainSettings.default_domain"
-                type="text"
-                placeholder="example.com"
-                class="form-input"
-              />
-            </div>
-          </div>
-          <div class="setting-item editable">
-            <div class="setting-info">
-              <span class="setting-label">Auto Subdomain</span>
-              <span class="setting-description"
-                >Automatically generate random subdomains for new deployments</span
-              >
-            </div>
-            <div class="setting-input">
-              <label class="toggle-switch">
-                <input v-model="domainSettings.auto_subdomain" type="checkbox" />
-                <span class="toggle-slider" />
-              </label>
+            <div class="card-body">
+              <div class="info-grid">
+                <div class="info-item">
+                  <span class="info-label">Agent Status</span>
+                  <span class="status-badge enabled">Online</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">Agent Version</span>
+                  <code>{{ agentVersion }}</code>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">UI Version</span>
+                  <code>{{ uiVersion }}</code>
+                </div>
+              </div>
             </div>
           </div>
-          <div class="setting-item editable">
-            <div class="setting-info">
-              <span class="setting-label">Auto SSL</span>
-              <span class="setting-description"
-                >Automatically request SSL certificates for new deployments</span
-              >
-            </div>
-            <div class="setting-input">
-              <label class="toggle-switch">
-                <input v-model="domainSettings.auto_ssl" type="checkbox" />
-                <span class="toggle-slider" />
-              </label>
-            </div>
-          </div>
-          <div class="setting-item editable">
-            <div class="setting-info">
-              <span class="setting-label">Subdomain Style</span>
-              <span class="setting-description">Format for auto-generated subdomains</span>
-            </div>
-            <div class="setting-input">
-              <select v-model="domainSettings.subdomain_style" class="form-select">
-                <option value="words">Words (swift-river-123)</option>
-                <option value="hex">Hex (a1b2c3d4)</option>
-                <option value="short">Short (swi-riv)</option>
-              </select>
-            </div>
-          </div>
-          <div class="setting-actions">
-            <button class="btn btn-primary" :disabled="savingDomain" @click="saveDomainSettings">
-              <i v-if="savingDomain" class="pi pi-spin pi-spinner" />
-              <i v-else class="pi pi-save" />
-              <span>Save Domain Settings</span>
-            </button>
-          </div>
-        </div>
-      </div>
 
-      <div class="settings-section">
-        <div class="section-header">
-          <i class="pi pi-cog" />
-          <h3>Agent Configuration</h3>
-        </div>
-        <div class="section-body">
-          <div class="setting-item">
-            <div class="setting-info">
-              <span class="setting-label">Deployments Path</span>
-              <span class="setting-description">Directory where deployments are stored</span>
+          <div class="settings-card">
+            <div class="card-header">
+              <i class="pi pi-bolt" />
+              <h3>Quick Actions</h3>
             </div>
-            <div class="setting-value">
-              <code>{{ settings.deployments_path }}</code>
-            </div>
-          </div>
-          <div class="setting-item">
-            <div class="setting-info">
-              <span class="setting-label">API Port</span>
-              <span class="setting-description">Port the agent listens on</span>
-            </div>
-            <div class="setting-value">
-              <code>{{ settings.api_port }}</code>
-            </div>
-          </div>
-          <div class="setting-item">
-            <div class="setting-info">
-              <span class="setting-label">CORS Enabled</span>
-              <span class="setting-description">Cross-origin resource sharing</span>
-            </div>
-            <div class="setting-value">
-              <span class="status-badge" :class="settings.enable_cors ? 'enabled' : 'disabled'">
-                {{ settings.enable_cors ? "Enabled" : "Disabled" }}
-              </span>
-            </div>
-          </div>
-          <div class="setting-item">
-            <div class="setting-info">
-              <span class="setting-label">Allowed Origins</span>
-              <span class="setting-description">Origins allowed to access the API</span>
-            </div>
-            <div class="setting-value">
-              <div class="origins-list">
-                <code v-for="origin in settings.allowed_origins" :key="origin">{{ origin }}</code>
+            <div class="card-body">
+              <div class="actions-grid">
+                <button class="action-btn" @click="testConnection">
+                  <i class="pi pi-check-circle" />
+                  <span>Test Connection</span>
+                </button>
+                <button
+                  class="action-btn"
+                  :disabled="refreshingTemplates"
+                  @click="refreshTemplates"
+                >
+                  <i class="pi pi-box" :class="{ 'pi-spin': refreshingTemplates }" />
+                  <span>{{ refreshingTemplates ? "Refreshing..." : "Refresh Templates" }}</span>
+                </button>
+                <button class="action-btn" @click="refreshData">
+                  <i class="pi pi-sync" />
+                  <span>Refresh All</span>
+                </button>
+                <button class="action-btn" @click="clearCache">
+                  <i class="pi pi-trash" />
+                  <span>Clear Cache</span>
+                </button>
               </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <div class="settings-section">
-        <div class="section-header">
-          <i class="pi pi-info-circle" />
-          <h3>System Information</h3>
+        <div class="settings-card">
+          <div class="card-header">
+            <i class="pi pi-cog" />
+            <h3>Agent Configuration</h3>
+            <span class="badge">Read-only</span>
+          </div>
+          <div class="card-body">
+            <div class="config-grid">
+              <div class="config-item">
+                <span class="config-label">Deployments Path</span>
+                <code>{{ settings.deployments_path }}</code>
+              </div>
+              <div class="config-item">
+                <span class="config-label">API Port</span>
+                <code>{{ settings.api_port }}</code>
+              </div>
+              <div class="config-item">
+                <span class="config-label">CORS</span>
+                <span class="status-badge" :class="settings.enable_cors ? 'enabled' : 'disabled'">
+                  {{ settings.enable_cors ? "Enabled" : "Disabled" }}
+                </span>
+              </div>
+              <div class="config-item full-width">
+                <span class="config-label">Allowed Origins</span>
+                <div class="origins-list">
+                  <code v-for="origin in settings.allowed_origins" :key="origin">{{ origin }}</code>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-        <div class="section-body">
-          <div class="setting-item">
-            <div class="setting-info">
-              <span class="setting-label">Agent Status</span>
-            </div>
-            <div class="setting-value">
-              <span class="status-badge enabled">Online</span>
-            </div>
-          </div>
-          <div class="setting-item">
-            <div class="setting-info">
-              <span class="setting-label">Agent Version</span>
-            </div>
-            <div class="setting-value">
-              <code>1.0.0</code>
-            </div>
-          </div>
-          <div class="setting-item">
-            <div class="setting-info">
-              <span class="setting-label">UI Version</span>
-            </div>
-            <div class="setting-value">
-              <code>{{ uiVersion }}</code>
-            </div>
-          </div>
-        </div>
-      </div>
 
-      <div class="settings-section">
-        <div class="section-header">
-          <i class="pi pi-database" />
-          <h3>Quick Actions</h3>
-        </div>
-        <div class="section-body">
-          <div class="actions-grid">
-            <button class="action-card" @click="testConnection">
-              <i class="pi pi-check-circle" />
-              <span>Test Connection</span>
-            </button>
-            <button class="action-card" @click="refreshData">
-              <i class="pi pi-sync" />
-              <span>Refresh All Data</span>
-            </button>
-            <button class="action-card" @click="clearCache">
-              <i class="pi pi-trash" />
-              <span>Clear Cache</span>
-            </button>
+        <div class="settings-card collapsible" :class="{ collapsed: configCollapsed }">
+          <div class="card-header clickable" @click="configCollapsed = !configCollapsed">
+            <i class="pi pi-file-edit" />
+            <h3>Configuration Preview</h3>
+            <i class="pi chevron" :class="configCollapsed ? 'pi-chevron-down' : 'pi-chevron-up'" />
+          </div>
+          <div v-show="!configCollapsed" class="card-body">
+            <div class="config-note">
+              <i class="pi pi-info-circle" />
+              <p>
+                To modify agent settings, edit the configuration file on your server and restart the
+                agent. Typically located at <code>/etc/flatrun/config.yml</code>
+              </p>
+            </div>
+            <pre class="config-preview">{{ configYaml }}</pre>
           </div>
         </div>
       </div>
 
-      <div class="settings-section">
-        <div class="section-header">
-          <i class="pi pi-file-edit" />
-          <h3>Configuration File</h3>
-        </div>
-        <div class="section-body">
-          <div class="config-note">
-            <i class="pi pi-info-circle" />
-            <p>
-              To modify settings, edit the configuration file on your server and restart the agent.
-              The configuration file is typically located at
-              <code>/etc/flatrun/config.yml</code> or passed via command line.
-            </p>
+      <!-- Domain Tab -->
+      <div v-show="activeTab === 'domain'" class="tab-content">
+        <div class="settings-card">
+          <div class="card-header">
+            <i class="pi pi-globe" />
+            <h3>Domain Configuration</h3>
           </div>
-          <pre class="config-preview">{{ configYaml }}</pre>
+          <div class="card-body">
+            <div class="form-grid">
+              <div class="form-group full-width">
+                <label class="form-label">Default Domain</label>
+                <span class="form-hint">Base domain for auto-generated subdomains</span>
+                <input
+                  v-model="domainSettings.default_domain"
+                  type="text"
+                  placeholder="example.com"
+                  class="form-input"
+                />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Subdomain Style</label>
+                <span class="form-hint">Format for auto-generated subdomains</span>
+                <select v-model="domainSettings.subdomain_style" class="form-select">
+                  <option value="words">Words (swift-river-123)</option>
+                  <option value="hex">Hex (a1b2c3d4)</option>
+                  <option value="short">Short (swi-riv)</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <div class="toggle-row">
+                  <div class="toggle-info">
+                    <label class="form-label">Auto Subdomain</label>
+                    <span class="form-hint">Generate random subdomains for new deployments</span>
+                  </div>
+                  <label class="toggle-switch">
+                    <input v-model="domainSettings.auto_subdomain" type="checkbox" />
+                    <span class="toggle-slider" />
+                  </label>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <div class="toggle-row">
+                  <div class="toggle-info">
+                    <label class="form-label">Auto SSL</label>
+                    <span class="form-hint">Request SSL certificates automatically</span>
+                  </div>
+                  <label class="toggle-switch">
+                    <input v-model="domainSettings.auto_ssl" type="checkbox" />
+                    <span class="toggle-slider" />
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div class="card-footer">
+              <button class="btn btn-primary" :disabled="savingDomain" @click="saveDomainSettings">
+                <i v-if="savingDomain" class="pi pi-spin pi-spinner" />
+                <i v-else class="pi pi-save" />
+                <span>Save Changes</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Infrastructure Tab -->
+      <div v-show="activeTab === 'infrastructure'" class="tab-content">
+        <div class="settings-card">
+          <div class="card-header">
+            <i class="pi pi-share-alt" />
+            <h3>Network</h3>
+          </div>
+          <div class="card-body">
+            <div class="form-group">
+              <label class="form-label">Network Name</label>
+              <span class="form-hint">Docker network for container communication with nginx</span>
+              <input
+                v-model="infrastructureSettings.network_name"
+                type="text"
+                placeholder="web"
+                class="form-input"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-card">
+          <div class="card-header">
+            <i class="pi pi-database" />
+            <h3>Shared Database</h3>
+            <label class="toggle-switch">
+              <input v-model="infrastructureSettings.database.enabled" type="checkbox" />
+              <span class="toggle-slider" />
+            </label>
+          </div>
+          <div v-if="infrastructureSettings.database.enabled" class="card-body">
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label">Database Type</label>
+                <select v-model="infrastructureSettings.database.type" class="form-select">
+                  <option value="mysql">MySQL</option>
+                  <option value="mariadb">MariaDB</option>
+                  <option value="postgres">PostgreSQL</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Container Name</label>
+                <input
+                  v-model="infrastructureSettings.database.container"
+                  type="text"
+                  placeholder="mysql"
+                  class="form-input"
+                />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Host</label>
+                <span class="form-hint">Usually same as container name</span>
+                <input
+                  v-model="infrastructureSettings.database.host"
+                  type="text"
+                  placeholder="mysql"
+                  class="form-input"
+                />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Port</label>
+                <input
+                  v-model.number="infrastructureSettings.database.port"
+                  type="number"
+                  placeholder="3306"
+                  class="form-input"
+                />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Root User</label>
+                <input
+                  v-model="infrastructureSettings.database.root_user"
+                  type="text"
+                  placeholder="root"
+                  class="form-input"
+                />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Root Password</label>
+                <input
+                  v-model="infrastructureSettings.database.root_password"
+                  type="password"
+                  placeholder="••••••••"
+                  class="form-input"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-card">
+          <div class="card-header">
+            <i class="pi pi-bolt" />
+            <h3>Shared Redis</h3>
+            <label class="toggle-switch">
+              <input v-model="infrastructureSettings.redis.enabled" type="checkbox" />
+              <span class="toggle-slider" />
+            </label>
+          </div>
+          <div v-if="infrastructureSettings.redis.enabled" class="card-body">
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label">Container Name</label>
+                <input
+                  v-model="infrastructureSettings.redis.container"
+                  type="text"
+                  placeholder="redis"
+                  class="form-input"
+                />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Host</label>
+                <input
+                  v-model="infrastructureSettings.redis.host"
+                  type="text"
+                  placeholder="redis"
+                  class="form-input"
+                />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Port</label>
+                <input
+                  v-model.number="infrastructureSettings.redis.port"
+                  type="number"
+                  placeholder="6379"
+                  class="form-input"
+                />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Password</label>
+                <span class="form-hint">Leave empty if no authentication</span>
+                <input
+                  v-model="infrastructureSettings.redis.password"
+                  type="password"
+                  placeholder="••••••••"
+                  class="form-input"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="save-footer">
+          <button
+            class="btn btn-primary"
+            :disabled="savingInfrastructure"
+            @click="saveInfrastructureSettings"
+          >
+            <i v-if="savingInfrastructure" class="pi pi-spin pi-spinner" />
+            <i v-else class="pi pi-save" />
+            <span>Save Infrastructure Settings</span>
+          </button>
         </div>
       </div>
     </div>
@@ -215,13 +361,26 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from "vue";
-import { settingsApi, healthApi } from "@/services/api";
+import { settingsApi, healthApi, templatesApi } from "@/services/api";
 import type { DomainSettings } from "@/services/api";
 import { useNotificationsStore } from "@/stores/notifications";
+
+declare const __APP_VERSION__: string;
 
 const notifications = useNotificationsStore();
 const loading = ref(false);
 const savingDomain = ref(false);
+const savingInfrastructure = ref(false);
+const refreshingTemplates = ref(false);
+const agentVersion = ref("unknown");
+const activeTab = ref("general");
+const configCollapsed = ref(true);
+
+const tabs = [
+  { id: "general", label: "General", icon: "pi pi-home" },
+  { id: "domain", label: "Domain", icon: "pi pi-globe" },
+  { id: "infrastructure", label: "Infrastructure", icon: "pi pi-server" },
+];
 
 const settings = reactive({
   deployments_path: "",
@@ -237,7 +396,27 @@ const domainSettings = reactive<DomainSettings>({
   subdomain_style: "words",
 });
 
-const uiVersion = "1.0.0";
+const infrastructureSettings = reactive({
+  network_name: "web",
+  database: {
+    enabled: false,
+    type: "mysql",
+    container: "",
+    host: "",
+    port: 3306,
+    root_user: "root",
+    root_password: "",
+  },
+  redis: {
+    enabled: false,
+    container: "",
+    host: "",
+    port: 6379,
+    password: "",
+  },
+});
+
+const uiVersion = __APP_VERSION__;
 
 const configYaml = computed(() => {
   return `deployments_path: ${settings.deployments_path}
@@ -273,6 +452,23 @@ const fetchSettings = async () => {
       domainSettings.auto_ssl = data.domain.auto_ssl ?? true;
       domainSettings.subdomain_style = data.domain.subdomain_style || "words";
     }
+
+    if (data.infrastructure) {
+      infrastructureSettings.network_name = data.infrastructure.network_name || "web";
+      if (data.infrastructure.database) {
+        infrastructureSettings.database.enabled = data.infrastructure.database.enabled ?? false;
+        infrastructureSettings.database.type = data.infrastructure.database.type || "mysql";
+        infrastructureSettings.database.container = data.infrastructure.database.container || "";
+        infrastructureSettings.database.host = data.infrastructure.database.host || "";
+        infrastructureSettings.database.port = data.infrastructure.database.port || 3306;
+      }
+      if (data.infrastructure.redis) {
+        infrastructureSettings.redis.enabled = data.infrastructure.redis.enabled ?? false;
+        infrastructureSettings.redis.container = data.infrastructure.redis.container || "";
+        infrastructureSettings.redis.host = data.infrastructure.redis.host || "";
+        infrastructureSettings.redis.port = data.infrastructure.redis.port || 6379;
+      }
+    }
   } catch (e: any) {
     notifications.error("Error", "Failed to load settings");
   } finally {
@@ -300,6 +496,39 @@ const saveDomainSettings = async () => {
   }
 };
 
+const saveInfrastructureSettings = async () => {
+  savingInfrastructure.value = true;
+
+  try {
+    await settingsApi.update({
+      infrastructure: {
+        network_name: infrastructureSettings.network_name,
+        database: {
+          enabled: infrastructureSettings.database.enabled,
+          type: infrastructureSettings.database.type,
+          container: infrastructureSettings.database.container,
+          host: infrastructureSettings.database.host,
+          port: infrastructureSettings.database.port,
+          root_user: infrastructureSettings.database.root_user,
+          root_password: infrastructureSettings.database.root_password,
+        },
+        redis: {
+          enabled: infrastructureSettings.redis.enabled,
+          container: infrastructureSettings.redis.container,
+          host: infrastructureSettings.redis.host,
+          port: infrastructureSettings.redis.port,
+          password: infrastructureSettings.redis.password,
+        },
+      },
+    });
+    notifications.success("Settings Saved", "Infrastructure configuration has been updated");
+  } catch (e: any) {
+    notifications.error("Error", "Failed to save infrastructure settings");
+  } finally {
+    savingInfrastructure.value = false;
+  }
+};
+
 const testConnection = async () => {
   try {
     await healthApi.check();
@@ -319,8 +548,30 @@ const clearCache = () => {
   notifications.success("Cache Cleared", "Local storage has been cleared");
 };
 
+const refreshTemplates = async () => {
+  refreshingTemplates.value = true;
+  try {
+    const response = await templatesApi.refresh();
+    notifications.success("Templates Refreshed", `${response.data.count} templates updated`);
+  } catch {
+    notifications.error("Error", "Failed to refresh templates");
+  } finally {
+    refreshingTemplates.value = false;
+  }
+};
+
+const fetchAgentVersion = async () => {
+  try {
+    const response = await healthApi.check();
+    agentVersion.value = response.data.version?.version || "unknown";
+  } catch {
+    agentVersion.value = "unknown";
+  }
+};
+
 onMounted(() => {
   fetchSettings();
+  fetchAgentVersion();
 });
 </script>
 
@@ -333,14 +584,52 @@ onMounted(() => {
 
 .view-header {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
   align-items: center;
+  background: white;
+  padding: 0.5rem;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+}
+
+.tabs {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.tab:hover {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.tab.active {
+  background: #3b82f6;
+  color: white;
+}
+
+.tab i {
+  font-size: 1rem;
 }
 
 .btn-icon {
   padding: 0.625rem;
-  background: white;
-  border: 1px solid #e5e7eb;
+  background: transparent;
+  border: none;
   color: #6b7280;
   border-radius: 8px;
   cursor: pointer;
@@ -348,7 +637,7 @@ onMounted(() => {
 }
 
 .btn-icon:hover:not(:disabled) {
-  background: #f9fafb;
+  background: #f3f4f6;
   color: #374151;
 }
 
@@ -377,93 +666,118 @@ onMounted(() => {
 .settings-content {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
 }
 
-.settings-section {
+.tab-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.content-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.25rem;
+}
+
+.settings-card {
   background: white;
-  border-radius: 16px;
+  border-radius: 12px;
   border: 1px solid #e5e7eb;
   overflow: hidden;
 }
 
-.section-header {
-  padding: 1.25rem 1.5rem;
+.card-header {
+  padding: 1rem 1.25rem;
   border-bottom: 1px solid #f3f4f6;
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.625rem;
 }
 
-.section-header i {
-  font-size: 1.25rem;
+.card-header i:first-child {
+  font-size: 1.125rem;
   color: #3b82f6;
 }
 
-.section-header h3 {
-  font-size: 1rem;
+.card-header h3 {
+  font-size: 0.9375rem;
   font-weight: 600;
   color: #1f2937;
   margin: 0;
+  flex: 1;
 }
 
-.section-body {
-  padding: 1.5rem;
+.card-header .badge {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  padding: 0.25rem 0.5rem;
+  background: #f3f4f6;
+  color: #6b7280;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
 }
 
-.setting-item {
+.card-header .chevron {
+  color: #9ca3af;
+  transition: transform 0.2s;
+}
+
+.card-header.clickable {
+  cursor: pointer;
+}
+
+.card-header.clickable:hover {
+  background: #f9fafb;
+}
+
+.card-body {
+  padding: 1.25rem;
+}
+
+.card-footer {
+  padding-top: 1.25rem;
+  margin-top: 1rem;
+  border-top: 1px solid #f3f4f6;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.info-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+}
+
+.info-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem 0;
-  border-bottom: 1px solid #f3f4f6;
 }
 
-.setting-item:last-child {
-  border-bottom: none;
-  padding-bottom: 0;
-}
-
-.setting-item:first-child {
-  padding-top: 0;
-}
-
-.setting-info {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.setting-label {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #1f2937;
-}
-
-.setting-description {
-  font-size: 0.75rem;
+.info-label {
+  font-size: 0.8125rem;
   color: #6b7280;
 }
 
-.setting-value {
-  text-align: right;
-}
-
-.setting-value code {
+.info-item code {
   background: #f3f4f6;
   padding: 0.25rem 0.5rem;
   border-radius: 4px;
   font-family: "SF Mono", "Fira Code", monospace;
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   color: #374151;
 }
 
 .status-badge {
   display: inline-block;
-  padding: 0.25rem 0.75rem;
+  padding: 0.25rem 0.625rem;
   border-radius: 9999px;
-  font-size: 0.75rem;
+  font-size: 0.6875rem;
   font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
 }
 
 .status-badge.enabled {
@@ -476,11 +790,79 @@ onMounted(() => {
   color: #6b7280;
 }
 
-.origins-list {
+.actions-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.625rem;
+}
+
+.action-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 0.75rem;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.action-btn:hover:not(:disabled) {
+  background: #f3f4f6;
+  border-color: #d1d5db;
+}
+
+.action-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.action-btn i {
+  font-size: 0.875rem;
+  color: #3b82f6;
+}
+
+.config-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+.config-item {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
-  align-items: flex-end;
+  gap: 0.375rem;
+}
+
+.config-item.full-width {
+  grid-column: 1 / -1;
+}
+
+.config-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.config-item code {
+  background: #f3f4f6;
+  padding: 0.375rem 0.5rem;
+  border-radius: 6px;
+  font-family: "SF Mono", "Fira Code", monospace;
+  font-size: 0.8125rem;
+  color: #374151;
+}
+
+.origins-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
 }
 
 .origins-list code {
@@ -492,47 +874,11 @@ onMounted(() => {
   color: #374151;
 }
 
-.actions-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 1rem;
-}
-
-.action-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 1.5rem;
-  background: #f9fafb;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.action-card:hover {
-  background: #f3f4f6;
-  border-color: #d1d5db;
-  transform: translateY(-2px);
-}
-
-.action-card i {
-  font-size: 1.5rem;
-  color: #3b82f6;
-}
-
-.action-card span {
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: #374151;
-}
-
 .config-note {
   display: flex;
   align-items: flex-start;
-  gap: 0.75rem;
-  padding: 1rem;
+  gap: 0.625rem;
+  padding: 0.875rem;
   background: #eff6ff;
   border-radius: 8px;
   margin-bottom: 1rem;
@@ -541,11 +887,12 @@ onMounted(() => {
 .config-note i {
   color: #3b82f6;
   margin-top: 0.125rem;
+  flex-shrink: 0;
 }
 
 .config-note p {
   margin: 0;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   color: #1e40af;
   line-height: 1.5;
 }
@@ -555,27 +902,46 @@ onMounted(() => {
   padding: 0.125rem 0.375rem;
   border-radius: 4px;
   font-family: "SF Mono", "Fira Code", monospace;
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
 }
 
 .config-preview {
   background: #1f2937;
   color: #d1d5db;
-  padding: 1.25rem;
-  border-radius: 12px;
+  padding: 1rem;
+  border-radius: 8px;
   font-family: "SF Mono", "Fira Code", monospace;
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   line-height: 1.6;
   overflow-x: auto;
   margin: 0;
 }
 
-.setting-item.editable {
-  padding: 1rem 0;
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.25rem;
 }
 
-.setting-input {
-  flex-shrink: 0;
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.form-group.full-width {
+  grid-column: 1 / -1;
+}
+
+.form-label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.form-hint {
+  font-size: 0.75rem;
+  color: #9ca3af;
 }
 
 .form-input {
@@ -585,7 +951,6 @@ onMounted(() => {
   font-size: 0.875rem;
   color: #374151;
   background: white;
-  min-width: 200px;
   transition:
     border-color 0.2s,
     box-shadow 0.2s;
@@ -623,11 +988,25 @@ onMounted(() => {
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
+.toggle-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+}
+
+.toggle-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
 .toggle-switch {
   position: relative;
   display: inline-block;
   width: 44px;
   height: 24px;
+  flex-shrink: 0;
 }
 
 .toggle-switch input {
@@ -673,12 +1052,10 @@ onMounted(() => {
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
-.setting-actions {
-  margin-top: 1.5rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid #f3f4f6;
+.save-footer {
   display: flex;
   justify-content: flex-end;
+  padding-top: 0.5rem;
 }
 
 .btn {
@@ -708,33 +1085,44 @@ onMounted(() => {
   cursor: not-allowed;
 }
 
+@media (max-width: 1024px) {
+  .content-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .config-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 @media (max-width: 768px) {
-  .setting-item {
+  .view-header {
     flex-direction: column;
-    align-items: flex-start;
-    gap: 0.5rem;
-  }
-
-  .setting-item.editable {
     gap: 0.75rem;
+    padding: 0.75rem;
   }
 
-  .setting-value {
-    text-align: left;
-  }
-
-  .setting-input {
+  .tabs {
     width: 100%;
+    overflow-x: auto;
   }
 
-  .form-input,
-  .form-select {
-    width: 100%;
-    min-width: unset;
+  .tab {
+    padding: 0.5rem 0.75rem;
+    white-space: nowrap;
   }
 
-  .origins-list {
-    align-items: flex-start;
+  .tab span {
+    display: none;
+  }
+
+  .form-grid,
+  .config-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .actions-grid {
+    grid-template-columns: 1fr;
   }
 }
 </style>

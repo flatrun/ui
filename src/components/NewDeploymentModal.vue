@@ -50,7 +50,7 @@
                   @click="deploymentMode = 'easy'"
                 >
                   <div class="mode-card-icon easy">
-                    <i class="pi pi-sparkles" />
+                    <i class="pi pi-bolt" />
                   </div>
                   <div class="mode-card-content">
                     <h4>Easy Mode</h4>
@@ -210,8 +210,14 @@
                       :class="{ selected: selectedQuickApp === app.id }"
                       @click="selectQuickApp(app)"
                     >
-                      <div class="template-icon">
-                        <i :class="app.icon || 'pi pi-box'" />
+                      <div class="template-icon" :class="{ 'has-logo': app.logo }">
+                        <img
+                          v-if="app.logo"
+                          :src="app.logo"
+                          :alt="app.name"
+                          class="template-logo"
+                        />
+                        <i v-else :class="app.icon || 'pi pi-box'" />
                       </div>
                       <div class="template-info">
                         <span class="template-name">{{ app.name }}</span>
@@ -342,11 +348,30 @@
                       <h4>Connection Mode</h4>
                     </div>
 
-                    <div class="mode-options three-col">
+                    <div
+                      class="mode-options"
+                      :class="infrastructureSettings.database.enabled ? 'four-col' : 'three-col'"
+                    >
+                      <button
+                        v-if="infrastructureSettings.database.enabled"
+                        class="mode-option recommended"
+                        :class="{ selected: form.database.mode === 'shared' }"
+                        @click="selectSharedDatabase"
+                      >
+                        <div class="mode-icon shared">
+                          <i class="pi pi-share-alt" />
+                        </div>
+                        <div class="mode-info">
+                          <span class="mode-name">Use Shared</span>
+                          <span class="mode-desc">Auto-create in shared DB</span>
+                        </div>
+                        <span class="recommended-badge">Recommended</span>
+                      </button>
+
                       <button
                         class="mode-option"
                         :class="{ selected: form.database.mode === 'create' }"
-                        @click="form.database.mode = 'create'"
+                        @click="selectDatabaseMode('create')"
                       >
                         <div class="mode-icon">
                           <i class="pi pi-plus-circle" />
@@ -360,7 +385,7 @@
                       <button
                         class="mode-option"
                         :class="{ selected: form.database.mode === 'existing' }"
-                        @click="form.database.mode = 'existing'"
+                        @click="selectDatabaseMode('existing')"
                       >
                         <div class="mode-icon">
                           <i class="pi pi-server" />
@@ -374,7 +399,7 @@
                       <button
                         class="mode-option"
                         :class="{ selected: form.database.mode === 'external' }"
-                        @click="form.database.mode = 'external'"
+                        @click="selectDatabaseMode('external')"
                       >
                         <div class="mode-icon">
                           <i class="pi pi-globe" />
@@ -726,6 +751,7 @@
                         v-model.number="form.networking.containerPort"
                         type="number"
                         placeholder="80"
+                        @change="updateComposeWithPorts"
                       />
                     </div>
                     <div class="form-field compact">
@@ -735,6 +761,29 @@
                         <option value="https">HTTPS</option>
                       </select>
                     </div>
+                    <div class="toggle-option port-mapping">
+                      <label class="toggle-label">
+                        <input
+                          v-model="form.networking.mapPorts"
+                          type="checkbox"
+                          @change="updateComposeWithPorts"
+                        />
+                        <span class="toggle-text">Map to host port</span>
+                      </label>
+                    </div>
+                    <Transition name="expand">
+                      <div v-if="form.networking.mapPorts" class="form-field compact">
+                        <label for="hostPort">Host Port</label>
+                        <input
+                          id="hostPort"
+                          v-model="form.networking.hostPort"
+                          type="text"
+                          placeholder="8080"
+                          @input="updateComposeWithPorts"
+                        />
+                        <span class="field-hint">Leave empty to use same as container port</span>
+                      </div>
+                    </Transition>
                   </div>
                 </div>
 
@@ -874,7 +923,9 @@ interface QuickApp {
   name: string;
   description: string;
   icon: string;
+  logo?: string;
   category: string;
+  priority?: number;
   content: string;
 }
 
@@ -888,6 +939,7 @@ const notifications = useNotificationsStore();
 const creating = ref(false);
 const loadingQuickApps = ref(false);
 const selectedQuickApp = ref("");
+const selectedTemplateContent = ref("");
 const quickApps = ref<QuickApp[]>([]);
 const currentStep = ref(1);
 const generatedSubdomain = ref("");
@@ -940,6 +992,21 @@ const domainSettings = reactive({
   subdomain_style: "words",
 });
 
+const infrastructureSettings = reactive({
+  network_name: "web",
+  database: {
+    enabled: false,
+    type: "mysql",
+    container: "",
+    host: "",
+  },
+  redis: {
+    enabled: false,
+    container: "",
+    host: "",
+  },
+});
+
 const form = reactive({
   name: "",
   composeContent: "",
@@ -951,6 +1018,8 @@ const form = reactive({
     domain: "",
     containerPort: 80,
     protocol: "http",
+    mapPorts: false,
+    hostPort: "",
   },
   ssl: {
     enabled: false,
@@ -959,7 +1028,7 @@ const form = reactive({
   database: {
     enabled: false,
     type: "none" as "none" | "mysql" | "postgres" | "mariadb" | "mongodb",
-    mode: "create" as "create" | "existing" | "external",
+    mode: "create" as "create" | "existing" | "external" | "shared",
     existingContainer: "",
     externalHost: "",
     externalPort: "",
@@ -969,6 +1038,7 @@ const form = reactive({
     dbRootPassword: "",
     connectionStatus: null as null | "checking" | "success" | "error",
     connectionError: "",
+    useSharedDatabase: false,
   },
 });
 
@@ -982,7 +1052,9 @@ const progressWidth = computed(() => {
   return `${((currentStep.value - 1) / (totalSteps - 1)) * 100}%`;
 });
 
-const displayedQuickApps = computed(() => quickApps.value.slice(0, 6));
+const displayedQuickApps = computed(() => {
+  return [...quickApps.value].sort((a, b) => (b.priority || 0) - (a.priority || 0));
+});
 
 const composeLineCount = computed(() => {
   return form.composeContent.split("\n").filter((l) => l.trim()).length;
@@ -1054,6 +1126,21 @@ const loadSettings = async () => {
       form.ssl.enabled = domainSettings.auto_ssl;
       form.ssl.autoCert = domainSettings.auto_ssl;
     }
+    if (settings?.infrastructure) {
+      infrastructureSettings.network_name = settings.infrastructure.network_name || "web";
+      if (settings.infrastructure.database) {
+        infrastructureSettings.database.enabled = settings.infrastructure.database.enabled || false;
+        infrastructureSettings.database.type = settings.infrastructure.database.type || "mysql";
+        infrastructureSettings.database.container =
+          settings.infrastructure.database.container || "";
+        infrastructureSettings.database.host = settings.infrastructure.database.host || "";
+      }
+      if (settings.infrastructure.redis) {
+        infrastructureSettings.redis.enabled = settings.infrastructure.redis.enabled || false;
+        infrastructureSettings.redis.container = settings.infrastructure.redis.container || "";
+        infrastructureSettings.redis.host = settings.infrastructure.redis.host || "";
+      }
+    }
   } catch {
     // Settings not available
   }
@@ -1102,15 +1189,17 @@ const loadQuickApps = async () => {
 
 const selectQuickApp = (app: QuickApp) => {
   selectedQuickApp.value = app.id;
-  form.composeContent = app.content.replace(/\$\{NAME\}/g, form.name || "my-app");
+  selectedTemplateContent.value = app.content;
   if (!form.name) {
     form.name = app.id;
   }
+  form.composeContent = buildComposeFromTemplate();
 };
 
 const selectCustom = () => {
   selectedQuickApp.value = "custom";
-  form.composeContent = defaultComposeTemplate.replace(/\$\{NAME\}/g, form.name || "my-app");
+  selectedTemplateContent.value = "";
+  form.composeContent = getDefaultComposeContent();
 };
 
 const selectDatabaseType = (type: "none" | "mysql" | "postgres" | "mariadb" | "mongodb") => {
@@ -1118,13 +1207,34 @@ const selectDatabaseType = (type: "none" | "mysql" | "postgres" | "mariadb" | "m
   form.database.dbName = form.name ? form.name.replace(/-/g, "_") : "app_db";
   form.database.connectionStatus = null;
   form.database.connectionError = "";
+  form.database.useSharedDatabase = false;
 
   if (type !== "none") {
     if (!form.database.dbPassword) {
       form.database.dbPassword = generatePassword();
     }
     loadExistingDbContainers();
+
+    if (infrastructureSettings.database.enabled) {
+      form.database.mode = "shared";
+      form.database.useSharedDatabase = true;
+    }
   }
+};
+
+const selectSharedDatabase = () => {
+  form.database.mode = "shared";
+  form.database.useSharedDatabase = true;
+  form.database.type = infrastructureSettings.database.type as
+    | "mysql"
+    | "postgres"
+    | "mariadb"
+    | "mongodb";
+};
+
+const selectDatabaseMode = (mode: "create" | "existing" | "external") => {
+  form.database.mode = mode;
+  form.database.useSharedDatabase = false;
 };
 
 const getDefaultPort = (dbType: string): string => {
@@ -1346,20 +1456,87 @@ volumes:
   db_data:`;
 };
 
-const defaultComposeTemplate = `services:
+const buildComposeTemplate = (
+  name: string,
+  containerPort: number,
+  mapPorts: boolean,
+  hostPort: string,
+) => {
+  const portConfig =
+    mapPorts && hostPort
+      ? `ports:\n      - "${hostPort}:${containerPort}"`
+      : `expose:\n      - "${containerPort}"`;
+
+  return `name: ${name}
+services:
   app:
     image: nginx:alpine
-    container_name: \${NAME}
-    ports:
-      - "80:80"
+    container_name: ${name}
+    ${portConfig}
     networks:
       - web
     restart: unless-stopped
+    env_file:
+      - .env.flatrun
 
 networks:
   web:
     external: true
 `;
+};
+
+const getDefaultComposeContent = () => {
+  const name = form.name || "my-app";
+  return buildComposeTemplate(
+    name,
+    form.networking.containerPort,
+    form.networking.mapPorts,
+    form.networking.hostPort,
+  );
+};
+
+const buildComposeFromTemplate = () => {
+  const name = form.name || "my-app";
+
+  if (!selectedTemplateContent.value) {
+    return getDefaultComposeContent();
+  }
+
+  let content = selectedTemplateContent.value;
+  content = content.replace(/\$\{NAME\}/g, name);
+
+  if (!content.includes("env_file:")) {
+    content = content.replace(/(image:\s*[^\n]+\n)/, "$1    env_file:\n      - .env.flatrun\n");
+  }
+
+  return content;
+};
+
+const updateComposeWithPorts = () => {
+  if (!form.composeContent) return;
+
+  const containerPort = form.networking.containerPort || 80;
+  const hostPort = form.networking.hostPort || String(containerPort);
+
+  const exposeRegex = /expose:\s*\n\s*-\s*"\d+"/;
+  const portsRegex = /ports:\s*\n\s*-\s*"\d+:\d+"/;
+
+  if (form.networking.mapPorts) {
+    const newPorts = `ports:\n      - "${hostPort}:${containerPort}"`;
+    if (exposeRegex.test(form.composeContent)) {
+      form.composeContent = form.composeContent.replace(exposeRegex, newPorts);
+    } else if (portsRegex.test(form.composeContent)) {
+      form.composeContent = form.composeContent.replace(portsRegex, newPorts);
+    }
+  } else {
+    const newExpose = `expose:\n      - "${containerPort}"`;
+    if (portsRegex.test(form.composeContent)) {
+      form.composeContent = form.composeContent.replace(portsRegex, newExpose);
+    } else if (exposeRegex.test(form.composeContent)) {
+      form.composeContent = form.composeContent.replace(exposeRegex, newExpose);
+    }
+  }
+};
 
 const formatCompose = () => {
   // Basic formatting - could be enhanced
@@ -1386,7 +1563,7 @@ const nextStep = () => {
     currentStep.value = 1;
     if (deploymentMode.value === "compose") {
       selectedQuickApp.value = "custom";
-      form.composeContent = defaultComposeTemplate.replace(/\$\{NAME\}/g, form.name || "my-app");
+      form.composeContent = getDefaultComposeContent();
     }
     return;
   }
@@ -1411,6 +1588,8 @@ watch(
         domain: "",
         containerPort: 80,
         protocol: "http",
+        mapPorts: false,
+        hostPort: "",
       };
       form.ssl = { enabled: false, autoCert: false };
       form.database = {
@@ -1426,11 +1605,13 @@ watch(
         dbRootPassword: "",
         connectionStatus: null,
         connectionError: "",
+        useSharedDatabase: false,
       };
       existingDbContainers.value = [];
       errors.name = "";
       errors.composeContent = "";
       selectedQuickApp.value = "";
+      selectedTemplateContent.value = "";
       deploymentMode.value = "";
       currentStep.value = 0;
       generatedSubdomain.value = "";
@@ -1446,11 +1627,8 @@ watch(
 watch(
   () => form.name,
   (newName) => {
-    if (form.composeContent && newName) {
-      form.composeContent = form.composeContent.replace(
-        /container_name: [a-z0-9-]+/g,
-        `container_name: ${newName}`,
-      );
+    if (newName && selectedQuickApp.value) {
+      form.composeContent = buildComposeFromTemplate();
     }
   },
 );
@@ -1623,8 +1801,10 @@ const handleCreate = async () => {
     const payload: Record<string, any> = {
       name: form.name,
       compose_content: form.composeContent,
+      template_id: selectedQuickApp.value !== "custom" ? selectedQuickApp.value : undefined,
       env_vars: form.envVars.filter((e) => e.key),
       auto_start: form.autoStart,
+      use_shared_database: form.database.useSharedDatabase && form.database.mode === "shared",
     };
 
     if (finalDomain) {
@@ -1958,6 +2138,11 @@ const handleClose = () => {
   background: var(--color-gray-50);
 }
 
+.toggle-option.port-mapping {
+  padding: var(--space-2) 0;
+  margin-top: var(--space-2);
+}
+
 .toggle-label {
   display: flex;
   align-items: center;
@@ -2032,11 +2217,28 @@ const handleClose = () => {
   justify-content: center;
   color: var(--color-gray-500);
   flex-shrink: 0;
+  overflow: hidden;
+}
+
+.template-icon.has-logo {
+  background: white;
+  padding: 4px;
+}
+
+.template-logo {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
 .template-item.selected .template-icon {
   background: var(--color-primary-500);
   color: white;
+}
+
+.template-item.selected .template-icon.has-logo {
+  background: white;
+  border: 2px solid var(--color-primary-500);
 }
 
 .template-item.custom .template-icon {
@@ -2726,6 +2928,35 @@ const handleClose = () => {
   grid-template-columns: repeat(3, 1fr);
 }
 
+.mode-options.four-col {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.mode-option.recommended {
+  border-color: var(--color-primary-300);
+  background: var(--color-primary-50);
+  position: relative;
+}
+
+.mode-option.recommended .mode-icon.shared {
+  background: var(--color-primary-100);
+  color: var(--color-primary-600);
+}
+
+.recommended-badge {
+  position: absolute;
+  top: -8px;
+  right: 8px;
+  background: var(--color-primary-500);
+  color: white;
+  font-size: 0.625rem;
+  font-weight: var(--font-semibold);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
 .mode-option {
   display: flex;
   align-items: flex-start;
@@ -3080,7 +3311,8 @@ const handleClose = () => {
     grid-template-columns: 1fr;
   }
 
-  .mode-options.three-col {
+  .mode-options.three-col,
+  .mode-options.four-col {
     grid-template-columns: 1fr;
   }
 

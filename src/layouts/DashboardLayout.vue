@@ -326,6 +326,7 @@ const currentPageTitle = computed(() => {
     databases: "Database Servers",
     certificates: "SSL Certificates",
     apps: "Installed Apps",
+    templates: "Templates",
     marketplace: "App Marketplace",
     settings: "Settings",
   };
