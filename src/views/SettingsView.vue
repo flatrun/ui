@@ -23,9 +23,7 @@
           <div class="setting-item editable">
             <div class="setting-info">
               <span class="setting-label">Default Domain</span>
-              <span class="setting-description"
-                >Base domain for auto-generated subdomains (e.g., example.com)</span
-              >
+              <span class="setting-description">Base domain for auto-generated subdomains (e.g., example.com)</span>
             </div>
             <div class="setting-input">
               <input
@@ -39,9 +37,7 @@
           <div class="setting-item editable">
             <div class="setting-info">
               <span class="setting-label">Auto Subdomain</span>
-              <span class="setting-description"
-                >Automatically generate random subdomains for new deployments</span
-              >
+              <span class="setting-description">Automatically generate random subdomains for new deployments</span>
             </div>
             <div class="setting-input">
               <label class="toggle-switch">
@@ -53,9 +49,7 @@
           <div class="setting-item editable">
             <div class="setting-info">
               <span class="setting-label">Auto SSL</span>
-              <span class="setting-description"
-                >Automatically request SSL certificates for new deployments</span
-              >
+              <span class="setting-description">Automatically request SSL certificates for new deployments</span>
             </div>
             <div class="setting-input">
               <label class="toggle-switch">
@@ -82,6 +76,197 @@
               <i v-if="savingDomain" class="pi pi-spin pi-spinner" />
               <i v-else class="pi pi-save" />
               <span>Save Domain Settings</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <div class="section-header">
+          <i class="pi pi-server" />
+          <h3>Infrastructure</h3>
+        </div>
+        <div class="section-body">
+          <div class="setting-item editable">
+            <div class="setting-info">
+              <span class="setting-label">Network Name</span>
+              <span class="setting-description">Docker network for app containers to communicate with nginx</span>
+            </div>
+            <div class="setting-input">
+              <input
+                v-model="infrastructureSettings.network_name"
+                type="text"
+                placeholder="web"
+                class="form-input"
+              />
+            </div>
+          </div>
+
+          <div class="setting-group-header">
+            <i class="pi pi-database" />
+            <span>Shared Database</span>
+            <label class="toggle-switch small">
+              <input v-model="infrastructureSettings.database.enabled" type="checkbox" />
+              <span class="toggle-slider" />
+            </label>
+          </div>
+
+          <template v-if="infrastructureSettings.database.enabled">
+            <div class="setting-item editable nested">
+              <div class="setting-info">
+                <span class="setting-label">Database Type</span>
+              </div>
+              <div class="setting-input">
+                <select v-model="infrastructureSettings.database.type" class="form-select">
+                  <option value="mysql">MySQL</option>
+                  <option value="mariadb">MariaDB</option>
+                  <option value="postgres">PostgreSQL</option>
+                </select>
+              </div>
+            </div>
+            <div class="setting-item editable nested">
+              <div class="setting-info">
+                <span class="setting-label">Container Name</span>
+                <span class="setting-description">Docker container running the database</span>
+              </div>
+              <div class="setting-input">
+                <input
+                  v-model="infrastructureSettings.database.container"
+                  type="text"
+                  placeholder="mysql"
+                  class="form-input"
+                />
+              </div>
+            </div>
+            <div class="setting-item editable nested">
+              <div class="setting-info">
+                <span class="setting-label">Host</span>
+                <span class="setting-description">Usually same as container name</span>
+              </div>
+              <div class="setting-input">
+                <input
+                  v-model="infrastructureSettings.database.host"
+                  type="text"
+                  placeholder="mysql"
+                  class="form-input"
+                />
+              </div>
+            </div>
+            <div class="setting-item editable nested">
+              <div class="setting-info">
+                <span class="setting-label">Port</span>
+              </div>
+              <div class="setting-input">
+                <input
+                  v-model.number="infrastructureSettings.database.port"
+                  type="number"
+                  placeholder="3306"
+                  class="form-input narrow"
+                />
+              </div>
+            </div>
+            <div class="setting-item editable nested">
+              <div class="setting-info">
+                <span class="setting-label">Root User</span>
+              </div>
+              <div class="setting-input">
+                <input
+                  v-model="infrastructureSettings.database.root_user"
+                  type="text"
+                  placeholder="root"
+                  class="form-input"
+                />
+              </div>
+            </div>
+            <div class="setting-item editable nested">
+              <div class="setting-info">
+                <span class="setting-label">Root Password</span>
+              </div>
+              <div class="setting-input">
+                <input
+                  v-model="infrastructureSettings.database.root_password"
+                  type="password"
+                  placeholder="••••••••"
+                  class="form-input"
+                />
+              </div>
+            </div>
+          </template>
+
+          <div class="setting-group-header">
+            <i class="pi pi-bolt" />
+            <span>Shared Redis</span>
+            <label class="toggle-switch small">
+              <input v-model="infrastructureSettings.redis.enabled" type="checkbox" />
+              <span class="toggle-slider" />
+            </label>
+          </div>
+
+          <template v-if="infrastructureSettings.redis.enabled">
+            <div class="setting-item editable nested">
+              <div class="setting-info">
+                <span class="setting-label">Container Name</span>
+              </div>
+              <div class="setting-input">
+                <input
+                  v-model="infrastructureSettings.redis.container"
+                  type="text"
+                  placeholder="redis"
+                  class="form-input"
+                />
+              </div>
+            </div>
+            <div class="setting-item editable nested">
+              <div class="setting-info">
+                <span class="setting-label">Host</span>
+              </div>
+              <div class="setting-input">
+                <input
+                  v-model="infrastructureSettings.redis.host"
+                  type="text"
+                  placeholder="redis"
+                  class="form-input"
+                />
+              </div>
+            </div>
+            <div class="setting-item editable nested">
+              <div class="setting-info">
+                <span class="setting-label">Port</span>
+              </div>
+              <div class="setting-input">
+                <input
+                  v-model.number="infrastructureSettings.redis.port"
+                  type="number"
+                  placeholder="6379"
+                  class="form-input narrow"
+                />
+              </div>
+            </div>
+            <div class="setting-item editable nested">
+              <div class="setting-info">
+                <span class="setting-label">Password</span>
+                <span class="setting-description">Leave empty if no authentication</span>
+              </div>
+              <div class="setting-input">
+                <input
+                  v-model="infrastructureSettings.redis.password"
+                  type="password"
+                  placeholder="••••••••"
+                  class="form-input"
+                />
+              </div>
+            </div>
+          </template>
+
+          <div class="setting-actions">
+            <button
+              class="btn btn-primary"
+              :disabled="savingInfrastructure"
+              @click="saveInfrastructureSettings"
+            >
+              <i v-if="savingInfrastructure" class="pi pi-spin pi-spinner" />
+              <i v-else class="pi pi-save" />
+              <span>Save Infrastructure Settings</span>
             </button>
           </div>
         </div>
@@ -155,7 +340,7 @@
               <span class="setting-label">Agent Version</span>
             </div>
             <div class="setting-value">
-              <code>1.0.0</code>
+              <code>{{ agentVersion }}</code>
             </div>
           </div>
           <div class="setting-item">
@@ -179,6 +364,10 @@
             <button class="action-card" @click="testConnection">
               <i class="pi pi-check-circle" />
               <span>Test Connection</span>
+            </button>
+            <button class="action-card" :disabled="refreshingTemplates" @click="refreshTemplates">
+              <i class="pi pi-box" :class="{ 'pi-spin': refreshingTemplates }" />
+              <span>{{ refreshingTemplates ? 'Refreshing...' : 'Refresh Templates' }}</span>
             </button>
             <button class="action-card" @click="refreshData">
               <i class="pi pi-sync" />
@@ -215,13 +404,18 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from "vue";
-import { settingsApi, healthApi } from "@/services/api";
+import { settingsApi, healthApi, templatesApi } from "@/services/api";
 import type { DomainSettings } from "@/services/api";
 import { useNotificationsStore } from "@/stores/notifications";
+
+declare const __APP_VERSION__: string;
 
 const notifications = useNotificationsStore();
 const loading = ref(false);
 const savingDomain = ref(false);
+const savingInfrastructure = ref(false);
+const refreshingTemplates = ref(false);
+const agentVersion = ref("unknown");
 
 const settings = reactive({
   deployments_path: "",
@@ -237,7 +431,27 @@ const domainSettings = reactive<DomainSettings>({
   subdomain_style: "words",
 });
 
-const uiVersion = "1.0.0";
+const infrastructureSettings = reactive({
+  network_name: "web",
+  database: {
+    enabled: false,
+    type: "mysql",
+    container: "",
+    host: "",
+    port: 3306,
+    root_user: "root",
+    root_password: "",
+  },
+  redis: {
+    enabled: false,
+    container: "",
+    host: "",
+    port: 6379,
+    password: "",
+  },
+});
+
+const uiVersion = __APP_VERSION__;
 
 const configYaml = computed(() => {
   return `deployments_path: ${settings.deployments_path}
@@ -273,6 +487,23 @@ const fetchSettings = async () => {
       domainSettings.auto_ssl = data.domain.auto_ssl ?? true;
       domainSettings.subdomain_style = data.domain.subdomain_style || "words";
     }
+
+    if (data.infrastructure) {
+      infrastructureSettings.network_name = data.infrastructure.network_name || "web";
+      if (data.infrastructure.database) {
+        infrastructureSettings.database.enabled = data.infrastructure.database.enabled ?? false;
+        infrastructureSettings.database.type = data.infrastructure.database.type || "mysql";
+        infrastructureSettings.database.container = data.infrastructure.database.container || "";
+        infrastructureSettings.database.host = data.infrastructure.database.host || "";
+        infrastructureSettings.database.port = data.infrastructure.database.port || 3306;
+      }
+      if (data.infrastructure.redis) {
+        infrastructureSettings.redis.enabled = data.infrastructure.redis.enabled ?? false;
+        infrastructureSettings.redis.container = data.infrastructure.redis.container || "";
+        infrastructureSettings.redis.host = data.infrastructure.redis.host || "";
+        infrastructureSettings.redis.port = data.infrastructure.redis.port || 6379;
+      }
+    }
   } catch (e: any) {
     notifications.error("Error", "Failed to load settings");
   } finally {
@@ -300,6 +531,39 @@ const saveDomainSettings = async () => {
   }
 };
 
+const saveInfrastructureSettings = async () => {
+  savingInfrastructure.value = true;
+
+  try {
+    await settingsApi.update({
+      infrastructure: {
+        network_name: infrastructureSettings.network_name,
+        database: {
+          enabled: infrastructureSettings.database.enabled,
+          type: infrastructureSettings.database.type,
+          container: infrastructureSettings.database.container,
+          host: infrastructureSettings.database.host,
+          port: infrastructureSettings.database.port,
+          root_user: infrastructureSettings.database.root_user,
+          root_password: infrastructureSettings.database.root_password,
+        },
+        redis: {
+          enabled: infrastructureSettings.redis.enabled,
+          container: infrastructureSettings.redis.container,
+          host: infrastructureSettings.redis.host,
+          port: infrastructureSettings.redis.port,
+          password: infrastructureSettings.redis.password,
+        },
+      },
+    });
+    notifications.success("Settings Saved", "Infrastructure configuration has been updated");
+  } catch (e: any) {
+    notifications.error("Error", "Failed to save infrastructure settings");
+  } finally {
+    savingInfrastructure.value = false;
+  }
+};
+
 const testConnection = async () => {
   try {
     await healthApi.check();
@@ -319,8 +583,30 @@ const clearCache = () => {
   notifications.success("Cache Cleared", "Local storage has been cleared");
 };
 
+const refreshTemplates = async () => {
+  refreshingTemplates.value = true;
+  try {
+    const response = await templatesApi.refresh();
+    notifications.success("Templates Refreshed", `${response.data.count} templates updated`);
+  } catch {
+    notifications.error("Error", "Failed to refresh templates");
+  } finally {
+    refreshingTemplates.value = false;
+  }
+};
+
+const fetchAgentVersion = async () => {
+  try {
+    const response = await healthApi.check();
+    agentVersion.value = response.data.version?.version || "unknown";
+  } catch {
+    agentVersion.value = "unknown";
+  }
+};
+
 onMounted(() => {
   fetchSettings();
+  fetchAgentVersion();
 });
 </script>
 
@@ -671,6 +957,54 @@ onMounted(() => {
 
 .toggle-switch input:focus + .toggle-slider {
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.toggle-switch.small {
+  width: 36px;
+  height: 20px;
+}
+
+.toggle-switch.small .toggle-slider::before {
+  height: 14px;
+  width: 14px;
+  left: 3px;
+  bottom: 3px;
+}
+
+.toggle-switch.small input:checked + .toggle-slider::before {
+  transform: translateX(16px);
+}
+
+.setting-group-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 0;
+  margin-top: 0.5rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.setting-group-header i {
+  font-size: 1rem;
+  color: #6b7280;
+}
+
+.setting-group-header span {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+  flex: 1;
+}
+
+.setting-item.nested {
+  padding-left: 1.5rem;
+  border-left: 2px solid #e5e7eb;
+  margin-left: 0.5rem;
+}
+
+.form-input.narrow {
+  width: 100px;
+  min-width: unset;
 }
 
 .setting-actions {

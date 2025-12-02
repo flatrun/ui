@@ -131,6 +131,7 @@ export const pluginsApi = {
 
 export const templatesApi = {
   list: () => apiClient.get<{ templates: any[] }>("/templates"),
+  refresh: () => apiClient.post<{ message: string; count: number }>("/templates/refresh"),
 };
 
 export const containersApi = {

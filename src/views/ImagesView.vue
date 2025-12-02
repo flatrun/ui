@@ -206,9 +206,7 @@
                 placeholder="nginx:latest"
                 class="form-input"
               />
-              <span class="form-hint"
-                >Format: repository:tag (e.g., nginx:latest, ubuntu:22.04)</span
-              >
+              <span class="form-hint">Format: repository:tag (e.g., nginx:latest, ubuntu:22.04)</span>
             </div>
           </div>
           <div class="modal-footer">
