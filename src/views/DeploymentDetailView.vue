@@ -87,6 +87,16 @@
                   <span class="label">Last Updated</span>
                   <span class="value">{{ formatDateTime(deployment.updated_at) }}</span>
                 </div>
+                <div v-if="deployment.metadata?.type" class="info-row">
+                  <span class="label">Type</span>
+                  <span class="value type-badge">{{ deployment.metadata.type }}</span>
+                </div>
+                <div v-if="!isInfrastructure" class="info-row action-row">
+                  <button class="btn btn-sm btn-secondary" @click="migrateToInfrastructure">
+                    <i class="pi pi-server" />
+                    Mark as Infrastructure
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -653,7 +663,13 @@ import { useRoute, useRouter } from "vue-router";
 import { Codemirror } from "vue-codemirror";
 import { yaml } from "@codemirror/lang-yaml";
 import { oneDark } from "@codemirror/theme-one-dark";
-import { deploymentsApi, proxyApi, certificatesApi, filesApi } from "@/services/api";
+import {
+  deploymentsApi,
+  proxyApi,
+  certificatesApi,
+  filesApi,
+  infrastructureApi,
+} from "@/services/api";
 import { useNotificationsStore } from "@/stores/notifications";
 import type { ProxyStatus } from "@/types";
 import FileBrowser from "@/components/FileBrowser.vue";
@@ -911,6 +927,21 @@ const deleteDeployment = async () => {
     notifications.error("Delete Failed", msg);
   } finally {
     deletingDeployment.value = false;
+  }
+};
+
+const isInfrastructure = computed(() => {
+  return deployment.value?.metadata?.type === "infrastructure";
+});
+
+const migrateToInfrastructure = async () => {
+  try {
+    await infrastructureApi.migrate(route.params.name as string);
+    notifications.success("Migrated", "Deployment moved to Infrastructure");
+    router.push("/infrastructure");
+  } catch (err: any) {
+    const msg = err.response?.data?.error || err.message;
+    notifications.error("Migration Failed", msg);
   }
 };
 

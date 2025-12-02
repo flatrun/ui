@@ -206,18 +206,173 @@
         <div class="settings-card">
           <div class="card-header">
             <i class="pi pi-share-alt" />
-            <h3>Network</h3>
+            <h3>Networks</h3>
           </div>
           <div class="card-body">
-            <div class="form-group">
-              <label class="form-label">Network Name</label>
-              <span class="form-hint">Docker network for container communication with nginx</span>
-              <input
-                v-model="infrastructureSettings.network_name"
-                type="text"
-                placeholder="web"
-                class="form-input"
-              />
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label">Proxy Network</label>
+                <span class="form-hint">Docker network for nginx/web container communication</span>
+                <input
+                  v-model="infrastructureSettings.default_proxy_network"
+                  type="text"
+                  placeholder="proxy"
+                  class="form-input"
+                />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Database Network</label>
+                <span class="form-hint">Docker network for database container communication</span>
+                <input
+                  v-model="infrastructureSettings.default_database_network"
+                  type="text"
+                  placeholder="database"
+                  class="form-input"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-card">
+          <div class="card-header">
+            <i class="pi pi-server" />
+            <h3>Nginx</h3>
+            <label class="toggle-switch">
+              <input v-model="nginxSettings.enabled" type="checkbox" />
+              <span class="toggle-slider" />
+            </label>
+          </div>
+          <div v-if="nginxSettings.enabled" class="card-body">
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label">Docker Image</label>
+                <input
+                  v-model="nginxSettings.image"
+                  type="text"
+                  placeholder="nginx:alpine"
+                  class="form-input"
+                />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Container Name</label>
+                <input
+                  v-model="nginxSettings.container_name"
+                  type="text"
+                  placeholder="nginx"
+                  class="form-input"
+                />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Config Path</label>
+                <span class="form-hint">Path to nginx conf.d directory</span>
+                <input
+                  v-model="nginxSettings.config_path"
+                  type="text"
+                  placeholder="/deployments/nginx/conf.d"
+                  class="form-input"
+                />
+              </div>
+              <div class="form-group full-width">
+                <label class="form-label">Reload Command</label>
+                <span class="form-hint">Command to reload nginx configuration</span>
+                <input
+                  v-model="nginxSettings.reload_command"
+                  type="text"
+                  placeholder="nginx -s reload"
+                  class="form-input"
+                />
+              </div>
+              <div class="form-group full-width">
+                <div class="toggle-row">
+                  <div class="toggle-info">
+                    <label class="form-label">External Nginx</label>
+                    <span class="form-hint"
+                      >Use an existing nginx installation instead of Docker container</span
+                    >
+                  </div>
+                  <label class="toggle-switch">
+                    <input v-model="nginxSettings.external" type="checkbox" />
+                    <span class="toggle-slider" />
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-card">
+          <div class="card-header">
+            <i class="pi pi-lock" />
+            <h3>SSL / Certbot</h3>
+            <label class="toggle-switch">
+              <input v-model="certbotSettings.enabled" type="checkbox" />
+              <span class="toggle-slider" />
+            </label>
+          </div>
+          <div v-if="certbotSettings.enabled" class="card-body">
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label">Docker Image</label>
+                <input
+                  v-model="certbotSettings.image"
+                  type="text"
+                  placeholder="certbot/certbot"
+                  class="form-input"
+                />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Email</label>
+                <span class="form-hint">Email for Let's Encrypt notifications</span>
+                <input
+                  v-model="certbotSettings.email"
+                  type="email"
+                  placeholder="admin@example.com"
+                  class="form-input"
+                />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Certificates Path</label>
+                <span class="form-hint">Leave empty to use default (nginx/certs)</span>
+                <input
+                  v-model="certbotSettings.certs_path"
+                  type="text"
+                  placeholder="Default: {deployments}/nginx/certs/live"
+                  class="form-input"
+                />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Webroot Path</label>
+                <span class="form-hint">Leave empty to use default (nginx/html)</span>
+                <input
+                  v-model="certbotSettings.webroot_path"
+                  type="text"
+                  placeholder="Default: {deployments}/nginx/html"
+                  class="form-input"
+                />
+              </div>
+              <div class="form-group">
+                <label class="form-label">DNS Provider</label>
+                <span class="form-hint">Optional: for DNS-01 challenge</span>
+                <select v-model="certbotSettings.dns_provider" class="form-select">
+                  <option value="">None (HTTP-01)</option>
+                  <option value="cloudflare">Cloudflare</option>
+                  <option value="route53">AWS Route53</option>
+                  <option value="digitalocean">DigitalOcean</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <div class="toggle-row">
+                  <div class="toggle-info">
+                    <label class="form-label">Staging Mode</label>
+                    <span class="form-hint">Use Let's Encrypt staging server for testing</span>
+                  </div>
+                  <label class="toggle-switch">
+                    <input v-model="certbotSettings.staging" type="checkbox" />
+                    <span class="toggle-slider" />
+                  </label>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -397,7 +552,8 @@ const domainSettings = reactive<DomainSettings>({
 });
 
 const infrastructureSettings = reactive({
-  network_name: "web",
+  default_proxy_network: "proxy",
+  default_database_network: "database",
   database: {
     enabled: false,
     type: "mysql",
@@ -414,6 +570,25 @@ const infrastructureSettings = reactive({
     port: 6379,
     password: "",
   },
+});
+
+const nginxSettings = reactive({
+  enabled: false,
+  image: "nginx:alpine",
+  container_name: "nginx",
+  config_path: "",
+  reload_command: "",
+  external: false,
+});
+
+const certbotSettings = reactive({
+  enabled: false,
+  image: "certbot/certbot",
+  email: "",
+  staging: false,
+  certs_path: "",
+  webroot_path: "",
+  dns_provider: "",
 });
 
 const uiVersion = __APP_VERSION__;
@@ -453,8 +628,30 @@ const fetchSettings = async () => {
       domainSettings.subdomain_style = data.domain.subdomain_style || "words";
     }
 
+    if (data.nginx) {
+      nginxSettings.enabled = data.nginx.enabled ?? false;
+      nginxSettings.image = data.nginx.image || "nginx:alpine";
+      nginxSettings.container_name = data.nginx.container_name || "nginx";
+      nginxSettings.config_path = data.nginx.config_path || "";
+      nginxSettings.reload_command = data.nginx.reload_command || "";
+      nginxSettings.external = data.nginx.external ?? false;
+    }
+
+    if (data.certbot) {
+      certbotSettings.enabled = data.certbot.enabled ?? false;
+      certbotSettings.image = data.certbot.image || "certbot/certbot";
+      certbotSettings.email = data.certbot.email || "";
+      certbotSettings.staging = data.certbot.staging ?? false;
+      certbotSettings.certs_path = data.certbot.certs_path || "";
+      certbotSettings.webroot_path = data.certbot.webroot_path || "";
+      certbotSettings.dns_provider = data.certbot.dns_provider || "";
+    }
+
     if (data.infrastructure) {
-      infrastructureSettings.network_name = data.infrastructure.network_name || "web";
+      infrastructureSettings.default_proxy_network =
+        data.infrastructure.default_proxy_network || "proxy";
+      infrastructureSettings.default_database_network =
+        data.infrastructure.default_database_network || "database";
       if (data.infrastructure.database) {
         infrastructureSettings.database.enabled = data.infrastructure.database.enabled ?? false;
         infrastructureSettings.database.type = data.infrastructure.database.type || "mysql";
@@ -501,8 +698,26 @@ const saveInfrastructureSettings = async () => {
 
   try {
     await settingsApi.update({
+      nginx: {
+        enabled: nginxSettings.enabled,
+        image: nginxSettings.image,
+        container_name: nginxSettings.container_name,
+        config_path: nginxSettings.config_path,
+        reload_command: nginxSettings.reload_command,
+        external: nginxSettings.external,
+      },
+      certbot: {
+        enabled: certbotSettings.enabled,
+        image: certbotSettings.image,
+        email: certbotSettings.email,
+        staging: certbotSettings.staging,
+        certs_path: certbotSettings.certs_path,
+        webroot_path: certbotSettings.webroot_path,
+        dns_provider: certbotSettings.dns_provider,
+      },
       infrastructure: {
-        network_name: infrastructureSettings.network_name,
+        default_proxy_network: infrastructureSettings.default_proxy_network,
+        default_database_network: infrastructureSettings.default_database_network,
         database: {
           enabled: infrastructureSettings.database.enabled,
           type: infrastructureSettings.database.type,

@@ -129,8 +129,16 @@ export const pluginsApi = {
     apiClient.post(`/plugins/${pluginName}/deployments`, data),
 };
 
+export interface TemplateCategory {
+  id: string;
+  name: string;
+  icon: string;
+  priority: number;
+}
+
 export const templatesApi = {
   list: () => apiClient.get<{ templates: any[] }>("/templates"),
+  categories: () => apiClient.get<{ categories: TemplateCategory[] }>("/templates/categories"),
   refresh: () => apiClient.post<{ message: string; count: number }>("/templates/refresh"),
 };
 
@@ -292,4 +300,39 @@ export const databasesApi = {
       database,
       user_host: host,
     }),
+};
+
+export interface InfraService {
+  name: string;
+  type: string;
+  status: string;
+  managed: boolean;
+  external: boolean;
+  container_id?: string;
+  image?: string;
+  health?: string;
+  created_at?: string;
+  config?: Record<string, any>;
+}
+
+export interface InfraStats {
+  total_services: number;
+  running: number;
+  stopped: number;
+  external: number;
+}
+
+export const infrastructureApi = {
+  list: () => apiClient.get<{ services: InfraService[] }>("/infrastructure"),
+  get: (name: string) => apiClient.get<{ service: InfraService }>(`/infrastructure/${name}`),
+  start: (name: string) => apiClient.post(`/infrastructure/${name}/start`),
+  stop: (name: string) => apiClient.post(`/infrastructure/${name}/stop`),
+  restart: (name: string) => apiClient.post(`/infrastructure/${name}/restart`),
+  logs: (name: string, tail?: number) =>
+    apiClient.get<{ name: string; logs: string }>(`/infrastructure/${name}/logs`, {
+      params: tail ? { tail } : undefined,
+    }),
+  stats: () => apiClient.get<{ stats: InfraStats }>("/infrastructure/stats"),
+  migrate: (name: string) =>
+    apiClient.post<{ message: string; name: string }>(`/infrastructure/migrate/${name}`),
 };
