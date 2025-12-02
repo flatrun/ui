@@ -211,7 +211,12 @@
                       @click="selectQuickApp(app)"
                     >
                       <div class="template-icon" :class="{ 'has-logo': app.logo }">
-                        <img v-if="app.logo" :src="app.logo" :alt="app.name" class="template-logo" />
+                        <img
+                          v-if="app.logo"
+                          :src="app.logo"
+                          :alt="app.name"
+                          class="template-logo"
+                        />
                         <i v-else :class="app.icon || 'pi pi-box'" />
                       </div>
                       <div class="template-info">
@@ -343,7 +348,10 @@
                       <h4>Connection Mode</h4>
                     </div>
 
-                    <div class="mode-options" :class="infrastructureSettings.database.enabled ? 'four-col' : 'three-col'">
+                    <div
+                      class="mode-options"
+                      :class="infrastructureSettings.database.enabled ? 'four-col' : 'three-col'"
+                    >
                       <button
                         v-if="infrastructureSettings.database.enabled"
                         class="mode-option recommended"
@@ -619,19 +627,21 @@
                     <div class="preview-content">
                       <div class="preview-item">
                         <span class="preview-label">Connection</span>
-                        <code class="preview-value">{{
-                          form.database.mode === "existing"
-                            ? form.database.existingContainer
-                            : form.database.externalHost
-                        }}:{{
-                          form.database.externalPort || getDefaultPort(form.database.type)
-                        }}</code>
+                        <code class="preview-value"
+                          >{{
+                            form.database.mode === "existing"
+                              ? form.database.existingContainer
+                              : form.database.externalHost
+                          }}:{{
+                            form.database.externalPort || getDefaultPort(form.database.type)
+                          }}</code
+                        >
                       </div>
                       <div class="preview-item">
                         <span class="preview-label">Database</span>
                         <code class="preview-value">{{
                           form.database.dbName ||
-                            (form.name ? form.name.replace(/-/g, "_") : "app_db")
+                          (form.name ? form.name.replace(/-/g, "_") : "app_db")
                         }}</code>
                       </div>
                       <div class="preview-item">
@@ -842,7 +852,9 @@
                   </div>
                   <div v-if="form.envVars.length" class="review-item">
                     <span class="review-label">Env Vars</span>
-                    <span class="review-value">{{ form.envVars.filter((e) => e.key).length }} defined</span>
+                    <span class="review-value"
+                      >{{ form.envVars.filter((e) => e.key).length }} defined</span
+                    >
                   </div>
                 </div>
 
@@ -852,8 +864,10 @@
                     <span>Docker Compose</span>
                     <span class="compose-lines">{{ composeLineCount }} lines</span>
                   </div>
-                  <pre class="compose-preview-code">{{ form.composeContent.slice(0, 400)
-                  }}{{ form.composeContent.length > 400 ? "\n..." : "" }}</pre>
+                  <pre class="compose-preview-code"
+                    >{{ form.composeContent.slice(0, 400)
+                    }}{{ form.composeContent.length > 400 ? "\n..." : "" }}</pre
+                  >
                 </div>
               </div>
             </div>
@@ -1117,7 +1131,8 @@ const loadSettings = async () => {
       if (settings.infrastructure.database) {
         infrastructureSettings.database.enabled = settings.infrastructure.database.enabled || false;
         infrastructureSettings.database.type = settings.infrastructure.database.type || "mysql";
-        infrastructureSettings.database.container = settings.infrastructure.database.container || "";
+        infrastructureSettings.database.container =
+          settings.infrastructure.database.container || "";
         infrastructureSettings.database.host = settings.infrastructure.database.host || "";
       }
       if (settings.infrastructure.redis) {
@@ -1210,7 +1225,11 @@ const selectDatabaseType = (type: "none" | "mysql" | "postgres" | "mariadb" | "m
 const selectSharedDatabase = () => {
   form.database.mode = "shared";
   form.database.useSharedDatabase = true;
-  form.database.type = infrastructureSettings.database.type as "mysql" | "postgres" | "mariadb" | "mongodb";
+  form.database.type = infrastructureSettings.database.type as
+    | "mysql"
+    | "postgres"
+    | "mariadb"
+    | "mongodb";
 };
 
 const selectDatabaseMode = (mode: "create" | "existing" | "external") => {
@@ -1437,10 +1456,16 @@ volumes:
   db_data:`;
 };
 
-const buildComposeTemplate = (name: string, containerPort: number, mapPorts: boolean, hostPort: string) => {
-  const portConfig = mapPorts && hostPort
-    ? `ports:\n      - "${hostPort}:${containerPort}"`
-    : `expose:\n      - "${containerPort}"`;
+const buildComposeTemplate = (
+  name: string,
+  containerPort: number,
+  mapPorts: boolean,
+  hostPort: string,
+) => {
+  const portConfig =
+    mapPorts && hostPort
+      ? `ports:\n      - "${hostPort}:${containerPort}"`
+      : `expose:\n      - "${containerPort}"`;
 
   return `name: ${name}
 services:
@@ -1466,7 +1491,7 @@ const getDefaultComposeContent = () => {
     name,
     form.networking.containerPort,
     form.networking.mapPorts,
-    form.networking.hostPort
+    form.networking.hostPort,
   );
 };
 
@@ -1481,10 +1506,7 @@ const buildComposeFromTemplate = () => {
   content = content.replace(/\$\{NAME\}/g, name);
 
   if (!content.includes("env_file:")) {
-    content = content.replace(
-      /(image:\s*[^\n]+\n)/,
-      "$1    env_file:\n      - .env.flatrun\n"
-    );
+    content = content.replace(/(image:\s*[^\n]+\n)/, "$1    env_file:\n      - .env.flatrun\n");
   }
 
   return content;

@@ -240,7 +240,8 @@
           <div class="modal-body">
             <p>
               Are you sure you want to delete the network
-              <strong>{{ networkToDelete?.name }}</strong>?
+              <strong>{{ networkToDelete?.name }}</strong
+              >?
             </p>
             <p class="warning-text">This action cannot be undone.</p>
           </div>
