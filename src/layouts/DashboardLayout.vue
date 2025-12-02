@@ -82,6 +82,10 @@
             />
           </div>
           <div v-show="expandedGroups.system && !sidebarCollapsed" class="nav-group-items">
+            <router-link to="/infrastructure" class="nav-subitem" active-class="active">
+              <span class="nav-count">{{ stats.infrastructure }}</span>
+              Infrastructure
+            </router-link>
             <router-link to="/system-ports" class="nav-subitem" active-class="active">
               <span class="nav-count">{{ stats.ports }}</span>
               Ports
@@ -265,6 +269,7 @@ import {
   portsApi,
   systemServicesApi,
   containersApi,
+  infrastructureApi,
 } from "@/services/api";
 import Logo from "@/components/base/Logo.vue";
 
@@ -294,6 +299,7 @@ const stats = reactive({
   ports: 0,
   dockerPorts: 0,
   services: 0,
+  infrastructure: 0,
   databases: 0,
   certificates: 0,
   apps: 0,
@@ -321,6 +327,7 @@ const currentPageTitle = computed(() => {
     volumes: "Volumes",
     networks: "Networks",
     "docker-ports": "Port Mappings",
+    infrastructure: "Infrastructure",
     "system-ports": "System Ports",
     services: "System Services",
     databases: "Database Servers",
@@ -343,7 +350,7 @@ const breadcrumbs = computed(() => {
   } else if (["containers", "images", "volumes", "networks", "docker-ports"].includes(routeName)) {
     crumbs.push({ label: "Docker", path: "" });
     crumbs.push({ label: currentPageTitle.value, path: "" });
-  } else if (["system-ports", "services"].includes(routeName)) {
+  } else if (["infrastructure", "system-ports", "services"].includes(routeName)) {
     crumbs.push({ label: "System", path: "" });
     crumbs.push({ label: currentPageTitle.value, path: "" });
   } else if (routeName === "databases") {
@@ -383,7 +390,7 @@ const checkAgentHealth = async () => {
       stats.memoryUsage = Math.floor(Math.random() * 40 + 20);
     }
 
-    const [networksRes, certsRes, pluginsRes, portsRes, servicesRes, containersRes] =
+    const [networksRes, certsRes, pluginsRes, portsRes, servicesRes, containersRes, infraRes] =
       await Promise.allSettled([
         networksApi.list(),
         certificatesApi.list(),
@@ -391,6 +398,7 @@ const checkAgentHealth = async () => {
         portsApi.list(),
         systemServicesApi.list(),
         containersApi.list(),
+        infrastructureApi.list(),
       ]);
 
     if (networksRes.status === "fulfilled") {
@@ -417,6 +425,9 @@ const checkAgentHealth = async () => {
         }
       }
       stats.dockerPorts = portCount;
+    }
+    if (infraRes.status === "fulfilled") {
+      stats.infrastructure = infraRes.value.data.services?.length || 0;
     }
 
     try {
