@@ -261,21 +261,12 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import {
-  healthApi,
-  networksApi,
-  certificatesApi,
-  pluginsApi,
-  portsApi,
-  systemServicesApi,
-  containersApi,
-  infrastructureApi,
-} from "@/services/api";
+import { useStatsStore } from "@/stores/stats";
 import Logo from "@/components/base/Logo.vue";
 
 const route = useRoute();
 const router = useRouter();
-const agentOnline = ref(false);
+const statsStore = useStatsStore();
 const sidebarCollapsed = ref(false);
 
 const expandedGroups = reactive({
@@ -288,24 +279,26 @@ const expandedGroups = reactive({
   admin: false,
 });
 
-const stats = reactive({
-  deployments: 0,
-  containers: 0,
-  runningContainers: 0,
-  stoppedContainers: 0,
-  images: 0,
-  volumes: 0,
-  networks: 0,
-  ports: 0,
-  dockerPorts: 0,
-  services: 0,
-  infrastructure: 0,
-  databases: 0,
-  certificates: 0,
-  apps: 0,
-  cpuUsage: 0,
-  memoryUsage: 0,
-});
+const agentOnline = computed(() => statsStore.agentOnline);
+
+const stats = computed(() => ({
+  deployments: statsStore.deployments.total,
+  containers: statsStore.containers.total,
+  runningContainers: statsStore.containers.running,
+  stoppedContainers: statsStore.containers.stopped,
+  images: statsStore.docker.images,
+  volumes: statsStore.docker.volumes,
+  networks: statsStore.docker.networks,
+  ports: statsStore.system.ports,
+  dockerPorts: statsStore.docker.ports,
+  services: statsStore.system.services,
+  infrastructure: statsStore.system.infrastructure,
+  databases: statsStore.system.databases,
+  certificates: statsStore.system.certificates,
+  apps: statsStore.system.apps,
+  cpuUsage: statsStore.resources.cpu,
+  memoryUsage: statsStore.resources.memory,
+}));
 
 const toggleGroup = (group: keyof typeof expandedGroups) => {
   expandedGroups[group] = !expandedGroups[group];
@@ -372,79 +365,8 @@ const breadcrumbs = computed(() => {
   return crumbs;
 });
 
-const checkAgentHealth = async () => {
-  try {
-    const response = await healthApi.check();
-    agentOnline.value = response.data.status === "healthy";
-
-    const statsResponse = await healthApi.stats();
-    if (statsResponse.data) {
-      const data = statsResponse.data;
-      stats.deployments = data.deployments?.total_deployments || 0;
-      stats.containers = data.containers?.total || 0;
-      stats.runningContainers = data.containers?.running || 0;
-      stats.stoppedContainers = data.containers?.stopped || 0;
-      stats.images = data.images?.total || 0;
-      stats.volumes = data.volumes?.total || 0;
-      stats.cpuUsage = Math.floor(Math.random() * 30 + 10);
-      stats.memoryUsage = Math.floor(Math.random() * 40 + 20);
-    }
-
-    const [networksRes, certsRes, pluginsRes, portsRes, servicesRes, containersRes, infraRes] =
-      await Promise.allSettled([
-        networksApi.list(),
-        certificatesApi.list(),
-        pluginsApi.list(),
-        portsApi.list(),
-        systemServicesApi.list(),
-        containersApi.list(),
-        infrastructureApi.list(),
-      ]);
-
-    if (networksRes.status === "fulfilled") {
-      stats.networks = networksRes.value.data.networks?.length || 0;
-    }
-    if (certsRes.status === "fulfilled") {
-      stats.certificates = certsRes.value.data.certificates?.length || 0;
-    }
-    if (pluginsRes.status === "fulfilled") {
-      stats.apps = pluginsRes.value.data.plugins?.length || 0;
-    }
-    if (portsRes.status === "fulfilled") {
-      stats.ports = portsRes.value.data.ports?.length || 0;
-    }
-    if (servicesRes.status === "fulfilled") {
-      stats.services = servicesRes.value.data.services?.length || 0;
-    }
-    if (containersRes.status === "fulfilled") {
-      const containers = containersRes.value.data.containers || [];
-      let portCount = 0;
-      for (const container of containers) {
-        if (Array.isArray(container.ports)) {
-          portCount += container.ports.length;
-        }
-      }
-      stats.dockerPorts = portCount;
-    }
-    if (infraRes.status === "fulfilled") {
-      stats.infrastructure = infraRes.value.data.services?.length || 0;
-    }
-
-    try {
-      const dbConnections = localStorage.getItem("db_connections");
-      if (dbConnections) {
-        stats.databases = JSON.parse(dbConnections).length || 0;
-      }
-    } catch {
-      stats.databases = 0;
-    }
-  } catch {
-    agentOnline.value = false;
-  }
-};
-
 const refreshAll = () => {
-  checkAgentHealth();
+  statsStore.fetchAll();
 };
 
 const handleLogout = () => {
@@ -453,8 +375,8 @@ const handleLogout = () => {
 };
 
 onMounted(() => {
-  checkAgentHealth();
-  setInterval(checkAgentHealth, 10000);
+  statsStore.fetchAll();
+  setInterval(() => statsStore.fetchAll(), 10000);
 });
 </script>
 

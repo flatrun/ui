@@ -67,6 +67,27 @@ export const deploymentsApi = {
   restart: (name: string) => apiClient.post(`/deployments/${name}/restart`),
   logs: (name: string) => apiClient.get(`/deployments/${name}/logs`),
   getComposeFile: (name: string) => apiClient.get(`/deployments/${name}/compose`),
+  getStats: (name: string) =>
+    apiClient.get<{
+      deployment: string;
+      services: Array<{
+        container_id: string;
+        name: string;
+        cpu_percent: number;
+        memory_usage: number;
+        memory_limit: number;
+        memory_percent: number;
+        network_rx: number;
+        network_tx: number;
+        pids: number;
+      }>;
+      summary: {
+        cpu_percent: number;
+        memory_percent: number;
+        memory_usage: number;
+        memory_limit: number;
+      };
+    }>(`/deployments/${name}/stats`),
 };
 
 export const networksApi = {
@@ -154,6 +175,20 @@ export const containersApi = {
   restart: (id: string) => apiClient.post(`/containers/${id}/restart`),
   remove: (id: string) => apiClient.delete(`/containers/${id}`),
   logs: (id: string) => apiClient.get(`/containers/${id}/logs`),
+  getAllStats: () =>
+    apiClient.get<{
+      stats: Array<{
+        container_id: string;
+        name: string;
+        cpu_percent: number;
+        memory_usage: number;
+        memory_limit: number;
+        memory_percent: number;
+        network_rx: number;
+        network_tx: number;
+        pids: number;
+      }>;
+    }>("/containers/stats"),
 };
 
 export const imagesApi = {
