@@ -993,7 +993,8 @@ const domainSettings = reactive({
 });
 
 const infrastructureSettings = reactive({
-  network_name: "web",
+  default_proxy_network: "proxy",
+  default_database_network: "database",
   database: {
     enabled: false,
     type: "mysql",
@@ -1127,7 +1128,10 @@ const loadSettings = async () => {
       form.ssl.autoCert = domainSettings.auto_ssl;
     }
     if (settings?.infrastructure) {
-      infrastructureSettings.network_name = settings.infrastructure.network_name || "web";
+      infrastructureSettings.default_proxy_network =
+        settings.infrastructure.default_proxy_network || "proxy";
+      infrastructureSettings.default_database_network =
+        settings.infrastructure.default_database_network || "database";
       if (settings.infrastructure.database) {
         infrastructureSettings.database.enabled = settings.infrastructure.database.enabled || false;
         infrastructureSettings.database.type = settings.infrastructure.database.type || "mysql";
@@ -1187,13 +1191,20 @@ const loadQuickApps = async () => {
   }
 };
 
-const selectQuickApp = (app: QuickApp) => {
+const selectQuickApp = async (app: QuickApp) => {
   selectedQuickApp.value = app.id;
-  selectedTemplateContent.value = app.content;
   if (!form.name) {
     form.name = app.id;
   }
-  form.composeContent = buildComposeFromTemplate();
+
+  try {
+    const response = await templatesApi.getCompose(app.id, form.name || app.id);
+    selectedTemplateContent.value = response.data.content;
+    form.composeContent = response.data.content;
+  } catch {
+    selectedTemplateContent.value = app.content;
+    form.composeContent = buildComposeFromTemplate();
+  }
 };
 
 const selectCustom = () => {
@@ -1467,6 +1478,8 @@ const buildComposeTemplate = (
       ? `ports:\n      - "${hostPort}:${containerPort}"`
       : `expose:\n      - "${containerPort}"`;
 
+  const networkName = infrastructureSettings.default_proxy_network;
+
   return `name: ${name}
 services:
   app:
@@ -1474,13 +1487,11 @@ services:
     container_name: ${name}
     ${portConfig}
     networks:
-      - web
+      - ${networkName}
     restart: unless-stopped
-    env_file:
-      - .env.flatrun
 
 networks:
-  web:
+  ${networkName}:
     external: true
 `;
 };
@@ -1504,10 +1515,6 @@ const buildComposeFromTemplate = () => {
 
   let content = selectedTemplateContent.value;
   content = content.replace(/\$\{NAME\}/g, name);
-
-  if (!content.includes("env_file:")) {
-    content = content.replace(/(image:\s*[^\n]+\n)/, "$1    env_file:\n      - .env.flatrun\n");
-  }
 
   return content;
 };
@@ -1626,8 +1633,16 @@ watch(
 
 watch(
   () => form.name,
-  (newName) => {
-    if (newName && selectedQuickApp.value) {
+  async (newName) => {
+    if (newName && selectedQuickApp.value && selectedQuickApp.value !== "custom") {
+      try {
+        const response = await templatesApi.getCompose(selectedQuickApp.value, newName);
+        selectedTemplateContent.value = response.data.content;
+        form.composeContent = response.data.content;
+      } catch {
+        form.composeContent = buildComposeFromTemplate();
+      }
+    } else if (newName && selectedQuickApp.value === "custom") {
       form.composeContent = buildComposeFromTemplate();
     }
   },

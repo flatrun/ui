@@ -140,6 +140,11 @@ export const templatesApi = {
   list: () => apiClient.get<{ templates: any[] }>("/templates"),
   categories: () => apiClient.get<{ categories: TemplateCategory[] }>("/templates/categories"),
   refresh: () => apiClient.post<{ message: string; count: number }>("/templates/refresh"),
+  getCompose: (templateId: string, name: string) =>
+    apiClient.get<{ template_id: string; name: string; content: string }>(
+      `/templates/${templateId}/compose`,
+      { params: { name } },
+    ),
 };
 
 export const containersApi = {
