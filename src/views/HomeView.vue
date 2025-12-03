@@ -306,52 +306,55 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from "vue";
-import { healthApi, deploymentsApi } from "@/services/api";
+import { ref, computed, onMounted } from "vue";
+import { deploymentsApi } from "@/services/api";
 import { useNotificationsStore } from "@/stores/notifications";
+import { useStatsStore } from "@/stores/stats";
 import NewDeploymentModal from "@/components/NewDeploymentModal.vue";
 import type { Deployment } from "@/types";
 
 const notifications = useNotificationsStore();
+const statsStore = useStatsStore();
 
-const stats = ref({
-  total_deployments: 0,
-  running: 0,
-  stopped: 0,
-  error: 0,
+const stats = computed(() => ({
+  total_deployments: statsStore.deployments.total,
+  running: statsStore.deployments.running,
+  stopped: statsStore.deployments.stopped,
+  error: statsStore.deployments.error,
   unknown: 0,
-});
+}));
 
-const containerStats = reactive({
-  total: 0,
-  running: 0,
-  stopped: 0,
-});
+const containerStats = computed(() => ({
+  total: statsStore.containers.total,
+  running: statsStore.containers.running,
+  stopped: statsStore.containers.stopped,
+}));
 
-const dockerResources = reactive({
-  images: 0,
-  volumes: 0,
-  networks: 0,
-});
+const dockerResources = computed(() => ({
+  images: statsStore.docker.images,
+  volumes: statsStore.docker.volumes,
+  networks: statsStore.docker.networks,
+}));
 
-const resources = reactive({
-  cpu: 0,
-  memory: 0,
-  disk: 0,
-});
+const resources = computed(() => ({
+  cpu: statsStore.resources.cpu,
+  memory: statsStore.resources.memory,
+  disk: statsStore.resources.disk,
+}));
 
 const deployments = ref<Deployment[]>([]);
 const loading = ref(true);
 const showNewDeployment = ref(false);
-const agentVersion = ref("unknown");
-const lastUpdated = ref("just now");
+
+const agentVersion = computed(() => statsStore.agentVersion);
+const lastUpdated = computed(() => statsStore.formatLastUpdated());
 
 const apiEndpoint = computed(() => {
   return window.location.hostname + ":8090";
 });
 
 const systemHealth = computed(() => {
-  const maxUsage = Math.max(resources.cpu, resources.memory, resources.disk);
+  const maxUsage = Math.max(resources.value.cpu, resources.value.memory, resources.value.disk);
   if (maxUsage > 90) return { status: "critical", label: "Critical" };
   if (maxUsage > 75) return { status: "warning", label: "Warning" };
   return { status: "healthy", label: "Healthy" };
@@ -380,45 +383,12 @@ const formatTime = (dateString: string) => {
   return `${days}d ago`;
 };
 
-const updateLastUpdated = () => {
-  const now = new Date();
-  lastUpdated.value = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-};
-
 const fetchData = async () => {
   loading.value = true;
   try {
-    const [healthRes, deploymentsRes, statsRes] = await Promise.all([
-      healthApi.check(),
-      deploymentsApi.list(),
-      healthApi.stats(),
-    ]);
-
-    if (healthRes.data.stats) {
-      stats.value = healthRes.data.stats;
-    }
-
-    if (healthRes.data.version?.version) {
-      agentVersion.value = healthRes.data.version.version;
-    }
+    const [, deploymentsRes] = await Promise.all([statsStore.fetchAll(), deploymentsApi.list()]);
 
     deployments.value = deploymentsRes.data.deployments || [];
-
-    if (statsRes.data) {
-      const data = statsRes.data;
-      containerStats.total = data.containers?.total || 0;
-      containerStats.running = data.containers?.running || 0;
-      containerStats.stopped = data.containers?.stopped || 0;
-      dockerResources.images = data.images?.total || 0;
-      dockerResources.volumes = data.volumes?.total || 0;
-      dockerResources.networks = data.networks?.total || 0;
-
-      resources.cpu = Math.floor(Math.random() * 30 + 15);
-      resources.memory = Math.floor(Math.random() * 40 + 25);
-      resources.disk = Math.floor(Math.random() * 30 + 40);
-    }
-
-    updateLastUpdated();
   } catch (error) {
     console.error("Failed to fetch data:", error);
   } finally {

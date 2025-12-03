@@ -766,33 +766,9 @@ const fetchDeployment = async () => {
       }
     }
 
-    services.value = [
-      {
-        name: "web",
-        image: "nginx:latest",
-        status: "running",
-        ports: ["80:80", "443:443"],
-      },
-      {
-        name: "app",
-        image: "node:18-alpine",
-        status: "running",
-        ports: ["3000:3000"],
-      },
-      {
-        name: "db",
-        image: "postgres:15",
-        status: "running",
-        ports: ["5432:5432"],
-      },
-    ];
+    services.value = deployment.value?.services || [];
 
-    resourceUsage.value = {
-      cpu: Math.floor(Math.random() * 60 + 10),
-      memory: Math.floor(Math.random() * 70 + 20),
-      disk: Math.floor(Math.random() * 40 + 5),
-      network: Math.floor(Math.random() * 30 + 5),
-    };
+    fetchStats();
 
     envVars.value = [
       { key: "NODE_ENV", value: "production", hidden: false },
@@ -878,6 +854,24 @@ const fetchLogs = async () => {
     console.error("Failed to fetch logs:", err);
   } finally {
     logsLoading.value = false;
+  }
+};
+
+const fetchStats = async () => {
+  try {
+    const response = await deploymentsApi.getStats(route.params.name as string);
+    const stats = response.data;
+    if (stats?.summary) {
+      resourceUsage.value = {
+        cpu: Math.round(stats.summary.cpu_percent * 10) / 10,
+        memory: Math.round(stats.summary.memory_percent * 10) / 10,
+        disk: 0,
+        network: 0,
+      };
+    }
+  } catch (err) {
+    console.error("Failed to fetch stats:", err);
+    resourceUsage.value = { cpu: 0, memory: 0, disk: 0, network: 0 };
   }
 };
 
@@ -1125,7 +1119,10 @@ onMounted(() => {
     if (logsFollow.value && activeTab.value === "logs") {
       fetchLogs();
     }
-  }, 3000);
+    if (activeTab.value === "overview") {
+      fetchStats();
+    }
+  }, 5000);
 });
 
 onUnmounted(() => {
