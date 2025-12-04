@@ -249,7 +249,8 @@
           <div class="modal-body">
             <p>
               Are you sure you want to delete
-              <strong>{{ fileToDelete?.name }}</strong>?
+              <strong>{{ fileToDelete?.name }}</strong
+              >?
             </p>
             <p v-if="fileToDelete?.is_dir" class="warning-text">
               This will delete all contents inside the folder.

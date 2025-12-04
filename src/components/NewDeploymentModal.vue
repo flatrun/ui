@@ -616,7 +616,9 @@
                             <div class="form-field">
                               <label for="dbPassword">
                                 Password
-                                <span v-if="form.database.mode === 'create'" class="required">*</span>
+                                <span v-if="form.database.mode === 'create'" class="required"
+                                  >*</span
+                                >
                               </label>
                               <input
                                 id="dbPassword"
@@ -706,19 +708,21 @@
                         <div class="preview-content">
                           <div class="preview-item">
                             <span class="preview-label">Connection</span>
-                            <code class="preview-value">{{
-                              form.database.mode === "existing"
-                                ? form.database.existingContainer
-                                : form.database.externalHost
-                            }}:{{
-                              form.database.externalPort || getDefaultPort(form.database.type)
-                            }}</code>
+                            <code class="preview-value"
+                              >{{
+                                form.database.mode === "existing"
+                                  ? form.database.existingContainer
+                                  : form.database.externalHost
+                              }}:{{
+                                form.database.externalPort || getDefaultPort(form.database.type)
+                              }}</code
+                            >
                           </div>
                           <div class="preview-item">
                             <span class="preview-label">Database</span>
                             <code class="preview-value">{{
                               form.database.dbName ||
-                                (form.name ? form.name.replace(/-/g, "_") : "app_db")
+                              (form.name ? form.name.replace(/-/g, "_") : "app_db")
                             }}</code>
                           </div>
                           <div class="preview-item">
@@ -1003,7 +1007,9 @@
                   </div>
                   <div v-if="form.envVars.length" class="review-item">
                     <span class="review-label">Env Vars</span>
-                    <span class="review-value">{{ form.envVars.filter((e) => e.key).length }} defined</span>
+                    <span class="review-value"
+                      >{{ form.envVars.filter((e) => e.key).length }} defined</span
+                    >
                   </div>
                 </div>
 
@@ -1013,8 +1019,10 @@
                     <span>Docker Compose</span>
                     <span class="compose-lines">{{ composeLineCount }} lines</span>
                   </div>
-                  <pre class="compose-preview-code">{{ form.composeContent.slice(0, 400)
-                  }}{{ form.composeContent.length > 400 ? "\n..." : "" }}</pre>
+                  <pre class="compose-preview-code"
+                    >{{ form.composeContent.slice(0, 400)
+                    }}{{ form.composeContent.length > 400 ? "\n..." : "" }}</pre
+                  >
                 </div>
               </div>
             </div>

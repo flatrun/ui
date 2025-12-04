@@ -266,7 +266,7 @@
             placeholder="SELECT * FROM table_name WHERE condition..."
             rows="6"
             @keydown="handleQueryKeydown"
-          ></textarea>
+          />
           <div class="query-toolbar">
             <button
               class="btn btn-primary"
