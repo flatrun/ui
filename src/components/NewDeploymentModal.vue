@@ -1,14 +1,22 @@
 <template>
   <BaseModal
     :visible="visible"
-    size="xl"
-    title="Create Deployment"
-    subtitle="Deploy your application in just a few steps"
-    icon="pi pi-rocket"
+    size="2xl"
     :close-disabled="creating"
     :close-on-overlay="!creating"
     @close="handleClose"
   >
+    <template #header>
+      <div class="modal-header-content">
+        <div class="modal-header-icon">
+          <i class="pi pi-box" />
+        </div>
+        <div class="modal-header-text">
+          <h3>Create Deployment</h3>
+          <p>Deploy your application in just a few steps</p>
+        </div>
+      </div>
+    </template>
     <div class="wizard-container">
       <!-- Progress Steps -->
       <div v-if="currentStep > 0" class="wizard-progress">
@@ -188,9 +196,9 @@
                 </div>
               </div>
 
-              <!-- Right: Template Selection (Easy Mode Only) -->
-              <div v-if="deploymentMode === 'easy'" class="step1-right">
-                <div class="section-card templates-card">
+              <!-- Right: Template Selection (Easy Mode) or Compose Info (Compose Mode) -->
+              <div class="step1-right">
+                <div v-if="deploymentMode === 'easy'" class="section-card templates-card">
                   <div class="section-header compact">
                     <div class="section-icon small">
                       <i class="pi pi-th-large" />
@@ -244,430 +252,577 @@
                     </button>
                   </div>
                 </div>
+
+                <!-- Compose Mode Info Panel -->
+                <div v-else class="section-card compose-info-card">
+                  <div class="section-header compact">
+                    <div class="section-icon small">
+                      <i class="pi pi-code" />
+                    </div>
+                    <h4>Compose Mode</h4>
+                  </div>
+                  <div class="compose-info-content">
+                    <div class="info-item">
+                      <i class="pi pi-file-edit" />
+                      <div>
+                        <strong>Full Control</strong>
+                        <p>Write your own docker-compose.yml configuration</p>
+                      </div>
+                    </div>
+                    <div class="info-item">
+                      <i class="pi pi-sitemap" />
+                      <div>
+                        <strong>Multi-Service Support</strong>
+                        <p>Define multiple services, volumes, and networks</p>
+                      </div>
+                    </div>
+                    <div class="info-item">
+                      <i class="pi pi-cog" />
+                      <div>
+                        <strong>Advanced Options</strong>
+                        <p>Configure environment variables and port mappings</p>
+                      </div>
+                    </div>
+                    <div class="info-hint">
+                      <i class="pi pi-info-circle" />
+                      <span>You'll write your compose file in the next step</span>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
 
-          <!-- Step 2: Database -->
-          <div v-else-if="currentStep === 2" class="step-panel">
-            <div class="database-step">
-              <div class="section-card">
-                <div class="section-header compact">
-                  <div class="section-icon small">
+          <!-- Step 2: Database & Storage -->
+          <div v-else-if="currentStep === 2" class="step-panel step2-sections">
+            <!-- Database Section -->
+            <div class="collapsible-section">
+              <button
+                class="section-toggle"
+                :class="{ collapsed: collapsedSections.database }"
+                @click="toggleSection('database')"
+              >
+                <div class="section-toggle-left">
+                  <div class="section-icon database">
                     <i class="pi pi-database" />
                   </div>
-                  <h4>Database Type</h4>
+                  <div class="section-toggle-info">
+                    <h4>Database</h4>
+                    <p>
+                      {{
+                        form.database.type === "none"
+                          ? "No database configured"
+                          : form.database.type.toUpperCase()
+                      }}
+                    </p>
+                  </div>
                 </div>
+                <i class="pi pi-chevron-down toggle-icon" />
+              </button>
 
-                <div class="database-options">
-                  <button
-                    class="db-option"
-                    :class="{ selected: form.database.type === 'none' }"
-                    @click="selectDatabaseType('none')"
-                  >
-                    <div class="db-option-icon none">
-                      <i class="pi pi-times-circle" />
-                    </div>
-                    <div class="db-option-info">
-                      <span class="db-option-name">No Database</span>
-                      <span class="db-option-desc">Skip database setup</span>
-                    </div>
-                    <i v-if="form.database.type === 'none'" class="pi pi-check db-check" />
-                  </button>
-
-                  <button
-                    class="db-option"
-                    :class="{ selected: form.database.type === 'mysql' }"
-                    @click="selectDatabaseType('mysql')"
-                  >
-                    <div class="db-option-icon mysql">
-                      <i class="pi pi-database" />
-                    </div>
-                    <div class="db-option-info">
-                      <span class="db-option-name">MySQL</span>
-                      <span class="db-option-desc">Popular relational database</span>
-                    </div>
-                    <i v-if="form.database.type === 'mysql'" class="pi pi-check db-check" />
-                  </button>
-
-                  <button
-                    class="db-option"
-                    :class="{ selected: form.database.type === 'postgres' }"
-                    @click="selectDatabaseType('postgres')"
-                  >
-                    <div class="db-option-icon postgres">
-                      <i class="pi pi-database" />
-                    </div>
-                    <div class="db-option-info">
-                      <span class="db-option-name">PostgreSQL</span>
-                      <span class="db-option-desc">Advanced open source database</span>
-                    </div>
-                    <i v-if="form.database.type === 'postgres'" class="pi pi-check db-check" />
-                  </button>
-
-                  <button
-                    class="db-option"
-                    :class="{ selected: form.database.type === 'mariadb' }"
-                    @click="selectDatabaseType('mariadb')"
-                  >
-                    <div class="db-option-icon mariadb">
-                      <i class="pi pi-database" />
-                    </div>
-                    <div class="db-option-info">
-                      <span class="db-option-name">MariaDB</span>
-                      <span class="db-option-desc">MySQL-compatible fork</span>
-                    </div>
-                    <i v-if="form.database.type === 'mariadb'" class="pi pi-check db-check" />
-                  </button>
-
-                  <button
-                    class="db-option"
-                    :class="{ selected: form.database.type === 'mongodb' }"
-                    @click="selectDatabaseType('mongodb')"
-                  >
-                    <div class="db-option-icon mongodb">
-                      <i class="pi pi-database" />
-                    </div>
-                    <div class="db-option-info">
-                      <span class="db-option-name">MongoDB</span>
-                      <span class="db-option-desc">NoSQL document database</span>
-                    </div>
-                    <i v-if="form.database.type === 'mongodb'" class="pi pi-check db-check" />
-                  </button>
-                </div>
-              </div>
-
-              <Transition name="expand">
-                <div v-if="form.database.type !== 'none'" class="database-config">
-                  <!-- Connection Mode -->
-                  <div class="section-card">
-                    <div class="section-header compact">
-                      <div class="section-icon small">
-                        <i class="pi pi-link" />
-                      </div>
-                      <h4>Connection Mode</h4>
-                    </div>
-
-                    <div
-                      class="mode-options"
-                      :class="infrastructureSettings.database.enabled ? 'four-col' : 'three-col'"
+              <Transition name="collapse">
+                <div v-show="!collapsedSections.database" class="section-content">
+                  <div class="database-options">
+                    <button
+                      class="db-option"
+                      :class="{ selected: form.database.type === 'none' }"
+                      @click="selectDatabaseType('none')"
                     >
-                      <button
-                        v-if="infrastructureSettings.database.enabled"
-                        class="mode-option recommended"
-                        :class="{ selected: form.database.mode === 'shared' }"
-                        @click="selectSharedDatabase"
-                      >
-                        <div class="mode-icon shared">
-                          <i class="pi pi-share-alt" />
-                        </div>
-                        <div class="mode-info">
-                          <span class="mode-name">Use Shared</span>
-                          <span class="mode-desc">Auto-create in shared DB</span>
-                        </div>
-                        <span class="recommended-badge">Recommended</span>
-                      </button>
+                      <div class="db-option-icon none">
+                        <i class="pi pi-times-circle" />
+                      </div>
+                      <div class="db-option-info">
+                        <span class="db-option-name">No Database</span>
+                        <span class="db-option-desc">Skip database setup</span>
+                      </div>
+                      <i v-if="form.database.type === 'none'" class="pi pi-check db-check" />
+                    </button>
 
-                      <button
-                        class="mode-option"
-                        :class="{ selected: form.database.mode === 'create' }"
-                        @click="selectDatabaseMode('create')"
-                      >
-                        <div class="mode-icon">
-                          <i class="pi pi-plus-circle" />
-                        </div>
-                        <div class="mode-info">
-                          <span class="mode-name">Create New</span>
-                          <span class="mode-desc">Add database to app stack</span>
-                        </div>
-                      </button>
+                    <button
+                      class="db-option"
+                      :class="{ selected: form.database.type === 'mysql' }"
+                      @click="selectDatabaseType('mysql')"
+                    >
+                      <div class="db-option-icon mysql">
+                        <i class="pi pi-database" />
+                      </div>
+                      <div class="db-option-info">
+                        <span class="db-option-name">MySQL</span>
+                        <span class="db-option-desc">Popular relational database</span>
+                      </div>
+                      <i v-if="form.database.type === 'mysql'" class="pi pi-check db-check" />
+                    </button>
 
-                      <button
-                        class="mode-option"
-                        :class="{ selected: form.database.mode === 'existing' }"
-                        @click="selectDatabaseMode('existing')"
-                      >
-                        <div class="mode-icon">
-                          <i class="pi pi-server" />
-                        </div>
-                        <div class="mode-info">
-                          <span class="mode-name">Use Existing</span>
-                          <span class="mode-desc">Connect to local container</span>
-                        </div>
-                      </button>
+                    <button
+                      class="db-option"
+                      :class="{ selected: form.database.type === 'postgres' }"
+                      @click="selectDatabaseType('postgres')"
+                    >
+                      <div class="db-option-icon postgres">
+                        <i class="pi pi-database" />
+                      </div>
+                      <div class="db-option-info">
+                        <span class="db-option-name">PostgreSQL</span>
+                        <span class="db-option-desc">Advanced open source database</span>
+                      </div>
+                      <i v-if="form.database.type === 'postgres'" class="pi pi-check db-check" />
+                    </button>
 
-                      <button
-                        class="mode-option"
-                        :class="{ selected: form.database.mode === 'external' }"
-                        @click="selectDatabaseMode('external')"
-                      >
-                        <div class="mode-icon">
-                          <i class="pi pi-globe" />
-                        </div>
-                        <div class="mode-info">
-                          <span class="mode-name">External</span>
-                          <span class="mode-desc">Connect to remote server</span>
-                        </div>
-                      </button>
-                    </div>
+                    <button
+                      class="db-option"
+                      :class="{ selected: form.database.type === 'mariadb' }"
+                      @click="selectDatabaseType('mariadb')"
+                    >
+                      <div class="db-option-icon mariadb">
+                        <i class="pi pi-database" />
+                      </div>
+                      <div class="db-option-info">
+                        <span class="db-option-name">MariaDB</span>
+                        <span class="db-option-desc">MySQL-compatible fork</span>
+                      </div>
+                      <i v-if="form.database.type === 'mariadb'" class="pi pi-check db-check" />
+                    </button>
+
+                    <button
+                      class="db-option"
+                      :class="{ selected: form.database.type === 'mongodb' }"
+                      @click="selectDatabaseType('mongodb')"
+                    >
+                      <div class="db-option-icon mongodb">
+                        <i class="pi pi-database" />
+                      </div>
+                      <div class="db-option-info">
+                        <span class="db-option-name">MongoDB</span>
+                        <span class="db-option-desc">NoSQL document database</span>
+                      </div>
+                      <i v-if="form.database.type === 'mongodb'" class="pi pi-check db-check" />
+                    </button>
                   </div>
 
-                  <!-- Existing Container Selection -->
                   <Transition name="expand">
-                    <div v-if="form.database.mode === 'existing'" class="section-card">
-                      <div class="section-header compact">
-                        <div class="section-icon small">
-                          <i class="pi pi-server" />
+                    <div v-if="form.database.type !== 'none'" class="database-config">
+                      <!-- Connection Mode -->
+                      <div class="section-card">
+                        <div class="section-header compact">
+                          <div class="section-icon small">
+                            <i class="pi pi-link" />
+                          </div>
+                          <h4>Connection Mode</h4>
                         </div>
-                        <h4>Select Container</h4>
-                        <button
-                          class="refresh-btn"
-                          :disabled="loadingDbContainers"
-                          @click="loadExistingDbContainers"
+
+                        <div
+                          class="mode-options"
+                          :class="
+                            infrastructureSettings.database.enabled ? 'four-col' : 'three-col'
+                          "
                         >
-                          <i class="pi pi-refresh" :class="{ 'pi-spin': loadingDbContainers }" />
-                        </button>
-                      </div>
-
-                      <div class="existing-containers">
-                        <div v-if="loadingDbContainers" class="loading-containers">
-                          <i class="pi pi-spin pi-spinner" />
-                          <span>Loading containers...</span>
-                        </div>
-                        <div v-else-if="filteredDbContainers.length === 0" class="no-containers">
-                          <i class="pi pi-info-circle" />
-                          <span>No {{ form.database.type }} containers found</span>
-                          <button class="switch-mode-btn" @click="form.database.mode = 'create'">
-                            Create new instead
-                          </button>
-                        </div>
-                        <div v-else class="container-list">
                           <button
-                            v-for="container in filteredDbContainers"
-                            :key="container.id"
-                            class="container-option"
-                            :class="{
-                              selected: form.database.existingContainer === container.name,
-                            }"
-                            @click="selectExistingContainer(container)"
+                            v-if="infrastructureSettings.database.enabled"
+                            class="mode-option recommended"
+                            :class="{ selected: form.database.mode === 'shared' }"
+                            @click="selectSharedDatabase"
                           >
-                            <div class="container-icon">
-                              <i class="pi pi-database" />
+                            <div class="mode-icon shared">
+                              <i class="pi pi-share-alt" />
                             </div>
-                            <div class="container-details">
-                              <span class="container-name">{{ container.name }}</span>
-                              <span class="container-image">{{ container.image }}</span>
+                            <div class="mode-info">
+                              <span class="mode-name">Use Shared</span>
+                              <span class="mode-desc">Auto-create in shared DB</span>
                             </div>
-                            <i
-                              v-if="form.database.existingContainer === container.name"
-                              class="pi pi-check"
-                            />
+                            <span class="recommended-badge">Recommended</span>
+                          </button>
+
+                          <button
+                            class="mode-option"
+                            :class="{ selected: form.database.mode === 'create' }"
+                            @click="selectDatabaseMode('create')"
+                          >
+                            <div class="mode-icon">
+                              <i class="pi pi-plus-circle" />
+                            </div>
+                            <div class="mode-info">
+                              <span class="mode-name">Create New</span>
+                              <span class="mode-desc">Add database to app stack</span>
+                            </div>
+                          </button>
+
+                          <button
+                            class="mode-option"
+                            :class="{ selected: form.database.mode === 'existing' }"
+                            @click="selectDatabaseMode('existing')"
+                          >
+                            <div class="mode-icon">
+                              <i class="pi pi-server" />
+                            </div>
+                            <div class="mode-info">
+                              <span class="mode-name">Use Existing</span>
+                              <span class="mode-desc">Connect to local container</span>
+                            </div>
+                          </button>
+
+                          <button
+                            class="mode-option"
+                            :class="{ selected: form.database.mode === 'external' }"
+                            @click="selectDatabaseMode('external')"
+                          >
+                            <div class="mode-icon">
+                              <i class="pi pi-globe" />
+                            </div>
+                            <div class="mode-info">
+                              <span class="mode-name">External</span>
+                              <span class="mode-desc">Connect to remote server</span>
+                            </div>
                           </button>
                         </div>
                       </div>
-                    </div>
-                  </Transition>
 
-                  <!-- External Database Config -->
-                  <Transition name="expand">
-                    <div v-if="form.database.mode === 'external'" class="section-card">
-                      <div class="section-header compact">
-                        <div class="section-icon small">
-                          <i class="pi pi-globe" />
-                        </div>
-                        <h4>Server Details</h4>
-                      </div>
-
-                      <div class="credentials-form">
-                        <div class="form-row">
-                          <div class="form-field flex-grow">
-                            <label for="externalHost">
-                              Host
-                              <span class="required">*</span>
-                            </label>
-                            <input
-                              id="externalHost"
-                              v-model="form.database.externalHost"
-                              type="text"
-                              placeholder="db.example.com"
-                            />
-                          </div>
-                          <div class="form-field port-field">
-                            <label for="externalPort">
-                              Port
-                              <span class="required">*</span>
-                            </label>
-                            <input
-                              id="externalPort"
-                              v-model="form.database.externalPort"
-                              type="text"
-                              :placeholder="getDefaultPort(form.database.type)"
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </Transition>
-
-                  <!-- Credentials -->
-                  <div class="section-card">
-                    <div class="section-header compact">
-                      <div class="section-icon small">
-                        <i class="pi pi-key" />
-                      </div>
-                      <h4>Credentials</h4>
-                    </div>
-
-                    <div class="credentials-form">
-                      <div class="form-field">
-                        <label for="dbName">Database Name</label>
-                        <input
-                          id="dbName"
-                          v-model="form.database.dbName"
-                          type="text"
-                          :placeholder="form.name ? form.name.replace(/-/g, '_') : 'app_db'"
-                        />
-                      </div>
-
-                      <div class="form-row">
-                        <div class="form-field">
-                          <label for="dbUser">Username</label>
-                          <input
-                            id="dbUser"
-                            v-model="form.database.dbUser"
-                            type="text"
-                            placeholder="app"
-                          />
-                        </div>
-
-                        <div class="form-field">
-                          <label for="dbPassword">
-                            Password
-                            <span v-if="form.database.mode === 'create'" class="required">*</span>
-                          </label>
-                          <input
-                            id="dbPassword"
-                            v-model="form.database.dbPassword"
-                            type="password"
-                            placeholder="••••••••"
-                          />
-                        </div>
-                      </div>
-
+                      <!-- Existing Container Selection -->
                       <Transition name="expand">
-                        <div v-if="form.database.mode === 'create'" class="form-field">
-                          <label for="dbRootPassword">Root Password</label>
-                          <input
-                            id="dbRootPassword"
-                            v-model="form.database.dbRootPassword"
-                            type="password"
-                            placeholder="Leave empty to use same as password"
-                          />
-                          <span class="field-hint">Admin password for new database</span>
+                        <div v-if="form.database.mode === 'existing'" class="section-card">
+                          <div class="section-header compact">
+                            <div class="section-icon small">
+                              <i class="pi pi-server" />
+                            </div>
+                            <h4>Select Container</h4>
+                            <button
+                              class="refresh-btn"
+                              :disabled="loadingDbContainers"
+                              @click="loadExistingDbContainers"
+                            >
+                              <i
+                                class="pi pi-refresh"
+                                :class="{ 'pi-spin': loadingDbContainers }"
+                              />
+                            </button>
+                          </div>
+
+                          <div class="existing-containers">
+                            <div v-if="loadingDbContainers" class="loading-containers">
+                              <i class="pi pi-spin pi-spinner" />
+                              <span>Loading containers...</span>
+                            </div>
+                            <div
+                              v-else-if="filteredDbContainers.length === 0"
+                              class="no-containers"
+                            >
+                              <i class="pi pi-info-circle" />
+                              <span>No {{ form.database.type }} containers found</span>
+                              <button
+                                class="switch-mode-btn"
+                                @click="form.database.mode = 'create'"
+                              >
+                                Create new instead
+                              </button>
+                            </div>
+                            <div v-else class="container-list">
+                              <button
+                                v-for="container in filteredDbContainers"
+                                :key="container.id"
+                                class="container-option"
+                                :class="{
+                                  selected: form.database.existingContainer === container.name,
+                                }"
+                                @click="selectExistingContainer(container)"
+                              >
+                                <div class="container-icon">
+                                  <i class="pi pi-database" />
+                                </div>
+                                <div class="container-details">
+                                  <span class="container-name">{{ container.name }}</span>
+                                  <span class="container-image">{{ container.image }}</span>
+                                </div>
+                                <i
+                                  v-if="form.database.existingContainer === container.name"
+                                  class="pi pi-check"
+                                />
+                              </button>
+                            </div>
+                          </div>
                         </div>
                       </Transition>
-                    </div>
-                  </div>
 
-                  <!-- Connection Test -->
-                  <div
-                    v-if="form.database.mode === 'external' || form.database.mode === 'existing'"
-                    class="section-card connection-test"
-                  >
-                    <div class="connection-test-content">
-                      <div class="connection-status">
-                        <div
-                          v-if="form.database.connectionStatus === 'checking'"
-                          class="status checking"
-                        >
-                          <i class="pi pi-spin pi-spinner" />
-                          <span>Testing connection...</span>
+                      <!-- External Database Config -->
+                      <Transition name="expand">
+                        <div v-if="form.database.mode === 'external'" class="section-card">
+                          <div class="section-header compact">
+                            <div class="section-icon small">
+                              <i class="pi pi-globe" />
+                            </div>
+                            <h4>Server Details</h4>
+                          </div>
+
+                          <div class="credentials-form">
+                            <div class="form-row">
+                              <div class="form-field flex-grow">
+                                <label for="externalHost">
+                                  Host
+                                  <span class="required">*</span>
+                                </label>
+                                <input
+                                  id="externalHost"
+                                  v-model="form.database.externalHost"
+                                  type="text"
+                                  placeholder="db.example.com"
+                                />
+                              </div>
+                              <div class="form-field port-field">
+                                <label for="externalPort">
+                                  Port
+                                  <span class="required">*</span>
+                                </label>
+                                <input
+                                  id="externalPort"
+                                  v-model="form.database.externalPort"
+                                  type="text"
+                                  :placeholder="getDefaultPort(form.database.type)"
+                                />
+                              </div>
+                            </div>
+                          </div>
                         </div>
-                        <div
-                          v-else-if="form.database.connectionStatus === 'success'"
-                          class="status success"
-                        >
-                          <i class="pi pi-check-circle" />
-                          <span>Connection successful</span>
+                      </Transition>
+
+                      <!-- Credentials -->
+                      <div class="section-card">
+                        <div class="section-header compact">
+                          <div class="section-icon small">
+                            <i class="pi pi-key" />
+                          </div>
+                          <h4>Credentials</h4>
                         </div>
-                        <div
-                          v-else-if="form.database.connectionStatus === 'error'"
-                          class="status error"
-                        >
-                          <i class="pi pi-times-circle" />
-                          <span>{{ form.database.connectionError || "Connection failed" }}</span>
-                        </div>
-                        <div v-else class="status idle">
-                          <i class="pi pi-info-circle" />
-                          <span>Test connection before proceeding</span>
+
+                        <div class="credentials-form">
+                          <div class="form-field">
+                            <label for="dbName">Database Name</label>
+                            <input
+                              id="dbName"
+                              v-model="form.database.dbName"
+                              type="text"
+                              :placeholder="form.name ? form.name.replace(/-/g, '_') : 'app_db'"
+                            />
+                          </div>
+
+                          <div class="form-row">
+                            <div class="form-field">
+                              <label for="dbUser">Username</label>
+                              <input
+                                id="dbUser"
+                                v-model="form.database.dbUser"
+                                type="text"
+                                placeholder="app"
+                              />
+                            </div>
+
+                            <div class="form-field">
+                              <label for="dbPassword">
+                                Password
+                                <span v-if="form.database.mode === 'create'" class="required"
+                                  >*</span
+                                >
+                              </label>
+                              <input
+                                id="dbPassword"
+                                v-model="form.database.dbPassword"
+                                type="password"
+                                placeholder="••••••••"
+                              />
+                            </div>
+                          </div>
+
+                          <Transition name="expand">
+                            <div v-if="form.database.mode === 'create'" class="form-field">
+                              <label for="dbRootPassword">Root Password</label>
+                              <input
+                                id="dbRootPassword"
+                                v-model="form.database.dbRootPassword"
+                                type="password"
+                                placeholder="Leave empty to use same as password"
+                              />
+                              <span class="field-hint">Admin password for new database</span>
+                            </div>
+                          </Transition>
                         </div>
                       </div>
-                      <button
-                        class="test-btn"
-                        :disabled="form.database.connectionStatus === 'checking'"
-                        @click="checkDatabaseConnection"
+
+                      <!-- Connection Test -->
+                      <div
+                        v-if="
+                          form.database.mode === 'external' || form.database.mode === 'existing'
+                        "
+                        class="section-card connection-test"
                       >
-                        <i class="pi pi-bolt" />
-                        Test
-                      </button>
-                    </div>
-                  </div>
-
-                  <!-- Configuration Preview for External/Existing -->
-                  <div
-                    v-if="form.database.mode === 'external' || form.database.mode === 'existing'"
-                    class="section-card config-preview"
-                  >
-                    <div class="section-header compact">
-                      <div class="section-icon small">
-                        <i class="pi pi-eye" />
+                        <div class="connection-test-content">
+                          <div class="connection-status">
+                            <div
+                              v-if="form.database.connectionStatus === 'checking'"
+                              class="status checking"
+                            >
+                              <i class="pi pi-spin pi-spinner" />
+                              <span>Testing connection...</span>
+                            </div>
+                            <div
+                              v-else-if="form.database.connectionStatus === 'success'"
+                              class="status success"
+                            >
+                              <i class="pi pi-check-circle" />
+                              <span>Connection successful</span>
+                            </div>
+                            <div
+                              v-else-if="form.database.connectionStatus === 'error'"
+                              class="status error"
+                            >
+                              <i class="pi pi-times-circle" />
+                              <span>{{
+                                form.database.connectionError || "Connection failed"
+                              }}</span>
+                            </div>
+                            <div v-else class="status idle">
+                              <i class="pi pi-info-circle" />
+                              <span>Test connection before proceeding</span>
+                            </div>
+                          </div>
+                          <button
+                            class="test-btn"
+                            :disabled="form.database.connectionStatus === 'checking'"
+                            @click="checkDatabaseConnection"
+                          >
+                            <i class="pi pi-bolt" />
+                            Test
+                          </button>
+                        </div>
                       </div>
-                      <h4>Configuration Preview</h4>
+
+                      <!-- Configuration Preview for External/Existing -->
+                      <div
+                        v-if="
+                          form.database.mode === 'external' || form.database.mode === 'existing'
+                        "
+                        class="section-card config-preview"
+                      >
+                        <div class="section-header compact">
+                          <div class="section-icon small">
+                            <i class="pi pi-eye" />
+                          </div>
+                          <h4>Configuration Preview</h4>
+                        </div>
+                        <div class="preview-content">
+                          <div class="preview-item">
+                            <span class="preview-label">Connection</span>
+                            <code class="preview-value"
+                              >{{
+                                form.database.mode === "existing"
+                                  ? form.database.existingContainer
+                                  : form.database.externalHost
+                              }}:{{
+                                form.database.externalPort || getDefaultPort(form.database.type)
+                              }}</code
+                            >
+                          </div>
+                          <div class="preview-item">
+                            <span class="preview-label">Database</span>
+                            <code class="preview-value">{{
+                              form.database.dbName ||
+                              (form.name ? form.name.replace(/-/g, "_") : "app_db")
+                            }}</code>
+                          </div>
+                          <div class="preview-item">
+                            <span class="preview-label">User</span>
+                            <code class="preview-value">{{ form.database.dbUser || "app" }}</code>
+                          </div>
+                          <div class="preview-hint">
+                            <i class="pi pi-info-circle" />
+                            Environment variables will be automatically added to your app
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Create Mode Preview -->
+                      <div
+                        v-if="form.database.mode === 'create'"
+                        class="section-card config-preview"
+                      >
+                        <div class="section-header compact">
+                          <div class="section-icon small">
+                            <i class="pi pi-code" />
+                          </div>
+                          <h4>Service Preview</h4>
+                        </div>
+                        <div class="preview-content">
+                          <pre class="compose-preview">{{ getDatabaseServiceYaml().trim() }}</pre>
+                          <div class="preview-hint">
+                            <i class="pi pi-info-circle" />
+                            This database service will be added to your compose stack
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                    <div class="preview-content">
-                      <div class="preview-item">
-                        <span class="preview-label">Connection</span>
-                        <code class="preview-value"
-                          >{{
-                            form.database.mode === "existing"
-                              ? form.database.existingContainer
-                              : form.database.externalHost
-                          }}:{{
-                            form.database.externalPort || getDefaultPort(form.database.type)
-                          }}</code
+                  </Transition>
+                </div>
+              </Transition>
+            </div>
+
+            <!-- Storage Section -->
+            <div v-if="selectedTemplateMounts.length > 0" class="collapsible-section">
+              <button
+                class="section-toggle"
+                :class="{ collapsed: collapsedSections.storage }"
+                @click="toggleSection('storage')"
+              >
+                <div class="section-toggle-left">
+                  <div class="section-icon storage">
+                    <i class="pi pi-folder" />
+                  </div>
+                  <div class="section-toggle-info">
+                    <h4>Storage</h4>
+                    <p>{{ form.mounts.filter((m) => m.enabled).length }} mount(s) configured</p>
+                  </div>
+                </div>
+                <i class="pi pi-chevron-down toggle-icon" />
+              </button>
+
+              <Transition name="collapse">
+                <div v-show="!collapsedSections.storage" class="section-content">
+                  <div class="mounts-grid">
+                    <div
+                      v-for="mount in selectedTemplateMounts"
+                      :key="mount.id"
+                      class="mount-card"
+                      :class="{ enabled: getMountSelection(mount.id)?.enabled }"
+                    >
+                      <div class="mount-header">
+                        <label class="mount-toggle">
+                          <input
+                            type="checkbox"
+                            :checked="getMountSelection(mount.id)?.enabled"
+                            :disabled="mount.required"
+                            @change="toggleMount(mount.id)"
+                          />
+                          <span class="mount-name">{{ mount.name }}</span>
+                          <span v-if="mount.required" class="required-badge">Required</span>
+                        </label>
+                      </div>
+                      <p class="mount-description">{{ mount.description }}</p>
+                      <p class="mount-path">
+                        <i class="pi pi-folder-open" />
+                        {{ mount.container_path }}
+                      </p>
+                      <div v-if="getMountSelection(mount.id)?.enabled" class="mount-type-selector">
+                        <button
+                          class="type-btn"
+                          :class="{ active: getMountSelection(mount.id)?.type === 'file' }"
+                          @click="setMountType(mount.id, 'file')"
                         >
-                      </div>
-                      <div class="preview-item">
-                        <span class="preview-label">Database</span>
-                        <code class="preview-value">{{
-                          form.database.dbName ||
-                          (form.name ? form.name.replace(/-/g, "_") : "app_db")
-                        }}</code>
-                      </div>
-                      <div class="preview-item">
-                        <span class="preview-label">User</span>
-                        <code class="preview-value">{{ form.database.dbUser || "app" }}</code>
-                      </div>
-                      <div class="preview-hint">
-                        <i class="pi pi-info-circle" />
-                        Environment variables will be automatically added to your app
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- Create Mode Preview -->
-                  <div v-if="form.database.mode === 'create'" class="section-card config-preview">
-                    <div class="section-header compact">
-                      <div class="section-icon small">
-                        <i class="pi pi-code" />
-                      </div>
-                      <h4>Service Preview</h4>
-                    </div>
-                    <div class="preview-content">
-                      <pre class="compose-preview">{{ getDatabaseServiceYaml().trim() }}</pre>
-                      <div class="preview-hint">
-                        <i class="pi pi-info-circle" />
-                        This database service will be added to your compose stack
+                          <i class="pi pi-file" />
+                          Bind Mount
+                        </button>
+                        <button
+                          class="type-btn"
+                          :class="{ active: getMountSelection(mount.id)?.type === 'volume' }"
+                          @click="setMountType(mount.id, 'volume')"
+                        >
+                          <i class="pi pi-database" />
+                          Volume
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -888,11 +1043,14 @@
         <button
           v-if="currentStep < steps.length"
           class="btn btn-primary"
-          :disabled="!canProceed"
+          :disabled="!canProceed || generatingCompose"
           @click="nextStep"
         >
-          {{ currentStep === 0 ? "Get Started" : "Continue" }}
-          <i class="pi pi-arrow-right" />
+          <i v-if="generatingCompose" class="pi pi-spin pi-spinner" />
+          <template v-else>
+            {{ currentStep === 0 ? "Get Started" : "Continue" }}
+            <i class="pi pi-arrow-right" />
+          </template>
         </button>
         <button
           v-else
@@ -918,6 +1076,15 @@ import BaseModal from "@/components/base/BaseModal.vue";
 import { deploymentsApi, templatesApi, settingsApi, containersApi } from "@/services/api";
 import { useNotificationsStore } from "@/stores/notifications";
 
+interface TemplateMount {
+  id: string;
+  name: string;
+  container_path: string;
+  description: string;
+  type: "file" | "volume";
+  required: boolean;
+}
+
 interface QuickApp {
   id: string;
   name: string;
@@ -926,6 +1093,8 @@ interface QuickApp {
   logo?: string;
   category: string;
   priority?: number;
+  container_port?: number;
+  mounts?: TemplateMount[];
   content: string;
 }
 
@@ -942,6 +1111,14 @@ const selectedQuickApp = ref("");
 const selectedTemplateContent = ref("");
 const quickApps = ref<QuickApp[]>([]);
 const currentStep = ref(1);
+const collapsedSections = ref<Record<string, boolean>>({
+  database: false,
+  storage: false,
+});
+
+const toggleSection = (section: string) => {
+  collapsedSections.value[section] = !collapsedSections.value[section];
+};
 const generatedSubdomain = ref("");
 const generatedDomain = ref("");
 
@@ -1041,6 +1218,7 @@ const form = reactive({
     connectionError: "",
     useSharedDatabase: false,
   },
+  mounts: [] as { id: string; enabled: boolean; type: "file" | "volume" }[],
 });
 
 const errors = reactive({
@@ -1065,6 +1243,12 @@ const selectedQuickAppName = computed(() => {
   if (selectedQuickApp.value === "custom") return "Custom";
   const app = quickApps.value.find((a) => a.id === selectedQuickApp.value);
   return app?.name || selectedQuickApp.value;
+});
+
+const selectedTemplateMounts = computed(() => {
+  if (selectedQuickApp.value === "custom" || !selectedQuickApp.value) return [];
+  const app = quickApps.value.find((a) => a.id === selectedQuickApp.value);
+  return app?.mounts || [];
 });
 
 const effectiveDomain = computed(() => {
@@ -1197,18 +1381,47 @@ const selectQuickApp = async (app: QuickApp) => {
     form.name = app.id;
   }
 
-  try {
-    const response = await templatesApi.getCompose(app.id, form.name || app.id);
-    selectedTemplateContent.value = response.data.content;
-    form.composeContent = response.data.content;
-  } catch {
-    selectedTemplateContent.value = app.content;
-    form.composeContent = buildComposeFromTemplate();
+  if (app.container_port) {
+    form.networking.containerPort = app.container_port;
   }
+
+  if (app.mounts && app.mounts.length > 0) {
+    form.mounts = app.mounts.map((m) => ({
+      id: m.id,
+      enabled: m.required,
+      type: m.type,
+    }));
+  } else {
+    form.mounts = [];
+  }
+
+  selectedTemplateContent.value = app.content;
+  form.composeContent = "";
+};
+
+const toggleMount = (mountId: string) => {
+  const mount = form.mounts.find((m) => m.id === mountId);
+  if (mount) {
+    const templateMount = selectedTemplateMounts.value.find((m) => m.id === mountId);
+    if (templateMount?.required) return;
+    mount.enabled = !mount.enabled;
+  }
+};
+
+const setMountType = (mountId: string, type: "file" | "volume") => {
+  const mount = form.mounts.find((m) => m.id === mountId);
+  if (mount) {
+    mount.type = type;
+  }
+};
+
+const getMountSelection = (mountId: string) => {
+  return form.mounts.find((m) => m.id === mountId);
 };
 
 const selectCustom = () => {
   selectedQuickApp.value = "custom";
+  form.mounts = [];
   selectedTemplateContent.value = "";
   form.composeContent = getDefaultComposeContent();
 };
@@ -1563,7 +1776,9 @@ const removeEnvVar = (index: number) => {
   form.envVars.splice(index, 1);
 };
 
-const nextStep = () => {
+const generatingCompose = ref(false);
+
+const nextStep = async () => {
   if (!canProceed.value) return;
 
   if (currentStep.value === 0) {
@@ -1573,6 +1788,32 @@ const nextStep = () => {
       form.composeContent = getDefaultComposeContent();
     }
     return;
+  }
+
+  if (
+    currentStep.value === 2 &&
+    deploymentMode.value === "easy" &&
+    selectedQuickApp.value &&
+    selectedQuickApp.value !== "custom"
+  ) {
+    generatingCompose.value = true;
+    try {
+      const enabledMounts = form.mounts.filter((m) => m.enabled);
+      const response = await templatesApi.generateCompose(selectedQuickApp.value, {
+        name: form.name,
+        container_port: form.networking.containerPort,
+        map_ports: form.networking.mapPorts,
+        host_port: form.networking.hostPort || undefined,
+        mounts: enabledMounts.length > 0 ? enabledMounts : undefined,
+      });
+      form.composeContent = response.data.content;
+    } catch (error: any) {
+      const msg = error.response?.data?.error || error.message;
+      notifications.error("Failed to generate compose", msg);
+      generatingCompose.value = false;
+      return;
+    }
+    generatingCompose.value = false;
   }
 
   if (currentStep.value < steps.value.length) {
@@ -1634,6 +1875,9 @@ watch(
 watch(
   () => form.name,
   async (newName) => {
+    // Only update compose content in step 1 - step 2+ uses server-side generation
+    if (currentStep.value > 1) return;
+
     if (newName && selectedQuickApp.value && selectedQuickApp.value !== "custom") {
       try {
         const response = await templatesApi.getCompose(selectedQuickApp.value, newName);
@@ -1760,16 +2004,7 @@ networks:
     external: true`;
 };
 
-watch(currentStep, (newStep, oldStep) => {
-  if (
-    deploymentMode.value === "easy" &&
-    newStep === 3 &&
-    oldStep === 2 &&
-    form.database.type !== "none"
-  ) {
-    rebuildComposeWithDatabase();
-  }
-});
+// Database compose modification disabled - server handles compose generation
 
 watch(
   () => [form.database.mode, form.database.existingContainer, form.database.type],
@@ -1859,6 +2094,44 @@ const handleClose = () => {
 </script>
 
 <style scoped>
+/* Modal Header */
+.modal-header-content {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.modal-header-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-xl);
+  background: linear-gradient(135deg, var(--color-primary-500), var(--color-primary-600));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+}
+
+.modal-header-icon i {
+  font-size: 1.5rem;
+  color: white;
+}
+
+.modal-header-text h3 {
+  font-size: var(--text-xl);
+  font-weight: var(--font-semibold);
+  color: var(--color-gray-900);
+  margin: 0;
+  line-height: 1.3;
+}
+
+.modal-header-text p {
+  font-size: var(--text-sm);
+  color: var(--color-gray-500);
+  margin: var(--space-1) 0 0;
+}
+
 .wizard-container {
   display: flex;
   flex-direction: column;
@@ -1962,9 +2235,15 @@ const handleClose = () => {
 /* Section Cards */
 .section-card {
   background: white;
-  border: 1px solid var(--color-gray-100);
+  border: 1px solid var(--color-gray-200);
   border-radius: var(--radius-lg);
   overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.section-card + .section-card,
+.storage-section + .database-step {
+  margin-top: var(--space-4);
 }
 
 .section-header {
@@ -1973,7 +2252,13 @@ const handleClose = () => {
   gap: var(--space-3);
   padding: var(--space-4);
   background: var(--color-gray-50);
-  border-bottom: 1px solid var(--color-gray-100);
+  border-bottom: 1px solid var(--color-gray-200);
+}
+
+.section-header .section-subtitle {
+  font-size: var(--text-sm);
+  color: var(--color-gray-500);
+  margin: var(--space-1) 0 0;
 }
 
 .section-header.compact {
@@ -1981,15 +2266,16 @@ const handleClose = () => {
 }
 
 .section-icon {
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   border-radius: var(--radius-md);
-  background: var(--color-primary-50);
+  background: linear-gradient(135deg, var(--color-primary-100), var(--color-primary-50));
   color: var(--color-primary-600);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  font-size: 1rem;
 }
 
 .section-icon.small {
@@ -2247,8 +2533,9 @@ const handleClose = () => {
 }
 
 .template-item.selected .template-icon {
-  background: var(--color-primary-500);
+  background: linear-gradient(135deg, var(--color-primary-500), var(--color-primary-400));
   color: white;
+  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.25);
 }
 
 .template-item.selected .template-icon.has-logo {
@@ -2761,13 +3048,15 @@ const handleClose = () => {
 }
 
 .mode-card-icon.easy {
-  background: linear-gradient(135deg, var(--color-primary-100), var(--color-primary-200));
-  color: var(--color-primary-600);
+  background: linear-gradient(135deg, var(--color-primary-500), var(--color-primary-400));
+  color: white;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
 }
 
 .mode-card-icon.compose {
-  background: linear-gradient(135deg, var(--color-gray-100), var(--color-gray-200));
-  color: var(--color-gray-600);
+  background: linear-gradient(135deg, var(--color-info-500), var(--color-info-400));
+  color: white;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
 }
 
 .deployment-mode-card.selected .mode-card-icon {
@@ -2874,32 +3163,32 @@ const handleClose = () => {
 }
 
 .db-option-icon.none {
-  background: var(--color-gray-100);
+  background: linear-gradient(135deg, var(--color-gray-200), var(--color-gray-100));
   color: var(--color-gray-500);
 }
 
 .db-option-icon.mysql {
-  background: #00758f20;
+  background: linear-gradient(135deg, #00758f30, #00758f15);
   color: #00758f;
 }
 
 .db-option-icon.postgres {
-  background: #33679120;
+  background: linear-gradient(135deg, #33679130, #33679115);
   color: #336791;
 }
 
 .db-option-icon.mariadb {
-  background: #c0765a20;
+  background: linear-gradient(135deg, #c0765a30, #c0765a15);
   color: #c0765a;
 }
 
 .db-option-icon.mongodb {
-  background: #00ed6420;
+  background: linear-gradient(135deg, #00ed6430, #00ed6415);
   color: #00684a;
 }
 
 .db-option.selected .db-option-icon {
-  background: var(--color-primary-100);
+  background: linear-gradient(135deg, var(--color-primary-200), var(--color-primary-100));
   color: var(--color-primary-600);
 }
 
@@ -3299,6 +3588,289 @@ const handleClose = () => {
   overflow-y: auto;
 }
 
+/* Compose Info Panel */
+.compose-info-card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.compose-info-content {
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  flex: 1;
+}
+
+.compose-info-content .info-item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.compose-info-content .info-item > i {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-gray-100);
+  color: var(--color-gray-600);
+  border-radius: var(--radius-md);
+  flex-shrink: 0;
+  font-size: var(--text-sm);
+}
+
+.compose-info-content .info-item strong {
+  display: block;
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  color: var(--color-gray-900);
+  margin-bottom: 2px;
+}
+
+.compose-info-content .info-item p {
+  font-size: var(--text-xs);
+  color: var(--color-gray-500);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.compose-info-content .info-hint {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  background: var(--color-info-50);
+  border-radius: var(--radius-md);
+  margin-top: auto;
+}
+
+.compose-info-content .info-hint i {
+  color: var(--color-info-500);
+  font-size: var(--text-sm);
+}
+
+.compose-info-content .info-hint span {
+  font-size: var(--text-xs);
+  color: var(--color-info-700);
+}
+
+/* Collapsible Sections */
+.step2-sections {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.collapsible-section {
+  background: white;
+  border: 1px solid var(--color-gray-200);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.section-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4);
+  background: linear-gradient(to right, var(--color-gray-50), white);
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.section-toggle:hover {
+  background: linear-gradient(to right, var(--color-gray-100), var(--color-gray-50));
+}
+
+.section-toggle-left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.section-toggle-info h4 {
+  font-size: var(--text-md);
+  font-weight: var(--font-semibold);
+  color: var(--color-gray-900);
+  margin: 0;
+  text-align: left;
+}
+
+.section-toggle-info p {
+  font-size: var(--text-sm);
+  color: var(--color-gray-500);
+  margin: 2px 0 0;
+  text-align: left;
+}
+
+.toggle-icon {
+  color: var(--color-gray-400);
+  transition: transform 0.2s ease;
+}
+
+.section-toggle.collapsed .toggle-icon {
+  transform: rotate(-90deg);
+}
+
+.section-icon.database {
+  background: linear-gradient(135deg, var(--color-info-100), var(--color-info-50));
+  color: var(--color-info-600);
+}
+
+.section-icon.storage {
+  background: linear-gradient(135deg, var(--color-warning-100), var(--color-warning-50));
+  color: var(--color-warning-600);
+}
+
+.section-content {
+  border-top: 1px solid var(--color-gray-200);
+  padding: var(--space-4);
+  background: white;
+}
+
+/* Collapse transition */
+.collapse-enter-active,
+.collapse-leave-active {
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.collapse-enter-from,
+.collapse-leave-to {
+  opacity: 0;
+  max-height: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+/* Mounts Grid */
+.mounts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: var(--space-3);
+}
+
+.mount-card {
+  padding: var(--space-4);
+  background: white;
+  border: 2px solid var(--color-gray-200);
+  border-radius: var(--radius-md);
+  transition: all 0.2s ease;
+}
+
+.mount-card:hover {
+  border-color: var(--color-gray-300);
+}
+
+.mount-card.enabled {
+  background: linear-gradient(135deg, var(--color-primary-50), white);
+  border-color: var(--color-primary-400);
+  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.1);
+}
+
+.mount-header {
+  margin-bottom: var(--space-2);
+}
+
+.mount-toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  cursor: pointer;
+}
+
+.mount-toggle input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--color-primary-500);
+}
+
+.mount-toggle input[type="checkbox"]:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.mount-name {
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  color: var(--color-gray-900);
+}
+
+.required-badge {
+  margin-left: auto;
+  padding: 3px 8px;
+  background: linear-gradient(135deg, var(--color-warning-100), var(--color-warning-50));
+  color: var(--color-warning-700);
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  border-radius: var(--radius-full);
+}
+
+.mount-description {
+  font-size: var(--text-xs);
+  color: var(--color-gray-600);
+  margin: 0 0 var(--space-2);
+  line-height: 1.4;
+}
+
+.mount-path {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--text-xs);
+  font-family: var(--font-mono);
+  color: var(--color-gray-500);
+  margin: 0 0 var(--space-3);
+}
+
+.mount-path i {
+  font-size: 0.75rem;
+}
+
+.mount-type-selector {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.mount-type-selector .type-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  padding: var(--space-2);
+  background: white;
+  border: 1px solid var(--color-gray-200);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-xs);
+  font-weight: var(--font-medium);
+  color: var(--color-gray-600);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.mount-type-selector .type-btn:hover {
+  border-color: var(--color-primary-300);
+  background: var(--color-gray-50);
+}
+
+.mount-type-selector .type-btn.active {
+  background: linear-gradient(135deg, var(--color-primary-500), var(--color-primary-400));
+  border-color: var(--color-primary-500);
+  color: white;
+  box-shadow: 0 2px 6px rgba(79, 70, 229, 0.2);
+}
+
+.mount-type-selector .type-btn i {
+  font-size: 0.75rem;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .step1-grid {
@@ -3345,6 +3917,10 @@ const handleClose = () => {
 
   .mode-selection-panel {
     min-height: 300px;
+  }
+
+  .mounts-grid {
+    grid-template-columns: 1fr;
   }
 }
 </style>
