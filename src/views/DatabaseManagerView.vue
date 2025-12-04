@@ -145,17 +145,95 @@
         <div v-else class="table-view">
           <div class="table-header">
             <h2>{{ selectedTable }}</h2>
-            <div class="table-meta">
-              <span v-if="selectedTableInfo?.rows !== undefined">
-                {{ selectedTableInfo.rows }} rows
-              </span>
-              <span v-if="selectedTableInfo?.engine">
-                {{ selectedTableInfo.engine }}
-              </span>
+            <div class="table-actions">
+              <button class="btn btn-secondary btn-sm" @click="refreshTableData">
+                <RefreshCw :size="14" :class="{ spinning: loadingTableData }" />
+                Refresh
+              </button>
+              <button
+                class="btn btn-secondary btn-sm"
+                :class="{ active: showQueryPanel }"
+                @click="showQueryPanel = !showQueryPanel"
+              >
+                <Code :size="14" />
+                Query
+              </button>
             </div>
           </div>
-          <div class="table-content">
-            <p class="placeholder-text">Table browsing and SQL queries coming soon.</p>
+
+          <div v-if="showQueryPanel" class="query-panel">
+            <textarea
+              v-model="sqlQuery"
+              class="query-input"
+              placeholder="SELECT * FROM table WHERE ..."
+              rows="3"
+            ></textarea>
+            <div class="query-actions">
+              <span class="query-hint">Only SELECT, SHOW, DESCRIBE, EXPLAIN allowed</span>
+              <button
+                class="btn btn-primary btn-sm"
+                :disabled="!sqlQuery || executingQuery"
+                @click="executeQuery"
+              >
+                <Play :size="14" :class="{ spinning: executingQuery }" />
+                Run Query
+              </button>
+            </div>
+          </div>
+
+          <div v-if="queryError" class="query-error">
+            <AlertCircle :size="16" />
+            {{ queryError }}
+          </div>
+
+          <div v-if="loadingTableData" class="table-loading">
+            <RefreshCw :size="24" class="spinning" />
+            <span>Loading data...</span>
+          </div>
+
+          <div v-else-if="tableData" class="data-grid-container">
+            <div class="data-grid">
+              <table>
+                <thead>
+                  <tr>
+                    <th v-for="col in tableData.columns" :key="col">{{ col }}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="(row, idx) in tableData.rows" :key="idx">
+                    <td v-for="(cell, cidx) in row" :key="cidx">
+                      <span v-if="cell === null" class="null-value">NULL</span>
+                      <span v-else>{{ formatCell(cell) }}</span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="data-footer">
+              <span class="row-count">{{ tableData.count }} rows returned</span>
+              <div class="pagination">
+                <button
+                  class="btn btn-secondary btn-sm"
+                  :disabled="currentOffset === 0"
+                  @click="prevPage"
+                >
+                  Previous
+                </button>
+                <span class="page-info">Offset: {{ currentOffset }}</span>
+                <button
+                  class="btn btn-secondary btn-sm"
+                  :disabled="tableData.count < pageSize"
+                  @click="nextPage"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div v-else class="empty-table">
+            <Table2 :size="32" />
+            <p>No data to display</p>
           </div>
         </div>
       </div>
@@ -353,6 +431,8 @@ import {
   AlertCircle,
   X,
   Trash2,
+  Code,
+  Play,
 } from "lucide-vue-next";
 
 interface DatabaseConnection {
@@ -408,6 +488,16 @@ const newUserForm = ref({
   grantDb: false,
   grantDatabase: "",
 });
+
+// Table data state
+const tableData = ref<{ columns: string[]; rows: any[][]; count: number } | null>(null);
+const loadingTableData = ref(false);
+const showQueryPanel = ref(false);
+const sqlQuery = ref("");
+const executingQuery = ref(false);
+const queryError = ref("");
+const currentOffset = ref(0);
+const pageSize = 100;
 
 const selectedTableInfo = computed(() => {
   return tables.value.find((t) => t.name === selectedTable.value);
@@ -503,8 +593,78 @@ const selectDatabase = async (dbName: string) => {
   await loadTables(dbName);
 };
 
-const selectTable = (tableName: string) => {
+const selectTable = async (tableName: string) => {
   selectedTable.value = tableName;
+  currentOffset.value = 0;
+  queryError.value = "";
+  await loadTableData();
+};
+
+const loadTableData = async () => {
+  if (!selectedDatabase.value || !selectedTable.value) return;
+
+  loadingTableData.value = true;
+  queryError.value = "";
+
+  try {
+    const config = getConnectionConfig();
+    if (!config) throw new Error("Not connected");
+
+    const res = await databasesApi.queryTableData(
+      config,
+      selectedDatabase.value,
+      selectedTable.value,
+      pageSize,
+      currentOffset.value,
+    );
+    tableData.value = res.data;
+  } catch (err: any) {
+    queryError.value = err.response?.data?.error || err.message;
+    tableData.value = null;
+  } finally {
+    loadingTableData.value = false;
+  }
+};
+
+const refreshTableData = () => {
+  loadTableData();
+};
+
+const executeQuery = async () => {
+  if (!sqlQuery.value || !selectedDatabase.value) return;
+
+  executingQuery.value = true;
+  queryError.value = "";
+
+  try {
+    const config = getConnectionConfig();
+    if (!config) throw new Error("Not connected");
+
+    const res = await databasesApi.executeQuery(config, selectedDatabase.value, sqlQuery.value);
+    tableData.value = res.data;
+  } catch (err: any) {
+    queryError.value = err.response?.data?.error || err.message;
+  } finally {
+    executingQuery.value = false;
+  }
+};
+
+const prevPage = () => {
+  if (currentOffset.value >= pageSize) {
+    currentOffset.value -= pageSize;
+    loadTableData();
+  }
+};
+
+const nextPage = () => {
+  currentOffset.value += pageSize;
+  loadTableData();
+};
+
+const formatCell = (value: any): string => {
+  if (value === null || value === undefined) return "";
+  if (typeof value === "object") return JSON.stringify(value);
+  return String(value);
 };
 
 const createDatabase = async () => {
@@ -1133,5 +1293,189 @@ onMounted(() => {
 
 .btn-danger:hover:not(:disabled) {
   background: var(--color-danger-600);
+}
+
+.btn-sm {
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--text-xs);
+}
+
+.btn.active {
+  background: var(--color-primary-100);
+  border-color: var(--color-primary-300);
+  color: var(--color-primary-700);
+}
+
+.table-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--color-gray-200);
+  background: white;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+
+.table-header h2 {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-lg);
+}
+
+.table-actions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.query-panel {
+  padding: var(--space-4);
+  background: var(--color-gray-50);
+  border-bottom: 1px solid var(--color-gray-200);
+}
+
+.query-input {
+  width: 100%;
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  padding: var(--space-3);
+  border: 1px solid var(--color-gray-200);
+  border-radius: var(--radius-md);
+  resize: vertical;
+  min-height: 60px;
+}
+
+.query-input:focus {
+  outline: none;
+  border-color: var(--color-primary-500);
+  box-shadow: 0 0 0 3px var(--color-primary-100);
+}
+
+.query-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: var(--space-2);
+}
+
+.query-hint {
+  font-size: var(--text-xs);
+  color: var(--color-gray-500);
+}
+
+.query-error {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-danger-50);
+  color: var(--color-danger-700);
+  font-size: var(--text-sm);
+  border-bottom: 1px solid var(--color-danger-200);
+}
+
+.table-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-8);
+  color: var(--color-gray-500);
+}
+
+.data-grid-container {
+  display: flex;
+  flex-direction: column;
+  background: white;
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+  overflow: hidden;
+}
+
+.data-grid {
+  overflow: auto;
+  max-height: 500px;
+}
+
+.data-grid table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+}
+
+.data-grid th,
+.data-grid td {
+  padding: var(--space-2) var(--space-3);
+  text-align: left;
+  border-bottom: 1px solid var(--color-gray-100);
+  white-space: nowrap;
+  max-width: 300px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.data-grid th {
+  background: var(--color-gray-50);
+  font-weight: var(--font-semibold);
+  color: var(--color-gray-700);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.data-grid tr:hover {
+  background: var(--color-gray-50);
+}
+
+.null-value {
+  color: var(--color-gray-400);
+  font-style: italic;
+}
+
+.data-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-3) var(--space-4);
+  border-top: 1px solid var(--color-gray-200);
+  background: var(--color-gray-50);
+}
+
+.row-count {
+  font-size: var(--text-sm);
+  color: var(--color-gray-600);
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.page-info {
+  font-size: var(--text-sm);
+  color: var(--color-gray-500);
+  padding: 0 var(--space-2);
+}
+
+.empty-table {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-8);
+  color: var(--color-gray-400);
+  background: white;
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+}
+
+.empty-table p {
+  margin: var(--space-2) 0 0;
+}
+
+.table-view {
+  background: white;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
 }
 </style>
