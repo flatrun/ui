@@ -49,7 +49,14 @@
               @click="selectDatabase(db.name)"
             >
               <Database :size="14" />
-              {{ db.name }}
+              <span class="item-name">{{ db.name }}</span>
+              <button
+                class="item-action"
+                title="Delete database"
+                @click.stop="confirmDeleteDatabase(db.name)"
+              >
+                <Trash2 :size="12" />
+              </button>
             </div>
             <div v-if="databases.length === 0" class="empty-list">No databases found</div>
           </div>
@@ -89,8 +96,15 @@
           <div class="item-list compact">
             <div v-for="user in users" :key="user.name + user.host" class="list-item small">
               <User :size="12" />
-              <span>{{ user.name }}</span>
+              <span class="item-name">{{ user.name }}</span>
               <span v-if="user.host" class="user-host">@{{ user.host }}</span>
+              <button
+                class="item-action"
+                title="Delete user"
+                @click.stop="confirmDeleteUser(user)"
+              >
+                <Trash2 :size="10" />
+              </button>
             </div>
           </div>
         </div>
@@ -259,6 +273,67 @@
         </div>
       </div>
     </Teleport>
+
+    <Teleport to="body">
+      <div v-if="showDeleteDb" class="modal-overlay" @click.self="showDeleteDb = false">
+        <div class="modal-container modal-sm">
+          <div class="modal-header danger">
+            <h3>
+              <Trash2 :size="20" />
+              Delete Database
+            </h3>
+            <button class="close-btn" @click="showDeleteDb = false">
+              <X :size="18" />
+            </button>
+          </div>
+          <div class="modal-body">
+            <p class="confirm-text">
+              Are you sure you want to delete the database
+              <strong>{{ deleteDbName }}</strong>?
+            </p>
+            <p class="warning-text">This action cannot be undone. All data will be lost.</p>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" @click="showDeleteDb = false">Cancel</button>
+            <button class="btn btn-danger" :disabled="deletingDb" @click="deleteDatabase">
+              <Trash2 :size="14" :class="{ spinning: deletingDb }" />
+              Delete
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
+
+    <Teleport to="body">
+      <div v-if="showDeleteUser" class="modal-overlay" @click.self="showDeleteUser = false">
+        <div class="modal-container modal-sm">
+          <div class="modal-header danger">
+            <h3>
+              <Trash2 :size="20" />
+              Delete User
+            </h3>
+            <button class="close-btn" @click="showDeleteUser = false">
+              <X :size="18" />
+            </button>
+          </div>
+          <div class="modal-body">
+            <p class="confirm-text">
+              Are you sure you want to delete the user
+              <strong>{{ deleteUserInfo?.name
+              }}{{ deleteUserInfo?.host ? `@${deleteUserInfo.host}` : "" }}</strong>?
+            </p>
+            <p class="warning-text">This action cannot be undone.</p>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" @click="showDeleteUser = false">Cancel</button>
+            <button class="btn btn-danger" :disabled="deletingUser" @click="deleteUser">
+              <Trash2 :size="14" :class="{ spinning: deletingUser }" />
+              Delete
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
@@ -277,6 +352,7 @@ import {
   RefreshCw,
   AlertCircle,
   X,
+  Trash2,
 } from "lucide-vue-next";
 
 interface DatabaseConnection {
@@ -316,9 +392,15 @@ const selectedTable = ref("");
 
 const showCreateDb = ref(false);
 const showCreateUser = ref(false);
+const showDeleteDb = ref(false);
+const showDeleteUser = ref(false);
 const creatingDb = ref(false);
 const creatingUser = ref(false);
+const deletingDb = ref(false);
+const deletingUser = ref(false);
 const newDbName = ref("");
+const deleteDbName = ref("");
+const deleteUserInfo = ref<{ name: string; host?: string } | null>(null);
 const newUserForm = ref({
   username: "",
   password: "",
@@ -481,6 +563,66 @@ const createUser = async () => {
     notifications.error("Failed", err.response?.data?.error || err.message);
   } finally {
     creatingUser.value = false;
+  }
+};
+
+const confirmDeleteDatabase = (dbName: string) => {
+  deleteDbName.value = dbName;
+  showDeleteDb.value = true;
+};
+
+const confirmDeleteUser = (user: { name: string; host?: string }) => {
+  deleteUserInfo.value = user;
+  showDeleteUser.value = true;
+};
+
+const deleteDatabase = async () => {
+  if (!deleteDbName.value) return;
+
+  deletingDb.value = true;
+  try {
+    const config = getConnectionConfig();
+    if (!config) throw new Error("Not connected");
+
+    await databasesApi.deleteDatabase(config, deleteDbName.value);
+    notifications.success("Database Deleted", `Database '${deleteDbName.value}' deleted`);
+    showDeleteDb.value = false;
+
+    if (selectedDatabase.value === deleteDbName.value) {
+      selectedDatabase.value = "";
+      selectedTable.value = "";
+      tables.value = [];
+    }
+    deleteDbName.value = "";
+
+    const res = await databasesApi.listDatabases(config);
+    databases.value = res.data.databases || [];
+  } catch (err: any) {
+    notifications.error("Failed", err.response?.data?.error || err.message);
+  } finally {
+    deletingDb.value = false;
+  }
+};
+
+const deleteUser = async () => {
+  if (!deleteUserInfo.value) return;
+
+  deletingUser.value = true;
+  try {
+    const config = getConnectionConfig();
+    if (!config) throw new Error("Not connected");
+
+    await databasesApi.deleteUser(config, deleteUserInfo.value.name, deleteUserInfo.value.host);
+    notifications.success("User Deleted", `User '${deleteUserInfo.value.name}' deleted`);
+    showDeleteUser.value = false;
+    deleteUserInfo.value = null;
+
+    const res = await databasesApi.listUsers(config);
+    users.value = res.data.users || [];
+  } catch (err: any) {
+    notifications.error("Failed", err.response?.data?.error || err.message);
+  } finally {
+    deletingUser.value = false;
   }
 };
 
@@ -933,5 +1075,63 @@ onMounted(() => {
   to {
     transform: rotate(360deg);
   }
+}
+
+.item-action {
+  opacity: 0;
+  background: none;
+  border: none;
+  color: var(--color-gray-400);
+  cursor: pointer;
+  padding: var(--space-1);
+  border-radius: var(--radius-sm);
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.list-item:hover .item-action {
+  opacity: 1;
+}
+
+.item-action:hover {
+  color: var(--color-danger-500);
+  background: var(--color-danger-50);
+}
+
+.modal-sm {
+  width: 360px;
+}
+
+.modal-header.danger {
+  background: var(--color-danger-50);
+}
+
+.modal-header.danger h3 {
+  color: var(--color-danger-700);
+}
+
+.confirm-text {
+  margin: 0 0 var(--space-2) 0;
+  color: var(--color-gray-700);
+}
+
+.confirm-text strong {
+  color: var(--color-gray-900);
+  font-family: var(--font-mono);
+}
+
+.warning-text {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--color-danger-600);
+}
+
+.btn-danger {
+  background: var(--color-danger-500);
+  color: white;
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: var(--color-danger-600);
 }
 </style>

@@ -287,9 +287,7 @@
                 <div class="toggle-row">
                   <div class="toggle-info">
                     <label class="form-label">External Nginx</label>
-                    <span class="form-hint"
-                      >Use an existing nginx installation instead of Docker container</span
-                    >
+                    <span class="form-hint">Use an existing nginx installation instead of Docker container</span>
                   </div>
                   <label class="toggle-switch">
                     <input v-model="nginxSettings.external" type="checkbox" />

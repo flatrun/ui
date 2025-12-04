@@ -140,7 +140,7 @@
                 <a
                   :href="
                     (deployment.metadata?.ssl?.enabled ? 'https://' : 'http://') +
-                    deployment.metadata.networking.domain
+                      deployment.metadata.networking.domain
                   "
                   target="_blank"
                   class="app-link"

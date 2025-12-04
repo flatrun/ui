@@ -368,6 +368,14 @@ export const databasesApi = {
       database,
       user_host: host,
     }),
+  deleteDatabase: (config: DatabaseConnectionConfig, dbName: string) =>
+    apiClient.post("/databases/delete", { ...config, db_name: dbName }),
+  deleteUser: (config: DatabaseConnectionConfig, username: string, host?: string) =>
+    apiClient.post("/databases/users/delete", {
+      ...config,
+      username,
+      user_host: host,
+    }),
 };
 
 export interface InfraService {
