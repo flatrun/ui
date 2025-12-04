@@ -29,7 +29,11 @@
       </div>
 
       <div v-for="service in services" :key="service.name" class="service-card">
-        <div class="service-header clickable" @click="goToDetails(service.name)">
+        <div
+          class="service-header"
+          :class="{ clickable: service.managed }"
+          @click="service.managed && goToDetails(service.name)"
+        >
           <div class="service-icon" :class="getServiceIconClass(service.type)">
             <i :class="getServiceIcon(service.type)" />
           </div>
@@ -44,7 +48,10 @@
           </div>
         </div>
 
-        <div class="service-details">
+        <div
+          v-if="service.container_id || service.image || service.health || service.external"
+          class="service-details"
+        >
           <div v-if="service.container_id" class="detail-item">
             <span class="detail-label">Container ID</span>
             <code>{{ service.container_id }}</code>
@@ -65,7 +72,7 @@
           </div>
         </div>
 
-        <div class="service-actions">
+        <div v-if="!service.external || service.managed" class="service-actions">
           <button
             v-if="!service.external && service.status === 'stopped'"
             class="btn btn-sm btn-success"
@@ -226,7 +233,7 @@ const closeLogs = () => {
 };
 
 const goToDetails = (name: string) => {
-  router.push(`/deployments/${name}`);
+  router.push(`/deployments/${name}?from=infrastructure`);
 };
 
 const getServiceIcon = (type: string) => {

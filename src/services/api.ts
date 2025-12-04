@@ -368,7 +368,41 @@ export const databasesApi = {
       database,
       user_host: host,
     }),
+  deleteDatabase: (config: DatabaseConnectionConfig, dbName: string) =>
+    apiClient.post("/databases/delete", { ...config, db_name: dbName }),
+  deleteUser: (config: DatabaseConnectionConfig, username: string, host?: string) =>
+    apiClient.post("/databases/users/delete", {
+      ...config,
+      username,
+      user_host: host,
+    }),
+  queryTableData: (
+    config: DatabaseConnectionConfig,
+    database: string,
+    table: string,
+    limit?: number,
+    offset?: number,
+  ) =>
+    apiClient.post<QueryResult>("/databases/tables/data", {
+      ...config,
+      database,
+      table,
+      limit: limit || 100,
+      offset: offset || 0,
+    }),
+  executeQuery: (config: DatabaseConnectionConfig, database: string, query: string) =>
+    apiClient.post<QueryResult>("/databases/query", {
+      ...config,
+      database,
+      query,
+    }),
 };
+
+export interface QueryResult {
+  columns: string[];
+  rows: any[][];
+  count: number;
+}
 
 export interface InfraService {
   name: string;
