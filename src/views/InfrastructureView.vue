@@ -226,7 +226,7 @@ const closeLogs = () => {
 };
 
 const goToDetails = (name: string) => {
-  router.push(`/deployments/${name}`);
+  router.push(`/deployments/${name}?from=infrastructure`);
 };
 
 const getServiceIcon = (type: string) => {

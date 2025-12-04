@@ -2,9 +2,9 @@
   <div class="deployment-detail">
     <div class="detail-header">
       <div class="header-left">
-        <router-link to="/deployments" class="back-link">
+        <router-link :to="backPath" class="back-link">
           <i class="pi pi-arrow-left" />
-          Back to Deployments
+          {{ backLabel }}
         </router-link>
         <div class="deployment-title">
           <h1>{{ deployment?.name || $route.params.name }}</h1>
@@ -680,6 +680,14 @@ const route = useRoute();
 const router = useRouter();
 const notifications = useNotificationsStore();
 
+const backPath = computed(() => {
+  return route.query.from === "infrastructure" ? "/infrastructure" : "/deployments";
+});
+
+const backLabel = computed(() => {
+  return route.query.from === "infrastructure" ? "Back to Infrastructure" : "Back to Deployments";
+});
+
 const deployment = ref<any>(null);
 const loading = ref(false);
 const error = ref("");
@@ -915,7 +923,7 @@ const deleteDeployment = async () => {
     await deploymentsApi.delete(route.params.name as string);
     showDeleteDeploymentModal.value = false;
     notifications.success("Deleted", `Deployment "${deployment.value?.name}" has been deleted`);
-    router.push("/deployments");
+    router.push(backPath.value);
   } catch (err: any) {
     const msg = err.response?.data?.error || err.message;
     notifications.error("Delete Failed", msg);
