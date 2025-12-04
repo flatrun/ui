@@ -200,28 +200,33 @@ const handleOverlayClick = () => {
 }
 
 .header-icon.icon-primary {
-  background: var(--color-primary-50);
+  background: linear-gradient(135deg, var(--color-primary-100), var(--color-primary-50));
   color: var(--color-primary-600);
+  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.15);
 }
 
 .header-icon.icon-success {
-  background: var(--color-success-50);
+  background: linear-gradient(135deg, var(--color-success-100), var(--color-success-50));
   color: var(--color-success-600);
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.15);
 }
 
 .header-icon.icon-warning {
-  background: var(--color-warning-50);
+  background: linear-gradient(135deg, var(--color-warning-100), var(--color-warning-50));
   color: var(--color-warning-600);
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.15);
 }
 
 .header-icon.icon-danger {
-  background: var(--color-danger-50);
+  background: linear-gradient(135deg, var(--color-danger-100), var(--color-danger-50));
   color: var(--color-danger-600);
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.15);
 }
 
 .header-icon.icon-info {
-  background: var(--color-info-50);
+  background: linear-gradient(135deg, var(--color-info-100), var(--color-info-50));
   color: var(--color-info-600);
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.15);
 }
 
 .header-accent .header-icon {

@@ -157,6 +157,29 @@ export interface TemplateCategory {
   priority: number;
 }
 
+export interface TemplateMount {
+  id: string;
+  name: string;
+  container_path: string;
+  description: string;
+  type: "file" | "volume";
+  required: boolean;
+}
+
+export interface MountSelection {
+  id: string;
+  enabled: boolean;
+  type: "file" | "volume";
+}
+
+export interface ComposeGenerateOptions {
+  name: string;
+  container_port?: number;
+  map_ports?: boolean;
+  host_port?: string;
+  mounts?: MountSelection[];
+}
+
 export const templatesApi = {
   list: () => apiClient.get<{ templates: any[] }>("/templates"),
   categories: () => apiClient.get<{ categories: TemplateCategory[] }>("/templates/categories"),
@@ -165,6 +188,11 @@ export const templatesApi = {
     apiClient.get<{ template_id: string; name: string; content: string }>(
       `/templates/${templateId}/compose`,
       { params: { name } },
+    ),
+  generateCompose: (templateId: string, options: ComposeGenerateOptions) =>
+    apiClient.post<{ template_id: string; name: string; content: string }>(
+      `/templates/${templateId}/generate`,
+      options,
     ),
 };
 

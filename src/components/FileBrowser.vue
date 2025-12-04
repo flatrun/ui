@@ -115,7 +115,15 @@
             <button
               v-if="!file.is_dir && isTextFile(file)"
               class="action-btn"
-              title="View/Edit"
+              title="View"
+              @click="viewFile(file)"
+            >
+              <i class="pi pi-eye" />
+            </button>
+            <button
+              v-if="!file.is_dir && isTextFile(file)"
+              class="action-btn"
+              title="Edit"
               @click="openFileEditor(file)"
             >
               <i class="pi pi-pencil" />
@@ -161,7 +169,15 @@
             <button
               v-if="!file.is_dir && isTextFile(file)"
               class="action-btn"
-              title="View/Edit"
+              title="View"
+              @click="viewFile(file)"
+            >
+              <i class="pi pi-eye" />
+            </button>
+            <button
+              v-if="!file.is_dir && isTextFile(file)"
+              class="action-btn"
+              title="Edit"
               @click="openFileEditor(file)"
             >
               <i class="pi pi-pencil" />
@@ -254,8 +270,9 @@
         <div class="modal-container editor-modal">
           <div class="modal-header">
             <h3>
-              <i class="pi pi-file-edit" />
+              <i :class="viewOnly ? 'pi pi-eye' : 'pi pi-file-edit'" />
               {{ editingFile?.name }}
+              <span v-if="viewOnly" class="view-only-badge">Read Only</span>
             </h3>
             <button class="close-btn" @click="closeFileEditor">
               <i class="pi pi-times" />
@@ -271,22 +288,32 @@
               v-model="fileContent"
               :extensions="editorExtensions"
               :style="{ height: '100%' }"
+              :disabled="viewOnly"
             />
           </div>
           <div class="modal-footer">
-            <span v-if="fileModified" class="modified-indicator">
-              <i class="pi pi-circle-fill" />
-              Modified
-            </span>
-            <button class="btn btn-secondary" @click="closeFileEditor">Cancel</button>
-            <button
-              class="btn btn-primary"
-              :disabled="!fileModified || savingFile"
-              @click="saveFile"
-            >
-              <i :class="savingFile ? 'pi pi-spin pi-spinner' : 'pi pi-save'" />
-              Save
-            </button>
+            <template v-if="viewOnly">
+              <button class="btn btn-secondary" @click="closeFileEditor">Close</button>
+              <button class="btn btn-primary" @click="viewOnly = false">
+                <i class="pi pi-pencil" />
+                Edit
+              </button>
+            </template>
+            <template v-else>
+              <span v-if="fileModified" class="modified-indicator">
+                <i class="pi pi-circle-fill" />
+                Modified
+              </span>
+              <button class="btn btn-secondary" @click="closeFileEditor">Cancel</button>
+              <button
+                class="btn btn-primary"
+                :disabled="!fileModified || savingFile"
+                @click="saveFile"
+              >
+                <i :class="savingFile ? 'pi pi-spin pi-spinner' : 'pi pi-save'" />
+                Save
+              </button>
+            </template>
           </div>
         </div>
       </div>
@@ -336,6 +363,7 @@ const fileContent = ref("");
 const originalContent = ref("");
 const loadingFileContent = ref(false);
 const savingFile = ref(false);
+const viewOnly = ref(false);
 
 const editorExtensions = [yaml(), oneDark];
 
@@ -595,7 +623,29 @@ const isTextFile = (file: FileInfo): boolean => {
   );
 };
 
+const viewFile = async (file: FileInfo) => {
+  viewOnly.value = true;
+  editingFile.value = file;
+  showEditorModal.value = true;
+  loadingFileContent.value = true;
+  fileContent.value = "";
+  originalContent.value = "";
+
+  try {
+    const response = await filesApi.getContent(props.deploymentName, file.path);
+    fileContent.value = response.data;
+    originalContent.value = response.data;
+  } catch (err: any) {
+    const msg = err.response?.data?.error || err.message || "Failed to load file";
+    notifications.error("Error", msg);
+    showEditorModal.value = false;
+  } finally {
+    loadingFileContent.value = false;
+  }
+};
+
 const openFileEditor = async (file: FileInfo) => {
+  viewOnly.value = false;
   editingFile.value = file;
   showEditorModal.value = true;
   loadingFileContent.value = true;
@@ -616,7 +666,7 @@ const openFileEditor = async (file: FileInfo) => {
 };
 
 const closeFileEditor = () => {
-  if (fileModified.value) {
+  if (!viewOnly.value && fileModified.value) {
     if (!confirm("You have unsaved changes. Are you sure you want to close?")) {
       return;
     }
@@ -625,6 +675,7 @@ const closeFileEditor = () => {
   editingFile.value = null;
   fileContent.value = "";
   originalContent.value = "";
+  viewOnly.value = false;
 };
 
 const saveFile = async () => {
@@ -1260,6 +1311,16 @@ onMounted(() => {
 
 .modified-indicator i {
   font-size: 8px;
+}
+
+.view-only-badge {
+  margin-left: var(--space-2);
+  padding: 2px 8px;
+  background: var(--color-info-100);
+  color: var(--color-info-700);
+  font-size: var(--text-xs);
+  font-weight: var(--font-medium);
+  border-radius: var(--radius-full);
 }
 
 .editor-modal .modal-footer {
