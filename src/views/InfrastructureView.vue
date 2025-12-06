@@ -28,33 +28,22 @@
         </router-link>
       </div>
 
-      <div v-for="service in services" :key="service.name" class="service-card">
-        <div
-          class="service-header"
-          :class="{ clickable: service.managed }"
-          @click="service.managed && goToDetails(service.name)"
-        >
-          <div class="service-icon" :class="getServiceIconClass(service.type)">
-            <i :class="getServiceIcon(service.type)" />
-          </div>
-          <div class="service-info">
-            <h3>{{ service.name }}</h3>
-            <span class="service-type">{{ service.type }}</span>
-          </div>
-          <div class="service-status">
-            <span class="status-badge" :class="getStatusClass(service.status)">
-              {{ service.status }}
-            </span>
-          </div>
-        </div>
-
-        <div
-          v-if="service.container_id || service.image || service.health || service.external"
-          class="service-details"
-        >
+      <DeploymentCard
+        v-for="service in services"
+        :key="service.name"
+        :name="service.name"
+        :status="getCardStatus(service)"
+        :subtitle="service.type"
+        :icon="getServiceIcon(service.type)"
+        :icon-class="getServiceIconClass(service.type)"
+        :external="service.external"
+        :clickable="service.managed || service.external"
+        @click="(service.managed || service.external) && goToDetails(service.name)"
+      >
+        <div v-if="hasDetails(service)" class="service-details">
           <div v-if="service.container_id" class="detail-item">
-            <span class="detail-label">Container ID</span>
-            <code>{{ service.container_id }}</code>
+            <span class="detail-label">Container</span>
+            <code>{{ service.container_id.substring(0, 12) }}</code>
           </div>
           <div v-if="service.image" class="detail-item">
             <span class="detail-label">Image</span>
@@ -66,18 +55,14 @@
               {{ service.health }}
             </span>
           </div>
-          <div v-if="service.external" class="detail-item">
-            <span class="detail-label">Type</span>
-            <span class="external-badge">External</span>
-          </div>
         </div>
 
-        <div v-if="!service.external || service.managed" class="service-actions">
+        <template v-if="hasActions(service)" #footer>
           <button
             v-if="!service.external && service.status === 'stopped'"
             class="btn btn-sm btn-success"
             :disabled="actionLoading === service.name"
-            @click="startService(service.name)"
+            @click.stop="startService(service.name)"
           >
             <i class="pi pi-play" />
             <span>Start</span>
@@ -86,7 +71,7 @@
             v-if="!service.external && service.status === 'running'"
             class="btn btn-sm btn-warning"
             :disabled="actionLoading === service.name"
-            @click="stopService(service.name)"
+            @click.stop="stopService(service.name)"
           >
             <i class="pi pi-stop" />
             <span>Stop</span>
@@ -95,7 +80,7 @@
             v-if="!service.external && service.status === 'running'"
             class="btn btn-sm btn-secondary"
             :disabled="actionLoading === service.name"
-            @click="restartService(service.name)"
+            @click.stop="restartService(service.name)"
           >
             <i class="pi pi-refresh" />
             <span>Restart</span>
@@ -103,7 +88,7 @@
           <button
             v-if="!service.external"
             class="btn btn-sm btn-secondary"
-            @click="showLogs(service.name)"
+            @click.stop="showLogs(service.name)"
           >
             <i class="pi pi-list" />
             <span>Logs</span>
@@ -111,13 +96,13 @@
           <button
             v-if="service.managed"
             class="btn btn-sm btn-secondary"
-            @click="goToDetails(service.name)"
+            @click.stop="goToDetails(service.name)"
           >
             <i class="pi pi-cog" />
             <span>Details</span>
           </button>
-        </div>
-      </div>
+        </template>
+      </DeploymentCard>
     </div>
 
     <!-- Logs Modal -->
@@ -146,6 +131,7 @@ import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { infrastructureApi, type InfraService } from "@/services/api";
 import { useNotificationsStore } from "@/stores/notifications";
+import DeploymentCard from "@/components/DeploymentCard.vue";
 
 const router = useRouter();
 const notifications = useNotificationsStore();
@@ -256,14 +242,9 @@ const getServiceIconClass = (type: string) => {
   return classes[type] || "icon-default";
 };
 
-const getStatusClass = (status: string) => {
-  const classes: Record<string, string> = {
-    running: "status-running",
-    stopped: "status-stopped",
-    external: "status-external",
-    unknown: "status-unknown",
-  };
-  return classes[status] || "status-unknown";
+const getCardStatus = (service: InfraService) => {
+  if (service.external) return "external";
+  return service.status as "running" | "stopped" | "error" | "unknown";
 };
 
 const getHealthClass = (health: string) => {
@@ -273,6 +254,14 @@ const getHealthClass = (health: string) => {
     starting: "health-starting",
   };
   return classes[health] || "";
+};
+
+const hasDetails = (service: InfraService) => {
+  return Boolean(service.container_id || service.image || service.health);
+};
+
+const hasActions = (service: InfraService) => {
+  return !service.external || service.managed;
 };
 
 onMounted(() => {
@@ -362,118 +351,12 @@ onMounted(() => {
 
 .services-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-  gap: 1.25rem;
-}
-
-.service-card {
-  background: white;
-  border-radius: 12px;
-  border: 1px solid #e5e7eb;
-  overflow: hidden;
-}
-
-.service-header {
-  display: flex;
-  align-items: center;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 1rem;
-  padding: 1rem 1.25rem;
-  border-bottom: 1px solid #f3f4f6;
-}
-
-.service-header.clickable {
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.service-header.clickable:hover {
-  background: #f9fafb;
-}
-
-.service-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.service-icon i {
-  font-size: 1.25rem;
-  color: white;
-}
-
-.icon-nginx {
-  background: linear-gradient(135deg, #009639, #00b74a);
-}
-
-.icon-database {
-  background: linear-gradient(135deg, #00758f, #00a4c4);
-}
-
-.icon-redis {
-  background: linear-gradient(135deg, #dc382d, #ff4438);
-}
-
-.icon-certbot {
-  background: linear-gradient(135deg, #ffa500, #ffcc00);
-}
-
-.icon-default {
-  background: linear-gradient(135deg, #6b7280, #9ca3af);
-}
-
-.service-info {
-  flex: 1;
-}
-
-.service-info h3 {
-  font-size: 1rem;
-  font-weight: 600;
-  color: #1f2937;
-  margin: 0;
-  text-transform: capitalize;
-}
-
-.service-type {
-  font-size: 0.75rem;
-  color: #6b7280;
-  text-transform: uppercase;
-  letter-spacing: 0.025em;
-}
-
-.status-badge {
-  display: inline-block;
-  padding: 0.25rem 0.75rem;
-  border-radius: 9999px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-}
-
-.status-running {
-  background: #dcfce7;
-  color: #166534;
-}
-
-.status-stopped {
-  background: #fee2e2;
-  color: #991b1b;
-}
-
-.status-external {
-  background: #dbeafe;
-  color: #1e40af;
-}
-
-.status-unknown {
-  background: #f3f4f6;
-  color: #6b7280;
+  align-items: start;
 }
 
 .service-details {
-  padding: 1rem 1.25rem;
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
@@ -519,23 +402,6 @@ onMounted(() => {
 .health-starting {
   background: #fef3c7;
   color: #92400e;
-}
-
-.external-badge {
-  background: #dbeafe;
-  color: #1e40af;
-  padding: 0.125rem 0.5rem;
-  border-radius: 4px;
-  font-size: 0.75rem;
-  font-weight: 500;
-}
-
-.service-actions {
-  display: flex;
-  gap: 0.5rem;
-  padding: 1rem 1.25rem;
-  border-top: 1px solid #f3f4f6;
-  background: #f9fafb;
 }
 
 .btn {

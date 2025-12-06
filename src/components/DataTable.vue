@@ -373,18 +373,19 @@ watch(selectedItems, () => {
 
 .search-box {
   position: relative;
+  display: flex;
+  align-items: center;
 }
 
-.search-box i {
+.search-box > svg {
   position: absolute;
   left: 0.75rem;
-  top: 50%;
-  transform: translateY(-50%);
   color: var(--color-gray-400, #9ca3af);
+  pointer-events: none;
 }
 
 .search-input {
-  padding: 0.5rem 0.75rem 0.5rem 2.25rem;
+  padding: 0.5rem 0.75rem 0.5rem 2.5rem;
   border: 1px solid var(--color-gray-200, #e5e7eb);
   border-radius: var(--radius-md, 6px);
   font-size: var(--text-md, 0.875rem);
