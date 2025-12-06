@@ -435,7 +435,7 @@
               @click="activeConfigTab = 'compose'"
             >
               <i class="pi pi-file" />
-              docker-compose.yml
+              {{ composeFilename }}
             </button>
             <button
               class="config-sub-tab"
@@ -743,6 +743,7 @@ const envVars = ref<Array<{ key: string; value: string; hidden: boolean }>>([]);
 const showAddEnvModal = ref(false);
 
 const composeConfig = ref("");
+const composeFilename = ref("docker-compose.yml");
 const isEditingConfig = ref(false);
 const serviceConfig = ref("");
 const isEditingServiceConfig = ref(false);
@@ -811,6 +812,7 @@ const fetchDeployment = async () => {
       const composeResponse = await deploymentsApi.getComposeFile(route.params.name as string);
       composeConfig.value =
         composeResponse.data.content || composeResponse.data || "No compose file found";
+      composeFilename.value = composeResponse.data.filename || "docker-compose.yml";
     } catch (composeErr) {
       composeConfig.value = "Error loading compose file";
       console.error("Failed to load compose file:", composeErr);
