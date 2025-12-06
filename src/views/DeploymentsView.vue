@@ -85,6 +85,7 @@
           <button
             class="action-btn start"
             title="Start"
+            :disabled="item.status === 'running'"
             @click.stop="handleOperation('start', item.name)"
           >
             <Play :size="14" />
@@ -92,6 +93,7 @@
           <button
             class="action-btn stop"
             title="Stop"
+            :disabled="item.status === 'stopped'"
             @click.stop="handleOperation('stop', item.name)"
           >
             <Square :size="14" />
@@ -99,6 +101,7 @@
           <button
             class="action-btn restart"
             title="Restart"
+            :disabled="item.status === 'stopped'"
             @click.stop="handleOperation('restart', item.name)"
           >
             <RotateCw :size="14" />
@@ -236,6 +239,7 @@
               <button
                 class="icon-btn start"
                 title="Start"
+                :disabled="deployment.status === 'running'"
                 @click="handleOperation('start', deployment.name)"
               >
                 <Play :size="14" />
@@ -243,6 +247,7 @@
               <button
                 class="icon-btn stop"
                 title="Stop"
+                :disabled="deployment.status === 'stopped'"
                 @click="handleOperation('stop', deployment.name)"
               >
                 <Square :size="14" />
@@ -250,6 +255,7 @@
               <button
                 class="icon-btn restart"
                 title="Restart"
+                :disabled="deployment.status === 'stopped'"
                 @click="handleOperation('restart', deployment.name)"
               >
                 <RotateCw :size="14" />
@@ -876,6 +882,14 @@ onMounted(() => {
   background: var(--color-gray-200);
 }
 
+.action-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.action-btn:disabled:hover {
+  filter: none;
+}
+
 .deployments-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -1177,6 +1191,14 @@ onMounted(() => {
 }
 .icon-btn.settings:hover {
   background: var(--color-primary-100);
+}
+
+.icon-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.icon-btn:disabled:hover {
+  filter: none;
 }
 
 .btn {

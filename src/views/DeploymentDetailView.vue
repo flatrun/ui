@@ -14,13 +14,25 @@
         </div>
       </div>
       <div class="header-actions">
-        <button class="btn btn-success" :disabled="loading" @click="handleOperation('start')">
+        <button
+          class="btn btn-success"
+          :disabled="loading || deployment?.status === 'running'"
+          @click="handleOperation('start')"
+        >
           <i class="pi pi-play" /> Start
         </button>
-        <button class="btn btn-warning" :disabled="loading" @click="handleOperation('stop')">
+        <button
+          class="btn btn-warning"
+          :disabled="loading || deployment?.status === 'stopped'"
+          @click="handleOperation('stop')"
+        >
           <i class="pi pi-stop" /> Stop
         </button>
-        <button class="btn btn-info" :disabled="loading" @click="handleOperation('restart')">
+        <button
+          class="btn btn-info"
+          :disabled="loading || deployment?.status === 'stopped'"
+          @click="handleOperation('restart')"
+        >
           <i class="pi pi-refresh" /> Restart
         </button>
         <button class="btn btn-danger" :disabled="loading" @click="confirmDelete">
@@ -1723,10 +1735,8 @@ onUnmounted(() => {
 .terminal-container {
   background: var(--color-gray-950);
   border-radius: var(--radius-md);
-  min-height: 500px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  height: 500px;
+  overflow: hidden;
 }
 
 .terminal-placeholder {

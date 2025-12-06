@@ -44,6 +44,9 @@ let terminal: Terminal | null = null;
 let fitAddon: FitAddon | null = null;
 let socket: WebSocket | null = null;
 let resizeObserver: ResizeObserver | null = null;
+let resizeTimeout: ReturnType<typeof setTimeout> | null = null;
+let lastRows = 0;
+let lastCols = 0;
 
 const getWebSocketUrl = () => {
   const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
@@ -202,19 +205,28 @@ const initTerminal = () => {
   });
 
   resizeObserver = new ResizeObserver(() => {
-    if (fitAddon && terminal) {
-      fitAddon.fit();
-      // Send resize to backend
-      if (socket && socket.readyState === WebSocket.OPEN && authenticated) {
-        socket.send(
-          JSON.stringify({
-            type: "resize",
-            rows: terminal.rows,
-            cols: terminal.cols,
-          }),
-        );
-      }
+    if (resizeTimeout) {
+      clearTimeout(resizeTimeout);
     }
+    resizeTimeout = setTimeout(() => {
+      if (fitAddon && terminal) {
+        fitAddon.fit();
+        // Only send resize if dimensions actually changed
+        if (terminal.rows !== lastRows || terminal.cols !== lastCols) {
+          lastRows = terminal.rows;
+          lastCols = terminal.cols;
+          if (socket && socket.readyState === WebSocket.OPEN && authenticated) {
+            socket.send(
+              JSON.stringify({
+                type: "resize",
+                rows: terminal.rows,
+                cols: terminal.cols,
+              }),
+            );
+          }
+        }
+      }
+    }, 100);
   });
   resizeObserver.observe(terminalRef.value);
 };
@@ -239,6 +251,9 @@ onMounted(() => {
 
 onUnmounted(() => {
   disconnect();
+  if (resizeTimeout) {
+    clearTimeout(resizeTimeout);
+  }
   if (resizeObserver) {
     resizeObserver.disconnect();
   }
