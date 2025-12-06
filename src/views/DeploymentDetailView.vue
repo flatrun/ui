@@ -344,28 +344,45 @@
             <div class="terminal-selector">
               <label>Service:</label>
               <select v-model="terminalService" class="form-select">
-                <option v-for="service in services" :key="service.name" :value="service.name">
+                <option
+                  v-for="service in services"
+                  :key="service.name"
+                  :value="service.container_id"
+                >
                   {{ service.name }}
                 </option>
               </select>
             </div>
             <div class="terminal-actions">
-              <button class="btn btn-sm btn-secondary" @click="reconnectTerminal">
+              <button
+                class="btn btn-sm btn-primary"
+                :disabled="services.length === 0"
+                @click="connectTerminal"
+              >
+                <i class="pi pi-play" /> Connect
+              </button>
+              <button
+                class="btn btn-sm btn-secondary"
+                :disabled="services.length === 0"
+                @click="reconnectTerminal"
+              >
                 <i class="pi pi-refresh" /> Reconnect
               </button>
             </div>
           </div>
           <div class="terminal-container">
-            <div class="terminal-placeholder">
+            <ContainerTerminal
+              v-if="services.length > 0"
+              ref="terminalRef"
+              :container-id="terminalService || services[0]?.container_id || ''"
+              @connected="onTerminalConnected"
+              @disconnected="onTerminalDisconnected"
+              @error="onTerminalError"
+            />
+            <div v-else class="terminal-placeholder">
               <i class="pi pi-desktop" />
               <h3>Terminal Access</h3>
-              <p>
-                Connect to container shell for
-                {{ terminalService || "selected service" }}
-              </p>
-              <button class="btn btn-primary" :disabled="!terminalService" @click="connectTerminal">
-                <i class="pi pi-sign-in" /> Connect to Shell
-              </button>
+              <p>No services available</p>
             </div>
           </div>
         </div>
@@ -675,6 +692,7 @@ import type { ProxyStatus } from "@/types";
 import FileBrowser from "@/components/FileBrowser.vue";
 import LogViewer from "@/components/LogViewer.vue";
 import ConfirmModal from "@/components/ConfirmModal.vue";
+import ContainerTerminal from "@/components/ContainerTerminal.vue";
 
 const route = useRoute();
 const router = useRouter();
@@ -811,7 +829,7 @@ const fetchDeployment = async () => {
     }
 
     if (services.value.length > 0) {
-      terminalService.value = services.value[0].name;
+      terminalService.value = services.value[0].container_id;
     }
   } catch (err: any) {
     error.value = err.message || "Failed to load deployment";
@@ -948,7 +966,7 @@ const migrateToInfrastructure = async () => {
 };
 
 const openTerminal = (service: any) => {
-  terminalService.value = service.name;
+  terminalService.value = service.container_id;
   activeTab.value = "terminal";
 };
 
@@ -962,12 +980,34 @@ const restartService = async (service: any) => {
   console.log("Restarting service:", service.name);
 };
 
-const connectTerminal = () => {
-  console.log("Connecting to terminal for:", terminalService.value);
+const terminalRef = ref<InstanceType<typeof ContainerTerminal> | null>(null);
+
+const connectTerminal = async () => {
+  await nextTick();
+  if (terminalRef.value) {
+    terminalRef.value.connect();
+  }
 };
 
-const reconnectTerminal = () => {
-  console.log("Reconnecting terminal");
+const reconnectTerminal = async () => {
+  await nextTick();
+  if (terminalRef.value) {
+    terminalRef.value.disconnect();
+    await nextTick();
+    terminalRef.value?.connect();
+  }
+};
+
+const onTerminalConnected = () => {
+  notifications.success("Connected", "Terminal connected successfully");
+};
+
+const onTerminalDisconnected = () => {
+  notifications.info("Disconnected", "Terminal connection closed");
+};
+
+const onTerminalError = (message: string) => {
+  notifications.error("Connection Error", message);
 };
 
 const editEnvVar = (env: any) => {
