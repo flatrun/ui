@@ -580,17 +580,79 @@
       </div>
     </Teleport>
 
-    <ConfirmModal
-      :visible="showDeleteDeploymentModal"
-      title="Delete Deployment"
-      :message="`Are you sure you want to delete '${deployment?.name}'? This will remove all containers, volumes, and configuration.`"
-      warning="This action cannot be undone."
-      variant="danger"
-      confirm-text="Delete"
-      :loading="deletingDeployment"
-      @confirm="deleteDeployment"
-      @cancel="showDeleteDeploymentModal = false"
-    />
+    <Teleport to="body">
+      <div
+        v-if="showDeleteDeploymentModal"
+        class="modal-overlay"
+        @click.self="!deletingDeployment && (showDeleteDeploymentModal = false)"
+      >
+        <div class="delete-modal modal-container">
+          <div class="modal-header danger">
+            <h3>
+              <i class="pi pi-trash" />
+              Delete Deployment
+            </h3>
+            <button
+              v-if="!deletingDeployment"
+              class="close-btn"
+              @click="showDeleteDeploymentModal = false"
+            >
+              <i class="pi pi-times" />
+            </button>
+          </div>
+          <div class="modal-body">
+            <p class="delete-warning">
+              Are you sure you want to delete <strong>{{ deployment?.name }}</strong>? This will
+              remove all containers, volumes, and configuration.
+            </p>
+            <div class="delete-options">
+              <h4>Additional cleanup options:</h4>
+              <label class="delete-option">
+                <input v-model="deleteOptions.deleteVhost" type="checkbox" />
+                <span class="option-content">
+                  <span class="option-label">Delete Virtual Host</span>
+                  <span class="option-hint">Remove nginx proxy configuration</span>
+                </span>
+              </label>
+              <label class="delete-option">
+                <input v-model="deleteOptions.deleteSSL" type="checkbox" />
+                <span class="option-content">
+                  <span class="option-label">Delete SSL Certificate</span>
+                  <span class="option-hint">Remove Let's Encrypt certificate for this domain</span>
+                </span>
+              </label>
+              <label class="delete-option">
+                <input v-model="deleteOptions.deleteDatabase" type="checkbox" />
+                <span class="option-content">
+                  <span class="option-label">Delete Database</span>
+                  <span class="option-hint">
+                    Remove associated database and user (if using shared database)
+                  </span>
+                </span>
+              </label>
+            </div>
+            <p class="danger-text">
+              <i class="pi pi-exclamation-triangle" />
+              This action cannot be undone.
+            </p>
+          </div>
+          <div class="modal-footer">
+            <button
+              class="btn btn-secondary"
+              :disabled="deletingDeployment"
+              @click="showDeleteDeploymentModal = false"
+            >
+              Cancel
+            </button>
+            <button class="btn btn-danger" :disabled="deletingDeployment" @click="deleteDeployment">
+              <i v-if="deletingDeployment" class="pi pi-spin pi-spinner" />
+              <i v-else class="pi pi-trash" />
+              {{ deletingDeployment ? "Deleting..." : "Delete Deployment" }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
 
     <ConfirmModal
       :visible="showDeleteEnvModal"
@@ -821,6 +883,11 @@ const operationOutput = ref("");
 
 const showDeleteDeploymentModal = ref(false);
 const deletingDeployment = ref(false);
+const deleteOptions = ref({
+  deleteVhost: true,
+  deleteSSL: true,
+  deleteDatabase: false,
+});
 const showDeleteEnvModal = ref(false);
 const envKeyToDelete = ref("");
 
@@ -1001,7 +1068,11 @@ const confirmDelete = () => {
 const deleteDeployment = async () => {
   deletingDeployment.value = true;
   try {
-    await deploymentsApi.delete(route.params.name as string);
+    await deploymentsApi.delete(route.params.name as string, {
+      deleteSSL: deleteOptions.value.deleteSSL,
+      deleteDatabase: deleteOptions.value.deleteDatabase,
+      deleteVhost: deleteOptions.value.deleteVhost,
+    });
     showDeleteDeploymentModal.value = false;
     notifications.success("Deleted", `Deployment "${deployment.value?.name}" has been deleted`);
     router.push(backPath.value);
@@ -2243,6 +2314,123 @@ onUnmounted(() => {
 }
 
 .env-modal .modal-footer {
+  padding: var(--space-3) var(--space-4);
+  border-top: 1px solid var(--color-gray-200);
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
+.delete-modal {
+  max-width: 500px;
+}
+
+.delete-modal .modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--color-gray-200);
+}
+
+.delete-modal .modal-header.danger {
+  background: var(--color-danger-50);
+  border-bottom-color: var(--color-danger-200);
+}
+
+.delete-modal .modal-header.danger h3 {
+  color: var(--color-danger-700);
+}
+
+.delete-modal .modal-header h3 {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  font-size: var(--text-lg);
+}
+
+.delete-modal .modal-body {
+  padding: var(--space-4);
+}
+
+.delete-warning {
+  margin: 0 0 var(--space-4) 0;
+  color: var(--color-gray-700);
+  line-height: 1.5;
+}
+
+.delete-warning strong {
+  color: var(--color-gray-900);
+}
+
+.delete-options {
+  background: var(--color-gray-50);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+.delete-options h4 {
+  margin: 0 0 var(--space-3) 0;
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  color: var(--color-gray-700);
+}
+
+.delete-option {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
+  cursor: pointer;
+  border-bottom: 1px solid var(--color-gray-200);
+}
+
+.delete-option:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.delete-option input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  cursor: pointer;
+}
+
+.option-content {
+  flex: 1;
+}
+
+.option-label {
+  display: block;
+  font-weight: var(--font-medium);
+  color: var(--color-gray-900);
+  font-size: var(--text-sm);
+}
+
+.option-hint {
+  display: block;
+  font-size: var(--text-xs);
+  color: var(--color-gray-500);
+  margin-top: var(--space-1);
+}
+
+.danger-text {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  padding: var(--space-3);
+  background: var(--color-danger-50);
+  color: var(--color-danger-700);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+}
+
+.delete-modal .modal-footer {
   padding: var(--space-3) var(--space-4);
   border-top: 1px solid var(--color-gray-200);
   display: flex;

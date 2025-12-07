@@ -66,7 +66,14 @@ export const deploymentsApi = {
   update: (name: string, data: any) => apiClient.put(`/deployments/${name}`, data),
   updateMetadata: (name: string, metadata: ServiceMetadata) =>
     apiClient.put(`/deployments/${name}/metadata`, metadata),
-  delete: (name: string) => apiClient.delete(`/deployments/${name}`),
+  delete: (name: string, options?: { deleteSSL?: boolean; deleteDatabase?: boolean; deleteVhost?: boolean }) => {
+    const params = new URLSearchParams();
+    if (options?.deleteSSL !== undefined) params.set("delete_ssl", String(options.deleteSSL));
+    if (options?.deleteDatabase !== undefined) params.set("delete_database", String(options.deleteDatabase));
+    if (options?.deleteVhost !== undefined) params.set("delete_vhost", String(options.deleteVhost));
+    const queryString = params.toString();
+    return apiClient.delete(`/deployments/${name}${queryString ? `?${queryString}` : ""}`);
+  },
   start: (name: string) => apiClient.post(`/deployments/${name}/start`),
   stop: (name: string) => apiClient.post(`/deployments/${name}/stop`),
   restart: (name: string) => apiClient.post(`/deployments/${name}/restart`),
