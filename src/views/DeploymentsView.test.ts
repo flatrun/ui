@@ -213,15 +213,9 @@ describe("DeploymentsView", () => {
 
     it("getDatabaseType returns correct database type", () => {
       const wrapper = mountView();
-      expect((wrapper.vm as any).getDatabaseType({ services: [{ image: "mysql:8" }] })).toBe(
-        "MySQL",
-      );
-      expect((wrapper.vm as any).getDatabaseType({ services: [{ image: "postgres:14" }] })).toBe(
-        "PostgreSQL",
-      );
-      expect((wrapper.vm as any).getDatabaseType({ services: [{ image: "mariadb:10" }] })).toBe(
-        "MariaDB",
-      );
+      expect((wrapper.vm as any).getDatabaseType({ services: [{ image: "mysql:8" }] })).toBe("MySQL");
+      expect((wrapper.vm as any).getDatabaseType({ services: [{ image: "postgres:14" }] })).toBe("PostgreSQL");
+      expect((wrapper.vm as any).getDatabaseType({ services: [{ image: "mariadb:10" }] })).toBe("MariaDB");
     });
 
     it("getHealthyCount returns correct counts", () => {

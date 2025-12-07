@@ -143,11 +143,7 @@
                     <div class="domain-url">
                       <span class="protocol">https://</span>
                       <span class="domain-text">{{ generatedDomain || "generating..." }}</span>
-                      <button
-                        class="refresh-domain-btn"
-                        title="Generate new subdomain"
-                        @click="regenerateSubdomain"
-                      >
+                      <button class="refresh-domain-btn" title="Generate new subdomain" @click="regenerateSubdomain">
                         <i class="pi pi-refresh" />
                       </button>
                     </div>
@@ -161,10 +157,7 @@
                   </div>
 
                   <Transition name="expand">
-                    <div
-                      v-if="form.useCustomDomain || !domainSettings.default_domain"
-                      class="custom-domain-field"
-                    >
+                    <div v-if="form.useCustomDomain || !domainSettings.default_domain" class="custom-domain-field">
                       <div class="form-field">
                         <label for="customDomain">Custom Domain</label>
                         <input
@@ -219,19 +212,12 @@
                       @click="selectQuickApp(app)"
                     >
                       <div class="template-icon" :class="{ 'has-logo': app.logo }">
-                        <img
-                          v-if="app.logo"
-                          :src="app.logo"
-                          :alt="app.name"
-                          class="template-logo"
-                        />
+                        <img v-if="app.logo" :src="app.logo" :alt="app.name" class="template-logo" />
                         <i v-else :class="app.icon || 'pi pi-box'" />
                       </div>
                       <div class="template-info">
                         <span class="template-name">{{ app.name }}</span>
-                        <span class="template-desc">{{
-                          app.description || "Ready to deploy"
-                        }}</span>
+                        <span class="template-desc">{{ app.description || "Ready to deploy" }}</span>
                       </div>
                       <i v-if="selectedQuickApp === app.id" class="pi pi-check template-check" />
                     </button>
@@ -309,11 +295,7 @@
                   <div class="section-toggle-info">
                     <h4>Database</h4>
                     <p>
-                      {{
-                        form.database.type === "none"
-                          ? "No database configured"
-                          : form.database.type.toUpperCase()
-                      }}
+                      {{ form.database.type === "none" ? "No database configured" : form.database.type.toUpperCase() }}
                     </p>
                   </div>
                 </div>
@@ -412,9 +394,7 @@
 
                         <div
                           class="mode-options"
-                          :class="
-                            infrastructureSettings.database.enabled ? 'four-col' : 'three-col'
-                          "
+                          :class="infrastructureSettings.database.enabled ? 'four-col' : 'three-col'"
                         >
                           <button
                             v-if="infrastructureSettings.database.enabled"
@@ -489,10 +469,7 @@
                               :disabled="loadingDbContainers"
                               @click="loadExistingDbContainers"
                             >
-                              <i
-                                class="pi pi-refresh"
-                                :class="{ 'pi-spin': loadingDbContainers }"
-                              />
+                              <i class="pi pi-refresh" :class="{ 'pi-spin': loadingDbContainers }" />
                             </button>
                           </div>
 
@@ -501,16 +478,10 @@
                               <i class="pi pi-spin pi-spinner" />
                               <span>Loading containers...</span>
                             </div>
-                            <div
-                              v-else-if="filteredDbContainers.length === 0"
-                              class="no-containers"
-                            >
+                            <div v-else-if="filteredDbContainers.length === 0" class="no-containers">
                               <i class="pi pi-info-circle" />
                               <span>No {{ form.database.type }} containers found</span>
-                              <button
-                                class="switch-mode-btn"
-                                @click="form.database.mode = 'create'"
-                              >
+                              <button class="switch-mode-btn" @click="form.database.mode = 'create'">
                                 Create new instead
                               </button>
                             </div>
@@ -531,10 +502,7 @@
                                   <span class="container-name">{{ container.name }}</span>
                                   <span class="container-image">{{ container.image }}</span>
                                 </div>
-                                <i
-                                  v-if="form.database.existingContainer === container.name"
-                                  class="pi pi-check"
-                                />
+                                <i v-if="form.database.existingContainer === container.name" class="pi pi-check" />
                               </button>
                             </div>
                           </div>
@@ -605,20 +573,13 @@
                           <div class="form-row">
                             <div class="form-field">
                               <label for="dbUser">Username</label>
-                              <input
-                                id="dbUser"
-                                v-model="form.database.dbUser"
-                                type="text"
-                                placeholder="app"
-                              />
+                              <input id="dbUser" v-model="form.database.dbUser" type="text" placeholder="app" />
                             </div>
 
                             <div class="form-field">
                               <label for="dbPassword">
                                 Password
-                                <span v-if="form.database.mode === 'create'" class="required"
-                                  >*</span
-                                >
+                                <span v-if="form.database.mode === 'create'" class="required">*</span>
                               </label>
                               <input
                                 id="dbPassword"
@@ -646,35 +607,22 @@
 
                       <!-- Connection Test -->
                       <div
-                        v-if="
-                          form.database.mode === 'external' || form.database.mode === 'existing'
-                        "
+                        v-if="form.database.mode === 'external' || form.database.mode === 'existing'"
                         class="section-card connection-test"
                       >
                         <div class="connection-test-content">
                           <div class="connection-status">
-                            <div
-                              v-if="form.database.connectionStatus === 'checking'"
-                              class="status checking"
-                            >
+                            <div v-if="form.database.connectionStatus === 'checking'" class="status checking">
                               <i class="pi pi-spin pi-spinner" />
                               <span>Testing connection...</span>
                             </div>
-                            <div
-                              v-else-if="form.database.connectionStatus === 'success'"
-                              class="status success"
-                            >
+                            <div v-else-if="form.database.connectionStatus === 'success'" class="status success">
                               <i class="pi pi-check-circle" />
                               <span>Connection successful</span>
                             </div>
-                            <div
-                              v-else-if="form.database.connectionStatus === 'error'"
-                              class="status error"
-                            >
+                            <div v-else-if="form.database.connectionStatus === 'error'" class="status error">
                               <i class="pi pi-times-circle" />
-                              <span>{{
-                                form.database.connectionError || "Connection failed"
-                              }}</span>
+                              <span>{{ form.database.connectionError || "Connection failed" }}</span>
                             </div>
                             <div v-else class="status idle">
                               <i class="pi pi-info-circle" />
@@ -694,9 +642,7 @@
 
                       <!-- Configuration Preview for External/Existing -->
                       <div
-                        v-if="
-                          form.database.mode === 'external' || form.database.mode === 'existing'
-                        "
+                        v-if="form.database.mode === 'external' || form.database.mode === 'existing'"
                         class="section-card config-preview"
                       >
                         <div class="section-header compact">
@@ -713,16 +659,13 @@
                                 form.database.mode === "existing"
                                   ? form.database.existingContainer
                                   : form.database.externalHost
-                              }}:{{
-                                form.database.externalPort || getDefaultPort(form.database.type)
-                              }}</code
+                              }}:{{ form.database.externalPort || getDefaultPort(form.database.type) }}</code
                             >
                           </div>
                           <div class="preview-item">
                             <span class="preview-label">Database</span>
                             <code class="preview-value">{{
-                              form.database.dbName ||
-                              (form.name ? form.name.replace(/-/g, "_") : "app_db")
+                              form.database.dbName || (form.name ? form.name.replace(/-/g, "_") : "app_db")
                             }}</code>
                           </div>
                           <div class="preview-item">
@@ -737,10 +680,7 @@
                       </div>
 
                       <!-- Create Mode Preview -->
-                      <div
-                        v-if="form.database.mode === 'create'"
-                        class="section-card config-preview"
-                      >
+                      <div v-if="form.database.mode === 'create'" class="section-card config-preview">
                         <div class="section-header compact">
                           <div class="section-icon small">
                             <i class="pi pi-code" />
@@ -918,11 +858,7 @@
                     </div>
                     <div class="toggle-option port-mapping">
                       <label class="toggle-label">
-                        <input
-                          v-model="form.networking.mapPorts"
-                          type="checkbox"
-                          @change="updateComposeWithPorts"
-                        />
+                        <input v-model="form.networking.mapPorts" type="checkbox" @change="updateComposeWithPorts" />
                         <span class="toggle-text">Map to host port</span>
                       </label>
                     </div>
@@ -1007,9 +943,7 @@
                   </div>
                   <div v-if="form.envVars.length" class="review-item">
                     <span class="review-label">Env Vars</span>
-                    <span class="review-value"
-                      >{{ form.envVars.filter((e) => e.key).length }} defined</span
-                    >
+                    <span class="review-value">{{ form.envVars.filter((e) => e.key).length }} defined</span>
                   </div>
                 </div>
 
@@ -1020,8 +954,7 @@
                     <span class="compose-lines">{{ composeLineCount }} lines</span>
                   </div>
                   <pre class="compose-preview-code"
-                    >{{ form.composeContent.slice(0, 400)
-                    }}{{ form.composeContent.length > 400 ? "\n..." : "" }}</pre
+                    >{{ form.composeContent.slice(0, 400) }}{{ form.composeContent.length > 400 ? "\n..." : "" }}</pre
                   >
                 </div>
               </div>
@@ -1052,12 +985,7 @@
             <i class="pi pi-arrow-right" />
           </template>
         </button>
-        <button
-          v-else
-          class="btn btn-primary btn-create"
-          :disabled="creating"
-          @click="handleCreate"
-        >
+        <button v-else class="btn btn-primary btn-create" :disabled="creating" @click="handleCreate">
           <i v-if="creating" class="pi pi-spin pi-spinner" />
           <i v-else class="pi pi-rocket" />
           {{ creating ? "Creating..." : "Deploy" }}
@@ -1312,15 +1240,12 @@ const loadSettings = async () => {
       form.ssl.autoCert = domainSettings.auto_ssl;
     }
     if (settings?.infrastructure) {
-      infrastructureSettings.default_proxy_network =
-        settings.infrastructure.default_proxy_network || "proxy";
-      infrastructureSettings.default_database_network =
-        settings.infrastructure.default_database_network || "database";
+      infrastructureSettings.default_proxy_network = settings.infrastructure.default_proxy_network || "proxy";
+      infrastructureSettings.default_database_network = settings.infrastructure.default_database_network || "database";
       if (settings.infrastructure.database) {
         infrastructureSettings.database.enabled = settings.infrastructure.database.enabled || false;
         infrastructureSettings.database.type = settings.infrastructure.database.type || "mysql";
-        infrastructureSettings.database.container =
-          settings.infrastructure.database.container || "";
+        infrastructureSettings.database.container = settings.infrastructure.database.container || "";
         infrastructureSettings.database.host = settings.infrastructure.database.host || "";
       }
       if (settings.infrastructure.redis) {
@@ -1449,11 +1374,7 @@ const selectDatabaseType = (type: "none" | "mysql" | "postgres" | "mariadb" | "m
 const selectSharedDatabase = () => {
   form.database.mode = "shared";
   form.database.useSharedDatabase = true;
-  form.database.type = infrastructureSettings.database.type as
-    | "mysql"
-    | "postgres"
-    | "mariadb"
-    | "mongodb";
+  form.database.type = infrastructureSettings.database.type as "mysql" | "postgres" | "mariadb" | "mongodb";
 };
 
 const selectDatabaseMode = (mode: "create" | "existing" | "external") => {
@@ -1485,10 +1406,7 @@ const loadExistingDbContainers = async () => {
       .filter((c: any) => {
         const image = c.image.toLowerCase();
         return (
-          image.includes("mysql") ||
-          image.includes("postgres") ||
-          image.includes("mariadb") ||
-          image.includes("mongo")
+          image.includes("mysql") || image.includes("postgres") || image.includes("mariadb") || image.includes("mongo")
         );
       })
       .map((c: any) => {
@@ -1515,9 +1433,7 @@ const loadExistingDbContainers = async () => {
 
 const filteredDbContainers = computed(() => {
   if (form.database.type === "none") return [];
-  return existingDbContainers.value.filter(
-    (c) => c.type === form.database.type || c.type === "unknown",
-  );
+  return existingDbContainers.value.filter((c) => c.type === form.database.type || c.type === "unknown");
 });
 
 const selectExistingContainer = (container: DbContainer) => {
@@ -1680,16 +1596,9 @@ volumes:
   db_data:`;
 };
 
-const buildComposeTemplate = (
-  name: string,
-  containerPort: number,
-  mapPorts: boolean,
-  hostPort: string,
-) => {
+const buildComposeTemplate = (name: string, containerPort: number, mapPorts: boolean, hostPort: string) => {
   const portConfig =
-    mapPorts && hostPort
-      ? `ports:\n      - "${hostPort}:${containerPort}"`
-      : `expose:\n      - "${containerPort}"`;
+    mapPorts && hostPort ? `ports:\n      - "${hostPort}:${containerPort}"` : `expose:\n      - "${containerPort}"`;
 
   const networkName = infrastructureSettings.default_proxy_network;
 
@@ -1711,12 +1620,7 @@ networks:
 
 const getDefaultComposeContent = () => {
   const name = form.name || "my-app";
-  return buildComposeTemplate(
-    name,
-    form.networking.containerPort,
-    form.networking.mapPorts,
-    form.networking.hostPort,
-  );
+  return buildComposeTemplate(name, form.networking.containerPort, form.networking.mapPorts, form.networking.hostPort);
 };
 
 const buildComposeFromTemplate = () => {
@@ -1905,12 +1809,9 @@ const rebuildComposeWithDatabase = () => {
     if (dbService) {
       // Add depends_on to app service if not already present
       if (!compose.includes("depends_on:")) {
-        compose = compose.replace(
-          /(services:\s*\n\s*app:.*?\n)((\s+\S.*\n)*)/m,
-          (match, serviceStart, props) => {
-            return serviceStart + `    depends_on:\n      - db\n` + props;
-          },
-        );
+        compose = compose.replace(/(services:\s*\n\s*app:.*?\n)((\s+\S.*\n)*)/m, (match, serviceStart, props) => {
+          return serviceStart + `    depends_on:\n      - db\n` + props;
+        });
       }
 
       // Insert db service at the end of services section
@@ -2044,9 +1945,7 @@ const handleCreate = async () => {
 
   try {
     const finalDomain =
-      form.useCustomDomain || !domainSettings.default_domain
-        ? form.networking.domain
-        : generatedDomain.value;
+      form.useCustomDomain || !domainSettings.default_domain ? form.networking.domain : generatedDomain.value;
 
     const payload: Record<string, any> = {
       name: form.name,

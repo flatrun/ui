@@ -81,11 +81,7 @@
                 <span class="network-id">{{ network.id }}</span>
               </div>
               <div v-if="!isSystemNetwork(network.name)" class="network-actions">
-                <button
-                  class="btn-icon-sm danger"
-                  title="Delete network"
-                  @click="confirmDelete(network)"
-                >
+                <button class="btn-icon-sm danger" title="Delete network" @click="confirmDelete(network)">
                   <i class="pi pi-trash" />
                 </button>
               </div>
@@ -117,22 +113,14 @@
                     <i class="pi pi-box" />
                     Connected Containers ({{ network.containers?.length || 0 }})
                   </span>
-                  <button
-                    v-if="!isSystemNetwork(network.name)"
-                    class="btn-text"
-                    @click="openConnectModal(network)"
-                  >
+                  <button v-if="!isSystemNetwork(network.name)" class="btn-text" @click="openConnectModal(network)">
                     <i class="pi pi-link" />
                     Connect
                   </button>
                 </div>
 
                 <div v-if="network.containers?.length > 0" class="containers-list">
-                  <div
-                    v-for="container in network.containers"
-                    :key="container.name"
-                    class="container-item"
-                  >
+                  <div v-for="container in network.containers" :key="container.name" class="container-item">
                     <div class="container-info">
                       <span class="container-name">{{ container.name }}</span>
                       <span class="container-ip">{{ container.ipv4 }}</span>

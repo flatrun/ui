@@ -112,12 +112,7 @@
             {{ formatDate(file.mod_time) }}
           </span>
           <span class="col-actions" @click.stop>
-            <button
-              v-if="!file.is_dir && isTextFile(file)"
-              class="action-btn"
-              title="View"
-              @click="viewFile(file)"
-            >
+            <button v-if="!file.is_dir && isTextFile(file)" class="action-btn" title="View" @click="viewFile(file)">
               <i class="pi pi-eye" />
             </button>
             <button
@@ -128,12 +123,7 @@
             >
               <i class="pi pi-pencil" />
             </button>
-            <button
-              v-if="!file.is_dir"
-              class="action-btn"
-              title="Download"
-              @click="downloadFile(file)"
-            >
+            <button v-if="!file.is_dir" class="action-btn" title="Download" @click="downloadFile(file)">
               <i class="pi pi-download" />
             </button>
             <button class="action-btn delete" title="Delete" @click="confirmDelete(file)">
@@ -166,12 +156,7 @@
             }}
           </div>
           <div class="grid-item-actions" @click.stop>
-            <button
-              v-if="!file.is_dir && isTextFile(file)"
-              class="action-btn"
-              title="View"
-              @click="viewFile(file)"
-            >
+            <button v-if="!file.is_dir && isTextFile(file)" class="action-btn" title="View" @click="viewFile(file)">
               <i class="pi pi-eye" />
             </button>
             <button
@@ -182,12 +167,7 @@
             >
               <i class="pi pi-pencil" />
             </button>
-            <button
-              v-if="!file.is_dir"
-              class="action-btn"
-              title="Download"
-              @click="downloadFile(file)"
-            >
+            <button v-if="!file.is_dir" class="action-btn" title="Download" @click="downloadFile(file)">
               <i class="pi pi-download" />
             </button>
             <button class="action-btn delete" title="Delete" @click="confirmDelete(file)">
@@ -226,11 +206,7 @@
           </div>
           <div class="modal-footer">
             <button class="btn btn-secondary" @click="showNewFolderModal = false">Cancel</button>
-            <button
-              class="btn btn-primary"
-              :disabled="!newFolderName.trim() || creatingFolder"
-              @click="createFolder"
-            >
+            <button class="btn btn-primary" :disabled="!newFolderName.trim() || creatingFolder" @click="createFolder">
               <i :class="creatingFolder ? 'pi pi-spin pi-spinner' : 'pi pi-check'" />
               Create
             </button>
@@ -252,9 +228,7 @@
               <strong>{{ fileToDelete?.name }}</strong
               >?
             </p>
-            <p v-if="fileToDelete?.is_dir" class="warning-text">
-              This will delete all contents inside the folder.
-            </p>
+            <p v-if="fileToDelete?.is_dir" class="warning-text">This will delete all contents inside the folder.</p>
           </div>
           <div class="modal-footer">
             <button class="btn btn-secondary" @click="showDeleteModal = false">Cancel</button>
@@ -305,11 +279,7 @@
                 Modified
               </span>
               <button class="btn btn-secondary" @click="closeFileEditor">Cancel</button>
-              <button
-                class="btn btn-primary"
-                :disabled="!fileModified || savingFile"
-                @click="saveFile"
-              >
+              <button class="btn btn-primary" :disabled="!fileModified || savingFile" @click="saveFile">
                 <i :class="savingFile ? 'pi pi-spin pi-spinner' : 'pi pi-save'" />
                 Save
               </button>
@@ -449,8 +419,7 @@ const uploadFile = async (file: File) => {
   uploadFileName.value = file.name;
 
   try {
-    const targetPath =
-      currentPath.value === "/" ? `/${file.name}` : `${currentPath.value}/${file.name}`;
+    const targetPath = currentPath.value === "/" ? `/${file.name}` : `${currentPath.value}/${file.name}`;
 
     await filesApi.upload(props.deploymentName, targetPath, file);
     uploadProgress.value = 100;
@@ -486,9 +455,7 @@ const createFolder = async () => {
   creatingFolder.value = true;
   try {
     const targetPath =
-      currentPath.value === "/"
-        ? `/${newFolderName.value}`
-        : `${currentPath.value}/${newFolderName.value}`;
+      currentPath.value === "/" ? `/${newFolderName.value}` : `${currentPath.value}/${newFolderName.value}`;
 
     await filesApi.createDir(props.deploymentName, targetPath);
     notifications.success("Folder Created", `${newFolderName.value} created successfully`);
@@ -570,11 +537,7 @@ const formatSize = (bytes: number): string => {
 
 const formatDate = (dateStr: string): string => {
   const date = new Date(dateStr);
-  return (
-    date.toLocaleDateString() +
-    " " +
-    date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-  );
+  return date.toLocaleDateString() + " " + date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 };
 
 const textExtensions = [

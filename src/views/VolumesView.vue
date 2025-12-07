@@ -142,10 +142,7 @@
                 </div>
               </div>
 
-              <div
-                v-if="volume.labels && Object.keys(volume.labels).length > 0"
-                class="volume-labels"
-              >
+              <div v-if="volume.labels && Object.keys(volume.labels).length > 0" class="volume-labels">
                 <span class="labels-title">Labels</span>
                 <div class="labels-list">
                   <span v-for="(value, key) in volume.labels" :key="key" class="label-tag">
@@ -157,11 +154,7 @@
               <div v-if="volume.containers?.length" class="volume-containers">
                 <span class="containers-title">Mounted by</span>
                 <div class="containers-list">
-                  <span
-                    v-for="container in volume.containers"
-                    :key="container"
-                    class="container-tag"
-                  >
+                  <span v-for="container in volume.containers" :key="container" class="container-tag">
                     <i class="pi pi-box" />
                     {{ container }}
                   </span>
@@ -170,11 +163,7 @@
             </div>
 
             <div class="volume-card-actions">
-              <button
-                class="action-btn inspect"
-                title="Inspect"
-                @click="inspectVolume(volume.name)"
-              >
+              <button class="action-btn inspect" title="Inspect" @click="inspectVolume(volume.name)">
                 <i class="pi pi-info-circle" />
               </button>
               <button
@@ -248,12 +237,7 @@
           <div class="modal-body">
             <div class="form-group">
               <label>Volume Name</label>
-              <input
-                v-model="newVolumeName"
-                type="text"
-                placeholder="my-volume"
-                class="form-input"
-              />
+              <input v-model="newVolumeName" type="text" placeholder="my-volume" class="form-input" />
             </div>
             <div class="form-group">
               <label>Driver</label>
@@ -265,18 +249,8 @@
               <label>Labels (optional)</label>
               <div class="labels-input">
                 <div v-for="(label, index) in newVolumeLabels" :key="index" class="label-row">
-                  <input
-                    v-model="label.key"
-                    type="text"
-                    placeholder="key"
-                    class="form-input small"
-                  />
-                  <input
-                    v-model="label.value"
-                    type="text"
-                    placeholder="value"
-                    class="form-input small"
-                  />
+                  <input v-model="label.key" type="text" placeholder="key" class="form-input small" />
+                  <input v-model="label.value" type="text" placeholder="value" class="form-input small" />
                   <button class="remove-label" @click="removeLabel(index)">
                     <i class="pi pi-times" />
                   </button>
@@ -290,11 +264,7 @@
           </div>
           <div class="modal-footer">
             <button class="btn btn-secondary" @click="showCreateModal = false">Cancel</button>
-            <button
-              class="btn btn-primary"
-              :disabled="!newVolumeName || creating"
-              @click="createVolume"
-            >
+            <button class="btn btn-primary" :disabled="!newVolumeName || creating" @click="createVolume">
               <i v-if="creating" class="pi pi-spin pi-spinner" />
               {{ creating ? "Creating..." : "Create Volume" }}
             </button>

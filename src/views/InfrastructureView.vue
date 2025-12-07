@@ -85,19 +85,11 @@
             <i class="pi pi-refresh" />
             <span>Restart</span>
           </button>
-          <button
-            v-if="!service.external"
-            class="btn btn-sm btn-secondary"
-            @click.stop="showLogs(service.name)"
-          >
+          <button v-if="!service.external" class="btn btn-sm btn-secondary" @click.stop="showLogs(service.name)">
             <i class="pi pi-list" />
             <span>Logs</span>
           </button>
-          <button
-            v-if="service.managed"
-            class="btn btn-sm btn-secondary"
-            @click.stop="goToDetails(service.name)"
-          >
+          <button v-if="service.managed" class="btn btn-sm btn-secondary" @click.stop="goToDetails(service.name)">
             <i class="pi pi-cog" />
             <span>Details</span>
           </button>

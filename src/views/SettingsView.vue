@@ -61,11 +61,7 @@
                   <i class="pi pi-check-circle" />
                   <span>Test Connection</span>
                 </button>
-                <button
-                  class="action-btn"
-                  :disabled="refreshingTemplates"
-                  @click="refreshTemplates"
-                >
+                <button class="action-btn" :disabled="refreshingTemplates" @click="refreshTemplates">
                   <i class="pi pi-box" :class="{ 'pi-spin': refreshingTemplates }" />
                   <span>{{ refreshingTemplates ? "Refreshing..." : "Refresh Templates" }}</span>
                 </button>
@@ -124,8 +120,8 @@
             <div class="config-note">
               <i class="pi pi-info-circle" />
               <p>
-                To modify agent settings, edit the configuration file on your server and restart the
-                agent. Typically located at <code>/etc/flatrun/config.yml</code>
+                To modify agent settings, edit the configuration file on your server and restart the agent. Typically
+                located at <code>/etc/flatrun/config.yml</code>
               </p>
             </div>
             <pre class="config-preview">{{ configYaml }}</pre>
@@ -247,21 +243,11 @@
             <div class="form-grid">
               <div class="form-group">
                 <label class="form-label">Docker Image</label>
-                <input
-                  v-model="nginxSettings.image"
-                  type="text"
-                  placeholder="nginx:alpine"
-                  class="form-input"
-                />
+                <input v-model="nginxSettings.image" type="text" placeholder="nginx:alpine" class="form-input" />
               </div>
               <div class="form-group">
                 <label class="form-label">Container Name</label>
-                <input
-                  v-model="nginxSettings.container_name"
-                  type="text"
-                  placeholder="nginx"
-                  class="form-input"
-                />
+                <input v-model="nginxSettings.container_name" type="text" placeholder="nginx" class="form-input" />
               </div>
               <div class="form-group">
                 <label class="form-label">Config Path</label>
@@ -287,9 +273,7 @@
                 <div class="toggle-row">
                   <div class="toggle-info">
                     <label class="form-label">External Nginx</label>
-                    <span class="form-hint"
-                      >Use an existing nginx installation instead of Docker container</span
-                    >
+                    <span class="form-hint">Use an existing nginx installation instead of Docker container</span>
                   </div>
                   <label class="toggle-switch">
                     <input v-model="nginxSettings.external" type="checkbox" />
@@ -314,12 +298,7 @@
             <div class="form-grid">
               <div class="form-group">
                 <label class="form-label">Docker Image</label>
-                <input
-                  v-model="certbotSettings.image"
-                  type="text"
-                  placeholder="certbot/certbot"
-                  class="form-input"
-                />
+                <input v-model="certbotSettings.image" type="text" placeholder="certbot/certbot" class="form-input" />
               </div>
               <div class="form-group">
                 <label class="form-label">Email</label>
@@ -468,12 +447,7 @@
               </div>
               <div class="form-group">
                 <label class="form-label">Host</label>
-                <input
-                  v-model="infrastructureSettings.redis.host"
-                  type="text"
-                  placeholder="redis"
-                  class="form-input"
-                />
+                <input v-model="infrastructureSettings.redis.host" type="text" placeholder="redis" class="form-input" />
               </div>
               <div class="form-group">
                 <label class="form-label">Port</label>
@@ -499,11 +473,7 @@
         </div>
 
         <div class="save-footer">
-          <button
-            class="btn btn-primary"
-            :disabled="savingInfrastructure"
-            @click="saveInfrastructureSettings"
-          >
+          <button class="btn btn-primary" :disabled="savingInfrastructure" @click="saveInfrastructureSettings">
             <i v-if="savingInfrastructure" class="pi pi-spin pi-spinner" />
             <i v-else class="pi pi-save" />
             <span>Save Infrastructure Settings</span>
@@ -648,10 +618,8 @@ const fetchSettings = async () => {
     }
 
     if (data.infrastructure) {
-      infrastructureSettings.default_proxy_network =
-        data.infrastructure.default_proxy_network || "proxy";
-      infrastructureSettings.default_database_network =
-        data.infrastructure.default_database_network || "database";
+      infrastructureSettings.default_proxy_network = data.infrastructure.default_proxy_network || "proxy";
+      infrastructureSettings.default_database_network = data.infrastructure.default_database_network || "database";
       if (data.infrastructure.database) {
         infrastructureSettings.database.enabled = data.infrastructure.database.enabled ?? false;
         infrastructureSettings.database.type = data.infrastructure.database.type || "mysql";

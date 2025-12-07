@@ -1,12 +1,5 @@
 <template>
-  <BaseModal
-    :visible="visible"
-    :title="title"
-    :subtitle="subtitle"
-    icon="pi pi-file"
-    size="lg"
-    @close="emit('close')"
-  >
+  <BaseModal :visible="visible" :title="title" :subtitle="subtitle" icon="pi pi-file" size="lg" @close="emit('close')">
     <div class="logs-modal-content">
       <LogViewer
         :logs="logs"

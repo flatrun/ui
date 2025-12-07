@@ -76,11 +76,7 @@
           >
             <Square :size="14" />
           </button>
-          <button
-            class="action-btn restart"
-            title="Restart Service"
-            @click.stop="controlService(item.name, 'restart')"
-          >
+          <button class="action-btn restart" title="Restart Service" @click.stop="controlService(item.name, 'restart')">
             <RotateCw :size="14" />
           </button>
         </div>

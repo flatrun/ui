@@ -19,12 +19,7 @@
                 </div>
               </slot>
             </div>
-            <button
-              v-if="showClose"
-              class="close-btn"
-              :disabled="closeDisabled"
-              @click="emit('close')"
-            >
+            <button v-if="showClose" class="close-btn" :disabled="closeDisabled" @click="emit('close')">
               <i class="pi pi-times" />
             </button>
           </div>

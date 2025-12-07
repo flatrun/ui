@@ -116,11 +116,7 @@
               <div class="card-header">
                 <i class="pi pi-globe" />
                 <h3>Domain & SSL</h3>
-                <button
-                  class="btn btn-sm btn-icon"
-                  title="Edit Domain Settings"
-                  @click="openDomainSettings"
-                >
+                <button class="btn btn-sm btn-icon" title="Edit Domain Settings" @click="openDomainSettings">
                   <i class="pi pi-pencil" />
                 </button>
               </div>
@@ -130,9 +126,7 @@
                     <span class="label">Domain</span>
                     <span class="value domain-link">
                       <a
-                        :href="
-                          (proxyStatus.ssl_enabled ? 'https://' : 'http://') + proxyStatus.domain
-                        "
+                        :href="(proxyStatus.ssl_enabled ? 'https://' : 'http://') + proxyStatus.domain"
                         target="_blank"
                       >
                         {{ proxyStatus.domain }}
@@ -143,10 +137,7 @@
                   <div class="info-row">
                     <span class="label">Virtual Host</span>
                     <span class="value">
-                      <span
-                        class="status-badge"
-                        :class="proxyStatus.virtual_host_exists ? 'running' : 'stopped'"
-                      >
+                      <span class="status-badge" :class="proxyStatus.virtual_host_exists ? 'running' : 'stopped'">
                         {{ proxyStatus.virtual_host_exists ? "Configured" : "Not Configured" }}
                       </span>
                     </span>
@@ -154,10 +145,7 @@
                   <div class="info-row">
                     <span class="label">SSL</span>
                     <span class="value">
-                      <span
-                        class="status-badge"
-                        :class="proxyStatus.ssl_enabled ? 'running' : 'stopped'"
-                      >
+                      <span class="status-badge" :class="proxyStatus.ssl_enabled ? 'running' : 'stopped'">
                         {{ proxyStatus.ssl_enabled ? "Enabled" : "Disabled" }}
                       </span>
                     </span>
@@ -173,10 +161,7 @@
                     </div>
                     <div class="info-row">
                       <span class="label">Expires</span>
-                      <span
-                        class="value"
-                        :class="{ 'text-warning': proxyStatus.certificate.days_left <= 30 }"
-                      >
+                      <span class="value" :class="{ 'text-warning': proxyStatus.certificate.days_left <= 30 }">
                         {{ proxyStatus.certificate.days_left }} days ({{
                           formatDateTime(proxyStatus.certificate.not_after)
                         }})
@@ -220,16 +205,12 @@
                 <h3>Services</h3>
               </div>
               <div class="card-body">
-                <div v-if="services.length === 0" class="empty-services">
-                  No services configured
-                </div>
+                <div v-if="services.length === 0" class="empty-services">No services configured</div>
                 <div v-else class="services-list">
                   <div v-for="service in services" :key="service.name" class="service-item">
                     <div class="service-header">
                       <span class="service-name">{{ service.name }}</span>
-                      <span class="service-status" :class="service.status">{{
-                        service.status
-                      }}</span>
+                      <span class="service-status" :class="service.status">{{ service.status }}</span>
                     </div>
                     <div class="service-details">
                       <span class="detail-item">
@@ -356,28 +337,16 @@
             <div class="terminal-selector">
               <label>Service:</label>
               <select v-model="terminalService" class="form-select">
-                <option
-                  v-for="service in services"
-                  :key="service.name"
-                  :value="service.container_id"
-                >
+                <option v-for="service in services" :key="service.name" :value="service.container_id">
                   {{ service.name }}
                 </option>
               </select>
             </div>
             <div class="terminal-actions">
-              <button
-                class="btn btn-sm btn-primary"
-                :disabled="services.length === 0"
-                @click="connectTerminal"
-              >
+              <button class="btn btn-sm btn-primary" :disabled="services.length === 0" @click="connectTerminal">
                 <i class="pi pi-play" /> Connect
               </button>
-              <button
-                class="btn btn-sm btn-secondary"
-                :disabled="services.length === 0"
-                @click="reconnectTerminal"
-              >
+              <button class="btn btn-sm btn-secondary" :disabled="services.length === 0" @click="reconnectTerminal">
                 <i class="pi pi-refresh" /> Reconnect
               </button>
             </div>
@@ -463,21 +432,13 @@
             <div class="config-header">
               <h3>Docker Compose Configuration</h3>
               <div class="config-actions">
-                <button class="btn btn-sm btn-secondary" @click="copyConfig">
-                  <i class="pi pi-copy" /> Copy
-                </button>
-                <button
-                  v-if="!isEditingConfig"
-                  class="btn btn-sm btn-primary"
-                  @click="isEditingConfig = true"
-                >
+                <button class="btn btn-sm btn-secondary" @click="copyConfig"><i class="pi pi-copy" /> Copy</button>
+                <button v-if="!isEditingConfig" class="btn btn-sm btn-primary" @click="isEditingConfig = true">
                   <i class="pi pi-pencil" /> Edit
                 </button>
                 <template v-else>
                   <button class="btn btn-sm btn-secondary" @click="cancelConfigEdit">Cancel</button>
-                  <button class="btn btn-sm btn-success" @click="saveConfig">
-                    <i class="pi pi-check" /> Save
-                  </button>
+                  <button class="btn btn-sm btn-success" @click="saveConfig"><i class="pi pi-check" /> Save</button>
                 </template>
               </div>
             </div>
@@ -506,9 +467,7 @@
                   <i class="pi pi-pencil" /> Edit
                 </button>
                 <template v-else>
-                  <button class="btn btn-sm btn-secondary" @click="cancelServiceConfigEdit">
-                    Cancel
-                  </button>
+                  <button class="btn btn-sm btn-secondary" @click="cancelServiceConfigEdit">Cancel</button>
                   <button class="btn btn-sm btn-success" @click="saveServiceConfig">
                     <i class="pi pi-check" /> Save
                   </button>
@@ -568,11 +527,7 @@
             </div>
           </div>
           <div class="modal-footer">
-            <button
-              class="btn btn-secondary"
-              :disabled="operationRunning"
-              @click="showOperationModal = false"
-            >
+            <button class="btn btn-secondary" :disabled="operationRunning" @click="showOperationModal = false">
               Close
             </button>
           </div>
@@ -592,18 +547,14 @@
               <i class="pi pi-trash" />
               Delete Deployment
             </h3>
-            <button
-              v-if="!deletingDeployment"
-              class="close-btn"
-              @click="showDeleteDeploymentModal = false"
-            >
+            <button v-if="!deletingDeployment" class="close-btn" @click="showDeleteDeploymentModal = false">
               <i class="pi pi-times" />
             </button>
           </div>
           <div class="modal-body">
             <p class="delete-warning">
-              Are you sure you want to delete <strong>{{ deployment?.name }}</strong>? This will
-              remove all containers, volumes, and configuration.
+              Are you sure you want to delete <strong>{{ deployment?.name }}</strong
+              >? This will remove all containers, volumes, and configuration.
             </p>
             <div class="delete-options">
               <h4>Additional cleanup options:</h4>
@@ -625,9 +576,7 @@
                 <input v-model="deleteOptions.deleteDatabase" type="checkbox" />
                 <span class="option-content">
                   <span class="option-label">Delete Database</span>
-                  <span class="option-hint">
-                    Remove associated database and user (if using shared database)
-                  </span>
+                  <span class="option-hint"> Remove associated database and user (if using shared database) </span>
                 </span>
               </label>
             </div>
@@ -637,11 +586,7 @@
             </p>
           </div>
           <div class="modal-footer">
-            <button
-              class="btn btn-secondary"
-              :disabled="deletingDeployment"
-              @click="showDeleteDeploymentModal = false"
-            >
+            <button class="btn btn-secondary" :disabled="deletingDeployment" @click="showDeleteDeploymentModal = false">
               Cancel
             </button>
             <button class="btn btn-danger" :disabled="deletingDeployment" @click="deleteDeployment">
@@ -665,11 +610,7 @@
     />
 
     <Teleport to="body">
-      <div
-        v-if="showDomainSettingsModal"
-        class="modal-overlay"
-        @click.self="showDomainSettingsModal = false"
-      >
+      <div v-if="showDomainSettingsModal" class="modal-overlay" @click.self="showDomainSettingsModal = false">
         <div class="domain-settings-modal modal-container">
           <div class="modal-header">
             <h3>
@@ -692,12 +633,7 @@
             <template v-if="domainSettings.expose">
               <div class="form-group">
                 <label>Domain</label>
-                <input
-                  v-model="domainSettings.domain"
-                  type="text"
-                  placeholder="app.example.com"
-                  class="form-input"
-                />
+                <input v-model="domainSettings.domain" type="text" placeholder="app.example.com" class="form-input" />
                 <span class="hint">The domain name for your deployment</span>
               </div>
 
@@ -730,14 +666,8 @@
             </template>
           </div>
           <div class="modal-footer">
-            <button class="btn btn-secondary" @click="showDomainSettingsModal = false">
-              Cancel
-            </button>
-            <button
-              class="btn btn-primary"
-              :disabled="savingDomainSettings"
-              @click="saveDomainSettings"
-            >
+            <button class="btn btn-secondary" @click="showDomainSettingsModal = false">Cancel</button>
+            <button class="btn btn-primary" :disabled="savingDomainSettings" @click="saveDomainSettings">
               <i v-if="savingDomainSettings" class="pi pi-spin pi-spinner" />
               {{ savingDomainSettings ? "Saving..." : "Save Settings" }}
             </button>
@@ -778,11 +708,7 @@
           </div>
           <div class="modal-footer">
             <button class="btn btn-secondary" @click="showAddEnvModal = false">Cancel</button>
-            <button
-              class="btn btn-primary"
-              :disabled="savingEnvVars || !newEnvKey.trim()"
-              @click="saveEnvVar"
-            >
+            <button class="btn btn-primary" :disabled="savingEnvVars || !newEnvKey.trim()" @click="saveEnvVar">
               <i v-if="savingEnvVars" class="pi pi-spin pi-spinner" />
               {{ savingEnvVars ? "Saving..." : editingEnvVar ? "Update" : "Add" }}
             </button>
@@ -799,14 +725,7 @@ import { useRoute, useRouter } from "vue-router";
 import { Codemirror } from "vue-codemirror";
 import { yaml } from "@codemirror/lang-yaml";
 import { oneDark } from "@codemirror/theme-one-dark";
-import {
-  deploymentsApi,
-  proxyApi,
-  certificatesApi,
-  filesApi,
-  infrastructureApi,
-  type EnvVar,
-} from "@/services/api";
+import { deploymentsApi, proxyApi, certificatesApi, filesApi, infrastructureApi, type EnvVar } from "@/services/api";
 import { useNotificationsStore } from "@/stores/notifications";
 import type { ProxyStatus } from "@/types";
 import FileBrowser from "@/components/FileBrowser.vue";
@@ -938,8 +857,7 @@ const fetchDeployment = async () => {
 
     try {
       const composeResponse = await deploymentsApi.getComposeFile(route.params.name as string);
-      composeConfig.value =
-        composeResponse.data.content || composeResponse.data || "No compose file found";
+      composeConfig.value = composeResponse.data.content || composeResponse.data || "No compose file found";
       composeFilename.value = composeResponse.data.filename || "docker-compose.yml";
     } catch (composeErr) {
       composeConfig.value = "Error loading compose file";
@@ -947,14 +865,10 @@ const fetchDeployment = async () => {
     }
 
     try {
-      const serviceResponse = await filesApi.getContent(
-        route.params.name as string,
-        "/service.yml",
-      );
+      const serviceResponse = await filesApi.getContent(route.params.name as string, "/service.yml");
       serviceConfig.value = serviceResponse.data || "No service.yml found";
     } catch (serviceErr) {
-      serviceConfig.value =
-        "# Service configuration not found\n# This file will be created when you save";
+      serviceConfig.value = "# Service configuration not found\n# This file will be created when you save";
       console.error("Failed to load service.yml:", serviceErr);
     }
 

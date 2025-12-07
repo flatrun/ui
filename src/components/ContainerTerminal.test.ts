@@ -194,9 +194,7 @@ describe("ContainerTerminal", () => {
       mockWebSocket.onopen();
 
       expect(mockWebSocket.send).toHaveBeenCalledWith(expect.stringContaining('"type":"auth"'));
-      expect(mockWebSocket.send).toHaveBeenCalledWith(
-        expect.stringContaining('"token":"test-token"'),
-      );
+      expect(mockWebSocket.send).toHaveBeenCalledWith(expect.stringContaining('"token":"test-token"'));
     });
 
     it("updates status to connecting when connect clicked", async () => {
@@ -238,9 +236,7 @@ describe("ContainerTerminal", () => {
       await wrapper.vm.$nextTick();
 
       // Check that resize message was sent
-      const resizeCalls = mockWebSocket.send.mock.calls.filter((call: any) =>
-        call[0].includes('"type":"resize"'),
-      );
+      const resizeCalls = mockWebSocket.send.mock.calls.filter((call: any) => call[0].includes('"type":"resize"'));
       expect(resizeCalls.length).toBeGreaterThan(0);
     });
   });

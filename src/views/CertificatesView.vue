@@ -43,9 +43,7 @@
       </template>
 
       <template #cell-days_left="{ item }">
-        <span class="days-left" :class="daysLeftClass(item.days_left)">
-          {{ item.days_left }} days
-        </span>
+        <span class="days-left" :class="daysLeftClass(item.days_left)"> {{ item.days_left }} days </span>
       </template>
 
       <template #cell-not_before="{ item }">
@@ -141,30 +139,14 @@
           <div class="modal-body">
             <div class="form-group">
               <label for="domain">Domain</label>
-              <input
-                id="domain"
-                v-model="newDomain"
-                type="text"
-                placeholder="example.com"
-                :disabled="requesting"
-              />
+              <input id="domain" v-model="newDomain" type="text" placeholder="example.com" :disabled="requesting" />
               <span class="hint">Enter the domain to request a Let's Encrypt certificate for</span>
             </div>
           </div>
 
           <div class="modal-footer">
-            <button
-              class="btn btn-secondary"
-              :disabled="requesting"
-              @click="showRequestModal = false"
-            >
-              Cancel
-            </button>
-            <button
-              class="btn btn-primary"
-              :disabled="requesting || !newDomain.trim()"
-              @click="handleRequest"
-            >
+            <button class="btn btn-secondary" :disabled="requesting" @click="showRequestModal = false">Cancel</button>
+            <button class="btn btn-primary" :disabled="requesting || !newDomain.trim()" @click="handleRequest">
               <i v-if="requesting" class="pi pi-spin pi-spinner" />
               {{ requesting ? "Requesting..." : "Request Certificate" }}
             </button>
@@ -235,12 +217,8 @@ const columns = [
 ];
 
 const validCount = computed(() => certificates.value.filter((c) => c.status === "valid").length);
-const expiringCount = computed(
-  () => certificates.value.filter((c) => c.status === "expiring").length,
-);
-const expiredCount = computed(
-  () => certificates.value.filter((c) => c.status === "expired").length,
-);
+const expiringCount = computed(() => certificates.value.filter((c) => c.status === "expiring").length);
+const expiredCount = computed(() => certificates.value.filter((c) => c.status === "expired").length);
 
 const fetchCertificates = async () => {
   loading.value = true;
@@ -262,10 +240,7 @@ const handleRequest = async () => {
 
   try {
     await certificatesApi.request(newDomain.value.trim());
-    notifications.success(
-      "Certificate Requested",
-      `Certificate for ${newDomain.value} has been requested`,
-    );
+    notifications.success("Certificate Requested", `Certificate for ${newDomain.value} has been requested`);
     showRequestModal.value = false;
     newDomain.value = "";
     await fetchCertificates();
@@ -304,10 +279,7 @@ const confirmDelete = async () => {
 
   try {
     await certificatesApi.delete(domainToDelete.value);
-    notifications.success(
-      "Certificate Deleted",
-      `Certificate for ${domainToDelete.value} has been deleted`,
-    );
+    notifications.success("Certificate Deleted", `Certificate for ${domainToDelete.value} has been deleted`);
     await fetchCertificates();
   } catch (e: any) {
     const msg = e.response?.data?.error || e.message;

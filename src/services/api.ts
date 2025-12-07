@@ -1,12 +1,5 @@
 import axios from "axios";
-import type {
-  Deployment,
-  Network,
-  Certificate,
-  ProxyStatus,
-  ProxySetupResult,
-  VirtualHost,
-} from "@/types";
+import type { Deployment, Network, Certificate, ProxyStatus, ProxySetupResult, VirtualHost } from "@/types";
 
 const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_URL || "/api",
@@ -64,8 +57,7 @@ export const deploymentsApi = {
   get: (name: string) => apiClient.get<Deployment>(`/deployments/${name}`),
   create: (data: any) => apiClient.post("/deployments", data),
   update: (name: string, data: any) => apiClient.put(`/deployments/${name}`, data),
-  updateMetadata: (name: string, metadata: ServiceMetadata) =>
-    apiClient.put(`/deployments/${name}/metadata`, metadata),
+  updateMetadata: (name: string, metadata: ServiceMetadata) => apiClient.put(`/deployments/${name}/metadata`, metadata),
   delete: (name: string, options?: { deleteSSL?: boolean; deleteDatabase?: boolean; deleteVhost?: boolean }) => {
     const params = new URLSearchParams();
     if (options?.deleteSSL !== undefined) params.set("delete_ssl", String(options.deleteSSL));
@@ -101,8 +93,7 @@ export const deploymentsApi = {
       };
     }>(`/deployments/${name}/stats`),
   getEnvVars: (name: string) => apiClient.get<{ env_vars: EnvVar[] }>(`/deployments/${name}/env`),
-  updateEnvVars: (name: string, envVars: EnvVar[]) =>
-    apiClient.put(`/deployments/${name}/env`, { env_vars: envVars }),
+  updateEnvVars: (name: string, envVars: EnvVar[]) => apiClient.put(`/deployments/${name}/env`, { env_vars: envVars }),
 };
 
 export const networksApi = {
@@ -132,8 +123,7 @@ export const certificatesApi = {
 
 export const proxyApi = {
   getStatus: (name: string) => apiClient.get<{ status: ProxyStatus }>(`/proxy/status/${name}`),
-  setup: (name: string) =>
-    apiClient.post<{ message: string; result: ProxySetupResult }>(`/proxy/setup/${name}`),
+  setup: (name: string) => apiClient.post<{ message: string; result: ProxySetupResult }>(`/proxy/setup/${name}`),
   teardown: (name: string) => apiClient.delete(`/proxy/${name}`),
   listVirtualHosts: () => apiClient.get<{ virtual_hosts: VirtualHost[] }>("/proxy/vhosts"),
 };
@@ -161,8 +151,7 @@ export const settingsApi = {
 export const pluginsApi = {
   list: () => apiClient.get("/plugins"),
   get: (name: string) => apiClient.get(`/plugins/${name}`),
-  createDeployment: (pluginName: string, data: any) =>
-    apiClient.post(`/plugins/${pluginName}/deployments`, data),
+  createDeployment: (pluginName: string, data: any) => apiClient.post(`/plugins/${pluginName}/deployments`, data),
 };
 
 export interface TemplateCategory {
@@ -200,10 +189,9 @@ export const templatesApi = {
   categories: () => apiClient.get<{ categories: TemplateCategory[] }>("/templates/categories"),
   refresh: () => apiClient.post<{ message: string; count: number }>("/templates/refresh"),
   getCompose: (templateId: string, name: string) =>
-    apiClient.get<{ template_id: string; name: string; content: string }>(
-      `/templates/${templateId}/compose`,
-      { params: { name } },
-    ),
+    apiClient.get<{ template_id: string; name: string; content: string }>(`/templates/${templateId}/compose`, {
+      params: { name },
+    }),
   generateCompose: (templateId: string, options: ComposeGenerateOptions) =>
     apiClient.post<{ template_id: string; name: string; content: string }>(
       `/templates/${templateId}/generate`,
@@ -273,8 +261,7 @@ export const filesApi = {
     apiClient.get<{ files: FileInfo[] }>(`/deployments/${deploymentName}/files`, {
       params: { path },
     }),
-  getInfo: (deploymentName: string) =>
-    apiClient.get<FilesInfo>(`/deployments/${deploymentName}/files-info`),
+  getInfo: (deploymentName: string) => apiClient.get<FilesInfo>(`/deployments/${deploymentName}/files-info`),
   download: (deploymentName: string, path: string) =>
     apiClient.get(`/deployments/${deploymentName}/files${path}`, {
       responseType: "blob",
@@ -286,10 +273,8 @@ export const filesApi = {
       headers: { "Content-Type": "multipart/form-data" },
     });
   },
-  createDir: (deploymentName: string, path: string) =>
-    apiClient.post(`/deployments/${deploymentName}/mkdir${path}`),
-  delete: (deploymentName: string, path: string) =>
-    apiClient.delete(`/deployments/${deploymentName}/files${path}`),
+  createDir: (deploymentName: string, path: string) => apiClient.post(`/deployments/${deploymentName}/mkdir${path}`),
+  delete: (deploymentName: string, path: string) => apiClient.delete(`/deployments/${deploymentName}/files${path}`),
   getContent: (deploymentName: string, path: string) =>
     apiClient.get<string>(`/deployments/${deploymentName}/files${path}`, {
       responseType: "text",
@@ -344,10 +329,7 @@ export interface UserInfo {
 
 export const databasesApi = {
   testConnection: (config: DatabaseConnectionConfig) =>
-    apiClient.post<{ success: boolean; message?: string; error?: string }>(
-      "/databases/test",
-      config,
-    ),
+    apiClient.post<{ success: boolean; message?: string; error?: string }>("/databases/test", config),
   listDatabases: (config: DatabaseConnectionConfig) =>
     apiClient.post<{ databases: DatabaseInfo[] }>("/databases/list", config),
   listTables: (config: DatabaseConnectionConfig, database: string) =>
@@ -355,28 +337,17 @@ export const databasesApi = {
       ...config,
       database,
     }),
-  listUsers: (config: DatabaseConnectionConfig) =>
-    apiClient.post<{ users: UserInfo[] }>("/databases/users", config),
+  listUsers: (config: DatabaseConnectionConfig) => apiClient.post<{ users: UserInfo[] }>("/databases/users", config),
   createDatabase: (config: DatabaseConnectionConfig, dbName: string) =>
     apiClient.post("/databases/create", { ...config, db_name: dbName }),
-  createUser: (
-    config: DatabaseConnectionConfig,
-    username: string,
-    password: string,
-    host?: string,
-  ) =>
+  createUser: (config: DatabaseConnectionConfig, username: string, password: string, host?: string) =>
     apiClient.post("/databases/users/create", {
       ...config,
       target_username: username,
       target_password: password,
       target_host: host,
     }),
-  grantPrivileges: (
-    config: DatabaseConnectionConfig,
-    username: string,
-    database: string,
-    host?: string,
-  ) =>
+  grantPrivileges: (config: DatabaseConnectionConfig, username: string, database: string, host?: string) =>
     apiClient.post("/databases/privileges/grant", {
       ...config,
       target_username: username,
@@ -450,6 +421,5 @@ export const infrastructureApi = {
       params: tail ? { tail } : undefined,
     }),
   stats: () => apiClient.get<{ stats: InfraStats }>("/infrastructure/stats"),
-  migrate: (name: string) =>
-    apiClient.post<{ message: string; name: string }>(`/infrastructure/migrate/${name}`),
+  migrate: (name: string) => apiClient.post<{ message: string; name: string }>(`/infrastructure/migrate/${name}`),
 };

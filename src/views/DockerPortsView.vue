@@ -23,12 +23,7 @@
 
       <template #cell-hostPort="{ item }">
         <div class="port-info">
-          <a
-            :href="`http://localhost:${item.hostPort}`"
-            target="_blank"
-            class="port-link"
-            @click.stop
-          >
+          <a :href="`http://localhost:${item.hostPort}`" target="_blank" class="port-link" @click.stop>
             <span class="port-number">{{ item.hostPort }}</span>
             <ExternalLink :size="12" />
           </a>
@@ -54,11 +49,7 @@
       </template>
 
       <template #cell-deployment="{ item }">
-        <router-link
-          v-if="item.deployment"
-          :to="`/deployments/${item.deployment}`"
-          class="deployment-link"
-        >
+        <router-link v-if="item.deployment" :to="`/deployments/${item.deployment}`" class="deployment-link">
           <Layers :size="14" />
           {{ item.deployment }}
         </router-link>
