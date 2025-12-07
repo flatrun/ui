@@ -148,9 +148,7 @@
               <span class="nav-count">{{ stats.apps }}</span>
               Installed Apps
             </router-link>
-            <router-link to="/marketplace" class="nav-subitem" active-class="active">
-              Marketplace
-            </router-link>
+            <router-link to="/marketplace" class="nav-subitem" active-class="active"> Marketplace </router-link>
           </div>
         </div>
 
@@ -165,9 +163,7 @@
             />
           </div>
           <div v-show="expandedGroups.admin && !sidebarCollapsed" class="nav-group-items">
-            <router-link to="/settings" class="nav-subitem" active-class="active">
-              Settings
-            </router-link>
+            <router-link to="/settings" class="nav-subitem" active-class="active"> Settings </router-link>
           </div>
         </div>
       </nav>
@@ -203,9 +199,7 @@
         </div>
         <div class="agent-status">
           <span class="status-dot" :class="{ online: agentOnline }" />
-          <span v-if="!sidebarCollapsed" class="status-text">{{
-            agentOnline ? "Connected" : "Disconnected"
-          }}</span>
+          <span v-if="!sidebarCollapsed" class="status-text">{{ agentOnline ? "Connected" : "Disconnected" }}</span>
         </div>
         <button v-if="!sidebarCollapsed" class="logout-btn" @click="handleLogout">
           <i class="pi pi-sign-out" />

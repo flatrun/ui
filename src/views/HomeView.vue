@@ -135,11 +135,7 @@
                   <span class="action-hint">Deploy from template</span>
                 </div>
               </button>
-              <button
-                class="quick-action"
-                :disabled="stats.stopped === 0"
-                @click="startAllDeployments"
-              >
+              <button class="quick-action" :disabled="stats.stopped === 0" @click="startAllDeployments">
                 <div class="action-icon green">
                   <i class="pi pi-play" />
                 </div>
@@ -148,11 +144,7 @@
                   <span class="action-hint">{{ stats.stopped }} stopped</span>
                 </div>
               </button>
-              <button
-                class="quick-action"
-                :disabled="stats.running === 0"
-                @click="stopAllDeployments"
-              >
+              <button class="quick-action" :disabled="stats.running === 0" @click="stopAllDeployments">
                 <div class="action-icon red">
                   <i class="pi pi-stop" />
                 </div>

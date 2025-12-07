@@ -52,9 +52,7 @@
         </span>
       </template>
 
-      <template #cell-capabilities="{ item }">
-        {{ item.capabilities?.length || 0 }} capabilities
-      </template>
+      <template #cell-capabilities="{ item }"> {{ item.capabilities?.length || 0 }} capabilities </template>
 
       <template #cell-actions>
         <div class="table-actions">
@@ -117,11 +115,7 @@
               <div v-if="plugin.dashboard_extensions?.length" class="extensions-section">
                 <span class="section-label">Dashboard Extensions</span>
                 <div class="extensions-list">
-                  <div
-                    v-for="ext in plugin.dashboard_extensions"
-                    :key="ext.location"
-                    class="extension-item"
-                  >
+                  <div v-for="ext in plugin.dashboard_extensions" :key="ext.location" class="extension-item">
                     <i class="pi pi-puzzle-piece" />
                     <span>{{ ext.component }}</span>
                     <span class="extension-location">@ {{ ext.location }}</span>
@@ -132,19 +126,13 @@
               <div v-if="plugin.api?.length" class="api-section">
                 <span class="section-label">API Endpoints ({{ plugin.api.length }})</span>
                 <div class="api-list">
-                  <div
-                    v-for="endpoint in plugin.api.slice(0, 3)"
-                    :key="endpoint.path"
-                    class="api-item"
-                  >
+                  <div v-for="endpoint in plugin.api.slice(0, 3)" :key="endpoint.path" class="api-item">
                     <span class="api-method" :class="endpoint.method.toLowerCase()">
                       {{ endpoint.method }}
                     </span>
                     <code>{{ endpoint.path }}</code>
                   </div>
-                  <div v-if="plugin.api.length > 3" class="api-more">
-                    +{{ plugin.api.length - 3 }} more endpoints
-                  </div>
+                  <div v-if="plugin.api.length > 3" class="api-more">+{{ plugin.api.length - 3 }} more endpoints</div>
                 </div>
               </div>
             </div>

@@ -54,18 +54,10 @@
 
       <template #cell-actions="{ item }">
         <div class="action-buttons">
-          <button
-            class="action-btn connect"
-            title="Open Manager"
-            @click.stop="openConnection(item)"
-          >
+          <button class="action-btn connect" title="Open Manager" @click.stop="openConnection(item)">
             <Link :size="14" />
           </button>
-          <button
-            class="action-btn test"
-            title="Test Connection"
-            @click.stop="testConnection(item)"
-          >
+          <button class="action-btn test" title="Test Connection" @click.stop="testConnection(item)">
             <Zap :size="14" />
           </button>
           <button class="action-btn edit" title="Edit" @click.stop="editConnection(item)">
@@ -93,12 +85,7 @@
           <div class="modal-body">
             <div class="form-group">
               <label>Connection Name</label>
-              <input
-                v-model="connectionForm.name"
-                type="text"
-                class="form-input"
-                placeholder="My Database"
-              />
+              <input v-model="connectionForm.name" type="text" class="form-input" placeholder="My Database" />
             </div>
 
             <div class="form-group">
@@ -115,12 +102,7 @@
             <div class="form-row">
               <div class="form-group flex-grow">
                 <label>Host</label>
-                <input
-                  v-model="connectionForm.host"
-                  type="text"
-                  class="form-input"
-                  placeholder="localhost"
-                />
+                <input v-model="connectionForm.host" type="text" class="form-input" placeholder="localhost" />
               </div>
               <div class="form-group port-field">
                 <label>Port</label>
@@ -135,32 +117,17 @@
 
             <div class="form-group">
               <label>Database Name</label>
-              <input
-                v-model="connectionForm.database"
-                type="text"
-                class="form-input"
-                placeholder="my_database"
-              />
+              <input v-model="connectionForm.database" type="text" class="form-input" placeholder="my_database" />
             </div>
 
             <div class="form-row">
               <div class="form-group flex-grow">
                 <label>Username</label>
-                <input
-                  v-model="connectionForm.username"
-                  type="text"
-                  class="form-input"
-                  placeholder="root"
-                />
+                <input v-model="connectionForm.username" type="text" class="form-input" placeholder="root" />
               </div>
               <div class="form-group flex-grow">
                 <label>Password</label>
-                <input
-                  v-model="connectionForm.password"
-                  type="password"
-                  class="form-input"
-                  placeholder="••••••••"
-                />
+                <input v-model="connectionForm.password" type="password" class="form-input" placeholder="••••••••" />
               </div>
             </div>
 
@@ -179,11 +146,7 @@
                 @change="onContainerSelect(connectionForm.container)"
               >
                 <option value="">Select a container...</option>
-                <option
-                  v-for="container in dbContainers"
-                  :key="container.id"
-                  :value="container.name"
-                >
+                <option v-for="container in dbContainers" :key="container.id" :value="container.name">
                   {{ container.name }} ({{ container.image }})
                 </option>
               </select>
@@ -223,18 +186,7 @@ import { useNotificationsStore } from "@/stores/notifications";
 import { containersApi, databasesApi, type DatabaseConnectionConfig } from "@/services/api";
 import DataTable from "@/components/DataTable.vue";
 import ConfirmModal from "@/components/ConfirmModal.vue";
-import {
-  Database,
-  Plus,
-  RefreshCw,
-  Box,
-  Link,
-  Zap,
-  Pencil,
-  Trash2,
-  X,
-  Save,
-} from "lucide-vue-next";
+import { Database, Plus, RefreshCw, Box, Link, Zap, Pencil, Trash2, X, Save } from "lucide-vue-next";
 
 interface DatabaseConnection {
   id: string;

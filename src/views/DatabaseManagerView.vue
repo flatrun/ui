@@ -74,12 +74,7 @@
       </div>
 
       <div class="databases-grid">
-        <div
-          v-for="db in databases"
-          :key="db.name"
-          class="database-card"
-          @click="selectDatabase(db.name)"
-        >
+        <div v-for="db in databases" :key="db.name" class="database-card" @click="selectDatabase(db.name)">
           <div class="card-icon">
             <Database :size="24" />
           </div>
@@ -87,11 +82,7 @@
             <h3>{{ db.name }}</h3>
             <span class="card-meta">Click to explore</span>
           </div>
-          <button
-            class="card-action"
-            title="Delete database"
-            @click.stop="confirmDeleteDatabase(db.name)"
-          >
+          <button class="card-action" title="Delete database" @click.stop="confirmDeleteDatabase(db.name)">
             <Trash2 :size="14" />
           </button>
         </div>
@@ -134,20 +125,12 @@
     <div v-else class="database-context">
       <!-- Tabs -->
       <div class="context-tabs">
-        <button
-          class="tab-btn"
-          :class="{ active: activeTab === 'tables' }"
-          @click="activeTab = 'tables'"
-        >
+        <button class="tab-btn" :class="{ active: activeTab === 'tables' }" @click="activeTab = 'tables'">
           <Table2 :size="16" />
           Tables
           <span class="tab-count">{{ tables.length }}</span>
         </button>
-        <button
-          class="tab-btn"
-          :class="{ active: activeTab === 'query' }"
-          @click="activeTab = 'query'"
-        >
+        <button class="tab-btn" :class="{ active: activeTab === 'query' }" @click="activeTab = 'query'">
           <Code :size="16" />
           Query
         </button>
@@ -157,18 +140,11 @@
       <div v-if="activeTab === 'tables'" class="tab-content">
         <div v-if="!selectedTable" class="tables-view">
           <div class="tables-grid">
-            <div
-              v-for="table in tables"
-              :key="table.name"
-              class="table-card"
-              @click="selectTable(table.name)"
-            >
+            <div v-for="table in tables" :key="table.name" class="table-card" @click="selectTable(table.name)">
               <Table2 :size="20" />
               <div class="table-info">
                 <h4>{{ table.name }}</h4>
-                <span v-if="table.rows !== undefined" class="table-rows">
-                  {{ table.rows }} rows
-                </span>
+                <span v-if="table.rows !== undefined" class="table-rows"> {{ table.rows }} rows </span>
                 <span v-if="table.engine" class="table-engine">{{ table.engine }}</span>
               </div>
               <ChevronRight :size="16" class="table-arrow" />
@@ -227,19 +203,11 @@
             <div class="data-footer">
               <span class="row-count">{{ tableData.count }} rows returned</span>
               <div class="pagination">
-                <button
-                  class="btn btn-secondary btn-sm"
-                  :disabled="currentOffset === 0"
-                  @click="prevPage"
-                >
+                <button class="btn btn-secondary btn-sm" :disabled="currentOffset === 0" @click="prevPage">
                   Previous
                 </button>
                 <span class="page-info">Offset: {{ currentOffset }}</span>
-                <button
-                  class="btn btn-secondary btn-sm"
-                  :disabled="tableData.count < pageSize"
-                  @click="nextPage"
-                >
+                <button class="btn btn-secondary btn-sm" :disabled="tableData.count < pageSize" @click="nextPage">
                   Next
                 </button>
               </div>
@@ -268,11 +236,7 @@
             @keydown="handleQueryKeydown"
           />
           <div class="query-toolbar">
-            <button
-              class="btn btn-primary"
-              :disabled="!sqlQuery || executingQuery"
-              @click="executeQuery"
-            >
+            <button class="btn btn-primary" :disabled="!sqlQuery || executingQuery" @click="executeQuery">
               <Play :size="16" :class="{ spinning: executingQuery }" />
               Run
             </button>
@@ -357,11 +321,7 @@
           </div>
           <div class="modal-footer">
             <button class="btn btn-secondary" @click="showCreateDb = false">Cancel</button>
-            <button
-              class="btn btn-primary"
-              :disabled="!newDbName || creatingDb"
-              @click="createDatabase"
-            >
+            <button class="btn btn-primary" :disabled="!newDbName || creatingDb" @click="createDatabase">
               <Plus :size="14" :class="{ spinning: creatingDb }" />
               Create
             </button>
@@ -385,33 +345,15 @@
           <div class="modal-body">
             <div class="form-group">
               <label>Username</label>
-              <input
-                v-model="newUserForm.username"
-                type="text"
-                class="form-input"
-                placeholder="new_user"
-              />
+              <input v-model="newUserForm.username" type="text" class="form-input" placeholder="new_user" />
             </div>
             <div class="form-group">
               <label>Password</label>
-              <input
-                v-model="newUserForm.password"
-                type="password"
-                class="form-input"
-                placeholder="••••••••"
-              />
+              <input v-model="newUserForm.password" type="password" class="form-input" placeholder="••••••••" />
             </div>
-            <div
-              v-if="connection?.type === 'mysql' || connection?.type === 'mariadb'"
-              class="form-group"
-            >
+            <div v-if="connection?.type === 'mysql' || connection?.type === 'mariadb'" class="form-group">
               <label>Host (optional)</label>
-              <input
-                v-model="newUserForm.host"
-                type="text"
-                class="form-input"
-                placeholder="% (any host)"
-              />
+              <input v-model="newUserForm.host" type="text" class="form-input" placeholder="% (any host)" />
             </div>
             <div class="form-group">
               <label class="checkbox-label">
@@ -490,9 +432,7 @@
           <div class="modal-body">
             <p class="confirm-text">
               Are you sure you want to delete the user
-              <strong
-                >{{ deleteUserInfo?.name
-                }}{{ deleteUserInfo?.host ? `@${deleteUserInfo.host}` : "" }}</strong
+              <strong>{{ deleteUserInfo?.name }}{{ deleteUserInfo?.host ? `@${deleteUserInfo.host}` : "" }}</strong
               >?
             </p>
             <p class="warning-text">This action cannot be undone.</p>
@@ -639,10 +579,7 @@ const connect = async () => {
     const config = getConnectionConfig();
     if (!config) throw new Error("Invalid connection");
 
-    const [dbsRes, usersRes] = await Promise.all([
-      databasesApi.listDatabases(config),
-      databasesApi.listUsers(config),
-    ]);
+    const [dbsRes, usersRes] = await Promise.all([databasesApi.listDatabases(config), databasesApi.listUsers(config)]);
 
     databases.value = dbsRes.data.databases || [];
     users.value = usersRes.data.users || [];
@@ -669,10 +606,7 @@ const refreshServerData = async () => {
     const config = getConnectionConfig();
     if (!config) return;
 
-    const [dbsRes, usersRes] = await Promise.all([
-      databasesApi.listDatabases(config),
-      databasesApi.listUsers(config),
-    ]);
+    const [dbsRes, usersRes] = await Promise.all([databasesApi.listDatabases(config), databasesApi.listUsers(config)]);
 
     databases.value = dbsRes.data.databases || [];
     users.value = usersRes.data.users || [];

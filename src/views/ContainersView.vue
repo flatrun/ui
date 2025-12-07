@@ -49,11 +49,7 @@
       </template>
 
       <template #cell-deployment="{ item }">
-        <button
-          v-if="item.deployment"
-          class="deployment-link"
-          @click.stop="goToDeployment(item.deployment)"
-        >
+        <button v-if="item.deployment" class="deployment-link" @click.stop="goToDeployment(item.deployment)">
           <Link :size="12" />
           {{ item.deployment }}
         </button>
@@ -85,19 +81,10 @@
           >
             <Square :size="14" />
           </button>
-          <button
-            v-else
-            class="action-btn start"
-            title="Start"
-            @click.stop="startContainer(item.id)"
-          >
+          <button v-else class="action-btn start" title="Start" @click.stop="startContainer(item.id)">
             <Play :size="14" />
           </button>
-          <button
-            class="action-btn restart"
-            title="Restart"
-            @click.stop="restartContainer(item.id)"
-          >
+          <button class="action-btn restart" title="Restart" @click.stop="restartContainer(item.id)">
             <RotateCw :size="14" />
           </button>
           <button class="action-btn logs" title="Logs" @click.stop="showLogs(item.id, item.name)">
@@ -163,16 +150,7 @@ import { containersApi } from "@/services/api";
 import DataTable from "@/components/DataTable.vue";
 import LogsModal from "@/components/LogsModal.vue";
 import ConfirmModal from "@/components/ConfirmModal.vue";
-import {
-  RefreshCw,
-  Play,
-  Square,
-  RotateCw,
-  FileText,
-  Trash2,
-  Package,
-  Link,
-} from "lucide-vue-next";
+import { RefreshCw, Play, Square, RotateCw, FileText, Trash2, Package, Link } from "lucide-vue-next";
 
 const router = useRouter();
 

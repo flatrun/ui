@@ -54,9 +54,7 @@ export const usePluginsStore = defineStore("plugins", () => {
   };
 
   const getPluginsByLocation = (location: string) => {
-    return plugins.value.filter((p) =>
-      p.dashboard_extensions?.some((ext) => ext.location === location),
-    );
+    return plugins.value.filter((p) => p.dashboard_extensions?.some((ext) => ext.location === location));
   };
 
   const getPluginsByCapability = (capability: string) => {

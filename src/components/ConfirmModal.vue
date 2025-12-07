@@ -17,12 +17,7 @@
             <button class="btn btn-secondary" :disabled="loading" @click="emit('cancel')">
               {{ cancelText }}
             </button>
-            <button
-              class="btn"
-              :class="confirmButtonClass"
-              :disabled="loading"
-              @click="emit('confirm')"
-            >
+            <button class="btn" :class="confirmButtonClass" :disabled="loading" @click="emit('confirm')">
               <i v-if="loading" class="pi pi-spin pi-spinner" />
               {{ confirmText }}
             </button>

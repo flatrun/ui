@@ -165,10 +165,7 @@ const killProcess = async () => {
   killing.value = true;
   try {
     await portsApi.kill(selectedPort.value.pid);
-    notifications.success(
-      "Process killed",
-      `Successfully killed process ${selectedPort.value.pid}`,
-    );
+    notifications.success("Process killed", `Successfully killed process ${selectedPort.value.pid}`);
     showKillModal.value = false;
     selectedPort.value = null;
     await fetchPorts();

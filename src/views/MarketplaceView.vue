@@ -4,12 +4,7 @@
       <div class="header-left">
         <div class="search-box">
           <i class="pi pi-search" />
-          <input
-            v-model="searchQuery"
-            type="text"
-            placeholder="Search apps..."
-            class="search-input"
-          />
+          <input v-model="searchQuery" type="text" placeholder="Search apps..." class="search-input" />
         </div>
         <div class="category-filters">
           <button
@@ -147,8 +142,7 @@ const apps = ref<MarketplaceApp[]>([
   {
     id: "database-manager",
     name: "Database Manager",
-    description:
-      "phpMyAdmin and pgAdmin integration with automated backups, user management, and query optimization.",
+    description: "phpMyAdmin and pgAdmin integration with automated backups, user management, and query optimization.",
     author: "WhileSmart",
     version: "2.5.0",
     icon: "pi pi-database",
@@ -160,8 +154,7 @@ const apps = ref<MarketplaceApp[]>([
   {
     id: "mail-server",
     name: "Mail Server",
-    description:
-      "Full-featured mail server with SMTP, IMAP, POP3, spam filtering, DKIM, and webmail interface.",
+    description: "Full-featured mail server with SMTP, IMAP, POP3, spam filtering, DKIM, and webmail interface.",
     author: "WhileSmart",
     version: "1.0.0",
     icon: "pi pi-envelope",
@@ -186,8 +179,7 @@ const apps = ref<MarketplaceApp[]>([
   {
     id: "ssl-manager",
     name: "SSL Certificate Manager",
-    description:
-      "Automated SSL certificate management with Let's Encrypt, wildcard support, and auto-renewal.",
+    description: "Automated SSL certificate management with Let's Encrypt, wildcard support, and auto-renewal.",
     author: "WhileSmart",
     version: "2.0.0",
     icon: "pi pi-lock",
@@ -199,8 +191,7 @@ const apps = ref<MarketplaceApp[]>([
   {
     id: "firewall-manager",
     name: "Firewall Manager",
-    description:
-      "Advanced firewall rules, fail2ban integration, IP blocking, and intrusion detection.",
+    description: "Advanced firewall rules, fail2ban integration, IP blocking, and intrusion detection.",
     author: "WhileSmart",
     version: "1.2.0",
     icon: "pi pi-shield",
@@ -212,8 +203,7 @@ const apps = ref<MarketplaceApp[]>([
   {
     id: "dns-manager",
     name: "DNS Manager",
-    description:
-      "Complete DNS zone management with record templates, DNSSEC support, and bulk operations.",
+    description: "Complete DNS zone management with record templates, DNSSEC support, and bulk operations.",
     author: "WhileSmart",
     version: "1.5.0",
     icon: "pi pi-sitemap",
@@ -225,8 +215,7 @@ const apps = ref<MarketplaceApp[]>([
   {
     id: "resource-monitor",
     name: "Resource Monitor",
-    description:
-      "Real-time CPU, memory, disk, and network monitoring with alerts and historical graphs.",
+    description: "Real-time CPU, memory, disk, and network monitoring with alerts and historical graphs.",
     author: "WhileSmart",
     version: "1.8.0",
     icon: "pi pi-chart-line",

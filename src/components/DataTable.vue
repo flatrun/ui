@@ -4,30 +4,17 @@
       <div class="header-left">
         <div v-if="searchable" class="search-box">
           <Search :size="16" />
-          <input
-            v-model="searchQuery"
-            type="text"
-            :placeholder="searchPlaceholder"
-            class="search-input"
-          />
+          <input v-model="searchQuery" type="text" :placeholder="searchPlaceholder" class="search-input" />
         </div>
         <slot name="filters" />
       </div>
       <div class="header-right">
         <slot name="actions" />
         <div v-if="toggleable" class="view-toggle">
-          <button
-            class="toggle-btn"
-            :class="{ active: viewMode === 'grid' }"
-            @click="viewMode = 'grid'"
-          >
+          <button class="toggle-btn" :class="{ active: viewMode === 'grid' }" @click="viewMode = 'grid'">
             <Grid3x3 :size="16" />
           </button>
-          <button
-            class="toggle-btn"
-            :class="{ active: viewMode === 'table' }"
-            @click="viewMode = 'table'"
-          >
+          <button class="toggle-btn" :class="{ active: viewMode === 'table' }" @click="viewMode = 'table'">
             <List :size="16" />
           </button>
         </div>
@@ -86,11 +73,7 @@
                 <input v-model="selectedItems" type="checkbox" :value="getItemKey(item)" />
               </td>
               <td v-for="column in columns" :key="column.key">
-                <slot
-                  :name="`cell-${column.key}`"
-                  :item="item"
-                  :value="getNestedValue(item, column.key)"
-                >
+                <slot :name="`cell-${column.key}`" :item="item" :value="getNestedValue(item, column.key)">
                   {{ getNestedValue(item, column.key) }}
                 </slot>
               </td>
@@ -100,12 +83,7 @@
       </div>
 
       <div v-else class="grid-view">
-        <slot
-          name="grid"
-          :items="paginatedItems"
-          :selected-items="selectedItems"
-          :toggle-select="toggleSelect"
-        />
+        <slot name="grid" :items="paginatedItems" :selected-items="selectedItems" :toggle-select="toggleSelect" />
       </div>
 
       <div v-if="totalPages > 1" class="pagination">
@@ -133,11 +111,7 @@
           <button class="page-btn" :disabled="currentPage === totalPages" @click="currentPage++">
             <ChevronRight :size="16" />
           </button>
-          <button
-            class="page-btn"
-            :disabled="currentPage === totalPages"
-            @click="currentPage = totalPages"
-          >
+          <button class="page-btn" :disabled="currentPage === totalPages" @click="currentPage = totalPages">
             <ChevronsRight :size="16" />
           </button>
         </div>
@@ -263,9 +237,7 @@ const filteredItems = computed(() => {
 
 const totalPages = computed(() => Math.ceil(filteredItems.value.length / pageSize.value));
 const startIndex = computed(() => (currentPage.value - 1) * pageSize.value);
-const endIndex = computed(() =>
-  Math.min(startIndex.value + pageSize.value, filteredItems.value.length),
-);
+const endIndex = computed(() => Math.min(startIndex.value + pageSize.value, filteredItems.value.length));
 
 const paginatedItems = computed(() => {
   return filteredItems.value.slice(startIndex.value, endIndex.value);

@@ -4,12 +4,7 @@
       <div class="header-left">
         <div class="search-box">
           <i class="pi pi-search" />
-          <input
-            v-model="searchQuery"
-            type="text"
-            placeholder="Search templates..."
-            class="search-input"
-          />
+          <input v-model="searchQuery" type="text" placeholder="Search templates..." class="search-input" />
         </div>
         <div class="filter-tabs">
           <button
@@ -97,18 +92,12 @@
         <div class="modal-header">
           <div class="modal-title-row">
             <div class="template-logo-lg" :class="{ 'has-image': detailsTemplate?.logo }">
-              <img
-                v-if="detailsTemplate?.logo"
-                :src="detailsTemplate.logo"
-                :alt="detailsTemplate.name"
-              />
+              <img v-if="detailsTemplate?.logo" :src="detailsTemplate.logo" :alt="detailsTemplate.name" />
               <i v-else :class="detailsTemplate?.icon || 'pi pi-box'" />
             </div>
             <div>
               <h2>{{ detailsTemplate?.name }}</h2>
-              <span class="template-category">{{
-                getCategoryLabel(detailsTemplate?.category || "")
-              }}</span>
+              <span class="template-category">{{ getCategoryLabel(detailsTemplate?.category || "") }}</span>
             </div>
           </div>
           <button class="btn-icon" @click="closeDetails">
@@ -119,18 +108,10 @@
           <p class="template-description">{{ detailsTemplate?.description }}</p>
 
           <div class="details-tabs">
-            <button
-              class="tab-btn"
-              :class="{ active: activeTab === 'compose' }"
-              @click="activeTab = 'compose'"
-            >
+            <button class="tab-btn" :class="{ active: activeTab === 'compose' }" @click="activeTab = 'compose'">
               docker-compose.yml
             </button>
-            <button
-              class="tab-btn"
-              :class="{ active: activeTab === 'metadata' }"
-              @click="activeTab = 'metadata'"
-            >
+            <button class="tab-btn" :class="{ active: activeTab === 'metadata' }" @click="activeTab = 'metadata'">
               metadata.yml
             </button>
           </div>
@@ -216,9 +197,7 @@ const filteredTemplates = computed(() => {
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase();
     result = result.filter(
-      (t) =>
-        t.name.toLowerCase().includes(query) ||
-        (t.description && t.description.toLowerCase().includes(query)),
+      (t) => t.name.toLowerCase().includes(query) || (t.description && t.description.toLowerCase().includes(query)),
     );
   }
 
@@ -228,10 +207,7 @@ const filteredTemplates = computed(() => {
 const fetchTemplates = async () => {
   loading.value = true;
   try {
-    const [templatesRes, categoriesRes] = await Promise.all([
-      templatesApi.list(),
-      templatesApi.categories(),
-    ]);
+    const [templatesRes, categoriesRes] = await Promise.all([templatesApi.list(), templatesApi.categories()]);
     templates.value = templatesRes.data.templates || [];
     apiCategories.value = categoriesRes.data.categories || [];
   } catch {

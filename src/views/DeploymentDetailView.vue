@@ -116,11 +116,7 @@
               <div class="card-header">
                 <i class="pi pi-globe" />
                 <h3>Domain & SSL</h3>
-                <button
-                  class="btn btn-sm btn-icon"
-                  title="Edit Domain Settings"
-                  @click="openDomainSettings"
-                >
+                <button class="btn btn-sm btn-icon" title="Edit Domain Settings" @click="openDomainSettings">
                   <i class="pi pi-pencil" />
                 </button>
               </div>
@@ -130,9 +126,7 @@
                     <span class="label">Domain</span>
                     <span class="value domain-link">
                       <a
-                        :href="
-                          (proxyStatus.ssl_enabled ? 'https://' : 'http://') + proxyStatus.domain
-                        "
+                        :href="(proxyStatus.ssl_enabled ? 'https://' : 'http://') + proxyStatus.domain"
                         target="_blank"
                       >
                         {{ proxyStatus.domain }}
@@ -143,10 +137,7 @@
                   <div class="info-row">
                     <span class="label">Virtual Host</span>
                     <span class="value">
-                      <span
-                        class="status-badge"
-                        :class="proxyStatus.virtual_host_exists ? 'running' : 'stopped'"
-                      >
+                      <span class="status-badge" :class="proxyStatus.virtual_host_exists ? 'running' : 'stopped'">
                         {{ proxyStatus.virtual_host_exists ? "Configured" : "Not Configured" }}
                       </span>
                     </span>
@@ -154,10 +145,7 @@
                   <div class="info-row">
                     <span class="label">SSL</span>
                     <span class="value">
-                      <span
-                        class="status-badge"
-                        :class="proxyStatus.ssl_enabled ? 'running' : 'stopped'"
-                      >
+                      <span class="status-badge" :class="proxyStatus.ssl_enabled ? 'running' : 'stopped'">
                         {{ proxyStatus.ssl_enabled ? "Enabled" : "Disabled" }}
                       </span>
                     </span>
@@ -173,10 +161,7 @@
                     </div>
                     <div class="info-row">
                       <span class="label">Expires</span>
-                      <span
-                        class="value"
-                        :class="{ 'text-warning': proxyStatus.certificate.days_left <= 30 }"
-                      >
+                      <span class="value" :class="{ 'text-warning': proxyStatus.certificate.days_left <= 30 }">
                         {{ proxyStatus.certificate.days_left }} days ({{
                           formatDateTime(proxyStatus.certificate.not_after)
                         }})
@@ -220,16 +205,12 @@
                 <h3>Services</h3>
               </div>
               <div class="card-body">
-                <div v-if="services.length === 0" class="empty-services">
-                  No services configured
-                </div>
+                <div v-if="services.length === 0" class="empty-services">No services configured</div>
                 <div v-else class="services-list">
                   <div v-for="service in services" :key="service.name" class="service-item">
                     <div class="service-header">
                       <span class="service-name">{{ service.name }}</span>
-                      <span class="service-status" :class="service.status">{{
-                        service.status
-                      }}</span>
+                      <span class="service-status" :class="service.status">{{ service.status }}</span>
                     </div>
                     <div class="service-details">
                       <span class="detail-item">
@@ -356,28 +337,16 @@
             <div class="terminal-selector">
               <label>Service:</label>
               <select v-model="terminalService" class="form-select">
-                <option
-                  v-for="service in services"
-                  :key="service.name"
-                  :value="service.container_id"
-                >
+                <option v-for="service in services" :key="service.name" :value="service.container_id">
                   {{ service.name }}
                 </option>
               </select>
             </div>
             <div class="terminal-actions">
-              <button
-                class="btn btn-sm btn-primary"
-                :disabled="services.length === 0"
-                @click="connectTerminal"
-              >
+              <button class="btn btn-sm btn-primary" :disabled="services.length === 0" @click="connectTerminal">
                 <i class="pi pi-play" /> Connect
               </button>
-              <button
-                class="btn btn-sm btn-secondary"
-                :disabled="services.length === 0"
-                @click="reconnectTerminal"
-              >
+              <button class="btn btn-sm btn-secondary" :disabled="services.length === 0" @click="reconnectTerminal">
                 <i class="pi pi-refresh" /> Reconnect
               </button>
             </div>
@@ -463,21 +432,13 @@
             <div class="config-header">
               <h3>Docker Compose Configuration</h3>
               <div class="config-actions">
-                <button class="btn btn-sm btn-secondary" @click="copyConfig">
-                  <i class="pi pi-copy" /> Copy
-                </button>
-                <button
-                  v-if="!isEditingConfig"
-                  class="btn btn-sm btn-primary"
-                  @click="isEditingConfig = true"
-                >
+                <button class="btn btn-sm btn-secondary" @click="copyConfig"><i class="pi pi-copy" /> Copy</button>
+                <button v-if="!isEditingConfig" class="btn btn-sm btn-primary" @click="isEditingConfig = true">
                   <i class="pi pi-pencil" /> Edit
                 </button>
                 <template v-else>
                   <button class="btn btn-sm btn-secondary" @click="cancelConfigEdit">Cancel</button>
-                  <button class="btn btn-sm btn-success" @click="saveConfig">
-                    <i class="pi pi-check" /> Save
-                  </button>
+                  <button class="btn btn-sm btn-success" @click="saveConfig"><i class="pi pi-check" /> Save</button>
                 </template>
               </div>
             </div>
@@ -506,9 +467,7 @@
                   <i class="pi pi-pencil" /> Edit
                 </button>
                 <template v-else>
-                  <button class="btn btn-sm btn-secondary" @click="cancelServiceConfigEdit">
-                    Cancel
-                  </button>
+                  <button class="btn btn-sm btn-secondary" @click="cancelServiceConfigEdit">Cancel</button>
                   <button class="btn btn-sm btn-success" @click="saveServiceConfig">
                     <i class="pi pi-check" /> Save
                   </button>
@@ -568,11 +527,7 @@
             </div>
           </div>
           <div class="modal-footer">
-            <button
-              class="btn btn-secondary"
-              :disabled="operationRunning"
-              @click="showOperationModal = false"
-            >
+            <button class="btn btn-secondary" :disabled="operationRunning" @click="showOperationModal = false">
               Close
             </button>
           </div>
@@ -580,17 +535,69 @@
       </div>
     </Teleport>
 
-    <ConfirmModal
-      :visible="showDeleteDeploymentModal"
-      title="Delete Deployment"
-      :message="`Are you sure you want to delete '${deployment?.name}'? This will remove all containers, volumes, and configuration.`"
-      warning="This action cannot be undone."
-      variant="danger"
-      confirm-text="Delete"
-      :loading="deletingDeployment"
-      @confirm="deleteDeployment"
-      @cancel="showDeleteDeploymentModal = false"
-    />
+    <Teleport to="body">
+      <div
+        v-if="showDeleteDeploymentModal"
+        class="modal-overlay"
+        @click.self="!deletingDeployment && (showDeleteDeploymentModal = false)"
+      >
+        <div class="delete-modal modal-container">
+          <div class="modal-header danger">
+            <h3>
+              <i class="pi pi-trash" />
+              Delete Deployment
+            </h3>
+            <button v-if="!deletingDeployment" class="close-btn" @click="showDeleteDeploymentModal = false">
+              <i class="pi pi-times" />
+            </button>
+          </div>
+          <div class="modal-body">
+            <p class="delete-warning">
+              Are you sure you want to delete <strong>{{ deployment?.name }}</strong
+              >? This will remove all containers, volumes, and configuration.
+            </p>
+            <div class="delete-options">
+              <h4>Additional cleanup options:</h4>
+              <label class="delete-option">
+                <input v-model="deleteOptions.deleteVhost" type="checkbox" />
+                <span class="option-content">
+                  <span class="option-label">Delete Virtual Host</span>
+                  <span class="option-hint">Remove nginx proxy configuration</span>
+                </span>
+              </label>
+              <label class="delete-option">
+                <input v-model="deleteOptions.deleteSSL" type="checkbox" />
+                <span class="option-content">
+                  <span class="option-label">Delete SSL Certificate</span>
+                  <span class="option-hint">Remove Let's Encrypt certificate for this domain</span>
+                </span>
+              </label>
+              <label class="delete-option">
+                <input v-model="deleteOptions.deleteDatabase" type="checkbox" />
+                <span class="option-content">
+                  <span class="option-label">Delete Database</span>
+                  <span class="option-hint"> Remove associated database and user (if using shared database) </span>
+                </span>
+              </label>
+            </div>
+            <p class="danger-text">
+              <i class="pi pi-exclamation-triangle" />
+              This action cannot be undone.
+            </p>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" :disabled="deletingDeployment" @click="showDeleteDeploymentModal = false">
+              Cancel
+            </button>
+            <button class="btn btn-danger" :disabled="deletingDeployment" @click="deleteDeployment">
+              <i v-if="deletingDeployment" class="pi pi-spin pi-spinner" />
+              <i v-else class="pi pi-trash" />
+              {{ deletingDeployment ? "Deleting..." : "Delete Deployment" }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
 
     <ConfirmModal
       :visible="showDeleteEnvModal"
@@ -603,11 +610,7 @@
     />
 
     <Teleport to="body">
-      <div
-        v-if="showDomainSettingsModal"
-        class="modal-overlay"
-        @click.self="showDomainSettingsModal = false"
-      >
+      <div v-if="showDomainSettingsModal" class="modal-overlay" @click.self="showDomainSettingsModal = false">
         <div class="domain-settings-modal modal-container">
           <div class="modal-header">
             <h3>
@@ -630,12 +633,7 @@
             <template v-if="domainSettings.expose">
               <div class="form-group">
                 <label>Domain</label>
-                <input
-                  v-model="domainSettings.domain"
-                  type="text"
-                  placeholder="app.example.com"
-                  class="form-input"
-                />
+                <input v-model="domainSettings.domain" type="text" placeholder="app.example.com" class="form-input" />
                 <span class="hint">The domain name for your deployment</span>
               </div>
 
@@ -668,14 +666,8 @@
             </template>
           </div>
           <div class="modal-footer">
-            <button class="btn btn-secondary" @click="showDomainSettingsModal = false">
-              Cancel
-            </button>
-            <button
-              class="btn btn-primary"
-              :disabled="savingDomainSettings"
-              @click="saveDomainSettings"
-            >
+            <button class="btn btn-secondary" @click="showDomainSettingsModal = false">Cancel</button>
+            <button class="btn btn-primary" :disabled="savingDomainSettings" @click="saveDomainSettings">
               <i v-if="savingDomainSettings" class="pi pi-spin pi-spinner" />
               {{ savingDomainSettings ? "Saving..." : "Save Settings" }}
             </button>
@@ -716,11 +708,7 @@
           </div>
           <div class="modal-footer">
             <button class="btn btn-secondary" @click="showAddEnvModal = false">Cancel</button>
-            <button
-              class="btn btn-primary"
-              :disabled="savingEnvVars || !newEnvKey.trim()"
-              @click="saveEnvVar"
-            >
+            <button class="btn btn-primary" :disabled="savingEnvVars || !newEnvKey.trim()" @click="saveEnvVar">
               <i v-if="savingEnvVars" class="pi pi-spin pi-spinner" />
               {{ savingEnvVars ? "Saving..." : editingEnvVar ? "Update" : "Add" }}
             </button>
@@ -737,14 +725,7 @@ import { useRoute, useRouter } from "vue-router";
 import { Codemirror } from "vue-codemirror";
 import { yaml } from "@codemirror/lang-yaml";
 import { oneDark } from "@codemirror/theme-one-dark";
-import {
-  deploymentsApi,
-  proxyApi,
-  certificatesApi,
-  filesApi,
-  infrastructureApi,
-  type EnvVar,
-} from "@/services/api";
+import { deploymentsApi, proxyApi, certificatesApi, filesApi, infrastructureApi, type EnvVar } from "@/services/api";
 import { useNotificationsStore } from "@/stores/notifications";
 import type { ProxyStatus } from "@/types";
 import FileBrowser from "@/components/FileBrowser.vue";
@@ -821,6 +802,11 @@ const operationOutput = ref("");
 
 const showDeleteDeploymentModal = ref(false);
 const deletingDeployment = ref(false);
+const deleteOptions = ref({
+  deleteVhost: true,
+  deleteSSL: true,
+  deleteDatabase: false,
+});
 const showDeleteEnvModal = ref(false);
 const envKeyToDelete = ref("");
 
@@ -871,8 +857,7 @@ const fetchDeployment = async () => {
 
     try {
       const composeResponse = await deploymentsApi.getComposeFile(route.params.name as string);
-      composeConfig.value =
-        composeResponse.data.content || composeResponse.data || "No compose file found";
+      composeConfig.value = composeResponse.data.content || composeResponse.data || "No compose file found";
       composeFilename.value = composeResponse.data.filename || "docker-compose.yml";
     } catch (composeErr) {
       composeConfig.value = "Error loading compose file";
@@ -880,14 +865,10 @@ const fetchDeployment = async () => {
     }
 
     try {
-      const serviceResponse = await filesApi.getContent(
-        route.params.name as string,
-        "/service.yml",
-      );
+      const serviceResponse = await filesApi.getContent(route.params.name as string, "/service.yml");
       serviceConfig.value = serviceResponse.data || "No service.yml found";
     } catch (serviceErr) {
-      serviceConfig.value =
-        "# Service configuration not found\n# This file will be created when you save";
+      serviceConfig.value = "# Service configuration not found\n# This file will be created when you save";
       console.error("Failed to load service.yml:", serviceErr);
     }
 
@@ -1001,7 +982,11 @@ const confirmDelete = () => {
 const deleteDeployment = async () => {
   deletingDeployment.value = true;
   try {
-    await deploymentsApi.delete(route.params.name as string);
+    await deploymentsApi.delete(route.params.name as string, {
+      deleteSSL: deleteOptions.value.deleteSSL,
+      deleteDatabase: deleteOptions.value.deleteDatabase,
+      deleteVhost: deleteOptions.value.deleteVhost,
+    });
     showDeleteDeploymentModal.value = false;
     notifications.success("Deleted", `Deployment "${deployment.value?.name}" has been deleted`);
     router.push(backPath.value);
@@ -2243,6 +2228,123 @@ onUnmounted(() => {
 }
 
 .env-modal .modal-footer {
+  padding: var(--space-3) var(--space-4);
+  border-top: 1px solid var(--color-gray-200);
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
+.delete-modal {
+  max-width: 500px;
+}
+
+.delete-modal .modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--color-gray-200);
+}
+
+.delete-modal .modal-header.danger {
+  background: var(--color-danger-50);
+  border-bottom-color: var(--color-danger-200);
+}
+
+.delete-modal .modal-header.danger h3 {
+  color: var(--color-danger-700);
+}
+
+.delete-modal .modal-header h3 {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  font-size: var(--text-lg);
+}
+
+.delete-modal .modal-body {
+  padding: var(--space-4);
+}
+
+.delete-warning {
+  margin: 0 0 var(--space-4) 0;
+  color: var(--color-gray-700);
+  line-height: 1.5;
+}
+
+.delete-warning strong {
+  color: var(--color-gray-900);
+}
+
+.delete-options {
+  background: var(--color-gray-50);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+.delete-options h4 {
+  margin: 0 0 var(--space-3) 0;
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  color: var(--color-gray-700);
+}
+
+.delete-option {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
+  cursor: pointer;
+  border-bottom: 1px solid var(--color-gray-200);
+}
+
+.delete-option:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.delete-option input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  cursor: pointer;
+}
+
+.option-content {
+  flex: 1;
+}
+
+.option-label {
+  display: block;
+  font-weight: var(--font-medium);
+  color: var(--color-gray-900);
+  font-size: var(--text-sm);
+}
+
+.option-hint {
+  display: block;
+  font-size: var(--text-xs);
+  color: var(--color-gray-500);
+  margin-top: var(--space-1);
+}
+
+.danger-text {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  padding: var(--space-3);
+  background: var(--color-danger-50);
+  color: var(--color-danger-700);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+}
+
+.delete-modal .modal-footer {
   padding: var(--space-3) var(--space-4);
   border-top: 1px solid var(--color-gray-200);
   display: flex;

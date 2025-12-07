@@ -127,17 +127,14 @@
           >
             <!-- Domain Link -->
             <div
-              v-if="
-                deployment.metadata?.networking?.expose && deployment.metadata?.networking?.domain
-              "
+              v-if="deployment.metadata?.networking?.expose && deployment.metadata?.networking?.domain"
               class="domain-link"
               @click.stop
             >
               <Globe :size="14" />
               <a
                 :href="
-                  (deployment.metadata?.ssl?.enabled ? 'https://' : 'http://') +
-                  deployment.metadata.networking.domain
+                  (deployment.metadata?.ssl?.enabled ? 'https://' : 'http://') + deployment.metadata.networking.domain
                 "
                 target="_blank"
                 class="app-link"
@@ -203,11 +200,7 @@
                 <Network :size="12" />
                 {{ getNetworks(deployment)[0] }}
               </div>
-              <div
-                v-for="mapping in getPortMappings(deployment)"
-                :key="mapping.host"
-                class="info-pill port"
-              >
+              <div v-for="mapping in getPortMappings(deployment)" :key="mapping.host" class="info-pill port">
                 <Plug :size="12" />
                 {{ mapping.host }}:{{ mapping.container }}
               </div>
@@ -263,11 +256,7 @@
               <button class="icon-btn logs" title="Logs" @click="viewLogs(deployment.name)">
                 <FileText :size="14" />
               </button>
-              <button
-                class="icon-btn settings"
-                title="Settings"
-                @click="goToDeployment(deployment.name)"
-              >
+              <button class="icon-btn settings" title="Settings" @click="goToDeployment(deployment.name)">
                 <Settings :size="14" />
               </button>
             </template>
@@ -506,8 +495,7 @@ const getDeploymentIcon = (deployment: Deployment) => {
   if (mainImage.includes("nginx") || type === "nginx") return "pi pi-server";
   if (mainImage.includes("node") || mainImage.includes("express")) return "pi pi-code";
   if (mainImage.includes("php") || mainImage.includes("laravel")) return "pi pi-code";
-  if (mainImage.includes("python") || mainImage.includes("django") || mainImage.includes("flask"))
-    return "pi pi-code";
+  if (mainImage.includes("python") || mainImage.includes("django") || mainImage.includes("flask")) return "pi pi-code";
   if (mainImage.includes("wordpress")) return "pi pi-pencil";
   if (mainImage.includes("ghost")) return "pi pi-pencil";
   if (mainImage.includes("nextcloud")) return "pi pi-cloud";
@@ -532,8 +520,7 @@ const getDeploymentIconClass = (deployment: Deployment) => {
   if (mainImage.includes("nginx") || type === "nginx") return "icon-nginx";
   if (mainImage.includes("node") || mainImage.includes("express")) return "icon-node";
   if (mainImage.includes("php") || mainImage.includes("laravel")) return "icon-php";
-  if (mainImage.includes("python") || mainImage.includes("django") || mainImage.includes("flask"))
-    return "icon-python";
+  if (mainImage.includes("python") || mainImage.includes("django") || mainImage.includes("flask")) return "icon-python";
   if (mainImage.includes("wordpress")) return "icon-wordpress";
   if (mainImage.includes("ghost")) return "icon-ghost";
   if (mainImage.includes("nextcloud")) return "icon-nextcloud";
@@ -567,10 +554,7 @@ const getDatabaseType = (deployment: Deployment) => {
   const dbService = deployment.services?.find((s) => {
     const image = s.image?.toLowerCase() || "";
     return (
-      image.includes("mysql") ||
-      image.includes("mariadb") ||
-      image.includes("postgres") ||
-      image.includes("mongo")
+      image.includes("mysql") || image.includes("mariadb") || image.includes("postgres") || image.includes("mongo")
     );
   });
   if (!dbService) return "";
@@ -626,9 +610,7 @@ const getImageVersion = (deployment: Deployment) => {
 
 const getHealthyCount = (deployment: Deployment) => {
   if (!deployment.services?.length) return { healthy: 0, total: 0 };
-  const healthy = deployment.services.filter(
-    (s) => s.status === "running" || s.health === "healthy",
-  ).length;
+  const healthy = deployment.services.filter((s) => s.status === "running" || s.health === "healthy").length;
   return { healthy, total: deployment.services.length };
 };
 

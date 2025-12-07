@@ -1,12 +1,7 @@
 <template>
   <div class="toast-container">
     <TransitionGroup name="toast">
-      <div
-        v-for="notification in notifications"
-        :key="notification.id"
-        class="toast"
-        :class="notification.type"
-      >
+      <div v-for="notification in notifications" :key="notification.id" class="toast" :class="notification.type">
         <div class="toast-icon">
           <i :class="getIcon(notification.type)" />
         </div>

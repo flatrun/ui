@@ -134,11 +134,7 @@
               <button class="action-btn" title="Inspect" @click="inspectImage(image.id)">
                 <i class="pi pi-info-circle" />
               </button>
-              <button
-                class="action-btn"
-                title="Create Container"
-                @click="createContainer(image.id)"
-              >
+              <button class="action-btn" title="Create Container" @click="createContainer(image.id)">
                 <i class="pi pi-play" />
               </button>
               <button
@@ -200,24 +196,13 @@
           <div class="modal-body">
             <div class="form-group">
               <label>Image Name</label>
-              <input
-                v-model="pullImageName"
-                type="text"
-                placeholder="nginx:latest"
-                class="form-input"
-              />
-              <span class="form-hint"
-                >Format: repository:tag (e.g., nginx:latest, ubuntu:22.04)</span
-              >
+              <input v-model="pullImageName" type="text" placeholder="nginx:latest" class="form-input" />
+              <span class="form-hint">Format: repository:tag (e.g., nginx:latest, ubuntu:22.04)</span>
             </div>
           </div>
           <div class="modal-footer">
             <button class="btn btn-secondary" @click="showPullModal = false">Cancel</button>
-            <button
-              class="btn btn-primary"
-              :disabled="!pullImageName || pulling"
-              @click="pullImage"
-            >
+            <button class="btn btn-primary" :disabled="!pullImageName || pulling" @click="pullImage">
               <i v-if="pulling" class="pi pi-spin pi-spinner" />
               {{ pulling ? "Pulling..." : "Pull Image" }}
             </button>
