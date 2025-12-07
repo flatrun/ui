@@ -685,11 +685,7 @@
     </Teleport>
 
     <Teleport to="body">
-      <div
-        v-if="showAddEnvModal"
-        class="modal-overlay"
-        @click.self="showAddEnvModal = false"
-      >
+      <div v-if="showAddEnvModal" class="modal-overlay" @click.self="showAddEnvModal = false">
         <div class="env-modal modal-container">
           <div class="modal-header">
             <h3>
@@ -714,19 +710,12 @@
             </div>
             <div class="form-group">
               <label>Value</label>
-              <input
-                v-model="newEnvValue"
-                type="text"
-                placeholder="value"
-                class="form-input"
-              />
+              <input v-model="newEnvValue" type="text" placeholder="value" class="form-input" />
               <span class="hint">The value for this variable</span>
             </div>
           </div>
           <div class="modal-footer">
-            <button class="btn btn-secondary" @click="showAddEnvModal = false">
-              Cancel
-            </button>
+            <button class="btn btn-secondary" @click="showAddEnvModal = false">Cancel</button>
             <button
               class="btn btn-primary"
               :disabled="savingEnvVars || !newEnvKey.trim()"

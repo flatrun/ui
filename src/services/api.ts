@@ -93,8 +93,7 @@ export const deploymentsApi = {
         memory_limit: number;
       };
     }>(`/deployments/${name}/stats`),
-  getEnvVars: (name: string) =>
-    apiClient.get<{ env_vars: EnvVar[] }>(`/deployments/${name}/env`),
+  getEnvVars: (name: string) => apiClient.get<{ env_vars: EnvVar[] }>(`/deployments/${name}/env`),
   updateEnvVars: (name: string, envVars: EnvVar[]) =>
     apiClient.put(`/deployments/${name}/env`, { env_vars: envVars }),
 };
