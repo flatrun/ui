@@ -402,7 +402,7 @@
         <div v-if="activeTab === 'environment'" class="env-tab">
           <div class="env-header">
             <h3>Environment Variables</h3>
-            <button class="btn btn-sm btn-primary" @click="showAddEnvModal = true">
+            <button class="btn btn-sm btn-primary" @click="openAddEnvModal">
               <i class="pi pi-plus" /> Add Variable
             </button>
           </div>
@@ -683,6 +683,62 @@
         </div>
       </div>
     </Teleport>
+
+    <Teleport to="body">
+      <div
+        v-if="showAddEnvModal"
+        class="modal-overlay"
+        @click.self="showAddEnvModal = false"
+      >
+        <div class="env-modal modal-container">
+          <div class="modal-header">
+            <h3>
+              <i class="pi pi-list" />
+              {{ editingEnvVar ? "Edit Variable" : "Add Variable" }}
+            </h3>
+            <button class="close-btn" @click="showAddEnvModal = false">
+              <i class="pi pi-times" />
+            </button>
+          </div>
+          <div class="modal-body">
+            <div class="form-group">
+              <label>Key</label>
+              <input
+                v-model="newEnvKey"
+                type="text"
+                placeholder="VARIABLE_NAME"
+                class="form-input"
+                :disabled="!!editingEnvVar"
+              />
+              <span class="hint">The environment variable name (e.g., DB_HOST)</span>
+            </div>
+            <div class="form-group">
+              <label>Value</label>
+              <input
+                v-model="newEnvValue"
+                type="text"
+                placeholder="value"
+                class="form-input"
+              />
+              <span class="hint">The value for this variable</span>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" @click="showAddEnvModal = false">
+              Cancel
+            </button>
+            <button
+              class="btn btn-primary"
+              :disabled="savingEnvVars || !newEnvKey.trim()"
+              @click="saveEnvVar"
+            >
+              <i v-if="savingEnvVars" class="pi pi-spin pi-spinner" />
+              {{ savingEnvVars ? "Saving..." : editingEnvVar ? "Update" : "Add" }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
@@ -698,6 +754,7 @@ import {
   certificatesApi,
   filesApi,
   infrastructureApi,
+  type EnvVar,
 } from "@/services/api";
 import { useNotificationsStore } from "@/stores/notifications";
 import type { ProxyStatus } from "@/types";
@@ -753,6 +810,10 @@ const terminalService = ref("");
 
 const envVars = ref<Array<{ key: string; value: string; hidden: boolean }>>([]);
 const showAddEnvModal = ref(false);
+const editingEnvVar = ref<{ key: string; value: string } | null>(null);
+const newEnvKey = ref("");
+const newEnvValue = ref("");
+const savingEnvVars = ref(false);
 
 const composeConfig = ref("");
 const composeFilename = ref("docker-compose.yml");
@@ -809,16 +870,15 @@ const fetchDeployment = async () => {
 
     fetchStats();
 
-    envVars.value = [
-      { key: "NODE_ENV", value: "production", hidden: false },
-      {
-        key: "DATABASE_URL",
-        value: "postgres://user:pass@db:5432/app",
-        hidden: true,
-      },
-      { key: "SECRET_KEY", value: "super-secret-key-12345", hidden: true },
-      { key: "API_PORT", value: "3000", hidden: false },
-    ];
+    try {
+      const envResponse = await deploymentsApi.getEnvVars(route.params.name as string);
+      envVars.value = (envResponse.data.env_vars || []).map((e: EnvVar) => ({
+        ...e,
+        hidden: /password|secret|key|token/i.test(e.key),
+      }));
+    } catch {
+      envVars.value = [];
+    }
 
     try {
       const composeResponse = await deploymentsApi.getComposeFile(route.params.name as string);
@@ -1024,8 +1084,70 @@ const onTerminalError = (message: string) => {
   notifications.error("Connection Error", message);
 };
 
-const editEnvVar = (env: any) => {
-  console.log("Edit env var:", env.key);
+const saveEnvVarsToServer = async () => {
+  savingEnvVars.value = true;
+  try {
+    const envData = envVars.value.map((e) => ({ key: e.key, value: e.value }));
+    await deploymentsApi.updateEnvVars(route.params.name as string, envData);
+    return true;
+  } catch (err: any) {
+    const msg = err.response?.data?.error || err.message;
+    notifications.error("Save Failed", msg);
+    return false;
+  } finally {
+    savingEnvVars.value = false;
+  }
+};
+
+const openAddEnvModal = () => {
+  editingEnvVar.value = null;
+  newEnvKey.value = "";
+  newEnvValue.value = "";
+  showAddEnvModal.value = true;
+};
+
+const editEnvVar = (env: { key: string; value: string }) => {
+  editingEnvVar.value = { key: env.key, value: env.value };
+  newEnvKey.value = env.key;
+  newEnvValue.value = env.value;
+  showAddEnvModal.value = true;
+};
+
+const saveEnvVar = async () => {
+  if (!newEnvKey.value.trim()) {
+    notifications.error("Validation Error", "Key cannot be empty");
+    return;
+  }
+
+  if (editingEnvVar.value) {
+    const index = envVars.value.findIndex((e) => e.key === editingEnvVar.value!.key);
+    if (index !== -1) {
+      envVars.value[index] = {
+        key: newEnvKey.value.trim(),
+        value: newEnvValue.value,
+        hidden: /password|secret|key|token/i.test(newEnvKey.value),
+      };
+    }
+  } else {
+    if (envVars.value.some((e) => e.key === newEnvKey.value.trim())) {
+      notifications.error("Validation Error", "Key already exists");
+      return;
+    }
+    envVars.value.push({
+      key: newEnvKey.value.trim(),
+      value: newEnvValue.value,
+      hidden: /password|secret|key|token/i.test(newEnvKey.value),
+    });
+  }
+
+  const success = await saveEnvVarsToServer();
+  if (success) {
+    showAddEnvModal.value = false;
+    notifications.success("Saved", editingEnvVar.value ? "Variable updated" : "Variable added");
+    editingEnvVar.value = null;
+    newEnvKey.value = "";
+    newEnvValue.value = "";
+  }
 };
 
 const confirmDeleteEnv = (key: string) => {
@@ -1033,10 +1155,15 @@ const confirmDeleteEnv = (key: string) => {
   showDeleteEnvModal.value = true;
 };
 
-const deleteEnvVar = () => {
-  envVars.value = envVars.value.filter((e) => e.key !== envKeyToDelete.value);
+const deleteEnvVar = async () => {
+  const keyToDelete = envKeyToDelete.value;
+  envVars.value = envVars.value.filter((e) => e.key !== keyToDelete);
   showDeleteEnvModal.value = false;
-  notifications.success("Deleted", `Environment variable "${envKeyToDelete.value}" removed`);
+
+  const success = await saveEnvVarsToServer();
+  if (success) {
+    notifications.success("Deleted", `Environment variable "${keyToDelete}" removed`);
+  }
   envKeyToDelete.value = "";
 };
 
@@ -2100,5 +2227,37 @@ onUnmounted(() => {
 
 .card-header .btn-icon {
   margin-left: auto;
+}
+
+.env-modal {
+  max-width: 500px;
+}
+
+.env-modal .modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--color-gray-200);
+}
+
+.env-modal .modal-header h3 {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  font-size: var(--text-lg);
+}
+
+.env-modal .modal-body {
+  padding: var(--space-4);
+}
+
+.env-modal .modal-footer {
+  padding: var(--space-3) var(--space-4);
+  border-top: 1px solid var(--color-gray-200);
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
 }
 </style>

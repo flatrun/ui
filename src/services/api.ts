@@ -54,6 +54,11 @@ export interface ServiceMetadata {
   };
 }
 
+export interface EnvVar {
+  key: string;
+  value: string;
+}
+
 export const deploymentsApi = {
   list: () => apiClient.get<{ deployments: Deployment[] }>("/deployments"),
   get: (name: string) => apiClient.get<Deployment>(`/deployments/${name}`),
@@ -88,6 +93,10 @@ export const deploymentsApi = {
         memory_limit: number;
       };
     }>(`/deployments/${name}/stats`),
+  getEnvVars: (name: string) =>
+    apiClient.get<{ env_vars: EnvVar[] }>(`/deployments/${name}/env`),
+  updateEnvVars: (name: string, envVars: EnvVar[]) =>
+    apiClient.put(`/deployments/${name}/env`, { env_vars: envVars }),
 };
 
 export const networksApi = {
@@ -352,9 +361,9 @@ export const databasesApi = {
   ) =>
     apiClient.post("/databases/users/create", {
       ...config,
-      username,
-      user_password: password,
-      user_host: host,
+      target_username: username,
+      target_password: password,
+      target_host: host,
     }),
   grantPrivileges: (
     config: DatabaseConnectionConfig,
@@ -364,17 +373,17 @@ export const databasesApi = {
   ) =>
     apiClient.post("/databases/privileges/grant", {
       ...config,
-      username,
-      database,
-      user_host: host,
+      target_username: username,
+      target_database: database,
+      target_host: host,
     }),
   deleteDatabase: (config: DatabaseConnectionConfig, dbName: string) =>
     apiClient.post("/databases/delete", { ...config, db_name: dbName }),
   deleteUser: (config: DatabaseConnectionConfig, username: string, host?: string) =>
     apiClient.post("/databases/users/delete", {
       ...config,
-      username,
-      user_host: host,
+      target_username: username,
+      target_host: host,
     }),
   queryTableData: (
     config: DatabaseConnectionConfig,
