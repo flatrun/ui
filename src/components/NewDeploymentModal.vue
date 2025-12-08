@@ -1,7 +1,7 @@
 <template>
   <BaseModal
     :visible="visible"
-    size="2xl"
+    size="3xl"
     :close-disabled="creating"
     :close-on-overlay="!creating"
     @close="handleClose"
@@ -70,6 +70,26 @@
                     </ul>
                   </div>
                   <div class="mode-badge recommended">Recommended</div>
+                </button>
+
+                <button
+                  class="deployment-mode-card"
+                  :class="{ selected: deploymentMode === 'image' }"
+                  @click="deploymentMode = 'image'"
+                >
+                  <div class="mode-card-icon image">
+                    <i class="pi pi-box" />
+                  </div>
+                  <div class="mode-card-content">
+                    <h4>From Image</h4>
+                    <p>Deploy any Docker image</p>
+                    <ul class="mode-features">
+                      <li><i class="pi pi-check" /> Use any public/private image</li>
+                      <li><i class="pi pi-check" /> Auto-generate compose</li>
+                      <li><i class="pi pi-check" /> Quick deployment</li>
+                    </ul>
+                  </div>
+                  <div class="mode-badge">Quick</div>
                 </button>
 
                 <button
@@ -240,7 +260,7 @@
                 </div>
 
                 <!-- Compose Mode Info Panel -->
-                <div v-else class="section-card compose-info-card">
+                <div v-else-if="deploymentMode === 'compose'" class="section-card compose-info-card">
                   <div class="section-header compact">
                     <div class="section-icon small">
                       <i class="pi pi-code" />
@@ -272,6 +292,42 @@
                     <div class="info-hint">
                       <i class="pi pi-info-circle" />
                       <span>You'll write your compose file in the next step</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Image Mode Panel -->
+                <div v-else-if="deploymentMode === 'image'" class="section-card image-config-card">
+                  <div class="section-header compact">
+                    <div class="section-icon small">
+                      <i class="pi pi-box" />
+                    </div>
+                    <h4>Docker Image</h4>
+                  </div>
+                  <div class="image-config-content">
+                    <div class="form-field">
+                      <label for="imageName">
+                        Image Name
+                        <span class="required">*</span>
+                      </label>
+                      <div class="input-wrapper">
+                        <input
+                          id="imageName"
+                          v-model="form.image"
+                          type="text"
+                          placeholder="nginx:latest or ghcr.io/user/app:v1"
+                          :class="{ error: errors.image }"
+                        />
+                        <span v-if="form.image && !errors.image" class="input-icon success">
+                          <i class="pi pi-check" />
+                        </span>
+                      </div>
+                      <span v-if="errors.image" class="field-error">{{ errors.image }}</span>
+                      <span v-else class="field-hint">Docker Hub, GHCR, or any registry</span>
+                    </div>
+                    <div class="info-hint">
+                      <i class="pi pi-info-circle" />
+                      <span>A compose file will be auto-generated for your image</span>
                     </div>
                   </div>
                 </div>
@@ -830,51 +886,46 @@
                   </div>
                 </div>
 
-                <!-- Network Settings -->
+                <!-- Port Settings -->
                 <div class="section-card">
                   <div class="section-header compact">
                     <div class="section-icon small">
                       <i class="pi pi-sitemap" />
                     </div>
-                    <h4>Network</h4>
+                    <h4>Ports</h4>
                   </div>
-                  <div class="network-fields">
-                    <div class="form-field compact">
-                      <label for="containerPort">Container Port</label>
+                  <div class="ports-section">
+                    <div v-for="(port, index) in form.networking.ports" :key="index" class="port-row">
                       <input
-                        id="containerPort"
-                        v-model.number="form.networking.containerPort"
+                        v-model.number="port.containerPort"
                         type="number"
                         placeholder="80"
-                        @change="updateComposeWithPorts"
+                        class="port-container"
+                        title="Container port"
+                        @change="updateComposeWithSettings"
                       />
+                      <span class="port-separator">:</span>
+                      <input
+                        v-model="port.hostPort"
+                        type="text"
+                        :placeholder="port.hostPort ? '' : 'host'"
+                        class="port-host"
+                        title="Host port (leave empty for expose only)"
+                        @input="updateComposeWithSettings"
+                      />
+                      <button
+                        class="port-remove"
+                        @click="removePort(index)"
+                        :disabled="form.networking.ports.length <= 1"
+                      >
+                        <i class="pi pi-times" />
+                      </button>
                     </div>
-                    <div class="form-field compact">
-                      <label for="protocol">Protocol</label>
-                      <select id="protocol" v-model="form.networking.protocol">
-                        <option value="http">HTTP</option>
-                        <option value="https">HTTPS</option>
-                      </select>
-                    </div>
-                    <div class="toggle-option port-mapping">
-                      <label class="toggle-label">
-                        <input v-model="form.networking.mapPorts" type="checkbox" @change="updateComposeWithPorts" />
-                        <span class="toggle-text">Map to host port</span>
-                      </label>
-                    </div>
-                    <Transition name="expand">
-                      <div v-if="form.networking.mapPorts" class="form-field compact">
-                        <label for="hostPort">Host Port</label>
-                        <input
-                          id="hostPort"
-                          v-model="form.networking.hostPort"
-                          type="text"
-                          placeholder="8080"
-                          @input="updateComposeWithPorts"
-                        />
-                        <span class="field-hint">Leave empty to use same as container port</span>
-                      </div>
-                    </Transition>
+                    <button type="button" class="add-port-btn" @click="addPort">
+                      <i class="pi pi-plus" />
+                      Add Port
+                    </button>
+                    <span class="field-hint">Container:Host - leave host empty to expose only</span>
                   </div>
                 </div>
 
@@ -918,9 +969,17 @@
                     <span class="review-label">Name</span>
                     <span class="review-value">{{ form.name }}</span>
                   </div>
-                  <div class="review-item">
+                  <div v-if="deploymentMode === 'image'" class="review-item">
+                    <span class="review-label">Image</span>
+                    <span class="review-value">{{ form.image }}</span>
+                  </div>
+                  <div v-else-if="deploymentMode === 'easy'" class="review-item">
                     <span class="review-label">Template</span>
                     <span class="review-value">{{ selectedQuickAppName }}</span>
+                  </div>
+                  <div v-else class="review-item">
+                    <span class="review-label">Mode</span>
+                    <span class="review-value">Custom Compose</span>
                   </div>
                   <div v-if="effectiveDomain" class="review-item full-width">
                     <span class="review-label">Domain</span>
@@ -1001,7 +1060,7 @@ import { Codemirror } from "vue-codemirror";
 import { yaml } from "@codemirror/lang-yaml";
 import { oneDark } from "@codemirror/theme-one-dark";
 import BaseModal from "@/components/base/BaseModal.vue";
-import { deploymentsApi, templatesApi, settingsApi, containersApi } from "@/services/api";
+import { deploymentsApi, templatesApi, settingsApi, containersApi, composeApi } from "@/services/api";
 import { useNotificationsStore } from "@/stores/notifications";
 
 interface TemplateMount {
@@ -1058,10 +1117,11 @@ interface DbContainer {
 }
 const existingDbContainers = ref<DbContainer[]>([]);
 const loadingDbContainers = ref(false);
+const existingDeployments = ref<string[]>([]);
 
 const extensions = shallowRef([yaml(), oneDark]);
 
-const deploymentMode = ref<"" | "easy" | "compose">("");
+const deploymentMode = ref<"" | "easy" | "compose" | "image">("");
 
 const easySteps = [
   { id: "basics", label: "Basics" },
@@ -1070,16 +1130,7 @@ const easySteps = [
   { id: "review", label: "Review" },
 ];
 
-const composeSteps = [
-  { id: "basics", label: "Basics" },
-  { id: "compose", label: "Compose" },
-  { id: "review", label: "Review" },
-];
-
-const steps = computed(() => {
-  if (deploymentMode.value === "compose") return composeSteps;
-  return easySteps;
-});
+const steps = computed(() => easySteps);
 
 const generatePassword = () => {
   const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -1115,6 +1166,7 @@ const infrastructureSettings = reactive({
 
 const form = reactive({
   name: "",
+  image: "",
   composeContent: "",
   envVars: [] as { key: string; value: string }[],
   autoStart: false,
@@ -1122,10 +1174,12 @@ const form = reactive({
   networking: {
     expose: true,
     domain: "",
-    containerPort: 80,
     protocol: "http",
-    mapPorts: false,
-    hostPort: "",
+    ports: [{ containerPort: 80, hostPort: "", expose: true }] as {
+      containerPort: number;
+      hostPort: string;
+      expose: boolean;
+    }[],
   },
   ssl: {
     enabled: false,
@@ -1151,6 +1205,7 @@ const form = reactive({
 
 const errors = reactive({
   name: "",
+  image: "",
   composeContent: "",
 });
 
@@ -1192,9 +1247,12 @@ const canProceed = computed(() => {
   }
 
   if (currentStep.value === 1) {
-    const nameValid = form.name.trim() && /^[a-z0-9-]+$/.test(form.name);
+    const nameValid = form.name.trim() && /^[a-z0-9-]+$/.test(form.name) && !errors.name;
     if (deploymentMode.value === "compose") {
       return nameValid;
+    }
+    if (deploymentMode.value === "image") {
+      return nameValid && form.image.trim() !== "";
     }
     return nameValid && selectedQuickApp.value !== "";
   }
@@ -1285,6 +1343,8 @@ const onNameChange = () => {
   errors.name = "";
   if (form.name && !/^[a-z0-9-]+$/.test(form.name)) {
     errors.name = "Only lowercase letters, numbers, and hyphens allowed";
+  } else if (form.name && existingDeployments.value.includes(form.name)) {
+    errors.name = "A deployment with this name already exists";
   }
 };
 
@@ -1300,14 +1360,24 @@ const loadQuickApps = async () => {
   }
 };
 
+const loadExistingDeployments = async () => {
+  try {
+    const response = await deploymentsApi.list();
+    existingDeployments.value = response.data.deployments.map((d) => d.name);
+  } catch {
+    existingDeployments.value = [];
+  }
+};
+
 const selectQuickApp = async (app: QuickApp) => {
   selectedQuickApp.value = app.id;
   if (!form.name) {
     form.name = app.id;
   }
+  onNameChange();
 
   if (app.container_port) {
-    form.networking.containerPort = app.container_port;
+    form.networking.ports = [{ containerPort: app.container_port, hostPort: "", expose: true }];
   }
 
   if (app.mounts && app.mounts.length > 0) {
@@ -1596,10 +1666,23 @@ volumes:
   db_data:`;
 };
 
-const buildComposeTemplate = (name: string, containerPort: number, mapPorts: boolean, hostPort: string) => {
-  const portConfig =
-    mapPorts && hostPort ? `ports:\n      - "${hostPort}:${containerPort}"` : `expose:\n      - "${containerPort}"`;
+const buildPortConfig = (ports: { containerPort: number; hostPort: string }[]) => {
+  const mappedPorts = ports.filter((p) => p.hostPort);
+  const exposedPorts = ports.filter((p) => !p.hostPort);
 
+  let config = "";
+  if (mappedPorts.length > 0) {
+    config += "ports:\n" + mappedPorts.map((p) => `      - "${p.hostPort}:${p.containerPort}"`).join("\n");
+  }
+  if (exposedPorts.length > 0) {
+    if (config) config += "\n    ";
+    config += "expose:\n" + exposedPorts.map((p) => `      - "${p.containerPort}"`).join("\n");
+  }
+  return config || `expose:\n      - "80"`;
+};
+
+const buildComposeTemplate = (name: string, ports: { containerPort: number; hostPort: string }[]) => {
+  const portConfig = buildPortConfig(ports);
   const networkName = infrastructureSettings.default_proxy_network;
 
   return `name: ${name}
@@ -1620,7 +1703,7 @@ networks:
 
 const getDefaultComposeContent = () => {
   const name = form.name || "my-app";
-  return buildComposeTemplate(name, form.networking.containerPort, form.networking.mapPorts, form.networking.hostPort);
+  return buildComposeTemplate(name, form.networking.ports);
 };
 
 const buildComposeFromTemplate = () => {
@@ -1636,29 +1719,46 @@ const buildComposeFromTemplate = () => {
   return content;
 };
 
-const updateComposeWithPorts = () => {
+const buildComposeFromImage = () => {
+  const name = form.name || "my-app";
+  const image = form.image || "nginx:alpine";
+  const portConfig = buildPortConfig(form.networking.ports);
+  const networkName = infrastructureSettings.default_proxy_network;
+
+  return `name: ${name}
+services:
+  app:
+    image: ${image}
+    container_name: ${name}
+    ${portConfig}
+    networks:
+      - ${networkName}
+    restart: unless-stopped
+
+networks:
+  ${networkName}:
+    external: true
+`;
+};
+
+const updateComposeWithSettings = async () => {
   if (!form.composeContent) return;
 
-  const containerPort = form.networking.containerPort || 80;
-  const hostPort = form.networking.hostPort || String(containerPort);
+  try {
+    const ports = form.networking.ports
+      .filter((p) => p.containerPort > 0)
+      .map((p) => ({
+        container_port: p.containerPort,
+        host_port: p.hostPort || "",
+      }));
 
-  const exposeRegex = /expose:\s*\n\s*-\s*"\d+"/;
-  const portsRegex = /ports:\s*\n\s*-\s*"\d+:\d+"/;
-
-  if (form.networking.mapPorts) {
-    const newPorts = `ports:\n      - "${hostPort}:${containerPort}"`;
-    if (exposeRegex.test(form.composeContent)) {
-      form.composeContent = form.composeContent.replace(exposeRegex, newPorts);
-    } else if (portsRegex.test(form.composeContent)) {
-      form.composeContent = form.composeContent.replace(portsRegex, newPorts);
-    }
-  } else {
-    const newExpose = `expose:\n      - "${containerPort}"`;
-    if (portsRegex.test(form.composeContent)) {
-      form.composeContent = form.composeContent.replace(portsRegex, newExpose);
-    } else if (exposeRegex.test(form.composeContent)) {
-      form.composeContent = form.composeContent.replace(exposeRegex, newExpose);
-    }
+    const response = await composeApi.update({
+      content: form.composeContent,
+      ports: ports.length > 0 ? ports : [{ container_port: 80, host_port: "" }],
+    });
+    form.composeContent = response.data.content;
+  } catch (error: any) {
+    console.error("Failed to update compose:", error);
   }
 };
 
@@ -1678,6 +1778,17 @@ const addEnvVar = () => {
 
 const removeEnvVar = (index: number) => {
   form.envVars.splice(index, 1);
+};
+
+const addPort = () => {
+  form.networking.ports = [...form.networking.ports, { containerPort: 0, hostPort: "", expose: true }];
+};
+
+const removePort = (index: number) => {
+  if (form.networking.ports.length > 1) {
+    form.networking.ports = form.networking.ports.filter((_, i) => i !== index);
+    updateComposeWithSettings();
+  }
 };
 
 const generatingCompose = ref(false);
@@ -1703,11 +1814,12 @@ const nextStep = async () => {
     generatingCompose.value = true;
     try {
       const enabledMounts = form.mounts.filter((m) => m.enabled);
+      const firstPort = form.networking.ports[0] || { containerPort: 80, hostPort: "" };
       const response = await templatesApi.generateCompose(selectedQuickApp.value, {
         name: form.name,
-        container_port: form.networking.containerPort,
-        map_ports: form.networking.mapPorts,
-        host_port: form.networking.hostPort || undefined,
+        container_port: firstPort.containerPort,
+        map_ports: !!firstPort.hostPort,
+        host_port: firstPort.hostPort || undefined,
         mounts: enabledMounts.length > 0 ? enabledMounts : undefined,
       });
       form.composeContent = response.data.content;
@@ -1718,6 +1830,10 @@ const nextStep = async () => {
       return;
     }
     generatingCompose.value = false;
+  }
+
+  if (currentStep.value === 2 && deploymentMode.value === "image") {
+    form.composeContent = buildComposeFromImage();
   }
 
   if (currentStep.value < steps.value.length) {
@@ -1731,6 +1847,7 @@ watch(
     if (val) {
       creating.value = false;
       form.name = "";
+      form.image = "";
       form.composeContent = "";
       form.envVars = [];
       form.autoStart = false;
@@ -1738,10 +1855,8 @@ watch(
       form.networking = {
         expose: true,
         domain: "",
-        containerPort: 80,
         protocol: "http",
-        mapPorts: false,
-        hostPort: "",
+        ports: [{ containerPort: 80, hostPort: "", expose: true }],
       };
       form.ssl = { enabled: false, autoCert: false };
       form.database = {
@@ -1772,14 +1887,28 @@ watch(
       await loadSettings();
       await generateSubdomain();
       loadQuickApps();
+      loadExistingDeployments();
     }
   },
 );
 
+watch(deploymentMode, (newMode, oldMode) => {
+  if (oldMode && newMode !== oldMode) {
+    selectedQuickApp.value = "";
+    selectedTemplateContent.value = "";
+    form.name = "";
+    form.image = "";
+    form.composeContent = "";
+    form.mounts = [];
+    form.networking.ports = [{ containerPort: 80, hostPort: "", expose: true }];
+    errors.name = "";
+    errors.image = "";
+  }
+});
+
 watch(
   () => form.name,
   async (newName) => {
-    // Only update compose content in step 1 - step 2+ uses server-side generation
     if (currentStep.value > 1) return;
 
     if (newName && selectedQuickApp.value && selectedQuickApp.value !== "custom") {
@@ -1792,6 +1921,27 @@ watch(
       }
     } else if (newName && selectedQuickApp.value === "custom") {
       form.composeContent = buildComposeFromTemplate();
+    }
+  },
+);
+
+let isUpdatingNameFromCompose = false;
+watch(
+  () => form.composeContent,
+  (content) => {
+    if (isUpdatingNameFromCompose || !content || currentStep.value < 3) return;
+
+    const nameMatch = content.match(/^name:\s*(.+)$/m);
+    if (nameMatch) {
+      const composeName = nameMatch[1].trim();
+      if (composeName && composeName !== form.name && /^[a-z0-9-]+$/.test(composeName)) {
+        isUpdatingNameFromCompose = true;
+        form.name = composeName;
+        onNameChange();
+        setTimeout(() => {
+          isUpdatingNameFromCompose = false;
+        }, 100);
+      }
     }
   },
 );
@@ -1950,7 +2100,7 @@ const handleCreate = async () => {
         networking: {
           expose: true,
           domain: finalDomain,
-          container_port: form.networking.containerPort || 80,
+          container_port: form.networking.ports[0]?.containerPort || 80,
           protocol: form.networking.protocol || "http",
         },
         ssl: {
@@ -2100,7 +2250,9 @@ const handleClose = () => {
 
 /* Content */
 .wizard-content {
-  min-height: 420px;
+  min-height: 480px;
+  max-height: 70vh;
+  overflow: visible;
 }
 
 .step-panel {
@@ -2465,9 +2617,10 @@ const handleClose = () => {
 /* Step 2 Layout */
 .step2-layout {
   display: grid;
-  grid-template-columns: 1fr 280px;
+  grid-template-columns: 1fr 340px;
   gap: var(--space-4);
-  height: 420px;
+  height: 480px;
+  overflow: hidden;
 }
 
 .compose-section {
@@ -2545,6 +2698,13 @@ const handleClose = () => {
   flex-direction: column;
   gap: var(--space-3);
   overflow-y: auto;
+  overflow-x: hidden;
+  height: 100%;
+  min-height: 0;
+}
+
+.side-panel .section-card {
+  flex-shrink: 0;
 }
 
 /* Env Section */
@@ -2558,10 +2718,12 @@ const handleClose = () => {
 .env-row {
   display: flex;
   gap: var(--space-2);
+  max-width: 100%;
 }
 
 .env-key {
   flex: 1;
+  min-width: 0;
   padding: var(--space-2);
   border: 1px solid var(--color-gray-200);
   border-radius: var(--radius-sm);
@@ -2571,6 +2733,7 @@ const handleClose = () => {
 
 .env-value {
   flex: 1;
+  min-width: 0;
   padding: var(--space-2);
   border: 1px solid var(--color-gray-200);
   border-radius: var(--radius-sm);
@@ -2605,6 +2768,83 @@ const handleClose = () => {
 }
 
 .add-env-btn:hover {
+  border-color: var(--color-primary-300);
+  color: var(--color-primary-600);
+}
+
+/* Ports Section */
+.ports-section {
+  padding: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.port-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  max-width: 100%;
+}
+
+.port-container {
+  width: 70px;
+  padding: var(--space-2);
+  border: 1px solid var(--color-gray-200);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+  text-align: center;
+}
+
+.port-separator {
+  color: var(--color-gray-400);
+  font-weight: var(--font-medium);
+}
+
+.port-host {
+  width: 70px;
+  padding: var(--space-2);
+  border: 1px solid var(--color-gray-200);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+  text-align: center;
+}
+
+.port-remove {
+  padding: var(--space-1);
+  background: none;
+  border: none;
+  color: var(--color-gray-400);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+}
+
+.port-remove:hover:not(:disabled) {
+  background: var(--color-error-50);
+  color: var(--color-error-500);
+}
+
+.port-remove:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.add-port-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-2);
+  background: white;
+  border: 1px dashed var(--color-gray-300);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-xs);
+  color: var(--color-gray-600);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.add-port-btn:hover {
   border-color: var(--color-primary-300);
   color: var(--color-primary-600);
 }
@@ -2894,7 +3134,7 @@ const handleClose = () => {
 
 .deployment-modes {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, 1fr);
   gap: var(--space-4);
 }
 
@@ -2931,6 +3171,8 @@ const handleClose = () => {
   justify-content: center;
   font-size: 1.25rem;
   margin-bottom: var(--space-4);
+  background: var(--color-gray-100);
+  color: var(--color-gray-600);
 }
 
 .mode-card-icon.easy {
@@ -2940,14 +3182,15 @@ const handleClose = () => {
 }
 
 .mode-card-icon.compose {
-  background: linear-gradient(135deg, var(--color-info-500), var(--color-info-400));
+  background: linear-gradient(135deg, var(--color-info-600), var(--color-info-500));
   color: white;
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
 }
 
-.deployment-mode-card.selected .mode-card-icon {
-  background: var(--color-primary-500);
+.mode-card-icon.image {
+  background: linear-gradient(135deg, var(--color-success-600), var(--color-success-500));
   color: white;
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.25);
 }
 
 .mode-card-content h4 {
@@ -3541,6 +3784,41 @@ const handleClose = () => {
 .compose-info-content .info-hint span {
   font-size: var(--text-xs);
   color: var(--color-info-700);
+}
+
+/* Image Config Card */
+.image-config-card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.image-config-content {
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  flex: 1;
+}
+
+.image-config-content .info-hint {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  background: var(--color-success-50);
+  border-radius: var(--radius-md);
+  margin-top: auto;
+}
+
+.image-config-content .info-hint i {
+  color: var(--color-success-500);
+  font-size: var(--text-sm);
+}
+
+.image-config-content .info-hint span {
+  font-size: var(--text-xs);
+  color: var(--color-success-700);
 }
 
 /* Collapsible Sections */
