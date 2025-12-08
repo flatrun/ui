@@ -1835,15 +1835,6 @@ const rebuildComposeWithDatabase = () => {
         compose = compose.replace(/volumes:\s*\n/, "volumes:\n  db_data:\n");
       }
     }
-  } else if (form.database.mode === "existing" && form.database.existingContainer) {
-    const networkConfig = getExistingDbNetworkYaml();
-    if (networkConfig && !compose.includes("shared:")) {
-      if (compose.includes("networks:")) {
-        compose = compose.replace(/networks:\s*\n/, "networks:\n  shared:\n    external: true\n");
-      } else {
-        compose = compose.trimEnd() + "\n" + networkConfig;
-      }
-    }
   }
 
   form.composeContent = compose;
@@ -1897,14 +1888,6 @@ const getBaseComposeWithoutDb = () => {
   return compose;
 };
 
-const getExistingDbNetworkYaml = () => {
-  if (form.database.mode !== "existing" || !form.database.existingContainer) return "";
-  return `
-networks:
-  shared:
-    external: true`;
-};
-
 // Database compose modification disabled - server handles compose generation
 
 watch(
@@ -1954,6 +1937,10 @@ const handleCreate = async () => {
       env_vars: form.envVars.filter((e) => e.key),
       auto_start: form.autoStart,
       use_shared_database: form.database.useSharedDatabase && form.database.mode === "shared",
+      existing_database_container:
+        form.database.mode === "existing" && form.database.existingContainer
+          ? form.database.existingContainer
+          : undefined,
     };
 
     if (finalDomain) {
