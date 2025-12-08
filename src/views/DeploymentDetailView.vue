@@ -187,6 +187,15 @@
                       <i :class="requestingCert ? 'pi pi-spin pi-spinner' : 'pi pi-shield'" />
                       Request SSL
                     </button>
+                    <button
+                      v-if="proxyStatus.ssl_enabled"
+                      class="btn btn-sm btn-warning"
+                      :disabled="disablingSSL"
+                      @click="handleDisableSSL"
+                    >
+                      <i :class="disablingSSL ? 'pi pi-spin pi-spinner' : 'pi pi-lock-open'" />
+                      Disable SSL
+                    </button>
                   </div>
                 </template>
                 <template v-else>
@@ -752,6 +761,7 @@ const activeTab = ref("overview");
 const proxyStatus = ref<ProxyStatus | null>(null);
 const settingUpProxy = ref(false);
 const requestingCert = ref(false);
+const disablingSSL = ref(false);
 
 const tabs = [
   { id: "overview", label: "Overview", icon: "pi pi-info-circle" },
@@ -912,6 +922,22 @@ const handleRequestCertificate = async () => {
     notifications.error("Request Failed", msg);
   } finally {
     requestingCert.value = false;
+  }
+};
+
+const handleDisableSSL = async () => {
+  if (!deployment.value) return;
+
+  disablingSSL.value = true;
+  try {
+    await deploymentsApi.disableSSL(deployment.value.name);
+    notifications.success("SSL Disabled", `SSL has been disabled for ${deployment.value.name}`);
+    await fetchDeployment();
+  } catch (err: any) {
+    const msg = err.response?.data?.error || err.message;
+    notifications.error("Failed to Disable SSL", msg);
+  } finally {
+    disablingSSL.value = false;
   }
 };
 

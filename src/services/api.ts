@@ -94,6 +94,7 @@ export const deploymentsApi = {
     }>(`/deployments/${name}/stats`),
   getEnvVars: (name: string) => apiClient.get<{ env_vars: EnvVar[] }>(`/deployments/${name}/env`),
   updateEnvVars: (name: string, envVars: EnvVar[]) => apiClient.put(`/deployments/${name}/env`, { env_vars: envVars }),
+  disableSSL: (name: string) => apiClient.post<{ message: string; name: string }>(`/deployments/${name}/ssl/disable`),
 };
 
 export const networksApi = {
