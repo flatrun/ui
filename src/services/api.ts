@@ -194,8 +194,42 @@ export const templatesApi = {
       params: { name },
     }),
   generateCompose: (templateId: string, options: ComposeGenerateOptions) =>
-    apiClient.post<{ template_id: string; name: string; content: string }>(
-      `/templates/${templateId}/generate`,
+    apiClient.post<{
+      template_id: string;
+      name: string;
+      content: string;
+      container_port: number;
+      map_ports: boolean;
+      host_port: string;
+    }>(`/templates/${templateId}/generate`, options),
+};
+
+export interface PortConfig {
+  container_port: number;
+  host_port?: string;
+}
+
+export interface ComposeUpdateOptions {
+  content: string;
+  ports?: PortConfig[];
+  mounts?: MountSelection[];
+  database?: {
+    type: string;
+    mode: string;
+    name: string;
+    user: string;
+    password: string;
+    root_password?: string;
+    existing_container?: string;
+    external_host?: string;
+    external_port?: string;
+  };
+}
+
+export const composeApi = {
+  update: (options: ComposeUpdateOptions) =>
+    apiClient.post<{ content: string; container_port: number; map_ports: boolean; host_port: string }>(
+      "/compose/update",
       options,
     ),
 };

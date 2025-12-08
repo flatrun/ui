@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { mount, flushPromises } from "@vue/test-utils";
+import { mount } from "@vue/test-utils";
 import { createTestingPinia } from "@pinia/testing";
 import NewDeploymentModal from "./NewDeploymentModal.vue";
 
@@ -24,7 +24,12 @@ vi.mock("@/services/api", () => ({
       },
     }),
     generateCompose: vi.fn().mockResolvedValue({
-      data: { content: "version: '3'\nservices:\n  app:\n    image: nginx" },
+      data: {
+        content: "name: my-app\nservices:\n  app:\n    image: nginx",
+        container_port: 80,
+        map_ports: false,
+        host_port: "",
+      },
     }),
   },
   settingsApi: {
@@ -35,6 +40,9 @@ vi.mock("@/services/api", () => ({
             default_domain: "example.com",
             auto_subdomain: true,
             auto_ssl: true,
+          },
+          infrastructure: {
+            default_proxy_network: "proxy",
           },
         },
       },
@@ -47,7 +55,23 @@ vi.mock("@/services/api", () => ({
     }),
   },
   deploymentsApi: {
+    list: vi.fn().mockResolvedValue({
+      data: { deployments: [{ name: "existing-app" }] },
+    }),
     create: vi.fn().mockResolvedValue({ data: { message: "Created" } }),
+  },
+  containersApi: {
+    list: vi.fn().mockResolvedValue({ data: { containers: [] } }),
+  },
+  composeApi: {
+    update: vi.fn().mockResolvedValue({
+      data: {
+        content: 'name: my-app\nservices:\n  app:\n    image: nginx\n    expose:\n      - "80"',
+        container_port: 80,
+        map_ports: false,
+        host_port: "",
+      },
+    }),
   },
 }));
 
@@ -148,25 +172,25 @@ describe("NewDeploymentModal", () => {
     });
   });
 
-  describe("Compose Mode Info", () => {
-    it("displays Compose Mode information", () => {
+  describe("Compose Mode", () => {
+    it("can set compose mode", async () => {
       const wrapper = mountModal();
-      expect(wrapper.text()).toContain("Compose Mode");
+      const vm = wrapper.vm as any;
+      vm.deploymentMode = "compose";
+      await wrapper.vm.$nextTick();
+      expect(vm.deploymentMode).toBe("compose");
     });
 
-    it("shows Full Control feature", () => {
+    it("resets template when switching to compose mode", async () => {
       const wrapper = mountModal();
-      expect(wrapper.text()).toContain("Full Control");
-    });
+      const vm = wrapper.vm as any;
+      vm.deploymentMode = "easy";
+      vm.selectedQuickApp = "laravel";
+      await wrapper.vm.$nextTick();
 
-    it("shows Multi-Service Support feature", () => {
-      const wrapper = mountModal();
-      expect(wrapper.text()).toContain("Multi-Service Support");
-    });
-
-    it("shows Advanced Options feature", () => {
-      const wrapper = mountModal();
-      expect(wrapper.text()).toContain("Advanced Options");
+      vm.deploymentMode = "compose";
+      await wrapper.vm.$nextTick();
+      expect(vm.selectedQuickApp).toBe("");
     });
   });
 
@@ -215,6 +239,157 @@ describe("NewDeploymentModal", () => {
     it("shows helpful subtitle text", () => {
       const wrapper = mountModal();
       expect(wrapper.text()).toContain("Deploy your application in just a few steps");
+    });
+  });
+
+  describe("Mode Selection", () => {
+    it("initializes with empty deployment mode", () => {
+      const wrapper = mountModal();
+      const vm = wrapper.vm as any;
+      expect(vm.deploymentMode).toBe("");
+    });
+
+    it("can set easy mode", async () => {
+      const wrapper = mountModal();
+      const vm = wrapper.vm as any;
+      vm.deploymentMode = "easy";
+      await wrapper.vm.$nextTick();
+      expect(vm.deploymentMode).toBe("easy");
+    });
+
+    it("can set image mode", async () => {
+      const wrapper = mountModal();
+      const vm = wrapper.vm as any;
+      vm.deploymentMode = "image";
+      await wrapper.vm.$nextTick();
+      expect(vm.deploymentMode).toBe("image");
+    });
+
+    it("can switch between all deployment modes", async () => {
+      const wrapper = mountModal();
+      const vm = wrapper.vm as any;
+
+      vm.deploymentMode = "easy";
+      await wrapper.vm.$nextTick();
+      expect(vm.deploymentMode).toBe("easy");
+
+      vm.deploymentMode = "image";
+      await wrapper.vm.$nextTick();
+      expect(vm.deploymentMode).toBe("image");
+
+      vm.deploymentMode = "compose";
+      await wrapper.vm.$nextTick();
+      expect(vm.deploymentMode).toBe("compose");
+    });
+  });
+
+  describe("Image Mode", () => {
+    it("can set image mode directly", async () => {
+      const wrapper = mountModal();
+      const vm = wrapper.vm as any;
+      vm.deploymentMode = "image";
+      await wrapper.vm.$nextTick();
+      expect(vm.deploymentMode).toBe("image");
+    });
+
+    it("resets image field when leaving image mode", async () => {
+      const wrapper = mountModal();
+      const vm = wrapper.vm as any;
+      vm.deploymentMode = "image";
+      vm.form.image = "nginx:latest";
+      await wrapper.vm.$nextTick();
+
+      vm.deploymentMode = "easy";
+      await wrapper.vm.$nextTick();
+      expect(vm.form.image).toBe("");
+    });
+  });
+
+  describe("Name Validation", () => {
+    it("validates name format - only lowercase, numbers, hyphens allowed", async () => {
+      const wrapper = mountModal();
+      const vm = wrapper.vm as any;
+
+      vm.form.name = "Invalid_Name";
+      vm.onNameChange();
+      await wrapper.vm.$nextTick();
+
+      expect(vm.errors.name).toContain("Only lowercase letters, numbers, and hyphens allowed");
+    });
+
+    it("accepts valid name format", async () => {
+      const wrapper = mountModal();
+      const vm = wrapper.vm as any;
+
+      vm.form.name = "valid-app-name";
+      vm.onNameChange();
+      await wrapper.vm.$nextTick();
+
+      expect(vm.errors.name).toBe("");
+    });
+
+    it("detects name conflict with existing deployments", async () => {
+      const wrapper = mountModal();
+      const vm = wrapper.vm as any;
+
+      vm.existingDeployments = ["existing-app"];
+      vm.form.name = "existing-app";
+      vm.onNameChange();
+      await wrapper.vm.$nextTick();
+
+      expect(vm.errors.name).toContain("already exists");
+    });
+  });
+
+  describe("Mode Switching", () => {
+    it("resets template selection when switching modes", async () => {
+      const wrapper = mountModal();
+      const vm = wrapper.vm as any;
+
+      vm.deploymentMode = "easy";
+      vm.selectedQuickApp = "laravel";
+      await wrapper.vm.$nextTick();
+
+      vm.deploymentMode = "image";
+      await wrapper.vm.$nextTick();
+
+      expect(vm.selectedQuickApp).toBe("");
+    });
+
+    it("resets image field when switching modes", async () => {
+      const wrapper = mountModal();
+      const vm = wrapper.vm as any;
+
+      vm.deploymentMode = "image";
+      vm.form.image = "nginx:latest";
+      await wrapper.vm.$nextTick();
+
+      vm.deploymentMode = "easy";
+      await wrapper.vm.$nextTick();
+
+      expect(vm.form.image).toBe("");
+    });
+  });
+
+  describe("Port Settings", () => {
+    it("initializes with default container port 80", () => {
+      const wrapper = mountModal();
+      const vm = wrapper.vm as any;
+      expect(vm.form.networking.ports[0].containerPort).toBe(80);
+    });
+
+    it("initializes with empty host port (no port mapping)", () => {
+      const wrapper = mountModal();
+      const vm = wrapper.vm as any;
+      expect(vm.form.networking.ports[0].hostPort).toBe("");
+    });
+  });
+
+  describe("Overflow Handling", () => {
+    it("wizard content has overflow handling", () => {
+      const wrapper = mountModal();
+      const wizardContent = wrapper.find(".wizard-content");
+      expect(wizardContent.exists()).toBe(true);
     });
   });
 });

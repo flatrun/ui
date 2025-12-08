@@ -47,7 +47,7 @@ const props = withDefaults(
     subtitle?: string;
     icon?: string;
     iconColor?: "primary" | "success" | "warning" | "danger" | "info";
-    size?: "sm" | "md" | "lg" | "xl" | "2xl";
+    size?: "sm" | "md" | "lg" | "xl" | "2xl" | "3xl";
     showClose?: boolean;
     closeDisabled?: boolean;
     closeOnOverlay?: boolean;
@@ -129,6 +129,10 @@ const handleOverlayClick = () => {
 
 .modal-2xl {
   max-width: 1100px;
+}
+
+.modal-3xl {
+  max-width: 1280px;
 }
 
 .modal-fullscreen {
