@@ -1,5 +1,5 @@
 import axios from "axios";
-import type { Deployment, Network, Certificate, ProxyStatus, ProxySetupResult, VirtualHost } from "@/types";
+import type { Deployment, Network, Certificate, ProxyStatus, ProxySetupResult, VirtualHost, RegistryType, RegistryCredential } from "@/types";
 
 const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_URL || "/api",
@@ -260,7 +260,11 @@ export const containersApi = {
 export const imagesApi = {
   list: () => apiClient.get<{ images: any[] }>("/images"),
   remove: (id: string) => apiClient.delete(`/images/${id}`),
-  pull: (name: string) => apiClient.post("/images/pull", { name }),
+  pull: (name: string, credentialId?: string) =>
+    apiClient.post<{ message: string; name: string; used_credential: boolean }>("/images/pull", {
+      name,
+      credential_id: credentialId,
+    }),
 };
 
 export const volumesApi = {
@@ -457,4 +461,52 @@ export const infrastructureApi = {
     }),
   stats: () => apiClient.get<{ stats: InfraStats }>("/infrastructure/stats"),
   migrate: (name: string) => apiClient.post<{ message: string; name: string }>(`/infrastructure/migrate/${name}`),
+};
+
+export const registriesApi = {
+  list: () => apiClient.get<{ registry_types: RegistryType[] }>("/registries"),
+  get: (slug: string) => apiClient.get<{ registry_type: RegistryType }>(`/registries/${slug}`),
+  create: (data: {
+    name: string;
+    url_patterns: string[];
+    auth_type?: string;
+    login_url?: string;
+    docs_url?: string;
+  }) => apiClient.post<{ message: string; registry_type: RegistryType }>("/registries", data),
+  update: (
+    slug: string,
+    data: {
+      name?: string;
+      url_patterns?: string[];
+      auth_type?: string;
+      login_url?: string;
+      docs_url?: string;
+    },
+  ) => apiClient.put<{ message: string; registry_type: RegistryType }>(`/registries/${slug}`, data),
+  delete: (slug: string) => apiClient.delete(`/registries/${slug}`),
+};
+
+export const credentialsApi = {
+  list: () => apiClient.get<{ credentials: RegistryCredential[] }>("/credentials"),
+  get: (id: string) => apiClient.get<{ credential: RegistryCredential }>(`/credentials/${id}`),
+  create: (data: {
+    name: string;
+    registry_type_slug: string;
+    username: string;
+    password: string;
+    email?: string;
+    is_default?: boolean;
+  }) => apiClient.post<{ message: string; credential: RegistryCredential }>("/credentials", data),
+  update: (
+    id: string,
+    data: {
+      name?: string;
+      username?: string;
+      password?: string;
+      email?: string;
+      is_default?: boolean;
+    },
+  ) => apiClient.put<{ message: string; credential: RegistryCredential }>(`/credentials/${id}`, data),
+  delete: (id: string) => apiClient.delete(`/credentials/${id}`),
+  test: (id: string) => apiClient.post<{ message: string; success: boolean }>(`/credentials/${id}/test`),
 };
