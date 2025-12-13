@@ -69,6 +69,19 @@ export const deploymentsApi = {
   start: (name: string) => apiClient.post(`/deployments/${name}/start`),
   stop: (name: string) => apiClient.post(`/deployments/${name}/stop`),
   restart: (name: string) => apiClient.post(`/deployments/${name}/restart`),
+  pullImage: (name: string, onlyLatest: boolean = false) =>
+    apiClient.post<{ message: string; name: string; output: string }>(`/deployments/${name}/pull`, {
+      only_latest: onlyLatest,
+    }),
+  getImages: (name: string) =>
+    apiClient.get<{
+      images: Array<{
+        service: string;
+        image: string;
+        is_latest: boolean;
+        is_build: boolean;
+      }>;
+    }>(`/deployments/${name}/images`),
   logs: (name: string) => apiClient.get(`/deployments/${name}/logs`),
   getComposeFile: (name: string) => apiClient.get(`/deployments/${name}/compose`),
   getStats: (name: string) =>
