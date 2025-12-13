@@ -2,7 +2,7 @@
   <BaseModal
     :visible="visible"
     :close-disabled="isRunning"
-    :close-on-overlay="!isRunning"
+    :close-on-overlay="false"
     size="lg"
     @close="handleClose"
   >

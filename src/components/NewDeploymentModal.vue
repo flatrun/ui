@@ -3,7 +3,7 @@
     :visible="visible"
     size="3xl"
     :close-disabled="creating"
-    :close-on-overlay="!creating"
+    :close-on-overlay="false"
     @close="handleClose"
   >
     <template #header>

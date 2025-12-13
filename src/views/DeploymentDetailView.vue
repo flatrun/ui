@@ -507,7 +507,6 @@
       <div
         v-if="showOperationModal"
         class="modal-overlay"
-        @click.self="!operationRunning && (showOperationModal = false)"
       >
         <div class="operation-modal modal-container">
           <div class="modal-header" :class="{ success: operationSuccess, error: operationError }">
@@ -555,7 +554,6 @@
       <div
         v-if="showDeleteDeploymentModal"
         class="modal-overlay"
-        @click.self="!deletingDeployment && (showDeleteDeploymentModal = false)"
       >
         <div class="delete-modal modal-container">
           <div class="modal-header danger">
@@ -694,7 +692,7 @@
     />
 
     <Teleport to="body">
-      <div v-if="showDomainSettingsModal" class="modal-overlay" @click.self="showDomainSettingsModal = false">
+      <div v-if="showDomainSettingsModal" class="modal-overlay">
         <div class="domain-settings-modal modal-container">
           <div class="modal-header">
             <h3>
@@ -761,7 +759,7 @@
     </Teleport>
 
     <Teleport to="body">
-      <div v-if="showAddEnvModal" class="modal-overlay" @click.self="showAddEnvModal = false">
+      <div v-if="showAddEnvModal" class="modal-overlay">
         <div class="env-modal modal-container">
           <div class="modal-header">
             <h3>
