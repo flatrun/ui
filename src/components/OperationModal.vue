@@ -1,11 +1,5 @@
 <template>
-  <BaseModal
-    :visible="visible"
-    :close-disabled="isRunning"
-    :close-on-overlay="false"
-    size="lg"
-    @close="handleClose"
-  >
+  <BaseModal :visible="visible" :close-disabled="isRunning" :close-on-overlay="false" size="lg" @close="handleClose">
     <template #header>
       <div class="header-info">
         <span class="operation-badge" :class="operation">{{ operation }}</span>

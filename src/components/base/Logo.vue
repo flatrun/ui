@@ -15,7 +15,7 @@ import { computed } from "vue";
 import flatrunLogo from "@/assets/flatrun.svg";
 import flatrunIcon from "@/assets/flatrun-icon.svg";
 
-const props = withDefaults(
+withDefaults(
   defineProps<{
     variant?: "full" | "icon";
     size?: "sm" | "md" | "lg";

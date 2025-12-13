@@ -1,5 +1,14 @@
 import axios from "axios";
-import type { Deployment, Network, Certificate, ProxyStatus, ProxySetupResult, VirtualHost, RegistryType, RegistryCredential } from "@/types";
+import type {
+  Deployment,
+  Network,
+  Certificate,
+  ProxyStatus,
+  ProxySetupResult,
+  VirtualHost,
+  RegistryType,
+  RegistryCredential,
+} from "@/types";
 
 const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_URL || "/api",
@@ -82,6 +91,8 @@ export const deploymentsApi = {
         is_build: boolean;
       }>;
     }>(`/deployments/${name}/images`),
+  executeQuickAction: (name: string, actionId: string) =>
+    apiClient.post<{ message: string; action_id: string; output: string }>(`/deployments/${name}/actions/${actionId}`),
   logs: (name: string) => apiClient.get(`/deployments/${name}/logs`),
   getComposeFile: (name: string) => apiClient.get(`/deployments/${name}/compose`),
   getStats: (name: string) =>
@@ -479,13 +490,8 @@ export const infrastructureApi = {
 export const registriesApi = {
   list: () => apiClient.get<{ registry_types: RegistryType[] }>("/registries"),
   get: (slug: string) => apiClient.get<{ registry_type: RegistryType }>(`/registries/${slug}`),
-  create: (data: {
-    name: string;
-    url_patterns: string[];
-    auth_type?: string;
-    login_url?: string;
-    docs_url?: string;
-  }) => apiClient.post<{ message: string; registry_type: RegistryType }>("/registries", data),
+  create: (data: { name: string; url_patterns: string[]; auth_type?: string; login_url?: string; docs_url?: string }) =>
+    apiClient.post<{ message: string; registry_type: RegistryType }>("/registries", data),
   update: (
     slug: string,
     data: {

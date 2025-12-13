@@ -35,11 +35,7 @@
         >
           <i class="pi pi-refresh" /> Restart
         </button>
-        <button
-          class="btn btn-secondary"
-          :disabled="loading"
-          @click="openPullImageModal"
-        >
+        <button class="btn btn-secondary" :disabled="loading" @click="openPullImageModal">
           <i class="pi pi-download" /> Pull Image
         </button>
         <button class="btn btn-danger" :disabled="loading" @click="confirmDelete">
@@ -424,6 +420,76 @@
           </div>
         </div>
 
+        <div v-if="activeTab === 'actions'" class="actions-tab">
+          <div class="quick-actions-header">
+            <div class="header-text">
+              <h3>Quick Actions</h3>
+              <p class="subtitle">Execute predefined commands on your deployment</p>
+            </div>
+            <button class="btn btn-primary" @click="openAddActionModal"><i class="pi pi-plus" /> Add Action</button>
+          </div>
+
+          <div v-if="!deployment?.metadata?.quick_actions?.length" class="no-actions">
+            <i class="pi pi-bolt" />
+            <p>No quick actions configured for this deployment.</p>
+            <span class="hint">Click "Add Action" to create your first quick action.</span>
+          </div>
+
+          <div v-else class="actions-grid">
+            <div
+              v-for="action in deployment.metadata.quick_actions"
+              :key="action.id"
+              class="action-card"
+              :class="{ executing: executingAction === action.id }"
+            >
+              <div class="action-card-header">
+                <div class="action-title">
+                  <div class="action-icon">
+                    <i :class="action.icon || 'pi pi-play'" />
+                  </div>
+                  <h4>{{ action.name }}</h4>
+                </div>
+                <div class="action-meta">
+                  <button class="action-meta-btn" title="Edit" @click="openEditActionModal(action)">
+                    <i class="pi pi-pencil" />
+                  </button>
+                  <button
+                    class="action-meta-btn action-meta-btn-danger"
+                    title="Delete"
+                    @click="deleteAction(action.id)"
+                  >
+                    <i class="pi pi-trash" />
+                  </button>
+                </div>
+              </div>
+              <div class="action-info">
+                <p v-if="action.description">{{ action.description }}</p>
+                <code class="action-command">{{ action.command }}</code>
+              </div>
+              <button
+                class="btn btn-primary action-run-btn"
+                :disabled="executingAction !== null || deployment?.status !== 'running'"
+                @click="executeAction(action)"
+              >
+                <i v-if="executingAction === action.id" class="pi pi-spin pi-spinner" />
+                <i v-else class="pi pi-play" />
+                {{ executingAction === action.id ? "Running..." : "Run" }}
+              </button>
+            </div>
+          </div>
+
+          <div v-if="actionOutput" class="action-output">
+            <div class="output-header">
+              <h4>
+                <i class="pi pi-code" />
+                Output
+              </h4>
+              <button class="btn btn-sm btn-secondary" @click="actionOutput = ''">Clear</button>
+            </div>
+            <pre class="output-content">{{ actionOutput }}</pre>
+          </div>
+        </div>
+
         <div v-if="activeTab === 'config'" class="config-tab">
           <div class="config-sub-tabs">
             <button
@@ -504,10 +570,7 @@
     </template>
 
     <Teleport to="body">
-      <div
-        v-if="showOperationModal"
-        class="modal-overlay"
-      >
+      <div v-if="showOperationModal" class="modal-overlay">
         <div class="operation-modal modal-container">
           <div class="modal-header" :class="{ success: operationSuccess, error: operationError }">
             <h3>
@@ -551,10 +614,7 @@
     </Teleport>
 
     <Teleport to="body">
-      <div
-        v-if="showDeleteDeploymentModal"
-        class="modal-overlay"
-      >
+      <div v-if="showDeleteDeploymentModal" class="modal-overlay">
         <div class="delete-modal modal-container">
           <div class="modal-header danger">
             <h3>
@@ -672,7 +732,11 @@
               <i class="pi pi-download" />
               Pull Latest Only
             </button>
-            <button class="btn btn-primary" :disabled="loadingImages || deploymentImages.length === 0" @click="executePull(false)">
+            <button
+              class="btn btn-primary"
+              :disabled="loadingImages || deploymentImages.length === 0"
+              @click="executePull(false)"
+            >
               <i class="pi pi-download" />
               Pull All Images
             </button>
@@ -798,6 +862,88 @@
         </div>
       </div>
     </Teleport>
+
+    <Teleport to="body">
+      <div v-if="showActionModal" class="modal-overlay">
+        <div class="action-modal modal-container">
+          <div class="modal-header">
+            <h3>
+              <i class="pi pi-bolt" />
+              {{ editingActionId ? "Edit Quick Action" : "Add Quick Action" }}
+            </h3>
+            <button class="close-btn" @click="showActionModal = false">
+              <i class="pi pi-times" />
+            </button>
+          </div>
+          <div class="modal-body">
+            <div class="form-group">
+              <label>Name <span class="required">*</span></label>
+              <input v-model="actionForm.name" type="text" placeholder="e.g., Clear Cache" class="form-input" />
+              <span class="hint">A descriptive name for the action</span>
+            </div>
+            <div class="form-group">
+              <label>Command <span class="required">*</span></label>
+              <input
+                v-model="actionForm.command"
+                type="text"
+                placeholder="e.g., php artisan cache:clear"
+                class="form-input mono"
+              />
+              <span class="hint">The shell command to execute in the container</span>
+            </div>
+            <div class="form-group">
+              <label>Description</label>
+              <input
+                v-model="actionForm.description"
+                type="text"
+                placeholder="e.g., Flush the application cache"
+                class="form-input"
+              />
+              <span class="hint">Optional description of what this action does</span>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Icon</label>
+                <select v-model="actionForm.icon" class="form-input">
+                  <option value="pi pi-play">Play</option>
+                  <option value="pi pi-bolt">Bolt</option>
+                  <option value="pi pi-refresh">Refresh</option>
+                  <option value="pi pi-trash">Trash</option>
+                  <option value="pi pi-database">Database</option>
+                  <option value="pi pi-cog">Cog</option>
+                  <option value="pi pi-code">Code</option>
+                  <option value="pi pi-sync">Sync</option>
+                  <option value="pi pi-download">Download</option>
+                  <option value="pi pi-upload">Upload</option>
+                </select>
+                <span class="hint">Icon to display for this action</span>
+              </div>
+              <div class="form-group">
+                <label>Target Service</label>
+                <select v-model="actionForm.service" class="form-input">
+                  <option value="">Default (first service)</option>
+                  <option v-for="svc in deployment?.services" :key="svc.name" :value="svc.name">
+                    {{ svc.name }}
+                  </option>
+                </select>
+                <span class="hint">Container to run the command in</span>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" @click="showActionModal = false">Cancel</button>
+            <button
+              class="btn btn-primary"
+              :disabled="savingAction || !actionForm.name || !actionForm.command"
+              @click="saveAction"
+            >
+              <i v-if="savingAction" class="pi pi-spin pi-spinner" />
+              {{ savingAction ? "Saving..." : editingActionId ? "Update Action" : "Add Action" }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
@@ -809,7 +955,7 @@ import { yaml } from "@codemirror/lang-yaml";
 import { oneDark } from "@codemirror/theme-one-dark";
 import { deploymentsApi, proxyApi, certificatesApi, filesApi, infrastructureApi, type EnvVar } from "@/services/api";
 import { useNotificationsStore } from "@/stores/notifications";
-import type { ProxyStatus } from "@/types";
+import type { ProxyStatus, QuickAction } from "@/types";
 import FileBrowser from "@/components/FileBrowser.vue";
 import LogViewer from "@/components/LogViewer.vue";
 import ConfirmModal from "@/components/ConfirmModal.vue";
@@ -842,6 +988,7 @@ const tabs = [
   { id: "logs", label: "Logs", icon: "pi pi-file-edit" },
   { id: "terminal", label: "Terminal", icon: "pi pi-desktop" },
   { id: "environment", label: "Environment", icon: "pi pi-list" },
+  { id: "actions", label: "Quick Actions", icon: "pi pi-bolt" },
   { id: "config", label: "Configuration", icon: "pi pi-cog" },
 ];
 
@@ -901,6 +1048,19 @@ const deploymentImages = ref<
     is_build: boolean;
   }>
 >([]);
+
+const executingAction = ref<string | null>(null);
+const actionOutput = ref("");
+const showActionModal = ref(false);
+const savingAction = ref(false);
+const editingActionId = ref<string | null>(null);
+const actionForm = ref({
+  name: "",
+  command: "",
+  description: "",
+  icon: "pi pi-play",
+  service: "",
+});
 const showDeleteEnvModal = ref(false);
 const envKeyToDelete = ref("");
 
@@ -1105,6 +1265,117 @@ const openPullImageModal = async () => {
 const executePull = async (onlyLatest: boolean) => {
   showPullImageModal.value = false;
   await handleOperation("pull", onlyLatest);
+};
+
+const executeAction = async (action: { id: string; name: string }) => {
+  executingAction.value = action.id;
+  actionOutput.value = "";
+
+  try {
+    const response = await deploymentsApi.executeQuickAction(route.params.name as string, action.id);
+    actionOutput.value = response.data.output || "Action completed successfully";
+    notifications.success("Action Executed", `${action.name} completed successfully`);
+  } catch (err: any) {
+    const errorOutput = err.response?.data?.output || err.response?.data?.error || err.message;
+    actionOutput.value = errorOutput;
+    notifications.error("Action Failed", `${action.name} failed`);
+  } finally {
+    executingAction.value = null;
+  }
+};
+
+const openAddActionModal = () => {
+  editingActionId.value = null;
+  actionForm.value = {
+    name: "",
+    command: "",
+    description: "",
+    icon: "pi pi-play",
+    service: "",
+  };
+  showActionModal.value = true;
+};
+
+const openEditActionModal = (action: QuickAction) => {
+  editingActionId.value = action.id;
+  actionForm.value = {
+    name: action.name,
+    command: action.command,
+    description: action.description || "",
+    icon: action.icon || "pi pi-play",
+    service: action.service || "",
+  };
+  showActionModal.value = true;
+};
+
+const saveAction = async () => {
+  if (!actionForm.value.name || !actionForm.value.command) {
+    notifications.error("Validation Error", "Name and command are required");
+    return;
+  }
+
+  savingAction.value = true;
+  try {
+    const currentActions = deployment.value?.metadata?.quick_actions || [];
+    let updatedActions;
+
+    if (editingActionId.value) {
+      updatedActions = currentActions.map((a: QuickAction) =>
+        a.id === editingActionId.value
+          ? {
+              ...a,
+              name: actionForm.value.name,
+              command: actionForm.value.command,
+              description: actionForm.value.description || undefined,
+              icon: actionForm.value.icon || undefined,
+              service: actionForm.value.service || undefined,
+            }
+          : a,
+      );
+    } else {
+      const newAction = {
+        id: `action-${Date.now()}`,
+        name: actionForm.value.name,
+        command: actionForm.value.command,
+        description: actionForm.value.description || undefined,
+        icon: actionForm.value.icon || undefined,
+        service: actionForm.value.service || undefined,
+      };
+      updatedActions = [...currentActions, newAction];
+    }
+
+    const metadata = {
+      ...deployment.value?.metadata,
+      quick_actions: updatedActions,
+    };
+
+    await deploymentsApi.updateMetadata(route.params.name as string, metadata as any);
+    showActionModal.value = false;
+    notifications.success("Action Saved", editingActionId.value ? "Quick action updated" : "Quick action added");
+    await fetchDeployment();
+  } catch (err: any) {
+    notifications.error("Save Failed", err.response?.data?.error || err.message);
+  } finally {
+    savingAction.value = false;
+  }
+};
+
+const deleteAction = async (actionId: string) => {
+  try {
+    const currentActions = deployment.value?.metadata?.quick_actions || [];
+    const updatedActions = currentActions.filter((a: QuickAction) => a.id !== actionId);
+
+    const metadata = {
+      ...deployment.value?.metadata,
+      quick_actions: updatedActions,
+    };
+
+    await deploymentsApi.updateMetadata(route.params.name as string, metadata as any);
+    notifications.success("Action Deleted", "Quick action removed");
+    await fetchDeployment();
+  } catch (err: any) {
+    notifications.error("Delete Failed", err.response?.data?.error || err.message);
+  }
 };
 
 const hasLatestImages = computed(() => {
@@ -2635,5 +2906,242 @@ onUnmounted(() => {
   display: flex;
   justify-content: flex-end;
   gap: var(--space-2);
+}
+
+.actions-tab {
+  padding: var(--space-4);
+}
+
+.quick-actions-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: var(--space-6);
+}
+
+.quick-actions-header .header-text h3 {
+  font-size: var(--text-xl);
+  font-weight: var(--font-semibold);
+  color: var(--color-gray-900);
+  margin: 0;
+}
+
+.quick-actions-header .header-text .subtitle {
+  color: var(--color-gray-500);
+  margin-top: var(--space-1);
+  font-size: var(--text-sm);
+}
+
+.no-actions {
+  text-align: center;
+  padding: var(--space-8);
+  background: var(--color-gray-50);
+  border-radius: var(--radius-lg);
+  color: var(--color-gray-500);
+}
+
+.no-actions i {
+  font-size: 2.5rem;
+  margin-bottom: var(--space-4);
+  opacity: 0.5;
+}
+
+.no-actions p {
+  font-size: var(--text-md);
+  margin: 0;
+}
+
+.no-actions .hint {
+  display: block;
+  font-size: var(--text-sm);
+  margin-top: var(--space-2);
+  opacity: 0.8;
+}
+
+.actions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+
+.action-card {
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-4);
+  background: white;
+  border: 1px solid var(--color-gray-200);
+  border-radius: var(--radius-lg);
+  transition: all var(--transition-base);
+}
+
+.action-card:hover {
+  border-color: var(--color-primary-300);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.action-card:hover .action-meta {
+  opacity: 1;
+}
+
+.action-card.executing {
+  border-color: var(--color-primary-400);
+  background: var(--color-primary-50);
+}
+
+.action-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-2);
+}
+
+.action-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.action-title h4 {
+  font-size: var(--text-md);
+  font-weight: var(--font-medium);
+  color: var(--color-gray-900);
+  margin: 0;
+}
+
+.action-meta {
+  display: flex;
+  gap: var(--space-1);
+  opacity: 0;
+  transition: opacity var(--transition-base);
+}
+
+.action-meta-btn {
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--color-gray-400);
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+.action-meta-btn:hover {
+  background: var(--color-gray-100);
+  color: var(--color-gray-600);
+}
+
+.action-meta-btn-danger:hover {
+  background: var(--color-danger-50);
+  color: var(--color-danger-600);
+}
+
+.action-meta-btn i {
+  font-size: 0.75rem;
+}
+
+.action-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  background: var(--color-primary-100);
+  color: var(--color-primary-600);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.action-icon i {
+  font-size: 0.9rem;
+}
+
+.action-info {
+  flex: 1;
+  min-width: 0;
+  margin-bottom: var(--space-3);
+}
+
+.action-info p {
+  font-size: var(--text-sm);
+  color: var(--color-gray-500);
+  margin: 0 0 var(--space-2);
+}
+
+.action-command {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--color-gray-600);
+  background: var(--color-gray-100);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.action-output {
+  background: var(--color-gray-900);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.action-output .output-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-gray-800);
+}
+
+.action-output .output-header h4 {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--color-gray-300);
+}
+
+.action-output .output-content {
+  margin: 0;
+  padding: var(--space-4);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--color-gray-100);
+  white-space: pre-wrap;
+  word-break: break-all;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.action-run-btn {
+  width: 100%;
+  margin-top: auto;
+}
+
+.action-modal {
+  max-width: 500px;
+}
+
+.action-modal .form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+}
+
+.action-modal .form-input.mono {
+  font-family: var(--font-mono);
+}
+
+.action-modal .required {
+  color: var(--color-danger-500);
 }
 </style>

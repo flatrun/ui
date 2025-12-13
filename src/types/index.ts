@@ -25,6 +25,16 @@ export interface ServiceMetadata {
   networking: NetworkingConfig;
   ssl: SSLConfig;
   healthcheck: HealthCheckConfig;
+  quick_actions?: QuickAction[];
+}
+
+export interface QuickAction {
+  id: string;
+  name: string;
+  command: string;
+  description?: string;
+  icon?: string;
+  service?: string;
 }
 
 export interface NetworkingConfig {

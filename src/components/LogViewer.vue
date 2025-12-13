@@ -86,7 +86,7 @@ const props = withDefaults(
   },
 );
 
-const emit = defineEmits<{
+defineEmits<{
   refresh: [];
 }>();
 

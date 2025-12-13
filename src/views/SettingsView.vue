@@ -498,8 +498,8 @@
           </div>
           <div class="card-body">
             <p class="section-description">
-              Manage saved credentials for private Docker registries. These credentials can be used when pulling
-              private images or deploying from private registries.
+              Manage saved credentials for private Docker registries. These credentials can be used when pulling private
+              images or deploying from private registries.
             </p>
 
             <!-- Add Credential Form -->
@@ -553,13 +553,18 @@
                 <button
                   class="btn btn-secondary"
                   :disabled="savingCredential"
-                  @click="showAddCredentialForm = false; resetNewCredentialForm()"
+                  @click="
+                    showAddCredentialForm = false;
+                    resetNewCredentialForm();
+                  "
                 >
                   Cancel
                 </button>
                 <button
                   class="btn btn-primary"
-                  :disabled="savingCredential || !newCredential.name || !newCredential.username || !newCredential.password"
+                  :disabled="
+                    savingCredential || !newCredential.name || !newCredential.username || !newCredential.password
+                  "
                   @click="createCredential"
                 >
                   <i v-if="savingCredential" class="pi pi-spin pi-spinner" />
@@ -619,16 +624,12 @@
               </div>
               <h3>Delete Credential</h3>
               <p>
-                Are you sure you want to delete <strong>{{ credentialToDelete?.name }}</strong>?
-                This action cannot be undone.
+                Are you sure you want to delete <strong>{{ credentialToDelete?.name }}</strong
+                >? This action cannot be undone.
               </p>
               <div class="confirm-actions">
                 <button class="btn btn-secondary" @click="cancelDeleteCredential">Cancel</button>
-                <button
-                  class="btn btn-danger"
-                  :disabled="deletingCredentialId !== null"
-                  @click="deleteCredential"
-                >
+                <button class="btn btn-danger" :disabled="deletingCredentialId !== null" @click="deleteCredential">
                   <i v-if="deletingCredentialId" class="pi pi-spin pi-spinner" />
                   Delete
                 </button>
@@ -1728,7 +1729,9 @@ onMounted(() => {
   border: 1px solid #d1d5db;
   border-radius: 6px;
   font-size: 0.875rem;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
 }
 
 .form-control:focus {

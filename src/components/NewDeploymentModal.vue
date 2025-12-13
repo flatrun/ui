@@ -1,11 +1,5 @@
 <template>
-  <BaseModal
-    :visible="visible"
-    size="3xl"
-    :close-disabled="creating"
-    :close-on-overlay="false"
-    @close="handleClose"
-  >
+  <BaseModal :visible="visible" size="3xl" :close-disabled="creating" :close-on-overlay="false" @close="handleClose">
     <template #header>
       <div class="modal-header-content">
         <div class="modal-header-icon">
@@ -359,7 +353,10 @@
                           </label>
                         </div>
 
-                        <div v-if="form.registry.useExisting && existingCredentials.length > 0" class="existing-credential-select">
+                        <div
+                          v-if="form.registry.useExisting && existingCredentials.length > 0"
+                          class="existing-credential-select"
+                        >
                           <div class="form-field">
                             <label for="existingCredential">Select Credential</label>
                             <select
@@ -368,11 +365,7 @@
                               class="form-select"
                             >
                               <option value="" disabled>Choose a saved credential</option>
-                              <option
-                                v-for="cred in existingCredentials"
-                                :key="cred.id"
-                                :value="cred.id"
-                              >
+                              <option v-for="cred in existingCredentials" :key="cred.id" :value="cred.id">
                                 {{ cred.name }} ({{ cred.username }})
                               </option>
                             </select>
@@ -1662,60 +1655,6 @@ const checkDatabaseConnection = async () => {
   }
 };
 
-const getDatabaseEnvVars = () => {
-  const envVars: { key: string; value: string }[] = [];
-  const db = form.database;
-  const dbName = db.dbName || (form.name ? form.name.replace(/-/g, "_") : "app_db");
-
-  let dbHost: string;
-  let dbPort: string;
-
-  if (db.mode === "external") {
-    dbHost = db.externalHost;
-    dbPort = db.externalPort || getDefaultPort(db.type);
-  } else if (db.mode === "existing") {
-    dbHost = db.existingContainer;
-    dbPort = getDefaultPort(db.type);
-  } else {
-    dbHost = "db";
-    dbPort = getDefaultPort(db.type);
-  }
-
-  if (db.type === "mysql" || db.type === "mariadb") {
-    envVars.push({ key: "DB_HOST", value: dbHost });
-    envVars.push({ key: "DB_PORT", value: dbPort });
-    envVars.push({ key: "DB_DATABASE", value: dbName });
-    envVars.push({ key: "DB_USERNAME", value: db.dbUser || "app" });
-    envVars.push({ key: "DB_PASSWORD", value: db.dbPassword });
-    envVars.push({
-      key: "DATABASE_URL",
-      value: `mysql://${db.dbUser || "app"}:${db.dbPassword}@${dbHost}:${dbPort}/${dbName}`,
-    });
-  } else if (db.type === "postgres") {
-    envVars.push({ key: "DB_HOST", value: dbHost });
-    envVars.push({ key: "DB_PORT", value: dbPort });
-    envVars.push({ key: "DB_DATABASE", value: dbName });
-    envVars.push({ key: "DB_USERNAME", value: db.dbUser || "app" });
-    envVars.push({ key: "DB_PASSWORD", value: db.dbPassword });
-    envVars.push({
-      key: "DATABASE_URL",
-      value: `postgres://${db.dbUser || "app"}:${db.dbPassword}@${dbHost}:${dbPort}/${dbName}`,
-    });
-  } else if (db.type === "mongodb") {
-    envVars.push({ key: "MONGO_HOST", value: dbHost });
-    envVars.push({ key: "MONGO_PORT", value: dbPort });
-    envVars.push({ key: "MONGO_DATABASE", value: dbName });
-    envVars.push({ key: "MONGO_USERNAME", value: db.dbUser || "app" });
-    envVars.push({ key: "MONGO_PASSWORD", value: db.dbPassword });
-    envVars.push({
-      key: "MONGODB_URI",
-      value: `mongodb://${db.dbUser || "app"}:${db.dbPassword}@${dbHost}:${dbPort}/${dbName}`,
-    });
-  }
-
-  return envVars;
-};
-
 const getDatabaseServiceYaml = () => {
   const db = form.database;
   if (db.type === "none" || db.mode !== "create") return "";
@@ -1783,13 +1722,6 @@ const getDatabaseServiceYaml = () => {
     restart: unless-stopped`;
   }
   return "";
-};
-
-const getDatabaseVolumeYaml = () => {
-  if (form.database.type === "none" || form.database.mode !== "create") return "";
-  return `
-volumes:
-  db_data:`;
 };
 
 const buildPortConfig = (ports: { containerPort: number; hostPort: string }[]) => {
@@ -2083,100 +2015,6 @@ watch(
     }
   },
 );
-
-const rebuildComposeWithDatabase = () => {
-  if (deploymentMode.value !== "easy" || form.database.type === "none") return;
-
-  const baseCompose = getBaseComposeWithoutDb();
-  let compose = baseCompose;
-
-  if (form.database.mode === "create") {
-    const dbService = getDatabaseServiceYaml();
-    const dbVolume = getDatabaseVolumeYaml();
-
-    if (dbService) {
-      // Add depends_on to app service if not already present
-      if (!compose.includes("depends_on:")) {
-        compose = compose.replace(/(services:\s*\n\s*app:.*?\n)((\s+\S.*\n)*)/m, (match, serviceStart, props) => {
-          return serviceStart + `    depends_on:\n      - db\n` + props;
-        });
-      }
-
-      // Insert db service at the end of services section
-      const networksMatch = compose.match(/\nnetworks:/m);
-      const volumesMatch = compose.match(/\nvolumes:/m);
-
-      if (networksMatch) {
-        const insertPos = compose.indexOf(networksMatch[0]);
-        compose = compose.slice(0, insertPos) + dbService + "\n" + compose.slice(insertPos);
-      } else if (volumesMatch) {
-        const insertPos = compose.indexOf(volumesMatch[0]);
-        compose = compose.slice(0, insertPos) + dbService + "\n" + compose.slice(insertPos);
-      } else {
-        compose = compose.trimEnd() + dbService + "\n";
-      }
-
-      // Add volumes section if needed
-      if (!compose.includes("volumes:") && dbVolume) {
-        compose = compose.trimEnd() + "\n" + dbVolume;
-      } else if (compose.includes("volumes:") && !compose.includes("db_data:")) {
-        compose = compose.replace(/volumes:\s*\n/, "volumes:\n  db_data:\n");
-      }
-    }
-  }
-
-  form.composeContent = compose;
-
-  // Update environment variables
-  const dbEnvVars = getDatabaseEnvVars();
-  const dbKeys = [
-    "DB_HOST",
-    "DB_PORT",
-    "DB_DATABASE",
-    "DB_USERNAME",
-    "DB_PASSWORD",
-    "DATABASE_URL",
-    "MONGO_HOST",
-    "MONGO_PORT",
-    "MONGO_DATABASE",
-    "MONGO_USERNAME",
-    "MONGO_PASSWORD",
-    "MONGODB_URI",
-  ];
-  form.envVars = form.envVars.filter((e) => !dbKeys.includes(e.key));
-  for (const env of dbEnvVars) {
-    form.envVars.push(env);
-  }
-};
-
-const getBaseComposeWithoutDb = () => {
-  let compose = form.composeContent;
-
-  // Remove db service block (handles various indentation)
-  compose = compose.replace(/\n\s*db:\n(\s{4,}[^\n]+\n)*/g, "\n");
-
-  // Remove depends_on db entry from app service
-  compose = compose.replace(/\s*depends_on:\s*\n\s*-\s*db\s*\n/g, "\n");
-
-  // Remove db_data from volumes
-  compose = compose.replace(/\s*db_data:\s*\n?/g, "");
-
-  // Remove empty volumes section
-  compose = compose.replace(/\nvolumes:\s*\n(?=\n|$)/g, "");
-
-  // Remove shared network if it was added for existing db
-  compose = compose.replace(/\s*shared:\s*\n\s*external:\s*true\s*\n?/g, "");
-
-  // Remove empty networks section
-  compose = compose.replace(/\nnetworks:\s*\n(?=\n|$)/g, "");
-
-  // Clean up multiple consecutive newlines
-  compose = compose.replace(/\n{3,}/g, "\n\n");
-
-  return compose;
-};
-
-// Database compose modification disabled - server handles compose generation
 
 watch(
   () => [form.database.mode, form.database.existingContainer, form.database.type],
