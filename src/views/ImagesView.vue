@@ -197,12 +197,75 @@
             <div class="form-group">
               <label>Image Name</label>
               <input v-model="pullImageName" type="text" placeholder="nginx:latest" class="form-input" />
-              <span class="form-hint">Format: repository:tag (e.g., nginx:latest, ubuntu:22.04)</span>
+              <span class="form-hint">Format: repository:tag (e.g., nginx:latest, ghcr.io/user/app:v1)</span>
             </div>
+
+            <div class="form-group private-toggle">
+              <label class="checkbox-label">
+                <input v-model="pullPrivateImage" type="checkbox" />
+                <span>Private registry (requires authentication)</span>
+              </label>
+            </div>
+
+            <Transition name="collapse">
+              <div v-if="pullPrivateImage" class="credentials-section">
+                <div v-if="existingCredentials.length > 0" class="credential-source-toggle">
+                  <label class="toggle-option">
+                    <input
+                      v-model="pullCredentials.useExisting"
+                      type="radio"
+                      name="pullCredentialSource"
+                      :value="true"
+                    />
+                    <span>Use saved credential</span>
+                  </label>
+                  <label class="toggle-option">
+                    <input
+                      v-model="pullCredentials.useExisting"
+                      type="radio"
+                      name="pullCredentialSource"
+                      :value="false"
+                    />
+                    <span>Enter new credentials</span>
+                  </label>
+                </div>
+
+                <div v-if="pullCredentials.useExisting && existingCredentials.length > 0" class="form-group">
+                  <label>Select Credential</label>
+                  <select v-model="pullCredentials.selectedCredentialId" class="form-input">
+                    <option value="" disabled>Choose a saved credential</option>
+                    <option v-for="cred in existingCredentials" :key="cred.id" :value="cred.id">
+                      {{ cred.name }} ({{ cred.username }})
+                    </option>
+                  </select>
+                </div>
+
+                <template v-else>
+                  <div class="form-group">
+                    <label>Username</label>
+                    <input v-model="pullCredentials.username" type="text" placeholder="Username" class="form-input" />
+                  </div>
+                  <div class="form-group">
+                    <label>Password / Token</label>
+                    <div class="password-input-wrapper">
+                      <input
+                        v-model="pullCredentials.password"
+                        :type="showPullPassword ? 'text' : 'password'"
+                        placeholder="Password or access token"
+                        class="form-input"
+                      />
+                      <button type="button" class="toggle-password-btn" @click="showPullPassword = !showPullPassword">
+                        <i :class="showPullPassword ? 'pi pi-eye-slash' : 'pi pi-eye'" />
+                      </button>
+                    </div>
+                  </div>
+                </template>
+              </div>
+            </Transition>
           </div>
           <div class="modal-footer">
-            <button class="btn btn-secondary" @click="showPullModal = false">Cancel</button>
-            <button class="btn btn-primary" :disabled="!pullImageName || pulling" @click="pullImage">
+            <button class="btn btn-secondary" @click="closePullModal">Cancel</button>
+            <button class="btn btn-primary" :disabled="!canPull || pulling" @click="pullImage">
               <i v-if="pulling" class="pi pi-spin pi-spinner" />
               {{ pulling ? "Pulling..." : "Pull Image" }}
             </button>
@@ -214,10 +277,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
-import { imagesApi } from "@/services/api";
+import { ref, computed, onMounted, watch } from "vue";
+import { imagesApi, credentialsApi } from "@/services/api";
 import DataTable from "@/components/DataTable.vue";
 import ConfirmModal from "@/components/ConfirmModal.vue";
+import type { RegistryCredential } from "@/types";
 
 interface DockerImage {
   id: string;
@@ -232,6 +296,16 @@ const loading = ref(false);
 const showPullModal = ref(false);
 const pullImageName = ref("");
 const pulling = ref(false);
+const pullPrivateImage = ref(false);
+const showPullPassword = ref(false);
+const pullCredentials = ref({
+  useExisting: false,
+  selectedCredentialId: "",
+  username: "",
+  password: "",
+});
+const existingCredentials = ref<RegistryCredential[]>([]);
+const loadingCredentials = ref(false);
 
 const showDeleteModal = ref(false);
 const imageToDelete = ref<string | null>(null);
@@ -254,6 +328,16 @@ const columns = [
 
 const totalSize = computed(() => images.value.reduce((acc, img) => acc + img.size, 0));
 const unusedImages = computed(() => images.value.filter((img) => img.containers === 0).length);
+const canPull = computed(() => {
+  if (!pullImageName.value) return false;
+  if (pullPrivateImage.value) {
+    if (pullCredentials.value.useExisting) {
+      return !!pullCredentials.value.selectedCredentialId;
+    }
+    return pullCredentials.value.username && pullCredentials.value.password;
+  }
+  return true;
+});
 
 const fetchImages = async () => {
   loading.value = true;
@@ -264,6 +348,18 @@ const fetchImages = async () => {
     console.error("Failed to fetch images:", error);
   } finally {
     loading.value = false;
+  }
+};
+
+const loadCredentials = async () => {
+  loadingCredentials.value = true;
+  try {
+    const response = await credentialsApi.list();
+    existingCredentials.value = response.data.credentials || [];
+  } catch {
+    existingCredentials.value = [];
+  } finally {
+    loadingCredentials.value = false;
   }
 };
 
@@ -347,18 +443,46 @@ const confirmBulkRemove = async () => {
 };
 
 const pullImage = async () => {
-  if (!pullImageName.value) return;
+  if (!canPull.value) return;
   pulling.value = true;
   try {
-    await imagesApi.pull(pullImageName.value);
-    showPullModal.value = false;
-    pullImageName.value = "";
+    if (pullPrivateImage.value) {
+      if (pullCredentials.value.useExisting && pullCredentials.value.selectedCredentialId) {
+        await imagesApi.pull(pullImageName.value, pullCredentials.value.selectedCredentialId);
+      } else if (pullCredentials.value.username && pullCredentials.value.password) {
+        const credResult = await credentialsApi.create({
+          name: `temp-${Date.now()}`,
+          registry_type_slug: "docker-hub",
+          username: pullCredentials.value.username,
+          password: pullCredentials.value.password,
+          is_default: false,
+        });
+        await imagesApi.pull(pullImageName.value, credResult.data.credential.id);
+        await credentialsApi.delete(credResult.data.credential.id);
+      }
+    } else {
+      await imagesApi.pull(pullImageName.value);
+    }
+    closePullModal();
     await fetchImages();
   } catch (error) {
     console.error("Failed to pull image:", error);
   } finally {
     pulling.value = false;
   }
+};
+
+const closePullModal = () => {
+  showPullModal.value = false;
+  pullImageName.value = "";
+  pullPrivateImage.value = false;
+  pullCredentials.value = {
+    useExisting: false,
+    selectedCredentialId: "",
+    username: "",
+    password: "",
+  };
+  showPullPassword.value = false;
 };
 
 const inspectImage = (id: string) => {
@@ -368,6 +492,12 @@ const inspectImage = (id: string) => {
 const createContainer = (id: string) => {
   console.log("Create container from image:", id);
 };
+
+watch(showPullModal, (val) => {
+  if (val) {
+    loadCredentials();
+  }
+});
 
 onMounted(() => {
   fetchImages();
@@ -650,6 +780,78 @@ onMounted(() => {
   max-width: 500px;
 }
 
+.private-toggle {
+  margin-top: var(--space-2);
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  cursor: pointer;
+  font-size: var(--text-sm);
+  color: var(--color-gray-600);
+}
+
+.checkbox-label input {
+  cursor: pointer;
+}
+
+.credentials-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  background: var(--color-gray-50);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-gray-200);
+}
+
+.password-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-input-wrapper .form-input {
+  padding-right: 40px;
+}
+
+.toggle-password-btn {
+  position: absolute;
+  right: var(--space-2);
+  background: none;
+  border: none;
+  color: var(--color-gray-400);
+  cursor: pointer;
+  padding: var(--space-1);
+}
+
+.toggle-password-btn:hover {
+  color: var(--color-gray-600);
+}
+
+.collapse-enter-active,
+.collapse-leave-active {
+  transition: all 0.2s ease;
+  overflow: hidden;
+}
+
+.collapse-enter-from,
+.collapse-leave-to {
+  opacity: 0;
+  max-height: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  margin-top: 0;
+}
+
+.collapse-enter-to,
+.collapse-leave-from {
+  opacity: 1;
+  max-height: 200px;
+}
+
 .form-group {
   display: flex;
   flex-direction: column;
@@ -678,5 +880,39 @@ onMounted(() => {
 
 .close-btn:hover {
   background: var(--color-gray-200);
+}
+
+.credential-source-toggle {
+  display: flex;
+  gap: var(--space-4);
+  margin-bottom: var(--space-3);
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--color-gray-200);
+}
+
+.toggle-option {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  cursor: pointer;
+  font-size: var(--text-sm);
+  color: var(--color-gray-600);
+}
+
+.form-input select,
+select.form-input {
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-gray-300);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  background: white;
+  cursor: pointer;
+}
+
+select.form-input:focus {
+  outline: none;
+  border-color: var(--color-primary-500);
+  box-shadow: 0 0 0 2px var(--color-primary-100);
 }
 </style>

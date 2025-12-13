@@ -1,11 +1,5 @@
 <template>
-  <BaseModal
-    :visible="visible"
-    size="3xl"
-    :close-disabled="creating"
-    :close-on-overlay="!creating"
-    @close="handleClose"
-  >
+  <BaseModal :visible="visible" size="3xl" :close-disabled="creating" :close-on-overlay="false" @close="handleClose">
     <template #header>
       <div class="modal-header-content">
         <div class="modal-header-icon">
@@ -325,6 +319,106 @@
                       <span v-if="errors.image" class="field-error">{{ errors.image }}</span>
                       <span v-else class="field-hint">Docker Hub, GHCR, or any registry</span>
                     </div>
+
+                    <div class="private-registry-toggle">
+                      <label class="toggle-option">
+                        <input v-model="form.registry.isPrivate" type="checkbox" />
+                        <span class="toggle-label">
+                          <i class="pi pi-lock" />
+                          Private registry (requires authentication)
+                        </span>
+                      </label>
+                    </div>
+
+                    <Transition name="collapse">
+                      <div v-if="form.registry.isPrivate" class="registry-credentials">
+                        <div v-if="existingCredentials.length > 0" class="credential-source-toggle">
+                          <label class="toggle-option">
+                            <input
+                              v-model="form.registry.useExisting"
+                              type="radio"
+                              name="credentialSource"
+                              :value="true"
+                            />
+                            <span class="toggle-label">Use saved credential</span>
+                          </label>
+                          <label class="toggle-option">
+                            <input
+                              v-model="form.registry.useExisting"
+                              type="radio"
+                              name="credentialSource"
+                              :value="false"
+                            />
+                            <span class="toggle-label">Enter new credentials</span>
+                          </label>
+                        </div>
+
+                        <div
+                          v-if="form.registry.useExisting && existingCredentials.length > 0"
+                          class="existing-credential-select"
+                        >
+                          <div class="form-field">
+                            <label for="existingCredential">Select Credential</label>
+                            <select
+                              id="existingCredential"
+                              v-model="form.registry.selectedCredentialId"
+                              class="form-select"
+                            >
+                              <option value="" disabled>Choose a saved credential</option>
+                              <option v-for="cred in existingCredentials" :key="cred.id" :value="cred.id">
+                                {{ cred.name }} ({{ cred.username }})
+                              </option>
+                            </select>
+                          </div>
+                        </div>
+
+                        <template v-else>
+                          <div class="form-field">
+                            <label for="registryUsername">Username</label>
+                            <input
+                              id="registryUsername"
+                              v-model="form.registry.username"
+                              type="text"
+                              placeholder="Username or access token name"
+                            />
+                          </div>
+                          <div class="form-field">
+                            <label for="registryPassword">Password / Token</label>
+                            <div class="input-wrapper">
+                              <input
+                                id="registryPassword"
+                                v-model="form.registry.password"
+                                :type="showRegistryPassword ? 'text' : 'password'"
+                                placeholder="Password or personal access token"
+                              />
+                              <button
+                                type="button"
+                                class="input-icon-btn"
+                                @click="showRegistryPassword = !showRegistryPassword"
+                              >
+                                <i :class="showRegistryPassword ? 'pi pi-eye-slash' : 'pi pi-eye'" />
+                              </button>
+                            </div>
+                          </div>
+                          <div class="save-credential-option">
+                            <label class="toggle-option">
+                              <input v-model="form.registry.saveCredential" type="checkbox" />
+                              <span class="toggle-label">Save credential for future use</span>
+                            </label>
+                            <Transition name="collapse">
+                              <div v-if="form.registry.saveCredential" class="credential-name-field">
+                                <input
+                                  v-model="form.registry.credentialName"
+                                  type="text"
+                                  placeholder="Credential name (e.g., My Docker Hub)"
+                                />
+                              </div>
+                            </Transition>
+                          </div>
+                        </template>
+                      </div>
+                    </Transition>
+
                     <div class="info-hint">
                       <i class="pi pi-info-circle" />
                       <span>A compose file will be auto-generated for your image</span>
@@ -1060,7 +1154,8 @@ import { Codemirror } from "vue-codemirror";
 import { yaml } from "@codemirror/lang-yaml";
 import { oneDark } from "@codemirror/theme-one-dark";
 import BaseModal from "@/components/base/BaseModal.vue";
-import { deploymentsApi, templatesApi, settingsApi, containersApi, composeApi } from "@/services/api";
+import { deploymentsApi, templatesApi, settingsApi, containersApi, composeApi, credentialsApi } from "@/services/api";
+import type { RegistryCredential } from "@/types";
 import { useNotificationsStore } from "@/stores/notifications";
 
 interface TemplateMount {
@@ -1122,6 +1217,9 @@ const existingDeployments = ref<string[]>([]);
 const extensions = shallowRef([yaml(), oneDark]);
 
 const deploymentMode = ref<"" | "easy" | "compose" | "image">("");
+const showRegistryPassword = ref(false);
+const existingCredentials = ref<RegistryCredential[]>([]);
+const loadingCredentials = ref(false);
 
 const easySteps = [
   { id: "basics", label: "Basics" },
@@ -1201,6 +1299,15 @@ const form = reactive({
     useSharedDatabase: false,
   },
   mounts: [] as { id: string; enabled: boolean; type: "file" | "volume" }[],
+  registry: {
+    isPrivate: false,
+    useExisting: false,
+    selectedCredentialId: "",
+    username: "",
+    password: "",
+    saveCredential: false,
+    credentialName: "",
+  },
 });
 
 const errors = reactive({
@@ -1314,6 +1421,18 @@ const loadSettings = async () => {
     }
   } catch {
     // Settings not available
+  }
+};
+
+const loadCredentials = async () => {
+  loadingCredentials.value = true;
+  try {
+    const response = await credentialsApi.list();
+    existingCredentials.value = response.data.credentials || [];
+  } catch {
+    existingCredentials.value = [];
+  } finally {
+    loadingCredentials.value = false;
   }
 };
 
@@ -1536,60 +1655,6 @@ const checkDatabaseConnection = async () => {
   }
 };
 
-const getDatabaseEnvVars = () => {
-  const envVars: { key: string; value: string }[] = [];
-  const db = form.database;
-  const dbName = db.dbName || (form.name ? form.name.replace(/-/g, "_") : "app_db");
-
-  let dbHost: string;
-  let dbPort: string;
-
-  if (db.mode === "external") {
-    dbHost = db.externalHost;
-    dbPort = db.externalPort || getDefaultPort(db.type);
-  } else if (db.mode === "existing") {
-    dbHost = db.existingContainer;
-    dbPort = getDefaultPort(db.type);
-  } else {
-    dbHost = "db";
-    dbPort = getDefaultPort(db.type);
-  }
-
-  if (db.type === "mysql" || db.type === "mariadb") {
-    envVars.push({ key: "DB_HOST", value: dbHost });
-    envVars.push({ key: "DB_PORT", value: dbPort });
-    envVars.push({ key: "DB_DATABASE", value: dbName });
-    envVars.push({ key: "DB_USERNAME", value: db.dbUser || "app" });
-    envVars.push({ key: "DB_PASSWORD", value: db.dbPassword });
-    envVars.push({
-      key: "DATABASE_URL",
-      value: `mysql://${db.dbUser || "app"}:${db.dbPassword}@${dbHost}:${dbPort}/${dbName}`,
-    });
-  } else if (db.type === "postgres") {
-    envVars.push({ key: "DB_HOST", value: dbHost });
-    envVars.push({ key: "DB_PORT", value: dbPort });
-    envVars.push({ key: "DB_DATABASE", value: dbName });
-    envVars.push({ key: "DB_USERNAME", value: db.dbUser || "app" });
-    envVars.push({ key: "DB_PASSWORD", value: db.dbPassword });
-    envVars.push({
-      key: "DATABASE_URL",
-      value: `postgres://${db.dbUser || "app"}:${db.dbPassword}@${dbHost}:${dbPort}/${dbName}`,
-    });
-  } else if (db.type === "mongodb") {
-    envVars.push({ key: "MONGO_HOST", value: dbHost });
-    envVars.push({ key: "MONGO_PORT", value: dbPort });
-    envVars.push({ key: "MONGO_DATABASE", value: dbName });
-    envVars.push({ key: "MONGO_USERNAME", value: db.dbUser || "app" });
-    envVars.push({ key: "MONGO_PASSWORD", value: db.dbPassword });
-    envVars.push({
-      key: "MONGODB_URI",
-      value: `mongodb://${db.dbUser || "app"}:${db.dbPassword}@${dbHost}:${dbPort}/${dbName}`,
-    });
-  }
-
-  return envVars;
-};
-
 const getDatabaseServiceYaml = () => {
   const db = form.database;
   if (db.type === "none" || db.mode !== "create") return "";
@@ -1657,13 +1722,6 @@ const getDatabaseServiceYaml = () => {
     restart: unless-stopped`;
   }
   return "";
-};
-
-const getDatabaseVolumeYaml = () => {
-  if (form.database.type === "none" || form.database.mode !== "create") return "";
-  return `
-volumes:
-  db_data:`;
 };
 
 const buildPortConfig = (ports: { containerPort: number; hostPort: string }[]) => {
@@ -1874,7 +1932,18 @@ watch(
         connectionError: "",
         useSharedDatabase: false,
       };
+      form.registry = {
+        isPrivate: false,
+        useExisting: false,
+        selectedCredentialId: "",
+        username: "",
+        password: "",
+        saveCredential: false,
+        credentialName: "",
+      };
+      showRegistryPassword.value = false;
       existingDbContainers.value = [];
+      existingCredentials.value = [];
       errors.name = "";
       errors.composeContent = "";
       selectedQuickApp.value = "";
@@ -1888,6 +1957,7 @@ watch(
       await generateSubdomain();
       loadQuickApps();
       loadExistingDeployments();
+      loadCredentials();
     }
   },
 );
@@ -1946,100 +2016,6 @@ watch(
   },
 );
 
-const rebuildComposeWithDatabase = () => {
-  if (deploymentMode.value !== "easy" || form.database.type === "none") return;
-
-  const baseCompose = getBaseComposeWithoutDb();
-  let compose = baseCompose;
-
-  if (form.database.mode === "create") {
-    const dbService = getDatabaseServiceYaml();
-    const dbVolume = getDatabaseVolumeYaml();
-
-    if (dbService) {
-      // Add depends_on to app service if not already present
-      if (!compose.includes("depends_on:")) {
-        compose = compose.replace(/(services:\s*\n\s*app:.*?\n)((\s+\S.*\n)*)/m, (match, serviceStart, props) => {
-          return serviceStart + `    depends_on:\n      - db\n` + props;
-        });
-      }
-
-      // Insert db service at the end of services section
-      const networksMatch = compose.match(/\nnetworks:/m);
-      const volumesMatch = compose.match(/\nvolumes:/m);
-
-      if (networksMatch) {
-        const insertPos = compose.indexOf(networksMatch[0]);
-        compose = compose.slice(0, insertPos) + dbService + "\n" + compose.slice(insertPos);
-      } else if (volumesMatch) {
-        const insertPos = compose.indexOf(volumesMatch[0]);
-        compose = compose.slice(0, insertPos) + dbService + "\n" + compose.slice(insertPos);
-      } else {
-        compose = compose.trimEnd() + dbService + "\n";
-      }
-
-      // Add volumes section if needed
-      if (!compose.includes("volumes:") && dbVolume) {
-        compose = compose.trimEnd() + "\n" + dbVolume;
-      } else if (compose.includes("volumes:") && !compose.includes("db_data:")) {
-        compose = compose.replace(/volumes:\s*\n/, "volumes:\n  db_data:\n");
-      }
-    }
-  }
-
-  form.composeContent = compose;
-
-  // Update environment variables
-  const dbEnvVars = getDatabaseEnvVars();
-  const dbKeys = [
-    "DB_HOST",
-    "DB_PORT",
-    "DB_DATABASE",
-    "DB_USERNAME",
-    "DB_PASSWORD",
-    "DATABASE_URL",
-    "MONGO_HOST",
-    "MONGO_PORT",
-    "MONGO_DATABASE",
-    "MONGO_USERNAME",
-    "MONGO_PASSWORD",
-    "MONGODB_URI",
-  ];
-  form.envVars = form.envVars.filter((e) => !dbKeys.includes(e.key));
-  for (const env of dbEnvVars) {
-    form.envVars.push(env);
-  }
-};
-
-const getBaseComposeWithoutDb = () => {
-  let compose = form.composeContent;
-
-  // Remove db service block (handles various indentation)
-  compose = compose.replace(/\n\s*db:\n(\s{4,}[^\n]+\n)*/g, "\n");
-
-  // Remove depends_on db entry from app service
-  compose = compose.replace(/\s*depends_on:\s*\n\s*-\s*db\s*\n/g, "\n");
-
-  // Remove db_data from volumes
-  compose = compose.replace(/\s*db_data:\s*\n?/g, "");
-
-  // Remove empty volumes section
-  compose = compose.replace(/\nvolumes:\s*\n(?=\n|$)/g, "");
-
-  // Remove shared network if it was added for existing db
-  compose = compose.replace(/\s*shared:\s*\n\s*external:\s*true\s*\n?/g, "");
-
-  // Remove empty networks section
-  compose = compose.replace(/\nnetworks:\s*\n(?=\n|$)/g, "");
-
-  // Clean up multiple consecutive newlines
-  compose = compose.replace(/\n{3,}/g, "\n\n");
-
-  return compose;
-};
-
-// Database compose modification disabled - server handles compose generation
-
 watch(
   () => [form.database.mode, form.database.existingContainer, form.database.type],
   () => {
@@ -2092,6 +2068,21 @@ const handleCreate = async () => {
           ? form.database.existingContainer
           : undefined,
     };
+
+    if (form.registry.isPrivate) {
+      if (form.registry.useExisting && form.registry.selectedCredentialId) {
+        payload.registry_credential = {
+          credential_id: form.registry.selectedCredentialId,
+        };
+      } else if (form.registry.username && form.registry.password) {
+        payload.registry_credential = {
+          username: form.registry.username,
+          password: form.registry.password,
+          save_credential: form.registry.saveCredential,
+          credential_name: form.registry.credentialName || `${form.name}-registry`,
+        };
+      }
+    }
 
     if (finalDomain) {
       payload.metadata = {
@@ -3819,6 +3810,160 @@ const handleClose = () => {
 .image-config-content .info-hint span {
   font-size: var(--text-xs);
   color: var(--color-success-700);
+}
+
+/* Private Registry Toggle */
+.private-registry-toggle {
+  margin-top: var(--space-1);
+}
+
+.private-registry-toggle .toggle-option {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  cursor: pointer;
+}
+
+.private-registry-toggle .toggle-label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--color-gray-600);
+}
+
+.private-registry-toggle .toggle-label i {
+  color: var(--color-warning-500);
+}
+
+/* Registry Credentials */
+.registry-credentials {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: var(--color-gray-50);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-gray-200);
+}
+
+.registry-credentials .form-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.registry-credentials .form-field label {
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--color-gray-700);
+}
+
+.registry-credentials .form-field input {
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-gray-300);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+}
+
+.registry-credentials .form-field input:focus {
+  outline: none;
+  border-color: var(--color-primary-500);
+  box-shadow: 0 0 0 2px var(--color-primary-100);
+}
+
+.save-credential-option {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--color-gray-200);
+}
+
+.save-credential-option .toggle-option {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  cursor: pointer;
+}
+
+.save-credential-option .toggle-label {
+  font-size: var(--text-sm);
+  color: var(--color-gray-600);
+}
+
+.credential-name-field {
+  padding-left: var(--space-5);
+}
+
+.credential-name-field input {
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-gray-300);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+}
+
+.credential-name-field input:focus {
+  outline: none;
+  border-color: var(--color-primary-500);
+  box-shadow: 0 0 0 2px var(--color-primary-100);
+}
+
+.credential-source-toggle {
+  display: flex;
+  gap: var(--space-4);
+  margin-bottom: var(--space-3);
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--color-gray-200);
+}
+
+.credential-source-toggle .toggle-option {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  cursor: pointer;
+}
+
+.credential-source-toggle .toggle-label {
+  font-size: var(--text-sm);
+  color: var(--color-gray-600);
+}
+
+.existing-credential-select {
+  margin-bottom: var(--space-3);
+}
+
+.existing-credential-select .form-select {
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-gray-300);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  background: white;
+  cursor: pointer;
+}
+
+.existing-credential-select .form-select:focus {
+  outline: none;
+  border-color: var(--color-primary-500);
+  box-shadow: 0 0 0 2px var(--color-primary-100);
+}
+
+.input-icon-btn {
+  position: absolute;
+  right: var(--space-2);
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  padding: var(--space-1);
+  color: var(--color-gray-400);
+  cursor: pointer;
+}
+
+.input-icon-btn:hover {
+  color: var(--color-gray-600);
 }
 
 /* Collapsible Sections */

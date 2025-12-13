@@ -25,6 +25,16 @@ export interface ServiceMetadata {
   networking: NetworkingConfig;
   ssl: SSLConfig;
   healthcheck: HealthCheckConfig;
+  quick_actions?: QuickAction[];
+}
+
+export interface QuickAction {
+  id: string;
+  name: string;
+  command: string;
+  description?: string;
+  icon?: string;
+  service?: string;
 }
 
 export interface NetworkingConfig {
@@ -103,4 +113,30 @@ export interface VirtualHost {
   name: string;
   config_file: string;
   modified_at: number;
+}
+
+export interface RegistryType {
+  slug: string;
+  name: string;
+  url_patterns: string[];
+  auth_type: "basic" | "token";
+  login_url?: string;
+  docs_url?: string;
+  icon?: string;
+  source: "builtin" | "local" | "marketplace";
+  is_official: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface RegistryCredential {
+  id: string;
+  name: string;
+  registry_type_slug: string;
+  username: string;
+  email?: string;
+  is_default: boolean;
+  created_at: string;
+  updated_at: string;
+  registry_type?: RegistryType;
 }

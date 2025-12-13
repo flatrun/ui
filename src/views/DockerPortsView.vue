@@ -121,13 +121,6 @@ const parseDeploymentFromContainer = (name: string): string | null => {
   return null;
 };
 
-const formatImage = (image: string): string => {
-  const parts = image.split("/");
-  const nameWithTag = parts[parts.length - 1];
-  const [name] = nameWithTag.split(":");
-  return name;
-};
-
 const fetchContainers = async () => {
   loading.value = true;
   try {

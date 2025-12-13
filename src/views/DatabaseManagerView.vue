@@ -451,7 +451,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import { ref, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useNotificationsStore } from "@/stores/notifications";
 import { databasesApi, type DatabaseConnectionConfig } from "@/services/api";
@@ -538,10 +538,6 @@ const sqlQuery = ref("");
 const queryResults = ref<{ columns: string[]; rows: any[][]; count: number } | null>(null);
 const executingQuery = ref(false);
 const queryError = ref("");
-
-const selectedTableInfo = computed(() => {
-  return tables.value.find((t) => t.name === selectedTable.value);
-});
 
 const getConnectionConfig = (): DatabaseConnectionConfig | null => {
   if (!connection.value) return null;

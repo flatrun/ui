@@ -240,7 +240,7 @@
         </div>
       </div>
 
-      <div v-if="showEditorModal" class="modal-overlay" @click.self="closeFileEditor">
+      <div v-if="showEditorModal" class="modal-overlay">
         <div class="modal-container editor-modal">
           <div class="modal-header">
             <h3>

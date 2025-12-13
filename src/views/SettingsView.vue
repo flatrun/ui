@@ -480,14 +480,173 @@
           </button>
         </div>
       </div>
+
+      <!-- Credentials Tab -->
+      <div v-show="activeTab === 'credentials'" class="tab-content">
+        <div class="settings-card">
+          <div class="card-header">
+            <i class="pi pi-key" />
+            <h3>Registry Credentials</h3>
+            <button
+              v-if="!showAddCredentialForm"
+              class="btn btn-primary btn-sm header-action"
+              @click="showAddCredentialForm = true"
+            >
+              <i class="pi pi-plus" />
+              Add Credential
+            </button>
+          </div>
+          <div class="card-body">
+            <p class="section-description">
+              Manage saved credentials for private Docker registries. These credentials can be used when pulling private
+              images or deploying from private registries.
+            </p>
+
+            <!-- Add Credential Form -->
+            <div v-if="showAddCredentialForm" class="add-credential-form">
+              <h4>Add New Credential</h4>
+              <div class="credential-form-grid">
+                <div class="form-group">
+                  <label class="form-label">Name <span class="required">*</span></label>
+                  <input
+                    v-model="newCredential.name"
+                    type="text"
+                    class="form-control"
+                    placeholder="e.g., Docker Hub, GitHub Container Registry"
+                  />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Username <span class="required">*</span></label>
+                  <input
+                    v-model="newCredential.username"
+                    type="text"
+                    class="form-control"
+                    placeholder="Username or access token name"
+                  />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Password / Token <span class="required">*</span></label>
+                  <div class="password-input-wrapper">
+                    <input
+                      v-model="newCredential.password"
+                      :type="showCredentialPassword ? 'text' : 'password'"
+                      class="form-control"
+                      placeholder="Password or personal access token"
+                    />
+                    <button
+                      type="button"
+                      class="password-toggle-btn"
+                      @click="showCredentialPassword = !showCredentialPassword"
+                    >
+                      <i :class="showCredentialPassword ? 'pi pi-eye-slash' : 'pi pi-eye'" />
+                    </button>
+                  </div>
+                </div>
+                <div class="form-group checkbox-group">
+                  <label class="checkbox-label">
+                    <input v-model="newCredential.is_default" type="checkbox" />
+                    <span>Set as default credential</span>
+                  </label>
+                </div>
+              </div>
+              <div class="form-actions">
+                <button
+                  class="btn btn-secondary"
+                  :disabled="savingCredential"
+                  @click="
+                    showAddCredentialForm = false;
+                    resetNewCredentialForm();
+                  "
+                >
+                  Cancel
+                </button>
+                <button
+                  class="btn btn-primary"
+                  :disabled="
+                    savingCredential || !newCredential.name || !newCredential.username || !newCredential.password
+                  "
+                  @click="createCredential"
+                >
+                  <i v-if="savingCredential" class="pi pi-spin pi-spinner" />
+                  <i v-else class="pi pi-save" />
+                  Save Credential
+                </button>
+              </div>
+            </div>
+
+            <div v-if="loadingCredentials" class="loading-inline">
+              <i class="pi pi-spin pi-spinner" />
+              <span>Loading credentials...</span>
+            </div>
+
+            <div v-else-if="credentials.length === 0 && !showAddCredentialForm" class="empty-state">
+              <i class="pi pi-key" />
+              <p>No saved credentials</p>
+              <span class="empty-hint">
+                Click "Add Credential" above to save registry credentials for private images.
+              </span>
+            </div>
+
+            <div v-else-if="credentials.length > 0" class="credentials-list">
+              <div v-for="cred in credentials" :key="cred.id" class="credential-item">
+                <div class="credential-info">
+                  <div class="credential-name">{{ cred.name }}</div>
+                  <div class="credential-meta">
+                    <span class="credential-username">
+                      <i class="pi pi-user" />
+                      {{ cred.username }}
+                    </span>
+                    <span v-if="cred.is_default" class="credential-badge default">Default</span>
+                  </div>
+                </div>
+                <div class="credential-actions">
+                  <button
+                    class="btn btn-icon btn-danger-ghost"
+                    :disabled="deletingCredentialId === cred.id"
+                    title="Delete credential"
+                    @click="confirmDeleteCredential(cred)"
+                  >
+                    <i v-if="deletingCredentialId === cred.id" class="pi pi-spin pi-spinner" />
+                    <i v-else class="pi pi-trash" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Delete Confirmation Modal -->
+        <Teleport to="body">
+          <div v-if="showDeleteConfirm" class="modal-overlay" @click.self="cancelDeleteCredential">
+            <div class="confirm-modal">
+              <div class="confirm-icon danger">
+                <i class="pi pi-exclamation-triangle" />
+              </div>
+              <h3>Delete Credential</h3>
+              <p>
+                Are you sure you want to delete <strong>{{ credentialToDelete?.name }}</strong
+                >? This action cannot be undone.
+              </p>
+              <div class="confirm-actions">
+                <button class="btn btn-secondary" @click="cancelDeleteCredential">Cancel</button>
+                <button class="btn btn-danger" :disabled="deletingCredentialId !== null" @click="deleteCredential">
+                  <i v-if="deletingCredentialId" class="pi pi-spin pi-spinner" />
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        </Teleport>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from "vue";
-import { settingsApi, healthApi, templatesApi } from "@/services/api";
+import { settingsApi, healthApi, templatesApi, credentialsApi } from "@/services/api";
 import type { DomainSettings } from "@/services/api";
+import type { RegistryCredential } from "@/types";
 import { useNotificationsStore } from "@/stores/notifications";
 
 declare const __APP_VERSION__: string;
@@ -505,6 +664,7 @@ const tabs = [
   { id: "general", label: "General", icon: "pi pi-home" },
   { id: "domain", label: "Domain", icon: "pi pi-globe" },
   { id: "infrastructure", label: "Infrastructure", icon: "pi pi-server" },
+  { id: "credentials", label: "Credentials", icon: "pi pi-key" },
 ];
 
 const settings = reactive({
@@ -561,6 +721,21 @@ const certbotSettings = reactive({
   dns_provider: "",
 });
 
+const credentials = ref<RegistryCredential[]>([]);
+const loadingCredentials = ref(false);
+const deletingCredentialId = ref<string | null>(null);
+const showAddCredentialForm = ref(false);
+const savingCredential = ref(false);
+const showDeleteConfirm = ref(false);
+const credentialToDelete = ref<RegistryCredential | null>(null);
+const showCredentialPassword = ref(false);
+const newCredential = reactive({
+  name: "",
+  username: "",
+  password: "",
+  is_default: false,
+});
+
 const uiVersion = __APP_VERSION__;
 
 const configYaml = computed(() => {
@@ -579,6 +754,81 @@ domain:
   subdomain_style: ${domainSettings.subdomain_style}
 `;
 });
+
+const fetchCredentials = async () => {
+  loadingCredentials.value = true;
+  try {
+    const response = await credentialsApi.list();
+    credentials.value = response.data.credentials || [];
+  } catch (error) {
+    console.error("Failed to fetch credentials:", error);
+    credentials.value = [];
+  } finally {
+    loadingCredentials.value = false;
+  }
+};
+
+const confirmDeleteCredential = (cred: RegistryCredential) => {
+  credentialToDelete.value = cred;
+  showDeleteConfirm.value = true;
+};
+
+const cancelDeleteCredential = () => {
+  showDeleteConfirm.value = false;
+  credentialToDelete.value = null;
+};
+
+const deleteCredential = async () => {
+  if (!credentialToDelete.value) return;
+  const id = credentialToDelete.value.id;
+  deletingCredentialId.value = id;
+  try {
+    await credentialsApi.delete(id);
+    credentials.value = credentials.value.filter((c) => c.id !== id);
+    notifications.success("Credential deleted", "The credential has been removed.");
+    showDeleteConfirm.value = false;
+    credentialToDelete.value = null;
+  } catch (error) {
+    console.error("Failed to delete credential:", error);
+    notifications.error("Failed to delete credential", "An error occurred while deleting the credential.");
+  } finally {
+    deletingCredentialId.value = null;
+  }
+};
+
+const resetNewCredentialForm = () => {
+  newCredential.name = "";
+  newCredential.username = "";
+  newCredential.password = "";
+  newCredential.is_default = false;
+  showCredentialPassword.value = false;
+};
+
+const createCredential = async () => {
+  if (!newCredential.name || !newCredential.username || !newCredential.password) {
+    notifications.error("Missing fields", "Please fill in all required fields.");
+    return;
+  }
+  savingCredential.value = true;
+  try {
+    await credentialsApi.create({
+      name: newCredential.name,
+      registry_type_slug: "docker-hub",
+      username: newCredential.username,
+      password: newCredential.password,
+      is_default: newCredential.is_default,
+    });
+    notifications.success("Credential saved", "The credential has been added.");
+    resetNewCredentialForm();
+    showAddCredentialForm.value = false;
+    await fetchCredentials();
+  } catch (error) {
+    console.error("Failed to create credential:", error);
+    notifications.error("Failed to save credential", "An error occurred while saving the credential.");
+  } finally {
+    savingCredential.value = false;
+  }
+};
 
 const fetchSettings = async () => {
   loading.value = true;
@@ -755,6 +1005,7 @@ const fetchAgentVersion = async () => {
 onMounted(() => {
   fetchSettings();
   fetchAgentVersion();
+  fetchCredentials();
 });
 </script>
 
@@ -1307,5 +1558,305 @@ onMounted(() => {
   .actions-grid {
     grid-template-columns: 1fr;
   }
+}
+
+/* Credentials Tab Styles */
+.section-description {
+  color: #6b7280;
+  font-size: 0.875rem;
+  margin-bottom: 1.5rem;
+  line-height: 1.5;
+}
+
+.loading-inline {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #6b7280;
+  font-size: 0.875rem;
+  padding: 1rem 0;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem;
+  text-align: center;
+}
+
+.empty-state i {
+  font-size: 2.5rem;
+  color: #d1d5db;
+  margin-bottom: 1rem;
+}
+
+.empty-state p {
+  color: #374151;
+  font-weight: 500;
+  margin: 0 0 0.5rem 0;
+}
+
+.empty-hint {
+  color: #9ca3af;
+  font-size: 0.8125rem;
+  max-width: 320px;
+}
+
+.credentials-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.credential-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+}
+
+.credential-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.credential-name {
+  font-weight: 500;
+  color: #111827;
+}
+
+.credential-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.8125rem;
+  color: #6b7280;
+}
+
+.credential-username {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.credential-username i {
+  font-size: 0.75rem;
+}
+
+.credential-badge {
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.credential-badge.default {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.credential-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.btn-danger-ghost {
+  background: transparent;
+  border: 1px solid transparent;
+  color: #ef4444;
+}
+
+.btn-danger-ghost:hover:not(:disabled) {
+  background: #fef2f2;
+  border-color: #fecaca;
+}
+
+/* Header action button */
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.header-action {
+  margin-left: auto;
+}
+
+.btn-sm {
+  padding: 0.375rem 0.75rem;
+  font-size: 0.8125rem;
+}
+
+/* Add Credential Form */
+.add-credential-form {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.add-credential-form h4 {
+  margin: 0 0 1rem 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.credential-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+.credential-form-grid .form-group {
+  margin-bottom: 0;
+}
+
+.credential-form-grid .checkbox-group {
+  grid-column: 1 / -1;
+}
+
+.form-control {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.password-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-input-wrapper .form-control {
+  padding-right: 2.5rem;
+}
+
+.password-toggle-btn {
+  position: absolute;
+  right: 0.5rem;
+  background: none;
+  border: none;
+  color: #9ca3af;
+  cursor: pointer;
+  padding: 0.25rem;
+}
+
+.password-toggle-btn:hover {
+  color: #6b7280;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: #374151;
+  cursor: pointer;
+}
+
+.required {
+  color: #ef4444;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+/* Confirmation Modal */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.confirm-modal {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  max-width: 400px;
+  width: 90%;
+  text-align: center;
+}
+
+.confirm-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1rem;
+}
+
+.confirm-icon.danger {
+  background: #fef2f2;
+  color: #ef4444;
+}
+
+.confirm-icon i {
+  font-size: 1.5rem;
+}
+
+.confirm-modal h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.confirm-modal p {
+  margin: 0 0 1.5rem 0;
+  color: #6b7280;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.confirm-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+}
+
+.btn-danger {
+  background: #ef4444;
+  color: white;
+  border: none;
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: #dc2626;
+}
+
+.btn-danger:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 </style>

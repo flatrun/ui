@@ -252,7 +252,7 @@ const columns = [
   { key: "actions", label: "Actions", width: "160px" },
 ];
 
-const getDbIcon = (type: string) => {
+const getDbIcon = (_type: string) => {
   return Database;
 };
 
