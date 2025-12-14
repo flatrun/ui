@@ -126,6 +126,7 @@
             />
           </div>
           <div v-show="expandedGroups.security && !sidebarCollapsed" class="nav-group-items">
+            <router-link to="/security" class="nav-subitem" active-class="active"> Events & Blocking </router-link>
             <router-link to="/certificates" class="nav-subitem" active-class="active">
               <span class="nav-count">{{ stats.certificates }}</span>
               Certificates
@@ -318,6 +319,7 @@ const currentPageTitle = computed(() => {
     "system-ports": "System Ports",
     services: "System Services",
     databases: "Database Servers",
+    security: "Security Events",
     certificates: "SSL Certificates",
     apps: "Installed Apps",
     templates: "Templates",
@@ -343,6 +345,9 @@ const breadcrumbs = computed(() => {
   } else if (routeName === "databases") {
     crumbs.push({ label: "Databases", path: "" });
     crumbs.push({ label: "Servers", path: "" });
+  } else if (routeName === "security") {
+    crumbs.push({ label: "Security", path: "" });
+    crumbs.push({ label: "Events & Blocking", path: "" });
   } else if (routeName === "certificates") {
     crumbs.push({ label: "Security", path: "" });
     crumbs.push({ label: "Certificates", path: "" });

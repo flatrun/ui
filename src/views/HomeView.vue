@@ -126,13 +126,13 @@
           </div>
           <div class="panel-body">
             <div class="actions-row">
-              <button class="quick-action" @click="showNewDeployment = true">
-                <div class="action-icon blue">
-                  <i class="pi pi-plus-circle" />
+              <button class="quick-action" @click="$router.push('/security')">
+                <div class="action-icon orange">
+                  <i class="pi pi-shield" />
                 </div>
                 <div class="action-label">
-                  <span class="action-name">New Deployment</span>
-                  <span class="action-hint">Deploy from template</span>
+                  <span class="action-name">Security</span>
+                  <span class="action-hint">Events & IP blocking</span>
                 </div>
               </button>
               <button class="quick-action" :disabled="stats.stopped === 0" @click="startAllDeployments">
@@ -262,6 +262,57 @@
           </div>
         </div>
 
+        <div class="panel security-panel" v-if="securityEnabled">
+          <div class="panel-header">
+            <div class="panel-title">
+              <i class="pi pi-shield" />
+              <span>Security</span>
+            </div>
+            <router-link to="/security" class="view-all-link">
+              View all
+              <i class="pi pi-arrow-right" />
+            </router-link>
+          </div>
+          <div class="panel-body">
+            <div class="security-stats" v-if="securityStats">
+              <div class="security-stat-row">
+                <div class="security-stat">
+                  <span
+                    class="security-stat-value"
+                    :class="{ warning: (securityStats.by_severity?.critical || 0) > 0 }"
+                  >
+                    {{ securityStats.by_severity?.critical || 0 }}
+                  </span>
+                  <span class="security-stat-label">Critical</span>
+                </div>
+                <div class="security-stat">
+                  <span class="security-stat-value" :class="{ warning: (securityStats.by_severity?.high || 0) > 0 }">
+                    {{ securityStats.by_severity?.high || 0 }}
+                  </span>
+                  <span class="security-stat-label">High</span>
+                </div>
+                <div class="security-stat">
+                  <span class="security-stat-value">{{ securityStats.last_24_hours }}</span>
+                  <span class="security-stat-label">24h Events</span>
+                </div>
+              </div>
+              <div class="security-info-row">
+                <span class="security-info-item">
+                  <i class="pi pi-ban" />
+                  {{ securityStats.blocked_ips_count }} blocked IPs
+                </span>
+                <span class="security-info-item">
+                  <i class="pi pi-lock" />
+                  {{ securityStats.protected_routes_count }} routes
+                </span>
+              </div>
+            </div>
+            <div v-else class="security-empty">
+              <span>No security data</span>
+            </div>
+          </div>
+        </div>
+
         <div class="panel agent-panel">
           <div class="panel-header">
             <div class="panel-title">
@@ -299,11 +350,11 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
-import { deploymentsApi } from "@/services/api";
+import { deploymentsApi, securityApi } from "@/services/api";
 import { useNotificationsStore } from "@/stores/notifications";
 import { useStatsStore } from "@/stores/stats";
 import NewDeploymentModal from "@/components/NewDeploymentModal.vue";
-import type { Deployment } from "@/types";
+import type { Deployment, SecurityStats } from "@/types";
 
 const notifications = useNotificationsStore();
 const statsStore = useStatsStore();
@@ -337,6 +388,8 @@ const resources = computed(() => ({
 const deployments = ref<Deployment[]>([]);
 const loading = ref(true);
 const showNewDeployment = ref(false);
+const securityStats = ref<SecurityStats | null>(null);
+const securityEnabled = ref(true);
 
 const agentVersion = computed(() => statsStore.agentVersion);
 const lastUpdated = computed(() => statsStore.formatLastUpdated());
@@ -381,6 +434,14 @@ const fetchData = async () => {
     const [, deploymentsRes] = await Promise.all([statsStore.fetchAll(), deploymentsApi.list()]);
 
     deployments.value = deploymentsRes.data.deployments || [];
+
+    try {
+      const securityRes = await securityApi.getStats();
+      securityStats.value = securityRes.data.stats;
+      securityEnabled.value = true;
+    } catch {
+      securityEnabled.value = false;
+    }
   } catch (error) {
     console.error("Failed to fetch data:", error);
   } finally {
@@ -852,6 +913,11 @@ onMounted(() => {
   color: #8b5cf6;
 }
 
+.action-icon.orange {
+  background: rgba(249, 115, 22, 0.1);
+  color: #f97316;
+}
+
 .action-label {
   display: flex;
   flex-direction: column;
@@ -1078,5 +1144,67 @@ onMounted(() => {
   .side-column .agent-panel {
     grid-column: span 1;
   }
+}
+
+.security-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.security-stat-row {
+  display: flex;
+  justify-content: space-between;
+}
+
+.security-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+}
+
+.security-stat-value {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.security-stat-value.warning {
+  color: #ef4444;
+}
+
+.security-stat-label {
+  font-size: 0.625rem;
+  color: #9ca3af;
+  text-transform: uppercase;
+}
+
+.security-info-row {
+  display: flex;
+  justify-content: space-between;
+  padding-top: 0.5rem;
+  border-top: 1px solid #f3f4f6;
+}
+
+.security-info-item {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.security-info-item i {
+  font-size: 0.6875rem;
+}
+
+.security-empty {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem;
+  color: #9ca3af;
+  font-size: 0.75rem;
 }
 </style>

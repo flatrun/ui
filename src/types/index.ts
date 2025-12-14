@@ -26,6 +26,7 @@ export interface ServiceMetadata {
   ssl: SSLConfig;
   healthcheck: HealthCheckConfig;
   quick_actions?: QuickAction[];
+  security?: DeploymentSecurityConfig;
 }
 
 export interface QuickAction {
@@ -139,4 +140,63 @@ export interface RegistryCredential {
   created_at: string;
   updated_at: string;
   registry_type?: RegistryType;
+}
+
+export interface SecurityEvent {
+  id: number;
+  event_type: string;
+  severity: "low" | "medium" | "high" | "critical";
+  source_ip: string;
+  request_path?: string;
+  request_method?: string;
+  status_code?: number;
+  user_agent?: string;
+  message: string;
+  deployment_name?: string;
+  created_at: string;
+}
+
+export interface BlockedIP {
+  id: number;
+  ip: string;
+  reason?: string;
+  blocked_at: string;
+  expires_at?: string;
+  auto_blocked: boolean;
+}
+
+export interface ProtectedRoute {
+  id: number;
+  path_pattern: string;
+  rate_limit: number;
+  block_duration: number;
+  enabled: boolean;
+  created_at: string;
+}
+
+export interface SecurityStats {
+  total_events: number;
+  last_24_hours: number;
+  by_severity: Record<string, number>;
+  blocked_ips_count: number;
+  protected_routes_count: number;
+  top_offending_ips: { ip: string; count: number }[];
+  recent_critical: SecurityEvent[];
+}
+
+export interface DeploymentSecurityConfig {
+  protected_paths: ProtectedPath[];
+  rate_limits: DeploymentRateLimit[];
+}
+
+export interface ProtectedPath {
+  pattern: string;
+  enabled: boolean;
+}
+
+export interface DeploymentRateLimit {
+  path: string;
+  rate: number;
+  burst: number;
+  enabled: boolean;
 }
