@@ -8,6 +8,11 @@ import type {
   VirtualHost,
   RegistryType,
   RegistryCredential,
+  SecurityEvent,
+  SecurityStats,
+  BlockedIP,
+  ProtectedRoute,
+  DeploymentSecurityConfig,
 } from "@/types";
 
 const apiClient = axios.create({
@@ -78,6 +83,7 @@ export const deploymentsApi = {
   start: (name: string) => apiClient.post(`/deployments/${name}/start`),
   stop: (name: string) => apiClient.post(`/deployments/${name}/stop`),
   restart: (name: string) => apiClient.post(`/deployments/${name}/restart`),
+  rebuild: (name: string) => apiClient.post(`/deployments/${name}/rebuild`),
   pullImage: (name: string, onlyLatest: boolean = false) =>
     apiClient.post<{ message: string; name: string; output: string }>(`/deployments/${name}/pull`, {
       only_latest: onlyLatest,
@@ -528,4 +534,51 @@ export const credentialsApi = {
   ) => apiClient.put<{ message: string; credential: RegistryCredential }>(`/credentials/${id}`, data),
   delete: (id: string) => apiClient.delete(`/credentials/${id}`),
   test: (id: string) => apiClient.post<{ message: string; success: boolean }>(`/credentials/${id}/test`),
+};
+
+export interface SecurityEventFilter {
+  event_type?: string;
+  severity?: string;
+  source_ip?: string;
+  deployment?: string;
+  start_time?: string;
+  end_time?: string;
+  limit?: number;
+  offset?: number;
+}
+
+export const securityApi = {
+  getStats: () => apiClient.get<{ stats: SecurityStats }>("/security/stats"),
+  getEvents: (params?: SecurityEventFilter) =>
+    apiClient.get<{ events: SecurityEvent[]; total: number; limit: number; offset: number }>("/security/events", {
+      params,
+    }),
+  getEvent: (id: number) => apiClient.get<{ event: SecurityEvent }>(`/security/events/${id}`),
+  getEventsByIP: (ip: string) => apiClient.get<{ events: SecurityEvent[]; ip: string }>(`/security/ips/${ip}/events`),
+  cleanup: (days?: number) =>
+    apiClient.post<{ events_deleted: number; blocks_deleted: number }>("/security/cleanup", { days }),
+
+  getBlockedIPs: () => apiClient.get<{ blocked_ips: BlockedIP[] }>("/security/blocked-ips"),
+  blockIP: (ip: string, reason?: string, duration?: number) =>
+    apiClient.post<{ id: number; message: string }>("/security/blocked-ips", { ip, reason, duration }),
+  unblockIP: (ip: string) => apiClient.delete<{ message: string }>(`/security/blocked-ips/${ip}`),
+
+  getProtectedRoutes: () => apiClient.get<{ protected_routes: ProtectedRoute[] }>("/security/protected-routes"),
+  addProtectedRoute: (route: Partial<ProtectedRoute>) =>
+    apiClient.post<{ route: ProtectedRoute }>("/security/protected-routes", route),
+  updateProtectedRoute: (id: number, route: Partial<ProtectedRoute>) =>
+    apiClient.put<{ route: ProtectedRoute }>(`/security/protected-routes/${id}`, route),
+  deleteProtectedRoute: (id: number) => apiClient.delete<{ message: string }>(`/security/protected-routes/${id}`),
+
+  getDeploymentSecurity: (name: string) =>
+    apiClient.get<{ security: DeploymentSecurityConfig }>(`/deployments/${name}/security`),
+  updateDeploymentSecurity: (name: string, config: DeploymentSecurityConfig) =>
+    apiClient.put<{ security: DeploymentSecurityConfig }>(`/deployments/${name}/security`, config),
+  getDeploymentEvents: (name: string, limit?: number) =>
+    apiClient.get<{ events: SecurityEvent[]; total: number; deployment: string }>(
+      `/deployments/${name}/security/events`,
+      {
+        params: limit ? { limit } : undefined,
+      },
+    ),
 };

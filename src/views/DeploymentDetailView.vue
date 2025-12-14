@@ -35,6 +35,14 @@
         >
           <i class="pi pi-refresh" /> Restart
         </button>
+        <button
+          class="btn btn-secondary"
+          :disabled="loading"
+          @click="showRebuildModal = true"
+          title="Recreate containers with latest images"
+        >
+          <i class="pi pi-sync" /> Rebuild
+        </button>
         <button class="btn btn-secondary" :disabled="loading" @click="openPullImageModal">
           <i class="pi pi-download" /> Pull Image
         </button>
@@ -490,6 +498,220 @@
           </div>
         </div>
 
+        <div v-if="activeTab === 'security'" class="security-tab">
+          <div class="security-summary">
+            <div class="summary-card">
+              <div class="summary-icon protected">
+                <i class="pi pi-lock" />
+              </div>
+              <div class="summary-content">
+                <span class="summary-value">{{ securityConfig.protected_paths.filter((p) => p.enabled).length }}</span>
+                <span class="summary-label">Protected Paths</span>
+              </div>
+            </div>
+            <div class="summary-card">
+              <div class="summary-icon rate">
+                <i class="pi pi-gauge" />
+              </div>
+              <div class="summary-content">
+                <span class="summary-value">{{ securityConfig.rate_limits.filter((r) => r.enabled).length }}</span>
+                <span class="summary-label">Rate Limits</span>
+              </div>
+            </div>
+            <div class="summary-card">
+              <div class="summary-icon events">
+                <i class="pi pi-exclamation-triangle" />
+              </div>
+              <div class="summary-content">
+                <span class="summary-value">{{ securityEvents.length }}</span>
+                <span class="summary-label">Recent Events</span>
+              </div>
+            </div>
+            <router-link :to="`/security?deployment=${deployment?.name}`" class="summary-card summary-link">
+              <div class="summary-icon link">
+                <i class="pi pi-external-link" />
+              </div>
+              <div class="summary-content">
+                <span class="summary-label">View All Events</span>
+                <span class="summary-hint">Global security dashboard</span>
+              </div>
+            </router-link>
+          </div>
+
+          <div class="security-grid">
+            <div class="security-section">
+              <div class="section-header">
+                <div class="section-title">
+                  <i class="pi pi-lock" />
+                  <h3>Protected Paths</h3>
+                </div>
+                <span class="section-hint">Block access to sensitive files</span>
+              </div>
+              <div class="section-body">
+                <div class="presets-section">
+                  <span class="presets-label">Quick Add:</span>
+                  <div class="presets-row">
+                    <button
+                      v-for="preset in protectedPathPresets"
+                      :key="preset.pattern"
+                      class="preset-btn"
+                      :class="{ active: isPathProtected(preset.pattern) }"
+                      @click="toggleProtectedPath(preset.pattern)"
+                      :title="preset.pattern"
+                    >
+                      <i :class="isPathProtected(preset.pattern) ? 'pi pi-check' : 'pi pi-plus'" />
+                      {{ preset.label }}
+                    </button>
+                  </div>
+                </div>
+                <div class="paths-list">
+                  <div v-if="securityConfig.protected_paths.length === 0" class="empty-state">
+                    <i class="pi pi-shield" />
+                    <p>No protected paths</p>
+                    <span>Click presets above or add custom paths</span>
+                  </div>
+                  <div v-else class="items-list">
+                    <div
+                      v-for="(path, index) in securityConfig.protected_paths"
+                      :key="index"
+                      class="list-item"
+                      :class="{ disabled: !path.enabled }"
+                    >
+                      <code>{{ path.pattern }}</code>
+                      <div class="item-actions">
+                        <label class="toggle-switch small">
+                          <input v-model="path.enabled" type="checkbox" @change="saveSecurityConfig" />
+                          <span class="toggle-slider" />
+                        </label>
+                        <button
+                          class="btn btn-icon btn-sm btn-ghost"
+                          title="Remove"
+                          @click="removeProtectedPath(index)"
+                        >
+                          <i class="pi pi-times" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="add-form">
+                  <input
+                    v-model="newProtectedPath"
+                    type="text"
+                    class="form-input"
+                    placeholder="Custom path (e.g., /storage/*)"
+                    @keyup.enter="addProtectedPath"
+                  />
+                  <button class="btn btn-sm btn-primary" :disabled="!newProtectedPath" @click="addProtectedPath">
+                    <i class="pi pi-plus" /> Add
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="security-section">
+              <div class="section-header">
+                <div class="section-title">
+                  <i class="pi pi-gauge" />
+                  <h3>Rate Limiting</h3>
+                </div>
+                <span class="section-hint">Limit requests per path</span>
+              </div>
+              <div class="section-body">
+                <div class="rates-list">
+                  <div v-if="securityConfig.rate_limits.length === 0" class="empty-state">
+                    <i class="pi pi-gauge" />
+                    <p>No rate limits</p>
+                    <span>Add limits to protect against abuse</span>
+                  </div>
+                  <div v-else class="items-list">
+                    <div
+                      v-for="(limit, index) in securityConfig.rate_limits"
+                      :key="index"
+                      class="list-item"
+                      :class="{ disabled: !limit.enabled }"
+                    >
+                      <div class="rate-info">
+                        <code>{{ limit.path }}</code>
+                        <span class="rate-config">
+                          <span class="rate-badge">{{ limit.rate }}/min</span>
+                          <span class="burst-badge">burst: {{ limit.burst }}</span>
+                        </span>
+                      </div>
+                      <div class="item-actions">
+                        <label class="toggle-switch small">
+                          <input v-model="limit.enabled" type="checkbox" @change="saveSecurityConfig" />
+                          <span class="toggle-slider" />
+                        </label>
+                        <button class="btn btn-icon btn-sm btn-ghost" title="Remove" @click="removeRateLimit(index)">
+                          <i class="pi pi-times" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="add-form rate-form">
+                  <input v-model="newRateLimit.path" type="text" class="form-input" placeholder="Path" />
+                  <div class="rate-inputs">
+                    <div class="input-group">
+                      <input v-model.number="newRateLimit.rate" type="number" class="form-input" placeholder="10" />
+                      <span class="input-suffix">/min</span>
+                    </div>
+                    <div class="input-group">
+                      <input v-model.number="newRateLimit.burst" type="number" class="form-input" placeholder="5" />
+                      <span class="input-suffix">burst</span>
+                    </div>
+                  </div>
+                  <button class="btn btn-sm btn-primary" :disabled="!newRateLimit.path" @click="addRateLimit">
+                    <i class="pi pi-plus" /> Add
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="security-section events-section">
+            <div class="section-header">
+              <div class="section-title">
+                <i class="pi pi-history" />
+                <h3>Recent Security Events</h3>
+              </div>
+              <router-link :to="`/security?deployment=${deployment?.name}`" class="view-all-btn">
+                View all <i class="pi pi-arrow-right" />
+              </router-link>
+            </div>
+            <div class="section-body">
+              <div v-if="securityEvents.length === 0" class="empty-state horizontal">
+                <i class="pi pi-check-circle" />
+                <div class="empty-text">
+                  <p>No security events</p>
+                  <span>Security events for this deployment will appear here</span>
+                </div>
+              </div>
+              <div v-else class="events-table">
+                <div class="events-header">
+                  <span class="col-severity">Severity</span>
+                  <span class="col-type">Event</span>
+                  <span class="col-ip">Source IP</span>
+                  <span class="col-path">Path</span>
+                  <span class="col-time">Time</span>
+                </div>
+                <div class="events-body">
+                  <div v-for="event in securityEvents" :key="event.id" class="event-row">
+                    <span class="col-severity">
+                      <span class="severity-badge" :class="event.severity">{{ event.severity }}</span>
+                    </span>
+                    <span class="col-type">{{ formatEventType(event.event_type) }}</span>
+                    <code class="col-ip">{{ event.source_ip }}</code>
+                    <code class="col-path">{{ event.request_path || "-" }}</code>
+                    <span class="col-time">{{ formatTimeAgo(event.created_at) }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div v-if="activeTab === 'config'" class="config-tab">
           <div class="config-sub-tabs">
             <button
@@ -745,6 +967,48 @@
       </div>
     </Teleport>
 
+    <Teleport to="body">
+      <div v-if="showRebuildModal" class="modal-overlay">
+        <div class="rebuild-modal modal-container">
+          <div class="modal-header">
+            <h3>
+              <i class="pi pi-sync" />
+              Rebuild Containers
+            </h3>
+            <button class="close-btn" @click="showRebuildModal = false">
+              <i class="pi pi-times" />
+            </button>
+          </div>
+          <div class="modal-body">
+            <div class="warning-box">
+              <i class="pi pi-exclamation-triangle" />
+              <div>
+                <strong>This will recreate all containers</strong>
+                <p>
+                  Rebuilding will stop all running containers, remove them, and create new ones using the currently
+                  available images. This is useful after pulling new images.
+                </p>
+              </div>
+            </div>
+            <div class="info-box">
+              <i class="pi pi-info-circle" />
+              <span>
+                <strong>When to use:</strong> After pulling new images with "Pull Image", use rebuild to apply the
+                changes. A simple restart does not use newly pulled images.
+              </span>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" @click="showRebuildModal = false">Cancel</button>
+            <button class="btn btn-warning" @click="executeRebuild">
+              <i class="pi pi-sync" />
+              Rebuild Containers
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
+
     <ConfirmModal
       :visible="showDeleteEnvModal"
       title="Delete Environment Variable"
@@ -953,9 +1217,17 @@ import { useRoute, useRouter } from "vue-router";
 import { Codemirror } from "vue-codemirror";
 import { yaml } from "@codemirror/lang-yaml";
 import { oneDark } from "@codemirror/theme-one-dark";
-import { deploymentsApi, proxyApi, certificatesApi, filesApi, infrastructureApi, type EnvVar } from "@/services/api";
+import {
+  deploymentsApi,
+  proxyApi,
+  certificatesApi,
+  filesApi,
+  infrastructureApi,
+  securityApi,
+  type EnvVar,
+} from "@/services/api";
 import { useNotificationsStore } from "@/stores/notifications";
-import type { ProxyStatus, QuickAction } from "@/types";
+import type { ProxyStatus, QuickAction, SecurityEvent, DeploymentSecurityConfig } from "@/types";
 import FileBrowser from "@/components/FileBrowser.vue";
 import LogViewer from "@/components/LogViewer.vue";
 import ConfirmModal from "@/components/ConfirmModal.vue";
@@ -982,6 +1254,23 @@ const settingUpProxy = ref(false);
 const requestingCert = ref(false);
 const disablingSSL = ref(false);
 
+const securityConfig = ref<DeploymentSecurityConfig>({
+  protected_paths: [],
+  rate_limits: [],
+});
+const securityEvents = ref<SecurityEvent[]>([]);
+const newProtectedPath = ref("");
+const newRateLimit = ref({ path: "", rate: 10, burst: 5, enabled: true });
+
+const protectedPathPresets = [
+  { pattern: "/.env", label: ".env" },
+  { pattern: "/.git", label: ".git" },
+  { pattern: "/wp-config.php", label: "wp-config" },
+  { pattern: "/.htaccess", label: ".htaccess" },
+  { pattern: "/composer.json", label: "composer.json" },
+  { pattern: "/package.json", label: "package.json" },
+];
+
 const tabs = [
   { id: "overview", label: "Overview", icon: "pi pi-info-circle" },
   { id: "files", label: "Files", icon: "pi pi-folder" },
@@ -989,6 +1278,7 @@ const tabs = [
   { id: "terminal", label: "Terminal", icon: "pi pi-desktop" },
   { id: "environment", label: "Environment", icon: "pi pi-list" },
   { id: "actions", label: "Quick Actions", icon: "pi pi-bolt" },
+  { id: "security", label: "Security", icon: "pi pi-shield" },
   { id: "config", label: "Configuration", icon: "pi pi-cog" },
 ];
 
@@ -1039,6 +1329,7 @@ const deleteOptions = ref({
 });
 
 const showPullImageModal = ref(false);
+const showRebuildModal = ref(false);
 const loadingImages = ref(false);
 const deploymentImages = ref<
   Array<{
@@ -1075,6 +1366,95 @@ const domainSettings = ref({
 });
 
 let refreshInterval: number | null = null;
+
+const fetchSecurityConfig = async () => {
+  try {
+    const response = await securityApi.getDeploymentSecurity(route.params.name as string);
+    securityConfig.value = response.data.security || { protected_paths: [], rate_limits: [] };
+  } catch {
+    securityConfig.value = { protected_paths: [], rate_limits: [] };
+  }
+};
+
+const fetchSecurityEvents = async () => {
+  try {
+    const response = await securityApi.getDeploymentEvents(route.params.name as string, 10);
+    securityEvents.value = response.data.events || [];
+  } catch {
+    securityEvents.value = [];
+  }
+};
+
+const saveSecurityConfig = async () => {
+  try {
+    await securityApi.updateDeploymentSecurity(route.params.name as string, securityConfig.value);
+    notifications.success("Saved", "Security configuration updated");
+  } catch (e: any) {
+    notifications.error("Error", e.response?.data?.error || "Failed to save security configuration");
+  }
+};
+
+const isPathProtected = (pattern: string) => {
+  return securityConfig.value.protected_paths.some((p) => p.pattern === pattern);
+};
+
+const toggleProtectedPath = (pattern: string) => {
+  const index = securityConfig.value.protected_paths.findIndex((p) => p.pattern === pattern);
+  if (index >= 0) {
+    securityConfig.value.protected_paths.splice(index, 1);
+  } else {
+    securityConfig.value.protected_paths.push({ pattern, enabled: true });
+  }
+  saveSecurityConfig();
+};
+
+const addProtectedPath = () => {
+  if (!newProtectedPath.value) return;
+  if (!isPathProtected(newProtectedPath.value)) {
+    securityConfig.value.protected_paths.push({ pattern: newProtectedPath.value, enabled: true });
+    saveSecurityConfig();
+  }
+  newProtectedPath.value = "";
+};
+
+const removeProtectedPath = (index: number) => {
+  securityConfig.value.protected_paths.splice(index, 1);
+  saveSecurityConfig();
+};
+
+const addRateLimit = () => {
+  if (!newRateLimit.value.path) return;
+  securityConfig.value.rate_limits.push({
+    path: newRateLimit.value.path,
+    rate: newRateLimit.value.rate || 10,
+    burst: newRateLimit.value.burst || 5,
+    enabled: true,
+  });
+  saveSecurityConfig();
+  newRateLimit.value = { path: "", rate: 10, burst: 5, enabled: true };
+};
+
+const removeRateLimit = (index: number) => {
+  securityConfig.value.rate_limits.splice(index, 1);
+  saveSecurityConfig();
+};
+
+const formatEventType = (type: string) => {
+  return type.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
+};
+
+const formatTimeAgo = (dateString: string) => {
+  if (!dateString) return "N/A";
+  const date = new Date(dateString);
+  const now = new Date();
+  const diff = now.getTime() - date.getTime();
+  const minutes = Math.floor(diff / 60000);
+  if (minutes < 1) return "just now";
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  return `${Math.floor(hours / 24)}d ago`;
+};
 
 const fetchDeployment = async () => {
   loading.value = true;
@@ -1231,6 +1611,8 @@ const handleOperation = async (operation: string, onlyLatest: boolean = false) =
       response = await deploymentsApi.stop(route.params.name as string);
     } else if (operation === "restart") {
       response = await deploymentsApi.restart(route.params.name as string);
+    } else if (operation === "rebuild") {
+      response = await deploymentsApi.rebuild(route.params.name as string);
     } else if (operation === "pull") {
       response = await deploymentsApi.pullImage(route.params.name as string, onlyLatest);
     }
@@ -1265,6 +1647,11 @@ const openPullImageModal = async () => {
 const executePull = async (onlyLatest: boolean) => {
   showPullImageModal.value = false;
   await handleOperation("pull", onlyLatest);
+};
+
+const executeRebuild = async () => {
+  showRebuildModal.value = false;
+  await handleOperation("rebuild");
 };
 
 const executeAction = async (action: { id: string; name: string }) => {
@@ -1684,6 +2071,13 @@ const getUsageClass = (percentage: number) => {
 watch(activeTab, (newTab) => {
   if (newTab === "logs" && !logs.value) {
     fetchLogs();
+  }
+});
+
+watch(activeTab, (newTab) => {
+  if (newTab === "security") {
+    fetchSecurityConfig();
+    fetchSecurityEvents();
   }
 });
 
@@ -2908,6 +3302,49 @@ onUnmounted(() => {
   gap: var(--space-2);
 }
 
+.rebuild-modal {
+  max-width: 500px;
+}
+
+.rebuild-modal .modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-gray-200);
+}
+
+.rebuild-modal .modal-header h3 {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  font-size: var(--text-lg);
+}
+
+.rebuild-modal .modal-body {
+  padding: var(--space-4);
+}
+
+.rebuild-modal .modal-body .warning-box div {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.rebuild-modal .modal-body .warning-box p {
+  margin: 0;
+  font-weight: normal;
+}
+
+.rebuild-modal .modal-footer {
+  padding: var(--space-3) var(--space-4);
+  border-top: 1px solid var(--color-gray-200);
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
 .actions-tab {
   padding: var(--space-4);
 }
@@ -3143,5 +3580,589 @@ onUnmounted(() => {
 
 .action-modal .required {
   color: var(--color-danger-500);
+}
+
+/* Security Tab Styles */
+.security-tab {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.security-summary {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+
+.summary-card {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  padding: 1rem 1.25rem;
+  background: white;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+}
+
+.summary-card.summary-link {
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.summary-card.summary-link:hover {
+  border-color: #3b82f6;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
+}
+
+.summary-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.125rem;
+}
+
+.summary-icon.protected {
+  background: rgba(34, 197, 94, 0.1);
+  color: #22c55e;
+}
+
+.summary-icon.rate {
+  background: rgba(59, 130, 246, 0.1);
+  color: #3b82f6;
+}
+
+.summary-icon.events {
+  background: rgba(249, 115, 22, 0.1);
+  color: #f97316;
+}
+
+.summary-icon.link {
+  background: rgba(139, 92, 246, 0.1);
+  color: #8b5cf6;
+}
+
+.summary-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.summary-value {
+  font-size: 1.375rem;
+  font-weight: 700;
+  color: #1f2937;
+  line-height: 1.2;
+}
+
+.summary-label {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.summary-hint {
+  font-size: 0.6875rem;
+  color: #9ca3af;
+}
+
+.security-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+}
+
+.security-section {
+  background: white;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  overflow: hidden;
+}
+
+.security-section .section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.875rem 1.25rem;
+  border-bottom: 1px solid #f3f4f6;
+  background: #fafafa;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.section-title i {
+  color: #3b82f6;
+  font-size: 1rem;
+}
+
+.section-title h3 {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.section-hint {
+  font-size: 0.75rem;
+  color: #9ca3af;
+}
+
+.section-body {
+  padding: 1rem 1.25rem;
+}
+
+.view-all-btn {
+  font-size: 0.8125rem;
+  color: #3b82f6;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.375rem 0.75rem;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.view-all-btn:hover {
+  background: rgba(59, 130, 246, 0.1);
+  color: #2563eb;
+}
+
+.view-all-btn i {
+  font-size: 0.625rem;
+}
+
+.presets-section {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.presets-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #6b7280;
+  white-space: nowrap;
+}
+
+.presets-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+}
+
+.preset-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.preset-btn:hover {
+  background: #e5e7eb;
+}
+
+.preset-btn.active {
+  background: #dbeafe;
+  border-color: #93c5fd;
+  color: #1d4ed8;
+}
+
+.preset-btn i {
+  font-size: 0.5625rem;
+}
+
+.paths-list,
+.rates-list {
+  margin-bottom: 1rem;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+  text-align: center;
+  color: #9ca3af;
+  background: #f9fafb;
+  border-radius: 8px;
+  border: 1px dashed #e5e7eb;
+}
+
+.empty-state i {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+  opacity: 0.5;
+}
+
+.empty-state p {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #6b7280;
+}
+
+.empty-state span {
+  font-size: 0.75rem;
+}
+
+.empty-state.horizontal {
+  flex-direction: row;
+  gap: 1rem;
+  text-align: left;
+  padding: 1.5rem;
+}
+
+.empty-state.horizontal i {
+  margin-bottom: 0;
+  font-size: 1.25rem;
+  color: #22c55e;
+}
+
+.empty-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.items-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.list-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.625rem 0.875rem;
+  background: #f9fafb;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+  transition: all 0.2s;
+}
+
+.list-item:hover {
+  border-color: #d1d5db;
+}
+
+.list-item.disabled {
+  opacity: 0.6;
+}
+
+.list-item.disabled code {
+  text-decoration: line-through;
+}
+
+.list-item code {
+  font-family: "SF Mono", "Fira Code", monospace;
+  font-size: 0.8125rem;
+  background: transparent;
+  color: #374151;
+}
+
+.item-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-ghost {
+  background: transparent;
+  border: none;
+  color: #9ca3af;
+}
+
+.btn-ghost:hover {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.rate-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.rate-config {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.rate-badge,
+.burst-badge {
+  font-size: 0.6875rem;
+  padding: 0.125rem 0.375rem;
+  border-radius: 4px;
+}
+
+.rate-badge {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.burst-badge {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+.add-form {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.add-form .form-input {
+  flex: 1;
+}
+
+.rate-form {
+  flex-wrap: wrap;
+}
+
+.rate-form .form-input:first-child {
+  flex: 2;
+  min-width: 120px;
+}
+
+.rate-inputs {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.input-group {
+  display: flex;
+  align-items: center;
+  background: white;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.input-group .form-input {
+  border: none;
+  width: 50px;
+  text-align: center;
+  padding: 0.5rem 0.25rem;
+}
+
+.input-suffix {
+  font-size: 0.6875rem;
+  color: #9ca3af;
+  padding-right: 0.5rem;
+  white-space: nowrap;
+}
+
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 36px;
+  height: 20px;
+}
+
+.toggle-switch.small {
+  width: 32px;
+  height: 18px;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  inset: 0;
+  background-color: #d1d5db;
+  transition: 0.3s;
+  border-radius: 20px;
+}
+
+.toggle-slider::before {
+  position: absolute;
+  content: "";
+  height: 14px;
+  width: 14px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.3s;
+  border-radius: 50%;
+}
+
+.toggle-switch.small .toggle-slider::before {
+  height: 12px;
+  width: 12px;
+  left: 3px;
+  bottom: 3px;
+}
+
+.toggle-switch input:checked + .toggle-slider {
+  background-color: #3b82f6;
+}
+
+.toggle-switch input:checked + .toggle-slider::before {
+  transform: translateX(16px);
+}
+
+.toggle-switch.small input:checked + .toggle-slider::before {
+  transform: translateX(14px);
+}
+
+.events-section {
+  grid-column: 1 / -1;
+}
+
+.events-table {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.events-header {
+  display: grid;
+  grid-template-columns: 80px 1fr 140px 1fr 100px;
+  gap: 0.75rem;
+  padding: 0.625rem 1rem;
+  background: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+}
+
+.events-body {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.event-row {
+  display: grid;
+  grid-template-columns: 80px 1fr 140px 1fr 100px;
+  gap: 0.75rem;
+  padding: 0.625rem 1rem;
+  border-bottom: 1px solid #f3f4f6;
+  align-items: center;
+  font-size: 0.8125rem;
+}
+
+.event-row:last-child {
+  border-bottom: none;
+}
+
+.event-row:hover {
+  background: #f9fafb;
+}
+
+.col-severity {
+  display: flex;
+  align-items: center;
+}
+
+.col-type {
+  color: #374151;
+}
+
+.col-ip,
+.col-path {
+  font-family: "SF Mono", "Fira Code", monospace;
+  font-size: 0.75rem;
+  color: #6b7280;
+  background: transparent;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.col-time {
+  font-size: 0.75rem;
+  color: #9ca3af;
+  text-align: right;
+}
+
+.severity-badge {
+  display: inline-block;
+  padding: 0.125rem 0.375rem;
+  border-radius: 4px;
+  font-size: 0.625rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.severity-badge.critical {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.severity-badge.high {
+  background: #ffedd5;
+  color: #9a3412;
+}
+
+.severity-badge.medium {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.severity-badge.low {
+  background: #f3f4f6;
+  color: #4b5563;
+}
+
+@media (max-width: 1024px) {
+  .security-summary {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .security-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .events-header,
+  .event-row {
+    grid-template-columns: 70px 1fr 120px 80px;
+  }
+
+  .col-path {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .security-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .presets-section {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .events-header,
+  .event-row {
+    grid-template-columns: 60px 1fr 70px;
+  }
+
+  .col-ip {
+    display: none;
+  }
 }
 </style>

@@ -104,6 +104,11 @@ const routes: RouteRecordRaw[] = [
         name: "infrastructure",
         component: () => import("@/views/InfrastructureView.vue"),
       },
+      {
+        path: "security",
+        name: "security",
+        component: () => import("@/views/SecurityView.vue"),
+      },
     ],
   },
 ];
