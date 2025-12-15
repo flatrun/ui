@@ -581,4 +581,9 @@ export const securityApi = {
         params: limit ? { limit } : undefined,
       },
     ),
+
+  getRealtimeCaptureStatus: () =>
+    apiClient.get<{ enabled: boolean; realtime_capture: boolean }>("/security/realtime-capture"),
+  setRealtimeCaptureStatus: (enabled: boolean) =>
+    apiClient.put<{ realtime_capture: boolean; message: string }>("/security/realtime-capture", { enabled }),
 };

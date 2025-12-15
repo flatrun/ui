@@ -9,6 +9,8 @@ export const useSecurityStore = defineStore("security", () => {
   const eventsTotal = ref(0);
   const blockedIPs = ref<BlockedIP[]>([]);
   const protectedRoutes = ref<ProtectedRoute[]>([]);
+  const securityEnabled = ref(false);
+  const realtimeCapture = ref(false);
   const loading = ref(false);
   const error = ref<string | null>(null);
 
@@ -133,12 +135,35 @@ export const useSecurityStore = defineStore("security", () => {
     }
   }
 
+  async function fetchRealtimeCaptureStatus() {
+    try {
+      const response = await securityApi.getRealtimeCaptureStatus();
+      securityEnabled.value = response.data.enabled;
+      realtimeCapture.value = response.data.realtime_capture;
+    } catch (e: any) {
+      error.value = e.response?.data?.error || e.message;
+    }
+  }
+
+  async function setRealtimeCapture(enabled: boolean) {
+    try {
+      const response = await securityApi.setRealtimeCaptureStatus(enabled);
+      realtimeCapture.value = response.data.realtime_capture;
+      return response.data;
+    } catch (e: any) {
+      error.value = e.response?.data?.error || e.message;
+      throw e;
+    }
+  }
+
   return {
     stats,
     events,
     eventsTotal,
     blockedIPs,
     protectedRoutes,
+    securityEnabled,
+    realtimeCapture,
     loading,
     error,
     fetchStats,
@@ -151,5 +176,7 @@ export const useSecurityStore = defineStore("security", () => {
     updateProtectedRoute,
     deleteProtectedRoute,
     cleanup,
+    fetchRealtimeCaptureStatus,
+    setRealtimeCapture,
   };
 });

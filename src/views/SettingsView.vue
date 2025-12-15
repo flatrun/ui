@@ -481,6 +481,118 @@
         </div>
       </div>
 
+      <!-- Security Tab -->
+      <div v-show="activeTab === 'security'" class="tab-content">
+        <div class="settings-card">
+          <div class="card-header">
+            <i class="pi pi-shield" />
+            <h3>Security Module</h3>
+            <label class="toggle-switch">
+              <input v-model="securitySettings.enabled" type="checkbox" />
+              <span class="toggle-slider" />
+            </label>
+          </div>
+          <div v-if="securitySettings.enabled" class="card-body">
+            <div class="config-note">
+              <i class="pi pi-info-circle" />
+              <p>
+                The security module monitors nginx logs and captures security events like unauthorized access attempts,
+                suspicious paths, and scanner activity. Events are stored in SQLite for analysis.
+              </p>
+            </div>
+
+            <div class="form-grid">
+              <div class="form-group full-width">
+                <div class="toggle-row">
+                  <div class="toggle-info">
+                    <label class="form-label">Realtime Capture</label>
+                    <span class="form-hint">
+                      Capture events in realtime using OpenResty/Lua. Requires OpenResty nginx image.
+                    </span>
+                  </div>
+                  <label class="toggle-switch">
+                    <input v-model="securitySettings.realtime_capture" type="checkbox" />
+                    <span class="toggle-slider" />
+                  </label>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Scan Interval</label>
+                <span class="form-hint">How often to scan logs (when realtime is disabled)</span>
+                <input v-model="securitySettings.scan_interval" type="text" placeholder="30s" class="form-input" />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Retention Days</label>
+                <span class="form-hint">How long to keep security events</span>
+                <input
+                  v-model.number="securitySettings.retention_days"
+                  type="number"
+                  placeholder="30"
+                  class="form-input"
+                />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Rate Threshold</label>
+                <span class="form-hint">Requests per minute to trigger high rate alert</span>
+                <input
+                  v-model.number="securitySettings.rate_threshold"
+                  type="number"
+                  placeholder="100"
+                  class="form-input"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-card">
+          <div class="card-header">
+            <i class="pi pi-ban" />
+            <h3>Auto-Blocking</h3>
+            <label class="toggle-switch">
+              <input v-model="securitySettings.auto_block_enabled" type="checkbox" />
+              <span class="toggle-slider" />
+            </label>
+          </div>
+          <div v-if="securitySettings.auto_block_enabled" class="card-body">
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label">Auto-Block Threshold</label>
+                <span class="form-hint">Number of security events before auto-blocking an IP</span>
+                <input
+                  v-model.number="securitySettings.auto_block_threshold"
+                  type="number"
+                  placeholder="50"
+                  class="form-input"
+                />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Auto-Block Duration</label>
+                <span class="form-hint">How long to block IPs automatically (e.g., 24h, 1h, 30m)</span>
+                <input
+                  v-model="securitySettings.auto_block_duration"
+                  type="text"
+                  placeholder="24h"
+                  class="form-input"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="save-footer">
+          <button class="btn btn-primary" :disabled="savingSecurity" @click="saveSecuritySettings">
+            <i v-if="savingSecurity" class="pi pi-spin pi-spinner" />
+            <i v-else class="pi pi-save" />
+            <span>Save Security Settings</span>
+          </button>
+        </div>
+      </div>
+
       <!-- Credentials Tab -->
       <div v-show="activeTab === 'credentials'" class="tab-content">
         <div class="settings-card">
@@ -664,6 +776,7 @@ const tabs = [
   { id: "general", label: "General", icon: "pi pi-home" },
   { id: "domain", label: "Domain", icon: "pi pi-globe" },
   { id: "infrastructure", label: "Infrastructure", icon: "pi pi-server" },
+  { id: "security", label: "Security & Monitoring", icon: "pi pi-shield" },
   { id: "credentials", label: "Credentials", icon: "pi pi-key" },
 ];
 
@@ -720,6 +833,19 @@ const certbotSettings = reactive({
   webroot_path: "",
   dns_provider: "",
 });
+
+const securitySettings = reactive({
+  enabled: false,
+  realtime_capture: false,
+  scan_interval: "30s",
+  retention_days: 30,
+  rate_threshold: 100,
+  auto_block_enabled: false,
+  auto_block_threshold: 50,
+  auto_block_duration: "24h",
+});
+
+const savingSecurity = ref(false);
 
 const credentials = ref<RegistryCredential[]>([]);
 const loadingCredentials = ref(false);
@@ -884,6 +1010,17 @@ const fetchSettings = async () => {
         infrastructureSettings.redis.port = data.infrastructure.redis.port || 6379;
       }
     }
+
+    if (data.security) {
+      securitySettings.enabled = data.security.enabled ?? false;
+      securitySettings.realtime_capture = data.security.realtime_capture ?? false;
+      securitySettings.scan_interval = data.security.scan_interval || "30s";
+      securitySettings.retention_days = data.security.retention_days || 30;
+      securitySettings.rate_threshold = data.security.rate_threshold || 100;
+      securitySettings.auto_block_enabled = data.security.auto_block_enabled ?? false;
+      securitySettings.auto_block_threshold = data.security.auto_block_threshold || 50;
+      securitySettings.auto_block_duration = data.security.auto_block_duration || "24h";
+    }
   } catch (e: any) {
     notifications.error("Error", "Failed to load settings");
   } finally {
@@ -959,6 +1096,30 @@ const saveInfrastructureSettings = async () => {
     notifications.error("Error", "Failed to save infrastructure settings");
   } finally {
     savingInfrastructure.value = false;
+  }
+};
+
+const saveSecuritySettings = async () => {
+  savingSecurity.value = true;
+
+  try {
+    await settingsApi.update({
+      security: {
+        enabled: securitySettings.enabled,
+        realtime_capture: securitySettings.realtime_capture,
+        scan_interval: securitySettings.scan_interval,
+        retention_days: securitySettings.retention_days,
+        rate_threshold: securitySettings.rate_threshold,
+        auto_block_enabled: securitySettings.auto_block_enabled,
+        auto_block_threshold: securitySettings.auto_block_threshold,
+        auto_block_duration: securitySettings.auto_block_duration,
+      },
+    });
+    notifications.success("Settings Saved", "Security configuration has been updated");
+  } catch (e: any) {
+    notifications.error("Error", "Failed to save security settings");
+  } finally {
+    savingSecurity.value = false;
   }
 };
 

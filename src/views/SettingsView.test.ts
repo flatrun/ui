@@ -97,10 +97,10 @@ describe("SettingsView", () => {
   });
 
   describe("Tab navigation", () => {
-    it("displays all four tabs", () => {
+    it("displays all five tabs", () => {
       const wrapper = mountView();
       const tabs = wrapper.findAll(".tab");
-      expect(tabs.length).toBe(4);
+      expect(tabs.length).toBe(5);
     });
 
     it("has General tab", () => {
@@ -116,6 +116,11 @@ describe("SettingsView", () => {
     it("has Infrastructure tab", () => {
       const wrapper = mountView();
       expect(wrapper.text()).toContain("Infrastructure");
+    });
+
+    it("has Security tab", () => {
+      const wrapper = mountView();
+      expect(wrapper.text()).toContain("Security");
     });
 
     it("has Credentials tab", () => {
@@ -367,6 +372,7 @@ describe("SettingsView", () => {
         { id: "general", label: "General", icon: "pi pi-home" },
         { id: "domain", label: "Domain", icon: "pi pi-globe" },
         { id: "infrastructure", label: "Infrastructure", icon: "pi pi-server" },
+        { id: "security", label: "Security & Monitoring", icon: "pi pi-shield" },
         { id: "credentials", label: "Credentials", icon: "pi pi-key" },
       ]);
     });

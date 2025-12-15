@@ -24,6 +24,196 @@
     </div>
 
     <div v-else class="security-content">
+      <!-- Dashboard/Stats Tab -->
+      <div v-show="activeTab === 'stats'" class="tab-content dashboard-tab">
+        <!-- Overview Stats -->
+        <div class="dashboard-stats-grid">
+          <div class="dashboard-stat-card">
+            <div class="stat-icon total">
+              <i class="pi pi-shield" />
+            </div>
+            <div class="stat-content">
+              <span class="stat-value">{{ stats?.total_events || 0 }}</span>
+              <span class="stat-label">Total Events</span>
+            </div>
+          </div>
+          <div class="dashboard-stat-card">
+            <div class="stat-icon day">
+              <i class="pi pi-clock" />
+            </div>
+            <div class="stat-content">
+              <span class="stat-value">{{ stats?.last_24_hours || 0 }}</span>
+              <span class="stat-label">Last 24 Hours</span>
+            </div>
+          </div>
+          <div class="dashboard-stat-card">
+            <div class="stat-icon week">
+              <i class="pi pi-calendar" />
+            </div>
+            <div class="stat-content">
+              <span class="stat-value">{{ stats?.last_7_days || 0 }}</span>
+              <span class="stat-label">Last 7 Days</span>
+            </div>
+          </div>
+          <div class="dashboard-stat-card">
+            <div class="stat-icon blocked">
+              <i class="pi pi-ban" />
+            </div>
+            <div class="stat-content">
+              <span class="stat-value">{{ stats?.blocked_ips_count || 0 }}</span>
+              <span class="stat-label">Blocked IPs</span>
+            </div>
+          </div>
+          <div class="dashboard-stat-card">
+            <div class="stat-icon routes">
+              <i class="pi pi-lock" />
+            </div>
+            <div class="stat-content">
+              <span class="stat-value">{{ stats?.protected_routes_count || 0 }}</span>
+              <span class="stat-label">Protected Routes</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Severity Breakdown & Trend -->
+        <div class="dashboard-row">
+          <div class="dashboard-card severity-card">
+            <h3>Events by Severity</h3>
+            <div class="severity-bars">
+              <div class="severity-bar-item">
+                <div class="severity-bar-label">
+                  <span class="severity-dot critical" />
+                  <span>Critical</span>
+                </div>
+                <div class="severity-bar-track">
+                  <div class="severity-bar-fill critical" :style="{ width: getSeverityPercentage('critical') + '%' }" />
+                </div>
+                <span class="severity-bar-value">{{ stats?.by_severity?.critical || 0 }}</span>
+              </div>
+              <div class="severity-bar-item">
+                <div class="severity-bar-label">
+                  <span class="severity-dot high" />
+                  <span>High</span>
+                </div>
+                <div class="severity-bar-track">
+                  <div class="severity-bar-fill high" :style="{ width: getSeverityPercentage('high') + '%' }" />
+                </div>
+                <span class="severity-bar-value">{{ stats?.by_severity?.high || 0 }}</span>
+              </div>
+              <div class="severity-bar-item">
+                <div class="severity-bar-label">
+                  <span class="severity-dot medium" />
+                  <span>Medium</span>
+                </div>
+                <div class="severity-bar-track">
+                  <div class="severity-bar-fill medium" :style="{ width: getSeverityPercentage('medium') + '%' }" />
+                </div>
+                <span class="severity-bar-value">{{ stats?.by_severity?.medium || 0 }}</span>
+              </div>
+              <div class="severity-bar-item">
+                <div class="severity-bar-label">
+                  <span class="severity-dot low" />
+                  <span>Low</span>
+                </div>
+                <div class="severity-bar-track">
+                  <div class="severity-bar-fill low" :style="{ width: getSeverityPercentage('low') + '%' }" />
+                </div>
+                <span class="severity-bar-value">{{ stats?.by_severity?.low || 0 }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="dashboard-card trend-card">
+            <h3>7-Day Event Trend</h3>
+            <div v-if="stats?.events_trend?.length" class="trend-chart">
+              <div class="trend-bars">
+                <div
+                  v-for="point in stats.events_trend"
+                  :key="point.date"
+                  class="trend-bar-container"
+                  :title="`${point.date}: ${point.count} events`"
+                >
+                  <div class="trend-bar" :style="{ height: getTrendBarHeight(point.count) + '%' }" />
+                  <span class="trend-bar-label">{{ formatTrendDate(point.date) }}</span>
+                </div>
+              </div>
+            </div>
+            <div v-else class="no-data">
+              <i class="pi pi-chart-line" />
+              <span>No trend data available</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Top Deployments & Top IPs -->
+        <div class="dashboard-row">
+          <div class="dashboard-card">
+            <h3>Top Deployments by Events</h3>
+            <div v-if="stats?.top_deployments?.length" class="top-list">
+              <div v-for="(dep, index) in stats.top_deployments" :key="dep.name" class="top-list-item">
+                <span class="top-rank">{{ index + 1 }}</span>
+                <div class="top-info">
+                  <span class="top-name">{{ dep.name }}</span>
+                  <div class="top-meta">
+                    <span v-if="dep.critical" class="top-badge critical">{{ dep.critical }} critical</span>
+                    <span v-if="dep.high" class="top-badge high">{{ dep.high }} high</span>
+                  </div>
+                </div>
+                <span class="top-count">{{ dep.event_count }}</span>
+              </div>
+            </div>
+            <div v-else class="no-data">
+              <i class="pi pi-server" />
+              <span>No deployment data available</span>
+            </div>
+          </div>
+
+          <div class="dashboard-card">
+            <h3>Top Offending IPs</h3>
+            <div v-if="stats?.top_offending_ips?.length" class="top-list">
+              <div v-for="(ip, index) in stats.top_offending_ips" :key="ip.ip" class="top-list-item">
+                <span class="top-rank">{{ index + 1 }}</span>
+                <div class="top-info">
+                  <code class="top-ip">{{ ip.ip }}</code>
+                  <span class="top-meta-text">Last seen {{ formatTime(ip.last_seen) }}</span>
+                </div>
+                <div class="top-actions">
+                  <span class="top-count">{{ ip.event_count }}</span>
+                  <button class="btn btn-icon btn-sm" title="Block IP" @click="showBlockIPDialog(ip.ip)">
+                    <i class="pi pi-ban" />
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div v-else class="no-data">
+              <i class="pi pi-users" />
+              <span>No IP data available</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Critical Events -->
+        <div class="dashboard-card full-width">
+          <h3>Recent Critical Events</h3>
+          <div v-if="stats?.recent_critical?.length" class="critical-events-list">
+            <div v-for="event in stats.recent_critical" :key="event.id" class="critical-event-item">
+              <div class="critical-event-time">{{ formatTime(event.created_at) }}</div>
+              <span class="severity-badge critical">{{ event.severity }}</span>
+              <span class="critical-event-type">{{ formatEventType(event.event_type) }}</span>
+              <code class="critical-event-ip">{{ event.source_ip }}</code>
+              <span class="critical-event-path">{{ event.request_path || "-" }}</span>
+              <button class="btn btn-icon btn-sm" title="Block IP" @click="showBlockIPDialog(event.source_ip)">
+                <i class="pi pi-ban" />
+              </button>
+            </div>
+          </div>
+          <div v-else class="no-data">
+            <i class="pi pi-check-circle" />
+            <span>No recent critical events</span>
+          </div>
+        </div>
+      </div>
+
       <!-- Events Tab -->
       <div v-show="activeTab === 'events'" class="tab-content">
         <div class="stats-row">
@@ -232,6 +422,77 @@
           </div>
         </div>
       </div>
+
+      <!-- Settings Tab -->
+      <div v-show="activeTab === 'settings'" class="tab-content">
+        <div class="settings-section">
+          <h3>Security Settings</h3>
+
+          <div class="settings-card">
+            <div class="setting-item">
+              <div class="setting-info">
+                <h4>Realtime Event Capture</h4>
+                <p>
+                  Enable real-time security event capture using OpenResty/Lua. When enabled, security events are
+                  captured as they happen instead of being parsed from logs. This provides faster detection and more
+                  accurate event data.
+                </p>
+                <div class="setting-requirements">
+                  <span class="requirement-label">Requires:</span>
+                  <span class="requirement-value">OpenResty nginx image</span>
+                </div>
+              </div>
+              <div class="setting-control">
+                <label class="toggle-switch" :class="{ disabled: togglingRealtimeCapture }">
+                  <input
+                    type="checkbox"
+                    :checked="realtimeCapture"
+                    :disabled="togglingRealtimeCapture"
+                    @change="toggleRealtimeCapture"
+                  />
+                  <span class="toggle-slider" />
+                </label>
+                <span v-if="togglingRealtimeCapture" class="toggle-status">
+                  <i class="pi pi-spin pi-spinner" />
+                </span>
+                <span v-else class="toggle-status" :class="{ active: realtimeCapture }">
+                  {{ realtimeCapture ? "Enabled" : "Disabled" }}
+                </span>
+              </div>
+            </div>
+
+            <div v-if="realtimeCapture" class="setting-note info">
+              <i class="pi pi-info-circle" />
+              <span>
+                Realtime capture is active. Security events will be sent directly from nginx to the agent API. Make sure
+                your nginx container is using the OpenResty image.
+              </span>
+            </div>
+
+            <div v-if="!realtimeCapture" class="setting-note warning">
+              <i class="pi pi-exclamation-triangle" />
+              <span>
+                Realtime capture is disabled. Security features like IP blocking and rate limiting will still work, but
+                events will only be captured when logs are parsed.
+              </span>
+            </div>
+          </div>
+
+          <div class="settings-card">
+            <div class="setting-item">
+              <div class="setting-info">
+                <h4>Security Module Status</h4>
+                <p>The security module handles event storage, IP blocking, and rate limiting configuration.</p>
+              </div>
+              <div class="setting-control">
+                <span class="status-badge" :class="{ active: securityEnabled }">
+                  {{ securityEnabled ? "Active" : "Inactive" }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Block IP Dialog -->
@@ -347,12 +608,14 @@ const securityStore = useSecurityStore();
 const notifications = useNotificationsStore();
 
 const loading = ref(false);
-const activeTab = ref("events");
+const activeTab = ref("stats");
 
 const tabs = [
+  { id: "stats", label: "Dashboard", icon: "pi pi-chart-bar" },
   { id: "events", label: "Events", icon: "pi pi-list" },
   { id: "blocked", label: "Blocked IPs", icon: "pi pi-ban" },
   { id: "routes", label: "Protected Routes", icon: "pi pi-lock" },
+  { id: "settings", label: "Settings", icon: "pi pi-cog" },
 ];
 
 const stats = ref(securityStore.stats);
@@ -360,6 +623,9 @@ const events = ref(securityStore.events);
 const eventsTotal = ref(securityStore.eventsTotal);
 const blockedIPs = ref(securityStore.blockedIPs);
 const protectedRoutes = ref(securityStore.protectedRoutes);
+const securityEnabled = ref(securityStore.securityEnabled);
+const realtimeCapture = ref(securityStore.realtimeCapture);
+const togglingRealtimeCapture = ref(false);
 
 const filters = reactive({
   severity: "",
@@ -411,11 +677,42 @@ const fetchProtectedRoutes = async () => {
   protectedRoutes.value = securityStore.protectedRoutes;
 };
 
+const fetchRealtimeCaptureStatus = async () => {
+  await securityStore.fetchRealtimeCaptureStatus();
+  securityEnabled.value = securityStore.securityEnabled;
+  realtimeCapture.value = securityStore.realtimeCapture;
+};
+
 const refreshData = async () => {
   loading.value = true;
-  await Promise.all([fetchStats(), fetchEvents(), fetchBlockedIPs(), fetchProtectedRoutes()]);
+  await Promise.all([
+    fetchStats(),
+    fetchEvents(),
+    fetchBlockedIPs(),
+    fetchProtectedRoutes(),
+    fetchRealtimeCaptureStatus(),
+  ]);
   loading.value = false;
   notifications.success("Refreshed", "Security data updated");
+};
+
+const toggleRealtimeCapture = async () => {
+  togglingRealtimeCapture.value = true;
+  try {
+    const newValue = !realtimeCapture.value;
+    await securityStore.setRealtimeCapture(newValue);
+    realtimeCapture.value = securityStore.realtimeCapture;
+    notifications.success(
+      newValue ? "Realtime Capture Enabled" : "Realtime Capture Disabled",
+      newValue
+        ? "Security events will now be captured in realtime using OpenResty/Lua"
+        : "Realtime capture has been disabled",
+    );
+  } catch (e: any) {
+    notifications.error("Failed", e.response?.data?.error || "Failed to toggle realtime capture");
+  } finally {
+    togglingRealtimeCapture.value = false;
+  }
 };
 
 const clearFilters = () => {
@@ -457,6 +754,25 @@ const formatTime = (dateString: string) => {
 
 const formatEventType = (type: string) => {
   return type.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
+};
+
+const getSeverityPercentage = (severity: string): number => {
+  if (!stats.value?.by_severity) return 0;
+  const total = Object.values(stats.value.by_severity).reduce((sum, val) => sum + val, 0);
+  if (total === 0) return 0;
+  return Math.round(((stats.value.by_severity[severity] || 0) / total) * 100);
+};
+
+const getTrendBarHeight = (count: number): number => {
+  if (!stats.value?.events_trend?.length) return 0;
+  const maxCount = Math.max(...stats.value.events_trend.map((p) => p.count));
+  if (maxCount === 0) return 0;
+  return Math.round((count / maxCount) * 100);
+};
+
+const formatTrendDate = (dateStr: string): string => {
+  const date = new Date(dateStr);
+  return date.toLocaleDateString("en-US", { weekday: "short" });
 };
 
 const showBlockIPDialog = (ip: string) => {
@@ -1259,9 +1575,554 @@ onMounted(() => {
   justify-content: center;
 }
 
+/* Settings Tab Styles */
+.settings-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.settings-section h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.settings-card {
+  background: white;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  padding: 1.25rem;
+}
+
+.setting-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 2rem;
+}
+
+.setting-info {
+  flex: 1;
+}
+
+.setting-info h4 {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.setting-info p {
+  margin: 0 0 0.75rem 0;
+  font-size: 0.8125rem;
+  color: #6b7280;
+  line-height: 1.5;
+}
+
+.setting-requirements {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+}
+
+.requirement-label {
+  color: #9ca3af;
+}
+
+.requirement-value {
+  background: #f3f4f6;
+  padding: 0.125rem 0.5rem;
+  border-radius: 4px;
+  color: #374151;
+  font-family: "SF Mono", "Fira Code", monospace;
+}
+
+.setting-control {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+
+.toggle-status {
+  font-size: 0.8125rem;
+  color: #9ca3af;
+  min-width: 60px;
+}
+
+.toggle-status.active {
+  color: #059669;
+}
+
+.toggle-switch.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+.status-badge.active {
+  background: #d1fae5;
+  color: #059669;
+}
+
+.setting-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-top: 1rem;
+  padding: 0.875rem 1rem;
+  border-radius: 8px;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+
+.setting-note i {
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+}
+
+.setting-note.info {
+  background: #eff6ff;
+  color: #1e40af;
+}
+
+.setting-note.info i {
+  color: #3b82f6;
+}
+
+.setting-note.warning {
+  background: #fffbeb;
+  color: #92400e;
+}
+
+.setting-note.warning i {
+  color: #f59e0b;
+}
+
+/* Dashboard Tab Styles */
+.dashboard-tab {
+  gap: 1.5rem;
+}
+
+.dashboard-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 1rem;
+}
+
+.dashboard-stat-card {
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  padding: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.stat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stat-icon i {
+  font-size: 1.25rem;
+}
+
+.stat-icon.total {
+  background: #eff6ff;
+  color: #3b82f6;
+}
+
+.stat-icon.day {
+  background: #f0fdf4;
+  color: #22c55e;
+}
+
+.stat-icon.week {
+  background: #faf5ff;
+  color: #a855f7;
+}
+
+.stat-icon.blocked {
+  background: #fef2f2;
+  color: #ef4444;
+}
+
+.stat-icon.routes {
+  background: #fffbeb;
+  color: #f59e0b;
+}
+
+.stat-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.dashboard-stat-card .stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1f2937;
+  line-height: 1.2;
+}
+
+.dashboard-stat-card .stat-label {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-top: 0.25rem;
+}
+
+.dashboard-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.25rem;
+}
+
+.dashboard-card {
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  padding: 1.25rem;
+}
+
+.dashboard-card.full-width {
+  grid-column: 1 / -1;
+}
+
+.dashboard-card h3 {
+  margin: 0 0 1rem 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.severity-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+}
+
+.severity-bar-item {
+  display: grid;
+  grid-template-columns: 100px 1fr 50px;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.severity-bar-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+  color: #374151;
+}
+
+.severity-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.severity-dot.critical {
+  background: #dc2626;
+}
+
+.severity-dot.high {
+  background: #ea580c;
+}
+
+.severity-dot.medium {
+  background: #d97706;
+}
+
+.severity-dot.low {
+  background: #9ca3af;
+}
+
+.severity-bar-track {
+  height: 8px;
+  background: #f3f4f6;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.severity-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.severity-bar-fill.critical {
+  background: #dc2626;
+}
+
+.severity-bar-fill.high {
+  background: #ea580c;
+}
+
+.severity-bar-fill.medium {
+  background: #d97706;
+}
+
+.severity-bar-fill.low {
+  background: #9ca3af;
+}
+
+.severity-bar-value {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #374151;
+  text-align: right;
+}
+
+.trend-chart {
+  height: 180px;
+  display: flex;
+  flex-direction: column;
+}
+
+.trend-bars {
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-around;
+  gap: 0.5rem;
+  padding-bottom: 1.5rem;
+}
+
+.trend-bar-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+  position: relative;
+}
+
+.trend-bar {
+  width: 100%;
+  max-width: 40px;
+  background: linear-gradient(180deg, #3b82f6 0%, #60a5fa 100%);
+  border-radius: 4px 4px 0 0;
+  min-height: 4px;
+  margin-top: auto;
+  transition: height 0.3s ease;
+}
+
+.trend-bar-label {
+  position: absolute;
+  bottom: 0;
+  font-size: 0.6875rem;
+  color: #9ca3af;
+  white-space: nowrap;
+}
+
+.top-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.top-list-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: #f9fafb;
+  border-radius: 8px;
+}
+
+.top-rank {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #6b7280;
+}
+
+.top-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.top-name {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #1f2937;
+}
+
+.top-ip {
+  font-size: 0.8125rem;
+  background: transparent;
+  padding: 0;
+  color: #374151;
+}
+
+.top-meta {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.top-meta-text {
+  font-size: 0.75rem;
+  color: #9ca3af;
+}
+
+.top-badge {
+  font-size: 0.625rem;
+  font-weight: 600;
+  padding: 0.125rem 0.375rem;
+  border-radius: 4px;
+}
+
+.top-badge.critical {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.top-badge.high {
+  background: #ffedd5;
+  color: #9a3412;
+}
+
+.top-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.top-count {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.critical-events-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.critical-event-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: #fef2f2;
+  border-radius: 8px;
+  border-left: 3px solid #dc2626;
+}
+
+.critical-event-time {
+  font-size: 0.75rem;
+  color: #9ca3af;
+  min-width: 70px;
+}
+
+.critical-event-type {
+  font-size: 0.8125rem;
+  color: #374151;
+  min-width: 120px;
+}
+
+.critical-event-ip {
+  font-size: 0.75rem;
+  background: #fecaca;
+  padding: 0.125rem 0.375rem;
+  border-radius: 4px;
+  color: #991b1b;
+}
+
+.critical-event-path {
+  flex: 1;
+  font-size: 0.8125rem;
+  color: #6b7280;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.no-data {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  color: #9ca3af;
+  gap: 0.5rem;
+}
+
+.no-data i {
+  font-size: 2rem;
+  opacity: 0.5;
+}
+
+.no-data span {
+  font-size: 0.8125rem;
+}
+
+@media (max-width: 1200px) {
+  .dashboard-stats-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
 @media (max-width: 768px) {
   .stats-row {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  .dashboard-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .dashboard-row {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-stat-card {
+    padding: 1rem;
+  }
+
+  .stat-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .dashboard-stat-card .stat-value {
+    font-size: 1.25rem;
+  }
+
+  .critical-event-item {
+    flex-wrap: wrap;
+  }
+
+  .critical-event-path {
+    flex-basis: 100%;
+    margin-top: 0.5rem;
   }
 
   .filters-row {
@@ -1279,6 +2140,16 @@ onMounted(() => {
 
   .form-row {
     grid-template-columns: 1fr;
+  }
+
+  .setting-item {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .setting-control {
+    width: 100%;
+    justify-content: space-between;
   }
 }
 </style>
