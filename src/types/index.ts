@@ -177,11 +177,15 @@ export interface ProtectedRoute {
 export interface SecurityStats {
   total_events: number;
   last_24_hours: number;
+  last_7_days: number;
   by_severity: Record<string, number>;
+  by_type: Record<string, number>;
   blocked_ips_count: number;
   protected_routes_count: number;
-  top_offending_ips: { ip: string; count: number }[];
+  top_offending_ips: { ip: string; event_count: number; last_seen: string }[];
+  top_deployments: { name: string; event_count: number; critical: number; high: number }[];
   recent_critical: SecurityEvent[];
+  events_trend: { date: string; count: number }[];
 }
 
 export interface DeploymentSecurityConfig {
