@@ -39,8 +39,8 @@ export const useSecurityStore = defineStore("security", () => {
     error.value = null;
     try {
       const response = await securityApi.getEvents(params);
-      events.value = response.data.events;
-      eventsTotal.value = response.data.total;
+      events.value = response.data.events || [];
+      eventsTotal.value = response.data.total || 0;
     } catch (e: any) {
       error.value = e.response?.data?.error || e.message;
     } finally {
@@ -53,7 +53,7 @@ export const useSecurityStore = defineStore("security", () => {
     error.value = null;
     try {
       const response = await securityApi.getBlockedIPs();
-      blockedIPs.value = response.data.blocked_ips;
+      blockedIPs.value = response.data.blocked_ips || [];
     } catch (e: any) {
       error.value = e.response?.data?.error || e.message;
     } finally {
@@ -86,7 +86,7 @@ export const useSecurityStore = defineStore("security", () => {
     error.value = null;
     try {
       const response = await securityApi.getProtectedRoutes();
-      protectedRoutes.value = response.data.protected_routes;
+      protectedRoutes.value = response.data.protected_routes || [];
     } catch (e: any) {
       error.value = e.response?.data?.error || e.message;
     } finally {

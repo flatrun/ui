@@ -600,6 +600,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from "vue";
+import { storeToRefs } from "pinia";
 import { useSecurityStore } from "@/stores/security";
 import { useNotificationsStore } from "@/stores/notifications";
 import type { ProtectedRoute } from "@/types";
@@ -618,13 +619,8 @@ const tabs = [
   { id: "settings", label: "Settings", icon: "pi pi-cog" },
 ];
 
-const stats = ref(securityStore.stats);
-const events = ref(securityStore.events);
-const eventsTotal = ref(securityStore.eventsTotal);
-const blockedIPs = ref(securityStore.blockedIPs);
-const protectedRoutes = ref(securityStore.protectedRoutes);
-const securityEnabled = ref(securityStore.securityEnabled);
-const realtimeCapture = ref(securityStore.realtimeCapture);
+const { stats, events, eventsTotal, blockedIPs, protectedRoutes, securityEnabled, realtimeCapture } =
+  storeToRefs(securityStore);
 const togglingRealtimeCapture = ref(false);
 
 const filters = reactive({
@@ -650,7 +646,6 @@ const deletingRoute = ref(false);
 
 const fetchStats = async () => {
   await securityStore.fetchStats();
-  stats.value = securityStore.stats;
 };
 
 const fetchEvents = async () => {
@@ -662,25 +657,19 @@ const fetchEvents = async () => {
     limit: filters.limit,
     offset: filters.offset,
   });
-  events.value = securityStore.events;
-  eventsTotal.value = securityStore.eventsTotal;
   loading.value = false;
 };
 
 const fetchBlockedIPs = async () => {
   await securityStore.fetchBlockedIPs();
-  blockedIPs.value = securityStore.blockedIPs;
 };
 
 const fetchProtectedRoutes = async () => {
   await securityStore.fetchProtectedRoutes();
-  protectedRoutes.value = securityStore.protectedRoutes;
 };
 
 const fetchRealtimeCaptureStatus = async () => {
   await securityStore.fetchRealtimeCaptureStatus();
-  securityEnabled.value = securityStore.securityEnabled;
-  realtimeCapture.value = securityStore.realtimeCapture;
 };
 
 const refreshData = async () => {
@@ -792,7 +781,6 @@ const handleBlockIP = async () => {
     blockForm.ip = "";
     blockForm.reason = "";
     blockForm.duration = 0;
-    blockedIPs.value = securityStore.blockedIPs;
   } catch (e: any) {
     notifications.error("Failed", e.response?.data?.error || "Failed to block IP");
   } finally {
@@ -805,7 +793,6 @@ const handleUnblockIP = async (ip: string) => {
   try {
     await securityStore.unblockIP(ip);
     notifications.success("IP Unblocked", `${ip} has been unblocked`);
-    blockedIPs.value = securityStore.blockedIPs;
   } catch (e: any) {
     notifications.error("Failed", e.response?.data?.error || "Failed to unblock IP");
   } finally {
@@ -850,7 +837,6 @@ const saveRoute = async () => {
       notifications.success("Route Added", "Protected route has been added");
     }
     closeRouteDialog();
-    protectedRoutes.value = securityStore.protectedRoutes;
   } catch (e: any) {
     notifications.error("Failed", e.response?.data?.error || "Failed to save route");
   } finally {
@@ -861,7 +847,6 @@ const saveRoute = async () => {
 const toggleRoute = async (route: ProtectedRoute) => {
   try {
     await securityStore.updateProtectedRoute(route.id, { enabled: !route.enabled });
-    protectedRoutes.value = securityStore.protectedRoutes;
   } catch (e: any) {
     notifications.error("Failed", e.response?.data?.error || "Failed to toggle route");
   }
@@ -880,7 +865,6 @@ const deleteRoute = async () => {
     notifications.success("Route Deleted", "Protected route has been removed");
     showDeleteRouteDialog.value = false;
     routeToDelete.value = null;
-    protectedRoutes.value = securityStore.protectedRoutes;
   } catch (e: any) {
     notifications.error("Failed", e.response?.data?.error || "Failed to delete route");
   } finally {
@@ -901,7 +885,6 @@ const addPreset = async (preset: string) => {
   try {
     await securityStore.addProtectedRoute(presetConfig);
     notifications.success("Preset Added", `${preset} protection has been added`);
-    protectedRoutes.value = securityStore.protectedRoutes;
   } catch (e: any) {
     notifications.error("Failed", e.response?.data?.error || "Failed to add preset");
   }
