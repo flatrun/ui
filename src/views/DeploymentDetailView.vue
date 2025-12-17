@@ -519,7 +519,9 @@
                 <i class="pi pi-lock" />
               </div>
               <div class="summary-content">
-                <span class="summary-value">{{ (securityConfig.protected_paths || []).filter((p) => p.enabled).length }}</span>
+                <span class="summary-value">{{
+                  (securityConfig.protected_paths || []).filter((p) => p.enabled).length
+                }}</span>
                 <span class="summary-label">Protected Paths</span>
               </div>
             </div>
@@ -528,7 +530,9 @@
                 <i class="pi pi-gauge" />
               </div>
               <div class="summary-content">
-                <span class="summary-value">{{ (securityConfig.rate_limits || []).filter((r) => r.enabled).length }}</span>
+                <span class="summary-value">{{
+                  (securityConfig.rate_limits || []).filter((r) => r.enabled).length
+                }}</span>
                 <span class="summary-label">Rate Limits</span>
               </div>
             </div>
