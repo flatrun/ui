@@ -496,33 +496,12 @@
             <div class="config-note">
               <i class="pi pi-info-circle" />
               <p>
-                The security module monitors nginx logs and captures security events like unauthorized access attempts,
-                suspicious paths, and scanner activity. Events are stored in SQLite for analysis.
+                The security module captures events in realtime using OpenResty/Lua, monitoring unauthorized access
+                attempts, suspicious paths, and scanner activity. Requires OpenResty nginx image.
               </p>
             </div>
 
             <div class="form-grid">
-              <div class="form-group full-width">
-                <div class="toggle-row">
-                  <div class="toggle-info">
-                    <label class="form-label">Realtime Capture</label>
-                    <span class="form-hint">
-                      Capture events in realtime using OpenResty/Lua. Requires OpenResty nginx image.
-                    </span>
-                  </div>
-                  <label class="toggle-switch">
-                    <input v-model="securitySettings.realtime_capture" type="checkbox" />
-                    <span class="toggle-slider" />
-                  </label>
-                </div>
-              </div>
-
-              <div class="form-group">
-                <label class="form-label">Scan Interval</label>
-                <span class="form-hint">How often to scan logs (when realtime is disabled)</span>
-                <input v-model="securitySettings.scan_interval" type="text" placeholder="30s" class="form-input" />
-              </div>
-
               <div class="form-group">
                 <label class="form-label">Retention Days</label>
                 <span class="form-hint">How long to keep security events</span>
@@ -591,6 +570,11 @@
             <span>Save Security Settings</span>
           </button>
         </div>
+      </div>
+
+      <!-- Health Checks Tab -->
+      <div v-show="activeTab === 'healthchecks'" class="tab-content">
+        <SecurityHealthCard :auto-fetch="true" />
       </div>
 
       <!-- Credentials Tab -->
@@ -760,6 +744,7 @@ import { settingsApi, healthApi, templatesApi, credentialsApi } from "@/services
 import type { DomainSettings } from "@/services/api";
 import type { RegistryCredential } from "@/types";
 import { useNotificationsStore } from "@/stores/notifications";
+import SecurityHealthCard from "@/components/SecurityHealthCard.vue";
 
 declare const __APP_VERSION__: string;
 
@@ -777,6 +762,7 @@ const tabs = [
   { id: "domain", label: "Domain", icon: "pi pi-globe" },
   { id: "infrastructure", label: "Infrastructure", icon: "pi pi-server" },
   { id: "security", label: "Security & Monitoring", icon: "pi pi-shield" },
+  { id: "healthchecks", label: "Health Checks", icon: "pi pi-heart" },
   { id: "credentials", label: "Credentials", icon: "pi pi-key" },
 ];
 
@@ -836,8 +822,6 @@ const certbotSettings = reactive({
 
 const securitySettings = reactive({
   enabled: false,
-  realtime_capture: false,
-  scan_interval: "30s",
   retention_days: 30,
   rate_threshold: 100,
   auto_block_enabled: false,
@@ -1013,8 +997,6 @@ const fetchSettings = async () => {
 
     if (data.security) {
       securitySettings.enabled = data.security.enabled ?? false;
-      securitySettings.realtime_capture = data.security.realtime_capture ?? false;
-      securitySettings.scan_interval = data.security.scan_interval || "30s";
       securitySettings.retention_days = data.security.retention_days || 30;
       securitySettings.rate_threshold = data.security.rate_threshold || 100;
       securitySettings.auto_block_enabled = data.security.auto_block_enabled ?? false;
@@ -1103,21 +1085,48 @@ const saveSecuritySettings = async () => {
   savingSecurity.value = true;
 
   try {
-    await settingsApi.update({
-      security: {
-        enabled: securitySettings.enabled,
-        realtime_capture: securitySettings.realtime_capture,
-        scan_interval: securitySettings.scan_interval,
-        retention_days: securitySettings.retention_days,
-        rate_threshold: securitySettings.rate_threshold,
-        auto_block_enabled: securitySettings.auto_block_enabled,
-        auto_block_threshold: securitySettings.auto_block_threshold,
-        auto_block_duration: securitySettings.auto_block_duration,
-      },
+    const response = await settingsApi.updateSecurity({
+      enabled: securitySettings.enabled,
+      retention_days: securitySettings.retention_days,
+      rate_threshold: securitySettings.rate_threshold,
+      auto_block_enabled: securitySettings.auto_block_enabled,
+      auto_block_threshold: securitySettings.auto_block_threshold,
+      auto_block_duration: securitySettings.auto_block_duration,
     });
-    notifications.success("Settings Saved", "Security configuration has been updated");
+
+    const data = response.data;
+
+    // Check for nginx errors
+    if (data.nginx_error) {
+      notifications.error("Security Update Warning", data.nginx_error);
+    } else if (data.nginx_action) {
+      const action = data.nginx_action;
+      if (action.errors && action.errors.length > 0) {
+        notifications.error("Security Update Warning", action.errors.join(", "));
+      } else if (action.container_recreated) {
+        notifications.success("Settings Saved", "Security configuration updated and nginx container recreated");
+      } else if (action.nginx_reloaded) {
+        notifications.success("Settings Saved", "Security configuration updated and nginx reloaded");
+      } else {
+        notifications.success("Settings Saved", "Security configuration has been updated");
+      }
+    } else {
+      notifications.success("Settings Saved", "Security configuration has been updated");
+    }
+
+    // Sync local state with server response
+    if (data.security) {
+      securitySettings.enabled = data.security.enabled;
+      securitySettings.retention_days = data.security.retention_days;
+      securitySettings.rate_threshold = data.security.rate_threshold;
+      securitySettings.auto_block_enabled = data.security.auto_block_enabled;
+      securitySettings.auto_block_threshold = data.security.auto_block_threshold;
+      securitySettings.auto_block_duration = data.security.auto_block_duration;
+    }
   } catch (e: any) {
-    notifications.error("Error", "Failed to save security settings");
+    const errorMsg = e.response?.data?.error || "Failed to save security settings";
+    const details = e.response?.data?.details || "";
+    notifications.error("Error", details ? `${errorMsg}: ${details}` : errorMsg);
   } finally {
     savingSecurity.value = false;
   }
@@ -2019,5 +2028,9 @@ onMounted(() => {
 .btn-danger:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+.content-grid.single-column {
+  grid-template-columns: 1fr;
 }
 </style>

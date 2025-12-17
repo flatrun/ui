@@ -189,6 +189,8 @@ export interface SecurityStats {
 }
 
 export interface DeploymentSecurityConfig {
+  enabled?: boolean;
+  blocked_ips?: string[];
   protected_paths: ProtectedPath[];
   rate_limits: DeploymentRateLimit[];
 }

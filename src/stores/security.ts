@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
-import { securityApi } from "@/services/api";
+import { securityApi, type SecurityHealthCheck } from "@/services/api";
 import type { SecurityEvent, SecurityStats, BlockedIP, ProtectedRoute } from "@/types";
 
 export const useSecurityStore = defineStore("security", () => {
@@ -11,6 +11,7 @@ export const useSecurityStore = defineStore("security", () => {
   const protectedRoutes = ref<ProtectedRoute[]>([]);
   const securityEnabled = ref(false);
   const realtimeCapture = ref(false);
+  const health = ref<SecurityHealthCheck | null>(null);
   const loading = ref(false);
   const error = ref<string | null>(null);
 
@@ -156,6 +157,21 @@ export const useSecurityStore = defineStore("security", () => {
     }
   }
 
+  async function fetchHealth() {
+    try {
+      const response = await securityApi.getHealth();
+      health.value = response.data;
+    } catch (e: any) {
+      health.value = {
+        status: "disabled",
+        error: e.response?.data?.error || e.message,
+        checks: {},
+        issues: [e.response?.data?.error || "Failed to fetch health status"],
+        recommendations: [],
+      };
+    }
+  }
+
   return {
     stats,
     events,
@@ -164,6 +180,7 @@ export const useSecurityStore = defineStore("security", () => {
     protectedRoutes,
     securityEnabled,
     realtimeCapture,
+    health,
     loading,
     error,
     fetchStats,
@@ -178,5 +195,6 @@ export const useSecurityStore = defineStore("security", () => {
     cleanup,
     fetchRealtimeCaptureStatus,
     setRealtimeCapture,
+    fetchHealth,
   };
 });

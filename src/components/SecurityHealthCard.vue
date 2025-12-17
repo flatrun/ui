@@ -1,0 +1,367 @@
+<template>
+  <div class="health-card">
+    <div class="health-header">
+      <div class="health-title">
+        <i class="pi pi-shield" />
+        <h4>Security Health Status</h4>
+        <button class="btn btn-icon btn-sm" title="Refresh health status" @click="fetchHealth">
+          <i class="pi pi-refresh" :class="{ 'pi-spin': loading }" />
+        </button>
+      </div>
+      <div v-if="health" class="health-status" :class="health.status">
+        <i :class="getHealthIcon(health.status)" />
+        <span>{{ formatHealthStatus(health.status) }}</span>
+      </div>
+    </div>
+
+    <div v-if="loading" class="health-loading">
+      <i class="pi pi-spin pi-spinner" />
+      <span>Checking security health...</span>
+    </div>
+
+    <div v-else-if="health" class="health-content">
+      <div v-if="Object.keys(health.checks).length > 0" class="health-checks">
+        <h5>Configuration Checks</h5>
+        <div class="checks-grid">
+          <div
+            v-for="(passed, checkName) in health.checks"
+            :key="checkName"
+            class="check-item"
+            :class="{ passed, failed: !passed }"
+          >
+            <i :class="passed ? 'pi pi-check-circle' : 'pi pi-times-circle'" />
+            <span>{{ formatCheckName(String(checkName)) }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div v-if="health.issues?.length > 0" class="health-issues">
+        <h5>Issues Detected</h5>
+        <ul class="issues-list">
+          <li v-for="(issue, idx) in health.issues" :key="idx">
+            <i class="pi pi-exclamation-triangle" />
+            <span>{{ issue }}</span>
+          </li>
+        </ul>
+      </div>
+
+      <div v-if="health.recommendations?.length > 0" class="health-recommendations">
+        <h5>Recommendations</h5>
+        <ul class="recommendations-list">
+          <li v-for="(rec, idx) in health.recommendations" :key="idx">
+            <i class="pi pi-info-circle" />
+            <span>{{ rec }}</span>
+          </li>
+        </ul>
+      </div>
+
+      <div v-if="health.details && Object.keys(health.details).length > 0" class="health-details">
+        <details>
+          <summary>View Details</summary>
+          <pre>{{ JSON.stringify(health.details, null, 2) }}</pre>
+        </details>
+      </div>
+    </div>
+
+    <div v-else class="health-empty">
+      <i class="pi pi-info-circle" />
+      <span>Click refresh to check security health status</span>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref, onMounted } from "vue";
+import { storeToRefs } from "pinia";
+import { useSecurityStore } from "@/stores/security";
+
+const props = defineProps<{
+  autoFetch?: boolean;
+}>();
+
+const securityStore = useSecurityStore();
+const { health } = storeToRefs(securityStore);
+const loading = ref(false);
+
+const fetchHealth = async () => {
+  loading.value = true;
+  await securityStore.fetchHealth();
+  loading.value = false;
+};
+
+const getHealthIcon = (status: string): string => {
+  switch (status) {
+    case "healthy":
+      return "pi pi-check-circle";
+    case "degraded":
+      return "pi pi-exclamation-circle";
+    case "broken":
+      return "pi pi-times-circle";
+    case "disabled":
+      return "pi pi-minus-circle";
+    default:
+      return "pi pi-question-circle";
+  }
+};
+
+const formatHealthStatus = (status: string): string => {
+  switch (status) {
+    case "healthy":
+      return "Healthy";
+    case "degraded":
+      return "Degraded";
+    case "broken":
+      return "Broken";
+    case "disabled":
+      return "Disabled";
+    default:
+      return "Unknown";
+  }
+};
+
+const formatCheckName = (name: string): string => {
+  return name
+    .split("_")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+};
+
+onMounted(() => {
+  if (props.autoFetch) {
+    fetchHealth();
+  }
+});
+</script>
+
+<style scoped>
+.health-card {
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  padding: 1.25rem;
+}
+
+.health-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.health-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.health-title > i:first-child {
+  font-size: 1.125rem;
+  color: #3b82f6;
+}
+
+.health-title h4 {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.health-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.375rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.health-status.healthy {
+  background: #d1fae5;
+  color: #059669;
+}
+
+.health-status.degraded {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.health-status.broken {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.health-status.disabled {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+.health-loading,
+.health-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 2rem;
+  color: #9ca3af;
+  font-size: 0.875rem;
+}
+
+.health-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.health-checks h5,
+.health-issues h5,
+.health-recommendations h5 {
+  margin: 0 0 0.75rem 0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #374151;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.checks-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 0.5rem;
+}
+
+.check-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.8125rem;
+}
+
+.check-item.passed {
+  background: #f0fdf4;
+  color: #166534;
+}
+
+.check-item.passed i {
+  color: #22c55e;
+}
+
+.check-item.failed {
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+.check-item.failed i {
+  color: #ef4444;
+}
+
+.issues-list,
+.recommendations-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.issues-list li,
+.recommendations-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.625rem 0.875rem;
+  border-radius: 6px;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+}
+
+.issues-list li {
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+.issues-list li i {
+  color: #ef4444;
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+}
+
+.recommendations-list li {
+  background: #eff6ff;
+  color: #1e40af;
+}
+
+.recommendations-list li i {
+  color: #3b82f6;
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+}
+
+.health-details {
+  margin-top: 0.5rem;
+}
+
+.health-details summary {
+  cursor: pointer;
+  font-size: 0.8125rem;
+  color: #6b7280;
+  user-select: none;
+}
+
+.health-details summary:hover {
+  color: #374151;
+}
+
+.health-details pre {
+  margin: 0.75rem 0 0 0;
+  padding: 1rem;
+  background: #f9fafb;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  overflow-x: auto;
+  color: #374151;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-sm {
+  padding: 0.375rem 0.5rem;
+  font-size: 0.8125rem;
+}
+
+.btn-icon {
+  padding: 0.375rem;
+  background: transparent;
+  color: #6b7280;
+}
+
+.btn-icon:hover:not(:disabled) {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+@media (max-width: 768px) {
+  .checks-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .health-header {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+}
+</style>
