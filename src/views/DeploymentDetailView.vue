@@ -519,7 +519,7 @@
                 <i class="pi pi-lock" />
               </div>
               <div class="summary-content">
-                <span class="summary-value">{{ securityConfig.protected_paths.filter((p) => p.enabled).length }}</span>
+                <span class="summary-value">{{ (securityConfig.protected_paths || []).filter((p) => p.enabled).length }}</span>
                 <span class="summary-label">Protected Paths</span>
               </div>
             </div>
@@ -528,7 +528,7 @@
                 <i class="pi pi-gauge" />
               </div>
               <div class="summary-content">
-                <span class="summary-value">{{ securityConfig.rate_limits.filter((r) => r.enabled).length }}</span>
+                <span class="summary-value">{{ (securityConfig.rate_limits || []).filter((r) => r.enabled).length }}</span>
                 <span class="summary-label">Rate Limits</span>
               </div>
             </div>
@@ -579,14 +579,14 @@
                   </div>
                 </div>
                 <div class="paths-list">
-                  <div v-if="securityConfig.protected_paths.length === 0" class="empty-state">
+                  <div v-if="(securityConfig.protected_paths || []).length === 0" class="empty-state">
                     <i class="pi pi-shield" />
                     <p>No protected paths</p>
                     <span>Click presets above or add custom paths</span>
                   </div>
                   <div v-else class="items-list">
                     <div
-                      v-for="(path, index) in securityConfig.protected_paths"
+                      v-for="(path, index) in securityConfig.protected_paths || []"
                       :key="index"
                       class="list-item"
                       :class="{ disabled: !path.enabled }"
@@ -633,14 +633,14 @@
               </div>
               <div class="section-body">
                 <div class="rates-list">
-                  <div v-if="securityConfig.rate_limits.length === 0" class="empty-state">
+                  <div v-if="(securityConfig.rate_limits || []).length === 0" class="empty-state">
                     <i class="pi pi-gauge" />
                     <p>No rate limits</p>
                     <span>Add limits to protect against abuse</span>
                   </div>
                   <div v-else class="items-list">
                     <div
-                      v-for="(limit, index) in securityConfig.rate_limits"
+                      v-for="(limit, index) in securityConfig.rate_limits || []"
                       :key="index"
                       class="list-item"
                       :class="{ disabled: !limit.enabled }"
@@ -1424,10 +1424,11 @@ const saveSecurityConfig = async () => {
 };
 
 const isPathProtected = (pattern: string) => {
-  return securityConfig.value.protected_paths.some((p) => p.pattern === pattern);
+  return (securityConfig.value.protected_paths || []).some((p) => p.pattern === pattern);
 };
 
 const toggleProtectedPath = (pattern: string) => {
+  if (!securityConfig.value.protected_paths) securityConfig.value.protected_paths = [];
   const index = securityConfig.value.protected_paths.findIndex((p) => p.pattern === pattern);
   if (index >= 0) {
     securityConfig.value.protected_paths.splice(index, 1);
@@ -1439,6 +1440,7 @@ const toggleProtectedPath = (pattern: string) => {
 
 const addProtectedPath = () => {
   if (!newProtectedPath.value) return;
+  if (!securityConfig.value.protected_paths) securityConfig.value.protected_paths = [];
   if (!isPathProtected(newProtectedPath.value)) {
     securityConfig.value.protected_paths.push({ pattern: newProtectedPath.value, enabled: true });
     saveSecurityConfig();
@@ -1447,12 +1449,14 @@ const addProtectedPath = () => {
 };
 
 const removeProtectedPath = (index: number) => {
+  if (!securityConfig.value.protected_paths) return;
   securityConfig.value.protected_paths.splice(index, 1);
   saveSecurityConfig();
 };
 
 const addRateLimit = () => {
   if (!newRateLimit.value.path) return;
+  if (!securityConfig.value.rate_limits) securityConfig.value.rate_limits = [];
   securityConfig.value.rate_limits.push({
     path: newRateLimit.value.path,
     rate: newRateLimit.value.rate || 10,
@@ -1464,6 +1468,7 @@ const addRateLimit = () => {
 };
 
 const removeRateLimit = (index: number) => {
+  if (!securityConfig.value.rate_limits) return;
   securityConfig.value.rate_limits.splice(index, 1);
   saveSecurityConfig();
 };
