@@ -97,10 +97,10 @@ describe("SettingsView", () => {
   });
 
   describe("Tab navigation", () => {
-    it("displays all five tabs", () => {
+    it("displays all six tabs", () => {
       const wrapper = mountView();
       const tabs = wrapper.findAll(".tab");
-      expect(tabs.length).toBe(5);
+      expect(tabs.length).toBe(6);
     });
 
     it("has General tab", () => {
@@ -373,6 +373,7 @@ describe("SettingsView", () => {
         { id: "domain", label: "Domain", icon: "pi pi-globe" },
         { id: "infrastructure", label: "Infrastructure", icon: "pi pi-server" },
         { id: "security", label: "Security & Monitoring", icon: "pi pi-shield" },
+        { id: "healthchecks", label: "Health Checks", icon: "pi pi-heart" },
         { id: "credentials", label: "Credentials", icon: "pi pi-key" },
       ]);
     });

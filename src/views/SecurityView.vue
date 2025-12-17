@@ -423,6 +423,11 @@
         </div>
       </div>
 
+      <!-- Health Tab -->
+      <div v-show="activeTab === 'health'" class="tab-content">
+        <SecurityHealthCard :auto-fetch="true" />
+      </div>
+
       <!-- Settings Tab -->
       <div v-show="activeTab === 'settings'" class="tab-content">
         <div class="settings-section">
@@ -604,6 +609,7 @@ import { storeToRefs } from "pinia";
 import { useSecurityStore } from "@/stores/security";
 import { useNotificationsStore } from "@/stores/notifications";
 import type { ProtectedRoute } from "@/types";
+import SecurityHealthCard from "@/components/SecurityHealthCard.vue";
 
 const securityStore = useSecurityStore();
 const notifications = useNotificationsStore();
@@ -616,6 +622,7 @@ const tabs = [
   { id: "events", label: "Events", icon: "pi pi-list" },
   { id: "blocked", label: "Blocked IPs", icon: "pi pi-ban" },
   { id: "routes", label: "Protected Routes", icon: "pi pi-lock" },
+  { id: "health", label: "Health", icon: "pi pi-heart" },
   { id: "settings", label: "Settings", icon: "pi pi-cog" },
 ];
 
@@ -698,7 +705,15 @@ const toggleRealtimeCapture = async () => {
         : "Realtime capture has been disabled",
     );
   } catch (e: any) {
-    notifications.error("Failed", e.response?.data?.error || "Failed to toggle realtime capture");
+    const errorData = e.response?.data;
+    const errorMsg = errorData?.error || "Failed to toggle realtime capture";
+    const details = errorData?.details;
+
+    if (typeof errorData?.realtime_capture === "boolean") {
+      realtimeCapture.value = errorData.realtime_capture;
+    }
+
+    notifications.error("Failed", details ? `${errorMsg}: ${details}` : errorMsg);
   } finally {
     togglingRealtimeCapture.value = false;
   }

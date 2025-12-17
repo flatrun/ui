@@ -176,6 +176,7 @@ export interface SubdomainResponse {
 export const settingsApi = {
   get: () => apiClient.get("/settings"),
   update: (data: any) => apiClient.put("/settings", data),
+  updateSecurity: (data: any) => apiClient.put("/settings/security", data),
   generateSubdomain: () => apiClient.get<SubdomainResponse>("/subdomain/generate"),
 };
 
@@ -586,4 +587,15 @@ export const securityApi = {
     apiClient.get<{ enabled: boolean; realtime_capture: boolean }>("/security/realtime-capture"),
   setRealtimeCaptureStatus: (enabled: boolean) =>
     apiClient.put<{ realtime_capture: boolean; message: string }>("/security/realtime-capture", { enabled }),
+
+  getHealth: () => apiClient.get<SecurityHealthCheck>("/security/health"),
 };
+
+export interface SecurityHealthCheck {
+  status: "healthy" | "degraded" | "broken" | "disabled";
+  error?: string;
+  checks: Record<string, boolean>;
+  issues: string[];
+  recommendations: string[];
+  details?: Record<string, any>;
+}

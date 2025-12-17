@@ -499,6 +499,20 @@
         </div>
 
         <div v-if="activeTab === 'security'" class="security-tab">
+          <div class="security-enable-bar">
+            <div class="enable-bar-left">
+              <i class="pi pi-shield" :class="{ enabled: securityConfig.enabled }" />
+              <span class="enable-bar-label">Security Protection</span>
+              <span class="enable-bar-status" :class="{ active: securityConfig.enabled }">
+                {{ securityConfig.enabled ? "Enabled" : "Disabled" }}
+              </span>
+            </div>
+            <label class="toggle-switch">
+              <input v-model="securityConfig.enabled" type="checkbox" @change="saveSecurityConfig" />
+              <span class="toggle-slider" />
+            </label>
+          </div>
+
           <div class="security-summary">
             <div class="summary-card">
               <div class="summary-icon protected">
@@ -1255,6 +1269,8 @@ const requestingCert = ref(false);
 const disablingSSL = ref(false);
 
 const securityConfig = ref<DeploymentSecurityConfig>({
+  enabled: false,
+  blocked_ips: [],
   protected_paths: [],
   rate_limits: [],
 });
@@ -1370,9 +1386,14 @@ let refreshInterval: number | null = null;
 const fetchSecurityConfig = async () => {
   try {
     const response = await securityApi.getDeploymentSecurity(route.params.name as string);
-    securityConfig.value = response.data.security || { protected_paths: [], rate_limits: [] };
+    securityConfig.value = response.data.security || {
+      enabled: false,
+      blocked_ips: [],
+      protected_paths: [],
+      rate_limits: [],
+    };
   } catch {
-    securityConfig.value = { protected_paths: [], rate_limits: [] };
+    securityConfig.value = { enabled: false, blocked_ips: [], protected_paths: [], rate_limits: [] };
   }
 };
 
@@ -1387,8 +1408,16 @@ const fetchSecurityEvents = async () => {
 
 const saveSecurityConfig = async () => {
   try {
-    await securityApi.updateDeploymentSecurity(route.params.name as string, securityConfig.value);
-    notifications.success("Saved", "Security configuration updated");
+    const response = await securityApi.updateDeploymentSecurity(route.params.name as string, securityConfig.value);
+    const data = response.data as { security: typeof securityConfig.value; vhost_updated?: boolean; warning?: string };
+
+    if (data.warning) {
+      notifications.warning("Saved with Warning", data.warning);
+    } else if (data.vhost_updated) {
+      notifications.success("Saved & Applied", "Security configuration updated and nginx vhost regenerated");
+    } else {
+      notifications.success("Saved", "Security configuration updated");
+    }
   } catch (e: any) {
     notifications.error("Error", e.response?.data?.error || "Failed to save security configuration");
   }
@@ -3587,6 +3616,7 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
+  padding: 1rem;
 }
 
 .security-summary {
@@ -3601,7 +3631,7 @@ onUnmounted(() => {
   gap: 0.875rem;
   padding: 1rem 1.25rem;
   background: white;
-  border-radius: 10px;
+  border-radius: 4px;
   border: 1px solid #e5e7eb;
 }
 
@@ -3619,7 +3649,7 @@ onUnmounted(() => {
 .summary-icon {
   width: 42px;
   height: 42px;
-  border-radius: 10px;
+  border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -3668,6 +3698,51 @@ onUnmounted(() => {
   color: #9ca3af;
 }
 
+.security-enable-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: white;
+  border-radius: 4px;
+  border: 1px solid #e5e7eb;
+  padding: 0.75rem 1rem;
+}
+
+.enable-bar-left {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+}
+
+.enable-bar-left > i {
+  font-size: 1rem;
+  color: #9ca3af;
+  transition: color 0.2s;
+}
+
+.enable-bar-left > i.enabled {
+  color: #22c55e;
+}
+
+.enable-bar-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.enable-bar-status {
+  font-size: 0.75rem;
+  color: #9ca3af;
+  padding: 0.125rem 0.5rem;
+  background: #f3f4f6;
+  border-radius: 4px;
+}
+
+.enable-bar-status.active {
+  color: #059669;
+  background: #d1fae5;
+}
+
 .security-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -3676,7 +3751,7 @@ onUnmounted(() => {
 
 .security-section {
   background: white;
-  border-radius: 10px;
+  border-radius: 4px;
   border: 1px solid #e5e7eb;
   overflow: hidden;
 }
@@ -4032,7 +4107,7 @@ onUnmounted(() => {
 
 .events-table {
   border: 1px solid #e5e7eb;
-  border-radius: 8px;
+  border-radius: 4px;
   overflow: hidden;
 }
 
