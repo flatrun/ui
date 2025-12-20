@@ -237,8 +237,8 @@
               <span>{{ stats.stoppedContainers }} Stopped</span>
             </div>
           </div>
-          <button class="header-btn" :class="{ refreshing: isRefreshing }" @click="refreshAll">
-            <i class="pi pi-refresh" />
+          <button class="header-btn" :disabled="isRefreshing" @click="refreshAll">
+            <i :class="isRefreshing ? 'pi pi-spinner pi-spin' : 'pi pi-refresh'" />
           </button>
         </div>
       </header>
@@ -764,24 +764,6 @@ onMounted(() => {
 .header-btn:hover {
   background: #e2e8f0;
   color: #334155;
-}
-
-.header-btn.refreshing {
-  pointer-events: none;
-  color: #3b82f6;
-}
-
-.header-btn.refreshing i {
-  animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
 }
 
 .content-area {
