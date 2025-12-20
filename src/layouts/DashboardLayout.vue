@@ -237,11 +237,8 @@
               <span>{{ stats.stoppedContainers }} Stopped</span>
             </div>
           </div>
-          <button class="header-btn" @click="refreshAll">
+          <button class="header-btn" :class="{ refreshing: isRefreshing }" @click="refreshAll">
             <i class="pi pi-refresh" />
-          </button>
-          <button class="header-btn">
-            <i class="pi pi-bell" />
           </button>
         </div>
       </header>
@@ -263,6 +260,7 @@ const route = useRoute();
 const router = useRouter();
 const statsStore = useStatsStore();
 const sidebarCollapsed = ref(false);
+const isRefreshing = ref(false);
 
 const expandedGroups = reactive({
   stacks: true,
@@ -364,8 +362,16 @@ const breadcrumbs = computed(() => {
   return crumbs;
 });
 
-const refreshAll = () => {
-  statsStore.fetchAll();
+const refreshAll = async () => {
+  if (isRefreshing.value) return;
+  isRefreshing.value = true;
+  try {
+    await statsStore.fetchAll();
+  } finally {
+    setTimeout(() => {
+      isRefreshing.value = false;
+    }, 500);
+  }
 };
 
 const handleLogout = () => {
@@ -758,6 +764,24 @@ onMounted(() => {
 .header-btn:hover {
   background: #e2e8f0;
   color: #334155;
+}
+
+.header-btn.refreshing {
+  pointer-events: none;
+  color: #3b82f6;
+}
+
+.header-btn.refreshing i {
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .content-area {
