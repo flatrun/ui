@@ -190,9 +190,7 @@ async function startExport() {
         });
         return obj;
       });
-      const json = options.value.prettyPrint
-        ? JSON.stringify(data, null, 2)
-        : JSON.stringify(data);
+      const json = options.value.prettyPrint ? JSON.stringify(data, null, 2) : JSON.stringify(data);
       downloadFile(json, "application/json", `${props.tableName}_${timestamp}.json`);
     } else if (format.value === "sql") {
       const statements = rows.map((row) => {

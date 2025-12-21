@@ -16,11 +16,7 @@
     </div>
     <div class="editor-toolbar">
       <div class="toolbar-left">
-        <button
-          class="btn btn-primary"
-          :disabled="!query.trim() || disabled"
-          @click="$emit('execute', query)"
-        >
+        <button class="btn btn-primary" :disabled="!query.trim() || disabled" @click="$emit('execute', query)">
           <Play :size="14" />
           Run
         </button>
@@ -30,9 +26,7 @@
         </button>
       </div>
       <div class="toolbar-right">
-        <span class="shortcut-hint">
-          <kbd>Ctrl</kbd> + <kbd>Enter</kbd> to run
-        </span>
+        <span class="shortcut-hint"> <kbd>Ctrl</kbd> + <kbd>Enter</kbd> to run </span>
       </div>
     </div>
   </div>
@@ -65,7 +59,7 @@ watch(
     if (newVal !== undefined && newVal !== query.value) {
       query.value = newVal;
     }
-  }
+  },
 );
 
 watch(query, (newVal) => {

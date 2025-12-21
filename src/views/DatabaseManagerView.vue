@@ -96,7 +96,7 @@
           <SqlEditor
             v-model="sqlQuery"
             :db-type="connection?.type"
-            :tables="tables.map(t => t.name)"
+            :tables="tables.map((t) => t.name)"
             :disabled="executingQuery"
             @execute="executeQuery"
           />
@@ -114,10 +114,7 @@
           @load-query="loadQueryFromHistory"
         />
 
-        <BackupRestorePanel
-          v-else-if="activeTab === 'backup'"
-          :database="selectedDatabase"
-        />
+        <BackupRestorePanel v-else-if="activeTab === 'backup'" :database="selectedDatabase" />
       </div>
     </div>
 
@@ -227,7 +224,8 @@
           <div class="modal-body">
             <p class="confirm-text">
               Are you sure you want to delete the database
-              <strong>{{ deleteDbName }}</strong>?
+              <strong>{{ deleteDbName }}</strong
+              >?
             </p>
             <p class="warning-text">This action cannot be undone. All data will be lost.</p>
           </div>
@@ -257,7 +255,8 @@
           <div class="modal-body">
             <p class="confirm-text">
               Are you sure you want to delete the user
-              <strong>{{ deleteUserInfo?.name }}{{ deleteUserInfo?.host ? `@${deleteUserInfo.host}` : "" }}</strong>?
+              <strong>{{ deleteUserInfo?.name }}{{ deleteUserInfo?.host ? `@${deleteUserInfo.host}` : "" }}</strong
+              >?
             </p>
             <p class="warning-text">This action cannot be undone.</p>
           </div>
@@ -345,7 +344,18 @@ const error = ref("");
 const connectionStatus = ref<"connected" | "disconnected" | "error">("disconnected");
 const connectionLatency = ref<number | null>(null);
 
-const databases = ref<{ name: string; size?: string; tables?: number; views?: number; routines?: number; triggers?: number; charset?: string; collation?: string }[]>([]);
+const databases = ref<
+  {
+    name: string;
+    size?: string;
+    tables?: number;
+    views?: number;
+    routines?: number;
+    triggers?: number;
+    charset?: string;
+    collation?: string;
+  }[]
+>([]);
 const tables = ref<TableInfo[]>([]);
 const users = ref<{ name: string; host?: string }[]>([]);
 const serverInfo = ref<{ version?: string; uptime?: string }>({});
@@ -437,10 +447,7 @@ async function connect() {
   try {
     const config = getConnectionConfig();
     const startTime = Date.now();
-    const [dbsRes, usersRes] = await Promise.all([
-      databasesApi.listDatabases(config),
-      databasesApi.listUsers(config),
-    ]);
+    const [dbsRes, usersRes] = await Promise.all([databasesApi.listDatabases(config), databasesApi.listUsers(config)]);
     connectionLatency.value = Date.now() - startTime;
 
     databases.value = dbsRes.data.databases || [];
@@ -473,10 +480,7 @@ async function refreshServerData() {
   refreshing.value = true;
   try {
     const config = getConnectionConfig();
-    const [dbsRes, usersRes] = await Promise.all([
-      databasesApi.listDatabases(config),
-      databasesApi.listUsers(config),
-    ]);
+    const [dbsRes, usersRes] = await Promise.all([databasesApi.listDatabases(config), databasesApi.listUsers(config)]);
 
     databases.value = dbsRes.data.databases || [];
     users.value = usersRes.data.users || [];
@@ -501,14 +505,12 @@ function updateConnectionStatus(status: "connected" | "disconnected" | "error") 
 
 async function fetchServerInfo(config: DatabaseConnectionConfig) {
   try {
-    const versionQuery = config.type === 'postgresql'
-      ? 'SELECT version()'
-      : 'SELECT VERSION() as version';
-    const systemDb = config.type === 'postgresql' ? 'postgres' : 'mysql';
+    const versionQuery = config.type === "postgresql" ? "SELECT version()" : "SELECT VERSION() as version";
+    const systemDb = config.type === "postgresql" ? "postgres" : "mysql";
     const res = await databasesApi.executeQuery(config, systemDb, versionQuery);
     if (res.data.rows?.[0]) {
       const version = res.data.rows[0][0];
-      serverInfo.value = { version: String(version).split('-')[0] };
+      serverInfo.value = { version: String(version).split("-")[0] };
     }
   } catch {
     serverInfo.value = {};
@@ -569,7 +571,7 @@ async function loadTableData() {
       selectedDatabase.value,
       selectedTable.value,
       pageSize,
-      currentOffset.value
+      currentOffset.value,
     );
     queryExecutionTime.value = Date.now() - startTime;
     tableData.value = res.data;
@@ -684,7 +686,7 @@ async function createUser() {
       config,
       newUserForm.value.username,
       newUserForm.value.password,
-      newUserForm.value.host || undefined
+      newUserForm.value.host || undefined,
     );
 
     if (newUserForm.value.grantDb && newUserForm.value.grantDatabase) {
@@ -692,7 +694,7 @@ async function createUser() {
         config,
         newUserForm.value.username,
         newUserForm.value.grantDatabase,
-        newUserForm.value.host || undefined
+        newUserForm.value.host || undefined,
       );
     }
 

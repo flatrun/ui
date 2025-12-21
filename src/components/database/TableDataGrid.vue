@@ -56,22 +56,12 @@
           <span v-if="executionTime" class="execution-time">{{ executionTime }}ms</span>
         </div>
         <div class="pagination">
-          <button
-            class="btn btn-secondary btn-sm"
-            :disabled="offset === 0"
-            @click="$emit('prev-page')"
-          >
+          <button class="btn btn-secondary btn-sm" :disabled="offset === 0" @click="$emit('prev-page')">
             <ChevronLeft :size="14" />
             Previous
           </button>
-          <span class="page-info">
-            {{ offset + 1 }} - {{ Math.min(offset + pageSize, offset + data.count) }}
-          </span>
-          <button
-            class="btn btn-secondary btn-sm"
-            :disabled="data.count < pageSize"
-            @click="$emit('next-page')"
-          >
+          <span class="page-info"> {{ offset + 1 }} - {{ Math.min(offset + pageSize, offset + data.count) }} </span>
+          <button class="btn btn-secondary btn-sm" :disabled="data.count < pageSize" @click="$emit('next-page')">
             Next
             <ChevronRight :size="14" />
           </button>
@@ -87,15 +77,7 @@
 </template>
 
 <script setup lang="ts">
-import {
-  ArrowLeft,
-  RefreshCw,
-  Download,
-  AlertCircle,
-  Table2,
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-vue-next";
+import { ArrowLeft, RefreshCw, Download, AlertCircle, Table2, ChevronLeft, ChevronRight } from "lucide-vue-next";
 
 interface TableData {
   columns: string[];
@@ -103,19 +85,22 @@ interface TableData {
   count: number;
 }
 
-withDefaults(defineProps<{
-  tableName: string;
-  data: TableData | null;
-  loading?: boolean;
-  error?: string;
-  offset?: number;
-  pageSize?: number;
-  executionTime?: number;
-}>(), {
-  loading: false,
-  offset: 0,
-  pageSize: 100,
-});
+withDefaults(
+  defineProps<{
+    tableName: string;
+    data: TableData | null;
+    loading?: boolean;
+    error?: string;
+    offset?: number;
+    pageSize?: number;
+    executionTime?: number;
+  }>(),
+  {
+    loading: false,
+    offset: 0,
+    pageSize: 100,
+  },
+);
 
 defineEmits<{
   back: [];

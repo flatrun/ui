@@ -112,23 +112,7 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from "vue";
 import { Columns, RefreshCw, AlertCircle, Table2, Key } from "lucide-vue-next";
-import { databasesApi, type DatabaseConnectionConfig } from "@/services/api";
-
-interface ColumnInfo {
-  name: string;
-  type: string;
-  nullable: boolean;
-  default: any;
-  key: string;
-  extra: string;
-}
-
-interface IndexInfo {
-  name: string;
-  columns: string[];
-  unique: boolean;
-  primary: boolean;
-}
+import { databasesApi, type DatabaseConnectionConfig, type ColumnSchema, type IndexSchema } from "@/services/api";
 
 const props = defineProps<{
   connection: DatabaseConnectionConfig;
@@ -138,8 +122,8 @@ const props = defineProps<{
 
 const loading = ref(false);
 const error = ref("");
-const columns = ref<ColumnInfo[]>([]);
-const indexes = ref<IndexInfo[]>([]);
+const columns = ref<ColumnSchema[]>([]);
+const indexes = ref<IndexSchema[]>([]);
 
 async function loadSchema() {
   if (!props.tableName) return;
@@ -148,42 +132,9 @@ async function loadSchema() {
   error.value = "";
 
   try {
-    const query = `DESCRIBE \`${props.tableName}\``;
-    const res = await databasesApi.executeQuery(props.connection, props.database, query);
-
-    columns.value = res.data.rows.map((row: any[]) => ({
-      name: row[0],
-      type: row[1],
-      nullable: row[2] === "YES",
-      key: row[3] || "",
-      default: row[4],
-      extra: row[5] || "",
-    }));
-
-    try {
-      const indexQuery = `SHOW INDEX FROM \`${props.tableName}\``;
-      const indexRes = await databasesApi.executeQuery(props.connection, props.database, indexQuery);
-
-      const indexMap = new Map<string, IndexInfo>();
-      for (const row of indexRes.data.rows) {
-        const keyName = row[2];
-        const columnName = row[4];
-        const nonUnique = row[1];
-
-        if (!indexMap.has(keyName)) {
-          indexMap.set(keyName, {
-            name: keyName,
-            columns: [],
-            unique: nonUnique === 0,
-            primary: keyName === "PRIMARY",
-          });
-        }
-        indexMap.get(keyName)!.columns.push(columnName);
-      }
-      indexes.value = Array.from(indexMap.values());
-    } catch {
-      indexes.value = [];
-    }
+    const res = await databasesApi.describeTable(props.connection, props.database, props.tableName);
+    columns.value = res.data.columns;
+    indexes.value = res.data.indexes;
   } catch (err: any) {
     error.value = err.response?.data?.error || err.message;
     columns.value = [];
@@ -199,7 +150,7 @@ watch(
     if (props.tableName) {
       loadSchema();
     }
-  }
+  },
 );
 
 onMounted(() => {

@@ -248,10 +248,7 @@ describe("Database Store", () => {
         },
       ];
 
-      localStorage.setItem(
-        `db_query_history_${connectionId}`,
-        JSON.stringify(mockHistory)
-      );
+      localStorage.setItem(`db_query_history_${connectionId}`, JSON.stringify(mockHistory));
 
       const store = useDatabaseStore();
       store.loadHistoryFromStorage(connectionId);

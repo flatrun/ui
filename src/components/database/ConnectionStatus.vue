@@ -4,9 +4,7 @@
       <component :is="statusIcon" :size="12" />
     </div>
     <span class="status-text">{{ statusLabel }}</span>
-    <span v-if="latency !== null && status === 'connected'" class="latency">
-      {{ latency }}ms
-    </span>
+    <span v-if="latency !== null && status === 'connected'" class="latency"> {{ latency }}ms </span>
   </div>
 </template>
 

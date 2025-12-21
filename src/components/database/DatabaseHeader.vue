@@ -27,11 +27,7 @@
       >
         <RefreshCw :size="14" :class="{ spinning: refreshing }" />
       </button>
-      <button
-        v-if="selectedDatabase"
-        class="btn btn-danger btn-sm"
-        @click="$emit('delete-database', selectedDatabase)"
-      >
+      <button v-if="selectedDatabase" class="btn btn-danger btn-sm" @click="$emit('delete-database', selectedDatabase)">
         <Trash2 :size="14" />
         Drop Database
       </button>

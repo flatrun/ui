@@ -62,10 +62,7 @@ export const useDatabaseStore = defineStore("database", () => {
 
   function saveHistoryToStorage(connectionId: string) {
     const history = queryHistory.value.get(connectionId) || [];
-    localStorage.setItem(
-      `${HISTORY_STORAGE_KEY}_${connectionId}`,
-      JSON.stringify(history.slice(0, MAX_HISTORY_ITEMS))
-    );
+    localStorage.setItem(`${HISTORY_STORAGE_KEY}_${connectionId}`, JSON.stringify(history.slice(0, MAX_HISTORY_ITEMS)));
   }
 
   function saveFavoritesToStorage(connectionId: string) {
@@ -149,7 +146,7 @@ export const useDatabaseStore = defineStore("database", () => {
     if (!searchTerm) return history;
     const term = searchTerm.toLowerCase();
     return history.filter(
-      (item) => item.query.toLowerCase().includes(term) || item.database.toLowerCase().includes(term)
+      (item) => item.query.toLowerCase().includes(term) || item.database.toLowerCase().includes(term),
     );
   }
 

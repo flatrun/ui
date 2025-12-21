@@ -109,7 +109,7 @@ watch(
     if (selectedDatabase.value && !props.databases.find((db) => db.name === selectedDatabase.value)) {
       selectedDatabase.value = "";
     }
-  }
+  },
 );
 
 watch(
@@ -117,13 +117,11 @@ watch(
   () => {
     if (
       selectedUser.value &&
-      !props.users.find(
-        (u) => u.name === selectedUser.value?.name && u.host === selectedUser.value?.host
-      )
+      !props.users.find((u) => u.name === selectedUser.value?.name && u.host === selectedUser.value?.host)
     ) {
       selectedUser.value = null;
     }
-  }
+  },
 );
 </script>
 

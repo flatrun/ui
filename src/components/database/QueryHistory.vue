@@ -8,18 +8,9 @@
       <div class="header-actions">
         <div class="search-box">
           <Search :size="14" class="search-icon" />
-          <input
-            v-model="searchTerm"
-            type="text"
-            class="search-input"
-            placeholder="Search queries..."
-          />
+          <input v-model="searchTerm" type="text" class="search-input" placeholder="Search queries..." />
         </div>
-        <button
-          v-if="history.length > 0"
-          class="btn btn-danger-outline btn-sm"
-          @click="showClearConfirm = true"
-        >
+        <button v-if="history.length > 0" class="btn btn-danger-outline btn-sm" @click="showClearConfirm = true">
           <Trash2 :size="14" />
           Clear
         </button>
@@ -27,19 +18,11 @@
     </div>
 
     <div class="history-tabs">
-      <button
-        class="tab-btn"
-        :class="{ active: activeTab === 'all' }"
-        @click="activeTab = 'all'"
-      >
+      <button class="tab-btn" :class="{ active: activeTab === 'all' }" @click="activeTab = 'all'">
         All
         <span class="tab-count">{{ history.length }}</span>
       </button>
-      <button
-        class="tab-btn"
-        :class="{ active: activeTab === 'favorites' }"
-        @click="activeTab = 'favorites'"
-      >
+      <button class="tab-btn" :class="{ active: activeTab === 'favorites' }" @click="activeTab = 'favorites'">
         <Star :size="14" />
         Favorites
         <span class="tab-count">{{ favorites.length }}</span>
@@ -75,11 +58,7 @@
             >
               <Star :size="14" :fill="item.favorite ? 'currentColor' : 'none'" />
             </button>
-            <button
-              class="action-btn delete"
-              title="Delete"
-              @click.stop="removeItem(item.id)"
-            >
+            <button class="action-btn delete" title="Delete" @click.stop="removeItem(item.id)">
               <Trash2 :size="14" />
             </button>
           </div>
@@ -96,9 +75,7 @@
             <XCircle :size="12" />
             Failed
           </span>
-          <span v-if="item.executionTime" class="item-duration">
-            {{ item.executionTime }}ms
-          </span>
+          <span v-if="item.executionTime" class="item-duration"> {{ item.executionTime }}ms </span>
         </div>
       </div>
     </div>
@@ -134,15 +111,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
-import {
-  Search,
-  Trash2,
-  Star,
-  History,
-  CheckCircle,
-  XCircle,
-  X,
-} from "lucide-vue-next";
+import { Search, Trash2, Star, History, CheckCircle, XCircle, X } from "lucide-vue-next";
 import { useDatabaseStore } from "@/stores/database";
 
 const props = defineProps<{
@@ -171,9 +140,7 @@ const displayedHistory = computed(() => {
   if (activeTab.value === "favorites" && searchTerm.value) {
     const term = searchTerm.value.toLowerCase();
     return items.filter(
-      (item) =>
-        item.query.toLowerCase().includes(term) ||
-        item.database.toLowerCase().includes(term)
+      (item) => item.query.toLowerCase().includes(term) || item.database.toLowerCase().includes(term),
     );
   }
   return items;

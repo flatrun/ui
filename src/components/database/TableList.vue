@@ -3,12 +3,7 @@
     <div class="list-header">
       <div class="search-box">
         <Search :size="14" class="search-icon" />
-        <input
-          v-model="searchTerm"
-          type="text"
-          class="search-input"
-          placeholder="Search tables..."
-        />
+        <input v-model="searchTerm" type="text" class="search-input" placeholder="Search tables..." />
       </div>
       <span class="table-count">{{ filteredTables.length }} tables</span>
     </div>

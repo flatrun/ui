@@ -2,13 +2,7 @@
   <div class="database-sidebar">
     <div class="sidebar-search">
       <Search :size="14" class="search-icon" />
-      <input
-        v-model="searchTerm"
-        type="text"
-        class="search-input"
-        placeholder="Search..."
-        @input="handleSearch"
-      />
+      <input v-model="searchTerm" type="text" class="search-input" placeholder="Search..." @input="handleSearch" />
       <button v-if="searchTerm" class="clear-search" @click="clearSearch">
         <X :size="12" />
       </button>
@@ -32,11 +26,7 @@
           >
             <Database :size="14" class="item-icon" />
             <span class="item-name">{{ db.name }}</span>
-            <button
-              class="item-action"
-              title="Delete"
-              @click.stop="$emit('delete-database', db.name)"
-            >
+            <button class="item-action" title="Delete" @click.stop="$emit('delete-database', db.name)">
               <Trash2 :size="12" />
             </button>
           </button>
@@ -65,19 +55,11 @@
             <span class="item-name">
               {{ user.name }}<span v-if="user.host" class="user-host">@{{ user.host }}</span>
             </span>
-            <button
-              class="item-action"
-              title="Delete"
-              @click.stop="$emit('delete-user', user)"
-            >
+            <button class="item-action" title="Delete" @click.stop="$emit('delete-user', user)">
               <Trash2 :size="12" />
             </button>
           </button>
-          <button
-            v-if="filteredUsers.length > maxDisplayedUsers"
-            class="view-all-btn"
-            @click="$emit('view-all-users')"
-          >
+          <button v-if="filteredUsers.length > maxDisplayedUsers" class="view-all-btn" @click="$emit('view-all-users')">
             View all {{ filteredUsers.length }} users
           </button>
           <div v-if="filteredUsers.length === 0" class="empty-section">
@@ -102,18 +84,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from "vue";
-import {
-  Search,
-  X,
-  ChevronDown,
-  ChevronRight,
-  Database,
-  Users,
-  User,
-  UserPlus,
-  Plus,
-  Trash2,
-} from "lucide-vue-next";
+import { Search, X, ChevronDown, ChevronRight, Database, Users, User, UserPlus, Plus, Trash2 } from "lucide-vue-next";
 
 interface DatabaseInfo {
   name: string;
@@ -160,9 +131,7 @@ const filteredUsers = computed(() => {
   if (!searchTerm.value) return props.users;
   const term = searchTerm.value.toLowerCase();
   return props.users.filter(
-    (user) =>
-      user.name.toLowerCase().includes(term) ||
-      (user.host && user.host.toLowerCase().includes(term))
+    (user) => user.name.toLowerCase().includes(term) || (user.host && user.host.toLowerCase().includes(term)),
   );
 });
 

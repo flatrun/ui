@@ -68,15 +68,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from "vue";
-import {
-  RefreshCw,
-  AlertCircle,
-  Download,
-  ChevronDown,
-  FileText,
-  FileJson,
-  Code,
-} from "lucide-vue-next";
+import { RefreshCw, AlertCircle, Download, ChevronDown, FileText, FileJson, Code } from "lucide-vue-next";
 
 interface QueryResult {
   columns: string[];

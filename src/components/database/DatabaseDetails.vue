@@ -14,12 +14,7 @@
         </div>
         <div class="users-search">
           <Search :size="14" class="search-icon" />
-          <input
-            v-model="userSearch"
-            type="text"
-            class="search-input"
-            placeholder="Search users..."
-          />
+          <input v-model="userSearch" type="text" class="search-input" placeholder="Search users..." />
         </div>
         <div class="users-table">
           <table>
@@ -31,12 +26,13 @@
               </tr>
             </thead>
             <tbody>
-              <tr
-                v-for="user in filteredAllUsers"
-                :key="user.name + (user.host || '')"
-              >
-                <td><code>{{ user.name }}</code></td>
-                <td><code>{{ user.host || '%' }}</code></td>
+              <tr v-for="user in filteredAllUsers" :key="user.name + (user.host || '')">
+                <td>
+                  <code>{{ user.name }}</code>
+                </td>
+                <td>
+                  <code>{{ user.host || "%" }}</code>
+                </td>
                 <td class="actions-cell">
                   <button class="table-action" title="Edit" @click="$emit('edit-user', user)">
                     <Pencil :size="12" />
@@ -48,9 +44,7 @@
               </tr>
             </tbody>
           </table>
-          <div v-if="filteredAllUsers.length === 0" class="no-results">
-            No users match your search
-          </div>
+          <div v-if="filteredAllUsers.length === 0" class="no-results">No users match your search</div>
         </div>
       </div>
     </template>
@@ -96,15 +90,15 @@
         <div class="props-list">
           <div class="prop-row">
             <span class="prop-label">Size</span>
-            <span class="prop-value">{{ databaseSize || '—' }}</span>
+            <span class="prop-value">{{ databaseSize || "—" }}</span>
           </div>
           <div class="prop-row">
             <span class="prop-label">Charset</span>
-            <code class="prop-value mono">{{ databaseInfo?.charset || 'utf8mb4' }}</code>
+            <code class="prop-value mono">{{ databaseInfo?.charset || "utf8mb4" }}</code>
           </div>
           <div class="prop-row">
             <span class="prop-label">Collation</span>
-            <code class="prop-value mono">{{ databaseInfo?.collation || 'utf8mb4_general_ci' }}</code>
+            <code class="prop-value mono">{{ databaseInfo?.collation || "utf8mb4_general_ci" }}</code>
           </div>
           <div v-if="databaseInfo?.engine" class="prop-row">
             <span class="prop-label">Engine</span>
@@ -124,7 +118,7 @@
     <template v-else-if="selectedUser">
       <div class="item-header">
         <User :size="14" class="item-icon user" />
-        <code class="item-name">{{ selectedUser.name }}@{{ selectedUser.host || '%' }}</code>
+        <code class="item-name">{{ selectedUser.name }}@{{ selectedUser.host || "%" }}</code>
         <div class="item-actions">
           <button class="icon-btn" title="Edit" @click="$emit('edit-user', selectedUser)">
             <Pencil :size="14" />
@@ -144,7 +138,7 @@
           </div>
           <div class="prop-row">
             <span class="prop-label">Host</span>
-            <code class="prop-value mono">{{ selectedUser.host || '%' }}</code>
+            <code class="prop-value mono">{{ selectedUser.host || "%" }}</code>
           </div>
         </div>
       </div>
@@ -189,17 +183,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from "vue";
-import {
-  Database,
-  User,
-  Users,
-  ArrowRight,
-  Download,
-  Trash2,
-  Pencil,
-  X,
-  Search,
-} from "lucide-vue-next";
+import { Database, User, Users, ArrowRight, Download, Trash2, Pencil, X, Search } from "lucide-vue-next";
 
 interface UserInfo {
   name: string;
@@ -250,9 +234,7 @@ const filteredAllUsers = computed(() => {
   if (!userSearch.value) return props.allUsers;
   const term = userSearch.value.toLowerCase();
   return props.allUsers.filter(
-    (u) =>
-      u.name.toLowerCase().includes(term) ||
-      (u.host && u.host.toLowerCase().includes(term))
+    (u) => u.name.toLowerCase().includes(term) || (u.host && u.host.toLowerCase().includes(term)),
   );
 });
 </script>
