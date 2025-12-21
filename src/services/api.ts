@@ -452,12 +452,39 @@ export const databasesApi = {
       database,
       query,
     }),
+  describeTable: (config: DatabaseConnectionConfig, database: string, table: string) =>
+    apiClient.post<TableSchema>("/databases/tables/schema", {
+      ...config,
+      database,
+      table,
+    }),
 };
 
 export interface QueryResult {
   columns: string[];
   rows: any[][];
   count: number;
+}
+
+export interface ColumnSchema {
+  name: string;
+  type: string;
+  nullable: boolean;
+  default: any;
+  key: string;
+  extra: string;
+}
+
+export interface IndexSchema {
+  name: string;
+  columns: string[];
+  unique: boolean;
+  primary: boolean;
+}
+
+export interface TableSchema {
+  columns: ColumnSchema[];
+  indexes: IndexSchema[];
 }
 
 export interface InfraService {

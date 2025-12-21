@@ -47,9 +47,7 @@
       </template>
 
       <template #cell-status="{ item }">
-        <span class="status-badge" :class="item.status">
-          {{ item.status }}
-        </span>
+        <ConnectionStatus :status="item.status" :latency="item.latency" />
       </template>
 
       <template #cell-actions="{ item }">
@@ -186,6 +184,7 @@ import { useNotificationsStore } from "@/stores/notifications";
 import { containersApi, databasesApi, type DatabaseConnectionConfig } from "@/services/api";
 import DataTable from "@/components/DataTable.vue";
 import ConfirmModal from "@/components/ConfirmModal.vue";
+import ConnectionStatus from "@/components/database/ConnectionStatus.vue";
 import { Database, Plus, RefreshCw, Box, Link, Zap, Pencil, Trash2, X, Save } from "lucide-vue-next";
 
 interface DatabaseConnection {
@@ -199,6 +198,7 @@ interface DatabaseConnection {
   password?: string;
   status: "connected" | "disconnected" | "error";
   container?: string;
+  latency?: number;
 }
 
 interface DbContainer {
@@ -353,14 +353,17 @@ const openConnection = (conn: DatabaseConnection) => {
 
 const testConnection = async (conn: DatabaseConnection) => {
   notifications.info("Testing Connection", `Testing ${conn.name}...`);
+  const startTime = performance.now();
   try {
     const config = getConnectionConfig(conn);
     const res = await databasesApi.testConnection(config);
+    const latency = Math.round(performance.now() - startTime);
     if (res.data.success) {
-      notifications.success("Connection Test", `${conn.name} is reachable`);
+      notifications.success("Connection Test", `${conn.name} is reachable (${latency}ms)`);
       const idx = connections.value.findIndex((c) => c.id === conn.id);
       if (idx !== -1) {
         connections.value[idx].status = "connected";
+        connections.value[idx].latency = latency;
         saveConnections();
       }
     } else {
@@ -371,6 +374,7 @@ const testConnection = async (conn: DatabaseConnection) => {
     const idx = connections.value.findIndex((c) => c.id === conn.id);
     if (idx !== -1) {
       connections.value[idx].status = "error";
+      connections.value[idx].latency = undefined;
       saveConnections();
     }
   }
@@ -540,29 +544,6 @@ onMounted(() => {
   background: var(--color-gray-100);
   padding: 0.125rem 0.5rem;
   border-radius: var(--radius-sm);
-}
-
-.status-badge {
-  font-size: var(--text-xs);
-  font-weight: var(--font-semibold);
-  text-transform: capitalize;
-  padding: 0.25rem 0.5rem;
-  border-radius: var(--radius-full);
-}
-
-.status-badge.connected {
-  background: var(--color-success-50);
-  color: var(--color-success-700);
-}
-
-.status-badge.disconnected {
-  background: var(--color-gray-100);
-  color: var(--color-gray-600);
-}
-
-.status-badge.error {
-  background: var(--color-danger-50);
-  color: var(--color-danger-700);
 }
 
 .action-buttons {
