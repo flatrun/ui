@@ -151,8 +151,26 @@
             </div>
           </div>
 
-          <!-- Suspicious IPs + Top Sources -->
+          <!-- Unknown Domains + Suspicious IPs + Top Sources -->
           <div class="panel-stack">
+            <div v-if="unknownDomainStats.length > 0" class="panel warning-panel">
+              <div class="panel-header">
+                <h3><i class="pi pi-question-circle" /> Unknown Domains</h3>
+                <span class="count">{{ unknownDomainStats.length }}</span>
+              </div>
+              <div class="unknown-list">
+                <div
+                  v-for="domain in unknownDomainStats.slice(0, 5)"
+                  :key="domain.name"
+                  class="unknown-row"
+                  @click="navigateToDeploymentLogs(domain.name)"
+                >
+                  <code>{{ domain.name }}</code>
+                  <span>{{ formatNumber(domain.total_requests) }} req</span>
+                </div>
+              </div>
+            </div>
+
             <div v-if="suspiciousIPs.length > 0" class="panel warning-panel">
               <div class="panel-header">
                 <h3><i class="pi pi-exclamation-triangle" /> Suspicious IPs</h3>
@@ -324,6 +342,9 @@
                   <button class="btn-icon-sm" title="Filter by this IP" @click.stop="filterByIP(log.source_ip)">
                     <i class="pi pi-filter" />
                   </button>
+                  <button class="btn-icon-sm danger" title="Block this IP" @click.stop="blockIP(log.source_ip)">
+                    <i class="pi pi-ban" />
+                  </button>
                 </td>
               </tr>
             </tbody>
@@ -429,6 +450,17 @@
       <p>No traffic data yet</p>
       <button class="btn-primary" @click="fetchData">Check for Traffic</button>
     </div>
+
+    <ConfirmModal
+      :visible="showBlockIPModal"
+      title="Block IP Address"
+      :message="`Block all requests from ${ipToBlock}? This will take effect immediately.`"
+      variant="danger"
+      confirm-text="Block IP"
+      :loading="blockingIP"
+      @confirm="confirmBlockIP"
+      @cancel="cancelBlockIP"
+    />
   </div>
 </template>
 
@@ -439,6 +471,7 @@ import { useTrafficStore } from "@/stores/traffic";
 import { useDeploymentsStore } from "@/stores/deployments";
 import { useNotificationsStore } from "@/stores/notifications";
 import { securityApi } from "@/services/api";
+import ConfirmModal from "@/components/ConfirmModal.vue";
 
 const props = defineProps<{
   deployment?: string;
@@ -449,12 +482,17 @@ const trafficStore = useTrafficStore();
 const deploymentsStore = useDeploymentsStore();
 const notifications = useNotificationsStore();
 const { stats, logs, logsTotal, loading } = storeToRefs(trafficStore);
+const { deployments } = storeToRefs(deploymentsStore);
 
 const timeRange = ref("24h");
 const activeSubTab = ref("overview");
 const logsLoading = ref(false);
 const sortField = ref("created_at");
 const sortDir = ref<"asc" | "desc">("desc");
+
+const showBlockIPModal = ref(false);
+const ipToBlock = ref("");
+const blockingIP = ref(false);
 
 // Detection Thresholds - can be moved to backend/config later
 const THRESHOLDS = {
@@ -624,6 +662,14 @@ const insights = computed((): Insight[] => {
 const domainStats = computed(() => {
   if (!stats.value?.deployment_stats) return [];
   return [...stats.value.deployment_stats].sort((a, b) => b.total_requests - a.total_requests);
+});
+
+const unknownDomainStats = computed(() => {
+  if (!stats.value?.deployment_stats) return [];
+  const knownNames = deployments.value.map((d) => d.name);
+  return stats.value.deployment_stats
+    .filter((ds) => !knownNames.includes(ds.name))
+    .sort((a, b) => b.total_requests - a.total_requests);
 });
 
 const suspiciousIPs = computed(() => {
@@ -848,17 +894,28 @@ const filterByPath = (path: string, deployment: string) => {
   fetchLogs();
 };
 
-const blockIP = async (ip: string) => {
-  if (!confirm(`Block all requests from ${ip}? This will take effect immediately.`)) {
-    return;
-  }
+const blockIP = (ip: string) => {
+  ipToBlock.value = ip;
+  showBlockIPModal.value = true;
+};
+
+const confirmBlockIP = async () => {
+  blockingIP.value = true;
   try {
-    await securityApi.blockIP(ip, "Blocked from traffic dashboard - suspicious activity");
-    notifications.success("IP Blocked", `${ip} has been blocked`);
+    await securityApi.blockIP(ipToBlock.value, "Blocked from traffic dashboard - suspicious activity");
+    notifications.success("IP Blocked", `${ipToBlock.value} has been blocked`);
+    showBlockIPModal.value = false;
     await fetchData();
   } catch (e: any) {
     notifications.error("Error", `Failed to block IP: ${e.message}`);
+  } finally {
+    blockingIP.value = false;
   }
+};
+
+const cancelBlockIP = () => {
+  showBlockIPModal.value = false;
+  ipToBlock.value = "";
 };
 
 const clearLogFilters = () => {
@@ -1442,6 +1499,38 @@ onMounted(() => {
   font-size: 0.625rem;
 }
 
+/* Unknown Domains */
+.unknown-list {
+  max-height: 120px;
+  overflow-y: auto;
+}
+
+.unknown-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.375rem 0.75rem;
+  border-bottom: 1px solid #fcd34d40;
+  cursor: pointer;
+}
+
+.unknown-row:hover {
+  background: #fef3c7;
+}
+
+.unknown-row:last-child {
+  border-bottom: none;
+}
+
+.unknown-row code {
+  font-size: 0.75rem;
+  color: #92400e;
+}
+
+.unknown-row span {
+  font-size: 0.6875rem;
+  color: #b45309;
+}
+
 /* Suspicious IPs */
 .suspicious-list {
   max-height: 150px;
@@ -1795,6 +1884,15 @@ onMounted(() => {
 .btn-icon-sm:hover {
   background: #f3f4f6;
   color: #374151;
+}
+
+.btn-icon-sm.danger {
+  color: #dc2626;
+}
+
+.btn-icon-sm.danger:hover {
+  background: #fee2e2;
+  color: #991b1b;
 }
 
 .method-tag {
