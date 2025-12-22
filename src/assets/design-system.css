@@ -52,12 +52,12 @@
   --color-info-600: #2563eb;
   --color-info-700: #1e40af;
 
-  /* Border Radius */
+  /* Border Radius (scale: 2, 4, 6, 8, 12) */
   --radius-xs: 2px;
-  --radius-sm: 3px;
-  --radius-md: 4px;
-  --radius-lg: 6px;
-  --radius-xl: 8px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
   --radius-full: 9999px;
 
   /* Spacing */
@@ -119,7 +119,7 @@
   align-items: center;
   gap: var(--space-2);
   padding: var(--space-2) var(--space-4);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   font-weight: var(--font-medium);
   font-size: var(--text-md);
   cursor: pointer;
@@ -178,7 +178,7 @@
 .form-input {
   padding: var(--space-2) var(--space-3);
   border: 1px solid var(--color-gray-200);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   font-size: var(--text-md);
   transition: all var(--transition-base);
 }
@@ -192,7 +192,7 @@
 /* Card */
 .card {
   background: white;
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   border: 1px solid var(--color-gray-200);
   overflow: hidden;
   transition: all var(--transition-base);
@@ -364,7 +364,7 @@
   align-items: center;
   padding: var(--space-12);
   background: white;
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   text-align: center;
   gap: var(--space-4);
 }

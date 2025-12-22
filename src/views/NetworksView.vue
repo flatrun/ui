@@ -413,7 +413,7 @@ onMounted(() => {
   align-items: center;
   gap: 0.5rem;
   padding: 0.625rem 1.25rem;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   font-weight: 500;
   font-size: 0.875rem;
   cursor: pointer;
@@ -477,7 +477,7 @@ onMounted(() => {
   border: none;
   color: #9ca3af;
   cursor: pointer;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   transition: all 0.2s;
 }
 
@@ -497,7 +497,7 @@ onMounted(() => {
   border: none;
   color: #9ca3af;
   cursor: pointer;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   transition: all 0.2s;
 }
 
@@ -556,7 +556,7 @@ onMounted(() => {
 
 .network-card {
   background: white;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   border: 1px solid #e5e7eb;
   overflow: hidden;
   transition: all 0.3s ease;
@@ -626,7 +626,7 @@ onMounted(() => {
 
 .containers-section {
   background: #f9fafb;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   padding: 1rem;
 }
 
@@ -662,7 +662,7 @@ onMounted(() => {
   align-items: center;
   padding: 0.5rem;
   background: white;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   border: 1px solid #e5e7eb;
 }
 
@@ -708,7 +708,7 @@ onMounted(() => {
 
 .modal-container {
   background: white;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   width: 100%;
   max-width: 500px;
   box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
@@ -746,7 +746,7 @@ onMounted(() => {
   color: #9ca3af;
   cursor: pointer;
   padding: 0.5rem;
-  border-radius: 6px;
+  border-radius: var(--radius-md);
   transition: all 0.2s;
 }
 
@@ -790,7 +790,7 @@ onMounted(() => {
   width: 100%;
   padding: 0.75rem;
   border: 1px solid #d1d5db;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   font-size: 0.875rem;
   transition: all 0.2s;
 }

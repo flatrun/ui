@@ -885,7 +885,7 @@ onMounted(() => {
   gap: var(--space-2);
   padding: var(--space-3);
   background: var(--color-primary-50);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   margin-bottom: var(--space-4);
   color: var(--color-primary-600);
 }
@@ -930,7 +930,7 @@ onMounted(() => {
   gap: var(--space-2);
   padding: var(--space-2) var(--space-3);
   background: var(--color-warning-50);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   color: var(--color-warning-700);
   text-decoration: none;
   transition: background 0.15s;
@@ -1026,7 +1026,7 @@ onMounted(() => {
   color: var(--color-gray-600);
   font-size: var(--text-xs);
   font-weight: 500;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
 }
 
 .info-pill.database {
@@ -1066,7 +1066,7 @@ onMounted(() => {
   gap: var(--space-2);
   padding: var(--space-2) var(--space-3);
   background: var(--color-gray-50);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   margin-bottom: var(--space-3);
   color: var(--color-gray-600);
 }
@@ -1188,7 +1188,7 @@ onMounted(() => {
   align-items: center;
   gap: var(--space-2);
   padding: var(--space-2) var(--space-4);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   font-weight: var(--font-medium);
   font-size: var(--text-md);
   cursor: pointer;

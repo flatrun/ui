@@ -288,7 +288,7 @@ const filteredApps = computed(() => {
 .search-input {
   padding: var(--space-2) var(--space-3) var(--space-2) 2.25rem;
   border: 1px solid var(--color-gray-200);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   font-size: var(--text-md);
   width: 280px;
 }
@@ -311,7 +311,7 @@ const filteredApps = computed(() => {
   padding: 0.375rem var(--space-3);
   border: 1px solid var(--color-gray-200);
   background: white;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   font-size: var(--text-base);
   color: var(--color-gray-500);
   cursor: pointer;
@@ -331,7 +331,7 @@ const filteredApps = computed(() => {
 
 .marketplace-banner {
   background: linear-gradient(135deg, var(--color-primary-500) 0%, #8b5cf6 100%);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   padding: var(--space-8);
   display: flex;
   justify-content: space-between;
@@ -368,7 +368,7 @@ const filteredApps = computed(() => {
 
 .app-card {
   background: white;
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   border: 1px solid var(--color-gray-200);
   overflow: hidden;
   transition: all var(--transition-base);
@@ -393,7 +393,7 @@ const filteredApps = computed(() => {
 .app-icon {
   width: 52px;
   height: 52px;
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -520,7 +520,7 @@ const filteredApps = computed(() => {
   align-items: center;
   gap: 0.375rem;
   padding: var(--space-2) var(--space-4);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   font-weight: var(--font-medium);
   font-size: var(--text-base);
   cursor: pointer;
@@ -560,7 +560,7 @@ const filteredApps = computed(() => {
   align-items: center;
   padding: var(--space-12);
   background: white;
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   text-align: center;
   gap: var(--space-4);
 }

@@ -220,7 +220,7 @@ async function startExport() {
 
 .modal-container {
   background: white;
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   box-shadow: var(--shadow-xl);
   width: 500px;
   max-width: 90vw;
@@ -268,7 +268,7 @@ async function startExport() {
 .export-info {
   background: var(--color-gray-50);
   border: 1px solid var(--color-gray-200);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   padding: var(--space-3);
   margin-bottom: var(--space-4);
 }
@@ -325,7 +325,7 @@ code.info-value {
   gap: var(--space-3);
   padding: var(--space-3);
   border: 1px solid var(--color-gray-200);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   cursor: pointer;
   transition: all var(--transition-base);
 }
@@ -413,7 +413,7 @@ code.info-value {
   align-items: center;
   gap: var(--space-2);
   padding: var(--space-2) var(--space-4);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   font-weight: var(--font-medium);
   font-size: var(--text-sm);
   cursor: pointer;

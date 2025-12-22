@@ -502,7 +502,7 @@ onMounted(() => {
   align-items: center;
   gap: 0.375rem;
   padding: 0.5rem 0.875rem;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   font-size: 0.8125rem;
   font-weight: 500;
   cursor: pointer;
@@ -548,7 +548,7 @@ onMounted(() => {
 
 .stat-card {
   background: white;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   padding: 1rem 1.25rem;
   display: flex;
   justify-content: space-between;
@@ -584,7 +584,7 @@ onMounted(() => {
 .stat-icon {
   width: 40px;
   height: 40px;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -631,7 +631,7 @@ onMounted(() => {
 
 .panel {
   background: white;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   border: 1px solid #e5e7eb;
   overflow: hidden;
 }
@@ -700,7 +700,7 @@ onMounted(() => {
   width: 48px;
   height: 48px;
   background: #f3f4f6;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -785,7 +785,7 @@ onMounted(() => {
 .status-badge {
   display: inline-block;
   padding: 0.125rem 0.5rem;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   font-size: 0.6875rem;
   font-weight: 500;
   text-transform: capitalize;
@@ -834,7 +834,7 @@ onMounted(() => {
   padding: 1rem;
   background: #f9fafb;
   border: 1px solid #e5e7eb;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   cursor: pointer;
   transition: all 0.2s;
   text-align: center;
@@ -853,7 +853,7 @@ onMounted(() => {
 .action-icon {
   width: 36px;
   height: 36px;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -909,7 +909,7 @@ onMounted(() => {
   font-size: 0.6875rem;
   font-weight: 600;
   padding: 0.25rem 0.5rem;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
 }
 
 .health-indicator.healthy {
@@ -956,13 +956,13 @@ onMounted(() => {
 .resource-bar {
   height: 6px;
   background: #f3f4f6;
-  border-radius: 3px;
+  border-radius: var(--radius-sm);
   overflow: hidden;
 }
 
 .resource-fill {
   height: 100%;
-  border-radius: 3px;
+  border-radius: var(--radius-sm);
   transition: width 0.3s;
 }
 
@@ -990,7 +990,7 @@ onMounted(() => {
   gap: 0.625rem;
   padding: 0.625rem;
   background: #f9fafb;
-  border-radius: 6px;
+  border-radius: var(--radius-md);
 }
 
 .docker-item i {
@@ -1052,7 +1052,7 @@ onMounted(() => {
   font-size: 0.6875rem;
   background: #f3f4f6;
   padding: 0.125rem 0.375rem;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   color: #374151;
   font-family: "SF Mono", "Fira Code", monospace;
 }

@@ -275,7 +275,7 @@ defineExpose({
   height: 100%;
   min-height: 400px;
   background: #1a1b26;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   overflow: hidden;
 }
 

@@ -95,7 +95,7 @@ const confirmButtonClass = computed(() => {
 
 .confirm-modal {
   background: white;
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   box-shadow: var(--shadow-xl);
   width: 420px;
   max-width: 90vw;
@@ -162,7 +162,7 @@ const confirmButtonClass = computed(() => {
   padding: var(--space-2) var(--space-3);
   background: var(--color-warning-50);
   color: var(--color-warning-700);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   font-size: var(--text-sm);
 }
 
@@ -179,7 +179,7 @@ const confirmButtonClass = computed(() => {
   align-items: center;
   gap: var(--space-2);
   padding: var(--space-2) var(--space-4);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   font-weight: var(--font-medium);
   font-size: var(--text-md);
   cursor: pointer;

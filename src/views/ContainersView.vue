@@ -353,7 +353,7 @@ onMounted(() => {
   gap: 0.25rem;
   background: var(--color-gray-100);
   padding: 0.25rem;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
 }
 
 .filter-btn {
@@ -531,7 +531,7 @@ onMounted(() => {
   align-items: center;
   gap: var(--space-2);
   padding: var(--space-2) var(--space-4);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   font-weight: var(--font-medium);
   font-size: var(--text-md);
   cursor: pointer;

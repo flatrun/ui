@@ -199,7 +199,7 @@ function clearSearch() {
   padding-left: calc(var(--space-2) + 20px);
   padding-right: var(--space-6);
   border: 1px solid var(--color-gray-200);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   font-size: var(--text-sm);
 }
 
@@ -383,7 +383,7 @@ function clearSearch() {
   padding: var(--space-2);
   background: var(--color-gray-50);
   border: 1px solid var(--color-gray-200);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   font-size: var(--text-xs);
   font-weight: var(--font-medium);
   color: var(--color-gray-700);

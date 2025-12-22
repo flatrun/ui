@@ -165,7 +165,7 @@ const handleClose = () => {
   padding: var(--space-5);
   background: linear-gradient(135deg, var(--color-gray-50), white);
   border: 1px solid var(--color-gray-100);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   margin-bottom: var(--space-6);
 }
 
@@ -220,7 +220,7 @@ const handleClose = () => {
 
 .output-section {
   margin-top: var(--space-4);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   overflow: hidden;
 }
 
@@ -229,7 +229,7 @@ const handleClose = () => {
   align-items: center;
   gap: var(--space-2);
   padding: var(--space-3) var(--space-5);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   font-weight: var(--font-medium);
   font-size: var(--text-md);
   cursor: pointer;

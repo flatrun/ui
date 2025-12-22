@@ -59,7 +59,7 @@ const getIcon = (type: string) => {
   gap: 0.75rem;
   padding: 1rem;
   background: white;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   box-shadow:
     0 10px 40px rgba(0, 0, 0, 0.15),
     0 2px 10px rgba(0, 0, 0, 0.1);
@@ -132,7 +132,7 @@ const getIcon = (type: string) => {
   color: #9ca3af;
   cursor: pointer;
   padding: 0.25rem;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   transition: all 0.2s;
 }
 

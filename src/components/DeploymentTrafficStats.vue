@@ -166,7 +166,7 @@ onMounted(() => {
 <style scoped>
 .deployment-traffic {
   background: white;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   border: 1px solid #e5e7eb;
   padding: 1rem;
 }
@@ -204,7 +204,7 @@ onMounted(() => {
 .time-select {
   padding: 0.375rem 0.5rem;
   border: 1px solid #e5e7eb;
-  border-radius: 6px;
+  border-radius: var(--radius-md);
   font-size: 0.75rem;
   color: #374151;
   background: white;
@@ -258,7 +258,7 @@ onMounted(() => {
 .status-distribution {
   display: flex;
   height: 8px;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   overflow: hidden;
   background: #f3f4f6;
 }
@@ -345,7 +345,7 @@ onMounted(() => {
   align-items: center;
   padding: 0.375rem 0.5rem;
   background: #f9fafb;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
 }
 
 .path-name {
@@ -383,7 +383,7 @@ onMounted(() => {
   padding: 0.5rem;
   font-size: 0.875rem;
   font-weight: 500;
-  border-radius: 6px;
+  border-radius: var(--radius-md);
   border: none;
   cursor: pointer;
   transition: all 0.2s;

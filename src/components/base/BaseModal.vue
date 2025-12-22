@@ -193,7 +193,7 @@ const handleOverlayClick = () => {
 .header-icon {
   width: 44px;
   height: 44px;
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -265,7 +265,7 @@ const handleOverlayClick = () => {
   color: var(--color-gray-400);
   cursor: pointer;
   padding: var(--space-2);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   transition: all var(--transition-base);
   flex-shrink: 0;
   margin: calc(var(--space-1) * -1);

@@ -957,7 +957,7 @@ onMounted(() => {
   padding: 0.375rem;
   background: #fff;
   border: 1px solid #e5e7eb;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
 }
 
 .tabs {
@@ -972,7 +972,7 @@ onMounted(() => {
   padding: 0.375rem 0.75rem;
   background: transparent;
   border: none;
-  border-radius: 3px;
+  border-radius: var(--radius-sm);
   font-size: 0.75rem;
   font-weight: 500;
   color: #6b7280;
@@ -1006,7 +1006,7 @@ onMounted(() => {
 .select-compact {
   padding: 0.25rem 0.5rem;
   border: 1px solid #e5e7eb;
-  border-radius: 3px;
+  border-radius: var(--radius-sm);
   font-size: 0.75rem;
   background: #fff;
 }
@@ -1014,7 +1014,7 @@ onMounted(() => {
 .input-compact {
   padding: 0.25rem 0.5rem;
   border: 1px solid #e5e7eb;
-  border-radius: 3px;
+  border-radius: var(--radius-sm);
   font-size: 0.75rem;
   min-width: 120px;
 }
@@ -1025,7 +1025,7 @@ onMounted(() => {
   background: transparent;
   color: #6b7280;
   cursor: pointer;
-  border-radius: 3px;
+  border-radius: var(--radius-sm);
 }
 .btn-icon:hover {
   background: #f3f4f6;
@@ -1039,7 +1039,7 @@ onMounted(() => {
   padding: 0.5rem 0.75rem;
   background: #f8fafc;
   border: 1px solid #e2e8f0;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   gap: 1rem;
 }
 
@@ -1054,7 +1054,7 @@ onMounted(() => {
   align-items: center;
   gap: 0.25rem;
   padding: 0.25rem 0.5rem;
-  border-radius: 3px;
+  border-radius: var(--radius-sm);
   font-size: 0.6875rem;
   font-weight: 500;
 }
@@ -1090,7 +1090,7 @@ onMounted(() => {
   gap: 0.25rem;
   padding: 0.25rem 0.5rem;
   border: none;
-  border-radius: 3px;
+  border-radius: var(--radius-sm);
   font-size: 0.6875rem;
   font-weight: 500;
   cursor: pointer;
@@ -1126,7 +1126,7 @@ onMounted(() => {
   padding: 0.75rem;
   background: #fff;
   border: 1px solid #e5e7eb;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
 }
 
 .stat-card.error {
@@ -1224,7 +1224,7 @@ onMounted(() => {
 .panel {
   background: #fff;
   border: 1px solid #e5e7eb;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   overflow: hidden;
 }
 
@@ -1418,7 +1418,7 @@ onMounted(() => {
   padding: 0.75rem;
   background: #fff;
   border: 1px solid #e5e7eb;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
 }
 
 .distribution-card h4 {
@@ -1451,13 +1451,13 @@ onMounted(() => {
   flex: 1;
   height: 6px;
   background: #e5e7eb;
-  border-radius: 2px;
+  border-radius: var(--radius-xs);
 }
 
 .dist-fill {
   height: 100%;
   background: #3b82f6;
-  border-radius: 2px;
+  border-radius: var(--radius-xs);
 }
 
 .dist-value {
@@ -1476,7 +1476,7 @@ onMounted(() => {
 .status-item {
   text-align: center;
   padding: 0.5rem;
-  border-radius: 3px;
+  border-radius: var(--radius-sm);
 }
 
 .status-item.success {
@@ -1546,7 +1546,7 @@ onMounted(() => {
   border-collapse: collapse;
   background: #fff;
   border: 1px solid #e5e7eb;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
 }
 
 .data-table.compact td,
@@ -1629,7 +1629,7 @@ onMounted(() => {
 .cell-ip code {
   background: #f3f4f6;
   padding: 0.125rem 0.25rem;
-  border-radius: 2px;
+  border-radius: var(--radius-xs);
   font-size: 0.6875rem;
 }
 
@@ -1649,7 +1649,7 @@ onMounted(() => {
   background: transparent;
   color: #9ca3af;
   cursor: pointer;
-  border-radius: 2px;
+  border-radius: var(--radius-xs);
 }
 .btn-icon-sm:hover {
   background: #f3f4f6;
@@ -1659,7 +1659,7 @@ onMounted(() => {
 .method-tag {
   display: inline-block;
   padding: 0.125rem 0.25rem;
-  border-radius: 2px;
+  border-radius: var(--radius-xs);
   font-size: 0.5625rem;
   font-weight: 600;
 }
@@ -1688,7 +1688,7 @@ onMounted(() => {
 .status-tag {
   display: inline-block;
   padding: 0.125rem 0.375rem;
-  border-radius: 2px;
+  border-radius: var(--radius-xs);
   font-size: 0.6875rem;
   font-weight: 600;
 }
@@ -1714,7 +1714,7 @@ onMounted(() => {
   display: inline-block;
   padding: 0.125rem 0.375rem;
   background: #f3f4f6;
-  border-radius: 2px;
+  border-radius: var(--radius-xs);
   font-size: 0.625rem;
   color: #6b7280;
 }
@@ -1740,7 +1740,7 @@ onMounted(() => {
   padding: 0.25rem 0.5rem;
   border: 1px solid #e5e7eb;
   background: #fff;
-  border-radius: 3px;
+  border-radius: var(--radius-sm);
   font-size: 0.6875rem;
   cursor: pointer;
 }
@@ -1764,7 +1764,7 @@ onMounted(() => {
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 0.75rem;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   background: #fef2f2;
 }
 
@@ -1846,7 +1846,7 @@ onMounted(() => {
   background: #3b82f6;
   color: #fff;
   border: none;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   font-size: 0.8125rem;
   cursor: pointer;
 }

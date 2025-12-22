@@ -234,7 +234,7 @@ onMounted(() => {
   align-items: center;
   gap: 0.5rem;
   padding: 0.625rem 1.25rem;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   font-weight: 500;
   font-size: 0.875rem;
   cursor: pointer;
@@ -297,7 +297,7 @@ onMounted(() => {
   border: none;
   color: #9ca3af;
   cursor: pointer;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   transition: all 0.2s;
 }
 
@@ -326,7 +326,7 @@ onMounted(() => {
   width: 32px;
   height: 32px;
   background: #eff6ff;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -372,7 +372,7 @@ onMounted(() => {
 
 .plugin-card {
   background: white;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   border: 1px solid #e5e7eb;
   overflow: hidden;
   transition: all 0.3s ease;
@@ -394,7 +394,7 @@ onMounted(() => {
   width: 48px;
   height: 48px;
   background: #eff6ff;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -522,7 +522,7 @@ onMounted(() => {
 
 .api-method {
   padding: 0.125rem 0.375rem;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   font-weight: 600;
   font-size: 0.625rem;
 }
@@ -578,7 +578,7 @@ onMounted(() => {
 
 .modal-container {
   background: white;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   width: 100%;
   max-width: 500px;
   box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
@@ -612,7 +612,7 @@ onMounted(() => {
   color: #9ca3af;
   cursor: pointer;
   padding: 0.5rem;
-  border-radius: 6px;
+  border-radius: var(--radius-md);
 }
 
 .close-btn:hover {
@@ -636,7 +636,7 @@ onMounted(() => {
 .hint code {
   background: #f3f4f6;
   padding: 0.125rem 0.375rem;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   font-family: monospace;
 }
 

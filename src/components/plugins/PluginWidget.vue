@@ -63,7 +63,7 @@ const formatCapability = (cap: string) => {
 <style scoped>
 .plugin-widget {
   background: white;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   border: 1px solid #e5e7eb;
   overflow: hidden;
   transition: all 0.3s ease;
@@ -111,7 +111,7 @@ const formatCapability = (cap: string) => {
   color: #9ca3af;
   background: #f3f4f6;
   padding: 0.125rem 0.5rem;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
 }
 
 .widget-body {
@@ -155,7 +155,7 @@ const formatCapability = (cap: string) => {
   padding: 0.375rem 0.75rem;
   background: #f3f4f6;
   border: none;
-  border-radius: 6px;
+  border-radius: var(--radius-md);
   font-size: 0.75rem;
   color: #4b5563;
   cursor: pointer;

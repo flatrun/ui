@@ -146,7 +146,7 @@ function formatNumber(num: number): string {
   flex-direction: column;
   height: 100%;
   background: white;
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   overflow: hidden;
 }
 
@@ -179,7 +179,7 @@ function formatNumber(num: number): string {
   padding: var(--space-2) var(--space-3);
   padding-left: calc(var(--space-3) + 18px);
   border: 1px solid var(--color-gray-200);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   font-size: var(--text-sm);
 }
 

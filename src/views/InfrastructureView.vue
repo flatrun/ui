@@ -320,7 +320,7 @@ onMounted(() => {
   align-items: center;
   background: white;
   padding: 1.25rem;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   border: 1px solid #e5e7eb;
 }
 
@@ -342,7 +342,7 @@ onMounted(() => {
   background: transparent;
   border: none;
   color: #6b7280;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   cursor: pointer;
   transition: all 0.2s;
 }
@@ -365,7 +365,7 @@ onMounted(() => {
   justify-content: center;
   padding: 4rem;
   background: white;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   text-align: center;
   gap: 1rem;
 }
@@ -414,7 +414,7 @@ onMounted(() => {
 .detail-item code {
   background: #f3f4f6;
   padding: 0.25rem 0.5rem;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   font-family: "SF Mono", "Fira Code", monospace;
   font-size: 0.75rem;
   color: #374151;
@@ -422,7 +422,7 @@ onMounted(() => {
 
 .health-badge {
   padding: 0.125rem 0.5rem;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   font-size: 0.75rem;
   font-weight: 500;
 }
@@ -449,7 +449,7 @@ onMounted(() => {
   padding: 0.5rem 0.75rem;
   font-size: 0.8125rem;
   font-weight: 500;
-  border-radius: 6px;
+  border-radius: var(--radius-md);
   border: none;
   cursor: pointer;
   transition: all 0.2s;

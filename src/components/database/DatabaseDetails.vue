@@ -396,7 +396,7 @@ const filteredAllDatabases = computed(() => {
   gap: 1px;
   background: var(--color-gray-200);
   border: 1px solid var(--color-gray-200);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   overflow: hidden;
 }
 
@@ -424,7 +424,7 @@ const filteredAllDatabases = computed(() => {
 .props-list {
   background: white;
   border: 1px solid var(--color-gray-200);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
 }
 
 .prop-row {
@@ -460,7 +460,7 @@ const filteredAllDatabases = computed(() => {
   padding: var(--space-1) var(--space-3);
   background: var(--color-primary-500);
   border: none;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   color: white;
   font-size: var(--text-xs);
   font-weight: var(--font-medium);
@@ -542,7 +542,7 @@ const filteredAllDatabases = computed(() => {
   padding: var(--space-2);
   padding-left: calc(var(--space-2) + 20px);
   border: 1px solid var(--color-gray-200);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   font-size: var(--text-sm);
 }
 
@@ -556,7 +556,7 @@ const filteredAllDatabases = computed(() => {
   overflow-y: auto;
   background: white;
   border: 1px solid var(--color-gray-200);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
 }
 
 .users-table table {
