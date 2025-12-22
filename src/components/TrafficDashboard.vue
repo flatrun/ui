@@ -109,15 +109,15 @@
 
         <!-- Two column layout -->
         <div class="two-col">
-          <!-- Deployments -->
+          <!-- Domains Traffic -->
           <div class="panel">
             <div class="panel-header">
-              <h3>Deployments</h3>
-              <span class="count">{{ knownDeploymentStats.length }}</span>
+              <h3>Domains</h3>
+              <span class="count">{{ domainStats.length }}</span>
             </div>
             <div class="deployment-list">
               <div
-                v-for="dep in knownDeploymentStats"
+                v-for="dep in domainStats"
                 :key="dep.name"
                 class="deployment-row"
                 :class="{ warning: dep.error_rate > 5, critical: dep.error_rate > 10 }"
@@ -142,25 +142,31 @@
                 </div>
                 <i class="pi pi-chevron-right" />
               </div>
+              <div v-if="domainStats.length === 0" class="empty-inline">No traffic recorded yet</div>
             </div>
           </div>
 
-          <!-- Unknown Domains + Top IPs -->
+          <!-- Suspicious IPs + Top Sources -->
           <div class="panel-stack">
-            <div v-if="unknownDomainStats.length > 0" class="panel warning-panel">
+            <div v-if="suspiciousIPs.length > 0" class="panel warning-panel">
               <div class="panel-header">
-                <h3><i class="pi pi-exclamation-triangle" /> Unknown Domains</h3>
-                <span class="count">{{ unknownDomainStats.length }}</span>
+                <h3><i class="pi pi-exclamation-triangle" /> Suspicious IPs</h3>
+                <span class="count">{{ suspiciousIPs.length }}</span>
               </div>
-              <div class="unknown-list">
-                <div
-                  v-for="domain in unknownDomainStats.slice(0, 5)"
-                  :key="domain.name"
-                  class="unknown-row"
-                  @click="navigateToDeploymentLogs(domain.name)"
-                >
-                  <code>{{ domain.name }}</code>
-                  <span>{{ formatNumber(domain.total_requests) }} req</span>
+              <div class="suspicious-list">
+                <div v-for="ip in suspiciousIPs" :key="ip.ip" class="suspicious-row">
+                  <div class="suspicious-info">
+                    <code>{{ ip.ip }}</code>
+                    <span class="suspicious-stat">{{ formatNumber(ip.request_count) }} requests</span>
+                  </div>
+                  <div class="suspicious-actions">
+                    <button class="btn-action" title="View requests" @click="filterByIP(ip.ip)">
+                      <i class="pi pi-eye" />
+                    </button>
+                    <button class="btn-action danger" title="Block IP" @click="blockIP(ip.ip)">
+                      <i class="pi pi-ban" />
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -176,6 +182,9 @@
                     <span>{{ formatNumber(ip.requests) }}</span>
                     <span class="muted">{{ formatBytes(ip.bytes) }}</span>
                   </div>
+                  <button class="btn-icon-xs" title="View requests" @click="filterByIP(ip.ip)">
+                    <i class="pi pi-filter" />
+                  </button>
                 </div>
               </div>
             </div>
@@ -425,6 +434,8 @@ import { ref, reactive, computed, onMounted, watch } from "vue";
 import { storeToRefs } from "pinia";
 import { useTrafficStore } from "@/stores/traffic";
 import { useDeploymentsStore } from "@/stores/deployments";
+import { useNotificationsStore } from "@/stores/notifications";
+import { securityApi } from "@/services/api";
 
 const props = defineProps<{
   deployment?: string;
@@ -433,8 +444,8 @@ const props = defineProps<{
 
 const trafficStore = useTrafficStore();
 const deploymentsStore = useDeploymentsStore();
+const notifications = useNotificationsStore();
 const { stats, logs, logsTotal, loading } = storeToRefs(trafficStore);
-const { deployments } = storeToRefs(deploymentsStore);
 
 const timeRange = ref("24h");
 const activeSubTab = ref("overview");
@@ -562,6 +573,19 @@ const insights = computed((): Insight[] => {
   return list.slice(0, 3);
 });
 
+const domainStats = computed(() => {
+  if (!stats.value?.deployment_stats) return [];
+  return [...stats.value.deployment_stats].sort((a, b) => b.total_requests - a.total_requests);
+});
+
+const suspiciousIPs = computed(() => {
+  if (!stats.value?.top_ips) return [];
+  return stats.value.top_ips.filter((ip) => {
+    const requestRatio = ip.request_count / Math.max(stats.value!.total_requests, 1);
+    return requestRatio > 0.3 || ip.request_count > 500;
+  });
+});
+
 const recommendations = computed((): Recommendation[] => {
   if (!stats.value) return [];
   const list: Recommendation[] = [];
@@ -577,12 +601,12 @@ const recommendations = computed((): Recommendation[] => {
     });
   }
 
-  if (unknownDomainStats.value.length > 3) {
+  if (suspiciousIPs.value.length > 0) {
     list.push({
-      id: "unknown-domains",
+      id: "suspicious-ips",
       severity: "warning",
-      icon: "pi pi-question-circle",
-      action: "Review unknown domains",
+      icon: "pi pi-exclamation-triangle",
+      action: "Review suspicious IPs",
       handler: () => (activeSubTab.value = "overview"),
     });
   }
@@ -603,24 +627,8 @@ const recommendations = computed((): Recommendation[] => {
   return list;
 });
 
-const knownDeploymentStats = computed(() => {
-  if (!stats.value?.deployment_stats) return [];
-  const knownNames = deployments.value.map((d) => d.name);
-  return stats.value.deployment_stats
-    .filter((ds) => knownNames.includes(ds.name))
-    .sort((a, b) => b.total_requests - a.total_requests);
-});
-
-const unknownDomainStats = computed(() => {
-  if (!stats.value?.deployment_stats) return [];
-  const knownNames = deployments.value.map((d) => d.name);
-  return stats.value.deployment_stats
-    .filter((ds) => !knownNames.includes(ds.name))
-    .sort((a, b) => b.total_requests - a.total_requests);
-});
-
 const allDomains = computed(() => {
-  return [...knownDeploymentStats.value, ...unknownDomainStats.value].map((d) => d.name);
+  return domainStats.value.map((d) => d.name);
 });
 
 const topIPs = computed(() => {
@@ -791,6 +799,19 @@ const filterByPath = (path: string, deployment: string) => {
   logFilters.offset = 0;
   activeSubTab.value = "logs";
   fetchLogs();
+};
+
+const blockIP = async (ip: string) => {
+  if (!confirm(`Block all requests from ${ip}? This will take effect immediately.`)) {
+    return;
+  }
+  try {
+    await securityApi.blockIP(ip, "Blocked from traffic dashboard - suspicious activity");
+    notifications.success("IP Blocked", `${ip} has been blocked`);
+    await fetchData();
+  } catch (e: any) {
+    notifications.error("Error", `Failed to block IP: ${e.message}`);
+  }
 };
 
 const clearLogFilters = () => {
@@ -1354,30 +1375,83 @@ onMounted(() => {
   font-size: 0.625rem;
 }
 
-/* Unknown List */
-.unknown-list {
-  max-height: 120px;
+/* Suspicious IPs */
+.suspicious-list {
+  max-height: 150px;
   overflow-y: auto;
 }
 
-.unknown-row {
+.suspicious-row {
   display: flex;
   justify-content: space-between;
-  padding: 0.375rem 0.75rem;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
   border-bottom: 1px solid #fcd34d40;
-  cursor: pointer;
 }
 
-.unknown-row:hover {
-  background: #fefce8;
+.suspicious-row:last-child {
+  border-bottom: none;
 }
-.unknown-row code {
+
+.suspicious-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.suspicious-info code {
   font-size: 0.75rem;
   color: #92400e;
+  font-weight: 500;
 }
-.unknown-row span {
-  font-size: 0.6875rem;
+
+.suspicious-stat {
+  font-size: 0.625rem;
   color: #b45309;
+}
+
+.suspicious-actions {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.btn-action {
+  padding: 0.25rem 0.375rem;
+  border: none;
+  background: #fff;
+  border-radius: var(--radius-xs);
+  cursor: pointer;
+  color: #6b7280;
+  font-size: 0.75rem;
+}
+
+.btn-action:hover {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.btn-action.danger {
+  color: #dc2626;
+}
+
+.btn-action.danger:hover {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.btn-icon-xs {
+  padding: 0.125rem;
+  border: none;
+  background: transparent;
+  color: #9ca3af;
+  cursor: pointer;
+  border-radius: var(--radius-xs);
+  font-size: 0.625rem;
+}
+
+.btn-icon-xs:hover {
+  background: #f3f4f6;
+  color: #374151;
 }
 
 /* IP List */
