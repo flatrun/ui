@@ -49,6 +49,60 @@
       </div>
     </template>
 
+    <template v-else-if="showAllDatabases">
+      <div class="databases-view">
+        <div class="users-header">
+          <div class="users-title">
+            <Database :size="16" />
+            <span>All Databases</span>
+            <span class="users-count">{{ allDatabases?.length ?? 0 }}</span>
+          </div>
+          <button class="close-btn" @click="$emit('close-databases-view')">
+            <X :size="14" />
+          </button>
+        </div>
+        <div class="users-search">
+          <Search :size="14" class="search-icon" />
+          <input v-model="dbSearch" type="text" class="search-input" placeholder="Search databases..." />
+        </div>
+        <div class="users-table">
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Tables</th>
+                <th>Size</th>
+                <th />
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                v-for="db in filteredAllDatabases"
+                :key="db.name"
+                class="clickable-row"
+                @click="$emit('select-database', db.name)"
+              >
+                <td>
+                  <code>{{ db.name }}</code>
+                </td>
+                <td>{{ db.tables ?? "—" }}</td>
+                <td>{{ db.size ?? "—" }}</td>
+                <td class="actions-cell">
+                  <button class="table-action" title="Open" @click.stop="$emit('open-database', db.name)">
+                    <ArrowRight :size="12" />
+                  </button>
+                  <button class="table-action danger" title="Delete" @click.stop="$emit('delete-database', db.name)">
+                    <Trash2 :size="12" />
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <div v-if="filteredAllDatabases.length === 0" class="no-results">No databases match your search</div>
+        </div>
+      </div>
+    </template>
+
     <template v-else-if="selectedDatabase">
       <div class="item-header">
         <Database :size="14" class="item-icon database" />
@@ -191,12 +245,15 @@ interface UserInfo {
 }
 
 interface DatabaseInfo {
+  name?: string;
   views?: number;
   routines?: number;
   triggers?: number;
   charset?: string;
   collation?: string;
   engine?: string;
+  size?: string;
+  tables?: number;
 }
 
 interface ServerInfo {
@@ -215,7 +272,9 @@ const props = defineProps<{
   totalTables?: number;
   serverInfo?: ServerInfo;
   showAllUsers?: boolean;
+  showAllDatabases?: boolean;
   allUsers?: UserInfo[];
+  allDatabases?: DatabaseInfo[];
 }>();
 
 defineEmits<{
@@ -225,9 +284,12 @@ defineEmits<{
   "edit-user": [user: UserInfo];
   "delete-user": [user: UserInfo];
   "close-users-view": [];
+  "close-databases-view": [];
+  "select-database": [name: string];
 }>();
 
 const userSearch = ref("");
+const dbSearch = ref("");
 
 const filteredAllUsers = computed(() => {
   if (!props.allUsers) return [];
@@ -236,6 +298,14 @@ const filteredAllUsers = computed(() => {
   return props.allUsers.filter(
     (u) => u.name.toLowerCase().includes(term) || (u.host && u.host.toLowerCase().includes(term)),
   );
+});
+
+const filteredAllDatabases = computed(() => {
+  if (!props.allDatabases) return [];
+  const dbs = props.allDatabases.filter((db): db is DatabaseInfo & { name: string } => !!db.name);
+  if (!dbSearch.value) return dbs;
+  const term = dbSearch.value.toLowerCase();
+  return dbs.filter((db) => db.name.toLowerCase().includes(term));
 });
 </script>
 
@@ -518,6 +588,16 @@ const filteredAllUsers = computed(() => {
 
 .users-table tr:hover {
   background: var(--color-gray-50);
+}
+
+.users-table tr.clickable-row {
+  cursor: pointer;
+}
+
+.databases-view {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .actions-cell {

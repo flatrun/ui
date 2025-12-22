@@ -31,6 +31,7 @@
       v-else-if="!selectedDatabase"
       :databases="databases"
       :users="users"
+      :database-users="databaseUsers"
       :server-info="serverInfo"
       @create-database="showCreateDb = true"
       @create-user="showCreateUser = true"
@@ -39,6 +40,7 @@
       @delete-database="confirmDeleteDatabase"
       @edit-user="handleEditUser"
       @delete-user="confirmDeleteUser"
+      @select-database="handleSelectDatabase"
     />
 
     <div v-else class="database-context">
@@ -358,6 +360,7 @@ const databases = ref<
 >([]);
 const tables = ref<TableInfo[]>([]);
 const users = ref<{ name: string; host?: string }[]>([]);
+const databaseUsers = ref<{ name: string; host?: string }[] | undefined>(undefined);
 const serverInfo = ref<{ version?: string; uptime?: string }>({});
 
 const selectedDatabase = ref("");
@@ -654,6 +657,20 @@ function handleExportTable(tableName: string) {
 
 function handleEditUser(user: { name: string; host?: string }) {
   notifications.info("Edit User", `Editing privileges for ${user.name} - feature coming soon`);
+}
+
+async function handleSelectDatabase(dbName: string) {
+  if (!dbName) {
+    databaseUsers.value = undefined;
+    return;
+  }
+  try {
+    const config = getConnectionConfig();
+    const res = await databasesApi.listUsersByDatabase(config, dbName);
+    databaseUsers.value = res.data.users || [];
+  } catch {
+    databaseUsers.value = [];
+  }
 }
 
 async function createDatabase() {

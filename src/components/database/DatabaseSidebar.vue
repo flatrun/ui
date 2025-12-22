@@ -18,7 +18,7 @@
         </button>
         <div v-if="sectionsOpen.databases" class="section-content">
           <button
-            v-for="db in filteredDatabases"
+            v-for="db in displayedDatabases"
             :key="db.name"
             class="sidebar-item"
             :class="{ selected: selectedDatabase === db.name }"
@@ -29,6 +29,13 @@
             <button class="item-action" title="Delete" @click.stop="$emit('delete-database', db.name)">
               <Trash2 :size="12" />
             </button>
+          </button>
+          <button
+            v-if="filteredDatabases.length > maxDisplayedItems"
+            class="view-all-btn"
+            @click="$emit('view-all-databases')"
+          >
+            View all {{ filteredDatabases.length }} databases
           </button>
           <div v-if="filteredDatabases.length === 0" class="empty-section">
             {{ searchTerm ? "No matches" : "No databases" }}
@@ -59,7 +66,7 @@
               <Trash2 :size="12" />
             </button>
           </button>
-          <button v-if="filteredUsers.length > maxDisplayedUsers" class="view-all-btn" @click="$emit('view-all-users')">
+          <button v-if="filteredUsers.length > maxDisplayedItems" class="view-all-btn" @click="$emit('view-all-users')">
             View all {{ filteredUsers.length }} users
           </button>
           <div v-if="filteredUsers.length === 0" class="empty-section">
@@ -111,6 +118,7 @@ defineEmits<{
   "create-user": [];
   "delete-database": [name: string];
   "delete-user": [user: UserInfo];
+  "view-all-databases": [];
   "view-all-users": [];
 }>();
 
@@ -119,12 +127,16 @@ const sectionsOpen = ref({
   databases: true,
   users: true,
 });
-const maxDisplayedUsers = 15;
+const maxDisplayedItems = 10;
 
 const filteredDatabases = computed(() => {
   if (!searchTerm.value) return props.databases;
   const term = searchTerm.value.toLowerCase();
   return props.databases.filter((db) => db.name.toLowerCase().includes(term));
+});
+
+const displayedDatabases = computed(() => {
+  return filteredDatabases.value.slice(0, maxDisplayedItems);
 });
 
 const filteredUsers = computed(() => {
@@ -136,7 +148,7 @@ const filteredUsers = computed(() => {
 });
 
 const displayedUsers = computed(() => {
-  return filteredUsers.value.slice(0, maxDisplayedUsers);
+  return filteredUsers.value.slice(0, maxDisplayedItems);
 });
 
 function toggleSection(section: "databases" | "users") {
