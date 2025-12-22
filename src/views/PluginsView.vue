@@ -234,7 +234,7 @@ onMounted(() => {
   align-items: center;
   gap: 0.5rem;
   padding: 0.625rem 1.25rem;
-  border-radius: 8px;
+  border-radius: 4px;
   font-weight: 500;
   font-size: 0.875rem;
   cursor: pointer;
@@ -326,7 +326,7 @@ onMounted(() => {
   width: 32px;
   height: 32px;
   background: #eff6ff;
-  border-radius: 8px;
+  border-radius: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -372,7 +372,7 @@ onMounted(() => {
 
 .plugin-card {
   background: white;
-  border-radius: 16px;
+  border-radius: 4px;
   border: 1px solid #e5e7eb;
   overflow: hidden;
   transition: all 0.3s ease;
@@ -394,7 +394,7 @@ onMounted(() => {
   width: 48px;
   height: 48px;
   background: #eff6ff;
-  border-radius: 12px;
+  border-radius: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -578,7 +578,7 @@ onMounted(() => {
 
 .modal-container {
   background: white;
-  border-radius: 16px;
+  border-radius: 4px;
   width: 100%;
   max-width: 500px;
   box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);

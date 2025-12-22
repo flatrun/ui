@@ -3885,7 +3885,7 @@ onUnmounted(() => {
   text-align: center;
   color: #9ca3af;
   background: #f9fafb;
-  border-radius: 8px;
+  border-radius: 4px;
   border: 1px dashed #e5e7eb;
 }
 

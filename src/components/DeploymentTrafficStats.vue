@@ -166,7 +166,7 @@ onMounted(() => {
 <style scoped>
 .deployment-traffic {
   background: white;
-  border-radius: 12px;
+  border-radius: 4px;
   border: 1px solid #e5e7eb;
   padding: 1rem;
 }

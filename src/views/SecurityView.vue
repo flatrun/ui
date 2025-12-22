@@ -955,7 +955,7 @@ onMounted(() => {
   align-items: center;
   background: white;
   padding: 0.5rem;
-  border-radius: 12px;
+  border-radius: 4px;
   border: 1px solid #e5e7eb;
 }
 
@@ -971,7 +971,7 @@ onMounted(() => {
   padding: 0.625rem 1rem;
   background: transparent;
   border: none;
-  border-radius: 8px;
+  border-radius: 4px;
   font-size: 0.875rem;
   font-weight: 500;
   color: #6b7280;
@@ -1000,7 +1000,7 @@ onMounted(() => {
   justify-content: center;
   padding: 4rem;
   background: white;
-  border-radius: 16px;
+  border-radius: 4px;
   text-align: center;
   gap: 1rem;
 }
@@ -1027,7 +1027,7 @@ onMounted(() => {
   gap: 1rem;
   padding: 1rem;
   background: white;
-  border-radius: 12px;
+  border-radius: 4px;
   border: 1px solid #e5e7eb;
 }
 
@@ -1045,7 +1045,7 @@ onMounted(() => {
 .stat-card {
   background: white;
   padding: 1rem;
-  border-radius: 10px;
+  border-radius: 4px;
   border: 1px solid #e5e7eb;
   display: flex;
   flex-direction: column;
@@ -1082,7 +1082,7 @@ onMounted(() => {
 .filter-input {
   padding: 0.5rem 0.75rem;
   border: 1px solid #d1d5db;
-  border-radius: 8px;
+  border-radius: 4px;
   font-size: 0.875rem;
   background: white;
 }
@@ -1097,7 +1097,7 @@ onMounted(() => {
 
 .events-table-container {
   background: white;
-  border-radius: 10px;
+  border-radius: 4px;
   border: 1px solid #e5e7eb;
   overflow: hidden;
 }
@@ -1233,7 +1233,7 @@ onMounted(() => {
 .blocked-list,
 .routes-list {
   background: white;
-  border-radius: 10px;
+  border-radius: 4px;
   border: 1px solid #e5e7eb;
 }
 
@@ -1368,7 +1368,7 @@ onMounted(() => {
 
 .presets-section {
   background: white;
-  border-radius: 10px;
+  border-radius: 4px;
   border: 1px solid #e5e7eb;
   padding: 1rem;
 }
@@ -1393,7 +1393,7 @@ onMounted(() => {
   padding: 0.5rem 1rem;
   background: #f3f4f6;
   border: 1px solid #e5e7eb;
-  border-radius: 8px;
+  border-radius: 4px;
   font-size: 0.8125rem;
   color: #374151;
   cursor: pointer;
@@ -1415,7 +1415,7 @@ onMounted(() => {
   padding: 0.625rem 1rem;
   font-size: 0.875rem;
   font-weight: 500;
-  border-radius: 8px;
+  border-radius: 4px;
   border: none;
   cursor: pointer;
   transition: all 0.2s;
@@ -1498,7 +1498,7 @@ onMounted(() => {
 
 .modal-dialog {
   background: white;
-  border-radius: 12px;
+  border-radius: 4px;
   width: 100%;
   max-width: 480px;
   max-height: 90vh;
@@ -1551,7 +1551,7 @@ onMounted(() => {
   width: 100%;
   padding: 0.5rem 0.75rem;
   border: 1px solid #d1d5db;
-  border-radius: 8px;
+  border-radius: 4px;
   font-size: 0.875rem;
 }
 
@@ -1576,7 +1576,7 @@ onMounted(() => {
 
 .confirm-modal {
   background: white;
-  border-radius: 12px;
+  border-radius: 4px;
   padding: 1.5rem;
   max-width: 400px;
   width: 90%;
@@ -1636,7 +1636,7 @@ onMounted(() => {
 
 .settings-card {
   background: white;
-  border-radius: 10px;
+  border-radius: 4px;
   border: 1px solid #e5e7eb;
   padding: 1.25rem;
 }
@@ -1729,7 +1729,7 @@ onMounted(() => {
   gap: 0.75rem;
   margin-top: 1rem;
   padding: 0.875rem 1rem;
-  border-radius: 8px;
+  border-radius: 4px;
   font-size: 0.8125rem;
   line-height: 1.5;
 }
@@ -1770,7 +1770,7 @@ onMounted(() => {
 
 .dashboard-stat-card {
   background: white;
-  border-radius: 12px;
+  border-radius: 4px;
   border: 1px solid #e5e7eb;
   padding: 1.25rem;
   display: flex;
@@ -1781,7 +1781,7 @@ onMounted(() => {
 .stat-icon {
   width: 48px;
   height: 48px;
-  border-radius: 12px;
+  border-radius: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1842,7 +1842,7 @@ onMounted(() => {
 
 .dashboard-card {
   background: white;
-  border-radius: 12px;
+  border-radius: 4px;
   border: 1px solid #e5e7eb;
   padding: 1.25rem;
 }
@@ -1991,7 +1991,7 @@ onMounted(() => {
   gap: 0.75rem;
   padding: 0.75rem;
   background: #f9fafb;
-  border-radius: 8px;
+  border-radius: 4px;
 }
 
 .top-rank {
@@ -2077,7 +2077,7 @@ onMounted(() => {
   gap: 0.75rem;
   padding: 0.75rem 1rem;
   background: #fef2f2;
-  border-radius: 8px;
+  border-radius: 4px;
   border-left: 3px solid #dc2626;
 }
 

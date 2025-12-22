@@ -228,7 +228,7 @@ onMounted(() => {
 <style scoped>
 .health-card {
   background: white;
-  border-radius: 12px;
+  border-radius: 4px;
   border: 1px solid #e5e7eb;
   padding: 1.25rem;
 }
@@ -314,7 +314,7 @@ onMounted(() => {
 .check-category {
   padding: 1rem;
   background: #f9fafb;
-  border-radius: 8px;
+  border-radius: 4px;
 }
 
 .category-header {
@@ -492,7 +492,7 @@ onMounted(() => {
   padding: 0.625rem 1rem;
   font-size: 0.875rem;
   font-weight: 500;
-  border-radius: 8px;
+  border-radius: 4px;
   border: none;
   cursor: pointer;
   transition: all 0.2s;

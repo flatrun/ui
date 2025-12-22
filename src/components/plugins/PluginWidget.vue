@@ -63,7 +63,7 @@ const formatCapability = (cap: string) => {
 <style scoped>
 .plugin-widget {
   background: white;
-  border-radius: 12px;
+  border-radius: 4px;
   border: 1px solid #e5e7eb;
   overflow: hidden;
   transition: all 0.3s ease;

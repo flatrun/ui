@@ -318,7 +318,7 @@ onUnmounted(() => {
   gap: 0.5rem;
   background: white;
   border: 1px solid #e5e7eb;
-  border-radius: 8px;
+  border-radius: 4px;
   padding: 0.5rem 0.75rem;
   min-width: 240px;
 }
@@ -346,7 +346,7 @@ onUnmounted(() => {
   gap: 0.25rem;
   background: white;
   border: 1px solid #e5e7eb;
-  border-radius: 8px;
+  border-radius: 4px;
   padding: 0.25rem;
 }
 
@@ -378,7 +378,7 @@ onUnmounted(() => {
   align-items: center;
   gap: 0.375rem;
   padding: 0.5rem 0.875rem;
-  border-radius: 8px;
+  border-radius: 4px;
   font-size: 0.8125rem;
   font-weight: 500;
   cursor: pointer;
@@ -411,7 +411,7 @@ onUnmounted(() => {
   padding: 4rem 2rem;
   text-align: center;
   background: white;
-  border-radius: 12px;
+  border-radius: 4px;
   border: 1px solid #e5e7eb;
 }
 
@@ -425,7 +425,7 @@ onUnmounted(() => {
   width: 64px;
   height: 64px;
   background: #f3f4f6;
-  border-radius: 16px;
+  border-radius: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -459,7 +459,7 @@ onUnmounted(() => {
 .template-card {
   background: white;
   border: 1px solid #e5e7eb;
-  border-radius: 12px;
+  border-radius: 4px;
   overflow: hidden;
   cursor: pointer;
   transition: all 0.2s;
@@ -488,7 +488,7 @@ onUnmounted(() => {
   width: 48px;
   height: 48px;
   background: #f3f4f6;
-  border-radius: 10px;
+  border-radius: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -556,7 +556,7 @@ onUnmounted(() => {
   padding: 0.625rem;
   background: #f3f4f6;
   border: none;
-  border-radius: 8px;
+  border-radius: 4px;
   font-size: 0.8125rem;
   font-weight: 500;
   color: #374151;
@@ -627,7 +627,7 @@ onUnmounted(() => {
   right: 0;
   background: white;
   border: 1px solid #e5e7eb;
-  border-radius: 8px;
+  border-radius: 4px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   min-width: 140px;
   z-index: 100;
@@ -670,7 +670,7 @@ onUnmounted(() => {
 
 .modal-content {
   background: white;
-  border-radius: 12px;
+  border-radius: 4px;
   max-width: 700px;
   width: 100%;
   max-height: 90vh;
@@ -696,7 +696,7 @@ onUnmounted(() => {
   width: 56px;
   height: 56px;
   background: #f3f4f6;
-  border-radius: 12px;
+  border-radius: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -760,7 +760,7 @@ onUnmounted(() => {
   margin-bottom: 1rem;
   background: #f3f4f6;
   padding: 0.25rem;
-  border-radius: 8px;
+  border-radius: 4px;
 }
 
 .tab-btn {
@@ -788,7 +788,7 @@ onUnmounted(() => {
 
 .code-block {
   background: #1f2937;
-  border-radius: 8px;
+  border-radius: 4px;
   padding: 1rem;
   overflow-x: auto;
 }

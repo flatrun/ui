@@ -320,7 +320,7 @@ onMounted(() => {
   align-items: center;
   background: white;
   padding: 1.25rem;
-  border-radius: 12px;
+  border-radius: 4px;
   border: 1px solid #e5e7eb;
 }
 
@@ -342,7 +342,7 @@ onMounted(() => {
   background: transparent;
   border: none;
   color: #6b7280;
-  border-radius: 8px;
+  border-radius: 4px;
   cursor: pointer;
   transition: all 0.2s;
 }
@@ -365,7 +365,7 @@ onMounted(() => {
   justify-content: center;
   padding: 4rem;
   background: white;
-  border-radius: 16px;
+  border-radius: 4px;
   text-align: center;
   gap: 1rem;
 }

@@ -502,7 +502,7 @@ onMounted(() => {
   align-items: center;
   gap: 0.375rem;
   padding: 0.5rem 0.875rem;
-  border-radius: 8px;
+  border-radius: 4px;
   font-size: 0.8125rem;
   font-weight: 500;
   cursor: pointer;
@@ -548,7 +548,7 @@ onMounted(() => {
 
 .stat-card {
   background: white;
-  border-radius: 10px;
+  border-radius: 4px;
   padding: 1rem 1.25rem;
   display: flex;
   justify-content: space-between;
@@ -584,7 +584,7 @@ onMounted(() => {
 .stat-icon {
   width: 40px;
   height: 40px;
-  border-radius: 10px;
+  border-radius: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -631,7 +631,7 @@ onMounted(() => {
 
 .panel {
   background: white;
-  border-radius: 10px;
+  border-radius: 4px;
   border: 1px solid #e5e7eb;
   overflow: hidden;
 }
@@ -700,7 +700,7 @@ onMounted(() => {
   width: 48px;
   height: 48px;
   background: #f3f4f6;
-  border-radius: 12px;
+  border-radius: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -834,7 +834,7 @@ onMounted(() => {
   padding: 1rem;
   background: #f9fafb;
   border: 1px solid #e5e7eb;
-  border-radius: 8px;
+  border-radius: 4px;
   cursor: pointer;
   transition: all 0.2s;
   text-align: center;
@@ -853,7 +853,7 @@ onMounted(() => {
 .action-icon {
   width: 36px;
   height: 36px;
-  border-radius: 8px;
+  border-radius: 4px;
   display: flex;
   align-items: center;
   justify-content: center;

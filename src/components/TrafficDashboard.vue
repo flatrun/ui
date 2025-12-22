@@ -72,12 +72,7 @@
             </div>
             <span class="stat-value">{{ formatNumber(stats.total_requests) }}</span>
             <div class="stat-sparkline">
-              <div
-                v-for="(h, idx) in hourlySparkline"
-                :key="idx"
-                class="spark-bar"
-                :style="{ height: h + '%' }"
-              />
+              <div v-for="(h, idx) in hourlySparkline" :key="idx" class="spark-bar" :style="{ height: h + '%' }" />
             </div>
           </div>
           <div class="stat-card">
@@ -85,7 +80,9 @@
               <span class="stat-label">Data Transfer</span>
             </div>
             <span class="stat-value">{{ formatBytes(stats.total_bytes) }}</span>
-            <span class="stat-sub">{{ formatBytes(stats.total_bytes / Math.max(stats.total_requests, 1)) }}/req avg</span>
+            <span class="stat-sub"
+              >{{ formatBytes(stats.total_bytes / Math.max(stats.total_requests, 1)) }}/req avg</span
+            >
           </div>
           <div class="stat-card">
             <div class="stat-header">
@@ -104,8 +101,8 @@
             </div>
             <span class="stat-value">{{ globalErrorRate }}%</span>
             <div class="error-breakdown">
-              <span class="error-item" title="4xx errors">4xx: {{ stats.by_status_group?.['4xx'] || 0 }}</span>
-              <span class="error-item" title="5xx errors">5xx: {{ stats.by_status_group?.['5xx'] || 0 }}</span>
+              <span class="error-item" title="4xx errors">4xx: {{ stats.by_status_group?.["4xx"] || 0 }}</span>
+              <span class="error-item" title="5xx errors">5xx: {{ stats.by_status_group?.["5xx"] || 0 }}</span>
             </div>
           </div>
         </div>
@@ -130,7 +127,10 @@
                   <span class="dep-name">{{ dep.name }}</span>
                   <div class="dep-bar-mini">
                     <div class="bar-fill success" :style="{ width: getStatusPct(dep, '2xx') + '%' }" />
-                    <div class="bar-fill error" :style="{ width: (getStatusPct(dep, '4xx') + getStatusPct(dep, '5xx')) + '%' }" />
+                    <div
+                      class="bar-fill error"
+                      :style="{ width: getStatusPct(dep, '4xx') + getStatusPct(dep, '5xx') + '%' }"
+                    />
                   </div>
                 </div>
                 <div class="dep-stats">
@@ -138,9 +138,7 @@
                   <span class="dep-stat" :class="{ slow: dep.avg_response_time > 500 }">
                     {{ formatTime(dep.avg_response_time) }}
                   </span>
-                  <span class="dep-stat" :class="{ high: dep.error_rate > 5 }">
-                    {{ dep.error_rate.toFixed(1) }}%
-                  </span>
+                  <span class="dep-stat" :class="{ high: dep.error_rate > 5 }"> {{ dep.error_rate.toFixed(1) }}% </span>
                 </div>
                 <i class="pi pi-chevron-right" />
               </div>
@@ -203,19 +201,19 @@
             <div class="status-grid">
               <div class="status-item success">
                 <span class="status-code">2xx</span>
-                <span class="status-count">{{ formatNumber(stats.by_status_group?.['2xx'] || 0) }}</span>
+                <span class="status-count">{{ formatNumber(stats.by_status_group?.["2xx"] || 0) }}</span>
               </div>
               <div class="status-item redirect">
                 <span class="status-code">3xx</span>
-                <span class="status-count">{{ formatNumber(stats.by_status_group?.['3xx'] || 0) }}</span>
+                <span class="status-count">{{ formatNumber(stats.by_status_group?.["3xx"] || 0) }}</span>
               </div>
               <div class="status-item client-error">
                 <span class="status-code">4xx</span>
-                <span class="status-count">{{ formatNumber(stats.by_status_group?.['4xx'] || 0) }}</span>
+                <span class="status-count">{{ formatNumber(stats.by_status_group?.["4xx"] || 0) }}</span>
               </div>
               <div class="status-item server-error">
                 <span class="status-code">5xx</span>
-                <span class="status-count">{{ formatNumber(stats.by_status_group?.['5xx'] || 0) }}</span>
+                <span class="status-count">{{ formatNumber(stats.by_status_group?.["5xx"] || 0) }}</span>
               </div>
             </div>
           </div>
@@ -259,19 +257,28 @@
               <tr>
                 <th class="sortable" @click="toggleSort('created_at')">
                   Time
-                  <i v-if="sortField === 'created_at'" :class="sortDir === 'asc' ? 'pi pi-sort-up' : 'pi pi-sort-down'" />
+                  <i
+                    v-if="sortField === 'created_at'"
+                    :class="sortDir === 'asc' ? 'pi pi-sort-up' : 'pi pi-sort-down'"
+                  />
                 </th>
                 <th>Domain</th>
                 <th>Method</th>
                 <th>Path</th>
                 <th class="sortable" @click="toggleSort('status_code')">
                   Status
-                  <i v-if="sortField === 'status_code'" :class="sortDir === 'asc' ? 'pi pi-sort-up' : 'pi pi-sort-down'" />
+                  <i
+                    v-if="sortField === 'status_code'"
+                    :class="sortDir === 'asc' ? 'pi pi-sort-up' : 'pi pi-sort-down'"
+                  />
                 </th>
                 <th>IP</th>
                 <th class="sortable" @click="toggleSort('response_time_ms')">
                   Time
-                  <i v-if="sortField === 'response_time_ms'" :class="sortDir === 'asc' ? 'pi pi-sort-up' : 'pi pi-sort-down'" />
+                  <i
+                    v-if="sortField === 'response_time_ms'"
+                    :class="sortDir === 'asc' ? 'pi pi-sort-up' : 'pi pi-sort-down'"
+                  />
                 </th>
                 <th>Size</th>
                 <th />
@@ -300,29 +307,26 @@
                 </td>
                 <td class="cell-size">{{ formatBytes(log.bytes_sent) }}</td>
                 <td class="cell-actions">
-                  <button
-                    class="btn-icon-sm"
-                    title="Filter by this IP"
-                    @click.stop="filterByIP(log.source_ip)"
-                  >
+                  <button class="btn-icon-sm" title="Filter by this IP" @click.stop="filterByIP(log.source_ip)">
                     <i class="pi pi-filter" />
                   </button>
                 </td>
               </tr>
             </tbody>
           </table>
-          <div v-else-if="!logsLoading" class="empty-inline">
-            No logs match your filters
-          </div>
-          <div v-else class="loading-inline">
-            <i class="pi pi-spin pi-spinner" /> Loading...
-          </div>
+          <div v-else-if="!logsLoading" class="empty-inline">No logs match your filters</div>
+          <div v-else class="loading-inline"><i class="pi pi-spin pi-spinner" /> Loading...</div>
         </div>
 
         <div v-if="logsTotal > logFilters.limit" class="pagination">
           <button class="btn-sm" :disabled="logFilters.offset === 0" @click="prevPage">Prev</button>
-          <span>{{ logFilters.offset + 1 }}-{{ Math.min(logFilters.offset + logFilters.limit, logsTotal) }} / {{ logsTotal }}</span>
-          <button class="btn-sm" :disabled="logFilters.offset + logFilters.limit >= logsTotal" @click="nextPage">Next</button>
+          <span
+            >{{ logFilters.offset + 1 }}-{{ Math.min(logFilters.offset + logFilters.limit, logsTotal) }} /
+            {{ logsTotal }}</span
+          >
+          <button class="btn-sm" :disabled="logFilters.offset + logFilters.limit >= logsTotal" @click="nextPage">
+            Next
+          </button>
         </div>
       </div>
 
@@ -361,7 +365,9 @@
             </thead>
             <tbody>
               <tr v-for="ep in slowEndpoints" :key="`${ep.deployment}-${ep.path}`">
-                <td><span class="tag">{{ ep.deployment }}</span></td>
+                <td>
+                  <span class="tag">{{ ep.deployment }}</span>
+                </td>
                 <td class="cell-path">{{ ep.path }}</td>
                 <td>{{ formatNumber(ep.requests) }}</td>
                 <td :class="getTimeClass(ep.avgTime)">{{ formatTime(ep.avgTime) }}</td>
@@ -690,7 +696,9 @@ const maxHourlyRequests = computed(() => {
 });
 
 const hasActiveFilters = computed(() => {
-  return logFilters.deployment || logFilters.status_group || logFilters.method || logFilters.path || logFilters.source_ip;
+  return (
+    logFilters.deployment || logFilters.status_group || logFilters.method || logFilters.path || logFilters.source_ip
+  );
 });
 
 const sortedLogs = computed(() => {
@@ -747,10 +755,18 @@ const fetchLogs = async () => {
 const getStartTime = (range: string): string => {
   const now = new Date();
   switch (range) {
-    case "1h": now.setHours(now.getHours() - 1); break;
-    case "6h": now.setHours(now.getHours() - 6); break;
-    case "24h": now.setHours(now.getHours() - 24); break;
-    case "7d": now.setDate(now.getDate() - 7); break;
+    case "1h":
+      now.setHours(now.getHours() - 1);
+      break;
+    case "6h":
+      now.setHours(now.getHours() - 6);
+      break;
+    case "24h":
+      now.setHours(now.getHours() - 24);
+      break;
+    case "7d":
+      now.setDate(now.getDate() - 7);
+      break;
   }
   return now.toISOString();
 };
@@ -818,11 +834,16 @@ const handleAlertAction = (alert: PerformanceAlert) => {
 const getStatusPct = (dep: any, group: string) => {
   const total = dep.total_requests || 1;
   switch (group) {
-    case "2xx": return (dep.status_2xx / total) * 100;
-    case "3xx": return (dep.status_3xx / total) * 100;
-    case "4xx": return (dep.status_4xx / total) * 100;
-    case "5xx": return (dep.status_5xx / total) * 100;
-    default: return 0;
+    case "2xx":
+      return (dep.status_2xx / total) * 100;
+    case "3xx":
+      return (dep.status_3xx / total) * 100;
+    case "4xx":
+      return (dep.status_4xx / total) * 100;
+    case "5xx":
+      return (dep.status_5xx / total) * 100;
+    default:
+      return 0;
   }
 };
 
@@ -907,7 +928,8 @@ onMounted(() => {
   font-size: 0.8125rem;
 }
 
-.loading-state, .empty-state {
+.loading-state,
+.empty-state {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -916,7 +938,10 @@ onMounted(() => {
   color: #6b7280;
 }
 
-.empty-state i { font-size: 2rem; opacity: 0.5; }
+.empty-state i {
+  font-size: 2rem;
+  opacity: 0.5;
+}
 
 .traffic-content {
   display: flex;
@@ -935,7 +960,10 @@ onMounted(() => {
   border-radius: 4px;
 }
 
-.tabs { display: flex; gap: 2px; }
+.tabs {
+  display: flex;
+  gap: 2px;
+}
 
 .tab {
   display: flex;
@@ -951,9 +979,16 @@ onMounted(() => {
   cursor: pointer;
 }
 
-.tab:hover { background: #f3f4f6; }
-.tab.active { background: #3b82f6; color: #fff; }
-.tab i { font-size: 0.75rem; }
+.tab:hover {
+  background: #f3f4f6;
+}
+.tab.active {
+  background: #3b82f6;
+  color: #fff;
+}
+.tab i {
+  font-size: 0.75rem;
+}
 .tab-badge {
   background: #ef4444;
   color: #fff;
@@ -963,7 +998,10 @@ onMounted(() => {
   margin-left: 0.25rem;
 }
 
-.header-actions { display: flex; gap: 0.375rem; }
+.header-actions {
+  display: flex;
+  gap: 0.375rem;
+}
 
 .select-compact {
   padding: 0.25rem 0.5rem;
@@ -989,7 +1027,9 @@ onMounted(() => {
   cursor: pointer;
   border-radius: 3px;
 }
-.btn-icon:hover { background: #f3f4f6; }
+.btn-icon:hover {
+  background: #f3f4f6;
+}
 
 /* Insights Bar */
 .insights-bar {
@@ -1003,7 +1043,11 @@ onMounted(() => {
   gap: 1rem;
 }
 
-.insights-list { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.insights-list {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
 
 .insight-chip {
   display: flex;
@@ -1015,13 +1059,30 @@ onMounted(() => {
   font-weight: 500;
 }
 
-.insight-chip.info { background: #dbeafe; color: #1d4ed8; }
-.insight-chip.warning { background: #fef3c7; color: #b45309; }
-.insight-chip.success { background: #d1fae5; color: #059669; }
-.insight-chip.anomaly { background: #fce7f3; color: #be185d; }
-.insight-chip i { font-size: 0.625rem; }
+.insight-chip.info {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+.insight-chip.warning {
+  background: #fef3c7;
+  color: #b45309;
+}
+.insight-chip.success {
+  background: #d1fae5;
+  color: #059669;
+}
+.insight-chip.anomaly {
+  background: #fce7f3;
+  color: #be185d;
+}
+.insight-chip i {
+  font-size: 0.625rem;
+}
 
-.recommendations { display: flex; gap: 0.375rem; }
+.recommendations {
+  display: flex;
+  gap: 0.375rem;
+}
 
 .recommendation-btn {
   display: flex;
@@ -1035,12 +1096,24 @@ onMounted(() => {
   cursor: pointer;
 }
 
-.recommendation-btn.warning { background: #fef3c7; color: #b45309; }
-.recommendation-btn.critical { background: #fee2e2; color: #dc2626; }
-.recommendation-btn:hover { filter: brightness(0.95); }
+.recommendation-btn.warning {
+  background: #fef3c7;
+  color: #b45309;
+}
+.recommendation-btn.critical {
+  background: #fee2e2;
+  color: #dc2626;
+}
+.recommendation-btn:hover {
+  filter: brightness(0.95);
+}
 
 /* Tab Content */
-.tab-content { display: flex; flex-direction: column; gap: 0.75rem; }
+.tab-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
 
 /* Stats Grid */
 .stats-grid {
@@ -1056,7 +1129,10 @@ onMounted(() => {
   border-radius: 4px;
 }
 
-.stat-card.error { border-color: #fca5a5; background: #fef2f2; }
+.stat-card.error {
+  border-color: #fca5a5;
+  background: #fef2f2;
+}
 
 .stat-header {
   display: flex;
@@ -1065,7 +1141,11 @@ onMounted(() => {
   margin-bottom: 0.25rem;
 }
 
-.stat-label { font-size: 0.6875rem; color: #6b7280; text-transform: uppercase; }
+.stat-label {
+  font-size: 0.6875rem;
+  color: #6b7280;
+  text-transform: uppercase;
+}
 
 .trend {
   font-size: 0.625rem;
@@ -1074,19 +1154,32 @@ onMounted(() => {
   align-items: center;
   gap: 2px;
 }
-.trend.up { color: #059669; }
-.trend.down { color: #dc2626; }
-.trend i { font-size: 0.5rem; }
+.trend.up {
+  color: #059669;
+}
+.trend.down {
+  color: #dc2626;
+}
+.trend i {
+  font-size: 0.5rem;
+}
 
 .stat-value {
   font-size: 1.25rem;
   font-weight: 700;
   color: #1f2937;
 }
-.stat-value.warning { color: #b45309; }
-.stat-card.error .stat-value { color: #dc2626; }
+.stat-value.warning {
+  color: #b45309;
+}
+.stat-card.error .stat-value {
+  color: #dc2626;
+}
 
-.stat-sub { font-size: 0.625rem; color: #9ca3af; }
+.stat-sub {
+  font-size: 0.625rem;
+  color: #9ca3af;
+}
 
 .stat-sparkline {
   display: flex;
@@ -1109,7 +1202,10 @@ onMounted(() => {
   margin-top: 0.25rem;
 }
 
-.error-item { font-size: 0.625rem; color: #6b7280; }
+.error-item {
+  font-size: 0.625rem;
+  color: #6b7280;
+}
 
 /* Two Column Layout */
 .two-col {
@@ -1118,7 +1214,11 @@ onMounted(() => {
   gap: 0.75rem;
 }
 
-.panel-stack { display: flex; flex-direction: column; gap: 0.75rem; }
+.panel-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
 
 /* Panel */
 .panel {
@@ -1128,7 +1228,10 @@ onMounted(() => {
   overflow: hidden;
 }
 
-.warning-panel { border-color: #fcd34d; background: #fffbeb; }
+.warning-panel {
+  border-color: #fcd34d;
+  background: #fffbeb;
+}
 
 .panel-header {
   display: flex;
@@ -1138,7 +1241,9 @@ onMounted(() => {
   border-bottom: 1px solid #e5e7eb;
 }
 
-.warning-panel .panel-header { border-color: #fcd34d; }
+.warning-panel .panel-header {
+  border-color: #fcd34d;
+}
 
 .panel-header h3 {
   margin: 0;
@@ -1152,7 +1257,9 @@ onMounted(() => {
   gap: 0.375rem;
 }
 
-.panel-header h3 i { color: #f59e0b; }
+.panel-header h3 i {
+  color: #f59e0b;
+}
 
 .count {
   font-size: 0.625rem;
@@ -1163,7 +1270,10 @@ onMounted(() => {
 }
 
 /* Deployment List */
-.deployment-list { max-height: 240px; overflow-y: auto; }
+.deployment-list {
+  max-height: 240px;
+  overflow-y: auto;
+}
 
 .deployment-row {
   display: flex;
@@ -1174,12 +1284,23 @@ onMounted(() => {
   cursor: pointer;
 }
 
-.deployment-row:hover { background: #f9fafb; }
-.deployment-row:last-child { border-bottom: none; }
-.deployment-row.warning { border-left: 2px solid #f59e0b; }
-.deployment-row.critical { border-left: 2px solid #ef4444; }
+.deployment-row:hover {
+  background: #f9fafb;
+}
+.deployment-row:last-child {
+  border-bottom: none;
+}
+.deployment-row.warning {
+  border-left: 2px solid #f59e0b;
+}
+.deployment-row.critical {
+  border-left: 2px solid #ef4444;
+}
 
-.dep-main { flex: 1; min-width: 0; }
+.dep-main {
+  flex: 1;
+  min-width: 0;
+}
 
 .dep-name {
   font-size: 0.8125rem;
@@ -1200,9 +1321,15 @@ onMounted(() => {
   overflow: hidden;
 }
 
-.bar-fill { height: 100%; }
-.bar-fill.success { background: #22c55e; }
-.bar-fill.error { background: #ef4444; }
+.bar-fill {
+  height: 100%;
+}
+.bar-fill.success {
+  background: #22c55e;
+}
+.bar-fill.error {
+  background: #ef4444;
+}
 
 .dep-stats {
   display: flex;
@@ -1215,13 +1342,23 @@ onMounted(() => {
   white-space: nowrap;
 }
 
-.dep-stat.slow { color: #b45309; }
-.dep-stat.high { color: #dc2626; }
+.dep-stat.slow {
+  color: #b45309;
+}
+.dep-stat.high {
+  color: #dc2626;
+}
 
-.deployment-row i { color: #d1d5db; font-size: 0.625rem; }
+.deployment-row i {
+  color: #d1d5db;
+  font-size: 0.625rem;
+}
 
 /* Unknown List */
-.unknown-list { max-height: 120px; overflow-y: auto; }
+.unknown-list {
+  max-height: 120px;
+  overflow-y: auto;
+}
 
 .unknown-row {
   display: flex;
@@ -1231,12 +1368,22 @@ onMounted(() => {
   cursor: pointer;
 }
 
-.unknown-row:hover { background: #fefce8; }
-.unknown-row code { font-size: 0.75rem; color: #92400e; }
-.unknown-row span { font-size: 0.6875rem; color: #b45309; }
+.unknown-row:hover {
+  background: #fefce8;
+}
+.unknown-row code {
+  font-size: 0.75rem;
+  color: #92400e;
+}
+.unknown-row span {
+  font-size: 0.6875rem;
+  color: #b45309;
+}
 
 /* IP List */
-.ip-list { padding: 0.25rem 0; }
+.ip-list {
+  padding: 0.25rem 0;
+}
 
 .ip-row {
   display: flex;
@@ -1245,7 +1392,10 @@ onMounted(() => {
   padding: 0.375rem 0.75rem;
 }
 
-.ip-row code { font-size: 0.75rem; color: #1f2937; }
+.ip-row code {
+  font-size: 0.75rem;
+  color: #1f2937;
+}
 
 .ip-stats {
   display: flex;
@@ -1253,7 +1403,9 @@ onMounted(() => {
   font-size: 0.6875rem;
 }
 
-.muted { color: #9ca3af; }
+.muted {
+  color: #9ca3af;
+}
 
 /* Distribution */
 .distribution-row {
@@ -1277,19 +1429,49 @@ onMounted(() => {
   text-transform: uppercase;
 }
 
-.dist-bars { display: flex; flex-direction: column; gap: 0.375rem; }
+.dist-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
 
-.dist-item { display: flex; align-items: center; gap: 0.5rem; }
+.dist-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
 
-.dist-label { font-size: 0.6875rem; color: #374151; width: 50px; }
+.dist-label {
+  font-size: 0.6875rem;
+  color: #374151;
+  width: 50px;
+}
 
-.dist-bar { flex: 1; height: 6px; background: #e5e7eb; border-radius: 2px; }
+.dist-bar {
+  flex: 1;
+  height: 6px;
+  background: #e5e7eb;
+  border-radius: 2px;
+}
 
-.dist-fill { height: 100%; background: #3b82f6; border-radius: 2px; }
+.dist-fill {
+  height: 100%;
+  background: #3b82f6;
+  border-radius: 2px;
+}
 
-.dist-value { font-size: 0.6875rem; color: #6b7280; width: 40px; text-align: right; }
+.dist-value {
+  font-size: 0.6875rem;
+  color: #6b7280;
+  width: 40px;
+  text-align: right;
+}
 
-.status-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.375rem; }
+.status-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.375rem;
+}
 
 .status-item {
   text-align: center;
@@ -1297,18 +1479,42 @@ onMounted(() => {
   border-radius: 3px;
 }
 
-.status-item.success { background: #d1fae5; }
-.status-item.redirect { background: #dbeafe; }
-.status-item.client-error { background: #fef3c7; }
-.status-item.server-error { background: #fee2e2; }
+.status-item.success {
+  background: #d1fae5;
+}
+.status-item.redirect {
+  background: #dbeafe;
+}
+.status-item.client-error {
+  background: #fef3c7;
+}
+.status-item.server-error {
+  background: #fee2e2;
+}
 
-.status-code { font-size: 0.625rem; font-weight: 600; display: block; }
-.status-item.success .status-code { color: #059669; }
-.status-item.redirect .status-code { color: #1d4ed8; }
-.status-item.client-error .status-code { color: #b45309; }
-.status-item.server-error .status-code { color: #dc2626; }
+.status-code {
+  font-size: 0.625rem;
+  font-weight: 600;
+  display: block;
+}
+.status-item.success .status-code {
+  color: #059669;
+}
+.status-item.redirect .status-code {
+  color: #1d4ed8;
+}
+.status-item.client-error .status-code {
+  color: #b45309;
+}
+.status-item.server-error .status-code {
+  color: #dc2626;
+}
 
-.status-count { font-size: 0.875rem; font-weight: 700; color: #1f2937; }
+.status-count {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #1f2937;
+}
 
 /* Filters Bar */
 .filters-bar {
@@ -1326,10 +1532,14 @@ onMounted(() => {
   cursor: pointer;
   padding: 0.25rem;
 }
-.btn-text:hover { color: #374151; }
+.btn-text:hover {
+  color: #374151;
+}
 
 /* Data Table */
-.logs-table-wrap { overflow-x: auto; }
+.logs-table-wrap {
+  overflow-x: auto;
+}
 
 .data-table {
   width: 100%;
@@ -1339,7 +1549,10 @@ onMounted(() => {
   border-radius: 4px;
 }
 
-.data-table.compact td, .data-table.compact th { padding: 0.375rem 0.5rem; }
+.data-table.compact td,
+.data-table.compact th {
+  padding: 0.375rem 0.5rem;
+}
 
 .data-table th {
   text-align: left;
@@ -1353,9 +1566,16 @@ onMounted(() => {
   white-space: nowrap;
 }
 
-.data-table th.sortable { cursor: pointer; }
-.data-table th.sortable:hover { color: #374151; }
-.data-table th i { font-size: 0.5rem; margin-left: 0.25rem; }
+.data-table th.sortable {
+  cursor: pointer;
+}
+.data-table th.sortable:hover {
+  color: #374151;
+}
+.data-table th i {
+  font-size: 0.5rem;
+  margin-left: 0.25rem;
+}
 
 .data-table td {
   padding: 0.375rem 0.75rem;
@@ -1364,14 +1584,30 @@ onMounted(() => {
   vertical-align: middle;
 }
 
-.data-table tbody tr:hover { background: #f9fafb; }
-.data-table tbody tr.error-row { background: #fef2f2; }
+.data-table tbody tr:hover {
+  background: #f9fafb;
+}
+.data-table tbody tr.error-row {
+  background: #fef2f2;
+}
 
-.cell-time { color: #9ca3af; white-space: nowrap; font-size: 0.6875rem; }
-.cell-time.fast { color: #059669; }
-.cell-time.moderate { color: #b45309; }
-.cell-time.slow { color: #ea580c; }
-.cell-time.critical { color: #dc2626; }
+.cell-time {
+  color: #9ca3af;
+  white-space: nowrap;
+  font-size: 0.6875rem;
+}
+.cell-time.fast {
+  color: #059669;
+}
+.cell-time.moderate {
+  color: #b45309;
+}
+.cell-time.slow {
+  color: #ea580c;
+}
+.cell-time.critical {
+  color: #dc2626;
+}
 
 .cell-domain {
   max-width: 100px;
@@ -1397,9 +1633,15 @@ onMounted(() => {
   font-size: 0.6875rem;
 }
 
-.cell-size { color: #9ca3af; font-size: 0.6875rem; white-space: nowrap; }
+.cell-size {
+  color: #9ca3af;
+  font-size: 0.6875rem;
+  white-space: nowrap;
+}
 
-.cell-actions { text-align: right; }
+.cell-actions {
+  text-align: right;
+}
 
 .btn-icon-sm {
   padding: 0.25rem;
@@ -1409,7 +1651,10 @@ onMounted(() => {
   cursor: pointer;
   border-radius: 2px;
 }
-.btn-icon-sm:hover { background: #f3f4f6; color: #374151; }
+.btn-icon-sm:hover {
+  background: #f3f4f6;
+  color: #374151;
+}
 
 .method-tag {
   display: inline-block;
@@ -1419,11 +1664,26 @@ onMounted(() => {
   font-weight: 600;
 }
 
-.method-tag.get { background: #dbeafe; color: #1d4ed8; }
-.method-tag.post { background: #d1fae5; color: #059669; }
-.method-tag.put { background: #fef3c7; color: #b45309; }
-.method-tag.delete { background: #fee2e2; color: #dc2626; }
-.method-tag.patch { background: #ede9fe; color: #7c3aed; }
+.method-tag.get {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+.method-tag.post {
+  background: #d1fae5;
+  color: #059669;
+}
+.method-tag.put {
+  background: #fef3c7;
+  color: #b45309;
+}
+.method-tag.delete {
+  background: #fee2e2;
+  color: #dc2626;
+}
+.method-tag.patch {
+  background: #ede9fe;
+  color: #7c3aed;
+}
 
 .status-tag {
   display: inline-block;
@@ -1433,10 +1693,22 @@ onMounted(() => {
   font-weight: 600;
 }
 
-.status-tag.s2xx { background: #d1fae5; color: #059669; }
-.status-tag.s3xx { background: #dbeafe; color: #1d4ed8; }
-.status-tag.s4xx { background: #fef3c7; color: #b45309; }
-.status-tag.s5xx { background: #fee2e2; color: #dc2626; }
+.status-tag.s2xx {
+  background: #d1fae5;
+  color: #059669;
+}
+.status-tag.s3xx {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+.status-tag.s4xx {
+  background: #fef3c7;
+  color: #b45309;
+}
+.status-tag.s5xx {
+  background: #fee2e2;
+  color: #dc2626;
+}
 
 .tag {
   display: inline-block;
@@ -1447,7 +1719,8 @@ onMounted(() => {
   color: #6b7280;
 }
 
-.empty-inline, .loading-inline {
+.empty-inline,
+.loading-inline {
   padding: 1.5rem;
   text-align: center;
   color: #9ca3af;
@@ -1471,11 +1744,20 @@ onMounted(() => {
   font-size: 0.6875rem;
   cursor: pointer;
 }
-.btn-sm:disabled { opacity: 0.5; cursor: not-allowed; }
-.btn-sm:hover:not(:disabled) { background: #f9fafb; }
+.btn-sm:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.btn-sm:hover:not(:disabled) {
+  background: #f9fafb;
+}
 
 /* Alerts Panel */
-.alerts-panel { display: flex; flex-direction: column; gap: 0.375rem; }
+.alerts-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
 
 .alert-row {
   display: flex;
@@ -1486,10 +1768,18 @@ onMounted(() => {
   background: #fef2f2;
 }
 
-.alert-row.warning { background: #fffbeb; }
-.alert-row.critical { background: #fef2f2; }
-.alert-row.warning i { color: #d97706; }
-.alert-row.critical i { color: #dc2626; }
+.alert-row.warning {
+  background: #fffbeb;
+}
+.alert-row.critical {
+  background: #fef2f2;
+}
+.alert-row.warning i {
+  color: #d97706;
+}
+.alert-row.critical i {
+  color: #dc2626;
+}
 
 .alert-text {
   flex: 1;
@@ -1498,8 +1788,14 @@ onMounted(() => {
   gap: 0.125rem;
 }
 
-.alert-text strong { font-size: 0.75rem; color: #1f2937; }
-.alert-text span { font-size: 0.6875rem; color: #6b7280; }
+.alert-text strong {
+  font-size: 0.75rem;
+  color: #1f2937;
+}
+.alert-text span {
+  font-size: 0.6875rem;
+  color: #6b7280;
+}
 
 /* Hourly Chart */
 .hourly-chart {
@@ -1518,7 +1814,10 @@ onMounted(() => {
   opacity: 0.7;
 }
 
-.hour-bar.highlight { background: #1d4ed8; opacity: 1; }
+.hour-bar.highlight {
+  background: #1d4ed8;
+  opacity: 1;
+}
 
 .hourly-labels {
   display: flex;
@@ -1538,7 +1837,9 @@ onMounted(() => {
   font-size: 0.75rem;
 }
 
-.empty-state-sm i { color: #22c55e; }
+.empty-state-sm i {
+  color: #22c55e;
+}
 
 .btn-primary {
   padding: 0.5rem 1rem;
@@ -1549,13 +1850,27 @@ onMounted(() => {
   font-size: 0.8125rem;
   cursor: pointer;
 }
-.btn-primary:hover { background: #2563eb; }
+.btn-primary:hover {
+  background: #2563eb;
+}
 
 @media (max-width: 768px) {
-  .stats-grid { grid-template-columns: repeat(2, 1fr); }
-  .two-col { grid-template-columns: 1fr; }
-  .distribution-row { grid-template-columns: 1fr; }
-  .filters-bar { flex-direction: column; align-items: stretch; }
-  .insights-bar { flex-direction: column; gap: 0.5rem; }
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .two-col {
+    grid-template-columns: 1fr;
+  }
+  .distribution-row {
+    grid-template-columns: 1fr;
+  }
+  .filters-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .insights-bar {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
 }
 </style>
