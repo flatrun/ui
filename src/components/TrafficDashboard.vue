@@ -94,10 +94,10 @@
             </span>
             <span class="stat-sub">p95: {{ formatTime(estimatedP95) }}</span>
           </div>
-          <div class="stat-card" :class="{ error: globalErrorRate > 5 }">
+          <div class="stat-card" :class="{ error: globalErrorRate > THRESHOLDS.ERROR_RATE_WARNING }">
             <div class="stat-header">
               <span class="stat-label">Error Rate</span>
-              <span v-if="globalErrorRate > 5" class="trend down">high</span>
+              <span v-if="globalErrorRate > THRESHOLDS.ERROR_RATE_WARNING" class="trend down">high</span>
             </div>
             <span class="stat-value">{{ globalErrorRate }}%</span>
             <div class="error-breakdown">
@@ -120,7 +120,10 @@
                 v-for="dep in domainStats"
                 :key="dep.name"
                 class="deployment-row"
-                :class="{ warning: dep.error_rate > 5, critical: dep.error_rate > 10 }"
+                :class="{
+                  warning: dep.error_rate > THRESHOLDS.ERROR_RATE_WARNING,
+                  critical: dep.error_rate > THRESHOLDS.ERROR_RATE_CRITICAL,
+                }"
                 @click="navigateToDeploymentLogs(dep.name)"
               >
                 <div class="dep-main">
@@ -135,10 +138,12 @@
                 </div>
                 <div class="dep-stats">
                   <span class="dep-stat">{{ formatNumber(dep.total_requests) }}</span>
-                  <span class="dep-stat" :class="{ slow: dep.avg_response_time > 500 }">
+                  <span class="dep-stat" :class="{ slow: dep.avg_response_time > THRESHOLDS.RESPONSE_SLOW }">
                     {{ formatTime(dep.avg_response_time) }}
                   </span>
-                  <span class="dep-stat" :class="{ high: dep.error_rate > 5 }"> {{ dep.error_rate.toFixed(1) }}% </span>
+                  <span class="dep-stat" :class="{ high: dep.error_rate > THRESHOLDS.ERROR_RATE_WARNING }">
+                    {{ dep.error_rate.toFixed(1) }}%
+                  </span>
                 </div>
                 <i class="pi pi-chevron-right" />
               </div>
@@ -349,9 +354,7 @@
               <strong>{{ alert.title }}</strong>
               <span>{{ alert.description }}</span>
             </div>
-            <button v-if="alert.action" class="btn-sm" @click="handleAlertAction(alert)">
-              {{ alert.actionLabel }}
-            </button>
+            <button v-if="alert.payload" class="btn-sm" @click="handleAlertAction(alert)">View</button>
           </div>
         </div>
 
@@ -453,6 +456,48 @@ const logsLoading = ref(false);
 const sortField = ref("created_at");
 const sortDir = ref<"asc" | "desc">("desc");
 
+// Detection Thresholds - can be moved to backend/config later
+const THRESHOLDS = {
+  // IP Analysis
+  SUSPICIOUS_IP_RATIO: 0.3, // 30% of total traffic
+  SUSPICIOUS_IP_REQUESTS: 500, // absolute request count
+  DOMINANT_IP_RATIO: 0.5, // 50% - triggers insight
+  INVESTIGATE_IP_RATIO: 0.7, // 70% - triggers recommendation
+
+  // Traffic Trends
+  TRAFFIC_CHANGE_SIGNIFICANT: 20, // ±20% change
+
+  // Error Rates
+  ERROR_RATE_WARNING: 5, // 5% - warning level
+  ERROR_RATE_CRITICAL: 10, // 10% - critical level
+
+  // Response Times (ms)
+  RESPONSE_SLOW: 500, // considered slow
+  RESPONSE_VERY_SLOW: 1000, // triggers insight
+  RESPONSE_CRITICAL: 2000, // triggers alert
+  SLOW_ENDPOINT_MIN: 200, // minimum to show in slow endpoints
+
+  // Server Errors
+  SERVER_ERRORS_HIGH: 100, // 5xx count threshold
+
+  // Display Limits
+  MAX_INSIGHTS: 3,
+  MAX_ALERTS: 5,
+  MAX_TOP_IPS: 5,
+  MAX_SLOW_ENDPOINTS: 10,
+  LOGS_PER_PAGE: 25,
+} as const;
+
+// Alert/Recommendation Types
+type InsightType = "info" | "warning" | "success" | "anomaly";
+type AlertSeverity = "warning" | "critical";
+type ActionType =
+  | { type: "filter_ip"; ip: string }
+  | { type: "filter_deployment"; deployment: string }
+  | { type: "filter_path"; path: string; deployment?: string }
+  | { type: "navigate"; tab: string }
+  | { type: "block_ip"; ip: string };
+
 const subTabs = [
   { id: "overview", label: "Overview", icon: "pi pi-chart-bar" },
   { id: "logs", label: "Logs", icon: "pi pi-list" },
@@ -465,33 +510,33 @@ const logFilters = reactive({
   method: "",
   path: "",
   source_ip: "",
-  limit: 25,
+  limit: THRESHOLDS.LOGS_PER_PAGE,
   offset: 0,
 });
 
 interface Insight {
   id: string;
-  type: "info" | "warning" | "success" | "anomaly";
+  type: InsightType;
   icon: string;
   text: string;
+  payload?: ActionType;
 }
 
 interface Recommendation {
   id: string;
-  severity: "warning" | "critical";
+  severity: AlertSeverity;
   icon: string;
   action: string;
-  handler: () => void;
+  payload: ActionType;
 }
 
 interface PerformanceAlert {
   id: string;
-  severity: string;
+  severity: AlertSeverity;
   icon: string;
   title: string;
   description: string;
-  action?: string;
-  actionLabel?: string;
+  payload?: ActionType;
 }
 
 const globalErrorRate = computed(() => {
@@ -526,14 +571,14 @@ const insights = computed((): Insight[] => {
   if (!stats.value) return [];
   const list: Insight[] = [];
 
-  if (requestsTrend.value > 20) {
+  if (requestsTrend.value > THRESHOLDS.TRAFFIC_CHANGE_SIGNIFICANT) {
     list.push({
       id: "traffic-up",
       type: "info",
       icon: "pi pi-arrow-up",
       text: `Traffic up ${requestsTrend.value}% vs previous period`,
     });
-  } else if (requestsTrend.value < -20) {
+  } else if (requestsTrend.value < -THRESHOLDS.TRAFFIC_CHANGE_SIGNIFICANT) {
     list.push({
       id: "traffic-down",
       type: "warning",
@@ -542,35 +587,38 @@ const insights = computed((): Insight[] => {
     });
   }
 
-  if (globalErrorRate.value > 10) {
+  if (globalErrorRate.value > THRESHOLDS.ERROR_RATE_CRITICAL) {
     list.push({
       id: "high-errors",
       type: "anomaly",
       icon: "pi pi-exclamation-circle",
       text: `Elevated error rate: ${globalErrorRate.value}%`,
+      payload: { type: "navigate", tab: "performance" },
     });
   }
 
-  if (stats.value.avg_response_time_ms > 1000) {
+  if (stats.value.avg_response_time_ms > THRESHOLDS.RESPONSE_VERY_SLOW) {
     list.push({
       id: "slow-response",
       type: "warning",
       icon: "pi pi-clock",
       text: `Slow avg response: ${formatTime(stats.value.avg_response_time_ms)}`,
+      payload: { type: "navigate", tab: "performance" },
     });
   }
 
   const topIP = stats.value.top_ips?.[0];
-  if (topIP && topIP.request_count > stats.value.total_requests * 0.5) {
+  if (topIP && topIP.request_count > stats.value.total_requests * THRESHOLDS.DOMINANT_IP_RATIO) {
     list.push({
       id: "dominant-ip",
       type: "anomaly",
       icon: "pi pi-user",
       text: `${topIP.ip} made ${Math.round((topIP.request_count / stats.value.total_requests) * 100)}% of requests`,
+      payload: { type: "filter_ip", ip: topIP.ip },
     });
   }
 
-  return list.slice(0, 3);
+  return list.slice(0, THRESHOLDS.MAX_INSIGHTS);
 });
 
 const domainStats = computed(() => {
@@ -582,7 +630,7 @@ const suspiciousIPs = computed(() => {
   if (!stats.value?.top_ips) return [];
   return stats.value.top_ips.filter((ip) => {
     const requestRatio = ip.request_count / Math.max(stats.value!.total_requests, 1);
-    return requestRatio > 0.3 || ip.request_count > 500;
+    return requestRatio > THRESHOLDS.SUSPICIOUS_IP_RATIO || ip.request_count > THRESHOLDS.SUSPICIOUS_IP_REQUESTS;
   });
 });
 
@@ -591,13 +639,13 @@ const recommendations = computed((): Recommendation[] => {
   const list: Recommendation[] = [];
 
   const topIP = stats.value.top_ips?.[0];
-  if (topIP && topIP.request_count > stats.value.total_requests * 0.7) {
+  if (topIP && topIP.request_count > stats.value.total_requests * THRESHOLDS.INVESTIGATE_IP_RATIO) {
     list.push({
-      id: "block-ip",
+      id: "investigate-ip",
       severity: "warning",
       icon: "pi pi-ban",
       action: `Investigate ${topIP.ip}`,
-      handler: () => filterByIP(topIP.ip),
+      payload: { type: "filter_ip", ip: topIP.ip },
     });
   }
 
@@ -607,20 +655,18 @@ const recommendations = computed((): Recommendation[] => {
       severity: "warning",
       icon: "pi pi-exclamation-triangle",
       action: "Review suspicious IPs",
-      handler: () => (activeSubTab.value = "overview"),
+      payload: { type: "navigate", tab: "overview" },
     });
   }
 
-  const slowest = stats.value.top_paths?.find((p) => p.avg_time_ms > 2000);
+  const slowest = stats.value.top_paths?.find((p) => p.avg_time_ms > THRESHOLDS.RESPONSE_CRITICAL);
   if (slowest) {
     list.push({
       id: "slow-endpoint",
       severity: "critical",
       icon: "pi pi-clock",
       action: "Investigate slow endpoint",
-      handler: () => {
-        activeSubTab.value = "performance";
-      },
+      payload: { type: "filter_path", path: slowest.path, deployment: slowest.deployment },
     });
   }
 
@@ -633,7 +679,7 @@ const allDomains = computed(() => {
 
 const topIPs = computed(() => {
   if (!stats.value?.top_ips) return [];
-  return stats.value.top_ips.slice(0, 5).map((ip) => ({
+  return stats.value.top_ips.slice(0, THRESHOLDS.MAX_TOP_IPS).map((ip) => ({
     ip: ip.ip,
     requests: ip.request_count,
     bytes: ip.bytes_sent,
@@ -646,49 +692,50 @@ const performanceAlerts = computed((): PerformanceAlert[] => {
 
   if (stats.value.deployment_stats) {
     stats.value.deployment_stats.forEach((dep) => {
-      if (dep.error_rate > 10) {
+      if (dep.error_rate > THRESHOLDS.ERROR_RATE_CRITICAL) {
         alerts.push({
           id: `error-${dep.name}`,
           severity: "critical",
           icon: "pi pi-times-circle",
           title: `High error rate: ${dep.name}`,
           description: `${dep.error_rate.toFixed(1)}% of requests failing`,
-          action: "view",
-          actionLabel: "View",
+          payload: { type: "filter_deployment", deployment: dep.name },
         });
       }
-      if (dep.avg_response_time > 2000) {
+      if (dep.avg_response_time > THRESHOLDS.RESPONSE_CRITICAL) {
         alerts.push({
           id: `slow-${dep.name}`,
           severity: "warning",
           icon: "pi pi-clock",
           title: `Slow responses: ${dep.name}`,
           description: `Avg ${formatTime(dep.avg_response_time)}`,
+          payload: { type: "filter_deployment", deployment: dep.name },
         });
       }
     });
   }
 
   const serverErrors = stats.value.by_status_group?.["5xx"] || 0;
-  if (serverErrors > 100) {
+  if (serverErrors > THRESHOLDS.SERVER_ERRORS_HIGH) {
     alerts.push({
       id: "5xx-high",
       severity: "critical",
       icon: "pi pi-server",
       title: "Elevated server errors",
       description: `${formatNumber(serverErrors)} 5xx errors`,
+      payload: { type: "navigate", tab: "logs" },
     });
   }
 
-  return alerts.slice(0, 5);
+  return alerts.slice(0, THRESHOLDS.MAX_ALERTS);
 });
 
 const slowEndpoints = computed(() => {
   if (!stats.value?.top_paths) return [];
   return stats.value.top_paths
-    .filter((p) => p.avg_time_ms > 200)
+    .filter((p) => p.avg_time_ms > THRESHOLDS.SLOW_ENDPOINT_MIN)
     .sort((a, b) => b.avg_time_ms - a.avg_time_ms)
-    .slice(0, 10)
+    .slice(0, THRESHOLDS.MAX_SLOW_ENDPOINTS)
     .map((p) => ({
       path: p.path,
       deployment: p.deployment,
@@ -843,12 +890,32 @@ const nextPage = () => {
   fetchLogs();
 };
 
-const handleRecommendation = (rec: Recommendation) => rec.handler();
+// Unified action handler for all alerts/recommendations
+const executeAction = (payload: ActionType) => {
+  switch (payload.type) {
+    case "filter_ip":
+      filterByIP(payload.ip);
+      break;
+    case "filter_deployment":
+      navigateToDeploymentLogs(payload.deployment);
+      break;
+    case "filter_path":
+      filterByPath(payload.path, payload.deployment || "");
+      break;
+    case "navigate":
+      activeSubTab.value = payload.tab;
+      break;
+    case "block_ip":
+      blockIP(payload.ip);
+      break;
+  }
+};
+
+const handleRecommendation = (rec: Recommendation) => executeAction(rec.payload);
 
 const handleAlertAction = (alert: PerformanceAlert) => {
-  if (alert.action === "view") {
-    const depName = alert.id.replace("error-", "").replace("slow-", "");
-    navigateToDeploymentLogs(depName);
+  if (alert.payload) {
+    executeAction(alert.payload);
   }
 };
 
@@ -882,9 +949,9 @@ const getStatusClass = (code: number) => {
 };
 
 const getTimeClass = (ms: number) => {
-  if (ms > 1000) return "critical";
-  if (ms > 500) return "slow";
-  if (ms > 200) return "moderate";
+  if (ms > THRESHOLDS.RESPONSE_VERY_SLOW) return "critical";
+  if (ms > THRESHOLDS.RESPONSE_SLOW) return "slow";
+  if (ms > THRESHOLDS.SLOW_ENDPOINT_MIN) return "moderate";
   return "fast";
 };
 
