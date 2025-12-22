@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
-import { securityApi, type SecurityHealthCheck } from "@/services/api";
+import { securityApi, type SecurityHealthCheck, type SecurityRefreshResponse } from "@/services/api";
 import type { SecurityEvent, SecurityStats, BlockedIP, ProtectedRoute } from "@/types";
 
 export const useSecurityStore = defineStore("security", () => {
@@ -172,6 +172,17 @@ export const useSecurityStore = defineStore("security", () => {
     }
   }
 
+  async function refreshScripts(): Promise<SecurityRefreshResponse> {
+    try {
+      const response = await securityApi.refreshScripts();
+      await fetchHealth();
+      return response.data;
+    } catch (e: any) {
+      error.value = e.response?.data?.error || e.message;
+      throw e;
+    }
+  }
+
   return {
     stats,
     events,
@@ -196,5 +207,6 @@ export const useSecurityStore = defineStore("security", () => {
     fetchRealtimeCaptureStatus,
     setRealtimeCapture,
     fetchHealth,
+    refreshScripts,
   };
 });
