@@ -228,7 +228,7 @@ onMounted(() => {
 <style scoped>
 .health-card {
   background: white;
-  border-radius: 12px;
+  border-radius: var(--radius-sm);
   border: 1px solid #e5e7eb;
   padding: 1.25rem;
 }
@@ -314,7 +314,7 @@ onMounted(() => {
 .check-category {
   padding: 1rem;
   background: #f9fafb;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
 }
 
 .category-header {
@@ -346,7 +346,7 @@ onMounted(() => {
   padding: 0.125rem 0.375rem;
   background: #fee2e2;
   color: #dc2626;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   font-size: 0.625rem;
   font-weight: 600;
   text-transform: uppercase;
@@ -356,7 +356,7 @@ onMounted(() => {
   font-size: 0.75rem;
   font-weight: 600;
   padding: 0.25rem 0.5rem;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
 }
 
 .category-status.passed {
@@ -395,7 +395,7 @@ onMounted(() => {
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 0.75rem;
-  border-radius: 6px;
+  border-radius: var(--radius-md);
   font-size: 0.8125rem;
 }
 
@@ -433,7 +433,7 @@ onMounted(() => {
   align-items: flex-start;
   gap: 0.5rem;
   padding: 0.625rem 0.875rem;
-  border-radius: 6px;
+  border-radius: var(--radius-md);
   font-size: 0.8125rem;
   line-height: 1.4;
 }
@@ -479,7 +479,7 @@ onMounted(() => {
   margin: 0.75rem 0 0 0;
   padding: 1rem;
   background: #f9fafb;
-  border-radius: 6px;
+  border-radius: var(--radius-md);
   font-size: 0.75rem;
   overflow-x: auto;
   color: #374151;
@@ -492,7 +492,7 @@ onMounted(() => {
   padding: 0.625rem 1rem;
   font-size: 0.875rem;
   font-weight: 500;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   border: none;
   cursor: pointer;
   transition: all 0.2s;

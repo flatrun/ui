@@ -954,7 +954,7 @@ onMounted(() => {
 
 .modal-container {
   background: white;
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   box-shadow: var(--shadow-xl);
   max-width: 90vw;
   animation: slideIn 0.2s ease;
@@ -1018,7 +1018,7 @@ onMounted(() => {
   width: 100%;
   padding: var(--space-2) var(--space-3);
   border: 1px solid var(--color-gray-200);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   font-size: var(--text-md);
 }
 
@@ -1033,7 +1033,7 @@ onMounted(() => {
   align-items: center;
   gap: var(--space-2);
   padding: var(--space-2) var(--space-4);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   font-weight: var(--font-medium);
   font-size: var(--text-md);
   cursor: pointer;
@@ -1081,7 +1081,7 @@ onMounted(() => {
 .view-mode-toggle {
   display: flex;
   border: 1px solid var(--color-gray-200);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   overflow: hidden;
   margin-left: var(--space-2);
 }
@@ -1126,7 +1126,7 @@ onMounted(() => {
   align-items: center;
   padding: var(--space-3);
   border: 1px solid var(--color-gray-200);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   cursor: pointer;
   transition: all var(--transition-base);
   position: relative;

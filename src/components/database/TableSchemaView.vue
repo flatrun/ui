@@ -237,7 +237,7 @@ onMounted(() => {
   margin: var(--space-4);
   background: white;
   border: 1px solid var(--color-gray-200);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   overflow: hidden;
 }
 
@@ -371,7 +371,7 @@ onMounted(() => {
 .index-item {
   padding: var(--space-3);
   background: var(--color-gray-50);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
 }
 
 .index-header {
@@ -425,7 +425,7 @@ onMounted(() => {
   align-items: center;
   gap: var(--space-2);
   padding: var(--space-2) var(--space-4);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   font-weight: var(--font-medium);
   font-size: var(--text-sm);
   cursor: pointer;

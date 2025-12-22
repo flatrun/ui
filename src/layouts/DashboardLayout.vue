@@ -415,7 +415,7 @@ onMounted(() => {
 
 .sidebar::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.2);
-  border-radius: 3px;
+  border-radius: var(--radius-sm);
 }
 
 .logo {
@@ -437,7 +437,7 @@ onMounted(() => {
   gap: 0.5rem;
   padding: 0.5rem;
   background: rgba(255, 255, 255, 0.05);
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   font-size: 0.8125rem;
   cursor: pointer;
   transition: background 0.2s;
@@ -579,13 +579,13 @@ onMounted(() => {
 .resource-bar {
   height: 4px;
   background: rgba(255, 255, 255, 0.1);
-  border-radius: 2px;
+  border-radius: var(--radius-xs);
   overflow: hidden;
 }
 
 .resource-fill {
   height: 100%;
-  border-radius: 2px;
+  border-radius: var(--radius-xs);
   transition: width 0.3s ease;
 }
 
@@ -628,7 +628,7 @@ onMounted(() => {
   padding: 0.5rem;
   background: rgba(239, 68, 68, 0.1);
   border: none;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   color: #f87171;
   cursor: pointer;
   transition: all 0.2s;
@@ -650,7 +650,7 @@ onMounted(() => {
   padding: 0.5rem;
   background: rgba(255, 255, 255, 0.05);
   border: none;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   color: #94a3b8;
   cursor: pointer;
   transition: all 0.2s;
@@ -728,7 +728,7 @@ onMounted(() => {
   align-items: center;
   gap: 0.375rem;
   padding: 0.375rem 0.75rem;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   font-size: 0.75rem;
   font-weight: 500;
 }
@@ -752,7 +752,7 @@ onMounted(() => {
   height: 36px;
   background: #f1f5f9;
   border: none;
-  border-radius: 6px;
+  border-radius: var(--radius-md);
   color: #64748b;
   cursor: pointer;
   transition: all 0.2s;

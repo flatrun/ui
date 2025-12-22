@@ -161,7 +161,7 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   background: white;
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   overflow: hidden;
   box-shadow: var(--shadow-sm);
 }
@@ -186,7 +186,7 @@ onUnmounted(() => {
   color: var(--color-danger-700);
   font-size: var(--text-sm);
   border: 1px solid var(--color-danger-200);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   margin: var(--space-4);
 }
 
@@ -246,7 +246,7 @@ onUnmounted(() => {
   margin-top: var(--space-1);
   background: white;
   border: 1px solid var(--color-gray-200);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   box-shadow: var(--shadow-lg);
   min-width: 160px;
   z-index: var(--z-dropdown);
@@ -316,7 +316,7 @@ onUnmounted(() => {
   align-items: center;
   gap: var(--space-2);
   padding: var(--space-2) var(--space-4);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   font-weight: var(--font-medium);
   font-size: var(--text-sm);
   cursor: pointer;

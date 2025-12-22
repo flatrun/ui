@@ -157,7 +157,7 @@ defineProps<{
 .panel-section {
   background: white;
   border: 1px solid var(--color-gray-200);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   margin-bottom: var(--space-4);
   overflow: hidden;
 }
@@ -219,7 +219,7 @@ defineProps<{
   justify-content: center;
   padding: var(--space-8);
   border: 2px dashed var(--color-gray-300);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   color: var(--color-gray-400);
 }
 
@@ -256,7 +256,7 @@ defineProps<{
   align-items: center;
   gap: var(--space-2);
   padding: var(--space-2) var(--space-4);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   font-weight: var(--font-medium);
   font-size: var(--text-sm);
   cursor: pointer;

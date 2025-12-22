@@ -465,7 +465,7 @@ onMounted(() => {
   gap: var(--space-6);
   background: white;
   padding: var(--space-4) var(--space-6);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   border: 1px solid var(--color-gray-200);
 }
 
@@ -545,7 +545,7 @@ onMounted(() => {
 
 .volume-card {
   background: white;
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   border: 1px solid var(--color-gray-200);
   overflow: hidden;
   transition: all var(--transition-base);
@@ -581,7 +581,7 @@ onMounted(() => {
   width: 44px;
   height: 44px;
   background: var(--color-info-50);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -753,7 +753,7 @@ onMounted(() => {
   align-items: center;
   gap: var(--space-2);
   padding: var(--space-2) var(--space-4);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   font-weight: var(--font-medium);
   font-size: var(--text-md);
   cursor: pointer;

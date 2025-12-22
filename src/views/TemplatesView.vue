@@ -318,7 +318,7 @@ onUnmounted(() => {
   gap: 0.5rem;
   background: white;
   border: 1px solid #e5e7eb;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   padding: 0.5rem 0.75rem;
   min-width: 240px;
 }
@@ -346,7 +346,7 @@ onUnmounted(() => {
   gap: 0.25rem;
   background: white;
   border: 1px solid #e5e7eb;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   padding: 0.25rem;
 }
 
@@ -354,7 +354,7 @@ onUnmounted(() => {
   padding: 0.375rem 0.75rem;
   border: none;
   background: transparent;
-  border-radius: 6px;
+  border-radius: var(--radius-md);
   font-size: 0.8125rem;
   font-weight: 500;
   color: #6b7280;
@@ -378,7 +378,7 @@ onUnmounted(() => {
   align-items: center;
   gap: 0.375rem;
   padding: 0.5rem 0.875rem;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   font-size: 0.8125rem;
   font-weight: 500;
   cursor: pointer;
@@ -411,7 +411,7 @@ onUnmounted(() => {
   padding: 4rem 2rem;
   text-align: center;
   background: white;
-  border-radius: 12px;
+  border-radius: var(--radius-sm);
   border: 1px solid #e5e7eb;
 }
 
@@ -425,7 +425,7 @@ onUnmounted(() => {
   width: 64px;
   height: 64px;
   background: #f3f4f6;
-  border-radius: 16px;
+  border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -459,7 +459,7 @@ onUnmounted(() => {
 .template-card {
   background: white;
   border: 1px solid #e5e7eb;
-  border-radius: 12px;
+  border-radius: var(--radius-sm);
   overflow: hidden;
   cursor: pointer;
   transition: all 0.2s;
@@ -488,7 +488,7 @@ onUnmounted(() => {
   width: 48px;
   height: 48px;
   background: #f3f4f6;
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -515,7 +515,7 @@ onUnmounted(() => {
   color: #6b7280;
   background: #f3f4f6;
   padding: 0.25rem 0.5rem;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
 }
 
 .template-body {
@@ -556,7 +556,7 @@ onUnmounted(() => {
   padding: 0.625rem;
   background: #f3f4f6;
   border: none;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   font-size: 0.8125rem;
   font-weight: 500;
   color: #374151;
@@ -607,7 +607,7 @@ onUnmounted(() => {
   height: 28px;
   border: none;
   background: transparent;
-  border-radius: 6px;
+  border-radius: var(--radius-md);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -627,7 +627,7 @@ onUnmounted(() => {
   right: 0;
   background: white;
   border: 1px solid #e5e7eb;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   min-width: 140px;
   z-index: 100;
@@ -670,7 +670,7 @@ onUnmounted(() => {
 
 .modal-content {
   background: white;
-  border-radius: 12px;
+  border-radius: var(--radius-sm);
   max-width: 700px;
   width: 100%;
   max-height: 90vh;
@@ -696,7 +696,7 @@ onUnmounted(() => {
   width: 56px;
   height: 56px;
   background: #f3f4f6;
-  border-radius: 12px;
+  border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -727,7 +727,7 @@ onUnmounted(() => {
   height: 32px;
   border: none;
   background: #f3f4f6;
-  border-radius: 6px;
+  border-radius: var(--radius-md);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -760,7 +760,7 @@ onUnmounted(() => {
   margin-bottom: 1rem;
   background: #f3f4f6;
   padding: 0.25rem;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
 }
 
 .tab-btn {
@@ -768,7 +768,7 @@ onUnmounted(() => {
   padding: 0.5rem 0.75rem;
   border: none;
   background: transparent;
-  border-radius: 6px;
+  border-radius: var(--radius-md);
   font-size: 0.8125rem;
   font-weight: 500;
   color: #6b7280;
@@ -788,7 +788,7 @@ onUnmounted(() => {
 
 .code-block {
   background: #1f2937;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   padding: 1rem;
   overflow-x: auto;
 }

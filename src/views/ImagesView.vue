@@ -516,7 +516,7 @@ onMounted(() => {
   gap: var(--space-6);
   background: white;
   padding: var(--space-4) var(--space-6);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   border: 1px solid var(--color-gray-200);
 }
 
@@ -620,7 +620,7 @@ onMounted(() => {
 
 .image-card {
   background: white;
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   border: 1px solid var(--color-gray-200);
   overflow: hidden;
   transition: all var(--transition-base);
@@ -652,7 +652,7 @@ onMounted(() => {
   width: 40px;
   height: 40px;
   background: var(--color-info-50);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -730,7 +730,7 @@ onMounted(() => {
   align-items: center;
   gap: var(--space-2);
   padding: var(--space-2) var(--space-4);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   font-weight: var(--font-medium);
   font-size: var(--text-md);
   cursor: pointer;
@@ -803,7 +803,7 @@ onMounted(() => {
   gap: var(--space-3);
   padding: var(--space-3);
   background: var(--color-gray-50);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   border: 1px solid var(--color-gray-200);
 }
 
@@ -904,7 +904,7 @@ select.form-input {
   width: 100%;
   padding: var(--space-2) var(--space-3);
   border: 1px solid var(--color-gray-300);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   font-size: var(--text-sm);
   background: white;
   cursor: pointer;

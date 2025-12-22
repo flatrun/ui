@@ -2151,7 +2151,7 @@ onUnmounted(() => {
   align-items: flex-start;
   background: white;
   padding: var(--space-4) var(--space-5);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   border: 1px solid var(--color-gray-200);
 }
 
@@ -2217,7 +2217,7 @@ onUnmounted(() => {
   align-items: center;
   gap: var(--space-2);
   padding: var(--space-2) var(--space-4);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   font-weight: var(--font-medium);
   font-size: var(--text-md);
   cursor: pointer;
@@ -2290,7 +2290,7 @@ onUnmounted(() => {
   align-items: center;
   padding: var(--space-12);
   background: white;
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   text-align: center;
   gap: var(--space-4);
 }
@@ -2306,7 +2306,7 @@ onUnmounted(() => {
   gap: var(--space-1);
   background: var(--color-gray-100);
   padding: var(--space-1);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
 }
 
 .tab-btn {
@@ -2335,7 +2335,7 @@ onUnmounted(() => {
 
 .tab-content {
   background: white;
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   border: 1px solid var(--color-gray-200);
   min-height: 500px;
 }
@@ -2353,7 +2353,7 @@ onUnmounted(() => {
 
 .info-card {
   border: 1px solid var(--color-gray-200);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   overflow: hidden;
 }
 
@@ -2503,7 +2503,7 @@ onUnmounted(() => {
 
 .service-item {
   border: 1px solid var(--color-gray-200);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   padding: var(--space-3);
 }
 
@@ -2654,7 +2654,7 @@ onUnmounted(() => {
 .form-select {
   padding: var(--space-2) var(--space-3);
   border: 1px solid var(--color-gray-200);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   font-size: var(--text-md);
   background: white;
 }
@@ -2678,7 +2678,7 @@ onUnmounted(() => {
 
 .terminal-container {
   background: var(--color-gray-950);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   height: 500px;
   overflow: hidden;
 }
@@ -2733,7 +2733,7 @@ onUnmounted(() => {
 
 .env-table {
   border: 1px solid var(--color-gray-200);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   overflow: hidden;
 }
 
@@ -2810,7 +2810,7 @@ onUnmounted(() => {
   padding: var(--space-2) var(--space-4);
   border: none;
   background: transparent;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   font-size: var(--text-sm);
   font-weight: var(--font-medium);
   color: var(--color-gray-500);
@@ -2860,7 +2860,7 @@ onUnmounted(() => {
 }
 
 .config-editor {
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   overflow: hidden;
   border: 1px solid var(--color-gray-200);
 }
@@ -2984,7 +2984,7 @@ onUnmounted(() => {
   width: 100%;
   padding: var(--space-3);
   border: 1px solid var(--color-gray-200);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   font-size: var(--text-sm);
   transition: all var(--transition-base);
 }
@@ -3025,7 +3025,7 @@ onUnmounted(() => {
   padding: 0;
   background: var(--color-gray-100);
   border: none;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   color: var(--color-gray-600);
   cursor: pointer;
   transition: all var(--transition-base);
@@ -3123,7 +3123,7 @@ onUnmounted(() => {
 
 .delete-options {
   background: var(--color-gray-50);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   padding: var(--space-4);
   margin-bottom: var(--space-4);
 }
@@ -3182,7 +3182,7 @@ onUnmounted(() => {
   padding: var(--space-3);
   background: var(--color-danger-50);
   color: var(--color-danger-700);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   font-size: var(--text-sm);
   font-weight: var(--font-medium);
 }
@@ -3251,7 +3251,7 @@ onUnmounted(() => {
   gap: var(--space-2);
   padding: var(--space-2) var(--space-3);
   background: var(--color-gray-50);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   font-size: var(--text-sm);
 }
 
@@ -3296,7 +3296,7 @@ onUnmounted(() => {
   padding: var(--space-3);
   background: var(--color-warning-50);
   border: 1px solid var(--color-warning-200);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   color: var(--color-warning-800);
   font-size: var(--text-sm);
   margin-bottom: var(--space-3);
@@ -3314,7 +3314,7 @@ onUnmounted(() => {
   padding: var(--space-3);
   background: var(--color-info-50);
   border: 1px solid var(--color-info-200);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   color: var(--color-info-800);
   font-size: var(--text-sm);
 }
@@ -3411,7 +3411,7 @@ onUnmounted(() => {
   text-align: center;
   padding: var(--space-8);
   background: var(--color-gray-50);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   color: var(--color-gray-500);
 }
 
@@ -3446,7 +3446,7 @@ onUnmounted(() => {
   padding: var(--space-4);
   background: white;
   border: 1px solid var(--color-gray-200);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   transition: all var(--transition-base);
 }
 
@@ -3523,7 +3523,7 @@ onUnmounted(() => {
 .action-icon {
   width: 32px;
   height: 32px;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   background: var(--color-primary-100);
   color: var(--color-primary-600);
   display: flex;
@@ -3563,7 +3563,7 @@ onUnmounted(() => {
 
 .action-output {
   background: var(--color-gray-900);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   overflow: hidden;
 }
 
@@ -3640,7 +3640,7 @@ onUnmounted(() => {
   gap: 0.875rem;
   padding: 1rem 1.25rem;
   background: white;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   border: 1px solid #e5e7eb;
 }
 
@@ -3658,7 +3658,7 @@ onUnmounted(() => {
 .summary-icon {
   width: 42px;
   height: 42px;
-  border-radius: 6px;
+  border-radius: var(--radius-md);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -3712,7 +3712,7 @@ onUnmounted(() => {
   align-items: center;
   justify-content: space-between;
   background: white;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   border: 1px solid #e5e7eb;
   padding: 0.75rem 1rem;
 }
@@ -3744,7 +3744,7 @@ onUnmounted(() => {
   color: #9ca3af;
   padding: 0.125rem 0.5rem;
   background: #f3f4f6;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
 }
 
 .enable-bar-status.active {
@@ -3760,7 +3760,7 @@ onUnmounted(() => {
 
 .security-section {
   background: white;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   border: 1px solid #e5e7eb;
   overflow: hidden;
 }
@@ -3809,7 +3809,7 @@ onUnmounted(() => {
   align-items: center;
   gap: 0.25rem;
   padding: 0.375rem 0.75rem;
-  border-radius: 6px;
+  border-radius: var(--radius-md);
   transition: all 0.2s;
 }
 
@@ -3850,7 +3850,7 @@ onUnmounted(() => {
   padding: 0.25rem 0.5rem;
   background: #f3f4f6;
   border: 1px solid #e5e7eb;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   font-size: 0.75rem;
   color: #374151;
   cursor: pointer;
@@ -3885,7 +3885,7 @@ onUnmounted(() => {
   text-align: center;
   color: #9ca3af;
   background: #f9fafb;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   border: 1px dashed #e5e7eb;
 }
 
@@ -3937,7 +3937,7 @@ onUnmounted(() => {
   align-items: center;
   padding: 0.625rem 0.875rem;
   background: #f9fafb;
-  border-radius: 6px;
+  border-radius: var(--radius-md);
   border: 1px solid #e5e7eb;
   transition: all 0.2s;
 }
@@ -3993,7 +3993,7 @@ onUnmounted(() => {
 .burst-badge {
   font-size: 0.6875rem;
   padding: 0.125rem 0.375rem;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
 }
 
 .rate-badge {
@@ -4034,7 +4034,7 @@ onUnmounted(() => {
   align-items: center;
   background: white;
   border: 1px solid #d1d5db;
-  border-radius: 6px;
+  border-radius: var(--radius-md);
   overflow: hidden;
 }
 
@@ -4116,7 +4116,7 @@ onUnmounted(() => {
 
 .events-table {
   border: 1px solid #e5e7eb;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   overflow: hidden;
 }
 
@@ -4185,7 +4185,7 @@ onUnmounted(() => {
 .severity-badge {
   display: inline-block;
   padding: 0.125rem 0.375rem;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   font-size: 0.625rem;
   font-weight: 600;
   text-transform: uppercase;

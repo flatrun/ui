@@ -475,7 +475,7 @@ onUnmounted(() => {
 
 .terminal-container :deep(.xterm-viewport::-webkit-scrollbar-thumb) {
   background: #2a2e3d;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
 }
 
 .terminal-container :deep(.xterm-viewport::-webkit-scrollbar-thumb:hover) {

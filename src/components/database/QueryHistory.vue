@@ -189,7 +189,7 @@ onMounted(() => {
   flex-direction: column;
   height: 100%;
   background: white;
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   overflow: hidden;
 }
 
@@ -242,7 +242,7 @@ onMounted(() => {
   padding: var(--space-2) var(--space-3);
   padding-left: calc(var(--space-3) + 18px);
   border: 1px solid var(--color-gray-200);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   font-size: var(--text-sm);
 }
 
@@ -267,7 +267,7 @@ onMounted(() => {
   padding: var(--space-2) var(--space-4);
   background: none;
   border: none;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   font-size: var(--text-sm);
   font-weight: var(--font-medium);
   color: var(--color-gray-600);
@@ -320,7 +320,7 @@ onMounted(() => {
   margin-bottom: var(--space-2);
   background: var(--color-gray-50);
   border: 1px solid var(--color-gray-200);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   cursor: pointer;
   transition: all var(--transition-base);
 }
@@ -455,7 +455,7 @@ onMounted(() => {
 
 .modal-container {
   background: white;
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   box-shadow: var(--shadow-xl);
   width: 400px;
   max-width: 90vw;
@@ -529,7 +529,7 @@ onMounted(() => {
   align-items: center;
   gap: var(--space-2);
   padding: var(--space-2) var(--space-4);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   font-weight: var(--font-medium);
   font-size: var(--text-sm);
   cursor: pointer;

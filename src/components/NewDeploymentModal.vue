@@ -2265,7 +2265,7 @@ const handleClose = () => {
 .section-card {
   background: white;
   border: 1px solid var(--color-gray-200);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   overflow: hidden;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
@@ -2297,7 +2297,7 @@ const handleClose = () => {
 .section-icon {
   width: 36px;
   height: 36px;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   background: linear-gradient(135deg, var(--color-primary-100), var(--color-primary-50));
   color: var(--color-primary-600);
   display: flex;
@@ -2374,7 +2374,7 @@ const handleClose = () => {
   width: 100%;
   padding: var(--space-2) var(--space-3);
   border: 1px solid var(--color-gray-200);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   font-size: var(--text-md);
   color: var(--color-gray-900);
   background: white;
@@ -2428,7 +2428,7 @@ const handleClose = () => {
   gap: var(--space-2);
   padding: var(--space-2) var(--space-3);
   background: linear-gradient(135deg, var(--color-primary-50), var(--color-info-50));
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   font-family: var(--font-mono);
   font-size: var(--text-sm);
 }
@@ -2540,7 +2540,7 @@ const handleClose = () => {
 .template-icon {
   width: 36px;
   height: 36px;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   background: var(--color-gray-100);
   display: flex;
   align-items: center;
@@ -2618,7 +2618,7 @@ const handleClose = () => {
   display: flex;
   flex-direction: column;
   background: var(--color-gray-900);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   overflow: hidden;
 }
 
@@ -2872,7 +2872,7 @@ const handleClose = () => {
 .review-card {
   background: white;
   border: 1px solid var(--color-gray-100);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   overflow: hidden;
 }
 
@@ -2994,7 +2994,7 @@ const handleClose = () => {
   background: var(--color-gray-900);
   color: var(--color-gray-300);
   padding: var(--space-3);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   font-family: var(--font-mono);
   font-size: var(--text-xs);
   line-height: 1.5;
@@ -3022,7 +3022,7 @@ const handleClose = () => {
   align-items: center;
   gap: var(--space-2);
   padding: var(--space-2) var(--space-4);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   font-weight: var(--font-medium);
   font-size: var(--text-sm);
   cursor: pointer;
@@ -3156,7 +3156,7 @@ const handleClose = () => {
 .mode-card-icon {
   width: 48px;
   height: 48px;
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -3255,7 +3255,7 @@ const handleClose = () => {
   padding: var(--space-3);
   background: white;
   border: 1px solid var(--color-gray-200);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   cursor: pointer;
   text-align: left;
   transition: all 0.2s ease;
@@ -3274,7 +3274,7 @@ const handleClose = () => {
 .db-option-icon {
   width: 40px;
   height: 40px;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -3388,7 +3388,7 @@ const handleClose = () => {
   padding: var(--space-4);
   background: white;
   border: 2px solid var(--color-gray-200);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   cursor: pointer;
   text-align: left;
   transition: all 0.2s ease;
@@ -3406,7 +3406,7 @@ const handleClose = () => {
 .mode-icon {
   width: 36px;
   height: 36px;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   background: var(--color-gray-100);
   color: var(--color-gray-500);
   display: flex;
@@ -3508,7 +3508,7 @@ const handleClose = () => {
   background: var(--color-primary-50);
   color: var(--color-primary-600);
   border: none;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   font-size: var(--text-sm);
   font-weight: var(--font-medium);
   cursor: pointer;
@@ -3532,7 +3532,7 @@ const handleClose = () => {
   padding: var(--space-3);
   background: white;
   border: 1px solid var(--color-gray-200);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   cursor: pointer;
   text-align: left;
   transition: all 0.2s ease;
@@ -3551,7 +3551,7 @@ const handleClose = () => {
 .container-icon {
   width: 36px;
   height: 36px;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   background: var(--color-gray-100);
   color: var(--color-gray-500);
   display: flex;
@@ -3632,7 +3632,7 @@ const handleClose = () => {
   background: var(--color-primary-500);
   color: white;
   border: none;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   font-size: var(--text-sm);
   font-weight: var(--font-medium);
   cursor: pointer;
@@ -3698,7 +3698,7 @@ const handleClose = () => {
   background: var(--color-gray-900);
   color: var(--color-gray-100);
   padding: var(--space-3);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   font-size: var(--text-xs);
   font-family: var(--font-mono);
   overflow-x: auto;
@@ -3737,7 +3737,7 @@ const handleClose = () => {
   justify-content: center;
   background: var(--color-gray-100);
   color: var(--color-gray-600);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   flex-shrink: 0;
   font-size: var(--text-sm);
 }
@@ -3763,7 +3763,7 @@ const handleClose = () => {
   gap: var(--space-2);
   padding: var(--space-3);
   background: var(--color-info-50);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   margin-top: auto;
 }
 
@@ -3798,7 +3798,7 @@ const handleClose = () => {
   gap: var(--space-2);
   padding: var(--space-3);
   background: var(--color-success-50);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   margin-top: auto;
 }
 
@@ -3843,7 +3843,7 @@ const handleClose = () => {
   gap: var(--space-3);
   padding: var(--space-4);
   background: var(--color-gray-50);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   border: 1px solid var(--color-gray-200);
 }
 
@@ -3862,7 +3862,7 @@ const handleClose = () => {
 .registry-credentials .form-field input {
   padding: var(--space-2) var(--space-3);
   border: 1px solid var(--color-gray-300);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   font-size: var(--text-sm);
 }
 
@@ -3900,7 +3900,7 @@ const handleClose = () => {
   width: 100%;
   padding: var(--space-2) var(--space-3);
   border: 1px solid var(--color-gray-300);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   font-size: var(--text-sm);
 }
 
@@ -3938,7 +3938,7 @@ const handleClose = () => {
   width: 100%;
   padding: var(--space-2) var(--space-3);
   border: 1px solid var(--color-gray-300);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   font-size: var(--text-sm);
   background: white;
   cursor: pointer;
@@ -3976,7 +3976,7 @@ const handleClose = () => {
 .collapsible-section {
   background: white;
   border: 1px solid var(--color-gray-200);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   overflow: hidden;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
@@ -4069,7 +4069,7 @@ const handleClose = () => {
   padding: var(--space-4);
   background: white;
   border: 2px solid var(--color-gray-200);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   transition: all 0.2s ease;
 }
 

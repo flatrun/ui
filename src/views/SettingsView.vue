@@ -1192,7 +1192,7 @@ onMounted(() => {
   align-items: center;
   background: white;
   padding: 0.5rem;
-  border-radius: 12px;
+  border-radius: var(--radius-sm);
   border: 1px solid #e5e7eb;
 }
 
@@ -1208,7 +1208,7 @@ onMounted(() => {
   padding: 0.625rem 1rem;
   background: transparent;
   border: none;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   font-size: 0.875rem;
   font-weight: 500;
   color: #6b7280;
@@ -1235,7 +1235,7 @@ onMounted(() => {
   background: transparent;
   border: none;
   color: #6b7280;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   cursor: pointer;
   transition: all 0.2s;
 }
@@ -1257,7 +1257,7 @@ onMounted(() => {
   justify-content: center;
   padding: 4rem;
   background: white;
-  border-radius: 16px;
+  border-radius: var(--radius-sm);
   text-align: center;
   gap: 1rem;
 }
@@ -1286,7 +1286,7 @@ onMounted(() => {
 
 .settings-card {
   background: white;
-  border-radius: 12px;
+  border-radius: var(--radius-sm);
   border: 1px solid #e5e7eb;
   overflow: hidden;
 }
@@ -1318,7 +1318,7 @@ onMounted(() => {
   padding: 0.25rem 0.5rem;
   background: #f3f4f6;
   color: #6b7280;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   text-transform: uppercase;
   letter-spacing: 0.025em;
 }
@@ -1368,7 +1368,7 @@ onMounted(() => {
 .info-item code {
   background: #f3f4f6;
   padding: 0.25rem 0.5rem;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   font-family: "SF Mono", "Fira Code", monospace;
   font-size: 0.75rem;
   color: #374151;
@@ -1407,7 +1407,7 @@ onMounted(() => {
   padding: 0.625rem 0.75rem;
   background: #f9fafb;
   border: 1px solid #e5e7eb;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   font-size: 0.8125rem;
   font-weight: 500;
   color: #374151;
@@ -1457,7 +1457,7 @@ onMounted(() => {
 .config-item code {
   background: #f3f4f6;
   padding: 0.375rem 0.5rem;
-  border-radius: 6px;
+  border-radius: var(--radius-md);
   font-family: "SF Mono", "Fira Code", monospace;
   font-size: 0.8125rem;
   color: #374151;
@@ -1472,7 +1472,7 @@ onMounted(() => {
 .origins-list code {
   background: #f3f4f6;
   padding: 0.25rem 0.5rem;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   font-family: "SF Mono", "Fira Code", monospace;
   font-size: 0.75rem;
   color: #374151;
@@ -1484,7 +1484,7 @@ onMounted(() => {
   gap: 0.625rem;
   padding: 0.875rem;
   background: #eff6ff;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   margin-bottom: 1rem;
 }
 
@@ -1504,7 +1504,7 @@ onMounted(() => {
 .config-note code {
   background: #dbeafe;
   padding: 0.125rem 0.375rem;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   font-family: "SF Mono", "Fira Code", monospace;
   font-size: 0.75rem;
 }
@@ -1513,7 +1513,7 @@ onMounted(() => {
   background: #1f2937;
   color: #d1d5db;
   padding: 1rem;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   font-family: "SF Mono", "Fira Code", monospace;
   font-size: 0.75rem;
   line-height: 1.6;
@@ -1551,7 +1551,7 @@ onMounted(() => {
 .form-input {
   padding: 0.5rem 0.75rem;
   border: 1px solid #d1d5db;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   font-size: 0.875rem;
   color: #374151;
   background: white;
@@ -1573,7 +1573,7 @@ onMounted(() => {
 .form-select {
   padding: 0.5rem 2rem 0.5rem 0.75rem;
   border: 1px solid #d1d5db;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   font-size: 0.875rem;
   color: #374151;
   background: white
@@ -1669,7 +1669,7 @@ onMounted(() => {
   padding: 0.625rem 1rem;
   font-size: 0.875rem;
   font-weight: 500;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   border: none;
   cursor: pointer;
   transition: all 0.2s;
@@ -1786,7 +1786,7 @@ onMounted(() => {
   padding: 1rem;
   background: #f9fafb;
   border: 1px solid #e5e7eb;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
 }
 
 .credential-info {
@@ -1867,7 +1867,7 @@ onMounted(() => {
 .add-credential-form {
   background: #f9fafb;
   border: 1px solid #e5e7eb;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   padding: 1.25rem;
   margin-bottom: 1.5rem;
 }
@@ -1897,7 +1897,7 @@ onMounted(() => {
   width: 100%;
   padding: 0.5rem 0.75rem;
   border: 1px solid #d1d5db;
-  border-radius: 6px;
+  border-radius: var(--radius-md);
   font-size: 0.875rem;
   transition:
     border-color 0.2s,
@@ -1969,7 +1969,7 @@ onMounted(() => {
 
 .confirm-modal {
   background: white;
-  border-radius: 12px;
+  border-radius: var(--radius-sm);
   padding: 1.5rem;
   max-width: 400px;
   width: 90%;

@@ -50,7 +50,7 @@ defineEmits<{
 <style scoped>
 .deployment-card {
   background: white;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   overflow: hidden;
   display: flex;
   flex-direction: column;

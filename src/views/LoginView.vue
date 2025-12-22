@@ -144,7 +144,7 @@ const handleLogin = async () => {
   width: 100%;
   max-width: 420px;
   background: white;
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   box-shadow: var(--shadow-lg);
   padding: 2.5rem;
 }
@@ -198,7 +198,7 @@ const handleLogin = async () => {
   width: 100%;
   padding: 0.75rem 2.75rem 0.75rem 2.5rem;
   border: 1px solid var(--color-gray-300);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   font-size: var(--text-md);
   transition: all var(--transition-base);
 }
@@ -249,7 +249,7 @@ const handleLogin = async () => {
   background: var(--color-primary-500);
   color: white;
   border: none;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   font-size: var(--text-md);
   font-weight: var(--font-semibold);
   cursor: pointer;

@@ -304,7 +304,7 @@ onMounted(() => {
   align-items: center;
   gap: var(--space-2);
   padding: var(--space-2) var(--space-4);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   font-weight: var(--font-medium);
   font-size: var(--text-md);
   cursor: pointer;
@@ -353,7 +353,7 @@ onMounted(() => {
 
 .modal-container {
   background: white;
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   box-shadow: var(--shadow-xl);
   max-width: 500px;
   width: 90%;
@@ -410,7 +410,7 @@ onMounted(() => {
 
 .process-details {
   background: var(--color-gray-50);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   padding: var(--space-4);
   margin-bottom: var(--space-4);
 }
@@ -446,7 +446,7 @@ onMounted(() => {
   padding: var(--space-3);
   background: var(--color-warning-50);
   border: 1px solid var(--color-warning-200);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   color: var(--color-warning-800);
   font-size: var(--text-sm);
 }
