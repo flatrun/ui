@@ -220,6 +220,8 @@ const handleClose = () => {
 
 .output-section {
   margin-top: var(--space-4);
+  border-radius: var(--radius-md);
+  overflow: hidden;
 }
 
 .btn {
