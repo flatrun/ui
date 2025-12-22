@@ -214,6 +214,11 @@
         </div>
       </div>
 
+      <!-- Traffic Tab -->
+      <div v-show="activeTab === 'traffic'" class="tab-content">
+        <TrafficDashboard :auto-fetch="true" />
+      </div>
+
       <!-- Events Tab -->
       <div v-show="activeTab === 'events'" class="tab-content">
         <div class="stats-row">
@@ -425,6 +430,13 @@
 
       <!-- Health Tab -->
       <div v-show="activeTab === 'health'" class="tab-content">
+        <div class="health-actions">
+          <button class="btn btn-secondary" :disabled="refreshingScripts" @click="refreshSecurityScripts">
+            <i class="pi pi-sync" :class="{ 'pi-spin': refreshingScripts }" />
+            {{ refreshingScripts ? "Regenerating..." : "Regenerate Security Scripts" }}
+          </button>
+          <span class="health-actions-hint"> Regenerates Lua scripts with current agent IP and reloads nginx </span>
+        </div>
         <SecurityHealthCard :auto-fetch="true" />
       </div>
 
@@ -610,6 +622,7 @@ import { useSecurityStore } from "@/stores/security";
 import { useNotificationsStore } from "@/stores/notifications";
 import type { ProtectedRoute } from "@/types";
 import SecurityHealthCard from "@/components/SecurityHealthCard.vue";
+import TrafficDashboard from "@/components/TrafficDashboard.vue";
 
 const securityStore = useSecurityStore();
 const notifications = useNotificationsStore();
@@ -618,10 +631,11 @@ const loading = ref(false);
 const activeTab = ref("stats");
 
 const tabs = [
-  { id: "stats", label: "Dashboard", icon: "pi pi-chart-bar" },
-  { id: "events", label: "Events", icon: "pi pi-list" },
+  { id: "stats", label: "Overview", icon: "pi pi-chart-bar" },
+  { id: "traffic", label: "Traffic & Performance", icon: "pi pi-chart-line" },
+  { id: "events", label: "Security Events", icon: "pi pi-list" },
   { id: "blocked", label: "Blocked IPs", icon: "pi pi-ban" },
-  { id: "routes", label: "Protected Routes", icon: "pi pi-lock" },
+  { id: "routes", label: "Rate Limits", icon: "pi pi-lock" },
   { id: "health", label: "Health", icon: "pi pi-heart" },
   { id: "settings", label: "Settings", icon: "pi pi-cog" },
 ];
@@ -629,6 +643,7 @@ const tabs = [
 const { stats, events, eventsTotal, blockedIPs, protectedRoutes, securityEnabled, realtimeCapture } =
   storeToRefs(securityStore);
 const togglingRealtimeCapture = ref(false);
+const refreshingScripts = ref(false);
 
 const filters = reactive({
   severity: "",
@@ -716,6 +731,23 @@ const toggleRealtimeCapture = async () => {
     notifications.error("Failed", details ? `${errorMsg}: ${details}` : errorMsg);
   } finally {
     togglingRealtimeCapture.value = false;
+  }
+};
+
+const refreshSecurityScripts = async () => {
+  refreshingScripts.value = true;
+  try {
+    const result = await securityStore.refreshScripts();
+    const vhostCount = result.vhosts_updated?.length || 0;
+    notifications.success(
+      "Security Scripts Regenerated",
+      `Agent IP: ${result.agent_ip}, ${vhostCount} vhost(s) updated`,
+    );
+  } catch (e: any) {
+    const errorMsg = e.response?.data?.error || "Failed to refresh security scripts";
+    notifications.error("Failed", errorMsg);
+  } finally {
+    refreshingScripts.value = false;
   }
 };
 
@@ -987,6 +1019,21 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
+}
+
+.health-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+}
+
+.health-actions-hint {
+  font-size: 0.8125rem;
+  color: #6b7280;
 }
 
 .stats-row {
