@@ -408,6 +408,11 @@ export const databasesApi = {
       database,
     }),
   listUsers: (config: DatabaseConnectionConfig) => apiClient.post<{ users: UserInfo[] }>("/databases/users", config),
+  listUsersByDatabase: (config: DatabaseConnectionConfig, database: string) =>
+    apiClient.post<{ users: UserInfo[] }>("/databases/users/by-database", {
+      ...config,
+      database,
+    }),
   createDatabase: (config: DatabaseConnectionConfig, dbName: string) =>
     apiClient.post("/databases/create", { ...config, db_name: dbName }),
   createUser: (config: DatabaseConnectionConfig, username: string, password: string, host?: string) =>
@@ -601,7 +606,14 @@ export const securityApi = {
   getDeploymentSecurity: (name: string) =>
     apiClient.get<{ security: DeploymentSecurityConfig }>(`/deployments/${name}/security`),
   updateDeploymentSecurity: (name: string, config: DeploymentSecurityConfig) =>
-    apiClient.put<{ security: DeploymentSecurityConfig }>(`/deployments/${name}/security`, config),
+    apiClient.put<{
+      security: DeploymentSecurityConfig;
+      hook_status?: {
+        has_hook: boolean;
+        hook_in_locations: boolean;
+        vhost_regenerated: boolean;
+      };
+    }>(`/deployments/${name}/security`, config),
   getDeploymentEvents: (name: string, limit?: number) =>
     apiClient.get<{ events: SecurityEvent[]; total: number; deployment: string }>(
       `/deployments/${name}/security/events`,
@@ -616,7 +628,17 @@ export const securityApi = {
     apiClient.put<{ realtime_capture: boolean; message: string }>("/security/realtime-capture", { enabled }),
 
   getHealth: () => apiClient.get<SecurityHealthCheck>("/security/health"),
+
+  refreshScripts: () => apiClient.post<SecurityRefreshResponse>("/security/refresh"),
 };
+
+export interface SecurityRefreshResponse {
+  success: boolean;
+  agent_ip: string;
+  vhosts_updated: string[];
+  nginx_reloaded: boolean;
+  error?: string;
+}
 
 export interface SecurityHealthCheck {
   status: "healthy" | "degraded" | "broken" | "disabled";
@@ -626,3 +648,88 @@ export interface SecurityHealthCheck {
   recommendations: string[];
   details?: Record<string, any>;
 }
+
+export interface TrafficLog {
+  id: number;
+  deployment_name: string;
+  request_path: string;
+  request_method: string;
+  status_code: number;
+  source_ip: string;
+  response_time_ms: number;
+  bytes_sent: number;
+  request_length: number;
+  upstream_time_ms?: number;
+  created_at: string;
+}
+
+export interface TrafficFilter {
+  deployment?: string;
+  method?: string;
+  status_code?: number;
+  status_group?: string;
+  source_ip?: string;
+  path?: string;
+  start_time?: string;
+  end_time?: string;
+  limit?: number;
+  offset?: number;
+}
+
+export interface PathStats {
+  path: string;
+  request_count: number;
+  avg_time_ms: number;
+  error_count: number;
+}
+
+export interface IPTrafficStats {
+  ip: string;
+  request_count: number;
+  bytes_sent: number;
+  last_seen: string;
+}
+
+export interface HourlyStats {
+  hour: string;
+  request_count: number;
+}
+
+export interface DeploymentTrafficStats {
+  name: string;
+  total_requests: number;
+  avg_response_time: number;
+  status_2xx: number;
+  status_3xx: number;
+  status_4xx: number;
+  status_5xx: number;
+  error_rate: number;
+}
+
+export interface TrafficStats {
+  total_requests: number;
+  total_bytes: number;
+  avg_response_time_ms: number;
+  by_status_group: Record<string, number>;
+  by_deployment: Record<string, number>;
+  by_method: Record<string, number>;
+  top_paths: PathStats[];
+  top_ips: IPTrafficStats[];
+  requests_per_hour: HourlyStats[];
+  deployment_stats: DeploymentTrafficStats[];
+}
+
+export const trafficApi = {
+  getLogs: (params?: TrafficFilter) =>
+    apiClient.get<{ logs: TrafficLog[]; total: number; limit: number; offset: number }>("/traffic/logs", { params }),
+
+  getStats: (params?: { deployment?: string; since?: string }) =>
+    apiClient.get<{ stats: TrafficStats }>("/traffic/stats", { params }),
+
+  cleanup: (days?: number) => apiClient.post<{ deleted: number }>("/traffic/cleanup", { days }),
+
+  getDeploymentStats: (name: string, since?: string) =>
+    apiClient.get<{ deployment: string; stats: TrafficStats }>(`/deployments/${name}/traffic/stats`, {
+      params: since ? { since } : undefined,
+    }),
+};

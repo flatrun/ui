@@ -2,7 +2,7 @@
   <Teleport to="body">
     <Transition name="modal">
       <div v-if="visible" class="modal-overlay" @click.self="handleOverlayClick">
-        <div class="modal-container" :class="[sizeClass, { 'modal-fullscreen': fullscreen }]">
+        <div class="modal-container" :class="[sizeClass, { 'modal-fullscreen': fullscreen, 'no-radius': noPadding }]">
           <div class="modal-header" :class="{ 'header-accent': accentHeader }">
             <div class="header-content">
               <slot name="header">
@@ -24,7 +24,7 @@
             </button>
           </div>
 
-          <div class="modal-body">
+          <div class="modal-body" :class="{ 'no-padding': noPadding }">
             <slot />
           </div>
 
@@ -53,6 +53,7 @@ const props = withDefaults(
     closeOnOverlay?: boolean;
     accentHeader?: boolean;
     fullscreen?: boolean;
+    noPadding?: boolean;
   }>(),
   {
     title: "",
@@ -65,6 +66,7 @@ const props = withDefaults(
     closeOnOverlay: true,
     accentHeader: false,
     fullscreen: false,
+    noPadding: false,
   },
 );
 
@@ -109,6 +111,10 @@ const handleOverlayClick = () => {
   width: 100%;
   max-height: 90vh;
   overflow: hidden;
+}
+
+.modal-container.no-radius {
+  border-radius: 0;
 }
 
 .modal-sm {
@@ -279,6 +285,10 @@ const handleOverlayClick = () => {
   padding: var(--space-6);
   flex: 1;
   overflow-y: auto;
+}
+
+.modal-body.no-padding {
+  padding: 0;
 }
 
 .modal-footer {

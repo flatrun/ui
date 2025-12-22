@@ -97,24 +97,15 @@
       </DeploymentCard>
     </div>
 
-    <!-- Logs Modal -->
-    <div v-if="logsModal.visible" class="modal-overlay" @click.self="closeLogs">
-      <div class="modal-content logs-modal">
-        <div class="modal-header">
-          <h3>Logs: {{ logsModal.serviceName }}</h3>
-          <button class="btn btn-icon" @click="closeLogs">
-            <i class="pi pi-times" />
-          </button>
-        </div>
-        <div class="modal-body">
-          <div v-if="logsModal.loading" class="logs-loading">
-            <i class="pi pi-spin pi-spinner" />
-            <span>Loading logs...</span>
-          </div>
-          <pre v-else class="logs-content">{{ logsModal.content }}</pre>
-        </div>
-      </div>
-    </div>
+    <LogsModal
+      :visible="logsModal.visible"
+      :title="logsModal.serviceName"
+      subtitle="Service logs"
+      :logs="logsModal.content"
+      :loading="logsModal.loading"
+      @close="closeLogs"
+      @refresh="refreshLogs"
+    />
   </div>
 </template>
 
@@ -123,7 +114,9 @@ import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { infrastructureApi, type InfraService } from "@/services/api";
 import { useNotificationsStore } from "@/stores/notifications";
+import { executeWithServiceRestart } from "@/utils/resilientRequest";
 import DeploymentCard from "@/components/DeploymentCard.vue";
+import LogsModal from "@/components/LogsModal.vue";
 
 const router = useRouter();
 const notifications = useNotificationsStore();
@@ -150,6 +143,10 @@ const fetchServices = async () => {
   }
 };
 
+const isCriticalService = (name: string) => {
+  return name.toLowerCase().includes("nginx") || name.toLowerCase().includes("proxy");
+};
+
 const startService = async (name: string) => {
   actionLoading.value = name;
   try {
@@ -166,8 +163,27 @@ const startService = async (name: string) => {
 const stopService = async (name: string) => {
   actionLoading.value = name;
   try {
-    await infrastructureApi.stop(name);
-    notifications.success("Service Stopped", `${name} has been stopped`);
+    if (isCriticalService(name)) {
+      const { serviceRestarted } = await executeWithServiceRestart(
+        () => infrastructureApi.stop(name),
+        () => infrastructureApi.list(),
+        {
+          onWaiting: (waiting) => {
+            if (waiting) {
+              notifications.info("Waiting", `Waiting for API to become available...`);
+            }
+          },
+        },
+      );
+      if (serviceRestarted) {
+        notifications.success("Service Stopped", `${name} has been stopped (reconnected to API)`);
+      } else {
+        notifications.success("Service Stopped", `${name} has been stopped`);
+      }
+    } else {
+      await infrastructureApi.stop(name);
+      notifications.success("Service Stopped", `${name} has been stopped`);
+    }
     await fetchServices();
   } catch (e: any) {
     notifications.error("Error", `Failed to stop ${name}`);
@@ -179,8 +195,27 @@ const stopService = async (name: string) => {
 const restartService = async (name: string) => {
   actionLoading.value = name;
   try {
-    await infrastructureApi.restart(name);
-    notifications.success("Service Restarted", `${name} has been restarted`);
+    if (isCriticalService(name)) {
+      const { serviceRestarted } = await executeWithServiceRestart(
+        () => infrastructureApi.restart(name),
+        () => infrastructureApi.list(),
+        {
+          onWaiting: (waiting) => {
+            if (waiting) {
+              notifications.info("Reconnecting", `Service restarting, waiting for API...`);
+            }
+          },
+        },
+      );
+      if (serviceRestarted) {
+        notifications.success("Service Restarted", `${name} restarted successfully`);
+      } else {
+        notifications.success("Service Restarted", `${name} has been restarted`);
+      }
+    } else {
+      await infrastructureApi.restart(name);
+      notifications.success("Service Restarted", `${name} has been restarted`);
+    }
     await fetchServices();
   } catch (e: any) {
     notifications.error("Error", `Failed to restart ${name}`);
@@ -196,6 +231,11 @@ const showLogs = async (name: string) => {
     content: "",
     loading: true,
   };
+  await fetchLogs(name);
+};
+
+const fetchLogs = async (name: string) => {
+  logsModal.value.loading = true;
   try {
     const response = await infrastructureApi.logs(name, 200);
     logsModal.value.content = response.data.logs || "No logs available";
@@ -203,6 +243,12 @@ const showLogs = async (name: string) => {
     logsModal.value.content = "Failed to load logs";
   } finally {
     logsModal.value.loading = false;
+  }
+};
+
+const refreshLogs = () => {
+  if (logsModal.value.serviceName) {
+    fetchLogs(logsModal.value.serviceName);
   }
 };
 
@@ -453,78 +499,6 @@ onMounted(() => {
 .btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
-}
-
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
-.modal-content {
-  background: white;
-  border-radius: 16px;
-  max-width: 800px;
-  width: 90%;
-  max-height: 80vh;
-  display: flex;
-  flex-direction: column;
-}
-
-.logs-modal {
-  max-width: 900px;
-}
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem 1.25rem;
-  border-bottom: 1px solid #e5e7eb;
-}
-
-.modal-header h3 {
-  font-size: 1rem;
-  font-weight: 600;
-  color: #1f2937;
-  margin: 0;
-}
-
-.modal-body {
-  flex: 1;
-  overflow: auto;
-  padding: 1.25rem;
-}
-
-.logs-loading {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.75rem;
-  padding: 2rem;
-  color: #6b7280;
-}
-
-.logs-content {
-  background: #1f2937;
-  color: #d1d5db;
-  padding: 1rem;
-  border-radius: 8px;
-  font-family: "SF Mono", "Fira Code", monospace;
-  font-size: 0.75rem;
-  line-height: 1.6;
-  white-space: pre-wrap;
-  word-wrap: break-word;
-  margin: 0;
-  max-height: 60vh;
-  overflow: auto;
 }
 
 @media (max-width: 768px) {

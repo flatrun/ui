@@ -128,29 +128,11 @@
             <div class="actions-row">
               <button class="quick-action" @click="$router.push('/security')">
                 <div class="action-icon orange">
-                  <i class="pi pi-shield" />
+                  <i class="pi pi-chart-line" />
                 </div>
                 <div class="action-label">
-                  <span class="action-name">Security</span>
-                  <span class="action-hint">Events & IP blocking</span>
-                </div>
-              </button>
-              <button class="quick-action" :disabled="stats.stopped === 0" @click="startAllDeployments">
-                <div class="action-icon green">
-                  <i class="pi pi-play" />
-                </div>
-                <div class="action-label">
-                  <span class="action-name">Start All</span>
-                  <span class="action-hint">{{ stats.stopped }} stopped</span>
-                </div>
-              </button>
-              <button class="quick-action" :disabled="stats.running === 0" @click="stopAllDeployments">
-                <div class="action-icon red">
-                  <i class="pi pi-stop" />
-                </div>
-                <div class="action-label">
-                  <span class="action-name">Stop All</span>
-                  <span class="action-hint">{{ stats.running }} running</span>
+                  <span class="action-name">Monitoring</span>
+                  <span class="action-hint">Traffic & security</span>
                 </div>
               </button>
               <button class="quick-action" @click="$router.push('/templates')">
@@ -160,6 +142,24 @@
                 <div class="action-label">
                   <span class="action-name">Templates</span>
                   <span class="action-hint">Browse apps</span>
+                </div>
+              </button>
+              <button class="quick-action" @click="$router.push('/certificates')">
+                <div class="action-icon green">
+                  <i class="pi pi-lock" />
+                </div>
+                <div class="action-label">
+                  <span class="action-name">SSL Certs</span>
+                  <span class="action-hint">Manage certificates</span>
+                </div>
+              </button>
+              <button class="quick-action" @click="$router.push('/infrastructure')">
+                <div class="action-icon blue">
+                  <i class="pi pi-server" />
+                </div>
+                <div class="action-label">
+                  <span class="action-name">Infrastructure</span>
+                  <span class="action-hint">Nginx, databases</span>
                 </div>
               </button>
             </div>
@@ -454,36 +454,6 @@ const refreshData = () => {
   fetchData().then(() => {
     notifications.success("Updated", "Dashboard refreshed");
   });
-};
-
-const startAllDeployments = async () => {
-  notifications.info("Starting", "Starting all stopped deployments...");
-  for (const deployment of deployments.value) {
-    if (deployment.status === "stopped") {
-      try {
-        await deploymentsApi.start(deployment.name);
-      } catch (e) {
-        console.error(`Failed to start ${deployment.name}`);
-      }
-    }
-  }
-  await fetchData();
-  notifications.success("Completed", "All deployments started");
-};
-
-const stopAllDeployments = async () => {
-  notifications.info("Stopping", "Stopping all running deployments...");
-  for (const deployment of deployments.value) {
-    if (deployment.status === "running") {
-      try {
-        await deploymentsApi.stop(deployment.name);
-      } catch (e) {
-        console.error(`Failed to stop ${deployment.name}`);
-      }
-    }
-  }
-  await fetchData();
-  notifications.success("Completed", "All deployments stopped");
 };
 
 const onDeploymentCreated = () => {

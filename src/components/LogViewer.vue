@@ -322,7 +322,6 @@ onUnmounted(() => {
   flex-direction: column;
   height: 100%;
   background: var(--color-gray-950);
-  border-radius: var(--radius-md);
   overflow: hidden;
   position: relative;
 }

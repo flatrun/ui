@@ -1,5 +1,13 @@
 <template>
-  <BaseModal :visible="visible" :title="title" :subtitle="subtitle" icon="pi pi-file" size="lg" @close="emit('close')">
+  <BaseModal
+    :visible="visible"
+    :title="title"
+    :subtitle="subtitle"
+    icon="pi pi-file"
+    size="lg"
+    no-padding
+    @close="emit('close')"
+  >
     <div class="logs-modal-content">
       <LogViewer
         :logs="logs"
@@ -38,5 +46,6 @@ const emit = defineEmits(["close", "refresh"]);
 <style scoped>
 .logs-modal-content {
   height: 500px;
+  overflow: hidden;
 }
 </style>

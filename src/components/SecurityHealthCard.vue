@@ -21,16 +21,36 @@
 
     <div v-else-if="health" class="health-content">
       <div v-if="Object.keys(health.checks).length > 0" class="health-checks">
-        <h5>Configuration Checks</h5>
-        <div class="checks-grid">
-          <div
-            v-for="(passed, checkName) in health.checks"
-            :key="checkName"
-            class="check-item"
-            :class="{ passed, failed: !passed }"
-          >
-            <i :class="passed ? 'pi pi-check-circle' : 'pi pi-times-circle'" />
-            <span>{{ formatCheckName(String(checkName)) }}</span>
+        <div v-for="category in categorizedChecks" :key="category.id" class="check-category">
+          <div class="category-header">
+            <div class="category-title">
+              <i :class="category.icon" />
+              <h5>{{ category.label }}</h5>
+              <span v-if="category.id === 'connectivity'" class="critical-badge">Critical</span>
+            </div>
+            <span class="category-status" :class="getCategoryStatus(category)">
+              {{ getCategoryPassedCount(category) }}/{{ category.checks.length }}
+            </span>
+          </div>
+          <div class="checks-grid">
+            <div
+              v-for="checkName in category.checks"
+              :key="checkName"
+              class="check-item"
+              :class="{ passed: health.checks[checkName], failed: health.checks[checkName] === false }"
+              :title="getCheckDescription(checkName)"
+            >
+              <i
+                :class="
+                  health.checks[checkName]
+                    ? 'pi pi-check-circle'
+                    : health.checks[checkName] === false
+                      ? 'pi pi-times-circle'
+                      : 'pi pi-minus-circle'
+                "
+              />
+              <span>{{ formatCheckName(checkName) }}</span>
+            </div>
           </div>
         </div>
       </div>
@@ -71,9 +91,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { storeToRefs } from "pinia";
 import { useSecurityStore } from "@/stores/security";
+
+interface CheckCategory {
+  id: string;
+  label: string;
+  icon: string;
+  checks: string[];
+}
 
 const props = defineProps<{
   autoFetch?: boolean;
@@ -82,6 +109,54 @@ const props = defineProps<{
 const securityStore = useSecurityStore();
 const { health } = storeToRefs(securityStore);
 const loading = ref(false);
+
+const checkCategories: CheckCategory[] = [
+  {
+    id: "connectivity",
+    label: "Connectivity",
+    icon: "pi pi-wifi",
+    checks: ["nginx_can_reach_agent"],
+  },
+  {
+    id: "configuration",
+    label: "Configuration",
+    icon: "pi pi-cog",
+    checks: [
+      "security_lua_ip_injected",
+      "traffic_lua_ip_injected",
+      "traffic_lua_exists",
+      "nginx_conf_has_traffic_module",
+      "nginx_conf_has_global_traffic_logging",
+    ],
+  },
+  {
+    id: "deployments",
+    label: "Deployments",
+    icon: "pi pi-server",
+    checks: ["vhosts_have_security_hook"],
+  },
+];
+
+const checkDescriptions: Record<string, string> = {
+  nginx_can_reach_agent: "Verifies nginx container can reach the agent API for logging",
+  security_lua_ip_injected: "Checks if security.lua has the agent IP properly configured",
+  traffic_lua_ip_injected: "Checks if traffic.lua has the agent IP properly configured",
+  traffic_lua_exists: "Verifies traffic.lua exists in nginx container",
+  nginx_conf_has_traffic_module: "Checks if nginx.conf loads the traffic Lua module",
+  nginx_conf_has_global_traffic_logging: "Checks if global traffic logging is enabled",
+  vhosts_have_security_hook: "Verifies deployments with security enabled have the security hook",
+};
+
+const categorizedChecks = computed(() => {
+  if (!health.value?.checks) return [];
+
+  return checkCategories
+    .map((category) => ({
+      ...category,
+      checks: category.checks.filter((check) => check in health.value!.checks),
+    }))
+    .filter((category) => category.checks.length > 0);
+});
 
 const fetchHealth = async () => {
   loading.value = true;
@@ -124,6 +199,23 @@ const formatCheckName = (name: string): string => {
     .split("_")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(" ");
+};
+
+const getCheckDescription = (name: string): string => {
+  return checkDescriptions[name] || formatCheckName(name);
+};
+
+const getCategoryPassedCount = (category: CheckCategory): number => {
+  if (!health.value?.checks) return 0;
+  return category.checks.filter((check) => health.value!.checks[check] === true).length;
+};
+
+const getCategoryStatus = (category: CheckCategory): string => {
+  const passed = getCategoryPassedCount(category);
+  const total = category.checks.length;
+  if (passed === total) return "passed";
+  if (passed === 0) return "failed";
+  return "partial";
 };
 
 onMounted(() => {
@@ -213,7 +305,75 @@ onMounted(() => {
   gap: 1.25rem;
 }
 
-.health-checks h5,
+.health-checks {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.check-category {
+  padding: 1rem;
+  background: #f9fafb;
+  border-radius: 8px;
+}
+
+.category-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.category-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.category-title i {
+  color: #6b7280;
+  font-size: 0.875rem;
+}
+
+.category-title h5 {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.critical-badge {
+  padding: 0.125rem 0.375rem;
+  background: #fee2e2;
+  color: #dc2626;
+  border-radius: 4px;
+  font-size: 0.625rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.category-status {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+}
+
+.category-status.passed {
+  background: #d1fae5;
+  color: #059669;
+}
+
+.category-status.partial {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.category-status.failed {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
 .health-issues h5,
 .health-recommendations h5 {
   margin: 0 0 0.75rem 0;
