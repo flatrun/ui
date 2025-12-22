@@ -678,6 +678,7 @@ export interface TrafficFilter {
 
 export interface PathStats {
   path: string;
+  deployment: string;
   request_count: number;
   avg_time_ms: number;
   error_count: number;
