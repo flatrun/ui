@@ -539,23 +539,74 @@
           <div v-if="securitySettings.auto_block_enabled" class="card-body">
             <div class="form-grid">
               <div class="form-group">
-                <label class="form-label">Auto-Block Threshold</label>
-                <span class="form-hint">Number of security events before auto-blocking an IP</span>
-                <input
-                  v-model.number="securitySettings.auto_block_threshold"
-                  type="number"
-                  placeholder="50"
-                  class="form-input"
-                />
-              </div>
-
-              <div class="form-group">
                 <label class="form-label">Auto-Block Duration</label>
                 <span class="form-hint">How long to block IPs automatically (e.g., 24h, 1h, 30m)</span>
                 <input
                   v-model="securitySettings.auto_block_duration"
                   type="text"
                   placeholder="24h"
+                  class="form-input"
+                />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Detection Window</label>
+                <span class="form-hint">Time window for counting violations (e.g., 2m, 5m)</span>
+                <input
+                  v-model="securitySettings.detection_window"
+                  type="text"
+                  placeholder="2m"
+                  class="form-input"
+                />
+              </div>
+            </div>
+
+            <h4 class="subsection-title">Detection Thresholds</h4>
+            <p class="subsection-hint">
+              IPs exceeding these thresholds within the detection window will be auto-blocked.
+            </p>
+
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label">404 Responses</label>
+                <span class="form-hint">Max 404 errors (path probing)</span>
+                <input
+                  v-model.number="securitySettings.not_found_threshold"
+                  type="number"
+                  placeholder="10"
+                  class="form-input"
+                />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Auth Failures</label>
+                <span class="form-hint">Max 401/403 responses</span>
+                <input
+                  v-model.number="securitySettings.auth_failure_threshold"
+                  type="number"
+                  placeholder="5"
+                  class="form-input"
+                />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Unique Paths</label>
+                <span class="form-hint">Max different paths (scanning)</span>
+                <input
+                  v-model.number="securitySettings.unique_paths_threshold"
+                  type="number"
+                  placeholder="20"
+                  class="form-input"
+                />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Repeated Hits</label>
+                <span class="form-hint">Max hits to same path (hammering)</span>
+                <input
+                  v-model.number="securitySettings.repeated_hits_threshold"
+                  type="number"
+                  placeholder="30"
                   class="form-input"
                 />
               </div>
@@ -827,6 +878,11 @@ const securitySettings = reactive({
   auto_block_enabled: false,
   auto_block_threshold: 50,
   auto_block_duration: "24h",
+  detection_window: "2m",
+  not_found_threshold: 10,
+  auth_failure_threshold: 5,
+  unique_paths_threshold: 20,
+  repeated_hits_threshold: 30,
 });
 
 const savingSecurity = ref(false);
@@ -1002,6 +1058,11 @@ const fetchSettings = async () => {
       securitySettings.auto_block_enabled = data.security.auto_block_enabled ?? false;
       securitySettings.auto_block_threshold = data.security.auto_block_threshold || 50;
       securitySettings.auto_block_duration = data.security.auto_block_duration || "24h";
+      securitySettings.detection_window = data.security.detection_window || "2m";
+      securitySettings.not_found_threshold = data.security.not_found_threshold || 10;
+      securitySettings.auth_failure_threshold = data.security.auth_failure_threshold || 5;
+      securitySettings.unique_paths_threshold = data.security.unique_paths_threshold || 20;
+      securitySettings.repeated_hits_threshold = data.security.repeated_hits_threshold || 30;
     }
   } catch (e: any) {
     notifications.error("Error", "Failed to load settings");
@@ -1092,6 +1153,11 @@ const saveSecuritySettings = async () => {
       auto_block_enabled: securitySettings.auto_block_enabled,
       auto_block_threshold: securitySettings.auto_block_threshold,
       auto_block_duration: securitySettings.auto_block_duration,
+      detection_window: securitySettings.detection_window,
+      not_found_threshold: securitySettings.not_found_threshold,
+      auth_failure_threshold: securitySettings.auth_failure_threshold,
+      unique_paths_threshold: securitySettings.unique_paths_threshold,
+      repeated_hits_threshold: securitySettings.repeated_hits_threshold,
     });
 
     const data = response.data;
@@ -1122,6 +1188,11 @@ const saveSecuritySettings = async () => {
       securitySettings.auto_block_enabled = data.security.auto_block_enabled;
       securitySettings.auto_block_threshold = data.security.auto_block_threshold;
       securitySettings.auto_block_duration = data.security.auto_block_duration;
+      securitySettings.detection_window = data.security.detection_window;
+      securitySettings.not_found_threshold = data.security.not_found_threshold;
+      securitySettings.auth_failure_threshold = data.security.auth_failure_threshold;
+      securitySettings.unique_paths_threshold = data.security.unique_paths_threshold;
+      securitySettings.repeated_hits_threshold = data.security.repeated_hits_threshold;
     }
   } catch (e: any) {
     const errorMsg = e.response?.data?.error || "Failed to save security settings";
@@ -1546,6 +1617,21 @@ onMounted(() => {
 .form-hint {
   font-size: 0.75rem;
   color: #9ca3af;
+}
+
+.subsection-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+  margin: 1.25rem 0 0.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid #f3f4f6;
+}
+
+.subsection-hint {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-bottom: 1rem;
 }
 
 .form-input {
