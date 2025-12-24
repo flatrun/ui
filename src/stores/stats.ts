@@ -1,15 +1,6 @@
 import { defineStore } from "pinia";
 import { ref, reactive } from "vue";
-import {
-  healthApi,
-  networksApi,
-  certificatesApi,
-  pluginsApi,
-  portsApi,
-  systemServicesApi,
-  containersApi,
-  infrastructureApi,
-} from "@/services/api";
+import { healthApi } from "@/services/api";
 
 export const useStatsStore = defineStore("stats", () => {
   const loading = ref(false);
@@ -77,6 +68,8 @@ export const useStatsStore = defineStore("stats", () => {
         containers.stopped = data.containers?.stopped || 0;
         docker.images = data.images?.total || 0;
         docker.volumes = data.volumes?.total || 0;
+        docker.networks = data.networks?.total || 0;
+        docker.ports = data.ports?.total || 0;
       }
 
       if (statsRes.data?.system) {
@@ -84,46 +77,6 @@ export const useStatsStore = defineStore("stats", () => {
         resources.cpu = Math.round((sys.cpu?.usage_percent || 0) * 10) / 10;
         resources.memory = Math.round((sys.memory?.usage_percent || 0) * 10) / 10;
         resources.disk = Math.round((sys.disk?.usage_percent || 0) * 10) / 10;
-      }
-
-      const [networksRes, certsRes, pluginsRes, portsRes, servicesRes, containersRes, infraRes] =
-        await Promise.allSettled([
-          networksApi.list(),
-          certificatesApi.list(),
-          pluginsApi.list(),
-          portsApi.list(),
-          systemServicesApi.list(),
-          containersApi.list(),
-          infrastructureApi.list(),
-        ]);
-
-      if (networksRes.status === "fulfilled") {
-        docker.networks = networksRes.value.data.networks?.length || 0;
-      }
-      if (certsRes.status === "fulfilled") {
-        system.certificates = certsRes.value.data.certificates?.length || 0;
-      }
-      if (pluginsRes.status === "fulfilled") {
-        system.apps = pluginsRes.value.data.plugins?.length || 0;
-      }
-      if (portsRes.status === "fulfilled") {
-        system.ports = portsRes.value.data.ports?.length || 0;
-      }
-      if (servicesRes.status === "fulfilled") {
-        system.services = servicesRes.value.data.services?.length || 0;
-      }
-      if (containersRes.status === "fulfilled") {
-        const containersList = containersRes.value.data.containers || [];
-        let portCount = 0;
-        for (const container of containersList) {
-          if (Array.isArray(container.ports)) {
-            portCount += container.ports.length;
-          }
-        }
-        docker.ports = portCount;
-      }
-      if (infraRes.status === "fulfilled") {
-        system.infrastructure = infraRes.value.data.services?.length || 0;
       }
 
       try {

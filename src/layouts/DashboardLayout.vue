@@ -381,7 +381,7 @@ const handleLogout = () => {
 
 onMounted(() => {
   statsStore.fetchAll();
-  setInterval(() => statsStore.fetchAll(), 10000);
+  setInterval(() => statsStore.fetchAll(), 15000);
 });
 </script>
 
