@@ -443,6 +443,110 @@
           <span>No performance issues detected</span>
         </div>
       </div>
+
+      <!-- Unknown Domains Tab -->
+      <div v-show="activeSubTab === 'unknown'" class="tab-content">
+        <div v-if="loadingUnknown && !unknownStats" class="loading-inline">
+          <i class="pi pi-spin pi-spinner" /> Loading unknown domain stats...
+        </div>
+
+        <template v-else-if="unknownStats">
+          <div class="stats-grid">
+            <div class="stat-card" :class="{ error: (unknownStats.total_requests || 0) > 0 }">
+              <div class="stat-header">
+                <span class="stat-label">Total Requests</span>
+              </div>
+              <span class="stat-value">{{ formatNumber(unknownStats.total_requests || 0) }}</span>
+            </div>
+            <div class="stat-card">
+              <div class="stat-header">
+                <span class="stat-label">Unique Domains</span>
+              </div>
+              <span class="stat-value">{{ unknownStats.top_domains?.length || 0 }}</span>
+            </div>
+            <div class="stat-card">
+              <div class="stat-header">
+                <span class="stat-label">Unique IPs</span>
+              </div>
+              <span class="stat-value">{{ unknownStats.top_ips?.length || 0 }}</span>
+            </div>
+          </div>
+
+          <div class="two-col">
+            <div class="panel">
+              <div class="panel-header">
+                <h3>Top Unknown Domains</h3>
+                <span class="count">{{ unknownStats.top_domains?.length || 0 }}</span>
+              </div>
+              <div v-if="unknownStats.top_domains?.length" class="deployment-list">
+                <div
+                  v-for="entry in unknownStats.top_domains"
+                  :key="entry.domain"
+                  class="deployment-row"
+                  @click="navigateToDeploymentLogs(entry.domain)"
+                >
+                  <div class="dep-main">
+                    <code class="dep-name">{{ entry.domain }}</code>
+                    <span class="dep-stat">Last seen {{ formatLogTime(entry.last_seen) }}</span>
+                  </div>
+                  <div class="dep-stats">
+                    <span class="dep-stat">{{ formatNumber(entry.request_count) }} req</span>
+                  </div>
+                  <i class="pi pi-chevron-right" />
+                </div>
+              </div>
+              <div v-else class="empty-inline">No unknown domain requests</div>
+            </div>
+
+            <div class="panel">
+              <div class="panel-header">
+                <h3>Top Source IPs</h3>
+                <span class="count">{{ unknownStats.top_ips?.length || 0 }}</span>
+              </div>
+              <div v-if="unknownStats.top_ips?.length" class="suspicious-list">
+                <div v-for="entry in unknownStats.top_ips" :key="entry.ip" class="suspicious-row">
+                  <div class="suspicious-info">
+                    <code>{{ entry.ip }}</code>
+                    <div class="unknown-domains-list">
+                      <span v-for="domain in entry.domains.slice(0, 3)" :key="domain" class="tag">
+                        {{ domain }}
+                      </span>
+                      <span v-if="entry.domains.length > 3" class="tag">+{{ entry.domains.length - 3 }}</span>
+                    </div>
+                  </div>
+                  <div class="suspicious-actions">
+                    <span class="suspicious-stat">{{ formatNumber(entry.request_count) }} req</span>
+                    <button class="btn-action" title="View requests" @click="filterByIP(entry.ip)">
+                      <i class="pi pi-eye" />
+                    </button>
+                    <button class="btn-action danger" title="Block IP" @click="blockIP(entry.ip)">
+                      <i class="pi pi-ban" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div v-else class="empty-inline">No source IP data</div>
+            </div>
+          </div>
+
+          <div class="unknown-info-panel">
+            <i class="pi pi-info-circle" />
+            <div>
+              <p>These are requests to domains not matching any configured deployment:</p>
+              <ul>
+                <li>Reconnaissance attempts probing your server</li>
+                <li>Misconfigured DNS pointing to your IP</li>
+                <li>Bots scanning for vulnerable hosts</li>
+              </ul>
+            </div>
+          </div>
+        </template>
+
+        <div v-else class="empty-state-sm">
+          <i class="pi pi-question-circle" />
+          <span>No unknown domain data available</span>
+        </div>
+      </div>
     </div>
 
     <div v-else class="empty-state">
@@ -470,7 +574,7 @@ import { storeToRefs } from "pinia";
 import { useTrafficStore } from "@/stores/traffic";
 import { useDeploymentsStore } from "@/stores/deployments";
 import { useNotificationsStore } from "@/stores/notifications";
-import { securityApi } from "@/services/api";
+import { securityApi, trafficApi, type UnknownDomainStats } from "@/services/api";
 import ConfirmModal from "@/components/ConfirmModal.vue";
 
 const props = defineProps<{
@@ -493,6 +597,9 @@ const sortDir = ref<"asc" | "desc">("desc");
 const showBlockIPModal = ref(false);
 const ipToBlock = ref("");
 const blockingIP = ref(false);
+
+const unknownStats = ref<UnknownDomainStats | null>(null);
+const loadingUnknown = ref(false);
 
 // Detection Thresholds - can be moved to backend/config later
 const THRESHOLDS = {
@@ -540,6 +647,7 @@ const subTabs = [
   { id: "overview", label: "Overview", icon: "pi pi-chart-bar" },
   { id: "logs", label: "Logs", icon: "pi pi-list" },
   { id: "performance", label: "Performance", icon: "pi pi-bolt" },
+  { id: "unknown", label: "Unknown Domains", icon: "pi pi-question-circle" },
 ];
 
 const logFilters = reactive({
@@ -872,6 +980,18 @@ const getStartTime = (range: string): string => {
   return now.toISOString();
 };
 
+const fetchUnknownDomains = async () => {
+  loadingUnknown.value = true;
+  try {
+    const response = await trafficApi.getUnknownDomainStats(timeRange.value);
+    unknownStats.value = response.data.stats;
+  } catch (e: any) {
+    console.error("Failed to fetch unknown domain stats:", e);
+  } finally {
+    loadingUnknown.value = false;
+  }
+};
+
 const navigateToDeploymentLogs = (name: string) => {
   logFilters.deployment = name;
   logFilters.offset = 0;
@@ -1058,6 +1178,7 @@ const formatHour = (hourStr: string): string => {
 
 watch(activeSubTab, (tab) => {
   if (tab === "logs" && logs.value.length === 0) fetchLogs();
+  if (tab === "unknown" && !unknownStats.value) fetchUnknownDomains();
 });
 
 onMounted(() => {
@@ -2091,6 +2212,46 @@ onMounted(() => {
 }
 .btn-primary:hover {
   background: #2563eb;
+}
+
+.unknown-domains-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin-top: 0.25rem;
+}
+
+.unknown-info-panel {
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  border-radius: var(--radius-sm);
+  margin-top: 0.5rem;
+}
+
+.unknown-info-panel > i {
+  color: #0284c7;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.unknown-info-panel p {
+  margin: 0 0 0.375rem 0;
+  font-size: 0.75rem;
+  color: #0369a1;
+}
+
+.unknown-info-panel ul {
+  margin: 0;
+  padding-left: 1rem;
+  font-size: 0.6875rem;
+  color: #0369a1;
+}
+
+.unknown-info-panel li {
+  margin-bottom: 0.125rem;
 }
 
 @media (max-width: 768px) {

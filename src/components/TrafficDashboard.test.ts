@@ -70,7 +70,7 @@ const mockLogs = [
     source_ip: "192.168.1.100",
     response_time_ms: 120,
     bytes_sent: 1024,
-    created_at: new Date().toISOString(),
+    created_at: "2024-01-15T10:00:01Z",
   },
   {
     id: "2",
@@ -81,7 +81,7 @@ const mockLogs = [
     source_ip: "10.0.0.50",
     response_time_ms: 2500,
     bytes_sent: 512,
-    created_at: new Date().toISOString(),
+    created_at: "2024-01-15T10:00:00Z",
   },
 ];
 
@@ -249,7 +249,8 @@ describe("TrafficDashboard", () => {
         ],
       };
       const wrapper = mountDashboard({ stats: statsWithNoUnknown });
-      expect(wrapper.text()).not.toContain("Unknown Domains");
+      const unknownPanel = wrapper.find(".panel-stack .unknown-list");
+      expect(unknownPanel.exists()).toBe(false);
     });
   });
 
