@@ -720,12 +720,37 @@ export interface TrafficStats {
   deployment_stats: DeploymentTrafficStats[];
 }
 
+export interface UnknownDomainEntry {
+  domain: string;
+  request_count: number;
+  last_seen: string;
+}
+
+export interface UnknownDomainIPEntry {
+  ip: string;
+  request_count: number;
+  domains: string[];
+  last_seen: string;
+}
+
+export interface UnknownDomainStats {
+  total_requests: number;
+  top_domains: UnknownDomainEntry[];
+  top_ips: UnknownDomainIPEntry[];
+  recent_logs: TrafficLog[];
+}
+
 export const trafficApi = {
   getLogs: (params?: TrafficFilter) =>
     apiClient.get<{ logs: TrafficLog[]; total: number; limit: number; offset: number }>("/traffic/logs", { params }),
 
   getStats: (params?: { deployment?: string; since?: string }) =>
     apiClient.get<{ stats: TrafficStats }>("/traffic/stats", { params }),
+
+  getUnknownDomainStats: (since?: string) =>
+    apiClient.get<{ stats: UnknownDomainStats }>("/traffic/unknown-domains", {
+      params: since ? { since } : undefined,
+    }),
 
   cleanup: (days?: number) => apiClient.post<{ deleted: number }>("/traffic/cleanup", { days }),
 
