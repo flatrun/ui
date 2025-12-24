@@ -552,12 +552,7 @@
               <div class="form-group">
                 <label class="form-label">Detection Window</label>
                 <span class="form-hint">Time window for counting violations (e.g., 2m, 5m)</span>
-                <input
-                  v-model="securitySettings.detection_window"
-                  type="text"
-                  placeholder="2m"
-                  class="form-input"
-                />
+                <input v-model="securitySettings.detection_window" type="text" placeholder="2m" class="form-input" />
               </div>
             </div>
 
