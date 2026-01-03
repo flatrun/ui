@@ -3,11 +3,7 @@
     <div class="backups-header">
       <h3>Backups</h3>
       <div class="backups-actions">
-        <button
-          class="btn btn-primary"
-          :disabled="creatingBackup"
-          @click="createBackup"
-        >
+        <button class="btn btn-primary" :disabled="creatingBackup" @click="createBackup">
           <i :class="creatingBackup ? 'pi pi-spin pi-spinner' : 'pi pi-plus'" />
           {{ creatingBackup ? "Creating..." : "Create Backup" }}
         </button>
@@ -56,11 +52,7 @@
             <i :class="restoringBackup === backup.id ? 'pi pi-spin pi-spinner' : 'pi pi-replay'" />
             Restore
           </button>
-          <a
-            :href="getDownloadUrl(backup.id)"
-            class="btn btn-sm btn-secondary"
-            download
-          >
+          <a :href="getDownloadUrl(backup.id)" class="btn btn-sm btn-secondary" download>
             <i class="pi pi-download" />
             Download
           </a>
@@ -78,17 +70,11 @@
           <div class="task-info">
             <span class="task-name">{{ task.name }}</span>
             <span class="task-schedule">{{ task.cron_expr }}</span>
-            <span v-if="task.next_run" class="task-next">
-              Next: {{ formatDate(task.next_run) }}
-            </span>
+            <span v-if="task.next_run" class="task-next"> Next: {{ formatDate(task.next_run) }} </span>
           </div>
           <div class="task-actions">
             <label class="toggle-switch small">
-              <input
-                type="checkbox"
-                :checked="task.enabled"
-                @change="toggleTask(task)"
-              />
+              <input type="checkbox" :checked="task.enabled" @change="toggleTask(task)" />
               <span class="toggle-slider" />
             </label>
             <button class="btn btn-sm btn-secondary" @click="runTaskNow(task.id)">
@@ -118,21 +104,11 @@
           <div class="modal-body">
             <div class="form-group">
               <label>Schedule Name</label>
-              <input
-                v-model="scheduleForm.name"
-                type="text"
-                placeholder="e.g., Daily backup"
-                class="form-control"
-              />
+              <input v-model="scheduleForm.name" type="text" placeholder="e.g., Daily backup" class="form-control" />
             </div>
             <div class="form-group">
               <label>Schedule (Cron Expression)</label>
-              <input
-                v-model="scheduleForm.cronExpr"
-                type="text"
-                placeholder="0 2 * * *"
-                class="form-control"
-              />
+              <input v-model="scheduleForm.cronExpr" type="text" placeholder="0 2 * * *" class="form-control" />
               <span class="form-hint">
                 Examples: <code>0 2 * * *</code> (daily at 2am), <code>0 */6 * * *</code> (every 6 hours)
               </span>
@@ -222,18 +198,24 @@ const backups = ref<Backup[]>([]);
 const loadingBackups = ref(false);
 const creatingBackup = ref(false);
 const restoringBackup = ref<string | null>(null);
-const activeJobs = ref<BackupJob[]>([]);
+
+interface TrackedJob extends BackupJob {
+  retryCount?: number;
+}
+const activeJobs = ref<TrackedJob[]>([]);
+const MAX_JOB_RETRIES = 10;
 let jobPollingInterval: number | null = null;
 
 const scheduledTasks = ref<ScheduledTask[]>([]);
 const showScheduleModal = ref(false);
 const savingSchedule = ref(false);
-const scheduleForm = ref({
+const initialScheduleFormState = () => ({
   name: "",
   cronExpr: "0 2 * * *",
   retentionCount: 7,
   enabled: true,
 });
+const scheduleForm = ref(initialScheduleFormState());
 
 const showDeleteBackupModal = ref(false);
 const backupToDelete = ref<string | null>(null);
@@ -261,7 +243,7 @@ const fetchScheduledTasks = async () => {
   try {
     const response = await schedulerApi.listTasks(props.deploymentName);
     scheduledTasks.value = (response.data.tasks || []).filter(
-      (t) => t.type === "backup" && t.deployment_name === props.deploymentName
+      (t) => t.type === "backup" && t.deployment_name === props.deploymentName,
     );
   } catch {
     scheduledTasks.value = [];
@@ -286,7 +268,7 @@ const pollActiveJobs = async () => {
     return;
   }
 
-  const updatedJobs: BackupJob[] = [];
+  const updatedJobs: TrackedJob[] = [];
   for (const job of activeJobs.value) {
     try {
       const response = await backupsApi.getJob(job.id);
@@ -313,7 +295,18 @@ const pollActiveJobs = async () => {
         updatedJobs.push(updatedJob);
       }
     } catch {
-      updatedJobs.push(job);
+      const retryCount = (job.retryCount || 0) + 1;
+      if (retryCount < MAX_JOB_RETRIES) {
+        updatedJobs.push({ ...job, retryCount });
+      } else {
+        if (job.type === "backup") {
+          notifications.error("Backup Status Unknown", "Lost connection to backup job");
+          creatingBackup.value = false;
+        } else {
+          notifications.error("Restore Status Unknown", "Lost connection to restore job");
+          restoringBackup.value = null;
+        }
+      }
     }
   }
   activeJobs.value = updatedJobs;
@@ -419,7 +412,7 @@ const createScheduledTask = async () => {
     });
     notifications.success("Schedule Created", "Backup schedule has been created");
     showScheduleModal.value = false;
-    scheduleForm.value = { name: "", cronExpr: "0 2 * * *", retentionCount: 7, enabled: true };
+    scheduleForm.value = initialScheduleFormState();
     await fetchScheduledTasks();
   } catch (err: any) {
     notifications.error("Error", err.response?.data?.error || "Failed to create schedule");

@@ -155,11 +155,11 @@ describe("DeploymentDetailView", () => {
   });
 
   describe("Tab navigation", () => {
-    it("displays all eight tabs", async () => {
+    it("displays all nine tabs", async () => {
       const wrapper = mountView();
       await flushPromises();
       const tabs = wrapper.findAll(".tab-btn");
-      expect(tabs.length).toBe(8);
+      expect(tabs.length).toBe(9);
     });
 
     it("has Overview tab", async () => {
@@ -196,6 +196,12 @@ describe("DeploymentDetailView", () => {
       const wrapper = mountView();
       await flushPromises();
       expect(wrapper.text()).toContain("Quick Actions");
+    });
+
+    it("has Backups tab", async () => {
+      const wrapper = mountView();
+      await flushPromises();
+      expect(wrapper.text()).toContain("Backups");
     });
 
     it("has Security tab", async () => {
@@ -239,6 +245,7 @@ describe("DeploymentDetailView", () => {
         { id: "terminal", label: "Terminal", icon: "pi pi-desktop" },
         { id: "environment", label: "Environment", icon: "pi pi-list" },
         { id: "actions", label: "Quick Actions", icon: "pi pi-bolt" },
+        { id: "backups", label: "Backups", icon: "pi pi-history" },
         { id: "security", label: "Security", icon: "pi pi-shield" },
         { id: "config", label: "Configuration", icon: "pi pi-cog" },
       ]);

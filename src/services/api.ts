@@ -762,66 +762,66 @@ export const trafficApi = {
 
 // Backup Types
 export interface Backup {
-  id: string;
-  deployment_name: string;
-  status: "pending" | "in_progress" | "completed" | "failed";
-  size: number;
-  path: string;
-  components: string[];
-  error?: string;
-  created_at: string;
-  completed_at?: string;
-  expires_at?: string;
+  readonly id: string;
+  readonly deployment_name: string;
+  readonly status: "pending" | "in_progress" | "completed" | "failed";
+  readonly size: number;
+  readonly path: string;
+  readonly components: readonly string[];
+  readonly error?: string;
+  readonly created_at: string;
+  readonly completed_at?: string;
+  readonly expires_at?: string;
 }
 
 export interface BackupSpec {
-  container_paths?: ContainerBackupPath[];
-  databases?: DatabaseBackupSpec[];
-  pre_hooks?: BackupHookSpec[];
-  post_hooks?: BackupHookSpec[];
-  exclude_patterns?: string[];
+  readonly container_paths?: readonly ContainerBackupPath[];
+  readonly databases?: readonly DatabaseBackupSpec[];
+  readonly pre_hooks?: readonly BackupHookSpec[];
+  readonly post_hooks?: readonly BackupHookSpec[];
+  readonly exclude_patterns?: readonly string[];
 }
 
 export interface ContainerBackupPath {
-  service: string;
-  container_path: string;
-  description?: string;
-  required: boolean;
+  readonly service: string;
+  readonly container_path: string;
+  readonly description?: string;
+  readonly required: boolean;
 }
 
 export interface DatabaseBackupSpec {
-  service: string;
-  type: string;
-  host_env?: string;
-  port_env?: string;
-  user_env?: string;
-  password_env?: string;
-  database_env?: string;
-  host?: string;
-  port?: number;
-  user?: string;
-  database?: string;
+  readonly service: string;
+  readonly type: string;
+  readonly host_env?: string;
+  readonly port_env?: string;
+  readonly user_env?: string;
+  readonly password_env?: string;
+  readonly database_env?: string;
+  readonly host?: string;
+  readonly port?: number;
+  readonly user?: string;
+  readonly database?: string;
 }
 
 export interface BackupHookSpec {
-  service: string;
-  command: string;
-  timeout?: number;
+  readonly service: string;
+  readonly command: string;
+  readonly timeout?: number;
 }
 
 export type BackupJobType = "backup" | "restore";
 export type BackupJobStatus = "pending" | "running" | "completed" | "failed";
 
 export interface BackupJob {
-  id: string;
-  type: BackupJobType;
-  status: BackupJobStatus;
-  deployment_name: string;
-  backup_id?: string;
-  progress?: string;
-  error?: string;
-  started_at: string;
-  completed_at?: string;
+  readonly id: string;
+  readonly type: BackupJobType;
+  readonly status: BackupJobStatus;
+  readonly deployment_name: string;
+  readonly backup_id?: string;
+  readonly progress?: string;
+  readonly error?: string;
+  readonly started_at: string;
+  readonly completed_at?: string;
 }
 
 export const backupsApi = {
@@ -840,7 +840,7 @@ export const backupsApi = {
   restore: (id: string, options?: { restore_data?: boolean; restore_db?: boolean; stop_first?: boolean }) =>
     apiClient.post<{ job_id: string; message: string }>(`/backups/${id}/restore`, options),
 
-  download: (id: string) => `/api/backups/${id}/download`,
+  download: (id: string) => `${apiClient.defaults.baseURL}/backups/${id}/download`,
 
   getDeploymentBackups: (name: string, limit?: number) =>
     apiClient.get<{ backups: Backup[] }>(`/deployments/${name}/backups`, {
@@ -856,8 +856,7 @@ export const backupsApi = {
   updateDeploymentBackupConfig: (name: string, config: BackupSpec) =>
     apiClient.put<{ backup_config: BackupSpec }>(`/deployments/${name}/backup-config`, config),
 
-  getJob: (jobId: string) =>
-    apiClient.get<{ job: BackupJob }>(`/backups/jobs/${jobId}`),
+  getJob: (jobId: string) => apiClient.get<{ job: BackupJob }>(`/backups/jobs/${jobId}`),
 
   listJobs: (deployment?: string, limit?: number) =>
     apiClient.get<{ jobs: BackupJob[] }>("/backups/jobs", {
@@ -870,44 +869,44 @@ export type TaskType = "backup" | "command";
 export type TaskStatus = "pending" | "running" | "completed" | "failed";
 
 export interface ScheduledTask {
-  id: number;
-  name: string;
-  type: TaskType;
-  deployment_name: string;
-  cron_expr: string;
-  enabled: boolean;
-  config: TaskConfig;
-  last_run?: string;
-  next_run?: string;
-  created_at: string;
-  updated_at: string;
+  readonly id: number;
+  readonly name: string;
+  readonly type: TaskType;
+  readonly deployment_name: string;
+  readonly cron_expr: string;
+  readonly enabled: boolean;
+  readonly config: TaskConfig;
+  readonly last_run?: string;
+  readonly next_run?: string;
+  readonly created_at: string;
+  readonly updated_at: string;
 }
 
 export interface TaskConfig {
-  backup_config?: BackupTaskConfig;
-  command_config?: CommandTaskConfig;
+  readonly backup_config?: BackupTaskConfig;
+  readonly command_config?: CommandTaskConfig;
 }
 
 export interface BackupTaskConfig {
-  retention_count: number;
-  storage_path?: string;
+  readonly retention_count: number;
+  readonly storage_path?: string;
 }
 
 export interface CommandTaskConfig {
-  service: string;
-  command: string;
-  timeout: number;
+  readonly service: string;
+  readonly command: string;
+  readonly timeout: number;
 }
 
 export interface TaskExecution {
-  id: number;
-  task_id: number;
-  status: TaskStatus;
-  output?: string;
-  error?: string;
-  started_at: string;
-  ended_at?: string;
-  duration_ms?: number;
+  readonly id: number;
+  readonly task_id: number;
+  readonly status: TaskStatus;
+  readonly output?: string;
+  readonly error?: string;
+  readonly started_at: string;
+  readonly ended_at?: string;
+  readonly duration_ms?: number;
 }
 
 export interface CreateTaskRequest {
@@ -934,8 +933,7 @@ export const schedulerApi = {
 
   getTask: (id: number) => apiClient.get<{ task: ScheduledTask }>(`/scheduler/tasks/${id}`),
 
-  createTask: (data: CreateTaskRequest) =>
-    apiClient.post<{ task: ScheduledTask }>("/scheduler/tasks", data),
+  createTask: (data: CreateTaskRequest) => apiClient.post<{ task: ScheduledTask }>("/scheduler/tasks", data),
 
   updateTask: (id: number, data: UpdateTaskRequest) =>
     apiClient.put<{ task: ScheduledTask }>(`/scheduler/tasks/${id}`, data),
