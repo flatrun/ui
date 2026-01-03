@@ -498,6 +498,11 @@
           </div>
         </div>
 
+        <BackupsTab
+          v-if="activeTab === 'backups'"
+          :deployment-name="route.params.name as string"
+        />
+
         <div v-if="activeTab === 'security'" class="security-tab">
           <div class="security-enable-bar">
             <div class="enable-bar-left">
@@ -1250,6 +1255,7 @@ import FileBrowser from "@/components/FileBrowser.vue";
 import LogViewer from "@/components/LogViewer.vue";
 import ConfirmModal from "@/components/ConfirmModal.vue";
 import ContainerTerminal from "@/components/ContainerTerminal.vue";
+import BackupsTab from "@/components/BackupsTab.vue";
 
 const route = useRoute();
 const router = useRouter();
@@ -1298,6 +1304,7 @@ const tabs = [
   { id: "terminal", label: "Terminal", icon: "pi pi-desktop" },
   { id: "environment", label: "Environment", icon: "pi pi-list" },
   { id: "actions", label: "Quick Actions", icon: "pi pi-bolt" },
+  { id: "backups", label: "Backups", icon: "pi pi-history" },
   { id: "security", label: "Security", icon: "pi pi-shield" },
   { id: "config", label: "Configuration", icon: "pi pi-cog" },
 ];
@@ -1309,6 +1316,9 @@ const resourceUsage = ref({
   disk: 0,
   network: 0,
 });
+
+const showDeleteEnvModal = ref(false);
+const envKeyToDelete = ref("");
 
 const logs = ref("");
 const logsLoading = ref(false);
@@ -1372,9 +1382,6 @@ const actionForm = ref({
   icon: "pi pi-play",
   service: "",
 });
-const showDeleteEnvModal = ref(false);
-const envKeyToDelete = ref("");
-
 const showDomainSettingsModal = ref(false);
 const savingDomainSettings = ref(false);
 const domainSettings = ref({
@@ -4248,5 +4255,162 @@ onUnmounted(() => {
   .col-ip {
     display: none;
   }
+}
+
+/* Backups Tab */
+.backups-tab {
+  padding: 1.5rem;
+}
+
+.backups-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.backups-header h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.backups-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.backups-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.backup-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background: var(--surface-card);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius);
+}
+
+.backup-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.backup-name {
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.backup-meta {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.backup-status {
+  padding: 0.125rem 0.5rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.backup-status.completed {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.backup-status.in_progress {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.backup-status.failed {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.backup-components {
+  display: flex;
+  gap: 0.25rem;
+  margin-top: 0.25rem;
+}
+
+.component-badge {
+  padding: 0.125rem 0.375rem;
+  background: var(--surface-hover);
+  border-radius: var(--radius-sm);
+  font-size: 0.625rem;
+  text-transform: uppercase;
+}
+
+.scheduled-backups-section {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--surface-border);
+}
+
+.scheduled-backups-section h4 {
+  margin: 0 0 1rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.scheduled-tasks-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.scheduled-task-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  background: var(--surface-card);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius);
+}
+
+.task-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.task-name {
+  font-weight: 500;
+}
+
+.task-schedule {
+  font-family: "SF Mono", "Fira Code", monospace;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  background: var(--surface-hover);
+  padding: 0.125rem 0.5rem;
+  border-radius: var(--radius-sm);
+}
+
+.task-next {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.task-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.toggle-switch.small {
+  transform: scale(0.8);
 }
 </style>

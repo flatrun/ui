@@ -759,3 +759,198 @@ export const trafficApi = {
       params: since ? { since } : undefined,
     }),
 };
+
+// Backup Types
+export interface Backup {
+  id: string;
+  deployment_name: string;
+  status: "pending" | "in_progress" | "completed" | "failed";
+  size: number;
+  path: string;
+  components: string[];
+  error?: string;
+  created_at: string;
+  completed_at?: string;
+  expires_at?: string;
+}
+
+export interface BackupSpec {
+  container_paths?: ContainerBackupPath[];
+  databases?: DatabaseBackupSpec[];
+  pre_hooks?: BackupHookSpec[];
+  post_hooks?: BackupHookSpec[];
+  exclude_patterns?: string[];
+}
+
+export interface ContainerBackupPath {
+  service: string;
+  container_path: string;
+  description?: string;
+  required: boolean;
+}
+
+export interface DatabaseBackupSpec {
+  service: string;
+  type: string;
+  host_env?: string;
+  port_env?: string;
+  user_env?: string;
+  password_env?: string;
+  database_env?: string;
+  host?: string;
+  port?: number;
+  user?: string;
+  database?: string;
+}
+
+export interface BackupHookSpec {
+  service: string;
+  command: string;
+  timeout?: number;
+}
+
+export type BackupJobType = "backup" | "restore";
+export type BackupJobStatus = "pending" | "running" | "completed" | "failed";
+
+export interface BackupJob {
+  id: string;
+  type: BackupJobType;
+  status: BackupJobStatus;
+  deployment_name: string;
+  backup_id?: string;
+  progress?: string;
+  error?: string;
+  started_at: string;
+  completed_at?: string;
+}
+
+export const backupsApi = {
+  list: (deployment?: string, limit?: number) =>
+    apiClient.get<{ backups: Backup[] }>("/backups", {
+      params: { deployment, limit },
+    }),
+
+  get: (id: string) => apiClient.get<{ backup: Backup }>(`/backups/${id}`),
+
+  create: (deploymentName: string) =>
+    apiClient.post<{ job_id: string; message: string }>("/backups", { deployment_name: deploymentName }),
+
+  delete: (id: string) => apiClient.delete<{ message: string }>(`/backups/${id}`),
+
+  restore: (id: string, options?: { restore_data?: boolean; restore_db?: boolean; stop_first?: boolean }) =>
+    apiClient.post<{ job_id: string; message: string }>(`/backups/${id}/restore`, options),
+
+  download: (id: string) => `/api/backups/${id}/download`,
+
+  getDeploymentBackups: (name: string, limit?: number) =>
+    apiClient.get<{ backups: Backup[] }>(`/deployments/${name}/backups`, {
+      params: limit ? { limit } : undefined,
+    }),
+
+  createDeploymentBackup: (name: string) =>
+    apiClient.post<{ job_id: string; message: string }>(`/deployments/${name}/backups`),
+
+  getDeploymentBackupConfig: (name: string) =>
+    apiClient.get<{ backup_config: BackupSpec | null }>(`/deployments/${name}/backup-config`),
+
+  updateDeploymentBackupConfig: (name: string, config: BackupSpec) =>
+    apiClient.put<{ backup_config: BackupSpec }>(`/deployments/${name}/backup-config`, config),
+
+  getJob: (jobId: string) =>
+    apiClient.get<{ job: BackupJob }>(`/backups/jobs/${jobId}`),
+
+  listJobs: (deployment?: string, limit?: number) =>
+    apiClient.get<{ jobs: BackupJob[] }>("/backups/jobs", {
+      params: { deployment, limit },
+    }),
+};
+
+// Scheduler Types
+export type TaskType = "backup" | "command";
+export type TaskStatus = "pending" | "running" | "completed" | "failed";
+
+export interface ScheduledTask {
+  id: number;
+  name: string;
+  type: TaskType;
+  deployment_name: string;
+  cron_expr: string;
+  enabled: boolean;
+  config: TaskConfig;
+  last_run?: string;
+  next_run?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TaskConfig {
+  backup_config?: BackupTaskConfig;
+  command_config?: CommandTaskConfig;
+}
+
+export interface BackupTaskConfig {
+  retention_count: number;
+  storage_path?: string;
+}
+
+export interface CommandTaskConfig {
+  service: string;
+  command: string;
+  timeout: number;
+}
+
+export interface TaskExecution {
+  id: number;
+  task_id: number;
+  status: TaskStatus;
+  output?: string;
+  error?: string;
+  started_at: string;
+  ended_at?: string;
+  duration_ms?: number;
+}
+
+export interface CreateTaskRequest {
+  name: string;
+  type: TaskType;
+  deployment_name: string;
+  cron_expr: string;
+  enabled: boolean;
+  config: TaskConfig;
+}
+
+export interface UpdateTaskRequest {
+  name?: string;
+  cron_expr?: string;
+  enabled?: boolean;
+  config?: TaskConfig;
+}
+
+export const schedulerApi = {
+  listTasks: (deployment?: string) =>
+    apiClient.get<{ tasks: ScheduledTask[] }>("/scheduler/tasks", {
+      params: deployment ? { deployment } : undefined,
+    }),
+
+  getTask: (id: number) => apiClient.get<{ task: ScheduledTask }>(`/scheduler/tasks/${id}`),
+
+  createTask: (data: CreateTaskRequest) =>
+    apiClient.post<{ task: ScheduledTask }>("/scheduler/tasks", data),
+
+  updateTask: (id: number, data: UpdateTaskRequest) =>
+    apiClient.put<{ task: ScheduledTask }>(`/scheduler/tasks/${id}`, data),
+
+  deleteTask: (id: number) => apiClient.delete<{ message: string }>(`/scheduler/tasks/${id}`),
+
+  runTaskNow: (id: number) => apiClient.post<{ message: string }>(`/scheduler/tasks/${id}/run`),
+
+  getTaskExecutions: (taskId: number, limit?: number) =>
+    apiClient.get<{ executions: TaskExecution[] }>(`/scheduler/tasks/${taskId}/executions`, {
+      params: limit ? { limit } : undefined,
+    }),
+
+  getRecentExecutions: (limit?: number) =>
+    apiClient.get<{ executions: TaskExecution[] }>("/scheduler/executions", {
+      params: limit ? { limit } : undefined,
+    }),
+};
