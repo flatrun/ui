@@ -759,3 +759,196 @@ export const trafficApi = {
       params: since ? { since } : undefined,
     }),
 };
+
+// Backup Types
+export interface Backup {
+  readonly id: string;
+  readonly deployment_name: string;
+  readonly status: "pending" | "in_progress" | "completed" | "failed";
+  readonly size: number;
+  readonly path: string;
+  readonly components: readonly string[];
+  readonly error?: string;
+  readonly created_at: string;
+  readonly completed_at?: string;
+  readonly expires_at?: string;
+}
+
+export interface BackupSpec {
+  readonly container_paths?: readonly ContainerBackupPath[];
+  readonly databases?: readonly DatabaseBackupSpec[];
+  readonly pre_hooks?: readonly BackupHookSpec[];
+  readonly post_hooks?: readonly BackupHookSpec[];
+  readonly exclude_patterns?: readonly string[];
+}
+
+export interface ContainerBackupPath {
+  readonly service: string;
+  readonly container_path: string;
+  readonly description?: string;
+  readonly required: boolean;
+}
+
+export interface DatabaseBackupSpec {
+  readonly service: string;
+  readonly type: string;
+  readonly host_env?: string;
+  readonly port_env?: string;
+  readonly user_env?: string;
+  readonly password_env?: string;
+  readonly database_env?: string;
+  readonly host?: string;
+  readonly port?: number;
+  readonly user?: string;
+  readonly database?: string;
+}
+
+export interface BackupHookSpec {
+  readonly service: string;
+  readonly command: string;
+  readonly timeout?: number;
+}
+
+export type BackupJobType = "backup" | "restore";
+export type BackupJobStatus = "pending" | "running" | "completed" | "failed";
+
+export interface BackupJob {
+  readonly id: string;
+  readonly type: BackupJobType;
+  readonly status: BackupJobStatus;
+  readonly deployment_name: string;
+  readonly backup_id?: string;
+  readonly progress?: string;
+  readonly error?: string;
+  readonly started_at: string;
+  readonly completed_at?: string;
+}
+
+export const backupsApi = {
+  list: (deployment?: string, limit?: number) =>
+    apiClient.get<{ backups: Backup[] }>("/backups", {
+      params: { deployment, limit },
+    }),
+
+  get: (id: string) => apiClient.get<{ backup: Backup }>(`/backups/${id}`),
+
+  create: (deploymentName: string) =>
+    apiClient.post<{ job_id: string; message: string }>("/backups", { deployment_name: deploymentName }),
+
+  delete: (id: string) => apiClient.delete<{ message: string }>(`/backups/${id}`),
+
+  restore: (id: string, options?: { restore_data?: boolean; restore_db?: boolean; stop_first?: boolean }) =>
+    apiClient.post<{ job_id: string; message: string }>(`/backups/${id}/restore`, options),
+
+  download: (id: string) => `${apiClient.defaults.baseURL}/backups/${id}/download`,
+
+  getDeploymentBackups: (name: string, limit?: number) =>
+    apiClient.get<{ backups: Backup[] }>(`/deployments/${name}/backups`, {
+      params: limit ? { limit } : undefined,
+    }),
+
+  createDeploymentBackup: (name: string) =>
+    apiClient.post<{ job_id: string; message: string }>(`/deployments/${name}/backups`),
+
+  getDeploymentBackupConfig: (name: string) =>
+    apiClient.get<{ backup_config: BackupSpec | null }>(`/deployments/${name}/backup-config`),
+
+  updateDeploymentBackupConfig: (name: string, config: BackupSpec) =>
+    apiClient.put<{ backup_config: BackupSpec }>(`/deployments/${name}/backup-config`, config),
+
+  getJob: (jobId: string) => apiClient.get<{ job: BackupJob }>(`/backups/jobs/${jobId}`),
+
+  listJobs: (deployment?: string, limit?: number) =>
+    apiClient.get<{ jobs: BackupJob[] }>("/backups/jobs", {
+      params: { deployment, limit },
+    }),
+};
+
+// Scheduler Types
+export type TaskType = "backup" | "command";
+export type TaskStatus = "pending" | "running" | "completed" | "failed";
+
+export interface ScheduledTask {
+  readonly id: number;
+  readonly name: string;
+  readonly type: TaskType;
+  readonly deployment_name: string;
+  readonly cron_expr: string;
+  readonly enabled: boolean;
+  readonly config: TaskConfig;
+  readonly last_run?: string;
+  readonly next_run?: string;
+  readonly created_at: string;
+  readonly updated_at: string;
+}
+
+export interface TaskConfig {
+  readonly backup_config?: BackupTaskConfig;
+  readonly command_config?: CommandTaskConfig;
+}
+
+export interface BackupTaskConfig {
+  readonly retention_count: number;
+  readonly storage_path?: string;
+}
+
+export interface CommandTaskConfig {
+  readonly service: string;
+  readonly command: string;
+  readonly timeout: number;
+}
+
+export interface TaskExecution {
+  readonly id: number;
+  readonly task_id: number;
+  readonly status: TaskStatus;
+  readonly output?: string;
+  readonly error?: string;
+  readonly started_at: string;
+  readonly ended_at?: string;
+  readonly duration_ms?: number;
+}
+
+export interface CreateTaskRequest {
+  name: string;
+  type: TaskType;
+  deployment_name: string;
+  cron_expr: string;
+  enabled: boolean;
+  config: TaskConfig;
+}
+
+export interface UpdateTaskRequest {
+  name?: string;
+  cron_expr?: string;
+  enabled?: boolean;
+  config?: TaskConfig;
+}
+
+export const schedulerApi = {
+  listTasks: (deployment?: string) =>
+    apiClient.get<{ tasks: ScheduledTask[] }>("/scheduler/tasks", {
+      params: deployment ? { deployment } : undefined,
+    }),
+
+  getTask: (id: number) => apiClient.get<{ task: ScheduledTask }>(`/scheduler/tasks/${id}`),
+
+  createTask: (data: CreateTaskRequest) => apiClient.post<{ task: ScheduledTask }>("/scheduler/tasks", data),
+
+  updateTask: (id: number, data: UpdateTaskRequest) =>
+    apiClient.put<{ task: ScheduledTask }>(`/scheduler/tasks/${id}`, data),
+
+  deleteTask: (id: number) => apiClient.delete<{ message: string }>(`/scheduler/tasks/${id}`),
+
+  runTaskNow: (id: number) => apiClient.post<{ message: string }>(`/scheduler/tasks/${id}/run`),
+
+  getTaskExecutions: (taskId: number, limit?: number) =>
+    apiClient.get<{ executions: TaskExecution[] }>(`/scheduler/tasks/${taskId}/executions`, {
+      params: limit ? { limit } : undefined,
+    }),
+
+  getRecentExecutions: (limit?: number) =>
+    apiClient.get<{ executions: TaskExecution[] }>("/scheduler/executions", {
+      params: limit ? { limit } : undefined,
+    }),
+};

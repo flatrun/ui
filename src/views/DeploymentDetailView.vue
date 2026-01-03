@@ -498,6 +498,8 @@
           </div>
         </div>
 
+        <BackupsTab v-if="activeTab === 'backups'" :deployment-name="route.params.name as string" />
+
         <div v-if="activeTab === 'security'" class="security-tab">
           <div class="security-enable-bar">
             <div class="enable-bar-left">
@@ -1250,6 +1252,7 @@ import FileBrowser from "@/components/FileBrowser.vue";
 import LogViewer from "@/components/LogViewer.vue";
 import ConfirmModal from "@/components/ConfirmModal.vue";
 import ContainerTerminal from "@/components/ContainerTerminal.vue";
+import BackupsTab from "@/components/BackupsTab.vue";
 
 const route = useRoute();
 const router = useRouter();
@@ -1298,6 +1301,7 @@ const tabs = [
   { id: "terminal", label: "Terminal", icon: "pi pi-desktop" },
   { id: "environment", label: "Environment", icon: "pi pi-list" },
   { id: "actions", label: "Quick Actions", icon: "pi pi-bolt" },
+  { id: "backups", label: "Backups", icon: "pi pi-history" },
   { id: "security", label: "Security", icon: "pi pi-shield" },
   { id: "config", label: "Configuration", icon: "pi pi-cog" },
 ];
@@ -1309,6 +1313,9 @@ const resourceUsage = ref({
   disk: 0,
   network: 0,
 });
+
+const showDeleteEnvModal = ref(false);
+const envKeyToDelete = ref("");
 
 const logs = ref("");
 const logsLoading = ref(false);
@@ -1372,9 +1379,6 @@ const actionForm = ref({
   icon: "pi pi-play",
   service: "",
 });
-const showDeleteEnvModal = ref(false);
-const envKeyToDelete = ref("");
-
 const showDomainSettingsModal = ref(false);
 const savingDomainSettings = ref(false);
 const domainSettings = ref({
