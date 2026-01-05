@@ -491,8 +491,8 @@ const defaultForm = () => ({
 const form = ref(defaultForm());
 
 const isFormValid = computed(() => {
-  return (
-    form.value.name.trim() && form.value.deployment_name && form.value.cron_expr.trim() && form.value.command.trim()
+  return Boolean(
+    form.value.name.trim() && form.value.deployment_name && form.value.cron_expr.trim() && form.value.command.trim(),
   );
 });
 
