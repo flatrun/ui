@@ -109,6 +109,11 @@ const routes: RouteRecordRaw[] = [
         name: "security",
         component: () => import("@/views/SecurityView.vue"),
       },
+      {
+        path: "cron-jobs",
+        name: "cron-jobs",
+        component: () => import("@/views/CronJobsView.vue"),
+      },
     ],
   },
 ];

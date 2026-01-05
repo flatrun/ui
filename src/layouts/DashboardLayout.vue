@@ -94,6 +94,7 @@
               <span class="nav-count">{{ stats.services }}</span>
               Services
             </router-link>
+            <router-link to="/cron-jobs" class="nav-subitem" active-class="active"> Cron Jobs </router-link>
           </div>
         </div>
 
@@ -316,6 +317,7 @@ const currentPageTitle = computed(() => {
     infrastructure: "Infrastructure",
     "system-ports": "System Ports",
     services: "System Services",
+    "cron-jobs": "Cron Jobs",
     databases: "Database Servers",
     security: "Security & Monitoring",
     certificates: "SSL Certificates",
@@ -337,7 +339,7 @@ const breadcrumbs = computed(() => {
   } else if (["containers", "images", "volumes", "networks", "docker-ports"].includes(routeName)) {
     crumbs.push({ label: "Docker", path: "" });
     crumbs.push({ label: currentPageTitle.value, path: "" });
-  } else if (["infrastructure", "system-ports", "services"].includes(routeName)) {
+  } else if (["infrastructure", "system-ports", "services", "cron-jobs"].includes(routeName)) {
     crumbs.push({ label: "System", path: "" });
     crumbs.push({ label: currentPageTitle.value, path: "" });
   } else if (routeName === "databases") {
