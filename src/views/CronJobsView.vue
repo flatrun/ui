@@ -373,6 +373,10 @@ import type { Deployment } from "@/types";
 import { useNotificationsStore } from "@/stores/notifications";
 import ConfirmModal from "@/components/ConfirmModal.vue";
 
+const PAGE_SIZE = 12;
+const RECENT_EXECUTIONS_LIMIT = 10;
+const TASK_HISTORY_LIMIT = 50;
+
 const notifications = useNotificationsStore();
 
 const tasks = ref<ScheduledTask[]>([]);
@@ -385,7 +389,7 @@ const searchQuery = ref("");
 const filterDeployment = ref("");
 const filterType = ref("");
 const currentPage = ref(1);
-const pageSize = ref(12);
+const pageSize = ref(PAGE_SIZE);
 
 const uniqueDeployments = computed(() => {
   const deps = new Set(tasks.value.map((t) => t.deployment_name));
@@ -478,7 +482,17 @@ const taskToDelete = ref<ScheduledTask | null>(null);
 const selectedExecution = ref<TaskExecution | null>(null);
 const selectedTask = ref<ScheduledTask | null>(null);
 
-const defaultForm = () => ({
+interface CronJobForm {
+  name: string;
+  deployment_name: string;
+  cron_expr: string;
+  service: string;
+  command: string;
+  timeout: number;
+  enabled: boolean;
+}
+
+const defaultForm = (): CronJobForm => ({
   name: "",
   deployment_name: "",
   cron_expr: "",
@@ -488,7 +502,7 @@ const defaultForm = () => ({
   enabled: true,
 });
 
-const form = ref(defaultForm());
+const form = ref<CronJobForm>(defaultForm());
 
 const isFormValid = computed(() => {
   return Boolean(
@@ -499,7 +513,10 @@ const isFormValid = computed(() => {
 const fetchTasks = async () => {
   loading.value = true;
   try {
-    const [tasksRes, execsRes] = await Promise.all([schedulerApi.listTasks(), schedulerApi.getRecentExecutions(10)]);
+    const [tasksRes, execsRes] = await Promise.all([
+      schedulerApi.listTasks(),
+      schedulerApi.getRecentExecutions(RECENT_EXECUTIONS_LIMIT),
+    ]);
     tasks.value = tasksRes.data.tasks || [];
     recentExecutions.value = execsRes.data.executions || [];
   } catch (e: any) {
@@ -640,7 +657,7 @@ const viewExecutions = async (task: ScheduledTask) => {
   selectedTask.value = task;
   showHistoryModal.value = true;
   try {
-    const response = await schedulerApi.getTaskExecutions(task.id, 50);
+    const response = await schedulerApi.getTaskExecutions(task.id, TASK_HISTORY_LIMIT);
     taskExecutions.value = response.data.executions || [];
   } catch {
     taskExecutions.value = [];
