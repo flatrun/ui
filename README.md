@@ -2,6 +2,8 @@
 
 Modern Vue 3 web interface for FlatRun container orchestration.
 
+![FlatRun Deployments View](docs/screenshots/deployments-view.png)
+
 ## Overview
 
 FlatRun UI provides a user-friendly dashboard for managing Docker deployments through the FlatRun Agent. It offers real-time monitoring, container management, and a streamlined deployment workflow.
