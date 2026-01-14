@@ -952,3 +952,151 @@ export const schedulerApi = {
       params: limit ? { limit } : undefined,
     }),
 };
+
+// DNS Types
+export interface DNSCredentialField {
+  name: string;
+  label: string;
+  type: string;
+  required: boolean;
+  help_text?: string;
+}
+
+export interface DNSProvider {
+  name: string;
+  display_name: string;
+  provider: string;
+  credentials: DNSCredentialField[];
+}
+
+export interface DNSZone {
+  id: string;
+  name: string;
+  status: string;
+  name_servers?: string[];
+  record_count?: number;
+}
+
+export interface DNSRecord {
+  id: string;
+  zone_id: string;
+  type: string;
+  name: string;
+  content: string;
+  ttl: number;
+  priority?: number;
+  proxied?: boolean;
+}
+
+export interface DNSRecordCreate {
+  type: string;
+  name: string;
+  content: string;
+  ttl: number;
+  priority?: number;
+  proxied?: boolean;
+}
+
+export interface DNSRecordUpdate {
+  content?: string;
+  ttl?: number;
+  priority?: number;
+  proxied?: boolean;
+}
+
+export const dnsApi = {
+  getProviders: () => apiClient.get<{ providers: DNSProvider[] }>("/dns/providers"),
+
+  getProviderInfo: (provider: string) =>
+    apiClient.get<{
+      name: string;
+      display_name: string;
+      provider: string;
+      credentials: DNSCredentialField[];
+    }>(`/dns/${provider}/info`),
+
+  validateCredentials: (provider: string, credentials: Record<string, string>) =>
+    apiClient.post<{ valid: boolean; error?: string }>(`/dns/${provider}/validate`, { credentials }),
+
+  listZones: (provider: string, credentials: Record<string, string>) =>
+    apiClient.post<{ zones: DNSZone[] }>(`/dns/${provider}/zones`, { credentials }),
+
+  getZone: (provider: string, zoneId: string, credentials: Record<string, string>) =>
+    apiClient.post<DNSZone>(`/dns/${provider}/zones/${zoneId}`, { credentials }),
+
+  listRecords: (provider: string, zoneId: string, credentials: Record<string, string>) =>
+    apiClient.post<{ records: DNSRecord[] }>(`/dns/${provider}/zones/${zoneId}/records`, { credentials }),
+
+  createRecord: (provider: string, zoneId: string, credentials: Record<string, string>, record: DNSRecordCreate) =>
+    apiClient.post<DNSRecord>(`/dns/${provider}/zones/${zoneId}/records/create`, {
+      credentials,
+      record,
+    }),
+
+  updateRecord: (
+    provider: string,
+    zoneId: string,
+    recordId: string,
+    credentials: Record<string, string>,
+    record: DNSRecordUpdate,
+  ) =>
+    apiClient.put<DNSRecord>(`/dns/${provider}/zones/${zoneId}/records/${recordId}`, {
+      credentials,
+      record,
+    }),
+
+  deleteRecord: (provider: string, zoneId: string, recordId: string, credentials: Record<string, string>) =>
+    apiClient.delete(`/dns/${provider}/zones/${zoneId}/records/${recordId}`, {
+      data: { credentials },
+    }),
+};
+
+// PowerDNS Types
+export interface PowerDNSZone {
+  id: string;
+  name: string;
+  kind: string;
+  serial: number;
+  dnssec: boolean;
+  rrsets?: PowerDNSRRSet[];
+}
+
+export interface PowerDNSRRSet {
+  name: string;
+  type: string;
+  ttl: number;
+  changetype?: "REPLACE" | "DELETE";
+  records: PowerDNSRecordContent[];
+}
+
+export interface PowerDNSRecordContent {
+  content: string;
+  disabled: boolean;
+}
+
+export interface PowerDNSZoneCreate {
+  name: string;
+  kind: string;
+  nameservers?: string[];
+}
+
+export const powerDnsApi = {
+  getStatus: () => apiClient.get<{ running: boolean; version?: string }>("/dns/powerdns/status"),
+
+  enableService: () => apiClient.post<{ message: string }>("/dns/powerdns/enable"),
+
+  disableService: () => apiClient.post<{ message: string }>("/dns/powerdns/disable"),
+
+  restartService: () => apiClient.post<{ message: string }>("/dns/powerdns/restart"),
+
+  listZones: () => apiClient.get<{ zones: PowerDNSZone[] }>("/dns/powerdns/zones"),
+
+  getZone: (zoneId: string) => apiClient.get<PowerDNSZone>(`/dns/powerdns/zones/${zoneId}`),
+
+  createZone: (zone: PowerDNSZoneCreate) => apiClient.post<PowerDNSZone>("/dns/powerdns/zones", zone),
+
+  deleteZone: (zoneId: string) => apiClient.delete(`/dns/powerdns/zones/${zoneId}`),
+
+  updateRecords: (zoneId: string, rrsets: PowerDNSRRSet[]) =>
+    apiClient.patch<PowerDNSZone>(`/dns/powerdns/zones/${zoneId}`, { rrsets }),
+};

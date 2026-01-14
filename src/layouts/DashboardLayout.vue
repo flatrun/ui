@@ -117,6 +117,22 @@
         </div>
 
         <div class="nav-group">
+          <div class="nav-group-header" @click="toggleGroup('dns')">
+            <i class="pi pi-globe" />
+            <span v-if="!sidebarCollapsed">DNS</span>
+            <i
+              v-if="!sidebarCollapsed"
+              class="pi chevron"
+              :class="expandedGroups.dns ? 'pi-chevron-down' : 'pi-chevron-right'"
+            />
+          </div>
+          <div v-show="expandedGroups.dns && !sidebarCollapsed" class="nav-group-items">
+            <router-link to="/dns/zones" class="nav-subitem" active-class="active"> Zones </router-link>
+            <router-link to="/dns/external" class="nav-subitem" active-class="active"> External Providers </router-link>
+          </div>
+        </div>
+
+        <div class="nav-group">
           <div class="nav-group-header" @click="toggleGroup('security')">
             <i class="pi pi-shield" />
             <span v-if="!sidebarCollapsed">Security</span>
@@ -268,6 +284,7 @@ const expandedGroups = reactive({
   docker: true,
   system: false,
   databases: false,
+  dns: false,
   security: false,
   extensions: false,
   admin: false,
@@ -321,6 +338,8 @@ const currentPageTitle = computed(() => {
     databases: "Database Servers",
     security: "Security & Monitoring",
     certificates: "SSL Certificates",
+    "dns-zones": "DNS Zones",
+    "dns-external": "External DNS Providers",
     apps: "Installed Apps",
     templates: "Templates",
     marketplace: "App Marketplace",
@@ -351,6 +370,12 @@ const breadcrumbs = computed(() => {
   } else if (routeName === "certificates") {
     crumbs.push({ label: "Security", path: "" });
     crumbs.push({ label: "Certificates", path: "" });
+  } else if (routeName === "dns-zones") {
+    crumbs.push({ label: "DNS", path: "" });
+    crumbs.push({ label: "Zones", path: "" });
+  } else if (routeName === "dns-external") {
+    crumbs.push({ label: "DNS", path: "" });
+    crumbs.push({ label: "External Providers", path: "" });
   } else if (["apps", "marketplace"].includes(routeName)) {
     crumbs.push({ label: "Apps", path: "" });
     crumbs.push({ label: currentPageTitle.value, path: "" });
