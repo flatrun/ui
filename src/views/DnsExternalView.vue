@@ -232,13 +232,14 @@
               <div class="form-group">
                 <label for="record-ttl">TTL</label>
                 <select id="record-ttl" v-model.number="recordForm.ttl">
-                  <option :value="1">Auto</option>
+                  <option :value="1">Auto (Provider Default)</option>
                   <option :value="60">1 minute</option>
                   <option :value="300">5 minutes</option>
                   <option :value="600">10 minutes</option>
                   <option :value="3600">1 hour</option>
                   <option :value="86400">1 day</option>
                 </select>
+                <span class="hint">Time-to-live for DNS cache. Auto lets the provider choose.</span>
               </div>
 
               <div v-if="recordForm.type === 'MX'" class="form-group">
@@ -456,13 +457,16 @@ onMounted(() => {
 });
 </script>
 
+<style src="@/assets/dns-shared.css"></style>
 <style scoped>
+/* Layout */
 .dns-view {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
 }
 
+/* Provider Setup */
 .provider-setup {
   display: flex;
   justify-content: center;
@@ -508,6 +512,7 @@ onMounted(() => {
   padding: 1.5rem;
 }
 
+/* Provider Selection */
 .provider-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -564,121 +569,7 @@ onMounted(() => {
   margin: 0 0 1rem 0;
 }
 
-.form-group {
-  margin-bottom: 1rem;
-}
-
-.form-group label {
-  display: block;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #374151;
-  margin-bottom: 0.5rem;
-}
-
-.form-group input,
-.form-group select {
-  width: 100%;
-  padding: 0.75rem 1rem;
-  border: 1px solid #d1d5db;
-  border-radius: var(--radius-sm);
-  font-size: 0.875rem;
-  transition: all 0.2s;
-}
-
-.form-group input:focus,
-.form-group select:focus {
-  outline: none;
-  border-color: #6366f1;
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-}
-
-.form-group input:disabled {
-  background: #f9fafb;
-  color: #9ca3af;
-}
-
-.hint {
-  display: block;
-  font-size: 0.75rem;
-  color: #6b7280;
-  margin-top: 0.375rem;
-}
-
-.error-message {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1rem;
-  background: #fef2f2;
-  border: 1px solid #fecaca;
-  border-radius: var(--radius-sm);
-  color: #dc2626;
-  font-size: 0.875rem;
-  margin-bottom: 1rem;
-}
-
-.btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.625rem 1.25rem;
-  border-radius: var(--radius-sm);
-  font-weight: 500;
-  font-size: 0.875rem;
-  cursor: pointer;
-  transition: all 0.2s;
-  border: none;
-}
-
-.btn-primary {
-  background: #6366f1;
-  color: white;
-  width: 100%;
-  justify-content: center;
-}
-
-.btn-primary:hover:not(:disabled) {
-  background: #4f46e5;
-}
-
-.btn-primary:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.btn-secondary {
-  background: white;
-  border: 1px solid #e5e7eb;
-  color: #374151;
-}
-
-.btn-secondary:hover:not(:disabled) {
-  background: #f9fafb;
-}
-
-.btn-secondary.btn-sm {
-  padding: 0.5rem 0.75rem;
-  font-size: 0.8125rem;
-}
-
-.btn-icon {
-  padding: 0.625rem;
-  background: white;
-  border: 1px solid #e5e7eb;
-  color: #6b7280;
-}
-
-.btn-icon:hover:not(:disabled) {
-  background: #f9fafb;
-  color: #374151;
-}
-
-.btn-icon:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
+/* DNS Manager */
 .dns-manager {
   background: white;
   border-radius: var(--radius-sm);
@@ -712,229 +603,20 @@ onMounted(() => {
   padding: 1.5rem;
 }
 
-.section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-}
-
-.section-header h3 {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 1rem;
-  font-weight: 600;
-  color: #1f2937;
-  margin: 0;
-}
-
-.section-actions {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.loading-state,
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 3rem;
-  color: #6b7280;
-}
-
-.loading-state i,
-.empty-state i {
-  font-size: 2rem;
-}
-
-.zones-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
+/* Zone-specific overrides */
 .zone-card {
-  display: flex;
-  align-items: center;
   gap: 1rem;
-  padding: 1rem 1.25rem;
-  background: #f9fafb;
-  border: 1px solid #e5e7eb;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.zone-card:hover {
-  background: #f3f4f6;
-  border-color: #6366f1;
 }
 
 .zone-name {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-weight: 600;
-  color: #1f2937;
   flex: 1;
-}
-
-.zone-name i {
-  color: #6366f1;
-}
-
-.zone-meta {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.zone-records {
-  font-size: 0.75rem;
-  color: #6b7280;
-}
-
-.zone-status {
-  padding: 0.25rem 0.5rem;
-  border-radius: 9999px;
-  font-size: 0.7rem;
-  font-weight: 600;
-  text-transform: uppercase;
-}
-
-.zone-status.active {
-  background: #dcfce7;
-  color: #166534;
 }
 
 .zone-arrow {
   color: #9ca3af;
 }
 
-.breadcrumb {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.breadcrumb-btn {
-  display: flex;
-  align-items: center;
-  gap: 0.375rem;
-  padding: 0.375rem 0.75rem;
-  background: none;
-  border: none;
-  color: #6b7280;
-  font-size: 0.875rem;
-  cursor: pointer;
-  transition: color 0.2s;
-}
-
-.breadcrumb-btn:hover {
-  color: #4f46e5;
-}
-
-.breadcrumb-separator {
-  color: #d1d5db;
-}
-
-.breadcrumb-current {
-  display: flex;
-  align-items: center;
-  gap: 0.375rem;
-  font-weight: 600;
-  color: #1f2937;
-}
-
-.breadcrumb-current i {
-  color: #6366f1;
-}
-
-.records-table {
-  overflow-x: auto;
-}
-
-.records-table table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.records-table th,
-.records-table td {
-  padding: 0.75rem 1rem;
-  text-align: left;
-  border-bottom: 1px solid #e5e7eb;
-}
-
-.records-table th {
-  background: #f9fafb;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: #6b7280;
-  text-transform: uppercase;
-}
-
-.records-table tbody tr:hover {
-  background: #f9fafb;
-}
-
-.record-type {
-  display: inline-block;
-  padding: 0.25rem 0.5rem;
-  border-radius: var(--radius-sm);
-  font-size: 0.75rem;
-  font-weight: 600;
-  font-family: monospace;
-}
-
-.record-type.a {
-  background: #dbeafe;
-  color: #1e40af;
-}
-
-.record-type.aaaa {
-  background: #e0e7ff;
-  color: #3730a3;
-}
-
-.record-type.cname {
-  background: #fef3c7;
-  color: #92400e;
-}
-
-.record-type.mx {
-  background: #fce7f3;
-  color: #9d174d;
-}
-
-.record-type.txt {
-  background: #dcfce7;
-  color: #166534;
-}
-
-.record-type.ns {
-  background: #f3e8ff;
-  color: #6b21a8;
-}
-
-.record-name {
-  font-family: monospace;
-  font-weight: 500;
-}
-
-.record-content {
-  font-family: monospace;
-  font-size: 0.875rem;
-  color: #6b7280;
-  max-width: 300px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
+/* Cloudflare Proxy Badge */
 .proxied-badge {
   padding: 0.25rem 0.5rem;
   border-radius: 9999px;
@@ -949,133 +631,18 @@ onMounted(() => {
   color: #d97706;
 }
 
-.actions-cell {
-  display: flex;
-  gap: 0.25rem;
-}
-
-.btn-icon-sm {
-  padding: 0.375rem;
-  background: none;
-  border: none;
-  color: #6b7280;
-  cursor: pointer;
-  border-radius: var(--radius-sm);
-  transition: all 0.2s;
-}
-
-.btn-icon-sm:hover {
-  background: #f3f4f6;
-  color: #374151;
-}
-
-.btn-icon-sm.danger:hover {
-  background: #fee2e2;
-  color: #dc2626;
-}
-
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(4px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
-.modal-container {
-  background: white;
-  border-radius: var(--radius-sm);
-  width: 100%;
-  max-width: 480px;
-  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
-}
-
-.modal-header {
-  padding: 1.25rem 1.5rem;
-  border-bottom: 1px solid #e5e7eb;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.modal-header h3 {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: #111827;
-  margin: 0;
-}
-
-.modal-header h3 i {
-  color: #6366f1;
-}
-
-.close-btn {
-  background: none;
-  border: none;
-  color: #9ca3af;
-  cursor: pointer;
-  padding: 0.5rem;
-  border-radius: var(--radius-sm);
-  transition: all 0.2s;
-}
-
-.close-btn:hover {
-  background: #f3f4f6;
-  color: #6b7280;
-}
-
-.modal-body {
-  padding: 1.5rem;
-}
-
+/* Modal overrides */
 .modal-body .btn-primary {
   width: auto;
-}
-
-.form-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-}
-
-.checkbox-group label {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  cursor: pointer;
-}
-
-.checkbox-group input[type="checkbox"] {
-  width: auto;
-}
-
-.modal-footer {
-  padding: 1rem 1.5rem;
-  border-top: 1px solid #e5e7eb;
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.75rem;
 }
 
 .modal-footer .btn-primary {
   width: auto;
 }
 
+/* Responsive */
 @media (max-width: 768px) {
   .provider-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .form-row {
     grid-template-columns: 1fr;
   }
 }
