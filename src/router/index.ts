@@ -114,6 +114,16 @@ const routes: RouteRecordRaw[] = [
         name: "cron-jobs",
         component: () => import("@/views/CronJobsView.vue"),
       },
+      {
+        path: "dns/zones",
+        name: "dns-zones",
+        component: () => import("@/views/DnsZonesView.vue"),
+      },
+      {
+        path: "dns/external",
+        name: "dns-external",
+        component: () => import("@/views/DnsExternalView.vue"),
+      },
     ],
   },
 ];
