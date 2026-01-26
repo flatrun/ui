@@ -182,6 +182,8 @@
           </div>
           <div v-show="expandedGroups.admin && !sidebarCollapsed" class="nav-group-items">
             <router-link to="/settings" class="nav-subitem" active-class="active"> Settings </router-link>
+            <router-link v-if="authStore.hasPermission('users:read')" to="/users" class="nav-subitem" active-class="active"> Users </router-link>
+            <router-link v-if="authStore.hasPermission('apikeys:read')" to="/api-keys" class="nav-subitem" active-class="active"> API Keys </router-link>
           </div>
         </div>
       </nav>
@@ -213,6 +215,15 @@
                 :class="getUsageClass(stats.memoryUsage)"
               />
             </div>
+          </div>
+        </div>
+        <div v-if="!sidebarCollapsed && authStore.currentUser" class="user-info">
+          <div class="user-avatar">
+            <i class="pi pi-user" />
+          </div>
+          <div class="user-details">
+            <span class="user-name">{{ authStore.currentUser.username }}</span>
+            <span class="user-role">{{ authStore.currentUser.role }}</span>
           </div>
         </div>
         <div class="agent-status">
@@ -271,11 +282,13 @@
 import { ref, reactive, computed, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useStatsStore } from "@/stores/stats";
+import { useAuthStore } from "@/stores/auth";
 import Logo from "@/components/base/Logo.vue";
 
 const route = useRoute();
 const router = useRouter();
 const statsStore = useStatsStore();
+const authStore = useAuthStore();
 const sidebarCollapsed = ref(false);
 const isRefreshing = ref(false);
 
@@ -344,6 +357,8 @@ const currentPageTitle = computed(() => {
     templates: "Templates",
     marketplace: "App Marketplace",
     settings: "Settings",
+    users: "Users",
+    "api-keys": "API Keys",
   };
   return titles[route.name as string] || "Dashboard";
 });
@@ -379,7 +394,7 @@ const breadcrumbs = computed(() => {
   } else if (["apps", "marketplace"].includes(routeName)) {
     crumbs.push({ label: "Apps", path: "" });
     crumbs.push({ label: currentPageTitle.value, path: "" });
-  } else if (routeName === "settings") {
+  } else if (["settings", "users", "api-keys"].includes(routeName)) {
     crumbs.push({ label: "Administration", path: "" });
     crumbs.push({ label: currentPageTitle.value, path: "" });
   } else if (routeName !== "home") {
@@ -402,12 +417,13 @@ const refreshAll = async () => {
 };
 
 const handleLogout = () => {
-  localStorage.removeItem("auth_token");
+  authStore.logout();
   router.push("/login");
 };
 
 onMounted(() => {
   statsStore.fetchAll();
+  authStore.fetchCurrentUser();
   setInterval(() => statsStore.fetchAll(), 15000);
 });
 </script>
@@ -626,6 +642,48 @@ onMounted(() => {
 
 .resource-fill.critical {
   background: #ef4444;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+  margin-bottom: 0.75rem;
+}
+
+.user-avatar {
+  width: 32px;
+  height: 32px;
+  background: #3b82f6;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.user-avatar i {
+  font-size: 0.875rem;
+  color: white;
+}
+
+.user-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.user-name {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: white;
+}
+
+.user-role {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  text-transform: capitalize;
 }
 
 .agent-status {

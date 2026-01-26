@@ -124,6 +124,18 @@ const routes: RouteRecordRaw[] = [
         name: "dns-external",
         component: () => import("@/views/DnsExternalView.vue"),
       },
+      {
+        path: "users",
+        name: "users",
+        component: () => import("@/views/UsersView.vue"),
+        meta: { permission: "users:read" },
+      },
+      {
+        path: "api-keys",
+        name: "api-keys",
+        component: () => import("@/views/APIKeysView.vue"),
+        meta: { permission: "apikeys:read" },
+      },
     ],
   },
 ];
