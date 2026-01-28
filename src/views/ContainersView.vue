@@ -74,36 +74,36 @@
       <template #cell-actions="{ item }">
         <div class="action-buttons">
           <button
-            v-if="item.state === 'running'"
+            v-if="canWrite && item.state === 'running'"
             class="action-btn stop"
             title="Stop"
             @click.stop="stopContainer(item.id)"
           >
             <Square :size="14" />
           </button>
-          <button v-else class="action-btn start" title="Start" @click.stop="startContainer(item.id)">
+          <button v-else-if="canWrite" class="action-btn start" title="Start" @click.stop="startContainer(item.id)">
             <Play :size="14" />
           </button>
-          <button class="action-btn restart" title="Restart" @click.stop="restartContainer(item.id)">
+          <button v-if="canWrite" class="action-btn restart" title="Restart" @click.stop="restartContainer(item.id)">
             <RotateCw :size="14" />
           </button>
           <button class="action-btn logs" title="Logs" @click.stop="showLogs(item.id, item.name)">
             <FileText :size="14" />
           </button>
-          <button class="action-btn delete" title="Remove" @click.stop="deleteContainer(item.id)">
+          <button v-if="canDelete" class="action-btn delete" title="Remove" @click.stop="deleteContainer(item.id)">
             <Trash2 :size="14" />
           </button>
         </div>
       </template>
 
       <template #bulk-actions="{ selectedItems, clearSelection }">
-        <button class="btn btn-sm btn-secondary" @click="bulkStart(selectedItems, clearSelection)">
+        <button v-if="canWrite" class="btn btn-sm btn-secondary" @click="bulkStart(selectedItems, clearSelection)">
           <Play :size="14" /> Start
         </button>
-        <button class="btn btn-sm btn-secondary" @click="bulkStop(selectedItems, clearSelection)">
+        <button v-if="canWrite" class="btn btn-sm btn-secondary" @click="bulkStop(selectedItems, clearSelection)">
           <Square :size="14" /> Stop
         </button>
-        <button class="btn btn-sm btn-danger" @click="bulkRemove(selectedItems, clearSelection)">
+        <button v-if="canDelete" class="btn btn-sm btn-danger" @click="bulkRemove(selectedItems, clearSelection)">
           <Trash2 :size="14" /> Remove
         </button>
       </template>
@@ -147,12 +147,16 @@
 import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { containersApi } from "@/services/api";
+import { useAuthStore } from "@/stores/auth";
 import DataTable from "@/components/DataTable.vue";
 import LogsModal from "@/components/LogsModal.vue";
 import ConfirmModal from "@/components/ConfirmModal.vue";
 import { RefreshCw, Play, Square, RotateCw, FileText, Trash2, Package, Link } from "lucide-vue-next";
 
 const router = useRouter();
+const authStore = useAuthStore();
+const canWrite = authStore.hasPermission("containers:write");
+const canDelete = authStore.hasPermission("containers:delete");
 
 interface Container {
   id: string;

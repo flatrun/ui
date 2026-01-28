@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { mount, flushPromises } from "@vue/test-utils";
 import { createTestingPinia } from "@pinia/testing";
 import SettingsView from "./SettingsView.vue";
+import { useAuthStore } from "@/stores/auth";
 
 vi.mock("@/services/api", () => ({
   settingsApi: {
@@ -72,13 +73,12 @@ describe("SettingsView", () => {
   });
 
   const mountView = () => {
+    const pinia = createTestingPinia({ createSpy: vi.fn });
+    const authStore = useAuthStore(pinia);
+    (authStore.hasPermission as ReturnType<typeof vi.fn>).mockReturnValue(true);
     return mount(SettingsView, {
       global: {
-        plugins: [
-          createTestingPinia({
-            createSpy: vi.fn,
-          }),
-        ],
+        plugins: [pinia],
       },
     });
   };

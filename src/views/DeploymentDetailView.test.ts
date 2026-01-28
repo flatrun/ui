@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { mount, flushPromises } from "@vue/test-utils";
 import { createTestingPinia } from "@pinia/testing";
 import DeploymentDetailView from "./DeploymentDetailView.vue";
+import { useAuthStore } from "@/stores/auth";
 
 const mockRoute = {
   params: { name: "test-app" },
@@ -111,13 +112,12 @@ describe("DeploymentDetailView", () => {
   });
 
   const mountView = () => {
+    const pinia = createTestingPinia({ createSpy: vi.fn });
+    const authStore = useAuthStore(pinia);
+    (authStore.hasPermission as ReturnType<typeof vi.fn>).mockReturnValue(true);
     return mount(DeploymentDetailView, {
       global: {
-        plugins: [
-          createTestingPinia({
-            createSpy: vi.fn,
-          }),
-        ],
+        plugins: [pinia],
         mocks: {
           $route: mockRoute,
         },
@@ -363,6 +363,59 @@ describe("DeploymentDetailView", () => {
       mountView();
       await flushPromises();
       expect(deploymentsApi.getEnvVars).toHaveBeenCalledWith("test-app");
+    });
+  });
+
+  describe("Permission gates", () => {
+    const mountViewDenied = () => {
+      const pinia = createTestingPinia({ createSpy: vi.fn });
+      return mount(DeploymentDetailView, {
+        global: {
+          plugins: [pinia],
+          mocks: {
+            $route: mockRoute,
+          },
+          stubs: {
+            RouterLink: {
+              template: "<a><slot /></a>",
+              props: ["to"],
+            },
+            teleport: true,
+            ContainerTerminal: true,
+            LogViewer: true,
+          },
+        },
+      });
+    };
+
+    it("hides start button without deployments:write", async () => {
+      const wrapper = mountViewDenied();
+      await flushPromises();
+      expect(wrapper.find(".btn-success").exists()).toBe(false);
+    });
+
+    it("hides stop button without deployments:write", async () => {
+      const wrapper = mountViewDenied();
+      await flushPromises();
+      expect(wrapper.find(".btn-warning").exists()).toBe(false);
+    });
+
+    it("hides restart button without deployments:write", async () => {
+      const wrapper = mountViewDenied();
+      await flushPromises();
+      expect(wrapper.find(".btn-info").exists()).toBe(false);
+    });
+
+    it("hides delete button without deployments:delete", async () => {
+      const wrapper = mountViewDenied();
+      await flushPromises();
+      expect(wrapper.find(".btn-danger").exists()).toBe(false);
+    });
+
+    it("still renders deployment detail view", async () => {
+      const wrapper = mountViewDenied();
+      await flushPromises();
+      expect(wrapper.find(".deployment-detail").exists()).toBe(true);
     });
   });
 });

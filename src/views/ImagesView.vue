@@ -32,7 +32,7 @@
       :default-page-size="25"
     >
       <template #actions>
-        <button class="btn btn-primary" @click="showPullModal = true">
+        <button v-if="canWrite" class="btn btn-primary" @click="showPullModal = true">
           <i class="pi pi-download" />
           Pull Image
         </button>
@@ -77,6 +77,7 @@
             <i class="pi pi-info-circle" />
           </button>
           <button
+            v-if="canDelete"
             class="action-btn delete"
             :disabled="item.containers > 0"
             title="Remove"
@@ -134,10 +135,11 @@
               <button class="action-btn" title="Inspect" @click="inspectImage(image.id)">
                 <i class="pi pi-info-circle" />
               </button>
-              <button class="action-btn" title="Create Container" @click="createContainer(image.id)">
+              <button v-if="canWrite" class="action-btn" title="Create Container" @click="createContainer(image.id)">
                 <i class="pi pi-play" />
               </button>
               <button
+                v-if="canDelete"
                 class="action-btn delete"
                 title="Remove"
                 :disabled="image.containers > 0"
@@ -151,7 +153,7 @@
       </template>
 
       <template #bulk-actions="{ selectedItems, clearSelection }">
-        <button class="btn btn-sm btn-danger" @click="bulkRemove(selectedItems, clearSelection)">
+        <button v-if="canDelete" class="btn btn-sm btn-danger" @click="bulkRemove(selectedItems, clearSelection)">
           <i class="pi pi-trash" /> Remove
         </button>
       </template>
@@ -279,6 +281,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from "vue";
 import { imagesApi, credentialsApi } from "@/services/api";
+import { useAuthStore } from "@/stores/auth";
 import DataTable from "@/components/DataTable.vue";
 import ConfirmModal from "@/components/ConfirmModal.vue";
 import type { RegistryCredential } from "@/types";
@@ -291,6 +294,9 @@ interface DockerImage {
   containers: number;
 }
 
+const authStore = useAuthStore();
+const canWrite = authStore.hasPermission("images:write");
+const canDelete = authStore.hasPermission("images:delete");
 const images = ref<DockerImage[]>([]);
 const loading = ref(false);
 const showPullModal = ref(false);

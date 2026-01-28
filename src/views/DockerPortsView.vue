@@ -59,7 +59,7 @@
       <template #cell-actions="{ item }">
         <div class="action-buttons">
           <button
-            v-if="item.containerStatus === 'running'"
+            v-if="canWrite && item.containerStatus === 'running'"
             class="action-btn stop"
             title="Stop Container"
             @click.stop="stopContainer(item.containerId, item.containerName)"
@@ -67,6 +67,7 @@
             <Square :size="14" />
           </button>
           <button
+            v-if="canWrite"
             class="action-btn restart"
             title="Restart Container"
             @click.stop="restartContainer(item.containerId, item.containerName)"
@@ -82,6 +83,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import { containersApi } from "@/services/api";
+import { useAuthStore } from "@/stores/auth";
 import { useNotificationsStore } from "@/stores/notifications";
 import DataTable from "@/components/DataTable.vue";
 import { RefreshCw, Plug, ExternalLink, Layers, Square, RotateCw } from "lucide-vue-next";
@@ -98,6 +100,8 @@ interface PortMapping {
   image: string;
 }
 
+const authStore = useAuthStore();
+const canWrite = authStore.hasPermission("containers:write");
 const portMappings = ref<PortMapping[]>([]);
 const loading = ref(false);
 const notifications = useNotificationsStore();

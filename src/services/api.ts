@@ -1100,3 +1100,76 @@ export const powerDnsApi = {
   updateRecords: (zoneId: string, rrsets: PowerDNSRRSet[]) =>
     apiClient.patch<PowerDNSZone>(`/dns/powerdns/zones/${zoneId}`, { rrsets }),
 };
+
+import type { User, APIKey, UserRole, UserDeploymentAccess } from "@/types";
+
+export const usersApi = {
+  list: () => apiClient.get<{ users: User[] }>("/users"),
+
+  get: (id: number) => apiClient.get<{ user: User; deployments: UserDeploymentAccess[] }>(`/users/${id}`),
+
+  create: (data: { username: string; email?: string; password: string; role: UserRole; permissions?: string[] }) =>
+    apiClient.post<{ user: User }>("/users", data),
+
+  update: (
+    id: number,
+    data: { username?: string; email?: string; role?: UserRole; is_active?: boolean; permissions?: string[] },
+  ) => apiClient.put<{ user: User }>(`/users/${id}`, data),
+
+  delete: (id: number) => apiClient.delete(`/users/${id}`),
+
+  me: () => apiClient.get<{ user: User; permissions: string[]; deployments: UserDeploymentAccess[] }>("/users/me"),
+
+  updateMe: (data: { email?: string }) => apiClient.put<{ user: User }>("/users/me", data),
+
+  updatePassword: (data: { current_password: string; new_password: string }) =>
+    apiClient.put("/users/me/password", data),
+
+  getDeployments: (userId: number) =>
+    apiClient.get<{ deployments: UserDeploymentAccess[] }>(`/users/${userId}/deployments`),
+
+  assignDeployment: (userId: number, data: { deployment_name: string; access_level: string }) =>
+    apiClient.post(`/users/${userId}/deployments`, data),
+
+  updateDeployment: (userId: number, deploymentName: string, data: { access_level: string }) =>
+    apiClient.put(`/users/${userId}/deployments/${deploymentName}`, data),
+
+  removeDeployment: (userId: number, deploymentName: string) =>
+    apiClient.delete(`/users/${userId}/deployments/${deploymentName}`),
+};
+
+export const apiKeysApi = {
+  list: () => apiClient.get<{ api_keys: APIKey[] }>("/apikeys"),
+
+  get: (id: number) => apiClient.get<{ api_key: APIKey }>(`/apikeys/${id}`),
+
+  create: (data: {
+    name: string;
+    description?: string;
+    role?: UserRole;
+    permissions?: string[];
+    deployments?: string[];
+    expires_in?: number;
+    user_id?: number;
+  }) => apiClient.post<{ api_key: APIKey; message: string }>("/apikeys", data),
+
+  delete: (id: number) => apiClient.delete(`/apikeys/${id}`),
+
+  revoke: (id: number) => apiClient.post(`/apikeys/${id}/revoke`),
+};
+
+export const deploymentUsersApi = {
+  getUsers: (deploymentName: string) =>
+    apiClient.get<{
+      deployment_name: string;
+      users: Array<{
+        user_id: number;
+        username: string;
+        email?: string;
+        role: UserRole;
+        access_level: string;
+        granted_by?: number;
+        created_at: string;
+      }>;
+    }>(`/deployments/${deploymentName}/users`),
+};

@@ -206,3 +206,98 @@ export interface DeploymentRateLimit {
   burst: number;
   enabled: boolean;
 }
+
+export type UserRole = "admin" | "operator" | "viewer";
+
+export interface User {
+  id: number;
+  uid: string;
+  username: string;
+  email?: string;
+  role: UserRole;
+  permissions?: string[];
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+  last_login_at?: string;
+  deployment_count?: number;
+  deployments?: UserDeploymentAccess[];
+}
+
+export interface UserDeploymentAccess {
+  deployment_name: string;
+  access_level: "read" | "write" | "admin";
+  granted_by?: number;
+  created_at: string;
+}
+
+export interface APIKey {
+  id: number;
+  key_id: string;
+  user_id: number;
+  name: string;
+  description?: string;
+  key_prefix: string;
+  role?: UserRole;
+  permissions?: string[];
+  deployments?: string[];
+  expires_at?: string;
+  last_used_at?: string;
+  last_used_ip?: string;
+  is_active: boolean;
+  created_at: string;
+  key?: string;
+}
+
+export type Permission =
+  | "deployments:read"
+  | "deployments:write"
+  | "deployments:delete"
+  | "certificates:read"
+  | "certificates:write"
+  | "certificates:delete"
+  | "networks:read"
+  | "networks:write"
+  | "networks:delete"
+  | "security:read"
+  | "security:write"
+  | "backups:read"
+  | "backups:write"
+  | "backups:delete"
+  | "users:read"
+  | "users:write"
+  | "users:delete"
+  | "apikeys:read"
+  | "apikeys:write"
+  | "apikeys:delete"
+  | "settings:read"
+  | "settings:write"
+  | "audit:read"
+  | "containers:read"
+  | "containers:write"
+  | "containers:delete"
+  | "images:read"
+  | "images:write"
+  | "images:delete"
+  | "volumes:read"
+  | "volumes:write"
+  | "volumes:delete"
+  | "databases:read"
+  | "databases:write"
+  | "databases:delete"
+  | "infrastructure:read"
+  | "infrastructure:write"
+  | "scheduler:read"
+  | "scheduler:write"
+  | "scheduler:delete"
+  | "system:read"
+  | "system:write"
+  | "dns:read"
+  | "dns:write"
+  | "registries:read"
+  | "registries:write"
+  | "registries:delete"
+  | "templates:read"
+  | "templates:write"
+  | "traffic:read"
+  | "traffic:write";

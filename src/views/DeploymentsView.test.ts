@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { mount, flushPromises } from "@vue/test-utils";
 import { createTestingPinia } from "@pinia/testing";
 import DeploymentsView from "./DeploymentsView.vue";
+import { useAuthStore } from "@/stores/auth";
 
 vi.mock("@/services/api", () => ({
   deploymentsApi: {
@@ -88,13 +89,12 @@ describe("DeploymentsView", () => {
   });
 
   const mountView = () => {
+    const pinia = createTestingPinia({ createSpy: vi.fn });
+    const authStore = useAuthStore(pinia);
+    (authStore.hasPermission as ReturnType<typeof vi.fn>).mockReturnValue(true);
     return mount(DeploymentsView, {
       global: {
-        plugins: [
-          createTestingPinia({
-            createSpy: vi.fn,
-          }),
-        ],
+        plugins: [pinia],
         stubs: {
           DataTable: {
             template: `
@@ -249,6 +249,43 @@ describe("DeploymentsView", () => {
       const wrapper = mountView();
       const now = new Date().toISOString();
       expect((wrapper.vm as any).formatRelativeTime(now)).toBe("just now");
+    });
+  });
+
+  describe("Permission gates", () => {
+    const mountViewDenied = () => {
+      const pinia = createTestingPinia({ createSpy: vi.fn });
+      return mount(DeploymentsView, {
+        global: {
+          plugins: [pinia],
+          stubs: {
+            DataTable: {
+              template: `
+                <div class="data-table">
+                  <slot name="actions" />
+                  <div class="items">
+                    <slot name="grid" :items="items" />
+                  </div>
+                </div>
+              `,
+              props: ["items", "columns", "loading"],
+            },
+            OperationModal: true,
+            LogsModal: true,
+            NewDeploymentModal: true,
+          },
+        },
+      });
+    };
+
+    it("hides New Deployment button without deployments:write", () => {
+      const wrapper = mountViewDenied();
+      expect(wrapper.find("button.btn-primary").exists()).toBe(false);
+    });
+
+    it("still shows Refresh button without write permission", () => {
+      const wrapper = mountViewDenied();
+      expect(wrapper.text()).toContain("Refresh");
     });
   });
 });

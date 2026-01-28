@@ -186,7 +186,7 @@
               </div>
             </div>
 
-            <div class="card-footer">
+            <div v-if="canWriteSettings" class="card-footer">
               <button class="btn btn-primary" :disabled="savingDomain" @click="saveDomainSettings">
                 <i v-if="savingDomain" class="pi pi-spin pi-spinner" />
                 <i v-else class="pi pi-save" />
@@ -472,7 +472,7 @@
           </div>
         </div>
 
-        <div class="save-footer">
+        <div v-if="canWriteSettings" class="save-footer">
           <button class="btn btn-primary" :disabled="savingInfrastructure" @click="saveInfrastructureSettings">
             <i v-if="savingInfrastructure" class="pi pi-spin pi-spinner" />
             <i v-else class="pi pi-save" />
@@ -609,7 +609,7 @@
           </div>
         </div>
 
-        <div class="save-footer">
+        <div v-if="canWriteSettings" class="save-footer">
           <button class="btn btn-primary" :disabled="savingSecurity" @click="saveSecuritySettings">
             <i v-if="savingSecurity" class="pi pi-spin pi-spinner" />
             <i v-else class="pi pi-save" />
@@ -630,7 +630,7 @@
             <i class="pi pi-key" />
             <h3>Registry Credentials</h3>
             <button
-              v-if="!showAddCredentialForm"
+              v-if="canWriteRegistries && !showAddCredentialForm"
               class="btn btn-primary btn-sm header-action"
               @click="showAddCredentialForm = true"
             >
@@ -741,7 +741,7 @@
                     <span v-if="cred.is_default" class="credential-badge default">Default</span>
                   </div>
                 </div>
-                <div class="credential-actions">
+                <div v-if="canDeleteRegistries" class="credential-actions">
                   <button
                     class="btn btn-icon btn-danger-ghost"
                     :disabled="deletingCredentialId === cred.id"
@@ -790,10 +790,15 @@ import { settingsApi, healthApi, templatesApi, credentialsApi } from "@/services
 import type { DomainSettings } from "@/services/api";
 import type { RegistryCredential } from "@/types";
 import { useNotificationsStore } from "@/stores/notifications";
+import { useAuthStore } from "@/stores/auth";
 import SecurityHealthCard from "@/components/SecurityHealthCard.vue";
 
 declare const __APP_VERSION__: string;
 
+const authStore = useAuthStore();
+const canWriteSettings = authStore.hasPermission("settings:write");
+const canWriteRegistries = authStore.hasPermission("registries:write");
+const canDeleteRegistries = authStore.hasPermission("registries:delete");
 const notifications = useNotificationsStore();
 const loading = ref(false);
 const savingDomain = ref(false);

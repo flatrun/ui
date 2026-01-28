@@ -179,7 +179,12 @@
                 </div>
                 <div class="top-actions">
                   <span class="top-count">{{ ip.event_count }}</span>
-                  <button class="btn btn-icon btn-sm" title="Block IP" @click="showBlockIPDialog(ip.ip)">
+                  <button
+                    v-if="canWrite"
+                    class="btn btn-icon btn-sm"
+                    title="Block IP"
+                    @click="showBlockIPDialog(ip.ip)"
+                  >
                     <i class="pi pi-ban" />
                   </button>
                 </div>
@@ -202,7 +207,12 @@
               <span class="critical-event-type">{{ formatEventType(event.event_type) }}</span>
               <code class="critical-event-ip">{{ event.source_ip }}</code>
               <span class="critical-event-path">{{ event.request_path || "-" }}</span>
-              <button class="btn btn-icon btn-sm" title="Block IP" @click="showBlockIPDialog(event.source_ip)">
+              <button
+                v-if="canWrite"
+                class="btn btn-icon btn-sm"
+                title="Block IP"
+                @click="showBlockIPDialog(event.source_ip)"
+              >
                 <i class="pi pi-ban" />
               </button>
             </div>
@@ -298,7 +308,12 @@
                 </td>
                 <td>{{ event.status_code || "-" }}</td>
                 <td class="actions-cell">
-                  <button class="btn btn-icon btn-sm" title="Block IP" @click="showBlockIPDialog(event.source_ip)">
+                  <button
+                    v-if="canWrite"
+                    class="btn btn-icon btn-sm"
+                    title="Block IP"
+                    @click="showBlockIPDialog(event.source_ip)"
+                  >
                     <i class="pi pi-ban" />
                   </button>
                 </td>
@@ -331,7 +346,7 @@
       <div v-show="activeTab === 'blocked'" class="tab-content">
         <div class="section-header">
           <h3>Blocked IP Addresses</h3>
-          <button class="btn btn-primary btn-sm" @click="showAddBlockDialog = true">
+          <button v-if="canWrite" class="btn btn-primary btn-sm" @click="showAddBlockDialog = true">
             <i class="pi pi-plus" />
             Block IP
           </button>
@@ -355,6 +370,7 @@
                 </div>
               </div>
               <button
+                v-if="canWrite"
                 class="btn btn-danger-ghost btn-sm"
                 :disabled="unblockingIP === ip.ip"
                 @click="handleUnblockIP(ip.ip)"
@@ -372,7 +388,7 @@
       <div v-show="activeTab === 'routes'" class="tab-content">
         <div class="section-header">
           <h3>Protected Routes</h3>
-          <button class="btn btn-primary btn-sm" @click="showAddRouteDialog = true">
+          <button v-if="canWrite" class="btn btn-primary btn-sm" @click="showAddRouteDialog = true">
             <i class="pi pi-plus" />
             Add Route
           </button>
@@ -394,14 +410,19 @@
                 </div>
               </div>
               <div class="route-actions">
-                <label class="toggle-switch small">
+                <label v-if="canWrite" class="toggle-switch small">
                   <input type="checkbox" :checked="route.enabled" @change="toggleRoute(route)" />
                   <span class="toggle-slider" />
                 </label>
-                <button class="btn btn-icon btn-sm" title="Edit" @click="editRoute(route)">
+                <button v-if="canWrite" class="btn btn-icon btn-sm" title="Edit" @click="editRoute(route)">
                   <i class="pi pi-pencil" />
                 </button>
-                <button class="btn btn-icon btn-danger-ghost btn-sm" title="Delete" @click="confirmDeleteRoute(route)">
+                <button
+                  v-if="canWrite"
+                  class="btn btn-icon btn-danger-ghost btn-sm"
+                  title="Delete"
+                  @click="confirmDeleteRoute(route)"
+                >
                   <i class="pi pi-trash" />
                 </button>
               </div>
@@ -409,7 +430,7 @@
           </div>
         </div>
 
-        <div class="presets-section">
+        <div v-if="canWrite" class="presets-section">
           <h4>Quick Presets</h4>
           <div class="presets-row">
             <button class="preset-btn" @click="addPreset('wp-login')">
@@ -431,7 +452,12 @@
       <!-- Health Tab -->
       <div v-show="activeTab === 'health'" class="tab-content">
         <div class="health-actions">
-          <button class="btn btn-secondary" :disabled="refreshingScripts" @click="refreshSecurityScripts">
+          <button
+            v-if="canWrite"
+            class="btn btn-secondary"
+            :disabled="refreshingScripts"
+            @click="refreshSecurityScripts"
+          >
             <i class="pi pi-sync" :class="{ 'pi-spin': refreshingScripts }" />
             {{ refreshingScripts ? "Regenerating..." : "Regenerate Security Scripts" }}
           </button>
@@ -460,11 +486,11 @@
                 </div>
               </div>
               <div class="setting-control">
-                <label class="toggle-switch" :class="{ disabled: togglingRealtimeCapture }">
+                <label class="toggle-switch" :class="{ disabled: togglingRealtimeCapture || !canWrite }">
                   <input
                     type="checkbox"
                     :checked="realtimeCapture"
-                    :disabled="togglingRealtimeCapture"
+                    :disabled="togglingRealtimeCapture || !canWrite"
                     @change="toggleRealtimeCapture"
                   />
                   <span class="toggle-slider" />
@@ -620,12 +646,15 @@ import { ref, reactive, onMounted } from "vue";
 import { storeToRefs } from "pinia";
 import { useSecurityStore } from "@/stores/security";
 import { useNotificationsStore } from "@/stores/notifications";
+import { useAuthStore } from "@/stores/auth";
 import type { ProtectedRoute } from "@/types";
 import SecurityHealthCard from "@/components/SecurityHealthCard.vue";
 import TrafficDashboard from "@/components/TrafficDashboard.vue";
 
 const securityStore = useSecurityStore();
 const notifications = useNotificationsStore();
+const authStore = useAuthStore();
+const canWrite = authStore.hasPermission("security:write");
 
 const loading = ref(false);
 const activeTab = ref("stats");

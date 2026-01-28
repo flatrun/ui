@@ -53,16 +53,16 @@ export const useStatsStore = defineStore("stats", () => {
       if (healthRes.data.version?.version) {
         agentVersion.value = healthRes.data.version.version;
       }
-      if (healthRes.data.stats) {
-        deployments.total = healthRes.data.stats.total_deployments || 0;
-        deployments.running = healthRes.data.stats.running || 0;
-        deployments.stopped = healthRes.data.stats.stopped || 0;
-        deployments.error = healthRes.data.stats.error || 0;
-      }
 
       const statsRes = await healthApi.stats();
       if (statsRes.data) {
         const data = statsRes.data;
+        if (data.deployments) {
+          deployments.total = data.deployments.total_deployments || 0;
+          deployments.running = data.deployments.running || 0;
+          deployments.stopped = data.deployments.stopped || 0;
+          deployments.error = data.deployments.error || 0;
+        }
         containers.total = data.containers?.total || 0;
         containers.running = data.containers?.running || 0;
         containers.stopped = data.containers?.stopped || 0;

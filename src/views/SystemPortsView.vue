@@ -48,6 +48,7 @@
       <template #cell-actions="{ item }">
         <div class="action-buttons">
           <button
+            v-if="canWrite"
             class="action-btn kill"
             title="Kill Process"
             :disabled="!item.pid"
@@ -110,6 +111,7 @@
 import { ref, computed, onMounted } from "vue";
 import { portsApi } from "@/services/api";
 import { useNotificationsStore } from "@/stores/notifications";
+import { useAuthStore } from "@/stores/auth";
 import DataTable from "@/components/DataTable.vue";
 import { RefreshCw, Trash2, Network, AlertTriangle, X } from "lucide-vue-next";
 
@@ -122,6 +124,8 @@ interface Port {
   state: string;
 }
 
+const authStore = useAuthStore();
+const canWrite = authStore.hasPermission("system:write");
 const ports = ref<Port[]>([]);
 const loading = ref(false);
 const showKillModal = ref(false);

@@ -16,11 +16,11 @@
       loading-text="Loading certificates..."
     >
       <template #actions>
-        <button class="btn btn-primary" @click="showRequestModal = true">
+        <button v-if="canWrite" class="btn btn-primary" @click="showRequestModal = true">
           <i class="pi pi-plus" />
           Request Certificate
         </button>
-        <button class="btn btn-secondary" :disabled="renewingAll" @click="handleRenewAll">
+        <button v-if="canWrite" class="btn btn-secondary" :disabled="renewingAll" @click="handleRenewAll">
           <i class="pi pi-sync" :class="{ 'pi-spin': renewingAll }" />
           Renew All
         </button>
@@ -99,6 +99,7 @@
                 <span>{{ cert.path }}</span>
               </div>
               <button
+                v-if="canDelete"
                 class="btn btn-danger-sm"
                 :disabled="deleting === cert.domain"
                 @click.stop="handleDelete(cert.domain)"
@@ -191,11 +192,15 @@
 import { ref, computed, onMounted } from "vue";
 import { certificatesApi } from "@/services/api";
 import { useNotificationsStore } from "@/stores/notifications";
+import { useAuthStore } from "@/stores/auth";
 import DataTable from "@/components/DataTable.vue";
 import ConfirmModal from "@/components/ConfirmModal.vue";
 import type { Certificate } from "@/types";
 
 const notifications = useNotificationsStore();
+const authStore = useAuthStore();
+const canWrite = authStore.hasPermission("certificates:write");
+const canDelete = authStore.hasPermission("certificates:delete");
 const certificates = ref<Certificate[]>([]);
 const loading = ref(false);
 const showRequestModal = ref(false);

@@ -26,10 +26,65 @@
       <div class="login-card">
         <div class="card-header">
           <h2>Sign In</h2>
-          <p>Enter your API key to access the dashboard</p>
+          <p>{{ loginMode === "credentials" ? "Enter your credentials" : "Enter your API key" }}</p>
         </div>
 
-        <form class="login-form" @submit.prevent="handleLogin">
+        <div class="login-mode-toggle">
+          <button :class="{ active: loginMode === 'credentials' }" @click="loginMode = 'credentials'">
+            <i class="pi pi-user" />
+            Username
+          </button>
+          <button :class="{ active: loginMode === 'apikey' }" @click="loginMode = 'apikey'">
+            <i class="pi pi-key" />
+            API Key
+          </button>
+        </div>
+
+        <form v-if="loginMode === 'credentials'" class="login-form" @submit.prevent="handleCredentialsLogin">
+          <div class="form-group">
+            <label for="username">Username</label>
+            <div class="input-wrapper">
+              <i class="pi pi-user" />
+              <input
+                id="username"
+                v-model="username"
+                type="text"
+                placeholder="Enter your username"
+                :class="{ error: auth.error }"
+                autocomplete="username"
+              />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="password">Password</label>
+            <div class="input-wrapper">
+              <i class="pi pi-lock" />
+              <input
+                id="password"
+                v-model="password"
+                :type="showPassword ? 'text' : 'password'"
+                placeholder="Enter your password"
+                :class="{ error: auth.error }"
+                autocomplete="current-password"
+              />
+              <button type="button" class="toggle-visibility" @click="showPassword = !showPassword">
+                <i :class="showPassword ? 'pi pi-eye-slash' : 'pi pi-eye'" />
+              </button>
+            </div>
+            <span v-if="auth.error" class="error-text">
+              <i class="pi pi-exclamation-circle" />
+              {{ auth.error }}
+            </span>
+          </div>
+
+          <button type="submit" class="login-btn" :disabled="auth.loading || !username || !password">
+            <i v-if="auth.loading" class="pi pi-spin pi-spinner" />
+            <span v-else>Sign In</span>
+          </button>
+        </form>
+
+        <form v-else class="login-form" @submit.prevent="handleAPIKeyLogin">
           <div class="form-group">
             <label for="apiKey">API Key</label>
             <div class="input-wrapper">
@@ -60,7 +115,8 @@
 
         <div class="help-text">
           <i class="pi pi-info-circle" />
-          <span>API keys are configured in the agent's config file</span>
+          <span v-if="loginMode === 'credentials'">Use your FlatRun account credentials</span>
+          <span v-else>API keys are managed in the dashboard settings</span>
         </div>
       </div>
     </div>
@@ -75,10 +131,22 @@ import Logo from "@/components/base/Logo.vue";
 
 const router = useRouter();
 const auth = useAuthStore();
+
+const loginMode = ref<"credentials" | "apikey">("credentials");
+const username = ref("");
+const password = ref("");
 const apiKey = ref("");
 const showKey = ref(false);
+const showPassword = ref(false);
 
-const handleLogin = async () => {
+const handleCredentialsLogin = async () => {
+  const success = await auth.loginWithCredentials(username.value, password.value);
+  if (success) {
+    router.push("/");
+  }
+};
+
+const handleAPIKeyLogin = async () => {
   const success = await auth.login(apiKey.value);
   if (success) {
     router.push("/");
@@ -150,7 +218,7 @@ const handleLogin = async () => {
 }
 
 .card-header {
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
 }
 
 .card-header h2 {
@@ -163,6 +231,42 @@ const handleLogin = async () => {
 .card-header p {
   color: var(--color-gray-500);
   font-size: var(--text-base);
+}
+
+.login-mode-toggle {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  padding: 0.25rem;
+  background: var(--color-gray-100);
+  border-radius: var(--radius-sm);
+}
+
+.login-mode-toggle button {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--color-gray-600);
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+.login-mode-toggle button:hover {
+  color: var(--color-gray-900);
+}
+
+.login-mode-toggle button.active {
+  background: white;
+  color: var(--color-primary-600);
+  box-shadow: var(--shadow-sm);
 }
 
 .login-form {
