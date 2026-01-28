@@ -1106,19 +1106,19 @@ import type { User, APIKey, UserRole, UserDeploymentAccess } from "@/types";
 export const usersApi = {
   list: () => apiClient.get<{ users: User[] }>("/users"),
 
-  get: (id: number) =>
-    apiClient.get<{ user: User; deployments: UserDeploymentAccess[] }>(`/users/${id}`),
+  get: (id: number) => apiClient.get<{ user: User; deployments: UserDeploymentAccess[] }>(`/users/${id}`),
 
-  create: (data: { username: string; email?: string; password: string; role: UserRole }) =>
+  create: (data: { username: string; email?: string; password: string; role: UserRole; permissions?: string[] }) =>
     apiClient.post<{ user: User }>("/users", data),
 
-  update: (id: number, data: { username?: string; email?: string; role?: UserRole; is_active?: boolean }) =>
-    apiClient.put<{ user: User }>(`/users/${id}`, data),
+  update: (
+    id: number,
+    data: { username?: string; email?: string; role?: UserRole; is_active?: boolean; permissions?: string[] },
+  ) => apiClient.put<{ user: User }>(`/users/${id}`, data),
 
   delete: (id: number) => apiClient.delete(`/users/${id}`),
 
-  me: () =>
-    apiClient.get<{ user: User; permissions: string[]; deployments: UserDeploymentAccess[] }>("/users/me"),
+  me: () => apiClient.get<{ user: User; permissions: string[]; deployments: UserDeploymentAccess[] }>("/users/me"),
 
   updateMe: (data: { email?: string }) => apiClient.put<{ user: User }>("/users/me", data),
 

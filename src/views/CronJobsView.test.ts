@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { mount, flushPromises } from "@vue/test-utils";
 import { createTestingPinia } from "@pinia/testing";
 import CronJobsView from "./CronJobsView.vue";
+import { useAuthStore } from "@/stores/auth";
 
 vi.mock("@/services/api", () => ({
   schedulerApi: {
@@ -150,13 +151,12 @@ describe("CronJobsView", () => {
   });
 
   const mountView = () => {
+    const pinia = createTestingPinia({ createSpy: vi.fn });
+    const authStore = useAuthStore(pinia);
+    (authStore.hasPermission as ReturnType<typeof vi.fn>).mockReturnValue(true);
     return mount(CronJobsView, {
       global: {
-        plugins: [
-          createTestingPinia({
-            createSpy: vi.fn,
-          }),
-        ],
+        plugins: [pinia],
         stubs: {
           ConfirmModal: true,
           Teleport: true,
@@ -536,6 +536,48 @@ describe("CronJobsView", () => {
       await searchInput.setValue("nonexistent-task-xyz");
 
       expect(wrapper.text()).toContain("No Matching Tasks");
+    });
+  });
+
+  describe("Permission gates", () => {
+    const mountViewDenied = () => {
+      const pinia = createTestingPinia({ createSpy: vi.fn });
+      return mount(CronJobsView, {
+        global: {
+          plugins: [pinia],
+          stubs: {
+            ConfirmModal: true,
+            Teleport: true,
+          },
+        },
+      });
+    };
+
+    it("hides New Cron Job button without scheduler:write", () => {
+      const wrapper = mountViewDenied();
+      expect(wrapper.find("button.btn-primary").exists()).toBe(false);
+    });
+
+    it("hides run/edit buttons but keeps history without scheduler:write", async () => {
+      const wrapper = mountViewDenied();
+      await flushPromises();
+      const secondaryBtns = wrapper.findAll("button.btn-sm.btn-secondary");
+      // Only history buttons remain (one per task), no run/edit buttons
+      for (const btn of secondaryBtns) {
+        expect(btn.text()).toContain("History");
+      }
+    });
+
+    it("hides delete button without scheduler:delete", async () => {
+      const wrapper = mountViewDenied();
+      await flushPromises();
+      expect(wrapper.findAll("button.btn-sm.btn-danger").length).toBe(0);
+    });
+
+    it("still renders task list without write permissions", async () => {
+      const wrapper = mountViewDenied();
+      await flushPromises();
+      expect(wrapper.text()).toContain("Scheduled Tasks");
     });
   });
 });

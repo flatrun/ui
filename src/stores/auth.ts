@@ -18,6 +18,7 @@ export const useAuthStore = defineStore("auth", () => {
   const currentUser = ref<User | null>(null);
   const permissions = ref<Permission[]>([]);
   const deploymentAccess = ref<UserDeploymentAccess[]>([]);
+  const userLoaded = ref(false);
 
   const isAuthenticated = computed(() => !!token.value);
   const isAdmin = computed(() => currentUser.value?.role === "admin");
@@ -26,6 +27,9 @@ export const useAuthStore = defineStore("auth", () => {
 
   const hasPermission = (permission: Permission): boolean => {
     if (currentUser.value?.role === "admin") {
+      return true;
+    }
+    if (token.value && !currentUser.value) {
       return true;
     }
     return permissions.value.includes(permission);
@@ -74,6 +78,7 @@ export const useAuthStore = defineStore("auth", () => {
       if (response.data.deployments) {
         deploymentAccess.value = response.data.deployments;
       }
+      userLoaded.value = true;
 
       return true;
     } catch (e: any) {
@@ -102,6 +107,7 @@ export const useAuthStore = defineStore("auth", () => {
       if (response.data.deployments) {
         deploymentAccess.value = response.data.deployments;
       }
+      userLoaded.value = true;
 
       return true;
     } catch (e: any) {
@@ -130,6 +136,8 @@ export const useAuthStore = defineStore("auth", () => {
       deploymentAccess.value = response.data.deployments || [];
     } catch {
       // User endpoint may not exist if using legacy auth
+    } finally {
+      userLoaded.value = true;
     }
   };
 
@@ -138,6 +146,7 @@ export const useAuthStore = defineStore("auth", () => {
     currentUser.value = null;
     permissions.value = [];
     deploymentAccess.value = [];
+    userLoaded.value = false;
     localStorage.removeItem("auth_token");
   };
 
@@ -156,6 +165,7 @@ export const useAuthStore = defineStore("auth", () => {
     currentUser,
     permissions,
     deploymentAccess,
+    userLoaded,
     isAuthenticated,
     isAdmin,
     isOperator,

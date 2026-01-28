@@ -16,7 +16,7 @@
       loading-text="Loading networks..."
     >
       <template #actions>
-        <button class="btn btn-primary" @click="showCreateModal = true">
+        <button v-if="canWrite" class="btn btn-primary" @click="showCreateModal = true">
           <i class="pi pi-plus" />
           Create Network
         </button>
@@ -26,7 +26,7 @@
       </template>
 
       <template #empty-action>
-        <button class="btn btn-primary" @click="showCreateModal = true">
+        <button v-if="canWrite" class="btn btn-primary" @click="showCreateModal = true">
           <i class="pi pi-plus" />
           Create Network
         </button>
@@ -49,7 +49,7 @@
       <template #cell-actions="{ item }">
         <div class="table-actions">
           <button
-            v-if="!isSystemNetwork(item.name)"
+            v-if="canWrite && !isSystemNetwork(item.name)"
             class="btn-icon-xs"
             title="Connect container"
             @click="openConnectModal(item)"
@@ -57,7 +57,7 @@
             <i class="pi pi-link" />
           </button>
           <button
-            v-if="!isSystemNetwork(item.name)"
+            v-if="canDelete && !isSystemNetwork(item.name)"
             class="btn-icon-xs danger"
             title="Delete"
             @click="confirmDelete(item)"
@@ -80,7 +80,7 @@
                 <h4>{{ network.name }}</h4>
                 <span class="network-id">{{ network.id }}</span>
               </div>
-              <div v-if="!isSystemNetwork(network.name)" class="network-actions">
+              <div v-if="canDelete && !isSystemNetwork(network.name)" class="network-actions">
                 <button class="btn-icon-sm danger" title="Delete network" @click="confirmDelete(network)">
                   <i class="pi pi-trash" />
                 </button>
@@ -113,7 +113,11 @@
                     <i class="pi pi-box" />
                     Connected Containers ({{ network.containers?.length || 0 }})
                   </span>
-                  <button v-if="!isSystemNetwork(network.name)" class="btn-text" @click="openConnectModal(network)">
+                  <button
+                    v-if="canWrite && !isSystemNetwork(network.name)"
+                    class="btn-text"
+                    @click="openConnectModal(network)"
+                  >
                     <i class="pi pi-link" />
                     Connect
                   </button>
@@ -126,7 +130,7 @@
                       <span class="container-ip">{{ container.ipv4 }}</span>
                     </div>
                     <button
-                      v-if="!isSystemNetwork(network.name)"
+                      v-if="canWrite && !isSystemNetwork(network.name)"
                       class="btn-icon-xs"
                       title="Disconnect"
                       @click="disconnectContainer(network.name, container.name)"
@@ -250,10 +254,14 @@
 import { ref, reactive, onMounted } from "vue";
 import { networksApi } from "@/services/api";
 import { useNotificationsStore } from "@/stores/notifications";
+import { useAuthStore } from "@/stores/auth";
 import DataTable from "@/components/DataTable.vue";
 import type { Network } from "@/types";
 
 const notifications = useNotificationsStore();
+const authStore = useAuthStore();
+const canWrite = authStore.hasPermission("networks:write");
+const canDelete = authStore.hasPermission("networks:delete");
 const networks = ref<Network[]>([]);
 const loading = ref(false);
 

@@ -6,7 +6,7 @@
         <p class="subtitle">Manage cron jobs and scheduled commands across deployments</p>
       </div>
       <div class="header-actions">
-        <button class="btn btn-primary" @click="openCreateModal">
+        <button v-if="canWrite" class="btn btn-primary" @click="openCreateModal">
           <i class="pi pi-plus" />
           New Cron Job
         </button>
@@ -49,7 +49,7 @@
       <i class="pi pi-clock" />
       <h3>No Scheduled Tasks</h3>
       <p>Create cron jobs to run commands in your containers on a schedule.</p>
-      <button class="btn btn-primary" @click="openCreateModal">
+      <button v-if="canWrite" class="btn btn-primary" @click="openCreateModal">
         <i class="pi pi-plus" />
         Create First Cron Job
       </button>
@@ -74,7 +74,7 @@
               <input
                 type="checkbox"
                 :checked="task.enabled"
-                :disabled="togglingTask === task.id"
+                :disabled="!canWrite || togglingTask === task.id"
                 @change="toggleTask(task)"
               />
               <span class="slider" />
@@ -116,7 +116,12 @@
         </div>
 
         <div class="task-footer">
-          <button class="btn btn-sm btn-secondary" :disabled="runningTask === task.id" @click="runTaskNow(task)">
+          <button
+            v-if="canWrite"
+            class="btn btn-sm btn-secondary"
+            :disabled="runningTask === task.id"
+            @click="runTaskNow(task)"
+          >
             <i :class="runningTask === task.id ? 'pi pi-spin pi-spinner' : 'pi pi-play'" />
             Run Now
           </button>
@@ -124,10 +129,10 @@
             <i class="pi pi-history" />
             History
           </button>
-          <button class="btn btn-sm btn-secondary" @click="openEditModal(task)">
+          <button v-if="canWrite" class="btn btn-sm btn-secondary" @click="openEditModal(task)">
             <i class="pi pi-pencil" />
           </button>
-          <button class="btn btn-sm btn-danger" @click="confirmDelete(task)">
+          <button v-if="canDelete" class="btn btn-sm btn-danger" @click="confirmDelete(task)">
             <i class="pi pi-trash" />
           </button>
         </div>
@@ -371,12 +376,16 @@ import { schedulerApi, deploymentsApi } from "@/services/api";
 import type { ScheduledTask, TaskExecution } from "@/services/api";
 import type { Deployment } from "@/types";
 import { useNotificationsStore } from "@/stores/notifications";
+import { useAuthStore } from "@/stores/auth";
 import ConfirmModal from "@/components/ConfirmModal.vue";
 
 const PAGE_SIZE = 12;
 const RECENT_EXECUTIONS_LIMIT = 10;
 const TASK_HISTORY_LIMIT = 50;
 
+const authStore = useAuthStore();
+const canWrite = authStore.hasPermission("scheduler:write");
+const canDelete = authStore.hasPermission("scheduler:delete");
 const notifications = useNotificationsStore();
 
 const tasks = ref<ScheduledTask[]>([]);

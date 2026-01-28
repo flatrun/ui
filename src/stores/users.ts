@@ -36,6 +36,7 @@ export const useUsersStore = defineStore("users", () => {
     email?: string;
     password: string;
     role: UserRole;
+    permissions?: string[];
   }) => {
     try {
       const response = await usersApi.create(data);
@@ -48,7 +49,7 @@ export const useUsersStore = defineStore("users", () => {
 
   const updateUser = async (
     id: number,
-    data: { username?: string; email?: string; role?: UserRole; is_active?: boolean }
+    data: { username?: string; email?: string; role?: UserRole; is_active?: boolean; permissions?: string[] },
   ) => {
     try {
       const response = await usersApi.update(id, data);

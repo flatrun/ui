@@ -61,7 +61,7 @@
       <template #cell-actions="{ item }">
         <div class="action-buttons">
           <button
-            v-if="item.active !== 'active'"
+            v-if="canWrite && item.active !== 'active'"
             class="action-btn start"
             title="Start Service"
             @click.stop="controlService(item.name, 'start')"
@@ -69,14 +69,19 @@
             <Play :size="14" />
           </button>
           <button
-            v-if="item.active === 'active'"
+            v-if="canWrite && item.active === 'active'"
             class="action-btn stop"
             title="Stop Service"
             @click.stop="controlService(item.name, 'stop')"
           >
             <Square :size="14" />
           </button>
-          <button class="action-btn restart" title="Restart Service" @click.stop="controlService(item.name, 'restart')">
+          <button
+            v-if="canWrite"
+            class="action-btn restart"
+            title="Restart Service"
+            @click.stop="controlService(item.name, 'restart')"
+          >
             <RotateCw :size="14" />
           </button>
         </div>
@@ -89,6 +94,7 @@
 import { ref, computed, onMounted } from "vue";
 import { systemServicesApi } from "@/services/api";
 import { useNotificationsStore } from "@/stores/notifications";
+import { useAuthStore } from "@/stores/auth";
 import DataTable from "@/components/DataTable.vue";
 import { RefreshCw, Cog, Play, Square, RotateCw } from "lucide-vue-next";
 
@@ -101,6 +107,8 @@ interface SystemService {
   sub: string;
 }
 
+const authStore = useAuthStore();
+const canWrite = authStore.hasPermission("system:write");
 const allServices = ref<SystemService[]>([]);
 const loading = ref(false);
 const activeFilter = ref("all");

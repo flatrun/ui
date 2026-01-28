@@ -30,17 +30,11 @@
         </div>
 
         <div class="login-mode-toggle">
-          <button
-            :class="{ active: loginMode === 'credentials' }"
-            @click="loginMode = 'credentials'"
-          >
+          <button :class="{ active: loginMode === 'credentials' }" @click="loginMode = 'credentials'">
             <i class="pi pi-user" />
             Username
           </button>
-          <button
-            :class="{ active: loginMode === 'apikey' }"
-            @click="loginMode = 'apikey'"
-          >
+          <button :class="{ active: loginMode === 'apikey' }" @click="loginMode = 'apikey'">
             <i class="pi pi-key" />
             API Key
           </button>

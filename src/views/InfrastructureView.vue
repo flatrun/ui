@@ -59,7 +59,7 @@
 
         <template v-if="hasActions(service)" #footer>
           <button
-            v-if="!service.external && service.status === 'stopped'"
+            v-if="canWrite && !service.external && service.status === 'stopped'"
             class="btn btn-sm btn-success"
             :disabled="actionLoading === service.name"
             @click.stop="startService(service.name)"
@@ -68,7 +68,7 @@
             <span>Start</span>
           </button>
           <button
-            v-if="!service.external && service.status === 'running'"
+            v-if="canWrite && !service.external && service.status === 'running'"
             class="btn btn-sm btn-warning"
             :disabled="actionLoading === service.name"
             @click.stop="stopService(service.name)"
@@ -77,7 +77,7 @@
             <span>Stop</span>
           </button>
           <button
-            v-if="!service.external && service.status === 'running'"
+            v-if="canWrite && !service.external && service.status === 'running'"
             class="btn btn-sm btn-secondary"
             :disabled="actionLoading === service.name"
             @click.stop="restartService(service.name)"
@@ -114,12 +114,15 @@ import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { infrastructureApi, type InfraService } from "@/services/api";
 import { useNotificationsStore } from "@/stores/notifications";
+import { useAuthStore } from "@/stores/auth";
 import { executeWithServiceRestart } from "@/utils/resilientRequest";
 import DeploymentCard from "@/components/DeploymentCard.vue";
 import LogsModal from "@/components/LogsModal.vue";
 
 const router = useRouter();
 const notifications = useNotificationsStore();
+const authStore = useAuthStore();
+const canWrite = authStore.hasPermission("infrastructure:write");
 const loading = ref(false);
 const actionLoading = ref<string | null>(null);
 const services = ref<InfraService[]>([]);

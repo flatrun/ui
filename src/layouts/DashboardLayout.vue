@@ -19,7 +19,7 @@
           <span v-if="!sidebarCollapsed">Dashboard</span>
         </router-link>
 
-        <div class="nav-group">
+        <div v-if="authStore.hasPermission('deployments:read')" class="nav-group">
           <div class="nav-group-header" @click="toggleGroup('stacks')">
             <i class="pi pi-layers" />
             <span v-if="!sidebarCollapsed">Stacks</span>
@@ -37,7 +37,15 @@
           </div>
         </div>
 
-        <div class="nav-group">
+        <div
+          v-if="
+            authStore.hasPermission('containers:read') ||
+            authStore.hasPermission('images:read') ||
+            authStore.hasPermission('volumes:read') ||
+            authStore.hasPermission('networks:read')
+          "
+          class="nav-group"
+        >
           <div class="nav-group-header" @click="toggleGroup('docker')">
             <i class="pi pi-box" />
             <span v-if="!sidebarCollapsed">Docker</span>
@@ -48,30 +56,62 @@
             />
           </div>
           <div v-show="expandedGroups.docker && !sidebarCollapsed" class="nav-group-items">
-            <router-link to="/containers" class="nav-subitem" active-class="active">
+            <router-link
+              v-if="authStore.hasPermission('containers:read')"
+              to="/containers"
+              class="nav-subitem"
+              active-class="active"
+            >
               <span class="nav-count">{{ stats.containers }}</span>
               Containers
             </router-link>
-            <router-link to="/images" class="nav-subitem" active-class="active">
+            <router-link
+              v-if="authStore.hasPermission('images:read')"
+              to="/images"
+              class="nav-subitem"
+              active-class="active"
+            >
               <span class="nav-count">{{ stats.images }}</span>
               Images
             </router-link>
-            <router-link to="/volumes" class="nav-subitem" active-class="active">
+            <router-link
+              v-if="authStore.hasPermission('volumes:read')"
+              to="/volumes"
+              class="nav-subitem"
+              active-class="active"
+            >
               <span class="nav-count">{{ stats.volumes }}</span>
               Volumes
             </router-link>
-            <router-link to="/networks" class="nav-subitem" active-class="active">
+            <router-link
+              v-if="authStore.hasPermission('networks:read')"
+              to="/networks"
+              class="nav-subitem"
+              active-class="active"
+            >
               <span class="nav-count">{{ stats.networks }}</span>
               Networks
             </router-link>
-            <router-link to="/docker-ports" class="nav-subitem" active-class="active">
+            <router-link
+              v-if="authStore.hasPermission('containers:read')"
+              to="/docker-ports"
+              class="nav-subitem"
+              active-class="active"
+            >
               <span class="nav-count">{{ stats.dockerPorts }}</span>
               Port Mappings
             </router-link>
           </div>
         </div>
 
-        <div class="nav-group">
+        <div
+          v-if="
+            authStore.hasPermission('system:read') ||
+            authStore.hasPermission('infrastructure:read') ||
+            authStore.hasPermission('scheduler:read')
+          "
+          class="nav-group"
+        >
           <div class="nav-group-header" @click="toggleGroup('system')">
             <i class="pi pi-server" />
             <span v-if="!sidebarCollapsed">System</span>
@@ -82,23 +122,45 @@
             />
           </div>
           <div v-show="expandedGroups.system && !sidebarCollapsed" class="nav-group-items">
-            <router-link to="/infrastructure" class="nav-subitem" active-class="active">
+            <router-link
+              v-if="authStore.hasPermission('infrastructure:read')"
+              to="/infrastructure"
+              class="nav-subitem"
+              active-class="active"
+            >
               <span class="nav-count">{{ stats.infrastructure }}</span>
               Infrastructure
             </router-link>
-            <router-link to="/system-ports" class="nav-subitem" active-class="active">
+            <router-link
+              v-if="authStore.hasPermission('system:read')"
+              to="/system-ports"
+              class="nav-subitem"
+              active-class="active"
+            >
               <span class="nav-count">{{ stats.ports }}</span>
               Ports
             </router-link>
-            <router-link to="/services" class="nav-subitem" active-class="active">
+            <router-link
+              v-if="authStore.hasPermission('system:read')"
+              to="/services"
+              class="nav-subitem"
+              active-class="active"
+            >
               <span class="nav-count">{{ stats.services }}</span>
               Services
             </router-link>
-            <router-link to="/cron-jobs" class="nav-subitem" active-class="active"> Cron Jobs </router-link>
+            <router-link
+              v-if="authStore.hasPermission('scheduler:read')"
+              to="/cron-jobs"
+              class="nav-subitem"
+              active-class="active"
+            >
+              Cron Jobs
+            </router-link>
           </div>
         </div>
 
-        <div class="nav-group">
+        <div v-if="authStore.hasPermission('databases:read')" class="nav-group">
           <div class="nav-group-header" @click="toggleGroup('databases')">
             <i class="pi pi-database" />
             <span v-if="!sidebarCollapsed">Databases</span>
@@ -116,7 +178,7 @@
           </div>
         </div>
 
-        <div class="nav-group">
+        <div v-if="authStore.hasPermission('dns:read')" class="nav-group">
           <div class="nav-group-header" @click="toggleGroup('dns')">
             <i class="pi pi-globe" />
             <span v-if="!sidebarCollapsed">DNS</span>
@@ -132,7 +194,10 @@
           </div>
         </div>
 
-        <div class="nav-group">
+        <div
+          v-if="authStore.hasPermission('security:read') || authStore.hasPermission('certificates:read')"
+          class="nav-group"
+        >
           <div class="nav-group-header" @click="toggleGroup('security')">
             <i class="pi pi-shield" />
             <span v-if="!sidebarCollapsed">Security</span>
@@ -143,15 +208,27 @@
             />
           </div>
           <div v-show="expandedGroups.security && !sidebarCollapsed" class="nav-group-items">
-            <router-link to="/security" class="nav-subitem" active-class="active"> Security & Monitoring </router-link>
-            <router-link to="/certificates" class="nav-subitem" active-class="active">
+            <router-link
+              v-if="authStore.hasPermission('security:read')"
+              to="/security"
+              class="nav-subitem"
+              active-class="active"
+            >
+              Security & Monitoring
+            </router-link>
+            <router-link
+              v-if="authStore.hasPermission('certificates:read')"
+              to="/certificates"
+              class="nav-subitem"
+              active-class="active"
+            >
               <span class="nav-count">{{ stats.certificates }}</span>
               Certificates
             </router-link>
           </div>
         </div>
 
-        <div class="nav-group">
+        <div v-if="authStore.hasPermission('templates:read')" class="nav-group">
           <div class="nav-group-header" @click="toggleGroup('extensions')">
             <i class="pi pi-th-large" />
             <span v-if="!sidebarCollapsed">Apps</span>
@@ -170,7 +247,14 @@
           </div>
         </div>
 
-        <div class="nav-group">
+        <div
+          v-if="
+            authStore.hasPermission('settings:read') ||
+            authStore.hasPermission('users:read') ||
+            authStore.hasPermission('apikeys:read')
+          "
+          class="nav-group"
+        >
           <div class="nav-group-header" @click="toggleGroup('admin')">
             <i class="pi pi-sliders-h" />
             <span v-if="!sidebarCollapsed">Administration</span>
@@ -181,9 +265,30 @@
             />
           </div>
           <div v-show="expandedGroups.admin && !sidebarCollapsed" class="nav-group-items">
-            <router-link to="/settings" class="nav-subitem" active-class="active"> Settings </router-link>
-            <router-link v-if="authStore.hasPermission('users:read')" to="/users" class="nav-subitem" active-class="active"> Users </router-link>
-            <router-link v-if="authStore.hasPermission('apikeys:read')" to="/api-keys" class="nav-subitem" active-class="active"> API Keys </router-link>
+            <router-link
+              v-if="authStore.hasPermission('settings:read')"
+              to="/settings"
+              class="nav-subitem"
+              active-class="active"
+            >
+              Settings
+            </router-link>
+            <router-link
+              v-if="authStore.hasPermission('users:read')"
+              to="/users"
+              class="nav-subitem"
+              active-class="active"
+            >
+              Users
+            </router-link>
+            <router-link
+              v-if="authStore.hasPermission('apikeys:read')"
+              to="/api-keys"
+              class="nav-subitem"
+              active-class="active"
+            >
+              API Keys
+            </router-link>
           </div>
         </div>
       </nav>

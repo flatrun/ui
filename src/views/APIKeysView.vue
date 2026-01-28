@@ -6,7 +6,7 @@
         <button class="btn btn-icon" :disabled="loading" @click="loadAPIKeys">
           <i class="pi pi-refresh" :class="{ 'pi-spin': loading }" />
         </button>
-        <button class="btn btn-primary" @click="showCreateDialog = true">
+        <button v-if="canWrite" class="btn btn-primary" @click="showCreateDialog = true">
           <i class="pi pi-plus" />
           <span>Create API Key</span>
         </button>
@@ -63,14 +63,19 @@
               <td>{{ formatExpiry(key.expires_at) }}</td>
               <td class="actions-cell">
                 <button
-                  v-if="key.is_active"
+                  v-if="key.is_active && canWrite"
                   class="btn btn-icon btn-sm"
                   title="Revoke"
                   @click="confirmRevoke(key)"
                 >
                   <i class="pi pi-ban" />
                 </button>
-                <button class="btn btn-icon btn-sm btn-danger" title="Delete" @click="confirmDelete(key)">
+                <button
+                  v-if="canDelete"
+                  class="btn btn-icon btn-sm btn-danger"
+                  title="Delete"
+                  @click="confirmDelete(key)"
+                >
                   <i class="pi pi-trash" />
                 </button>
               </td>
@@ -100,13 +105,28 @@
           </div>
           <div class="form-group">
             <label>Role Override (optional)</label>
-            <select v-model="formData.role">
+            <select v-model="formData.role" @change="onRoleChange">
               <option value="">Inherit from user</option>
-              <option value="admin">Admin</option>
+              <option v-if="authStore.isAdmin" value="admin">Admin</option>
               <option value="operator">Operator</option>
               <option value="viewer">Viewer</option>
             </select>
             <small>Leave empty to inherit the role from the user account</small>
+          </div>
+          <div class="form-group">
+            <label class="checkbox-label">
+              <input v-model="formData.useCustomPermissions" type="checkbox" @change="onCustomPermissionsToggle" />
+              <span>Customize permissions</span>
+            </label>
+            <small>Override the default permissions for the selected role</small>
+          </div>
+          <div v-if="formData.useCustomPermissions" class="form-group">
+            <label>Permissions</label>
+            <PermissionPicker v-model="formData.permissions" />
+          </div>
+          <div v-else-if="formData.role" class="form-group">
+            <label>Role permissions ({{ formData.role }})</label>
+            <PermissionPicker :model-value="roleDefaultPermissions" readonly />
           </div>
           <div class="form-group">
             <label>Expiration</label>
@@ -159,7 +179,10 @@
         <div class="modal-header">
           <h2>Revoke API Key</h2>
         </div>
-        <p>Are you sure you want to revoke API key <strong>{{ selectedKey?.name }}</strong>? This action cannot be undone.</p>
+        <p>
+          Are you sure you want to revoke API key <strong>{{ selectedKey?.name }}</strong
+          >? This action cannot be undone.
+        </p>
         <div class="modal-actions">
           <button class="btn" @click="closeDialogs">Cancel</button>
           <button class="btn btn-danger" :disabled="saving" @click="revokeKey">
@@ -175,7 +198,10 @@
         <div class="modal-header">
           <h2>Delete API Key</h2>
         </div>
-        <p>Are you sure you want to delete API key <strong>{{ selectedKey?.name }}</strong>?</p>
+        <p>
+          Are you sure you want to delete API key <strong>{{ selectedKey?.name }}</strong
+          >?
+        </p>
         <div class="modal-actions">
           <button class="btn" @click="closeDialogs">Cancel</button>
           <button class="btn btn-danger" :disabled="saving" @click="deleteKey">
@@ -189,14 +215,20 @@
 
 <script setup lang="ts">
 import { ref, onMounted, computed } from "vue";
-import type { APIKey, UserRole } from "@/types";
+import type { APIKey, UserRole, Permission } from "@/types";
 import { useUsersStore } from "@/stores/users";
+import { useAuthStore } from "@/stores/auth";
+import PermissionPicker from "@/components/PermissionPicker.vue";
+import { getRolePermissions } from "@/utils/permissions";
 
 const usersStore = useUsersStore();
+const authStore = useAuthStore();
 
 const apiKeys = computed(() => usersStore.apiKeys);
 const loading = computed(() => usersStore.loading);
 const error = computed(() => usersStore.error);
+const canWrite = computed(() => authStore.hasPermission("apikeys:write" as Permission));
+const canDelete = computed(() => authStore.hasPermission("apikeys:delete" as Permission));
 
 const showCreateDialog = ref(false);
 const showNewKeyDialog = ref(false);
@@ -212,7 +244,27 @@ const formData = ref({
   description: "",
   role: "" as UserRole | "",
   expires_in: 0,
+  useCustomPermissions: false,
+  permissions: [] as string[],
 });
+
+const roleDefaultPermissions = computed(() => {
+  if (!formData.value.role) return [];
+  return getRolePermissions(formData.value.role as UserRole);
+});
+
+const onRoleChange = () => {
+  if (formData.value.useCustomPermissions && formData.value.role) {
+    formData.value.permissions = getRolePermissions(formData.value.role as UserRole);
+  }
+};
+
+const onCustomPermissionsToggle = () => {
+  if (formData.value.useCustomPermissions) {
+    const role = formData.value.role || authStore.currentUser?.role;
+    formData.value.permissions = role ? getRolePermissions(role as UserRole) : [];
+  }
+};
 
 const loadAPIKeys = async () => {
   await usersStore.fetchAPIKeys();
@@ -225,12 +277,20 @@ const createAPIKey = async () => {
       name: formData.value.name,
       description: formData.value.description || undefined,
       role: formData.value.role || undefined,
+      permissions: formData.value.useCustomPermissions ? formData.value.permissions : undefined,
       expires_in: formData.value.expires_in || undefined,
     });
     newKeyValue.value = result.api_key.key || "";
     showCreateDialog.value = false;
     showNewKeyDialog.value = true;
-    formData.value = { name: "", description: "", role: "", expires_in: 0 };
+    formData.value = {
+      name: "",
+      description: "",
+      role: "",
+      expires_in: 0,
+      useCustomPermissions: false,
+      permissions: [],
+    };
   } catch (e: any) {
     alert(e.message);
   } finally {
@@ -491,7 +551,7 @@ code {
   background: var(--surface-card);
   border-radius: 8px;
   width: 100%;
-  max-width: 480px;
+  max-width: 720px;
   max-height: 90vh;
   overflow-y: auto;
 }
@@ -544,6 +604,17 @@ code {
   margin-top: 0.25rem;
   font-size: 0.75rem;
   color: var(--text-secondary);
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: auto;
 }
 
 .modal-actions {
@@ -609,12 +680,13 @@ code {
 }
 
 .btn-primary {
-  background: var(--primary);
+  background: var(--primary, #3b82f6);
   color: white;
+  font-weight: 600;
 }
 
 .btn-primary:hover {
-  background: var(--primary-dark);
+  background: var(--primary-dark, #2563eb);
 }
 
 .btn-danger {

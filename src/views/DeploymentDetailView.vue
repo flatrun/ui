@@ -15,6 +15,7 @@
       </div>
       <div class="header-actions">
         <button
+          v-if="canWrite"
           class="btn btn-success"
           :disabled="loading || deployment?.status === 'running'"
           @click="handleOperation('start')"
@@ -22,6 +23,7 @@
           <i class="pi pi-play" /> Start
         </button>
         <button
+          v-if="canWrite"
           class="btn btn-warning"
           :disabled="loading || deployment?.status === 'stopped'"
           @click="handleOperation('stop')"
@@ -29,6 +31,7 @@
           <i class="pi pi-stop" /> Stop
         </button>
         <button
+          v-if="canWrite"
           class="btn btn-info"
           :disabled="loading || deployment?.status === 'stopped'"
           @click="handleOperation('restart')"
@@ -36,6 +39,7 @@
           <i class="pi pi-refresh" /> Restart
         </button>
         <button
+          v-if="canWrite"
           class="btn btn-secondary"
           :disabled="loading"
           @click="showRebuildModal = true"
@@ -43,10 +47,10 @@
         >
           <i class="pi pi-sync" /> Rebuild
         </button>
-        <button class="btn btn-secondary" :disabled="loading" @click="openPullImageModal">
+        <button v-if="canWrite" class="btn btn-secondary" :disabled="loading" @click="openPullImageModal">
           <i class="pi pi-download" /> Pull Image
         </button>
-        <button class="btn btn-danger" :disabled="loading" @click="confirmDelete">
+        <button v-if="canDelete" class="btn btn-danger" :disabled="loading" @click="confirmDelete">
           <i class="pi pi-trash" /> Delete
         </button>
       </div>
@@ -1247,6 +1251,7 @@ import {
   type EnvVar,
 } from "@/services/api";
 import { useNotificationsStore } from "@/stores/notifications";
+import { useAuthStore } from "@/stores/auth";
 import type { ProxyStatus, QuickAction, SecurityEvent, DeploymentSecurityConfig } from "@/types";
 import FileBrowser from "@/components/FileBrowser.vue";
 import LogViewer from "@/components/LogViewer.vue";
@@ -1257,6 +1262,9 @@ import BackupsTab from "@/components/BackupsTab.vue";
 const route = useRoute();
 const router = useRouter();
 const notifications = useNotificationsStore();
+const authStore = useAuthStore();
+const canWrite = authStore.hasPermission("deployments:write");
+const canDelete = authStore.hasPermission("deployments:delete");
 
 const backPath = computed(() => {
   return route.query.from === "infrastructure" ? "/infrastructure" : "/deployments";

@@ -33,7 +33,7 @@
       default-view-mode="grid"
     >
       <template #actions>
-        <button class="btn btn-primary" @click="showCreateModal = true">
+        <button v-if="canWrite" class="btn btn-primary" @click="showCreateModal = true">
           <i class="pi pi-plus" />
           Create Volume
         </button>
@@ -41,14 +41,14 @@
           <i class="pi pi-refresh" :class="{ 'pi-spin': loading }" />
           Refresh
         </button>
-        <button class="btn btn-warning" :disabled="unusedVolumes === 0" @click="pruneVolumes">
+        <button v-if="canDelete" class="btn btn-warning" :disabled="unusedVolumes === 0" @click="pruneVolumes">
           <i class="pi pi-trash" />
           Prune Unused
         </button>
       </template>
 
       <template #empty-action>
-        <button class="btn btn-primary" @click="showCreateModal = true">
+        <button v-if="canWrite" class="btn btn-primary" @click="showCreateModal = true">
           <i class="pi pi-plus" />
           Create Volume
         </button>
@@ -82,6 +82,7 @@
             <i class="pi pi-info-circle" />
           </button>
           <button
+            v-if="canDelete"
             class="action-btn delete"
             title="Remove"
             :disabled="item.in_use"
@@ -167,6 +168,7 @@
                 <i class="pi pi-info-circle" />
               </button>
               <button
+                v-if="canDelete"
                 class="action-btn delete"
                 title="Remove"
                 :disabled="volume.in_use"
@@ -180,7 +182,7 @@
       </template>
 
       <template #bulk-actions="{ selectedItems, clearSelection }">
-        <button class="btn btn-sm btn-danger" @click="bulkRemove(selectedItems, clearSelection)">
+        <button v-if="canDelete" class="btn btn-sm btn-danger" @click="bulkRemove(selectedItems, clearSelection)">
           <i class="pi pi-trash" /> Remove
         </button>
       </template>
@@ -278,6 +280,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
 import { volumesApi } from "@/services/api";
+import { useAuthStore } from "@/stores/auth";
 import DataTable from "@/components/DataTable.vue";
 import ConfirmModal from "@/components/ConfirmModal.vue";
 
@@ -292,6 +295,9 @@ interface Volume {
   containers?: string[];
 }
 
+const authStore = useAuthStore();
+const canWrite = authStore.hasPermission("volumes:write");
+const canDelete = authStore.hasPermission("volumes:delete");
 const volumes = ref<Volume[]>([]);
 const loading = ref(false);
 const showCreateModal = ref(false);

@@ -215,10 +215,12 @@ export interface User {
   username: string;
   email?: string;
   role: UserRole;
+  permissions?: string[];
   is_active: boolean;
   created_at: string;
   updated_at: string;
   last_login_at?: string;
+  deployment_count?: number;
   deployments?: UserDeploymentAccess[];
 }
 
@@ -270,4 +272,32 @@ export type Permission =
   | "apikeys:delete"
   | "settings:read"
   | "settings:write"
-  | "audit:read";
+  | "audit:read"
+  | "containers:read"
+  | "containers:write"
+  | "containers:delete"
+  | "images:read"
+  | "images:write"
+  | "images:delete"
+  | "volumes:read"
+  | "volumes:write"
+  | "volumes:delete"
+  | "databases:read"
+  | "databases:write"
+  | "databases:delete"
+  | "infrastructure:read"
+  | "infrastructure:write"
+  | "scheduler:read"
+  | "scheduler:write"
+  | "scheduler:delete"
+  | "system:read"
+  | "system:write"
+  | "dns:read"
+  | "dns:write"
+  | "registries:read"
+  | "registries:write"
+  | "registries:delete"
+  | "templates:read"
+  | "templates:write"
+  | "traffic:read"
+  | "traffic:write";

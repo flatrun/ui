@@ -17,7 +17,7 @@
       default-view-mode="grid"
     >
       <template #actions>
-        <button class="btn btn-primary" @click="showNewDeploymentModal = true">
+        <button v-if="canWrite" class="btn btn-primary" @click="showNewDeploymentModal = true">
           <Plus :size="16" />
           New Deployment
         </button>
@@ -83,6 +83,7 @@
       <template #cell-actions="{ item }">
         <div class="action-buttons">
           <button
+            v-if="canWrite"
             class="action-btn start"
             title="Start"
             :disabled="item.status === 'running'"
@@ -91,6 +92,7 @@
             <Play :size="14" />
           </button>
           <button
+            v-if="canWrite"
             class="action-btn stop"
             title="Stop"
             :disabled="item.status === 'stopped'"
@@ -99,6 +101,7 @@
             <Square :size="14" />
           </button>
           <button
+            v-if="canWrite"
             class="action-btn restart"
             title="Restart"
             :disabled="item.status === 'stopped'"
@@ -230,6 +233,7 @@
 
             <template #footer>
               <button
+                v-if="canWrite"
                 class="icon-btn start"
                 title="Start"
                 :disabled="deployment.status === 'running'"
@@ -238,6 +242,7 @@
                 <Play :size="14" />
               </button>
               <button
+                v-if="canWrite"
                 class="icon-btn stop"
                 title="Stop"
                 :disabled="deployment.status === 'stopped'"
@@ -246,6 +251,7 @@
                 <Square :size="14" />
               </button>
               <button
+                v-if="canWrite"
                 class="icon-btn restart"
                 title="Restart"
                 :disabled="deployment.status === 'stopped'"
@@ -295,6 +301,7 @@ import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { deploymentsApi } from "@/services/api";
 import { useNotificationsStore } from "@/stores/notifications";
+import { useAuthStore } from "@/stores/auth";
 import type { Deployment } from "@/types";
 import DataTable from "@/components/DataTable.vue";
 import DeploymentCard from "@/components/DeploymentCard.vue";
@@ -325,6 +332,8 @@ import type { Service } from "@/types";
 
 const router = useRouter();
 const notifications = useNotificationsStore();
+const authStore = useAuthStore();
+const canWrite = authStore.hasPermission("deployments:write");
 const deployments = ref<Deployment[]>([]);
 const loading = ref(true);
 const showNewDeploymentModal = ref(false);
