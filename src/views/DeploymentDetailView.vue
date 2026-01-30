@@ -118,6 +118,31 @@
                   <span class="label">Type</span>
                   <span class="value type-badge">{{ deployment.metadata.type }}</span>
                 </div>
+                <div class="info-row">
+                  <span class="label">Registry</span>
+                  <span class="value">
+                    <template v-if="registryCredential">
+                      <span class="credential-badge">
+                        <i class="pi pi-lock" />
+                        {{ registryCredential.name }}
+                      </span>
+                      <button
+                        v-if="canWrite"
+                        class="btn btn-sm btn-icon"
+                        title="Change credential"
+                        @click="openCredentialModal"
+                      >
+                        <i class="pi pi-pencil" />
+                      </button>
+                    </template>
+                    <template v-else>
+                      <span class="public-badge">Public</span>
+                      <button v-if="canWrite" class="btn btn-sm btn-link" @click="openCredentialModal">
+                        Set credential
+                      </button>
+                    </template>
+                  </span>
+                </div>
                 <div v-if="!isInfrastructure" class="info-row action-row">
                   <button class="btn btn-sm btn-secondary" @click="migrateToInfrastructure">
                     <i class="pi pi-server" />
@@ -1111,6 +1136,47 @@
     </Teleport>
 
     <Teleport to="body">
+      <div v-if="showCredentialModal" class="modal-overlay">
+        <div class="credential-modal modal-container">
+          <div class="modal-header">
+            <h3>
+              <i class="pi pi-lock" />
+              Registry Credential
+            </h3>
+            <button class="close-btn" @click="showCredentialModal = false">
+              <i class="pi pi-times" />
+            </button>
+          </div>
+          <div class="modal-body">
+            <p class="modal-description">
+              Select a saved registry credential to use when pulling images for this deployment.
+            </p>
+            <div class="form-group">
+              <label>Credential</label>
+              <select v-model="selectedCredentialId" class="form-input">
+                <option :value="null">None (Public Registry)</option>
+                <option v-for="cred in allCredentials" :key="cred.id" :value="cred.id">
+                  {{ cred.name }} ({{ cred.registry_type_slug }})
+                </option>
+              </select>
+              <span class="hint">
+                This credential will be used when pulling images on restart or update.
+                <router-link to="/settings?tab=credentials">Manage credentials</router-link>
+              </span>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" @click="showCredentialModal = false">Cancel</button>
+            <button class="btn btn-primary" :disabled="savingCredential" @click="saveCredential">
+              <i v-if="savingCredential" class="pi pi-spin pi-spinner" />
+              {{ savingCredential ? "Saving..." : "Save" }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
+
+    <Teleport to="body">
       <div v-if="showAddEnvModal" class="modal-overlay">
         <div class="env-modal modal-container">
           <div class="modal-header">
@@ -1248,11 +1314,12 @@ import {
   filesApi,
   infrastructureApi,
   securityApi,
+  credentialsApi,
   type EnvVar,
 } from "@/services/api";
 import { useNotificationsStore } from "@/stores/notifications";
 import { useAuthStore } from "@/stores/auth";
-import type { ProxyStatus, QuickAction, SecurityEvent, DeploymentSecurityConfig } from "@/types";
+import type { ProxyStatus, QuickAction, SecurityEvent, DeploymentSecurityConfig, RegistryCredential } from "@/types";
 import FileBrowser from "@/components/FileBrowser.vue";
 import LogViewer from "@/components/LogViewer.vue";
 import ConfirmModal from "@/components/ConfirmModal.vue";
@@ -1321,6 +1388,12 @@ const resourceUsage = ref({
   disk: 0,
   network: 0,
 });
+
+const registryCredential = ref<RegistryCredential | null>(null);
+const allCredentials = ref<RegistryCredential[]>([]);
+const showCredentialModal = ref(false);
+const selectedCredentialId = ref<string | null>(null);
+const savingCredential = ref(false);
 
 const showDeleteEnvModal = ref(false);
 const envKeyToDelete = ref("");
@@ -1526,6 +1599,17 @@ const fetchDeployment = async () => {
     }
 
     services.value = deployment.value?.services || [];
+
+    if (deployment.value?.metadata?.credential_id) {
+      try {
+        const credResponse = await credentialsApi.get(deployment.value.metadata.credential_id);
+        registryCredential.value = credResponse.data.credential;
+      } catch {
+        registryCredential.value = null;
+      }
+    } else {
+      registryCredential.value = null;
+    }
 
     fetchStats();
 
@@ -2015,8 +2099,6 @@ const saveDomainSettings = async () => {
   savingDomainSettings.value = true;
   try {
     await deploymentsApi.updateMetadata(route.params.name as string, {
-      name: deployment.value?.name || "",
-      type: deployment.value?.metadata?.type || "custom",
       networking: {
         expose: domainSettings.value.expose,
         domain: domainSettings.value.domain,
@@ -2028,10 +2110,6 @@ const saveDomainSettings = async () => {
         enabled: domainSettings.value.sslEnabled,
         auto_cert: domainSettings.value.autoCert,
       },
-      healthcheck: {
-        path: "/",
-        interval: "30s",
-      },
     });
     showDomainSettingsModal.value = false;
     notifications.success("Saved", "Domain settings updated successfully");
@@ -2041,6 +2119,34 @@ const saveDomainSettings = async () => {
     notifications.error("Save Failed", msg);
   } finally {
     savingDomainSettings.value = false;
+  }
+};
+
+const openCredentialModal = async () => {
+  selectedCredentialId.value = deployment.value?.metadata?.credential_id || null;
+  try {
+    const response = await credentialsApi.list();
+    allCredentials.value = response.data.credentials || [];
+  } catch {
+    allCredentials.value = [];
+  }
+  showCredentialModal.value = true;
+};
+
+const saveCredential = async () => {
+  savingCredential.value = true;
+  try {
+    await deploymentsApi.updateMetadata(route.params.name as string, {
+      credential_id: selectedCredentialId.value || "",
+    });
+    showCredentialModal.value = false;
+    notifications.success("Saved", "Registry credential updated");
+    await fetchDeployment();
+  } catch (err: any) {
+    const msg = err.response?.data?.error || err.message;
+    notifications.error("Save Failed", msg);
+  } finally {
+    savingCredential.value = false;
   }
 };
 
@@ -2217,6 +2323,36 @@ onUnmounted(() => {
 .status-badge.starting {
   background: var(--color-warning-50);
   color: var(--color-warning-700);
+}
+
+.credential-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--text-sm);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--color-primary-50);
+  color: var(--color-primary-700);
+}
+
+.credential-badge i {
+  font-size: var(--text-xs);
+}
+
+.public-badge {
+  font-size: var(--text-sm);
+  color: var(--color-neutral-500);
+  margin-right: var(--space-2);
+}
+
+.credential-modal {
+  max-width: 480px;
+}
+
+.credential-modal .modal-description {
+  color: var(--color-neutral-600);
+  margin-bottom: var(--space-4);
 }
 
 .header-actions {
