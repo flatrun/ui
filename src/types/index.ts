@@ -27,6 +27,7 @@ export interface ServiceMetadata {
   healthcheck: HealthCheckConfig;
   quick_actions?: QuickAction[];
   security?: DeploymentSecurityConfig;
+  credential_id?: string;
 }
 
 export interface QuickAction {

@@ -59,6 +59,7 @@ export interface ServiceMetadata {
     path: string;
     interval: string;
   };
+  credential_id?: string;
 }
 
 export interface EnvVar {
@@ -71,7 +72,8 @@ export const deploymentsApi = {
   get: (name: string) => apiClient.get<Deployment>(`/deployments/${name}`),
   create: (data: any) => apiClient.post("/deployments", data),
   update: (name: string, data: any) => apiClient.put(`/deployments/${name}`, data),
-  updateMetadata: (name: string, metadata: ServiceMetadata) => apiClient.put(`/deployments/${name}/metadata`, metadata),
+  updateMetadata: (name: string, metadata: Partial<ServiceMetadata>) =>
+    apiClient.put(`/deployments/${name}/metadata`, metadata),
   delete: (name: string, options?: { deleteSSL?: boolean; deleteDatabase?: boolean; deleteVhost?: boolean }) => {
     const params = new URLSearchParams();
     if (options?.deleteSSL !== undefined) params.set("delete_ssl", String(options.deleteSSL));
