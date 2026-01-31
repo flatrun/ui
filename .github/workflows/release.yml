@@ -1,0 +1,16 @@
+name: Release
+
+on:
+  workflow_dispatch:
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: whilesmart/workflows/js/release@main
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          package: flatrun-ui
+          release_type: app
+          create_archive: true
+          build_command: npm run build
