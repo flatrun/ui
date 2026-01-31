@@ -28,6 +28,18 @@ export interface ServiceMetadata {
   quick_actions?: QuickAction[];
   security?: DeploymentSecurityConfig;
   credential_id?: string;
+  domains?: DomainConfig[];
+}
+
+export interface DomainConfig {
+  id: string;
+  service: string;
+  container_port: number;
+  domain: string;
+  path_prefix?: string;
+  strip_prefix?: boolean;
+  ssl: SSLConfig;
+  aliases?: string[];
 }
 
 export interface QuickAction {
@@ -91,10 +103,13 @@ export interface ProxyStatus {
   deployment_name: string;
   exposed: boolean;
   domain?: string;
+  domains?: string[];
+  domains_config?: DomainConfig[];
   virtual_host_exists: boolean;
   ssl_enabled: boolean;
   certificate_exists: boolean;
   certificate?: Certificate;
+  certificates?: Certificate[];
 }
 
 export interface ProxySetupResult {
