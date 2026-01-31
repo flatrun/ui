@@ -324,6 +324,45 @@
                 </div>
               </div>
             </div>
+
+            <div v-if="deployment.metadata?.databases?.length" class="info-card">
+              <div class="card-header">
+                <i class="pi pi-database" />
+                <h3>Databases</h3>
+              </div>
+              <div class="card-body">
+                <div class="databases-list">
+                  <div v-for="db in deployment.metadata.databases" :key="db.id" class="database-item">
+                    <div class="database-header">
+                      <span class="database-alias">{{ db.alias }}</span>
+                      <span class="database-type" :class="db.type">{{ db.type }}</span>
+                    </div>
+                    <div class="database-details">
+                      <div class="detail-row">
+                        <span class="detail-label">Mode</span>
+                        <span class="detail-value">{{ db.mode }}</span>
+                      </div>
+                      <div v-if="db.host" class="detail-row">
+                        <span class="detail-label">Host</span>
+                        <code class="detail-value">{{ db.host }}{{ db.port ? `:${db.port}` : "" }}</code>
+                      </div>
+                      <div v-if="db.database_name" class="detail-row">
+                        <span class="detail-label">Database</span>
+                        <code class="detail-value">{{ db.database_name }}</code>
+                      </div>
+                      <div v-if="db.username" class="detail-row">
+                        <span class="detail-label">User</span>
+                        <code class="detail-value">{{ db.username }}</code>
+                      </div>
+                      <div v-if="db.env_prefix" class="detail-row">
+                        <span class="detail-label">Env Prefix</span>
+                        <code class="detail-value">{{ db.env_prefix }}_*</code>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
           <div class="info-card wide">
@@ -2811,6 +2850,97 @@ onUnmounted(() => {
   padding: var(--space-1) var(--space-2);
   border-radius: var(--radius-full);
   font-weight: var(--font-medium);
+}
+
+/* Databases List */
+.databases-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.database-item {
+  border: 1px solid var(--color-gray-200);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3);
+  background: var(--color-gray-50);
+}
+
+.database-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-2);
+}
+
+.database-alias {
+  font-weight: var(--font-semibold);
+  color: var(--color-gray-900);
+}
+
+.database-type {
+  font-size: var(--text-xs);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-full);
+  font-weight: var(--font-medium);
+  text-transform: uppercase;
+  background: var(--color-gray-100);
+  color: var(--color-gray-700);
+}
+
+.database-type.mysql {
+  background: var(--color-info-100);
+  color: var(--color-info-700);
+}
+
+.database-type.postgres {
+  background: var(--color-primary-100);
+  color: var(--color-primary-700);
+}
+
+.database-type.mariadb {
+  background: var(--color-success-100);
+  color: var(--color-success-700);
+}
+
+.database-type.mongodb {
+  background: var(--color-warning-100);
+  color: var(--color-warning-700);
+}
+
+.database-type.redis {
+  background: var(--color-error-100);
+  color: var(--color-error-700);
+}
+
+.database-details {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.database-details .detail-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+}
+
+.database-details .detail-label {
+  color: var(--color-gray-500);
+  min-width: 80px;
+}
+
+.database-details .detail-value {
+  color: var(--color-gray-700);
+}
+
+.database-details code.detail-value {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  background: var(--color-gray-100);
+  padding: var(--space-0-5) var(--space-1);
+  border-radius: var(--radius-xs);
 }
 
 .service-status.running {

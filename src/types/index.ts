@@ -29,6 +29,22 @@ export interface ServiceMetadata {
   security?: DeploymentSecurityConfig;
   credential_id?: string;
   domains?: DomainConfig[];
+  databases?: DatabaseConfig[];
+}
+
+export interface DatabaseConfig {
+  id: string;
+  alias: string;
+  type: "mysql" | "postgres" | "mariadb" | "mongodb" | "redis";
+  mode: "shared" | "create" | "existing" | "external";
+  service?: string;
+  host?: string;
+  port?: number;
+  container?: string;
+  database_name?: string;
+  username?: string;
+  env_prefix?: string;
+  is_shared?: boolean;
 }
 
 export interface DomainConfig {
