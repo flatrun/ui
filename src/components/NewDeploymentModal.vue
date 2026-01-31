@@ -109,8 +109,8 @@
             </div>
           </div>
 
-          <!-- Step 1: Basic Info -->
-          <div v-else-if="currentStep === 1" class="step-panel">
+          <!-- Step: Basic Info -->
+          <div v-else-if="currentStepId === 'basics'" class="step-panel">
             <div class="step1-grid">
               <!-- Left: Name & Domain -->
               <div class="step1-left">
@@ -276,13 +276,36 @@
                         <p>Define multiple services, volumes, and networks</p>
                       </div>
                     </div>
-                    <div class="info-item">
-                      <i class="pi pi-cog" />
-                      <div>
-                        <strong>Advanced Options</strong>
-                        <p>Configure environment variables and port mappings</p>
+
+                    <div class="advanced-options-section">
+                      <div class="advanced-options-header">
+                        <i class="pi pi-sliders-h" />
+                        <span>Advanced Options</span>
+                      </div>
+                      <div class="advanced-options-list">
+                        <label class="advanced-option">
+                          <input v-model="advancedOptions.multiDomain" type="checkbox" />
+                          <div class="option-content">
+                            <span class="option-label">
+                              <i class="pi pi-globe" />
+                              Multi-Domain Setup
+                            </span>
+                            <span class="option-desc">Route different domains to different services</span>
+                          </div>
+                        </label>
+                        <label class="advanced-option">
+                          <input v-model="advancedOptions.multiDatabase" type="checkbox" />
+                          <div class="option-content">
+                            <span class="option-label">
+                              <i class="pi pi-database" />
+                              Multi-Database Setup
+                            </span>
+                            <span class="option-desc">Configure multiple database connections</span>
+                          </div>
+                        </label>
                       </div>
                     </div>
+
                     <div class="info-hint">
                       <i class="pi pi-info-circle" />
                       <span>You'll write your compose file in the next step</span>
@@ -429,8 +452,8 @@
             </div>
           </div>
 
-          <!-- Step 2: Database & Storage -->
-          <div v-else-if="currentStep === 2" class="step-panel step2-sections">
+          <!-- Step: Database & Storage -->
+          <div v-else-if="currentStepId === 'database'" class="step-panel step2-sections">
             <!-- Database Section -->
             <div class="collapsible-section">
               <button
@@ -845,6 +868,102 @@
                           </div>
                         </div>
                       </div>
+
+                      <!-- Additional Databases (Multi-Database Mode) -->
+                      <div v-if="advancedOptions.multiDatabase" class="additional-databases-section">
+                        <div class="section-divider">
+                          <span>Additional Databases</span>
+                        </div>
+
+                        <div v-for="(db, index) in additionalDatabases" :key="db.id" class="additional-db-card">
+                          <div class="db-card-header">
+                            <div class="db-alias-input">
+                              <label>Alias</label>
+                              <input v-model="db.alias" type="text" placeholder="cache" class="alias-field" />
+                            </div>
+                            <button class="remove-btn" @click="removeAdditionalDatabase(index)">
+                              <i class="pi pi-times" />
+                            </button>
+                          </div>
+
+                          <div class="db-card-content">
+                            <div class="db-type-row">
+                              <button
+                                v-for="dbType in ['mysql', 'postgres', 'redis', 'mongodb']"
+                                :key="dbType"
+                                class="db-type-btn"
+                                :class="{ selected: db.type === dbType }"
+                                @click="db.type = dbType as any"
+                              >
+                                {{ dbType }}
+                              </button>
+                            </div>
+
+                            <div v-if="db.type !== 'none'" class="db-mode-row">
+                              <button
+                                v-if="infrastructureSettings.database.enabled"
+                                class="mode-btn"
+                                :class="{ selected: db.mode === 'shared' }"
+                                @click="db.mode = 'shared'"
+                              >
+                                <i class="pi pi-share-alt" />
+                                Shared
+                              </button>
+                              <button
+                                class="mode-btn"
+                                :class="{ selected: db.mode === 'existing' }"
+                                @click="db.mode = 'existing'"
+                              >
+                                <i class="pi pi-server" />
+                                Existing
+                              </button>
+                              <button
+                                class="mode-btn"
+                                :class="{ selected: db.mode === 'external' }"
+                                @click="db.mode = 'external'"
+                              >
+                                <i class="pi pi-globe" />
+                                External
+                              </button>
+                            </div>
+
+                            <div v-if="db.mode === 'external' && db.type !== 'none'" class="db-external-config">
+                              <div class="form-row">
+                                <div class="form-field flex-grow">
+                                  <label>Host</label>
+                                  <input v-model="db.externalHost" type="text" placeholder="db.example.com" />
+                                </div>
+                                <div class="form-field port-field">
+                                  <label>Port</label>
+                                  <input v-model="db.externalPort" type="text" placeholder="3306" />
+                                </div>
+                              </div>
+                              <div class="form-row">
+                                <div class="form-field">
+                                  <label>Database</label>
+                                  <input v-model="db.dbName" type="text" placeholder="mydb" />
+                                </div>
+                                <div class="form-field">
+                                  <label>Username</label>
+                                  <input v-model="db.dbUser" type="text" placeholder="user" />
+                                </div>
+                              </div>
+                            </div>
+
+                            <div class="db-env-preview">
+                              <span class="env-prefix"
+                                >Env: {{ (db.envPrefix || db.alias).toUpperCase() }}_HOST,
+                                {{ (db.envPrefix || db.alias).toUpperCase() }}_PORT...</span
+                              >
+                            </div>
+                          </div>
+                        </div>
+
+                        <button class="add-db-btn" @click="addAdditionalDatabase">
+                          <i class="pi pi-plus" />
+                          Add Another Database
+                        </button>
+                      </div>
                     </div>
                   </Transition>
                 </div>
@@ -921,8 +1040,77 @@
             </div>
           </div>
 
-          <!-- Step 3: Configuration -->
-          <div v-else-if="currentStep === 3" class="step-panel">
+          <!-- Step: Domains (Compose Mode Advanced) -->
+          <div v-else-if="currentStepId === 'domains'" class="step-panel domains-step">
+            <div class="domains-step-header">
+              <div class="step-intro">
+                <h3>Configure Domains</h3>
+                <p>Route different domains to different services in your compose stack</p>
+              </div>
+            </div>
+
+            <div class="domains-list-section">
+              <!-- Primary Domain (from Step 1) -->
+              <div class="domain-card primary">
+                <div class="domain-card-header">
+                  <span class="domain-badge primary-badge">Primary Domain</span>
+                </div>
+                <div class="domain-preview">
+                  <i class="pi pi-globe" />
+                  <span>{{ effectiveDomain || "Not configured" }}</span>
+                  <span class="domain-hint">→ {{ form.name }}:{{ form.networking.ports[0]?.containerPort || 80 }}</span>
+                </div>
+              </div>
+
+              <!-- Additional Domains -->
+              <div v-for="(domain, index) in additionalDomains" :key="domain.id" class="domain-card">
+                <div class="domain-card-header">
+                  <span class="domain-badge">Domain {{ index + 2 }}</span>
+                  <button class="remove-btn" @click="removeAdditionalDomain(index)">
+                    <i class="pi pi-times" />
+                  </button>
+                </div>
+
+                <div class="domain-form-grid">
+                  <div class="form-field">
+                    <label>Domain</label>
+                    <input v-model="domain.domain" type="text" placeholder="api.example.com" />
+                  </div>
+
+                  <div class="form-field">
+                    <label>Service Name</label>
+                    <input v-model="domain.service" type="text" placeholder="api" />
+                    <span class="field-hint">Service name from your compose file</span>
+                  </div>
+
+                  <div class="form-field port-field">
+                    <label>Container Port</label>
+                    <input v-model.number="domain.containerPort" type="number" placeholder="80" />
+                  </div>
+
+                  <div class="form-field">
+                    <label>Path Prefix (optional)</label>
+                    <input v-model="domain.pathPrefix" type="text" placeholder="/api" />
+                  </div>
+
+                  <div class="ssl-toggle">
+                    <label class="toggle-label">
+                      <input v-model="domain.ssl.enabled" type="checkbox" />
+                      <span class="toggle-text">Enable SSL</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <button class="add-domain-btn" @click="addAdditionalDomain">
+                <i class="pi pi-plus" />
+                Add Another Domain
+              </button>
+            </div>
+          </div>
+
+          <!-- Step: Configuration -->
+          <div v-else-if="currentStepId === 'configure'" class="step-panel">
             <div class="step2-layout">
               <!-- Compose Editor -->
               <div class="compose-section">
@@ -1044,8 +1232,8 @@
             </div>
           </div>
 
-          <!-- Step 4: Review -->
-          <div v-else-if="currentStep === 4" class="step-panel">
+          <!-- Step: Review -->
+          <div v-else-if="currentStepId === 'review'" class="step-panel">
             <div class="review-container">
               <div class="review-card">
                 <div class="review-header">
@@ -1210,6 +1398,7 @@ interface DbContainer {
   image: string;
   type: "mysql" | "postgres" | "mariadb" | "mongodb" | "unknown";
 }
+
 const existingDbContainers = ref<DbContainer[]>([]);
 const loadingDbContainers = ref(false);
 const existingDeployments = ref<string[]>([]);
@@ -1221,6 +1410,83 @@ const showRegistryPassword = ref(false);
 const existingCredentials = ref<RegistryCredential[]>([]);
 const loadingCredentials = ref(false);
 
+const advancedOptions = reactive({
+  multiDomain: false,
+  multiDatabase: false,
+});
+
+interface DomainFormConfig {
+  id: string;
+  domain: string;
+  service: string;
+  containerPort: number;
+  pathPrefix: string;
+  ssl: { enabled: boolean; autoCert: boolean };
+}
+
+interface DatabaseFormConfig {
+  id: string;
+  alias: string;
+  type: "none" | "mysql" | "postgres" | "mariadb" | "mongodb" | "redis";
+  mode: "create" | "existing" | "external" | "shared";
+  service: string;
+  existingContainer: string;
+  externalHost: string;
+  externalPort: string;
+  dbName: string;
+  dbUser: string;
+  dbPassword: string;
+  envPrefix: string;
+}
+
+const createDomainConfig = (id: string): DomainFormConfig => ({
+  id,
+  domain: "",
+  service: "",
+  containerPort: 80,
+  pathPrefix: "",
+  ssl: { enabled: true, autoCert: true },
+});
+
+const createDatabaseConfig = (id: string, alias: string): DatabaseFormConfig => ({
+  id,
+  alias,
+  type: "none",
+  mode: "shared",
+  service: "",
+  existingContainer: "",
+  externalHost: "",
+  externalPort: "",
+  dbName: "",
+  dbUser: "app",
+  dbPassword: "",
+  envPrefix: "",
+});
+
+const additionalDomains = ref<DomainFormConfig[]>([]);
+const additionalDatabases = ref<DatabaseFormConfig[]>([]);
+
+const addAdditionalDomain = () => {
+  const id = `domain-${Date.now()}`;
+  additionalDomains.value.push(createDomainConfig(id));
+};
+
+const removeAdditionalDomain = (index: number) => {
+  additionalDomains.value.splice(index, 1);
+};
+
+const addAdditionalDatabase = () => {
+  const id = `db-${Date.now()}`;
+  const alias = `db${additionalDatabases.value.length + 2}`;
+  const db = createDatabaseConfig(id, alias);
+  db.dbPassword = generatePassword();
+  additionalDatabases.value.push(db);
+};
+
+const removeAdditionalDatabase = (index: number) => {
+  additionalDatabases.value.splice(index, 1);
+};
+
 const easySteps = [
   { id: "basics", label: "Basics" },
   { id: "database", label: "Database" },
@@ -1228,7 +1494,26 @@ const easySteps = [
   { id: "review", label: "Review" },
 ];
 
-const steps = computed(() => easySteps);
+const steps = computed(() => {
+  if (deploymentMode.value === "compose") {
+    const composeSteps = [
+      { id: "basics", label: "Basics" },
+      { id: "database", label: "Database" },
+    ];
+    if (advancedOptions.multiDomain) {
+      composeSteps.push({ id: "domains", label: "Domains" });
+    }
+    composeSteps.push({ id: "configure", label: "Configure" });
+    composeSteps.push({ id: "review", label: "Review" });
+    return composeSteps;
+  }
+  return easySteps;
+});
+
+const currentStepId = computed(() => {
+  if (currentStep.value === 0) return "mode";
+  return steps.value[currentStep.value - 1]?.id || "";
+});
 
 const generatePassword = () => {
   const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -1944,6 +2229,10 @@ watch(
       showRegistryPassword.value = false;
       existingDbContainers.value = [];
       existingCredentials.value = [];
+      advancedOptions.multiDomain = false;
+      advancedOptions.multiDatabase = false;
+      additionalDomains.value = [];
+      additionalDatabases.value = [];
       errors.name = "";
       errors.composeContent = "";
       selectedQuickApp.value = "";
@@ -2084,7 +2373,56 @@ const handleCreate = async () => {
       }
     }
 
+    if (advancedOptions.multiDatabase && additionalDatabases.value.length > 0) {
+      const databases = additionalDatabases.value
+        .filter((db) => db.type !== "none")
+        .map((db) => ({
+          alias: db.alias,
+          type: db.type,
+          mode: db.mode,
+          service: db.service || undefined,
+          existing_container: db.mode === "existing" ? db.existingContainer : undefined,
+          external_host: db.mode === "external" ? db.externalHost : undefined,
+          external_port: db.mode === "external" && db.externalPort ? parseInt(db.externalPort) : undefined,
+          database_name: db.dbName || undefined,
+          username: db.dbUser || undefined,
+          env_prefix: db.envPrefix || db.alias,
+        }));
+
+      if (databases.length > 0) {
+        payload.databases = databases;
+      }
+    }
+
     if (finalDomain) {
+      const domainsArray = [];
+
+      domainsArray.push({
+        id: "primary",
+        domain: finalDomain,
+        service: form.name,
+        container_port: form.networking.ports[0]?.containerPort || 80,
+        ssl: {
+          enabled: form.ssl.enabled,
+          auto_cert: form.ssl.autoCert,
+        },
+      });
+
+      if (advancedOptions.multiDomain && additionalDomains.value.length > 0) {
+        for (const d of additionalDomains.value) {
+          if (d.domain.trim()) {
+            domainsArray.push({
+              id: d.id,
+              domain: d.domain,
+              service: d.service || form.name,
+              container_port: d.containerPort || 80,
+              path_prefix: d.pathPrefix || undefined,
+              ssl: d.ssl,
+            });
+          }
+        }
+      }
+
       payload.metadata = {
         name: form.name,
         type: "web",
@@ -2102,6 +2440,7 @@ const handleCreate = async () => {
           path: "/health",
           interval: "30s",
         },
+        domains: domainsArray.length > 1 ? domainsArray : undefined,
       };
     }
 
@@ -3775,6 +4114,380 @@ const handleClose = () => {
 .compose-info-content .info-hint span {
   font-size: var(--text-xs);
   color: var(--color-info-700);
+}
+
+/* Advanced Options Section */
+.advanced-options-section {
+  border-top: 1px solid var(--color-gray-200);
+  padding-top: var(--space-4);
+  margin-top: var(--space-2);
+}
+
+.advanced-options-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  color: var(--color-gray-700);
+  margin-bottom: var(--space-3);
+}
+
+.advanced-options-header i {
+  color: var(--color-gray-400);
+}
+
+.advanced-options-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.advanced-option {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  background: var(--color-gray-50);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.advanced-option:hover {
+  background: var(--color-gray-100);
+}
+
+.advanced-option input[type="checkbox"] {
+  margin-top: 2px;
+}
+
+.advanced-option .option-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.advanced-option .option-label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--color-gray-900);
+}
+
+.advanced-option .option-label i {
+  color: var(--color-gray-500);
+  font-size: var(--text-xs);
+}
+
+.advanced-option .option-desc {
+  font-size: var(--text-xs);
+  color: var(--color-gray-500);
+}
+
+/* Domains Step */
+.domains-step {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.domains-step-header .step-intro h3 {
+  font-size: var(--text-lg);
+  font-weight: var(--font-semibold);
+  color: var(--color-gray-900);
+  margin: 0 0 var(--space-1) 0;
+}
+
+.domains-step-header .step-intro p {
+  font-size: var(--text-sm);
+  color: var(--color-gray-500);
+  margin: 0;
+}
+
+.domains-list-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.domain-card {
+  background: white;
+  border: 1px solid var(--color-gray-200);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+}
+
+.domain-card.primary {
+  background: var(--color-primary-50);
+  border-color: var(--color-primary-200);
+}
+
+.domain-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-3);
+}
+
+.domain-badge {
+  font-size: var(--text-xs);
+  font-weight: var(--font-medium);
+  color: var(--color-gray-600);
+  background: var(--color-gray-100);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+}
+
+.domain-badge.primary-badge {
+  color: var(--color-primary-700);
+  background: var(--color-primary-100);
+}
+
+.domain-preview {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--color-gray-700);
+}
+
+.domain-preview i {
+  color: var(--color-primary-500);
+}
+
+.domain-hint {
+  color: var(--color-gray-400);
+  font-size: var(--text-xs);
+}
+
+.domain-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+}
+
+.domain-form-grid .form-field:first-child {
+  grid-column: 1 / -1;
+}
+
+.domain-form-grid .ssl-toggle {
+  grid-column: 1 / -1;
+}
+
+.domain-card .remove-btn {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-red-50);
+  color: var(--color-red-500);
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.domain-card .remove-btn:hover {
+  background: var(--color-red-100);
+  color: var(--color-red-600);
+}
+
+.add-domain-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  width: 100%;
+  padding: var(--space-3);
+  background: white;
+  border: 2px dashed var(--color-gray-300);
+  border-radius: var(--radius-lg);
+  color: var(--color-gray-600);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.add-domain-btn:hover {
+  border-color: var(--color-primary-400);
+  color: var(--color-primary-600);
+  background: var(--color-primary-50);
+}
+
+/* Additional Databases Section */
+.additional-databases-section {
+  margin-top: var(--space-4);
+}
+
+.section-divider {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.section-divider::before,
+.section-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--color-gray-200);
+}
+
+.section-divider span {
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--color-gray-500);
+}
+
+.additional-db-card {
+  background: var(--color-gray-50);
+  border: 1px solid var(--color-gray-200);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  margin-bottom: var(--space-3);
+}
+
+.db-card-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: var(--space-3);
+}
+
+.db-alias-input {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.db-alias-input label {
+  font-size: var(--text-xs);
+  font-weight: var(--font-medium);
+  color: var(--color-gray-600);
+}
+
+.db-alias-input .alias-field {
+  width: 150px;
+  padding: var(--space-2);
+  font-size: var(--text-sm);
+  border: 1px solid var(--color-gray-300);
+  border-radius: var(--radius-md);
+}
+
+.db-card-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.db-type-row {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.db-type-btn {
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-xs);
+  font-weight: var(--font-medium);
+  color: var(--color-gray-600);
+  background: white;
+  border: 1px solid var(--color-gray-300);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+}
+
+.db-type-btn:hover {
+  border-color: var(--color-primary-400);
+  color: var(--color-primary-600);
+}
+
+.db-type-btn.selected {
+  background: var(--color-primary-500);
+  border-color: var(--color-primary-500);
+  color: white;
+}
+
+.db-mode-row {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.mode-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-xs);
+  font-weight: var(--font-medium);
+  color: var(--color-gray-600);
+  background: white;
+  border: 1px solid var(--color-gray-300);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.mode-btn:hover {
+  border-color: var(--color-primary-400);
+  color: var(--color-primary-600);
+}
+
+.mode-btn.selected {
+  background: var(--color-primary-50);
+  border-color: var(--color-primary-400);
+  color: var(--color-primary-600);
+}
+
+.db-external-config {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  background: white;
+  border-radius: var(--radius-md);
+}
+
+.db-env-preview {
+  padding: var(--space-2);
+  background: var(--color-gray-100);
+  border-radius: var(--radius-sm);
+}
+
+.db-env-preview .env-prefix {
+  font-size: var(--text-xs);
+  font-family: var(--font-mono);
+  color: var(--color-gray-600);
+}
+
+.add-db-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  width: 100%;
+  padding: var(--space-3);
+  background: white;
+  border: 2px dashed var(--color-gray-300);
+  border-radius: var(--radius-lg);
+  color: var(--color-gray-600);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.add-db-btn:hover {
+  border-color: var(--color-primary-400);
+  color: var(--color-primary-600);
+  background: var(--color-primary-50);
 }
 
 /* Image Config Card */

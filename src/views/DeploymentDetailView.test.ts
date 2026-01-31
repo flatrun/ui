@@ -418,4 +418,139 @@ describe("DeploymentDetailView", () => {
       expect(wrapper.find(".deployment-detail").exists()).toBe(true);
     });
   });
+
+  describe("Domain management", () => {
+    it("computes hasMultipleDomains as false when no domains", async () => {
+      const wrapper = mountView();
+      await flushPromises();
+      expect((wrapper.vm as any).hasMultipleDomains).toBeFalsy();
+    });
+
+    it("computes hasMultipleDomains as false when one domain", async () => {
+      const { deploymentsApi } = await import("@/services/api");
+      vi.mocked(deploymentsApi.get).mockResolvedValueOnce({
+        data: {
+          deployment: {
+            name: "test-app",
+            status: "running",
+            path: "/deployments/test-app",
+            services: [],
+            created_at: "2024-01-01T00:00:00Z",
+            updated_at: "2024-01-01T00:00:00Z",
+            metadata: {
+              domains: [{ id: "domain-1", domain: "app.example.com" }],
+            },
+          },
+          proxy_status: { exposed: true, domain: "app.example.com" },
+        },
+      } as any);
+
+      const wrapper = mountView();
+      await flushPromises();
+      expect((wrapper.vm as any).hasMultipleDomains).toBe(false);
+    });
+
+    it("computes hasMultipleDomains as true when multiple domains", async () => {
+      const { deploymentsApi } = await import("@/services/api");
+      vi.mocked(deploymentsApi.get).mockResolvedValueOnce({
+        data: {
+          deployment: {
+            name: "test-app",
+            status: "running",
+            path: "/deployments/test-app",
+            services: [],
+            created_at: "2024-01-01T00:00:00Z",
+            updated_at: "2024-01-01T00:00:00Z",
+            metadata: {
+              domains: [
+                { id: "domain-1", domain: "app.example.com" },
+                { id: "domain-2", domain: "api.example.com" },
+              ],
+            },
+          },
+          proxy_status: { exposed: true },
+        },
+      } as any);
+
+      const wrapper = mountView();
+      await flushPromises();
+      expect((wrapper.vm as any).hasMultipleDomains).toBe(true);
+    });
+
+    it("computes singleDomainId from explicit domain", async () => {
+      const { deploymentsApi } = await import("@/services/api");
+      vi.mocked(deploymentsApi.get).mockResolvedValueOnce({
+        data: {
+          deployment: {
+            name: "test-app",
+            status: "running",
+            path: "/deployments/test-app",
+            services: [],
+            created_at: "2024-01-01T00:00:00Z",
+            updated_at: "2024-01-01T00:00:00Z",
+            metadata: {
+              domains: [{ id: "my-domain-id", domain: "app.example.com" }],
+            },
+          },
+          proxy_status: { exposed: true },
+        },
+      } as any);
+
+      const wrapper = mountView();
+      await flushPromises();
+      expect((wrapper.vm as any).singleDomainId).toBe("my-domain-id");
+    });
+
+    it("computes singleDomainId as 'default' for legacy domain", async () => {
+      const { deploymentsApi, proxyApi } = await import("@/services/api");
+      vi.mocked(deploymentsApi.get).mockResolvedValueOnce({
+        data: {
+          deployment: {
+            name: "test-app",
+            status: "running",
+            path: "/deployments/test-app",
+            services: [],
+            created_at: "2024-01-01T00:00:00Z",
+            updated_at: "2024-01-01T00:00:00Z",
+            metadata: {
+              networking: { expose: true, domain: "legacy.example.com" },
+            },
+          },
+          proxy_status: { exposed: true, domain: "legacy.example.com" },
+        },
+      } as any);
+      vi.mocked(proxyApi.getStatus).mockResolvedValueOnce({
+        data: { status: { exposed: true, domain: "legacy.example.com" } },
+      } as any);
+
+      const wrapper = mountView();
+      await flushPromises();
+      expect((wrapper.vm as any).singleDomainId).toBe("default");
+    });
+
+    it("computes singleDomainId as null when no domains", async () => {
+      const { deploymentsApi, proxyApi } = await import("@/services/api");
+      vi.mocked(deploymentsApi.get).mockResolvedValueOnce({
+        data: {
+          deployment: {
+            name: "test-app",
+            status: "running",
+            path: "/deployments/test-app",
+            services: [],
+            created_at: "2024-01-01T00:00:00Z",
+            updated_at: "2024-01-01T00:00:00Z",
+            metadata: {},
+          },
+          proxy_status: { exposed: false },
+        },
+      } as any);
+      vi.mocked(proxyApi.getStatus).mockResolvedValueOnce({
+        data: { status: { exposed: false } },
+      } as any);
+
+      const wrapper = mountView();
+      await flushPromises();
+      expect((wrapper.vm as any).singleDomainId).toBeNull();
+    });
+  });
 });

@@ -28,6 +28,34 @@ export interface ServiceMetadata {
   quick_actions?: QuickAction[];
   security?: DeploymentSecurityConfig;
   credential_id?: string;
+  domains?: DomainConfig[];
+  databases?: DatabaseConfig[];
+}
+
+export interface DatabaseConfig {
+  id: string;
+  alias: string;
+  type: "mysql" | "postgres" | "mariadb" | "mongodb" | "redis";
+  mode: "shared" | "create" | "existing" | "external";
+  service?: string;
+  host?: string;
+  port?: number;
+  container?: string;
+  database_name?: string;
+  username?: string;
+  env_prefix?: string;
+  is_shared?: boolean;
+}
+
+export interface DomainConfig {
+  id: string;
+  service: string;
+  container_port: number;
+  domain: string;
+  path_prefix?: string;
+  strip_prefix?: boolean;
+  ssl: SSLConfig;
+  aliases?: string[];
 }
 
 export interface QuickAction {
@@ -91,10 +119,13 @@ export interface ProxyStatus {
   deployment_name: string;
   exposed: boolean;
   domain?: string;
+  domains?: string[];
+  domains_config?: DomainConfig[];
   virtual_host_exists: boolean;
   ssl_enabled: boolean;
   certificate_exists: boolean;
   certificate?: Certificate;
+  certificates?: Certificate[];
 }
 
 export interface ProxySetupResult {

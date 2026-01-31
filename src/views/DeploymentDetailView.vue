@@ -156,12 +156,28 @@
               <div class="card-header">
                 <i class="pi pi-globe" />
                 <h3>Domain & SSL</h3>
-                <button class="btn btn-sm btn-icon" title="Edit Domain Settings" @click="openDomainSettings">
+                <button
+                  v-if="canWrite"
+                  class="btn btn-sm btn-icon"
+                  title="Edit Domain Settings"
+                  @click="openDomainSettings"
+                >
                   <i class="pi pi-pencil" />
                 </button>
               </div>
               <div class="card-body">
-                <template v-if="proxyStatus && proxyStatus.exposed">
+                <template v-if="hasMultipleDomains">
+                  <DomainsManager
+                    :deployment-name="route.params.name as string"
+                    :services="services"
+                    :proxy-status="proxyStatus"
+                    :can-edit="canWrite"
+                    :setting-up-proxy="settingUpProxy"
+                    @updated="fetchProxyStatus"
+                    @setup-proxy="handleSetupProxy"
+                  />
+                </template>
+                <template v-else-if="proxyStatus && proxyStatus.exposed">
                   <div class="info-row">
                     <span class="label">Domain</span>
                     <span class="value domain-link">
@@ -213,6 +229,7 @@
                       v-if="!proxyStatus.virtual_host_exists"
                       class="btn btn-sm btn-primary"
                       :disabled="settingUpProxy"
+                      title="Create nginx virtual host configuration"
                       @click="handleSetupProxy"
                     >
                       <i :class="settingUpProxy ? 'pi pi-spin pi-spinner' : 'pi pi-cog'" />
@@ -222,6 +239,7 @@
                       v-if="proxyStatus.ssl_enabled && !proxyStatus.certificate_exists"
                       class="btn btn-sm btn-success"
                       :disabled="requestingCert"
+                      title="Request Let's Encrypt certificate"
                       @click="handleRequestCertificate"
                     >
                       <i :class="requestingCert ? 'pi pi-spin pi-spinner' : 'pi pi-shield'" />
@@ -231,10 +249,30 @@
                       v-if="proxyStatus.ssl_enabled"
                       class="btn btn-sm btn-warning"
                       :disabled="disablingSSL"
+                      title="Disable SSL and revert to HTTP"
                       @click="handleDisableSSL"
                     >
                       <i :class="disablingSSL ? 'pi pi-spin pi-spinner' : 'pi pi-lock-open'" />
                       Disable SSL
+                    </button>
+                    <button
+                      v-if="canWrite"
+                      class="btn btn-sm btn-secondary"
+                      title="Add another domain to this deployment"
+                      @click="showAddDomainModal = true"
+                    >
+                      <i class="pi pi-plus" />
+                      Add Domain
+                    </button>
+                    <button
+                      v-if="canWrite && singleDomainId"
+                      class="btn btn-sm btn-danger"
+                      title="Delete this domain"
+                      :disabled="deletingDomain"
+                      @click="handleDeleteDomain(singleDomainId!)"
+                    >
+                      <i :class="deletingDomain ? 'pi pi-spin pi-spinner' : 'pi pi-trash'" />
+                      Delete
                     </button>
                   </div>
                 </template>
@@ -242,7 +280,7 @@
                   <div class="empty-proxy">
                     <i class="pi pi-globe" />
                     <p>No domain configured</p>
-                    <span class="hint">Configure domain exposure in deployment settings</span>
+                    <span class="hint">Click the edit button to configure domain exposure</span>
                   </div>
                 </template>
               </div>
@@ -281,6 +319,45 @@
                       <button class="action-btn" title="Restart" @click="restartService(service)">
                         <i class="pi pi-refresh" />
                       </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div v-if="deployment.metadata?.databases?.length" class="info-card">
+              <div class="card-header">
+                <i class="pi pi-database" />
+                <h3>Databases</h3>
+              </div>
+              <div class="card-body">
+                <div class="databases-list">
+                  <div v-for="db in deployment.metadata.databases" :key="db.id" class="database-item">
+                    <div class="database-header">
+                      <span class="database-alias">{{ db.alias }}</span>
+                      <span class="database-type" :class="db.type">{{ db.type }}</span>
+                    </div>
+                    <div class="database-details">
+                      <div class="detail-row">
+                        <span class="detail-label">Mode</span>
+                        <span class="detail-value">{{ db.mode }}</span>
+                      </div>
+                      <div v-if="db.host" class="detail-row">
+                        <span class="detail-label">Host</span>
+                        <code class="detail-value">{{ db.host }}{{ db.port ? `:${db.port}` : "" }}</code>
+                      </div>
+                      <div v-if="db.database_name" class="detail-row">
+                        <span class="detail-label">Database</span>
+                        <code class="detail-value">{{ db.database_name }}</code>
+                      </div>
+                      <div v-if="db.username" class="detail-row">
+                        <span class="detail-label">User</span>
+                        <code class="detail-value">{{ db.username }}</code>
+                      </div>
+                      <div v-if="db.env_prefix" class="detail-row">
+                        <span class="detail-label">Env Prefix</span>
+                        <code class="detail-value">{{ db.env_prefix }}_*</code>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -1298,6 +1375,15 @@
         </div>
       </div>
     </Teleport>
+
+    <DomainFormModal
+      :visible="showAddDomainModal"
+      :services="services"
+      :deployment-name="route.params.name as string"
+      :loading="addingDomain"
+      @save="handleAddDomain"
+      @cancel="showAddDomainModal = false"
+    />
   </div>
 </template>
 
@@ -1325,6 +1411,8 @@ import LogViewer from "@/components/LogViewer.vue";
 import ConfirmModal from "@/components/ConfirmModal.vue";
 import ContainerTerminal from "@/components/ContainerTerminal.vue";
 import BackupsTab from "@/components/BackupsTab.vue";
+import DomainsManager from "@/components/DomainsManager.vue";
+import DomainFormModal from "@/components/DomainFormModal.vue";
 
 const route = useRoute();
 const router = useRouter();
@@ -1349,6 +1437,8 @@ const proxyStatus = ref<ProxyStatus | null>(null);
 const settingUpProxy = ref(false);
 const requestingCert = ref(false);
 const disablingSSL = ref(false);
+const showAddDomainModal = ref(false);
+const addingDomain = ref(false);
 
 const securityConfig = ref<DeploymentSecurityConfig>({
   enabled: false,
@@ -1388,6 +1478,24 @@ const resourceUsage = ref({
   disk: 0,
   network: 0,
 });
+
+const hasMultipleDomains = computed(() => {
+  return deployment.value?.metadata?.domains && deployment.value.metadata.domains.length > 1;
+});
+
+const singleDomainId = computed(() => {
+  const domains = deployment.value?.metadata?.domains;
+  if (domains && domains.length === 1) {
+    return domains[0].id;
+  }
+  // Legacy domain from networking config uses "default" as ID
+  if (!domains?.length && proxyStatus.value?.exposed) {
+    return "default";
+  }
+  return null;
+});
+
+const deletingDomain = ref(false);
 
 const registryCredential = ref<RegistryCredential | null>(null);
 const allCredentials = ref<RegistryCredential[]>([]);
@@ -1661,6 +1769,70 @@ const handleSetupProxy = async () => {
     notifications.error("Setup Failed", msg);
   } finally {
     settingUpProxy.value = false;
+  }
+};
+
+const handleDeleteDomain = async (domainId: string) => {
+  deletingDomain.value = true;
+  try {
+    await deploymentsApi.deleteDomain(route.params.name as string, domainId);
+    notifications.success("Domain Deleted", "Domain has been removed");
+    await fetchDeployment();
+  } catch (err: any) {
+    const msg = err.response?.data?.error || err.message;
+    notifications.error("Delete Failed", msg);
+  } finally {
+    deletingDomain.value = false;
+  }
+};
+
+const fetchProxyStatus = async () => {
+  try {
+    const proxyResponse = await proxyApi.getStatus(route.params.name as string);
+    proxyStatus.value = proxyResponse.data.status;
+  } catch {
+    proxyStatus.value = null;
+  }
+};
+
+const handleAddDomain = async (newDomain: any) => {
+  if (!deployment.value?.metadata) return;
+
+  const currentDomain = deployment.value.metadata.networking?.domain;
+  const currentPort = deployment.value.metadata.networking?.container_port || 80;
+  const currentSSL = deployment.value.metadata.ssl || { enabled: false, auto_cert: false };
+
+  addingDomain.value = true;
+  try {
+    // First, convert existing legacy domain to a domain config
+    if (currentDomain) {
+      await deploymentsApi.addDomain(route.params.name as string, {
+        service: deployment.value.metadata.name || (route.params.name as string),
+        container_port: currentPort,
+        domain: currentDomain,
+        ssl: currentSSL,
+      });
+    }
+
+    // Then add the new domain
+    await deploymentsApi.addDomain(route.params.name as string, {
+      service: newDomain.service || deployment.value.metadata.name || (route.params.name as string),
+      container_port: newDomain.container_port || 80,
+      domain: newDomain.domain,
+      path_prefix: newDomain.path_prefix,
+      strip_prefix: newDomain.strip_prefix,
+      ssl: newDomain.ssl || { enabled: false, auto_cert: false },
+      aliases: newDomain.aliases,
+    });
+
+    notifications.success("Domain Added", `${newDomain.domain} has been added to this deployment`);
+    showAddDomainModal.value = false;
+    await fetchDeployment();
+  } catch (err: any) {
+    const msg = err.response?.data?.error || err.message;
+    notifications.error("Failed to Add Domain", msg);
+  } finally {
+    addingDomain.value = false;
   }
 };
 
@@ -2616,10 +2788,15 @@ onUnmounted(() => {
 
 .proxy-actions {
   display: flex;
+  flex-wrap: wrap;
   gap: var(--space-2);
   margin-top: var(--space-3);
   padding-top: var(--space-3);
   border-top: 1px solid var(--color-gray-100);
+}
+
+.proxy-actions .btn {
+  white-space: nowrap;
 }
 
 .empty-proxy {
@@ -2631,6 +2808,7 @@ onUnmounted(() => {
 .empty-proxy i {
   font-size: 2rem;
   margin-bottom: var(--space-2);
+  display: block;
 }
 
 .empty-proxy p {
@@ -2672,6 +2850,97 @@ onUnmounted(() => {
   padding: var(--space-1) var(--space-2);
   border-radius: var(--radius-full);
   font-weight: var(--font-medium);
+}
+
+/* Databases List */
+.databases-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.database-item {
+  border: 1px solid var(--color-gray-200);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3);
+  background: var(--color-gray-50);
+}
+
+.database-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-2);
+}
+
+.database-alias {
+  font-weight: var(--font-semibold);
+  color: var(--color-gray-900);
+}
+
+.database-type {
+  font-size: var(--text-xs);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-full);
+  font-weight: var(--font-medium);
+  text-transform: uppercase;
+  background: var(--color-gray-100);
+  color: var(--color-gray-700);
+}
+
+.database-type.mysql {
+  background: var(--color-info-100);
+  color: var(--color-info-700);
+}
+
+.database-type.postgres {
+  background: var(--color-primary-100);
+  color: var(--color-primary-700);
+}
+
+.database-type.mariadb {
+  background: var(--color-success-100);
+  color: var(--color-success-700);
+}
+
+.database-type.mongodb {
+  background: var(--color-warning-100);
+  color: var(--color-warning-700);
+}
+
+.database-type.redis {
+  background: var(--color-error-100);
+  color: var(--color-error-700);
+}
+
+.database-details {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.database-details .detail-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+}
+
+.database-details .detail-label {
+  color: var(--color-gray-500);
+  min-width: 80px;
+}
+
+.database-details .detail-value {
+  color: var(--color-gray-700);
+}
+
+.database-details code.detail-value {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  background: var(--color-gray-100);
+  padding: var(--space-0-5) var(--space-1);
+  border-radius: var(--radius-xs);
 }
 
 .service-status.running {

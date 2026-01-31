@@ -13,6 +13,7 @@ import type {
   BlockedIP,
   ProtectedRoute,
   DeploymentSecurityConfig,
+  DomainConfig,
 } from "@/types";
 
 const apiClient = axios.create({
@@ -127,6 +128,13 @@ export const deploymentsApi = {
   getEnvVars: (name: string) => apiClient.get<{ env_vars: EnvVar[] }>(`/deployments/${name}/env`),
   updateEnvVars: (name: string, envVars: EnvVar[]) => apiClient.put(`/deployments/${name}/env`, { env_vars: envVars }),
   disableSSL: (name: string) => apiClient.post<{ message: string; name: string }>(`/deployments/${name}/ssl/disable`),
+  listDomains: (name: string) => apiClient.get<{ domains: DomainConfig[] }>(`/deployments/${name}/domains`),
+  addDomain: (name: string, domain: Omit<DomainConfig, "id">) =>
+    apiClient.post<{ message: string; domain: DomainConfig }>(`/deployments/${name}/domains`, domain),
+  updateDomain: (name: string, domainId: string, domain: Partial<DomainConfig>) =>
+    apiClient.put<{ message: string; domain: DomainConfig }>(`/deployments/${name}/domains/${domainId}`, domain),
+  deleteDomain: (name: string, domainId: string) =>
+    apiClient.delete<{ message: string }>(`/deployments/${name}/domains/${domainId}`),
 };
 
 export const networksApi = {
