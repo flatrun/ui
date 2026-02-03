@@ -1798,23 +1798,8 @@ const fetchProxyStatus = async () => {
 const handleAddDomain = async (newDomain: any) => {
   if (!deployment.value?.metadata) return;
 
-  const currentDomain = deployment.value.metadata.networking?.domain;
-  const currentPort = deployment.value.metadata.networking?.container_port || 80;
-  const currentSSL = deployment.value.metadata.ssl || { enabled: false, auto_cert: false };
-
   addingDomain.value = true;
   try {
-    // First, convert existing legacy domain to a domain config
-    if (currentDomain) {
-      await deploymentsApi.addDomain(route.params.name as string, {
-        service: deployment.value.metadata.name || (route.params.name as string),
-        container_port: currentPort,
-        domain: currentDomain,
-        ssl: currentSSL,
-      });
-    }
-
-    // Then add the new domain
     await deploymentsApi.addDomain(route.params.name as string, {
       service: newDomain.service || deployment.value.metadata.name || (route.params.name as string),
       container_port: newDomain.container_port || 80,
