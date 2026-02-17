@@ -37,7 +37,8 @@
     "primevue": "^3.50.0",
     "vue": "^3.4.21",
     "vue-codemirror": "^6.1.1",
-    "vue-router": "^4.3.0"
+    "vue-router": "^4.3.0",
+    "yaml": "^2.8.2"
   },
   "devDependencies": {
     "@pinia/testing": "^0.1.6",
