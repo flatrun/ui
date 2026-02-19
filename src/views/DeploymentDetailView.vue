@@ -1391,8 +1391,9 @@
 import { ref, computed, onMounted, onUnmounted, nextTick, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { Codemirror } from "vue-codemirror";
-import { yaml } from "@codemirror/lang-yaml";
+import { yaml as yamlLang } from "@codemirror/lang-yaml";
 import { oneDark } from "@codemirror/theme-one-dark";
+import { validateComposeYaml } from "@/utils/yaml";
 import {
   deploymentsApi,
   proxyApi,
@@ -1526,7 +1527,7 @@ const composeFilename = ref("docker-compose.yml");
 const isEditingConfig = ref(false);
 const serviceConfig = ref("");
 const isEditingServiceConfig = ref(false);
-const configExtensions = [yaml(), oneDark];
+const configExtensions = [yamlLang(), oneDark];
 const activeConfigTab = ref<"compose" | "service">("compose");
 
 const showOperationModal = ref(false);
@@ -2331,6 +2332,11 @@ const cancelServiceConfigEdit = () => {
 };
 
 const saveConfig = async () => {
+  const result = validateComposeYaml(composeConfig.value);
+  if (!result.valid) {
+    notifications.error("Invalid YAML", result.error);
+    return;
+  }
   try {
     await deploymentsApi.update(route.params.name as string, {
       compose_content: composeConfig.value,

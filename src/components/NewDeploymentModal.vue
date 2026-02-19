@@ -754,24 +754,38 @@
                                 Password
                                 <span v-if="form.database.mode === 'create'" class="required">*</span>
                               </label>
-                              <input
-                                id="dbPassword"
-                                v-model="form.database.dbPassword"
-                                type="password"
-                                placeholder="••••••••"
-                              />
+                              <div class="input-wrapper">
+                                <input
+                                  id="dbPassword"
+                                  v-model="form.database.dbPassword"
+                                  :type="showDbPassword ? 'text' : 'password'"
+                                  placeholder="••••••••"
+                                />
+                                <button type="button" class="input-icon-btn" @click="showDbPassword = !showDbPassword">
+                                  <i :class="showDbPassword ? 'pi pi-eye-slash' : 'pi pi-eye'" />
+                                </button>
+                              </div>
                             </div>
                           </div>
 
                           <Transition name="expand">
                             <div v-if="form.database.mode === 'create'" class="form-field">
                               <label for="dbRootPassword">Root Password</label>
-                              <input
-                                id="dbRootPassword"
-                                v-model="form.database.dbRootPassword"
-                                type="password"
-                                placeholder="Leave empty to use same as password"
-                              />
+                              <div class="input-wrapper">
+                                <input
+                                  id="dbRootPassword"
+                                  v-model="form.database.dbRootPassword"
+                                  :type="showDbRootPassword ? 'text' : 'password'"
+                                  placeholder="Leave empty to use same as password"
+                                />
+                                <button
+                                  type="button"
+                                  class="input-icon-btn"
+                                  @click="showDbRootPassword = !showDbRootPassword"
+                                >
+                                  <i :class="showDbRootPassword ? 'pi pi-eye-slash' : 'pi pi-eye'" />
+                                </button>
+                              </div>
                               <span class="field-hint">Admin password for new database</span>
                             </div>
                           </Transition>
@@ -1345,6 +1359,7 @@ import BaseModal from "@/components/base/BaseModal.vue";
 import { deploymentsApi, templatesApi, settingsApi, containersApi, composeApi, credentialsApi } from "@/services/api";
 import type { RegistryCredential } from "@/types";
 import { useNotificationsStore } from "@/stores/notifications";
+import { validateComposeYaml } from "@/utils/yaml";
 
 interface TemplateMount {
   id: string;
@@ -1407,6 +1422,8 @@ const extensions = shallowRef([yaml(), oneDark]);
 
 const deploymentMode = ref<"" | "easy" | "compose" | "image">("");
 const showRegistryPassword = ref(false);
+const showDbPassword = ref(false);
+const showDbRootPassword = ref(false);
 const existingCredentials = ref<RegistryCredential[]>([]);
 const loadingCredentials = ref(false);
 
@@ -2331,6 +2348,12 @@ const validate = () => {
   if (!form.composeContent.trim()) {
     errors.composeContent = "Compose configuration is required";
     valid = false;
+  } else {
+    const yamlResult = validateComposeYaml(form.composeContent);
+    if (!yamlResult.valid) {
+      errors.composeContent = yamlResult.error;
+      valid = false;
+    }
   }
 
   return valid;
