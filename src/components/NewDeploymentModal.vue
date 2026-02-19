@@ -761,11 +761,7 @@
                                   :type="showDbPassword ? 'text' : 'password'"
                                   placeholder="••••••••"
                                 />
-                                <button
-                                  type="button"
-                                  class="input-icon-btn"
-                                  @click="showDbPassword = !showDbPassword"
-                                >
+                                <button type="button" class="input-icon-btn" @click="showDbPassword = !showDbPassword">
                                   <i :class="showDbPassword ? 'pi pi-eye-slash' : 'pi pi-eye'" />
                                 </button>
                               </div>
@@ -2358,7 +2354,6 @@ const validate = () => {
       errors.composeContent = yamlResult.error;
       valid = false;
     }
-
   }
 
   return valid;

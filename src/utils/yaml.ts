@@ -1,8 +1,6 @@
 import { parse } from "yaml";
 
-export type ComposeYamlValidation =
-  | { valid: true }
-  | { valid: false; error: string };
+export type ComposeYamlValidation = { valid: true } | { valid: false; error: string };
 
 /**
  * This function validates that a string is valid YAML. It is used before sending compose content
