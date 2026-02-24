@@ -1,0 +1,78 @@
+{
+  "dashboard": {
+    "breadcrumbs": {
+      "home": "Início"
+    },
+    "environment": {
+      "local": "Ambiente local"
+    },
+    "navGroups": {
+      "stacks": "Stacks",
+      "docker": "Docker",
+      "system": "Sistema",
+      "databases": "Bases de dados",
+      "dns": "DNS",
+      "security": "Segurança",
+      "apps": "Apps",
+      "administration": "Administração"
+    },
+    "nav": {
+      "dashboard": "Painel de controlo",
+      "deployments": "Implementações",
+      "containers": "Contentores",
+      "images": "Imagens",
+      "volumes": "Volumes",
+      "networks": "Redes",
+      "portMappings": "Mapeamento de portas",
+      "infrastructure": "Infraestrutura",
+      "ports": "Portas",
+      "services": "Serviços",
+      "cronJobs": "Tarefas cron",
+      "servers": "Servidores",
+      "zones": "Zonas",
+      "externalProviders": "Fornecedores externos",
+      "securityMonitoring": "Segurança e monitorização",
+      "certificates": "Certificados",
+      "installedApps": "Apps instaladas",
+      "marketplace": "Marketplace",
+      "settings": "Definições",
+      "users": "Utilizadores",
+      "apiKeys": "Chaves API"
+    },
+    "header": {
+      "running": "Em execução",
+      "stopped": "Parado"
+    },
+    "footer": {
+      "cpu": "CPU",
+      "memory": "Memória",
+      "connected": "Ligado",
+      "disconnected": "Desligado",
+      "signOut": "Terminar sessão"
+    },
+    "titles": {
+      "home": "Painel de controlo",
+      "deployments": "Implementações",
+      "deploymentDetail": "Detalhes da implementação",
+      "containers": "Contentores",
+      "images": "Imagens",
+      "volumes": "Volumes",
+      "networks": "Redes",
+      "dockerPorts": "Mapeamento de portas",
+      "infrastructure": "Infraestrutura",
+      "systemPorts": "Portas do sistema",
+      "services": "Serviços do sistema",
+      "cronJobs": "Tarefas cron",
+      "databases": "Servidores de bases de dados",
+      "security": "Segurança e monitorização",
+      "certificates": "Certificados SSL",
+      "dnsZones": "Zonas DNS",
+      "dnsExternal": "Fornecedores DNS externos",
+      "apps": "Apps instaladas",
+      "marketplace": "Marketplace",
+      "settings": "Definições",
+      "users": "Utilizadores",
+      "apiKeys": "Chaves API"
+    }
+  }
+}

@@ -1,0 +1,78 @@
+{
+  "dashboard": {
+    "breadcrumbs": {
+      "home": "Home"
+    },
+    "environment": {
+      "local": "Local Environment"
+    },
+    "navGroups": {
+      "stacks": "Stacks",
+      "docker": "Docker",
+      "system": "System",
+      "databases": "Databases",
+      "dns": "DNS",
+      "security": "Security",
+      "apps": "Apps",
+      "administration": "Administration"
+    },
+    "nav": {
+      "dashboard": "Dashboard",
+      "deployments": "Deployments",
+      "containers": "Containers",
+      "images": "Images",
+      "volumes": "Volumes",
+      "networks": "Networks",
+      "portMappings": "Port Mappings",
+      "infrastructure": "Infrastructure",
+      "ports": "Ports",
+      "services": "Services",
+      "cronJobs": "Cron Jobs",
+      "servers": "Servers",
+      "zones": "Zones",
+      "externalProviders": "External Providers",
+      "securityMonitoring": "Security & Monitoring",
+      "certificates": "Certificates",
+      "installedApps": "Installed Apps",
+      "marketplace": "Marketplace",
+      "settings": "Settings",
+      "users": "Users",
+      "apiKeys": "API Keys"
+    },
+    "header": {
+      "running": "Running",
+      "stopped": "Stopped"
+    },
+    "footer": {
+      "cpu": "CPU",
+      "memory": "Memory",
+      "connected": "Connected",
+      "disconnected": "Disconnected",
+      "signOut": "Sign Out"
+    },
+    "titles": {
+      "home": "Dashboard",
+      "deployments": "Deployments",
+      "deploymentDetail": "Deployment Details",
+      "containers": "Containers",
+      "images": "Images",
+      "volumes": "Volumes",
+      "networks": "Networks",
+      "dockerPorts": "Port Mappings",
+      "infrastructure": "Infrastructure",
+      "systemPorts": "System Ports",
+      "services": "System Services",
+      "cronJobs": "Cron Jobs",
+      "databases": "Database Servers",
+      "security": "Security & Monitoring",
+      "certificates": "SSL Certificates",
+      "dnsZones": "DNS Zones",
+      "dnsExternal": "External DNS Providers",
+      "apps": "Installed Apps",
+      "marketplace": "App Marketplace",
+      "settings": "Settings",
+      "users": "Users",
+      "apiKeys": "API Keys"
+    }
+  }
+}

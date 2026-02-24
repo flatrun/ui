@@ -42,13 +42,13 @@
       <nav class="nav-menu">
         <router-link to="/" class="nav-item" exact-active-class="active">
           <i class="pi pi-th-large" />
-          <span v-if="!sidebarCollapsed">Dashboard</span>
+          <span v-if="!sidebarCollapsed">{{ $t("dashboard.nav.dashboard") }}</span>
         </router-link>
 
         <div v-if="authStore.hasPermission('deployments:read')" class="nav-group">
           <div class="nav-group-header" @click="toggleGroup('stacks')">
             <i class="pi pi-layers" />
-            <span v-if="!sidebarCollapsed">Stacks</span>
+            <span v-if="!sidebarCollapsed">{{ $t("dashboard.navGroups.stacks") }}</span>
             <i
               v-if="!sidebarCollapsed"
               class="pi chevron"
@@ -74,7 +74,7 @@
         >
           <div class="nav-group-header" @click="toggleGroup('docker')">
             <i class="pi pi-box" />
-            <span v-if="!sidebarCollapsed">Docker</span>
+            <span v-if="!sidebarCollapsed">{{ $t("dashboard.navGroups.docker") }}</span>
             <i
               v-if="!sidebarCollapsed"
               class="pi chevron"
@@ -141,7 +141,7 @@
         >
           <div class="nav-group-header" @click="toggleGroup('system')">
             <i class="pi pi-server" />
-            <span v-if="!sidebarCollapsed">System</span>
+            <span v-if="!sidebarCollapsed">{{ $t("dashboard.navGroups.system") }}</span>
             <i
               v-if="!sidebarCollapsed"
               class="pi chevron"
@@ -199,7 +199,7 @@
               class="nav-subitem"
               active-class="active"
             >
-              Cron Jobs
+              {{ $t("dashboard.nav.cronJobs") }}
             </router-link>
           </div>
         </div>
@@ -207,7 +207,7 @@
         <div v-if="authStore.hasPermission('databases:read')" class="nav-group">
           <div class="nav-group-header" @click="toggleGroup('databases')">
             <i class="pi pi-database" />
-            <span v-if="!sidebarCollapsed">Databases</span>
+            <span v-if="!sidebarCollapsed">{{ $t("dashboard.navGroups.databases") }}</span>
             <i
               v-if="!sidebarCollapsed"
               class="pi chevron"
@@ -225,7 +225,7 @@
         <div v-if="authStore.hasPermission('dns:read')" class="nav-group">
           <div class="nav-group-header" @click="toggleGroup('dns')">
             <i class="pi pi-globe" />
-            <span v-if="!sidebarCollapsed">DNS</span>
+            <span v-if="!sidebarCollapsed">{{ $t("dashboard.navGroups.dns") }}</span>
             <i
               v-if="!sidebarCollapsed"
               class="pi chevron"
@@ -233,8 +233,12 @@
             />
           </div>
           <div v-show="expandedGroups.dns && !sidebarCollapsed" class="nav-group-items">
-            <router-link to="/dns/zones" class="nav-subitem" active-class="active"> Zones </router-link>
-            <router-link to="/dns/external" class="nav-subitem" active-class="active"> External Providers </router-link>
+            <router-link to="/dns/zones" class="nav-subitem" active-class="active">
+              {{ $t("dashboard.nav.zones") }}
+            </router-link>
+            <router-link to="/dns/external" class="nav-subitem" active-class="active">
+              {{ $t("dashboard.nav.externalProviders") }}
+            </router-link>
           </div>
         </div>
 
@@ -244,7 +248,7 @@
         >
           <div class="nav-group-header" @click="toggleGroup('security')">
             <i class="pi pi-shield" />
-            <span v-if="!sidebarCollapsed">Security</span>
+            <span v-if="!sidebarCollapsed">{{ $t("dashboard.navGroups.security") }}</span>
             <i
               v-if="!sidebarCollapsed"
               class="pi chevron"
@@ -258,7 +262,7 @@
               class="nav-subitem"
               active-class="active"
             >
-              Security & Monitoring
+              {{ $t("dashboard.nav.securityMonitoring") }}
             </router-link>
             <router-link
               v-if="authStore.hasPermission('certificates:read')"
@@ -275,7 +279,7 @@
         <div v-if="authStore.hasPermission('templates:read')" class="nav-group">
           <div class="nav-group-header" @click="toggleGroup('extensions')">
             <i class="pi pi-th-large" />
-            <span v-if="!sidebarCollapsed">Apps</span>
+            <span v-if="!sidebarCollapsed">{{ $t("dashboard.navGroups.apps") }}</span>
             <i
               v-if="!sidebarCollapsed"
               class="pi chevron"
@@ -287,7 +291,9 @@
               Installed Apps
               <span class="nav-count">{{ stats.apps }}</span>
             </router-link>
-            <router-link to="/marketplace" class="nav-subitem" active-class="active"> Marketplace </router-link>
+            <router-link to="/marketplace" class="nav-subitem" active-class="active">
+              {{ $t("dashboard.nav.marketplace") }}
+            </router-link>
           </div>
         </div>
 
@@ -301,7 +307,7 @@
         >
           <div class="nav-group-header" @click="toggleGroup('admin')">
             <i class="pi pi-sliders-h" />
-            <span v-if="!sidebarCollapsed">Administration</span>
+            <span v-if="!sidebarCollapsed">{{ $t("dashboard.navGroups.administration") }}</span>
             <i
               v-if="!sidebarCollapsed"
               class="pi chevron"
@@ -315,7 +321,7 @@
               class="nav-subitem"
               active-class="active"
             >
-              Settings
+              {{ $t("dashboard.nav.settings") }}
             </router-link>
             <router-link
               v-if="authStore.hasPermission('users:read')"
@@ -323,7 +329,7 @@
               class="nav-subitem"
               active-class="active"
             >
-              Users
+              {{ $t("dashboard.nav.users") }}
             </router-link>
             <router-link
               v-if="authStore.hasPermission('apikeys:read')"
@@ -331,7 +337,7 @@
               class="nav-subitem"
               active-class="active"
             >
-              API Keys
+              {{ $t("dashboard.nav.apiKeys") }}
             </router-link>
           </div>
         </div>
@@ -341,7 +347,7 @@
         <div v-if="!sidebarCollapsed" class="resource-usage">
           <div class="resource-item">
             <div class="resource-header">
-              <span>CPU</span>
+              <span>{{ $t("dashboard.footer.cpu") }}</span>
               <span>{{ stats.cpuUsage }}%</span>
             </div>
             <div class="resource-bar">
@@ -354,7 +360,7 @@
           </div>
           <div class="resource-item">
             <div class="resource-header">
-              <span>Memory</span>
+              <span>{{ $t("dashboard.footer.memory") }}</span>
               <span>{{ stats.memoryUsage }}%</span>
             </div>
             <div class="resource-bar">
@@ -377,11 +383,13 @@
         </div>
         <div class="agent-status">
           <span class="status-dot" :class="{ online: agentOnline }" />
-          <span v-if="!sidebarCollapsed" class="status-text">{{ agentOnline ? "Connected" : "Disconnected" }}</span>
+          <span v-if="!sidebarCollapsed" class="status-text">{{
+            agentOnline ? $t("dashboard.footer.connected") : $t("dashboard.footer.disconnected")
+          }}</span>
         </div>
         <button v-if="!sidebarCollapsed" class="logout-btn" @click="handleLogout">
           <i class="pi pi-sign-out" />
-          Sign Out
+          {{ $t("dashboard.footer.signOut") }}
         </button>
         <button class="collapse-btn" @click="sidebarCollapsed = !sidebarCollapsed">
           <i :class="sidebarCollapsed ? 'pi pi-angle-double-right' : 'pi pi-angle-double-left'" />
@@ -407,13 +415,14 @@
           <div class="quick-stats">
             <div class="stat-item running">
               <i class="pi pi-play" />
-              <span>{{ stats.runningContainers }} Running</span>
+              <span>{{ stats.runningContainers }} {{ $t("dashboard.header.running") }}</span>
             </div>
             <div class="stat-item stopped">
               <i class="pi pi-stop" />
-              <span>{{ stats.stoppedContainers }} Stopped</span>
+              <span>{{ stats.stoppedContainers }} {{ $t("dashboard.header.stopped") }}</span>
             </div>
           </div>
+          <LanguageSelector />
           <button class="header-btn" :disabled="isRefreshing" @click="refreshAll">
             <i :class="isRefreshing ? 'pi pi-spinner pi-spin' : 'pi pi-refresh'" />
           </button>
@@ -439,10 +448,14 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import { useI18n } from "vue-i18n";
 import { useStatsStore } from "@/stores/stats";
 import { useAuthStore } from "@/stores/auth";
 import { clusterApi, type ClusterPeer } from "@/services/api";
 import Logo from "@/components/base/Logo.vue";
+import LanguageSelector from "@/components/LanguageSelector.vue";
+
+const { t } = useI18n();
 
 const route = useRoute();
 const router = useRouter();
@@ -525,18 +538,18 @@ const currentPageTitle = computed(() => {
     users: "Users",
     "api-keys": "API Keys",
   };
-  return titles[route.name as string] || "Dashboard";
+  return titles[route.name as string] || t("dashboard.titles.home");
 });
 
 const breadcrumbs = computed(() => {
-  const crumbs = [{ label: "Home", path: "/" }];
+  const crumbs = [{ label: t("dashboard.breadcrumbs.home"), path: "/" }];
   const routeName = route.name as string;
 
   if (routeName === "deployments") {
-    crumbs.push({ label: "Stacks", path: "" });
-    crumbs.push({ label: "Deployments", path: "" });
+    crumbs.push({ label: t("dashboard.navGroups.stacks"), path: "" });
+    crumbs.push({ label: t("dashboard.nav.deployments"), path: "" });
   } else if (["containers", "images", "volumes", "networks", "docker-ports"].includes(routeName)) {
-    crumbs.push({ label: "Docker", path: "" });
+    crumbs.push({ label: t("dashboard.navGroups.docker"), path: "" });
     crumbs.push({ label: currentPageTitle.value, path: "" });
   } else if (
     ["infrastructure", "system-ports", "services", "cron-jobs", "server-info", "cluster"].includes(routeName)
@@ -544,25 +557,25 @@ const breadcrumbs = computed(() => {
     crumbs.push({ label: "System", path: "" });
     crumbs.push({ label: currentPageTitle.value, path: "" });
   } else if (routeName === "databases") {
-    crumbs.push({ label: "Databases", path: "" });
-    crumbs.push({ label: "Servers", path: "" });
+    crumbs.push({ label: t("dashboard.navGroups.databases"), path: "" });
+    crumbs.push({ label: t("dashboard.nav.servers"), path: "" });
   } else if (routeName === "security") {
-    crumbs.push({ label: "Security", path: "" });
-    crumbs.push({ label: "Security & Monitoring", path: "" });
+    crumbs.push({ label: t("dashboard.navGroups.security"), path: "" });
+    crumbs.push({ label: t("dashboard.nav.securityMonitoring"), path: "" });
   } else if (routeName === "certificates") {
-    crumbs.push({ label: "Security", path: "" });
-    crumbs.push({ label: "Certificates", path: "" });
+    crumbs.push({ label: t("dashboard.navGroups.security"), path: "" });
+    crumbs.push({ label: t("dashboard.nav.certificates"), path: "" });
   } else if (routeName === "dns-zones") {
-    crumbs.push({ label: "DNS", path: "" });
-    crumbs.push({ label: "Zones", path: "" });
+    crumbs.push({ label: t("dashboard.navGroups.dns"), path: "" });
+    crumbs.push({ label: t("dashboard.nav.zones"), path: "" });
   } else if (routeName === "dns-external") {
-    crumbs.push({ label: "DNS", path: "" });
-    crumbs.push({ label: "External Providers", path: "" });
+    crumbs.push({ label: t("dashboard.navGroups.dns"), path: "" });
+    crumbs.push({ label: t("dashboard.nav.externalProviders"), path: "" });
   } else if (["apps", "marketplace"].includes(routeName)) {
-    crumbs.push({ label: "Apps", path: "" });
+    crumbs.push({ label: t("dashboard.navGroups.apps"), path: "" });
     crumbs.push({ label: currentPageTitle.value, path: "" });
   } else if (["settings", "users", "api-keys"].includes(routeName)) {
-    crumbs.push({ label: "Administration", path: "" });
+    crumbs.push({ label: t("dashboard.navGroups.administration"), path: "" });
     crumbs.push({ label: currentPageTitle.value, path: "" });
   } else if (routeName !== "home") {
     crumbs.push({ label: currentPageTitle.value, path: "" });

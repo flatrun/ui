@@ -1,0 +1,78 @@
+{
+  "dashboard": {
+    "breadcrumbs": {
+      "home": "Home"
+    },
+    "environment": {
+      "local": "Ambiente locale"
+    },
+    "navGroups": {
+      "stacks": "Stacks",
+      "docker": "Docker",
+      "system": "Sistema",
+      "databases": "Database",
+      "dns": "DNS",
+      "security": "Sicurezza",
+      "apps": "App",
+      "administration": "Amministrazione"
+    },
+    "nav": {
+      "dashboard": "Dashboard",
+      "deployments": "Deployment",
+      "containers": "Container",
+      "images": "Immagini",
+      "volumes": "Volumi",
+      "networks": "Reti",
+      "portMappings": "Mappatura porte",
+      "infrastructure": "Infrastruttura",
+      "ports": "Porte",
+      "services": "Servizi",
+      "cronJobs": "Cron job",
+      "servers": "Server",
+      "zones": "Zone",
+      "externalProviders": "Provider esterni",
+      "securityMonitoring": "Sicurezza e monitoraggio",
+      "certificates": "Certificati",
+      "installedApps": "App installate",
+      "marketplace": "Marketplace",
+      "settings": "Impostazioni",
+      "users": "Utenti",
+      "apiKeys": "Chiavi API"
+    },
+    "header": {
+      "running": "In esecuzione",
+      "stopped": "Arrestato"
+    },
+    "footer": {
+      "cpu": "CPU",
+      "memory": "Memoria",
+      "connected": "Connesso",
+      "disconnected": "Disconnesso",
+      "signOut": "Esci"
+    },
+    "titles": {
+      "home": "Dashboard",
+      "deployments": "Deployment",
+      "deploymentDetail": "Dettagli deployment",
+      "containers": "Container",
+      "images": "Immagini",
+      "volumes": "Volumi",
+      "networks": "Reti",
+      "dockerPorts": "Mappatura porte",
+      "infrastructure": "Infrastruttura",
+      "systemPorts": "Porte di sistema",
+      "services": "Servizi di sistema",
+      "cronJobs": "Cron job",
+      "databases": "Server database",
+      "security": "Sicurezza e monitoraggio",
+      "certificates": "Certificati SSL",
+      "dnsZones": "Zone DNS",
+      "dnsExternal": "Provider DNS esterni",
+      "apps": "App installate",
+      "marketplace": "Marketplace",
+      "settings": "Impostazioni",
+      "users": "Utenti",
+      "apiKeys": "Chiavi API"
+    }
+  }
+}

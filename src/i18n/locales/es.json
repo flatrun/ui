@@ -1,0 +1,78 @@
+{
+  "dashboard": {
+    "breadcrumbs": {
+      "home": "Inicio"
+    },
+    "environment": {
+      "local": "Entorno local"
+    },
+    "navGroups": {
+      "stacks": "Stacks",
+      "docker": "Docker",
+      "system": "Sistema",
+      "databases": "Bases de datos",
+      "dns": "DNS",
+      "security": "Seguridad",
+      "apps": "Apps",
+      "administration": "Administración"
+    },
+    "nav": {
+      "dashboard": "Panel de control",
+      "deployments": "Despliegues",
+      "containers": "Contenedores",
+      "images": "Imágenes",
+      "volumes": "Volúmenes",
+      "networks": "Redes",
+      "portMappings": "Mapeo de puertos",
+      "infrastructure": "Infraestructura",
+      "ports": "Puertos",
+      "services": "Servicios",
+      "cronJobs": "Tareas programadas",
+      "servers": "Servidores",
+      "zones": "Zonas",
+      "externalProviders": "Proveedores externos",
+      "securityMonitoring": "Seguridad y monitoreo",
+      "certificates": "Certificados",
+      "installedApps": "Apps instaladas",
+      "marketplace": "Marketplace",
+      "settings": "Configuración",
+      "users": "Usuarios",
+      "apiKeys": "Claves API"
+    },
+    "header": {
+      "running": "En ejecución",
+      "stopped": "Detenido"
+    },
+    "footer": {
+      "cpu": "CPU",
+      "memory": "Memoria",
+      "connected": "Conectado",
+      "disconnected": "Desconectado",
+      "signOut": "Cerrar sesión"
+    },
+    "titles": {
+      "home": "Panel de control",
+      "deployments": "Despliegues",
+      "deploymentDetail": "Detalles del despliegue",
+      "containers": "Contenedores",
+      "images": "Imágenes",
+      "volumes": "Volúmenes",
+      "networks": "Redes",
+      "dockerPorts": "Mapeo de puertos",
+      "infrastructure": "Infraestructura",
+      "systemPorts": "Puertos del sistema",
+      "services": "Servicios del sistema",
+      "cronJobs": "Tareas programadas",
+      "databases": "Servidores de bases de datos",
+      "security": "Seguridad y monitoreo",
+      "certificates": "Certificados SSL",
+      "dnsZones": "Zonas DNS",
+      "dnsExternal": "Proveedores DNS externos",
+      "apps": "Apps instaladas",
+      "marketplace": "Marketplace",
+      "settings": "Configuración",
+      "users": "Usuarios",
+      "apiKeys": "Claves API"
+    }
+  }
+}
