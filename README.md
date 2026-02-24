@@ -75,8 +75,10 @@ Create a `.env.local` file to configure the API connection:
 
 ```bash
 # FlatRun Agent API URL
-VITE_API_URL=http://localhost:8090
+VITE_API_URL=http://localhost:8090/api
 ```
+
+`VITE_API_URL` must include the `/api` prefix used by the agent routes.
 
 For production deployments:
 

@@ -107,7 +107,7 @@
             </span>
           </div>
 
-          <button type="submit" class="login-btn" :disabled="auth.loading || !apiKey">
+          <button type="submit" class="login-btn" :disabled="auth.loading || !apiKey.trim()">
             <i v-if="auth.loading" class="pi pi-spin pi-spinner" />
             <span v-else>Sign In</span>
           </button>
@@ -132,7 +132,7 @@ import Logo from "@/components/base/Logo.vue";
 const router = useRouter();
 const auth = useAuthStore();
 
-const loginMode = ref<"credentials" | "apikey">("credentials");
+const loginMode = ref<"credentials" | "apikey">("apikey");
 const username = ref("");
 const password = ref("");
 const apiKey = ref("");

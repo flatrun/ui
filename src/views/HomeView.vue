@@ -404,7 +404,7 @@ const agentVersion = computed(() => statsStore.agentVersion);
 const lastUpdated = computed(() => statsStore.formatLastUpdated());
 
 const apiEndpoint = computed(() => {
-  return window.location.hostname + ":8090";
+  return import.meta.env.VITE_API_URL || `${window.location.protocol}//${window.location.hostname}:8090`;
 });
 
 const systemHealth = computed(() => {
