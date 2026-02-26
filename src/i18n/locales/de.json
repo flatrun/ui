@@ -1120,6 +1120,275 @@
       "empty": "Keine Protokolle verfügbar"
     }
   },
+  "containers": {
+    "searchPlaceholder": "Container suchen...",
+    "loading": "Container werden geladen...",
+    "table": {
+      "status": "Status",
+      "container": "Container",
+      "deployment": "Deployment",
+      "image": "Image",
+      "ports": "Ports",
+      "created": "Erstellt",
+      "actions": "Aktionen"
+    },
+    "filters": {
+      "all": "Alle",
+      "running": "Laufend",
+      "stopped": "Gestoppt"
+    },
+    "actions": {
+      "refresh": "Aktualisieren",
+      "start": "Starten",
+      "stop": "Stoppen",
+      "restart": "Neustarten",
+      "logs": "Logs",
+      "remove": "Entfernen"
+    },
+    "empty": {
+      "title": "Keine Container gefunden",
+      "adjustFilters": "Versuchen Sie, Ihre Filter anzupassen.",
+      "noRunning": "Derzeit laufen keine Docker-Container."
+    },
+    "logs": {
+      "subtitle": "Container-Log-Ausgabe"
+    },
+    "confirm": {
+      "removeTitle": "Container entfernen",
+      "removeMessage": "Möchten Sie diesen Container wirklich entfernen?",
+      "removeWarning": "Der Container wird dauerhaft entfernt.",
+      "removeManyTitle": "Container entfernen",
+      "removeManyMessage": "Möchten Sie wirklich {count} Container entfernen?",
+      "removeManyWarning": "Diese Container werden dauerhaft entfernt.",
+      "removeAll": "Alle entfernen"
+    },
+    "time": {
+      "today": "Heute",
+      "yesterday": "Gestern",
+      "daysAgo": "vor {n} Tagen"
+    }
+  },
+  "images": {
+    "searchPlaceholder": "Images suchen...",
+    "loading": "Images werden geladen...",
+    "none": "keins",
+    "latest": "neueste",
+    "containersCount": "{n} Container",
+    "stats": {
+      "totalImages": "Images gesamt",
+      "totalSize": "Gesamtgröße",
+      "unused": "Ungenutzt"
+    },
+    "table": {
+      "repository": "Repository",
+      "tag": "Tag",
+      "imageId": "Image-ID",
+      "created": "Erstellt",
+      "size": "Größe",
+      "containers": "Container",
+      "actions": "Aktionen"
+    },
+    "actions": {
+      "refresh": "Aktualisieren",
+      "pullImage": "Image pullen",
+      "inspect": "Prüfen",
+      "createContainer": "Container erstellen",
+      "remove": "Entfernen"
+    },
+    "empty": {
+      "title": "Keine Images gefunden",
+      "text": "Pullen Sie Images von Docker Hub oder bauen Sie sie aus Dockerfiles."
+    },
+    "confirm": {
+      "removeTitle": "Image entfernen",
+      "removeMessage": "Möchten Sie dieses Image wirklich entfernen?",
+      "removeManyTitle": "Images entfernen",
+      "removeManyMessage": "Möchten Sie wirklich {count} Images entfernen?",
+      "warning": "Diese Aktion kann nicht rückgängig gemacht werden.",
+      "removeAll": "Alle entfernen"
+    },
+    "pull": {
+      "title": "Image pullen",
+      "imageName": "Image-Name",
+      "imagePlaceholder": "nginx:latest",
+      "imageHint": "Format: repository:tag (z. B. nginx:latest, ghcr.io/user/app:v1)",
+      "privateRegistry": "Private Registry (Authentifizierung erforderlich)",
+      "useSavedCredential": "Gespeicherte Anmeldedaten verwenden",
+      "enterNewCredentials": "Neue Anmeldedaten eingeben",
+      "selectCredential": "Anmeldedaten auswählen",
+      "chooseCredential": "Gespeicherte Anmeldedaten auswählen",
+      "username": "Benutzername",
+      "usernamePlaceholder": "Benutzername",
+      "password": "Passwort / Token",
+      "passwordPlaceholder": "Passwort oder Zugriffstoken",
+      "cancel": "Abbrechen",
+      "pulling": "Wird gepullt..."
+    },
+    "time": {
+      "today": "Heute",
+      "yesterday": "Gestern",
+      "daysAgo": "vor {n} Tagen",
+      "monthsAgo": "vor {n} Monaten",
+      "yearsAgo": "vor {n} Jahren"
+    }
+  },
+  "volumes": {
+    "searchPlaceholder": "Volumes suchen...",
+    "loading": "Volumes werden geladen...",
+    "stats": {
+      "totalVolumes": "Volumes gesamt",
+      "inUse": "In Verwendung",
+      "unused": "Ungenutzt"
+    },
+    "table": {
+      "name": "Name",
+      "driver": "Treiber",
+      "status": "Status",
+      "mountPoint": "Einhängepunkt",
+      "created": "Erstellt",
+      "size": "Größe",
+      "actions": "Aktionen"
+    },
+    "status": {
+      "inUse": "In Verwendung",
+      "unused": "Ungenutzt"
+    },
+    "actions": {
+      "refresh": "Aktualisieren",
+      "createVolume": "Volume erstellen",
+      "pruneUnused": "Ungenutzte löschen",
+      "prune": "Bereinigen",
+      "inspect": "Prüfen",
+      "remove": "Entfernen"
+    },
+    "empty": {
+      "title": "Keine Volumes gefunden",
+      "text": "Erstellen Sie Volumes, um Container-Daten dauerhaft zu speichern."
+    },
+    "labelsTitle": "Labels",
+    "mountedBy": "Eingehängt von",
+    "confirm": {
+      "removeTitle": "Volume entfernen",
+      "removeMessage": "Volume '{name}' entfernen?",
+      "removeManyTitle": "Volumes entfernen",
+      "removeManyMessage": "{count} Volumes entfernen?",
+      "pruneTitle": "Ungenutzte Volumes bereinigen",
+      "pruneMessage": "Alle ungenutzten Volumes entfernen?",
+      "warning": "Dies kann nicht rückgängig gemacht werden.",
+      "removeAll": "Alle entfernen"
+    },
+    "create": {
+      "title": "Volume erstellen",
+      "name": "Volume-Name",
+      "namePlaceholder": "mein-volume",
+      "labelsOptional": "Labels (optional)",
+      "keyPlaceholder": "schlüssel",
+      "valuePlaceholder": "wert",
+      "addLabel": "Label hinzufügen",
+      "cancel": "Abbrechen",
+      "creating": "Wird erstellt..."
+    }
+  },
+  "networks": {
+    "searchPlaceholder": "Netzwerke suchen...",
+    "loading": "Netzwerke werden geladen...",
+    "empty": {
+      "title": "Keine Netzwerke gefunden",
+      "text": "Erstellen Sie ein Docker-Netzwerk, um Container zu verbinden.",
+      "noContainersConnected": "Keine verbundenen Container"
+    },
+    "table": {
+      "name": "Name",
+      "id": "ID",
+      "driver": "Treiber",
+      "scope": "Bereich",
+      "subnet": "Subnetz",
+      "gateway": "Gateway",
+      "containers": "Container",
+      "actions": "Aktionen"
+    },
+    "actions": {
+      "createNetwork": "Netzwerk erstellen",
+      "connectContainer": "Container verbinden",
+      "connect": "Verbinden",
+      "disconnect": "Trennen",
+      "delete": "Löschen",
+      "deleteNetwork": "Netzwerk löschen"
+    },
+    "connectedContainers": "Verbundene Container ({n})",
+    "drivers": {
+      "bridge": "Bridge",
+      "overlay": "Overlay",
+      "host": "Host",
+      "none": "Keine"
+    },
+    "create": {
+      "title": "Netzwerk erstellen",
+      "name": "Netzwerkname",
+      "namePlaceholder": "mein-netzwerk",
+      "cancel": "Abbrechen",
+      "creating": "Wird erstellt...",
+      "create": "Erstellen"
+    },
+    "connect": {
+      "title": "Container mit {name} verbinden",
+      "containerName": "Containername",
+      "containerPlaceholder": "container-name",
+      "cancel": "Abbrechen",
+      "connecting": "Verbinde..."
+    },
+    "delete": {
+      "title": "Netzwerk löschen",
+      "confirm": "Möchten Sie das Netzwerk wirklich löschen",
+      "warning": "Diese Aktion kann nicht rückgängig gemacht werden.",
+      "cancel": "Abbrechen",
+      "deleting": "Wird gelöscht..."
+    },
+    "validation": {
+      "nameRequired": "Netzwerkname ist erforderlich",
+      "invalidName": "Ungültiger Netzwerkname"
+    },
+    "notifications": {
+      "loadFailed": "Netzwerke konnten nicht geladen werden",
+      "created": "Netzwerk {name} erstellt",
+      "createFailed": "Netzwerk konnte nicht erstellt werden",
+      "deleted": "Netzwerk {name} gelöscht",
+      "deleteFailed": "Netzwerk konnte nicht gelöscht werden",
+      "connected": "Container mit {name} verbunden",
+      "connectFailed": "Container konnte nicht verbunden werden",
+      "disconnected": "Container von {name} getrennt",
+      "disconnectFailed": "Container konnte nicht getrennt werden"
+    }
+  },
+  "dockerPorts": {
+    "searchPlaceholder": "Port-Mappings suchen...",
+    "loading": "Port-Mappings werden geladen...",
+    "empty": {
+      "title": "Keine Port-Mappings",
+      "text": "Keine Docker-Container mit Port-Mappings gefunden."
+    },
+    "table": {
+      "hostPort": "Host-Port",
+      "containerPort": "Container-Port",
+      "container": "Container",
+      "deployment": "Deployment",
+      "actions": "Aktionen"
+    },
+    "actions": {
+      "refresh": "Aktualisieren",
+      "stopContainer": "Container stoppen",
+      "restartContainer": "Container neu starten"
+    },
+    "notifications": {
+      "fetchFailed": "Container konnten nicht geladen werden",
+      "containerStopped": "Container gestoppt",
+      "containerStoppedDesc": "{name} wurde gestoppt",
+      "stopFailed": "Container konnte nicht gestoppt werden",
+      "containerRestarted": "Container neu gestartet",
+      "containerRestartedDesc": "{name} wurde neu gestartet",
+      "restartFailed": "Container konnte nicht neu gestartet werden"
+    }
+  },
   "security": {
     "title": "Sicherheit & Überwachung",
     "tabs": {

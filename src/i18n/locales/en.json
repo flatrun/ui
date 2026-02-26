@@ -1077,6 +1077,275 @@
       }
     }
   },
+  "containers": {
+    "searchPlaceholder": "Search containers...",
+    "loading": "Loading containers...",
+    "table": {
+      "status": "Status",
+      "container": "Container",
+      "deployment": "Deployment",
+      "image": "Image",
+      "ports": "Ports",
+      "created": "Created",
+      "actions": "Actions"
+    },
+    "filters": {
+      "all": "All",
+      "running": "Running",
+      "stopped": "Stopped"
+    },
+    "actions": {
+      "refresh": "Refresh",
+      "start": "Start",
+      "stop": "Stop",
+      "restart": "Restart",
+      "logs": "Logs",
+      "remove": "Remove"
+    },
+    "empty": {
+      "title": "No Containers Found",
+      "adjustFilters": "Try adjusting your filters.",
+      "noRunning": "No Docker containers are currently running."
+    },
+    "logs": {
+      "subtitle": "Container logs output"
+    },
+    "confirm": {
+      "removeTitle": "Remove Container",
+      "removeMessage": "Are you sure you want to remove this container?",
+      "removeWarning": "The container will be permanently removed.",
+      "removeManyTitle": "Remove Containers",
+      "removeManyMessage": "Are you sure you want to remove {count} containers?",
+      "removeManyWarning": "These containers will be permanently removed.",
+      "removeAll": "Remove All"
+    },
+    "time": {
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "daysAgo": "{n} days ago"
+    }
+  },
+  "images": {
+    "searchPlaceholder": "Search images...",
+    "loading": "Loading images...",
+    "none": "none",
+    "latest": "latest",
+    "containersCount": "{n} containers",
+    "stats": {
+      "totalImages": "Total Images",
+      "totalSize": "Total Size",
+      "unused": "Unused"
+    },
+    "table": {
+      "repository": "Repository",
+      "tag": "Tag",
+      "imageId": "Image ID",
+      "created": "Created",
+      "size": "Size",
+      "containers": "Containers",
+      "actions": "Actions"
+    },
+    "actions": {
+      "refresh": "Refresh",
+      "pullImage": "Pull Image",
+      "inspect": "Inspect",
+      "createContainer": "Create Container",
+      "remove": "Remove"
+    },
+    "empty": {
+      "title": "No Images Found",
+      "text": "Pull images from Docker Hub or build from Dockerfiles."
+    },
+    "confirm": {
+      "removeTitle": "Remove Image",
+      "removeMessage": "Are you sure you want to remove this image?",
+      "removeManyTitle": "Remove Images",
+      "removeManyMessage": "Are you sure you want to remove {count} images?",
+      "warning": "This action cannot be undone.",
+      "removeAll": "Remove All"
+    },
+    "pull": {
+      "title": "Pull Image",
+      "imageName": "Image Name",
+      "imagePlaceholder": "nginx:latest",
+      "imageHint": "Format: repository:tag (e.g., nginx:latest, ghcr.io/user/app:v1)",
+      "privateRegistry": "Private registry (requires authentication)",
+      "useSavedCredential": "Use saved credential",
+      "enterNewCredentials": "Enter new credentials",
+      "selectCredential": "Select Credential",
+      "chooseCredential": "Choose a saved credential",
+      "username": "Username",
+      "usernamePlaceholder": "Username",
+      "password": "Password / Token",
+      "passwordPlaceholder": "Password or access token",
+      "cancel": "Cancel",
+      "pulling": "Pulling..."
+    },
+    "time": {
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "daysAgo": "{n} days ago",
+      "monthsAgo": "{n} months ago",
+      "yearsAgo": "{n} years ago"
+    }
+  },
+  "volumes": {
+    "searchPlaceholder": "Search volumes...",
+    "loading": "Loading volumes...",
+    "stats": {
+      "totalVolumes": "Total Volumes",
+      "inUse": "In Use",
+      "unused": "Unused"
+    },
+    "table": {
+      "name": "Name",
+      "driver": "Driver",
+      "status": "Status",
+      "mountPoint": "Mount Point",
+      "created": "Created",
+      "size": "Size",
+      "actions": "Actions"
+    },
+    "status": {
+      "inUse": "In Use",
+      "unused": "Unused"
+    },
+    "actions": {
+      "refresh": "Refresh",
+      "createVolume": "Create Volume",
+      "pruneUnused": "Prune Unused",
+      "prune": "Prune",
+      "inspect": "Inspect",
+      "remove": "Remove"
+    },
+    "empty": {
+      "title": "No Volumes Found",
+      "text": "Create volumes to persist container data."
+    },
+    "labelsTitle": "Labels",
+    "mountedBy": "Mounted by",
+    "confirm": {
+      "removeTitle": "Remove Volume",
+      "removeMessage": "Remove volume '{name}'?",
+      "removeManyTitle": "Remove Volumes",
+      "removeManyMessage": "Remove {count} volumes?",
+      "pruneTitle": "Prune Unused Volumes",
+      "pruneMessage": "Remove all unused volumes?",
+      "warning": "This cannot be undone.",
+      "removeAll": "Remove All"
+    },
+    "create": {
+      "title": "Create Volume",
+      "name": "Volume Name",
+      "namePlaceholder": "my-volume",
+      "labelsOptional": "Labels (optional)",
+      "keyPlaceholder": "key",
+      "valuePlaceholder": "value",
+      "addLabel": "Add Label",
+      "cancel": "Cancel",
+      "creating": "Creating..."
+    }
+  },
+  "networks": {
+    "searchPlaceholder": "Search networks...",
+    "loading": "Loading networks...",
+    "empty": {
+      "title": "No Networks Found",
+      "text": "Create a Docker network to connect your containers.",
+      "noContainersConnected": "No containers connected"
+    },
+    "table": {
+      "name": "Name",
+      "id": "ID",
+      "driver": "Driver",
+      "scope": "Scope",
+      "subnet": "Subnet",
+      "gateway": "Gateway",
+      "containers": "Containers",
+      "actions": "Actions"
+    },
+    "actions": {
+      "createNetwork": "Create Network",
+      "connectContainer": "Connect container",
+      "connect": "Connect",
+      "disconnect": "Disconnect",
+      "delete": "Delete",
+      "deleteNetwork": "Delete network"
+    },
+    "connectedContainers": "Connected Containers ({n})",
+    "drivers": {
+      "bridge": "Bridge",
+      "overlay": "Overlay",
+      "host": "Host",
+      "none": "None"
+    },
+    "create": {
+      "title": "Create Network",
+      "name": "Network Name",
+      "namePlaceholder": "my-network",
+      "cancel": "Cancel",
+      "creating": "Creating...",
+      "create": "Create"
+    },
+    "connect": {
+      "title": "Connect Container to {name}",
+      "containerName": "Container Name",
+      "containerPlaceholder": "container-name",
+      "cancel": "Cancel",
+      "connecting": "Connecting..."
+    },
+    "delete": {
+      "title": "Delete Network",
+      "confirm": "Are you sure you want to delete the network",
+      "warning": "This action cannot be undone.",
+      "cancel": "Cancel",
+      "deleting": "Deleting..."
+    },
+    "validation": {
+      "nameRequired": "Network name is required",
+      "invalidName": "Invalid network name"
+    },
+    "notifications": {
+      "loadFailed": "Failed to load networks",
+      "created": "Network {name} created",
+      "createFailed": "Failed to create network",
+      "deleted": "Network {name} deleted",
+      "deleteFailed": "Failed to delete network",
+      "connected": "Container connected to {name}",
+      "connectFailed": "Failed to connect container",
+      "disconnected": "Container disconnected from {name}",
+      "disconnectFailed": "Failed to disconnect container"
+    }
+  },
+  "dockerPorts": {
+    "searchPlaceholder": "Search port mappings...",
+    "loading": "Loading port mappings...",
+    "empty": {
+      "title": "No Port Mappings",
+      "text": "No Docker containers with port mappings found."
+    },
+    "table": {
+      "hostPort": "Host Port",
+      "containerPort": "Container Port",
+      "container": "Container",
+      "deployment": "Deployment",
+      "actions": "Actions"
+    },
+    "actions": {
+      "refresh": "Refresh",
+      "stopContainer": "Stop Container",
+      "restartContainer": "Restart Container"
+    },
+    "notifications": {
+      "fetchFailed": "Failed to fetch containers",
+      "containerStopped": "Container Stopped",
+      "containerStoppedDesc": "{name} has been stopped",
+      "stopFailed": "Failed to stop container",
+      "containerRestarted": "Container Restarted",
+      "containerRestartedDesc": "{name} has been restarted",
+      "restartFailed": "Failed to restart container"
+    }
+  },
   "security": {
     "title": "Security & Monitoring",
     "tabs": {

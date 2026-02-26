@@ -5,19 +5,19 @@
       :columns="columns"
       :loading="loading"
       :searchable="true"
-      search-placeholder="Search port mappings..."
+      :search-placeholder="$t('dockerPorts.searchPlaceholder')"
       :search-fields="['hostPort', 'containerPort', 'containerName', 'deployment']"
       item-key="id"
       :empty-icon="Plug"
-      empty-title="No Port Mappings"
-      empty-text="No Docker containers with port mappings found."
-      loading-text="Loading port mappings..."
+      :empty-title="$t('dockerPorts.empty.title')"
+      :empty-text="$t('dockerPorts.empty.text')"
+      :loading-text="$t('dockerPorts.loading')"
       :default-page-size="25"
     >
       <template #actions>
         <button class="btn btn-secondary" :disabled="loading" @click="fetchContainers">
           <RefreshCw :size="16" :class="{ spinning: loading }" />
-          Refresh
+          {{ $t("dockerPorts.actions.refresh") }}
         </button>
       </template>
 
@@ -61,7 +61,7 @@
           <button
             v-if="canWrite && item.containerStatus === 'running'"
             class="action-btn stop"
-            title="Stop Container"
+            :title="$t('dockerPorts.actions.stopContainer')"
             @click.stop="stopContainer(item.containerId, item.containerName)"
           >
             <Square :size="14" />
@@ -69,7 +69,7 @@
           <button
             v-if="canWrite"
             class="action-btn restart"
-            title="Restart Container"
+            :title="$t('dockerPorts.actions.restartContainer')"
             @click.stop="restartContainer(item.containerId, item.containerName)"
           >
             <RotateCw :size="14" />
@@ -81,7 +81,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
+import { useI18n } from "vue-i18n";
 import { containersApi } from "@/services/api";
 import { useAuthStore } from "@/stores/auth";
 import { useNotificationsStore } from "@/stores/notifications";
@@ -101,18 +102,19 @@ interface PortMapping {
 }
 
 const authStore = useAuthStore();
+const { t } = useI18n();
 const canWrite = authStore.hasPermission("containers:write");
 const portMappings = ref<PortMapping[]>([]);
 const loading = ref(false);
 const notifications = useNotificationsStore();
 
-const columns = [
-  { key: "hostPort", label: "Host Port", sortable: true, width: "120px" },
-  { key: "containerPort", label: "Container Port", sortable: true, width: "140px" },
-  { key: "container", label: "Container", sortable: true },
-  { key: "deployment", label: "Deployment", sortable: true, width: "180px" },
-  { key: "actions", label: "Actions", width: "100px" },
-];
+const columns = computed(() => [
+  { key: "hostPort", label: t("dockerPorts.table.hostPort"), sortable: true, width: "120px" },
+  { key: "containerPort", label: t("dockerPorts.table.containerPort"), sortable: true, width: "140px" },
+  { key: "container", label: t("dockerPorts.table.container"), sortable: true },
+  { key: "deployment", label: t("dockerPorts.table.deployment"), sortable: true, width: "180px" },
+  { key: "actions", label: t("dockerPorts.table.actions"), width: "100px" },
+]);
 
 const parseDeploymentFromContainer = (name: string): string | null => {
   if (name.startsWith("flatrun-")) {
@@ -163,7 +165,7 @@ const fetchContainers = async () => {
 
     portMappings.value = Array.from(mappingsMap.values());
   } catch (error: any) {
-    notifications.error("Failed to fetch containers", error.message);
+    notifications.error(t("dockerPorts.notifications.fetchFailed"), error.message);
     console.error("Failed to fetch containers:", error);
   } finally {
     loading.value = false;
@@ -173,20 +175,26 @@ const fetchContainers = async () => {
 const stopContainer = async (containerId: string, name: string) => {
   try {
     await containersApi.stop(containerId);
-    notifications.success("Container Stopped", `${name} has been stopped`);
+    notifications.success(
+      t("dockerPorts.notifications.containerStopped"),
+      t("dockerPorts.notifications.containerStoppedDesc", { name }),
+    );
     await fetchContainers();
   } catch (error: any) {
-    notifications.error("Failed to stop container", error.message);
+    notifications.error(t("dockerPorts.notifications.stopFailed"), error.message);
   }
 };
 
 const restartContainer = async (containerId: string, name: string) => {
   try {
     await containersApi.restart(containerId);
-    notifications.success("Container Restarted", `${name} has been restarted`);
+    notifications.success(
+      t("dockerPorts.notifications.containerRestarted"),
+      t("dockerPorts.notifications.containerRestartedDesc", { name }),
+    );
     await fetchContainers();
   } catch (error: any) {
-    notifications.error("Failed to restart container", error.message);
+    notifications.error(t("dockerPorts.notifications.restartFailed"), error.message);
   }
 };
 

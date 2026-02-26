@@ -3,15 +3,15 @@
     <div class="stats-bar">
       <div class="stat-item">
         <span class="stat-value">{{ images.length }}</span>
-        <span class="stat-label">Total Images</span>
+        <span class="stat-label">{{ $t("images.stats.totalImages") }}</span>
       </div>
       <div class="stat-item">
         <span class="stat-value">{{ formatSize(totalSize) }}</span>
-        <span class="stat-label">Total Size</span>
+        <span class="stat-label">{{ $t("images.stats.totalSize") }}</span>
       </div>
       <div class="stat-item">
         <span class="stat-value">{{ unusedImages }}</span>
-        <span class="stat-label">Unused</span>
+        <span class="stat-label">{{ $t("images.stats.unused") }}</span>
       </div>
     </div>
 
@@ -20,25 +20,25 @@
       :columns="columns"
       :loading="loading"
       :searchable="true"
-      search-placeholder="Search images..."
+      :search-placeholder="$t('images.searchPlaceholder')"
       :search-fields="['tags', 'id']"
       :selectable="true"
       :toggleable="true"
       item-key="id"
       empty-icon="pi pi-image"
-      empty-title="No Images Found"
-      empty-text="Pull images from Docker Hub or build from Dockerfiles."
-      loading-text="Loading images..."
+      :empty-title="$t('images.empty.title')"
+      :empty-text="$t('images.empty.text')"
+      :loading-text="$t('images.loading')"
       :default-page-size="25"
     >
       <template #actions>
         <button v-if="canWrite" class="btn btn-primary" @click="showPullModal = true">
           <i class="pi pi-download" />
-          Pull Image
+          {{ $t("images.actions.pullImage") }}
         </button>
         <button class="btn btn-secondary" :disabled="loading" @click="fetchImages">
           <i class="pi pi-refresh" :class="{ 'pi-spin': loading }" />
-          Refresh
+          {{ $t("images.actions.refresh") }}
         </button>
       </template>
 
@@ -50,7 +50,7 @@
         <span v-for="tag in item.tags" :key="tag" class="tag-badge">
           {{ getTagName(tag) }}
         </span>
-        <span v-if="!item.tags?.length" class="no-tag">&lt;none&gt;</span>
+        <span v-if="!item.tags?.length" class="no-tag">&lt;{{ $t("images.none") }}&gt;</span>
       </template>
 
       <template #cell-imageId="{ item }">
@@ -73,14 +73,14 @@
 
       <template #cell-actions="{ item }">
         <div class="table-actions">
-          <button class="action-btn" title="Inspect" @click.stop="inspectImage(item.id)">
+          <button class="action-btn" :title="$t('images.actions.inspect')" @click.stop="inspectImage(item.id)">
             <i class="pi pi-info-circle" />
           </button>
           <button
             v-if="canDelete"
             class="action-btn delete"
             :disabled="item.containers > 0"
-            title="Remove"
+            :title="$t('images.actions.remove')"
             @click.stop="deleteImage(item.id)"
           >
             <i class="pi pi-trash" />
@@ -118,7 +118,7 @@
                 <span v-for="tag in image.tags" :key="tag" class="image-tag">
                   {{ getTagName(tag) }}
                 </span>
-                <span v-if="!image.tags?.length" class="no-tag">&lt;none&gt;</span>
+                <span v-if="!image.tags?.length" class="no-tag">&lt;{{ $t("images.none") }}&gt;</span>
               </div>
               <div class="image-meta">
                 <span class="meta-item">
@@ -127,21 +127,26 @@
                 </span>
                 <span class="meta-item">
                   <i class="pi pi-box" />
-                  {{ image.containers }} containers
+                  {{ $t("images.containersCount", { n: image.containers }) }}
                 </span>
               </div>
             </div>
             <div class="image-card-actions">
-              <button class="action-btn" title="Inspect" @click="inspectImage(image.id)">
+              <button class="action-btn" :title="$t('images.actions.inspect')" @click="inspectImage(image.id)">
                 <i class="pi pi-info-circle" />
               </button>
-              <button v-if="canWrite" class="action-btn" title="Create Container" @click="createContainer(image.id)">
+              <button
+                v-if="canWrite"
+                class="action-btn"
+                :title="$t('images.actions.createContainer')"
+                @click="createContainer(image.id)"
+              >
                 <i class="pi pi-play" />
               </button>
               <button
                 v-if="canDelete"
                 class="action-btn delete"
-                title="Remove"
+                :title="$t('images.actions.remove')"
                 :disabled="image.containers > 0"
                 @click="deleteImage(image.id)"
               >
@@ -154,18 +159,18 @@
 
       <template #bulk-actions="{ selectedItems, clearSelection }">
         <button v-if="canDelete" class="btn btn-sm btn-danger" @click="bulkRemove(selectedItems, clearSelection)">
-          <i class="pi pi-trash" /> Remove
+          <i class="pi pi-trash" /> {{ $t("images.actions.remove") }}
         </button>
       </template>
     </DataTable>
 
     <ConfirmModal
       :visible="showDeleteModal"
-      title="Remove Image"
-      message="Are you sure you want to remove this image?"
-      warning="This action cannot be undone."
+      :title="$t('images.confirm.removeTitle')"
+      :message="$t('images.confirm.removeMessage')"
+      :warning="$t('images.confirm.warning')"
       variant="danger"
-      confirm-text="Remove"
+      :confirm-text="$t('images.actions.remove')"
       :loading="deleting"
       @confirm="confirmDeleteImage"
       @cancel="showDeleteModal = false"
@@ -173,11 +178,11 @@
 
     <ConfirmModal
       :visible="showBulkDeleteModal"
-      title="Remove Images"
-      :message="`Are you sure you want to remove ${bulkDeleteIds.length} images?`"
-      warning="This action cannot be undone."
+      :title="$t('images.confirm.removeManyTitle')"
+      :message="$t('images.confirm.removeManyMessage', { count: bulkDeleteIds.length })"
+      :warning="$t('images.confirm.warning')"
       variant="danger"
-      confirm-text="Remove All"
+      :confirm-text="$t('images.confirm.removeAll')"
       :loading="bulkDeleting"
       @confirm="confirmBulkRemove"
       @cancel="showBulkDeleteModal = false"
@@ -189,7 +194,7 @@
           <div class="modal-header">
             <h3>
               <i class="pi pi-download" />
-              Pull Image
+              {{ $t("images.pull.title") }}
             </h3>
             <button class="close-btn" @click="showPullModal = false">
               <i class="pi pi-times" />
@@ -197,15 +202,20 @@
           </div>
           <div class="modal-body">
             <div class="form-group">
-              <label>Image Name</label>
-              <input v-model="pullImageName" type="text" placeholder="nginx:latest" class="form-input" />
-              <span class="form-hint">Format: repository:tag (e.g., nginx:latest, ghcr.io/user/app:v1)</span>
+              <label>{{ $t("images.pull.imageName") }}</label>
+              <input
+                v-model="pullImageName"
+                type="text"
+                :placeholder="$t('images.pull.imagePlaceholder')"
+                class="form-input"
+              />
+              <span class="form-hint">{{ $t("images.pull.imageHint") }}</span>
             </div>
 
             <div class="form-group private-toggle">
               <label class="checkbox-label">
                 <input v-model="pullPrivateImage" type="checkbox" />
-                <span>Private registry (requires authentication)</span>
+                <span>{{ $t("images.pull.privateRegistry") }}</span>
               </label>
             </div>
 
@@ -219,7 +229,7 @@
                       name="pullCredentialSource"
                       :value="true"
                     />
-                    <span>Use saved credential</span>
+                    <span>{{ $t("images.pull.useSavedCredential") }}</span>
                   </label>
                   <label class="toggle-option">
                     <input
@@ -228,14 +238,14 @@
                       name="pullCredentialSource"
                       :value="false"
                     />
-                    <span>Enter new credentials</span>
+                    <span>{{ $t("images.pull.enterNewCredentials") }}</span>
                   </label>
                 </div>
 
                 <div v-if="pullCredentials.useExisting && existingCredentials.length > 0" class="form-group">
-                  <label>Select Credential</label>
+                  <label>{{ $t("images.pull.selectCredential") }}</label>
                   <select v-model="pullCredentials.selectedCredentialId" class="form-input">
-                    <option value="" disabled>Choose a saved credential</option>
+                    <option value="" disabled>{{ $t("images.pull.chooseCredential") }}</option>
                     <option v-for="cred in existingCredentials" :key="cred.id" :value="cred.id">
                       {{ cred.name }} ({{ cred.username }})
                     </option>
@@ -244,16 +254,21 @@
 
                 <template v-else>
                   <div class="form-group">
-                    <label>Username</label>
-                    <input v-model="pullCredentials.username" type="text" placeholder="Username" class="form-input" />
+                    <label>{{ $t("images.pull.username") }}</label>
+                    <input
+                      v-model="pullCredentials.username"
+                      type="text"
+                      :placeholder="$t('images.pull.usernamePlaceholder')"
+                      class="form-input"
+                    />
                   </div>
                   <div class="form-group">
-                    <label>Password / Token</label>
+                    <label>{{ $t("images.pull.password") }}</label>
                     <div class="password-input-wrapper">
                       <input
                         v-model="pullCredentials.password"
                         :type="showPullPassword ? 'text' : 'password'"
-                        placeholder="Password or access token"
+                        :placeholder="$t('images.pull.passwordPlaceholder')"
                         class="form-input"
                       />
                       <button type="button" class="toggle-password-btn" @click="showPullPassword = !showPullPassword">
@@ -266,10 +281,10 @@
             </Transition>
           </div>
           <div class="modal-footer">
-            <button class="btn btn-secondary" @click="closePullModal">Cancel</button>
+            <button class="btn btn-secondary" @click="closePullModal">{{ $t("images.pull.cancel") }}</button>
             <button class="btn btn-primary" :disabled="!canPull || pulling" @click="pullImage">
               <i v-if="pulling" class="pi pi-spin pi-spinner" />
-              {{ pulling ? "Pulling..." : "Pull Image" }}
+              {{ pulling ? $t("images.pull.pulling") : $t("images.actions.pullImage") }}
             </button>
           </div>
         </div>
@@ -280,6 +295,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from "vue";
+import { useI18n } from "vue-i18n";
 import { imagesApi, credentialsApi } from "@/services/api";
 import { useAuthStore } from "@/stores/auth";
 import DataTable from "@/components/DataTable.vue";
@@ -295,6 +311,7 @@ interface DockerImage {
 }
 
 const authStore = useAuthStore();
+const { t } = useI18n();
 const canWrite = authStore.hasPermission("images:write");
 const canDelete = authStore.hasPermission("images:delete");
 const images = ref<DockerImage[]>([]);
@@ -322,15 +339,15 @@ const bulkDeleteIds = ref<string[]>([]);
 const bulkDeleteClearFn = ref<(() => void) | null>(null);
 const bulkDeleting = ref(false);
 
-const columns = [
-  { key: "repository", label: "Repository", sortable: true },
-  { key: "tag", label: "Tag" },
-  { key: "imageId", label: "Image ID" },
-  { key: "created", label: "Created", sortable: true },
-  { key: "size", label: "Size", sortable: true },
-  { key: "containers", label: "Containers" },
-  { key: "actions", label: "Actions", width: "100px" },
-];
+const columns = computed(() => [
+  { key: "repository", label: t("images.table.repository"), sortable: true },
+  { key: "tag", label: t("images.table.tag") },
+  { key: "imageId", label: t("images.table.imageId") },
+  { key: "created", label: t("images.table.created"), sortable: true },
+  { key: "size", label: t("images.table.size"), sortable: true },
+  { key: "containers", label: t("images.table.containers") },
+  { key: "actions", label: t("images.table.actions"), width: "100px" },
+]);
 
 const totalSize = computed(() => images.value.reduce((acc, img) => acc + img.size, 0));
 const unusedImages = computed(() => images.value.filter((img) => img.containers === 0).length);
@@ -370,7 +387,7 @@ const loadCredentials = async () => {
 };
 
 const getImageName = (image: DockerImage) => {
-  if (!image.tags?.length) return "<none>";
+  if (!image.tags?.length) return t("images.none");
   const tag = image.tags[0];
   const parts = tag.split(":");
   return parts[0];
@@ -378,7 +395,7 @@ const getImageName = (image: DockerImage) => {
 
 const getTagName = (tag: string) => {
   const parts = tag.split(":");
-  return parts[1] || "latest";
+  return parts[1] || t("images.latest");
 };
 
 const formatSize = (bytes: number) => {
@@ -390,16 +407,18 @@ const formatSize = (bytes: number) => {
 };
 
 const formatDate = (timestamp: string) => {
+  if (!timestamp) return t("common.na");
   const date = new Date(timestamp);
+  if (Number.isNaN(date.getTime())) return t("common.na");
   const now = new Date();
   const diff = now.getTime() - date.getTime();
   const days = Math.floor(diff / (1000 * 60 * 60 * 24));
 
-  if (days === 0) return "Today";
-  if (days === 1) return "Yesterday";
-  if (days < 30) return `${days} days ago`;
-  if (days < 365) return `${Math.floor(days / 30)} months ago`;
-  return `${Math.floor(days / 365)} years ago`;
+  if (days === 0) return t("images.time.today");
+  if (days === 1) return t("images.time.yesterday");
+  if (days < 30) return t("images.time.daysAgo", { n: days });
+  if (days < 365) return t("images.time.monthsAgo", { n: Math.floor(days / 30) });
+  return t("images.time.yearsAgo", { n: Math.floor(days / 365) });
 };
 
 const deleteImage = (id: string) => {

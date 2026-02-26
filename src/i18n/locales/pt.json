@@ -1116,6 +1116,275 @@
       "empty": "Nenhum registo disponível"
     }
   },
+  "containers": {
+    "searchPlaceholder": "Pesquisar contentores...",
+    "loading": "A carregar contentores...",
+    "table": {
+      "status": "Estado",
+      "container": "Contentor",
+      "deployment": "Deployment",
+      "image": "Imagem",
+      "ports": "Portas",
+      "created": "Criado",
+      "actions": "Ações"
+    },
+    "filters": {
+      "all": "Todos",
+      "running": "Em execução",
+      "stopped": "Parados"
+    },
+    "actions": {
+      "refresh": "Atualizar",
+      "start": "Iniciar",
+      "stop": "Parar",
+      "restart": "Reiniciar",
+      "logs": "Registos",
+      "remove": "Remover"
+    },
+    "empty": {
+      "title": "Nenhum contentor encontrado",
+      "adjustFilters": "Tente ajustar os filtros.",
+      "noRunning": "Atualmente não existem contentores Docker em execução."
+    },
+    "logs": {
+      "subtitle": "Saída dos registos do contentor"
+    },
+    "confirm": {
+      "removeTitle": "Remover contentor",
+      "removeMessage": "Tem a certeza de que deseja remover este contentor?",
+      "removeWarning": "O contentor será removido permanentemente.",
+      "removeManyTitle": "Remover contentores",
+      "removeManyMessage": "Tem a certeza de que deseja remover {count} contentores?",
+      "removeManyWarning": "Estes contentores serão removidos permanentemente.",
+      "removeAll": "Remover todos"
+    },
+    "time": {
+      "today": "Hoje",
+      "yesterday": "Ontem",
+      "daysAgo": "há {n} dias"
+    }
+  },
+  "images": {
+    "searchPlaceholder": "Pesquisar imagens...",
+    "loading": "A carregar imagens...",
+    "none": "nenhuma",
+    "latest": "latest",
+    "containersCount": "{n} contentores",
+    "stats": {
+      "totalImages": "Imagens totais",
+      "totalSize": "Tamanho total",
+      "unused": "Sem uso"
+    },
+    "table": {
+      "repository": "Repositório",
+      "tag": "Tag",
+      "imageId": "ID da imagem",
+      "created": "Criado",
+      "size": "Tamanho",
+      "containers": "Contentores",
+      "actions": "Ações"
+    },
+    "actions": {
+      "refresh": "Atualizar",
+      "pullImage": "Transferir imagem",
+      "inspect": "Inspecionar",
+      "createContainer": "Criar contentor",
+      "remove": "Remover"
+    },
+    "empty": {
+      "title": "Nenhuma imagem encontrada",
+      "text": "Transfira imagens do Docker Hub ou construa a partir de Dockerfiles."
+    },
+    "confirm": {
+      "removeTitle": "Remover imagem",
+      "removeMessage": "Tem a certeza de que deseja remover esta imagem?",
+      "removeManyTitle": "Remover imagens",
+      "removeManyMessage": "Tem a certeza de que deseja remover {count} imagens?",
+      "warning": "Esta ação não pode ser desfeita.",
+      "removeAll": "Remover tudo"
+    },
+    "pull": {
+      "title": "Transferir imagem",
+      "imageName": "Nome da imagem",
+      "imagePlaceholder": "nginx:latest",
+      "imageHint": "Formato: repository:tag (ex.: nginx:latest, ghcr.io/user/app:v1)",
+      "privateRegistry": "Registo privado (requer autenticação)",
+      "useSavedCredential": "Usar credencial guardada",
+      "enterNewCredentials": "Introduzir novas credenciais",
+      "selectCredential": "Selecionar credencial",
+      "chooseCredential": "Escolha uma credencial guardada",
+      "username": "Nome de utilizador",
+      "usernamePlaceholder": "Nome de utilizador",
+      "password": "Palavra-passe / Token",
+      "passwordPlaceholder": "Palavra-passe ou token de acesso",
+      "cancel": "Cancelar",
+      "pulling": "A transferir..."
+    },
+    "time": {
+      "today": "Hoje",
+      "yesterday": "Ontem",
+      "daysAgo": "há {n} dias",
+      "monthsAgo": "há {n} meses",
+      "yearsAgo": "há {n} anos"
+    }
+  },
+  "volumes": {
+    "searchPlaceholder": "Pesquisar volumes...",
+    "loading": "A carregar volumes...",
+    "stats": {
+      "totalVolumes": "Volumes totais",
+      "inUse": "Em uso",
+      "unused": "Sem uso"
+    },
+    "table": {
+      "name": "Nome",
+      "driver": "Driver",
+      "status": "Estado",
+      "mountPoint": "Ponto de montagem",
+      "created": "Criado",
+      "size": "Tamanho",
+      "actions": "Ações"
+    },
+    "status": {
+      "inUse": "Em uso",
+      "unused": "Sem uso"
+    },
+    "actions": {
+      "refresh": "Atualizar",
+      "createVolume": "Criar volume",
+      "pruneUnused": "Limpar sem uso",
+      "prune": "Limpar",
+      "inspect": "Inspecionar",
+      "remove": "Remover"
+    },
+    "empty": {
+      "title": "Nenhum volume encontrado",
+      "text": "Crie volumes para persistir dados dos contentores."
+    },
+    "labelsTitle": "Etiquetas",
+    "mountedBy": "Montado por",
+    "confirm": {
+      "removeTitle": "Remover volume",
+      "removeMessage": "Remover volume '{name}'?",
+      "removeManyTitle": "Remover volumes",
+      "removeManyMessage": "Remover {count} volumes?",
+      "pruneTitle": "Limpar volumes sem uso",
+      "pruneMessage": "Remover todos os volumes sem uso?",
+      "warning": "Isto não pode ser desfeito.",
+      "removeAll": "Remover todos"
+    },
+    "create": {
+      "title": "Criar volume",
+      "name": "Nome do volume",
+      "namePlaceholder": "meu-volume",
+      "labelsOptional": "Etiquetas (opcional)",
+      "keyPlaceholder": "chave",
+      "valuePlaceholder": "valor",
+      "addLabel": "Adicionar etiqueta",
+      "cancel": "Cancelar",
+      "creating": "A criar..."
+    }
+  },
+  "networks": {
+    "searchPlaceholder": "Pesquisar redes...",
+    "loading": "A carregar redes...",
+    "empty": {
+      "title": "Nenhuma rede encontrada",
+      "text": "Crie uma rede Docker para ligar os seus contentores.",
+      "noContainersConnected": "Nenhum contentor ligado"
+    },
+    "table": {
+      "name": "Nome",
+      "id": "ID",
+      "driver": "Driver",
+      "scope": "Escopo",
+      "subnet": "Subnet",
+      "gateway": "Gateway",
+      "containers": "Contentores",
+      "actions": "Ações"
+    },
+    "actions": {
+      "createNetwork": "Criar rede",
+      "connectContainer": "Ligar contentor",
+      "connect": "Ligar",
+      "disconnect": "Desligar",
+      "delete": "Eliminar",
+      "deleteNetwork": "Eliminar rede"
+    },
+    "connectedContainers": "Contentores ligados ({n})",
+    "drivers": {
+      "bridge": "Bridge",
+      "overlay": "Overlay",
+      "host": "Host",
+      "none": "Nenhum"
+    },
+    "create": {
+      "title": "Criar rede",
+      "name": "Nome da rede",
+      "namePlaceholder": "minha-rede",
+      "cancel": "Cancelar",
+      "creating": "A criar...",
+      "create": "Criar"
+    },
+    "connect": {
+      "title": "Ligar contentor a {name}",
+      "containerName": "Nome do contentor",
+      "containerPlaceholder": "nome-contentor",
+      "cancel": "Cancelar",
+      "connecting": "A ligar..."
+    },
+    "delete": {
+      "title": "Eliminar rede",
+      "confirm": "Tem a certeza de que pretende eliminar a rede",
+      "warning": "Esta ação não pode ser desfeita.",
+      "cancel": "Cancelar",
+      "deleting": "A eliminar..."
+    },
+    "validation": {
+      "nameRequired": "O nome da rede é obrigatório",
+      "invalidName": "Nome de rede inválido"
+    },
+    "notifications": {
+      "loadFailed": "Falha ao carregar redes",
+      "created": "Rede {name} criada",
+      "createFailed": "Falha ao criar rede",
+      "deleted": "Rede {name} eliminada",
+      "deleteFailed": "Falha ao eliminar rede",
+      "connected": "Contentor ligado a {name}",
+      "connectFailed": "Falha ao ligar contentor",
+      "disconnected": "Contentor desligado de {name}",
+      "disconnectFailed": "Falha ao desligar contentor"
+    }
+  },
+  "dockerPorts": {
+    "searchPlaceholder": "Pesquisar mapeamentos de portas...",
+    "loading": "A carregar mapeamentos de portas...",
+    "empty": {
+      "title": "Sem mapeamentos de portas",
+      "text": "Não foram encontrados contentores Docker com mapeamentos de portas."
+    },
+    "table": {
+      "hostPort": "Porta host",
+      "containerPort": "Porta contentor",
+      "container": "Contentor",
+      "deployment": "Deployment",
+      "actions": "Ações"
+    },
+    "actions": {
+      "refresh": "Atualizar",
+      "stopContainer": "Parar contentor",
+      "restartContainer": "Reiniciar contentor"
+    },
+    "notifications": {
+      "fetchFailed": "Falha ao carregar contentores",
+      "containerStopped": "Contentor parado",
+      "containerStoppedDesc": "{name} foi parado",
+      "stopFailed": "Falha ao parar contentor",
+      "containerRestarted": "Contentor reiniciado",
+      "containerRestartedDesc": "{name} foi reiniciado",
+      "restartFailed": "Falha ao reiniciar contentor"
+    }
+  },
   "security": {
     "title": "Segurança e monitorização",
     "tabs": {
