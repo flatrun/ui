@@ -1,28 +1,28 @@
 <template>
   <div class="backups-tab">
     <div class="backups-header">
-      <h3>Backups</h3>
+      <h3>{{ $t("deployment.backups.title") }}</h3>
       <div class="backups-actions">
         <button class="btn btn-primary" :disabled="creatingBackup" @click="createBackup">
           <i :class="creatingBackup ? 'pi pi-spin pi-spinner' : 'pi pi-plus'" />
-          {{ creatingBackup ? "Creating..." : "Create Backup" }}
+          {{ creatingBackup ? $t("deployment.backups.creating") : $t("deployment.backups.create") }}
         </button>
         <button class="btn btn-secondary" @click="showScheduleModal = true">
           <i class="pi pi-clock" />
-          Schedule Backup
+          {{ $t("deployment.backups.schedule") }}
         </button>
       </div>
     </div>
 
     <div v-if="loadingBackups" class="loading-state">
       <i class="pi pi-spin pi-spinner" />
-      Loading backups...
+      {{ $t("deployment.backups.loading") }}
     </div>
 
     <div v-else-if="backups.length === 0" class="empty-state">
       <i class="pi pi-history" />
-      <h4>No backups yet</h4>
-      <p>Create your first backup to protect your deployment data.</p>
+      <h4>{{ $t("deployment.backups.noBackups") }}</h4>
+      <p>{{ $t("deployment.backups.noBackupsDesc") }}</p>
     </div>
 
     <div v-else class="backups-list">
@@ -35,7 +35,7 @@
           <div class="backup-meta">
             <span class="backup-size">{{ formatBytes(backup.size) }}</span>
             <span class="backup-date">{{ formatDate(backup.created_at) }}</span>
-            <span class="backup-status" :class="backup.status">{{ backup.status }}</span>
+            <span class="backup-status" :class="backup.status">{{ formatBackupStatus(backup.status) }}</span>
           </div>
           <div v-if="backup.components?.length" class="backup-components">
             <span v-for="comp in backup.components" :key="comp" class="component-badge">
@@ -50,11 +50,11 @@
             @click="confirmRestore(backup)"
           >
             <i :class="restoringBackup === backup.id ? 'pi pi-spin pi-spinner' : 'pi pi-replay'" />
-            Restore
+            {{ $t("deployment.backups.restore") }}
           </button>
           <a :href="getDownloadUrl(backup.id)" class="btn btn-sm btn-secondary" download>
             <i class="pi pi-download" />
-            Download
+            {{ $t("deployment.backups.download") }}
           </a>
           <button class="btn btn-sm btn-danger" @click="confirmDeleteBackup(backup.id)">
             <i class="pi pi-trash" />
@@ -64,13 +64,15 @@
     </div>
 
     <div v-if="scheduledTasks.length > 0" class="scheduled-backups-section">
-      <h4>Scheduled Backups</h4>
+      <h4>{{ $t("deployment.backups.scheduledTitle") }}</h4>
       <div class="scheduled-tasks-list">
         <div v-for="task in scheduledTasks" :key="task.id" class="scheduled-task-item">
           <div class="task-info">
             <span class="task-name">{{ task.name }}</span>
             <span class="task-schedule">{{ task.cron_expr }}</span>
-            <span v-if="task.next_run" class="task-next"> Next: {{ formatDate(task.next_run) }} </span>
+            <span v-if="task.next_run" class="task-next">
+              {{ $t("deployment.backups.nextRun") }} {{ formatDate(task.next_run) }}
+            </span>
           </div>
           <div class="task-actions">
             <label class="toggle-switch small">
@@ -95,7 +97,7 @@
           <div class="modal-header">
             <h3>
               <i class="pi pi-clock" />
-              Schedule Automatic Backup
+              {{ $t("deployment.backups.modal.schedule.title") }}
             </h3>
             <button class="close-btn" @click="showScheduleModal = false">
               <i class="pi pi-times" />
@@ -103,18 +105,30 @@
           </div>
           <div class="modal-body">
             <div class="form-group">
-              <label>Schedule Name</label>
-              <input v-model="scheduleForm.name" type="text" placeholder="e.g., Daily backup" class="form-control" />
+              <label>{{ $t("deployment.backups.modal.schedule.name") }}</label>
+              <input
+                v-model="scheduleForm.name"
+                type="text"
+                :placeholder="$t('deployment.backups.modal.schedule.namePlaceholder')"
+                class="form-control"
+              />
             </div>
             <div class="form-group">
-              <label>Schedule (Cron Expression)</label>
-              <input v-model="scheduleForm.cronExpr" type="text" placeholder="0 2 * * *" class="form-control" />
+              <label>{{ $t("deployment.backups.modal.schedule.cron") }}</label>
+              <input
+                v-model="scheduleForm.cronExpr"
+                type="text"
+                :placeholder="$t('deployment.backups.modal.schedule.cronPlaceholder')"
+                class="form-control"
+              />
               <span class="form-hint">
-                Examples: <code>0 2 * * *</code> (daily at 2am), <code>0 */6 * * *</code> (every 6 hours)
+                {{ $t("deployment.backups.modal.schedule.examples") }} <code>0 2 * * *</code> ({{
+                  $t("deployment.backups.modal.schedule.dailyAt2am")
+                }}), <code>0 */6 * * *</code> ({{ $t("deployment.backups.modal.schedule.every6hours") }})
               </span>
             </div>
             <div class="form-group">
-              <label>Retention Count</label>
+              <label>{{ $t("deployment.backups.modal.schedule.retention") }}</label>
               <input
                 v-model.number="scheduleForm.retentionCount"
                 type="number"
@@ -122,24 +136,26 @@
                 max="100"
                 class="form-control"
               />
-              <span class="form-hint">Number of backups to keep (older backups will be deleted)</span>
+              <span class="form-hint">{{ $t("deployment.backups.modal.schedule.retentionHint") }}</span>
             </div>
             <div class="form-group">
               <label class="checkbox-label">
                 <input v-model="scheduleForm.enabled" type="checkbox" />
-                Enable schedule immediately
+                {{ $t("deployment.backups.modal.schedule.enableNow") }}
               </label>
             </div>
           </div>
           <div class="modal-footer">
-            <button class="btn btn-secondary" @click="showScheduleModal = false">Cancel</button>
+            <button class="btn btn-secondary" @click="showScheduleModal = false">
+              {{ $t("deployment.backups.modal.schedule.cancel") }}
+            </button>
             <button
               class="btn btn-primary"
               :disabled="savingSchedule || !scheduleForm.name || !scheduleForm.cronExpr"
               @click="createScheduledTask"
             >
               <i v-if="savingSchedule" class="pi pi-spin pi-spinner" />
-              {{ savingSchedule ? "Creating..." : "Create Schedule" }}
+              {{ savingSchedule ? $t("deployment.backups.creating") : $t("deployment.backups.modal.schedule.create") }}
             </button>
           </div>
         </div>
@@ -149,10 +165,10 @@
     <!-- Delete Backup Confirm Modal -->
     <ConfirmModal
       :visible="showDeleteBackupModal"
-      title="Delete Backup"
-      message="Are you sure you want to delete this backup? This action cannot be undone."
+      :title="$t('deployment.backups.modal.delete.title')"
+      :message="$t('deployment.backups.modal.delete.confirm')"
       variant="warning"
-      confirm-text="Delete"
+      :confirm-text="$t('deployment.backups.modal.delete.delete')"
       @confirm="deleteBackup"
       @cancel="showDeleteBackupModal = false"
     />
@@ -160,10 +176,10 @@
     <!-- Delete Task Confirm Modal -->
     <ConfirmModal
       :visible="showDeleteTaskModal"
-      title="Delete Scheduled Task"
-      message="Are you sure you want to delete this scheduled task?"
+      :title="$t('deployment.backups.modal.delete.title')"
+      :message="$t('deployment.backups.modal.delete.confirmTask')"
       variant="warning"
-      confirm-text="Delete"
+      :confirm-text="$t('deployment.backups.modal.delete.delete')"
       @confirm="deleteTask"
       @cancel="showDeleteTaskModal = false"
     />
@@ -171,10 +187,10 @@
     <!-- Restore Confirm Modal -->
     <ConfirmModal
       :visible="showRestoreModal"
-      title="Restore Backup"
+      :title="$t('deployment.backups.modal.restore.title')"
       :message="restoreMessage"
       variant="warning"
-      confirm-text="Restore"
+      :confirm-text="$t('deployment.backups.modal.restore.restore')"
       @confirm="restoreBackup"
       @cancel="showRestoreModal = false"
     />
@@ -183,10 +199,13 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from "vue";
+import { useI18n } from "vue-i18n";
 import { backupsApi, schedulerApi } from "@/services/api";
 import type { Backup, ScheduledTask, BackupJob } from "@/services/api";
 import { useNotificationsStore } from "@/stores/notifications";
 import ConfirmModal from "@/components/ConfirmModal.vue";
+
+const { t, te } = useI18n();
 
 const props = defineProps<{
   deploymentName: string;
@@ -233,7 +252,7 @@ const fetchBackups = async () => {
     const response = await backupsApi.getDeploymentBackups(props.deploymentName);
     backups.value = response.data.backups || [];
   } catch (err: any) {
-    notifications.error("Error", err.response?.data?.error || "Failed to load backups");
+    notifications.error(t("deployment.backups.notification.error"), err.response?.data?.error || t("common.error"));
   } finally {
     loadingBackups.value = false;
   }
@@ -276,19 +295,31 @@ const pollActiveJobs = async () => {
 
       if (updatedJob.status === "completed") {
         if (updatedJob.type === "backup") {
-          notifications.success("Backup Complete", "Backup has been created successfully");
+          notifications.success(
+            t("deployment.backups.notification.backupComplete"),
+            t("deployment.backups.notification.backupCompleteDesc"),
+          );
           creatingBackup.value = false;
         } else {
-          notifications.success("Restore Complete", "Backup has been restored successfully");
+          notifications.success(
+            t("deployment.backups.notification.restoreComplete"),
+            t("deployment.backups.notification.restoreCompleteDesc"),
+          );
           restoringBackup.value = null;
         }
         await fetchBackups();
       } else if (updatedJob.status === "failed") {
         if (updatedJob.type === "backup") {
-          notifications.error("Backup Failed", updatedJob.error || "Backup creation failed");
+          notifications.error(
+            t("deployment.backups.notification.backupFailed"),
+            updatedJob.error || t("deployment.backups.notification.error"),
+          );
           creatingBackup.value = false;
         } else {
-          notifications.error("Restore Failed", updatedJob.error || "Backup restore failed");
+          notifications.error(
+            t("deployment.backups.notification.restoreFailed"),
+            updatedJob.error || t("deployment.backups.notification.error"),
+          );
           restoringBackup.value = null;
         }
       } else {
@@ -300,10 +331,16 @@ const pollActiveJobs = async () => {
         updatedJobs.push({ ...job, retryCount });
       } else {
         if (job.type === "backup") {
-          notifications.error("Backup Status Unknown", "Lost connection to backup job");
+          notifications.error(
+            t("deployment.backups.notification.statusUnknown"),
+            t("deployment.backups.notification.lostConnection"),
+          );
           creatingBackup.value = false;
         } else {
-          notifications.error("Restore Status Unknown", "Lost connection to restore job");
+          notifications.error(
+            t("deployment.backups.notification.statusUnknown"),
+            t("deployment.backups.notification.lostConnection"),
+          );
           restoringBackup.value = null;
         }
       }
@@ -328,10 +365,16 @@ const createBackup = async () => {
       deployment_name: props.deploymentName,
       started_at: new Date().toISOString(),
     });
-    notifications.success("Backup Started", "Backup creation has been initiated");
+    notifications.success(
+      t("deployment.backups.notification.backupStarted"),
+      t("deployment.backups.notification.backupStartedDesc"),
+    );
     startJobPolling();
   } catch (err: any) {
-    notifications.error("Backup Failed", err.response?.data?.error || "Failed to start backup");
+    notifications.error(
+      t("deployment.backups.notification.backupFailed"),
+      err.response?.data?.error || t("common.error"),
+    );
     creatingBackup.value = false;
   }
 };
@@ -345,10 +388,16 @@ const deleteBackup = async () => {
   if (!backupToDelete.value) return;
   try {
     await backupsApi.delete(backupToDelete.value);
-    notifications.success("Deleted", "Backup has been deleted");
+    notifications.success(
+      t("deployment.backups.notification.deleted"),
+      t("deployment.backups.notification.deletedDesc"),
+    );
     await fetchBackups();
   } catch (err: any) {
-    notifications.error("Delete Failed", err.response?.data?.error || "Failed to delete backup");
+    notifications.error(
+      t("deployment.backups.notification.deleteFailed"),
+      err.response?.data?.error || t("common.error"),
+    );
   } finally {
     showDeleteBackupModal.value = false;
     backupToDelete.value = null;
@@ -357,7 +406,7 @@ const deleteBackup = async () => {
 
 const confirmRestore = (backup: Backup) => {
   backupToRestore.value = backup;
-  restoreMessage.value = `Are you sure you want to restore from backup "${backup.id}"? This will stop the deployment, restore data, and restart it.`;
+  restoreMessage.value = t("deployment.backups.modal.restore.confirm", { id: backup.id });
   showRestoreModal.value = true;
 };
 
@@ -381,10 +430,16 @@ const restoreBackup = async () => {
       backup_id: backupId,
       started_at: new Date().toISOString(),
     });
-    notifications.success("Restore Started", "Backup restore has been initiated");
+    notifications.success(
+      t("deployment.backups.notification.restoreStarted"),
+      t("deployment.backups.notification.restoreStartedDesc"),
+    );
     startJobPolling();
   } catch (err: any) {
-    notifications.error("Restore Failed", err.response?.data?.error || "Failed to start restore");
+    notifications.error(
+      t("deployment.backups.notification.restoreFailed"),
+      err.response?.data?.error || t("common.error"),
+    );
     restoringBackup.value = null;
   } finally {
     backupToRestore.value = null;
@@ -410,12 +465,15 @@ const createScheduledTask = async () => {
         },
       },
     });
-    notifications.success("Schedule Created", "Backup schedule has been created");
+    notifications.success(
+      t("deployment.backups.notification.scheduleCreated"),
+      t("deployment.backups.notification.scheduleCreatedDesc"),
+    );
     showScheduleModal.value = false;
     scheduleForm.value = initialScheduleFormState();
     await fetchScheduledTasks();
   } catch (err: any) {
-    notifications.error("Error", err.response?.data?.error || "Failed to create schedule");
+    notifications.error(t("deployment.backups.notification.error"), err.response?.data?.error || t("common.error"));
   } finally {
     savingSchedule.value = false;
   }
@@ -424,18 +482,27 @@ const createScheduledTask = async () => {
 const toggleTask = async (task: ScheduledTask) => {
   try {
     await schedulerApi.updateTask(task.id, { enabled: !task.enabled });
+    notifications.success(
+      task.enabled
+        ? t("deployment.backups.notification.scheduleDisabled")
+        : t("deployment.backups.notification.scheduleEnabled"),
+      t("deployment.backups.notification.taskStartedDesc"),
+    );
     await fetchScheduledTasks();
   } catch (err: any) {
-    notifications.error("Error", err.response?.data?.error || "Failed to update task");
+    notifications.error(t("deployment.backups.notification.error"), err.response?.data?.error || t("common.error"));
   }
 };
 
 const runTaskNow = async (taskId: number) => {
   try {
     await schedulerApi.runTaskNow(taskId);
-    notifications.success("Task Started", "Backup task execution has been initiated");
+    notifications.success(
+      t("deployment.backups.notification.backupStarted"),
+      t("deployment.backups.notification.backupStartedDesc"),
+    );
   } catch (err: any) {
-    notifications.error("Error", err.response?.data?.error || "Failed to run task");
+    notifications.error(t("deployment.backups.notification.error"), err.response?.data?.error || t("common.error"));
   }
 };
 
@@ -448,10 +515,16 @@ const deleteTask = async () => {
   if (!taskToDelete.value) return;
   try {
     await schedulerApi.deleteTask(taskToDelete.value);
-    notifications.success("Deleted", "Scheduled task has been deleted");
+    notifications.success(
+      t("deployment.backups.notification.taskDeleted"),
+      t("deployment.backups.notification.taskDeletedDesc"),
+    );
     await fetchScheduledTasks();
   } catch (err: any) {
-    notifications.error("Delete Failed", err.response?.data?.error || "Failed to delete task");
+    notifications.error(
+      t("deployment.backups.notification.deleteFailed"),
+      err.response?.data?.error || t("common.error"),
+    );
   } finally {
     showDeleteTaskModal.value = false;
     taskToDelete.value = null;
@@ -469,6 +542,12 @@ const formatBytes = (bytes: number): string => {
 const formatDate = (dateStr: string): string => {
   const date = new Date(dateStr);
   return date.toLocaleString();
+};
+
+const formatBackupStatus = (status: string): string => {
+  const key = `deployment.backups.status.${status}`;
+  if (te(key)) return t(key);
+  return status.replace(/_/g, " ");
 };
 
 onMounted(() => {

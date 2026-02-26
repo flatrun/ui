@@ -7,20 +7,20 @@
           <input
             v-model="searchQuery"
             type="text"
-            placeholder="Search logs..."
+            :placeholder="$t('deployment.logViewer.searchPlaceholder')"
             @keyup.enter="searchNext"
             @keyup.shift.enter="searchPrevious"
           />
           <span v-if="searchResults" class="search-results">
             {{ searchResults }}
           </span>
-          <button class="search-btn" title="Previous (Shift+Enter)" @click="searchPrevious">
+          <button class="search-btn" :title="$t('deployment.logViewer.previous')" @click="searchPrevious">
             <i class="pi pi-chevron-up" />
           </button>
-          <button class="search-btn" title="Next (Enter)" @click="searchNext">
+          <button class="search-btn" :title="$t('deployment.logViewer.next')" @click="searchNext">
             <i class="pi pi-chevron-down" />
           </button>
-          <button class="search-btn" title="Close" @click="closeSearch">
+          <button class="search-btn" :title="$t('deployment.logViewer.close')" @click="closeSearch">
             <i class="pi pi-times" />
           </button>
         </div>
@@ -30,21 +30,30 @@
         <label class="follow-toggle" :class="{ active: autoScroll }">
           <input v-model="autoScroll" type="checkbox" />
           <i class="pi pi-arrow-down" />
-          Follow
+          {{ $t("deployment.logViewer.follow") }}
         </label>
-        <button class="toolbar-btn" title="Search (Ctrl+F)" @click="toggleSearch">
+        <button class="toolbar-btn" :title="$t('deployment.logViewer.search')" @click="toggleSearch">
           <i class="pi pi-search" />
         </button>
-        <button class="toolbar-btn" title="Clear" @click="clearLogs">
+        <button class="toolbar-btn" :title="$t('deployment.logViewer.clear')" @click="clearLogs">
           <i class="pi pi-trash" />
         </button>
-        <button class="toolbar-btn" title="Download" @click="downloadLogs">
+        <button class="toolbar-btn" :title="$t('deployment.logViewer.download')" @click="downloadLogs">
           <i class="pi pi-download" />
         </button>
-        <button class="toolbar-btn" title="Refresh" :disabled="loading" @click="$emit('refresh')">
+        <button
+          class="toolbar-btn"
+          :title="$t('deployment.logViewer.refresh')"
+          :disabled="loading"
+          @click="$emit('refresh')"
+        >
           <i :class="loading ? 'pi pi-spin pi-spinner' : 'pi pi-refresh'" />
         </button>
-        <button class="toolbar-btn" :title="isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'" @click="toggleFullscreen">
+        <button
+          class="toolbar-btn"
+          :title="isFullscreen ? $t('deployment.logViewer.exitFullscreen') : $t('deployment.logViewer.fullscreen')"
+          @click="toggleFullscreen"
+        >
           <i :class="isFullscreen ? 'pi pi-window-minimize' : 'pi pi-window-maximize'" />
         </button>
       </div>
@@ -52,18 +61,21 @@
     <div ref="terminalContainer" class="terminal-container" />
     <div v-if="!logs && !loading" class="empty-state">
       <i class="pi pi-file-edit" />
-      <p>{{ emptyMessage }}</p>
+      <p>{{ emptyMessage || $t("deployment.logViewer.empty") }}</p>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch, nextTick } from "vue";
+import { useI18n } from "vue-i18n";
 import { Terminal } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
 import { SearchAddon } from "@xterm/addon-search";
 import { WebLinksAddon } from "@xterm/addon-web-links";
 import "@xterm/xterm/css/xterm.css";
+
+const { t } = useI18n();
 
 const props = withDefaults(
   defineProps<{
@@ -78,7 +90,7 @@ const props = withDefaults(
   {
     logs: "",
     loading: false,
-    emptyMessage: "No logs available",
+    emptyMessage: "",
     fileName: "logs.txt",
     theme: "dark",
     fontSize: 13,
@@ -263,7 +275,7 @@ const searchPrevious = () => {
 };
 
 const updateSearchResults = (found: boolean) => {
-  searchResults.value = found ? "" : "No results";
+  searchResults.value = found ? "" : t("deployment.logViewer.noResults");
 };
 
 const toggleFullscreen = () => {

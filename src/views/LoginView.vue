@@ -9,47 +9,55 @@
       <div class="features">
         <div class="feature">
           <i class="pi pi-check-circle" />
-          <span>Manage Docker deployments</span>
+          <span>{{ $t("login.features.deployments") }}</span>
         </div>
         <div class="feature">
           <i class="pi pi-check-circle" />
-          <span>Monitor containers & resources</span>
+          <span>{{ $t("login.features.monitor") }}</span>
         </div>
         <div class="feature">
           <i class="pi pi-check-circle" />
-          <span>Quick app deployment templates</span>
+          <span>{{ $t("login.features.templates") }}</span>
         </div>
       </div>
     </div>
 
     <div class="login-right">
       <div class="login-card">
-        <div class="card-header">
-          <h2>Sign In</h2>
-          <p>{{ loginMode === "credentials" ? "Enter your credentials" : "Enter your API key" }}</p>
-        </div>
+        <h2 class="card-header">{{ $t("login.title") }}</h2>
+        <p class="card-subtitle">
+          {{ $t(loginMode === "credentials" ? "login.subtitle.default" : "login.subtitle.apiKey") }}
+        </p>
 
         <div class="login-mode-toggle">
-          <button :class="{ active: loginMode === 'credentials' }" @click="loginMode = 'credentials'">
-            <i class="pi pi-user" />
-            Username
+          <button
+            type="button"
+            class="mode-btn"
+            :class="{ active: loginMode === 'credentials' }"
+            @click="loginMode = 'credentials'"
+          >
+            {{ $t("login.action.useCredentials") }}
           </button>
-          <button :class="{ active: loginMode === 'apikey' }" @click="loginMode = 'apikey'">
-            <i class="pi pi-key" />
-            API Key
+          <button
+            type="button"
+            class="mode-btn"
+            :class="{ active: loginMode === 'apikey' }"
+            @click="loginMode = 'apikey'"
+          >
+            {{ $t("login.action.useApiKey") }}
           </button>
         </div>
 
         <form v-if="loginMode === 'credentials'" class="login-form" @submit.prevent="handleCredentialsLogin">
           <div class="form-group">
-            <label for="username">Username</label>
+            <label for="username">{{ $t("login.username.label") }}</label>
             <div class="input-wrapper">
               <i class="pi pi-user" />
               <input
                 id="username"
                 v-model="username"
                 type="text"
-                placeholder="Enter your username"
+                :placeholder="$t('login.username.placeholder')"
                 :class="{ error: auth.error }"
                 autocomplete="username"
               />
@@ -57,14 +65,14 @@
           </div>
 
           <div class="form-group">
-            <label for="password">Password</label>
+            <label for="password">{{ $t("login.password.label") }}</label>
             <div class="input-wrapper">
               <i class="pi pi-lock" />
               <input
                 id="password"
                 v-model="password"
                 :type="showPassword ? 'text' : 'password'"
-                placeholder="Enter your password"
+                :placeholder="$t('login.password.placeholder')"
                 :class="{ error: auth.error }"
                 autocomplete="current-password"
               />
@@ -80,20 +88,20 @@
 
           <button type="submit" class="login-btn" :disabled="auth.loading || !username || !password">
             <i v-if="auth.loading" class="pi pi-spin pi-spinner" />
-            <span v-else>Sign In</span>
+            <span v-else>{{ $t("login.action.signIn") }}</span>
           </button>
         </form>
 
         <form v-else class="login-form" @submit.prevent="handleAPIKeyLogin">
           <div class="form-group">
-            <label for="apiKey">API Key</label>
+            <label for="apiKey">{{ $t("login.apiKey.label") }}</label>
             <div class="input-wrapper">
               <i class="pi pi-key" />
               <input
                 id="apiKey"
                 v-model="apiKey"
                 :type="showKey ? 'text' : 'password'"
-                placeholder="Enter your API key"
+                :placeholder="$t('login.apiKey.placeholder')"
                 :class="{ error: auth.error }"
                 autocomplete="current-password"
               />
@@ -109,14 +117,14 @@
 
           <button type="submit" class="login-btn" :disabled="auth.loading || !apiKey.trim()">
             <i v-if="auth.loading" class="pi pi-spin pi-spinner" />
-            <span v-else>Sign In</span>
+            <span v-else>{{ $t("login.action.signIn") }}</span>
           </button>
         </form>
 
         <div class="help-text">
           <i class="pi pi-info-circle" />
-          <span v-if="loginMode === 'credentials'">Use your FlatRun account credentials</span>
-          <span v-else>API keys are managed in the dashboard settings</span>
+          <span v-if="loginMode === 'credentials'">{{ $t("login.help.credentials") }}</span>
+          <span v-else>{{ $t("login.help.apiKey") }}</span>
         </div>
       </div>
     </div>

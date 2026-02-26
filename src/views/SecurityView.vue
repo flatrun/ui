@@ -20,7 +20,7 @@
 
     <div v-if="loading && !events.length" class="loading-state">
       <i class="pi pi-spin pi-spinner" />
-      <span>Loading security data...</span>
+      <span>{{ t("security.loading") }}</span>
     </div>
 
     <div v-else class="security-content">
@@ -34,7 +34,7 @@
             </div>
             <div class="stat-content">
               <span class="stat-value">{{ stats?.total_events || 0 }}</span>
-              <span class="stat-label">Total Events</span>
+              <span class="stat-label">{{ t("security.stats.totalEvents") }}</span>
             </div>
           </div>
           <div class="dashboard-stat-card">
@@ -43,7 +43,7 @@
             </div>
             <div class="stat-content">
               <span class="stat-value">{{ stats?.last_24_hours || 0 }}</span>
-              <span class="stat-label">Last 24 Hours</span>
+              <span class="stat-label">{{ t("security.stats.last24h") }}</span>
             </div>
           </div>
           <div class="dashboard-stat-card">
@@ -52,7 +52,7 @@
             </div>
             <div class="stat-content">
               <span class="stat-value">{{ stats?.last_7_days || 0 }}</span>
-              <span class="stat-label">Last 7 Days</span>
+              <span class="stat-label">{{ t("security.stats.last7d") }}</span>
             </div>
           </div>
           <div class="dashboard-stat-card">
@@ -61,7 +61,7 @@
             </div>
             <div class="stat-content">
               <span class="stat-value">{{ stats?.blocked_ips_count || 0 }}</span>
-              <span class="stat-label">Blocked IPs</span>
+              <span class="stat-label">{{ t("security.stats.blockedIps") }}</span>
             </div>
           </div>
           <div class="dashboard-stat-card">
@@ -70,7 +70,7 @@
             </div>
             <div class="stat-content">
               <span class="stat-value">{{ stats?.protected_routes_count || 0 }}</span>
-              <span class="stat-label">Protected Routes</span>
+              <span class="stat-label">{{ t("security.stats.protectedRoutes") }}</span>
             </div>
           </div>
         </div>
@@ -78,12 +78,12 @@
         <!-- Severity Breakdown & Trend -->
         <div class="dashboard-row">
           <div class="dashboard-card severity-card">
-            <h3>Events by Severity</h3>
+            <h3>{{ t("security.severity.title") }}</h3>
             <div class="severity-bars">
               <div class="severity-bar-item">
                 <div class="severity-bar-label">
                   <span class="severity-dot critical" />
-                  <span>Critical</span>
+                  <span>{{ t("security.severity.critical") }}</span>
                 </div>
                 <div class="severity-bar-track">
                   <div class="severity-bar-fill critical" :style="{ width: getSeverityPercentage('critical') + '%' }" />
@@ -93,7 +93,7 @@
               <div class="severity-bar-item">
                 <div class="severity-bar-label">
                   <span class="severity-dot high" />
-                  <span>High</span>
+                  <span>{{ t("security.severity.high") }}</span>
                 </div>
                 <div class="severity-bar-track">
                   <div class="severity-bar-fill high" :style="{ width: getSeverityPercentage('high') + '%' }" />
@@ -103,7 +103,7 @@
               <div class="severity-bar-item">
                 <div class="severity-bar-label">
                   <span class="severity-dot medium" />
-                  <span>Medium</span>
+                  <span>{{ t("security.severity.medium") }}</span>
                 </div>
                 <div class="severity-bar-track">
                   <div class="severity-bar-fill medium" :style="{ width: getSeverityPercentage('medium') + '%' }" />
@@ -113,7 +113,7 @@
               <div class="severity-bar-item">
                 <div class="severity-bar-label">
                   <span class="severity-dot low" />
-                  <span>Low</span>
+                  <span>{{ t("security.severity.low") }}</span>
                 </div>
                 <div class="severity-bar-track">
                   <div class="severity-bar-fill low" :style="{ width: getSeverityPercentage('low') + '%' }" />
@@ -124,7 +124,7 @@
           </div>
 
           <div class="dashboard-card trend-card">
-            <h3>7-Day Event Trend</h3>
+            <h3>{{ t("security.trend.title") }}</h3>
             <div v-if="stats?.events_trend?.length" class="trend-chart">
               <div class="trend-bars">
                 <div
@@ -140,7 +140,7 @@
             </div>
             <div v-else class="no-data">
               <i class="pi pi-chart-line" />
-              <span>No trend data available</span>
+              <span>{{ t("security.trend.noData") }}</span>
             </div>
           </div>
         </div>
@@ -148,15 +148,19 @@
         <!-- Top Deployments & Top IPs -->
         <div class="dashboard-row">
           <div class="dashboard-card">
-            <h3>Top Deployments by Events</h3>
+            <h3>{{ t("security.topDeployments.title") }}</h3>
             <div v-if="stats?.top_deployments?.length" class="top-list">
               <div v-for="(dep, index) in stats.top_deployments" :key="dep.name" class="top-list-item">
                 <span class="top-rank">{{ index + 1 }}</span>
                 <div class="top-info">
                   <span class="top-name">{{ dep.name }}</span>
                   <div class="top-meta">
-                    <span v-if="dep.critical" class="top-badge critical">{{ dep.critical }} critical</span>
-                    <span v-if="dep.high" class="top-badge high">{{ dep.high }} high</span>
+                    <span v-if="dep.critical" class="top-badge critical"
+                      >{{ dep.critical }} {{ t("security.topDeployments.critical") }}</span
+                    >
+                    <span v-if="dep.high" class="top-badge high"
+                      >{{ dep.high }} {{ t("security.topDeployments.high") }}</span
+                    >
                   </div>
                 </div>
                 <span class="top-count">{{ dep.event_count }}</span>
@@ -164,25 +168,25 @@
             </div>
             <div v-else class="no-data">
               <i class="pi pi-server" />
-              <span>No deployment data available</span>
+              <span>{{ t("security.topDeployments.noData") }}</span>
             </div>
           </div>
 
           <div class="dashboard-card">
-            <h3>Top Offending IPs</h3>
+            <h3>{{ t("security.topIps.title") }}</h3>
             <div v-if="stats?.top_offending_ips?.length" class="top-list">
               <div v-for="(ip, index) in stats.top_offending_ips" :key="ip.ip" class="top-list-item">
                 <span class="top-rank">{{ index + 1 }}</span>
                 <div class="top-info">
                   <code class="top-ip">{{ ip.ip }}</code>
-                  <span class="top-meta-text">Last seen {{ formatTime(ip.last_seen) }}</span>
+                  <span class="top-meta-text">{{ t("security.topIps.lastSeen") }} {{ formatTime(ip.last_seen) }}</span>
                 </div>
                 <div class="top-actions">
                   <span class="top-count">{{ ip.event_count }}</span>
                   <button
                     v-if="canWrite"
                     class="btn btn-icon btn-sm"
-                    title="Block IP"
+                    :title="t('security.actions.blockIp')"
                     @click="showBlockIPDialog(ip.ip)"
                   >
                     <i class="pi pi-ban" />
@@ -192,14 +196,14 @@
             </div>
             <div v-else class="no-data">
               <i class="pi pi-users" />
-              <span>No IP data available</span>
+              <span>{{ t("security.topIps.noData") }}</span>
             </div>
           </div>
         </div>
 
         <!-- Recent Critical Events -->
         <div class="dashboard-card full-width">
-          <h3>Recent Critical Events</h3>
+          <h3>{{ t("security.recentEvents.title") }}</h3>
           <div v-if="stats?.recent_critical?.length" class="critical-events-list">
             <div v-for="event in stats.recent_critical" :key="event.id" class="critical-event-item">
               <div class="critical-event-time">{{ formatTime(event.created_at) }}</div>
@@ -210,7 +214,7 @@
               <button
                 v-if="canWrite"
                 class="btn btn-icon btn-sm"
-                title="Block IP"
+                :title="t('security.actions.blockIp')"
                 @click="showBlockIPDialog(event.source_ip)"
               >
                 <i class="pi pi-ban" />
@@ -219,7 +223,7 @@
           </div>
           <div v-else class="no-data">
             <i class="pi pi-check-circle" />
-            <span>No recent critical events</span>
+            <span>{{ t("security.recentEvents.noData") }}</span>
           </div>
         </div>
       </div>
@@ -234,60 +238,62 @@
         <div class="stats-row">
           <div class="stat-card">
             <span class="stat-value">{{ stats?.total_events || 0 }}</span>
-            <span class="stat-label">Total Events</span>
+            <span class="stat-label">{{ t("security.stats.totalEvents") }}</span>
           </div>
           <div class="stat-card">
             <span class="stat-value">{{ stats?.last_24_hours || 0 }}</span>
-            <span class="stat-label">Last 24h</span>
+            <span class="stat-label">{{ t("security.stats.last24h") }}</span>
           </div>
           <div class="stat-card" :class="{ warning: (stats?.by_severity?.critical || 0) > 0 }">
             <span class="stat-value">{{ stats?.by_severity?.critical || 0 }}</span>
-            <span class="stat-label">Critical</span>
+            <span class="stat-label">{{ t("security.severity.critical") }}</span>
           </div>
           <div class="stat-card" :class="{ warning: (stats?.by_severity?.high || 0) > 0 }">
             <span class="stat-value">{{ stats?.by_severity?.high || 0 }}</span>
-            <span class="stat-label">High</span>
+            <span class="stat-label">{{ t("security.severity.high") }}</span>
           </div>
         </div>
 
         <div class="filters-row">
           <select v-model="filters.severity" class="filter-select" @change="fetchEvents">
-            <option value="">All Severities</option>
-            <option value="critical">Critical</option>
-            <option value="high">High</option>
-            <option value="medium">Medium</option>
-            <option value="low">Low</option>
+            <option value="">{{ t("security.events.filters.allSeverities") }}</option>
+            <option value="critical">{{ t("security.severity.critical") }}</option>
+            <option value="high">{{ t("security.severity.high") }}</option>
+            <option value="medium">{{ t("security.severity.medium") }}</option>
+            <option value="low">{{ t("security.severity.low") }}</option>
           </select>
           <select v-model="filters.event_type" class="filter-select" @change="fetchEvents">
-            <option value="">All Event Types</option>
-            <option value="unauthorized_access">Unauthorized Access</option>
-            <option value="forbidden_access">Forbidden Access</option>
-            <option value="not_found_probe">Not Found Probe</option>
-            <option value="server_error">Server Error</option>
-            <option value="rate_limit_exceeded">Rate Limit</option>
-            <option value="suspicious_path">Suspicious Path</option>
-            <option value="scanner_detected">Scanner Detected</option>
+            <option value="">{{ t("security.events.filters.allTypes") }}</option>
+            <option value="unauthorized_access">{{ t("security.events.types.unauthorized_access") }}</option>
+            <option value="forbidden_access">{{ t("security.events.types.forbidden_access") }}</option>
+            <option value="not_found_probe">{{ t("security.events.types.not_found_probe") }}</option>
+            <option value="server_error">{{ t("security.events.types.server_error") }}</option>
+            <option value="rate_limit_exceeded">{{ t("security.events.types.rate_limit_exceeded") }}</option>
+            <option value="suspicious_path">{{ t("security.events.types.suspicious_path") }}</option>
+            <option value="scanner_detected">{{ t("security.events.types.scanner_detected") }}</option>
           </select>
           <input
             v-model="filters.source_ip"
             type="text"
-            placeholder="Filter by IP..."
+            :placeholder="t('security.events.filters.filterByIp')"
             class="filter-input"
             @keyup.enter="fetchEvents"
           />
-          <button class="btn btn-secondary btn-sm" @click="clearFilters">Clear</button>
+          <button class="btn btn-secondary btn-sm" @click="clearFilters">
+            {{ t("security.events.filters.clear") }}
+          </button>
         </div>
 
         <div class="events-table-container">
           <table v-if="events.length > 0" class="events-table">
             <thead>
               <tr>
-                <th>Time</th>
-                <th>Severity</th>
-                <th>Type</th>
-                <th>Source IP</th>
-                <th>Path</th>
-                <th>Status</th>
+                <th>{{ t("security.events.table.time") }}</th>
+                <th>{{ t("security.events.table.severity") }}</th>
+                <th>{{ t("security.events.table.type") }}</th>
+                <th>{{ t("security.events.table.sourceIp") }}</th>
+                <th>{{ t("security.events.table.path") }}</th>
+                <th>{{ t("security.events.table.status") }}</th>
                 <th />
               </tr>
             </thead>
@@ -311,7 +317,7 @@
                   <button
                     v-if="canWrite"
                     class="btn btn-icon btn-sm"
-                    title="Block IP"
+                    :title="t('security.actions.blockIp')"
                     @click="showBlockIPDialog(event.source_ip)"
                   >
                     <i class="pi pi-ban" />
@@ -322,13 +328,15 @@
           </table>
           <div v-else class="empty-state">
             <i class="pi pi-shield" />
-            <p>No security events</p>
-            <span class="empty-hint">Security events will appear here when detected</span>
+            <p>{{ t("security.events.empty.title") }}</p>
+            <span class="empty-hint">{{ t("security.events.empty.hint") }}</span>
           </div>
         </div>
 
         <div v-if="eventsTotal > filters.limit" class="pagination">
-          <button class="btn btn-secondary btn-sm" :disabled="filters.offset === 0" @click="prevPage">Previous</button>
+          <button class="btn btn-secondary btn-sm" :disabled="filters.offset === 0" @click="prevPage">
+            {{ t("security.events.pagination.previous") }}
+          </button>
           <span class="pagination-info">
             {{ filters.offset + 1 }}-{{ Math.min(filters.offset + filters.limit, eventsTotal) }} of {{ eventsTotal }}
           </span>
@@ -337,7 +345,7 @@
             :disabled="filters.offset + filters.limit >= eventsTotal"
             @click="nextPage"
           >
-            Next
+            {{ t("security.events.pagination.next") }}
           </button>
         </div>
       </div>
@@ -345,18 +353,18 @@
       <!-- Blocked IPs Tab -->
       <div v-show="activeTab === 'blocked'" class="tab-content">
         <div class="section-header">
-          <h3>Blocked IP Addresses</h3>
+          <h3>{{ t("security.blocked.title") }}</h3>
           <button v-if="canWrite" class="btn btn-primary btn-sm" @click="showAddBlockDialog = true">
             <i class="pi pi-plus" />
-            Block IP
+            {{ t("security.blocked.blockIp") }}
           </button>
         </div>
 
         <div class="blocked-list">
           <div v-if="blockedIPs.length === 0" class="empty-state">
             <i class="pi pi-ban" />
-            <p>No blocked IPs</p>
-            <span class="empty-hint">Blocked IP addresses will appear here</span>
+            <p>{{ t("security.blocked.empty.title") }}</p>
+            <span class="empty-hint">{{ t("security.blocked.empty.hint") }}</span>
           </div>
           <div v-else class="blocked-items">
             <div v-for="ip in blockedIPs" :key="ip.id" class="blocked-item">
@@ -364,9 +372,11 @@
                 <code class="blocked-ip">{{ ip.ip }}</code>
                 <span v-if="ip.reason" class="blocked-reason">{{ ip.reason }}</span>
                 <div class="blocked-meta">
-                  <span v-if="ip.auto_blocked" class="badge auto">Auto</span>
-                  <span class="blocked-time">Blocked {{ formatTime(ip.blocked_at) }}</span>
-                  <span v-if="ip.expires_at" class="blocked-expires"> Expires {{ formatTime(ip.expires_at) }} </span>
+                  <span v-if="ip.auto_blocked" class="badge auto">{{ t("security.blocked.auto") }}</span>
+                  <span class="blocked-time">{{ t("security.blocked.blocked") }} {{ formatTime(ip.blocked_at) }}</span>
+                  <span v-if="ip.expires_at" class="blocked-expires">
+                    {{ t("security.blocked.expires") }} {{ formatTime(ip.expires_at) }}
+                  </span>
                 </div>
               </div>
               <button
@@ -377,7 +387,7 @@
               >
                 <i v-if="unblockingIP === ip.ip" class="pi pi-spin pi-spinner" />
                 <i v-else class="pi pi-times" />
-                Unblock
+                {{ t("security.blocked.unblock") }}
               </button>
             </div>
           </div>
@@ -387,26 +397,29 @@
       <!-- Protected Routes Tab -->
       <div v-show="activeTab === 'routes'" class="tab-content">
         <div class="section-header">
-          <h3>Protected Routes</h3>
+          <h3>{{ t("security.routes.title") }}</h3>
           <button v-if="canWrite" class="btn btn-primary btn-sm" @click="showAddRouteDialog = true">
             <i class="pi pi-plus" />
-            Add Route
+            {{ t("security.routes.addRoute") }}
           </button>
         </div>
 
         <div class="routes-list">
           <div v-if="protectedRoutes.length === 0" class="empty-state">
             <i class="pi pi-lock" />
-            <p>No protected routes</p>
-            <span class="empty-hint">Add routes to apply rate limiting</span>
+            <p>{{ t("security.routes.empty.title") }}</p>
+            <span class="empty-hint">{{ t("security.routes.empty.hint") }}</span>
           </div>
           <div v-else class="routes-items">
             <div v-for="route in protectedRoutes" :key="route.id" class="route-item">
               <div class="route-info">
                 <code class="route-pattern">{{ route.path_pattern }}</code>
                 <div class="route-config">
-                  <span class="route-rate">{{ route.rate_limit }} req/min</span>
-                  <span class="route-block">Block: {{ route.block_duration }}s</span>
+                  <span class="route-rate">{{ route.rate_limit }} {{ t("security.routes.rateLimit") }}</span>
+                  <span class="route-block"
+                    >{{ t("security.routes.blockDuration") }} {{ route.block_duration
+                    }}{{ t("security.routes.seconds") }}</span
+                  >
                 </div>
               </div>
               <div class="route-actions">
@@ -414,13 +427,18 @@
                   <input type="checkbox" :checked="route.enabled" @change="toggleRoute(route)" />
                   <span class="toggle-slider" />
                 </label>
-                <button v-if="canWrite" class="btn btn-icon btn-sm" title="Edit" @click="editRoute(route)">
+                <button
+                  v-if="canWrite"
+                  class="btn btn-icon btn-sm"
+                  :title="t('security.actions.edit')"
+                  @click="editRoute(route)"
+                >
                   <i class="pi pi-pencil" />
                 </button>
                 <button
                   v-if="canWrite"
                   class="btn btn-icon btn-danger-ghost btn-sm"
-                  title="Delete"
+                  :title="t('security.actions.delete')"
                   @click="confirmDeleteRoute(route)"
                 >
                   <i class="pi pi-trash" />
@@ -431,19 +449,19 @@
         </div>
 
         <div v-if="canWrite" class="presets-section">
-          <h4>Quick Presets</h4>
+          <h4>{{ t("security.routes.presets.title") }}</h4>
           <div class="presets-row">
             <button class="preset-btn" @click="addPreset('wp-login')">
               <i class="pi pi-lock" />
-              WordPress Login
+              {{ t("security.routes.presets.wpLogin") }}
             </button>
             <button class="preset-btn" @click="addPreset('admin')">
               <i class="pi pi-cog" />
-              Admin Panel
+              {{ t("security.routes.presets.admin") }}
             </button>
             <button class="preset-btn" @click="addPreset('api')">
               <i class="pi pi-code" />
-              API Endpoints
+              {{ t("security.routes.presets.api") }}
             </button>
           </div>
         </div>
@@ -459,9 +477,9 @@
             @click="refreshSecurityScripts"
           >
             <i class="pi pi-sync" :class="{ 'pi-spin': refreshingScripts }" />
-            {{ refreshingScripts ? "Regenerating..." : "Regenerate Security Scripts" }}
+            {{ refreshingScripts ? t("security.health.regenerating") : t("security.health.regenerateScripts") }}
           </button>
-          <span class="health-actions-hint"> Regenerates Lua scripts with current agent IP and reloads nginx </span>
+          <span class="health-actions-hint"> {{ t("security.health.scriptsHint") }} </span>
         </div>
         <SecurityHealthCard :auto-fetch="true" />
       </div>
@@ -469,20 +487,18 @@
       <!-- Settings Tab -->
       <div v-show="activeTab === 'settings'" class="tab-content">
         <div class="settings-section">
-          <h3>Security Settings</h3>
+          <h3>{{ t("security.settings.title") }}</h3>
 
           <div class="settings-card">
             <div class="setting-item">
               <div class="setting-info">
-                <h4>Realtime Event Capture</h4>
+                <h4>{{ t("security.settings.realtimeCapture.title") }}</h4>
                 <p>
-                  Enable real-time security event capture using OpenResty/Lua. When enabled, security events are
-                  captured as they happen instead of being parsed from logs. This provides faster detection and more
-                  accurate event data.
+                  {{ t("security.settings.realtimeCapture.description") }}
                 </p>
                 <div class="setting-requirements">
-                  <span class="requirement-label">Requires:</span>
-                  <span class="requirement-value">OpenResty nginx image</span>
+                  <span class="requirement-label">{{ t("security.settings.realtimeCapture.requires") }}</span>
+                  <span class="requirement-value">{{ t("security.settings.realtimeCapture.openresty") }}</span>
                 </div>
               </div>
               <div class="setting-control">
@@ -499,7 +515,11 @@
                   <i class="pi pi-spin pi-spinner" />
                 </span>
                 <span v-else class="toggle-status" :class="{ active: realtimeCapture }">
-                  {{ realtimeCapture ? "Enabled" : "Disabled" }}
+                  {{
+                    realtimeCapture
+                      ? t("security.settings.realtimeCapture.enabled")
+                      : t("security.settings.realtimeCapture.disabled")
+                  }}
                 </span>
               </div>
             </div>
@@ -507,16 +527,14 @@
             <div v-if="realtimeCapture" class="setting-note info">
               <i class="pi pi-info-circle" />
               <span>
-                Realtime capture is active. Security events will be sent directly from nginx to the agent API. Make sure
-                your nginx container is using the OpenResty image.
+                {{ t("security.settings.realtimeCapture.activeNote") }}
               </span>
             </div>
 
             <div v-if="!realtimeCapture" class="setting-note warning">
               <i class="pi pi-exclamation-triangle" />
               <span>
-                Realtime capture is disabled. Security features like IP blocking and rate limiting will still work, but
-                events will only be captured when logs are parsed.
+                {{ t("security.settings.realtimeCapture.disabledNote") }}
               </span>
             </div>
           </div>
@@ -524,12 +542,16 @@
           <div class="settings-card">
             <div class="setting-item">
               <div class="setting-info">
-                <h4>Security Module Status</h4>
-                <p>The security module handles event storage, IP blocking, and rate limiting configuration.</p>
+                <h4>{{ t("security.settings.moduleStatus.title") }}</h4>
+                <p>{{ t("security.settings.moduleStatus.description") }}</p>
               </div>
               <div class="setting-control">
                 <span class="status-badge" :class="{ active: securityEnabled }">
-                  {{ securityEnabled ? "Active" : "Inactive" }}
+                  {{
+                    securityEnabled
+                      ? t("security.settings.moduleStatus.active")
+                      : t("security.settings.moduleStatus.inactive")
+                  }}
                 </span>
               </div>
             </div>
@@ -543,30 +565,42 @@
       <div v-if="showAddBlockDialog" class="modal-overlay" @click.self="showAddBlockDialog = false">
         <div class="modal-dialog">
           <div class="modal-header">
-            <h3>Block IP Address</h3>
+            <h3>{{ t("security.modals.blockIp.title") }}</h3>
             <button class="btn btn-icon" @click="showAddBlockDialog = false">
               <i class="pi pi-times" />
             </button>
           </div>
           <div class="modal-body">
             <div class="form-group">
-              <label class="form-label">IP Address</label>
-              <input v-model="blockForm.ip" type="text" class="form-input" placeholder="192.168.1.1" />
+              <label class="form-label">{{ t("security.modals.blockIp.ipAddress") }}</label>
+              <input
+                v-model="blockForm.ip"
+                type="text"
+                class="form-input"
+                :placeholder="t('security.modals.blockIp.ipPlaceholder')"
+              />
             </div>
             <div class="form-group">
-              <label class="form-label">Reason (optional)</label>
-              <input v-model="blockForm.reason" type="text" class="form-input" placeholder="Manual block" />
+              <label class="form-label">{{ t("security.modals.blockIp.reason") }}</label>
+              <input
+                v-model="blockForm.reason"
+                type="text"
+                class="form-input"
+                :placeholder="t('security.modals.blockIp.reasonPlaceholder')"
+              />
             </div>
             <div class="form-group">
-              <label class="form-label">Duration (seconds, 0 = permanent)</label>
+              <label class="form-label">{{ t("security.modals.blockIp.duration") }}</label>
               <input v-model.number="blockForm.duration" type="number" class="form-input" placeholder="0" />
             </div>
           </div>
           <div class="modal-footer">
-            <button class="btn btn-secondary" @click="showAddBlockDialog = false">Cancel</button>
+            <button class="btn btn-secondary" @click="showAddBlockDialog = false">
+              {{ t("security.modals.blockIp.cancel") }}
+            </button>
             <button class="btn btn-primary" :disabled="!blockForm.ip || blockingIP" @click="handleBlockIP">
               <i v-if="blockingIP" class="pi pi-spin pi-spinner" />
-              Block IP
+              {{ t("security.modals.blockIp.block") }}
             </button>
           </div>
         </div>
@@ -578,38 +612,40 @@
       <div v-if="showAddRouteDialog || showEditRouteDialog" class="modal-overlay" @click.self="closeRouteDialog">
         <div class="modal-dialog">
           <div class="modal-header">
-            <h3>{{ showEditRouteDialog ? "Edit Protected Route" : "Add Protected Route" }}</h3>
+            <h3>
+              {{ showEditRouteDialog ? t("security.modals.route.editTitle") : t("security.modals.route.addTitle") }}
+            </h3>
             <button class="btn btn-icon" @click="closeRouteDialog">
               <i class="pi pi-times" />
             </button>
           </div>
           <div class="modal-body">
             <div class="form-group">
-              <label class="form-label">Path Pattern</label>
+              <label class="form-label">{{ t("security.modals.route.pathPattern") }}</label>
               <input
                 v-model="routeForm.path_pattern"
                 type="text"
                 class="form-input"
-                placeholder="/wp-login.php, /admin/*, /api/*"
+                :placeholder="t('security.modals.route.pathPlaceholder')"
               />
-              <span class="form-hint">Supports wildcards (*)</span>
+              <span class="form-hint">{{ t("security.modals.route.pathHint") }}</span>
             </div>
             <div class="form-row">
               <div class="form-group">
-                <label class="form-label">Rate Limit (req/min)</label>
+                <label class="form-label">{{ t("security.modals.route.rateLimit") }}</label>
                 <input v-model.number="routeForm.rate_limit" type="number" class="form-input" placeholder="10" />
               </div>
               <div class="form-group">
-                <label class="form-label">Block Duration (seconds)</label>
+                <label class="form-label">{{ t("security.modals.route.blockDuration") }}</label>
                 <input v-model.number="routeForm.block_duration" type="number" class="form-input" placeholder="3600" />
               </div>
             </div>
           </div>
           <div class="modal-footer">
-            <button class="btn btn-secondary" @click="closeRouteDialog">Cancel</button>
+            <button class="btn btn-secondary" @click="closeRouteDialog">{{ t("security.modals.route.cancel") }}</button>
             <button class="btn btn-primary" :disabled="!routeForm.path_pattern || savingRoute" @click="saveRoute">
               <i v-if="savingRoute" class="pi pi-spin pi-spinner" />
-              {{ showEditRouteDialog ? "Update" : "Add" }} Route
+              {{ showEditRouteDialog ? t("security.modals.route.update") : t("security.modals.route.add") }}
             </button>
           </div>
         </div>
@@ -623,16 +659,18 @@
           <div class="confirm-icon danger">
             <i class="pi pi-exclamation-triangle" />
           </div>
-          <h3>Delete Protected Route</h3>
+          <h3>{{ t("security.modals.deleteRoute.title") }}</h3>
           <p>
-            Are you sure you want to delete the route <strong>{{ routeToDelete?.path_pattern }}</strong
+            {{ t("security.modals.deleteRoute.confirm") }} <strong>{{ routeToDelete?.path_pattern }}</strong
             >?
           </p>
           <div class="confirm-actions">
-            <button class="btn btn-secondary" @click="showDeleteRouteDialog = false">Cancel</button>
+            <button class="btn btn-secondary" @click="showDeleteRouteDialog = false">
+              {{ t("security.modals.deleteRoute.cancel") }}
+            </button>
             <button class="btn btn-danger" :disabled="deletingRoute" @click="deleteRoute">
               <i v-if="deletingRoute" class="pi pi-spin pi-spinner" />
-              Delete
+              {{ t("security.modals.deleteRoute.delete") }}
             </button>
           </div>
         </div>
@@ -642,8 +680,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from "vue";
+import { ref, reactive, onMounted, computed } from "vue";
 import { storeToRefs } from "pinia";
+import { useI18n } from "vue-i18n";
 import { useSecurityStore } from "@/stores/security";
 import { useNotificationsStore } from "@/stores/notifications";
 import { useAuthStore } from "@/stores/auth";
@@ -659,15 +698,17 @@ const canWrite = authStore.hasPermission("security:write");
 const loading = ref(false);
 const activeTab = ref("stats");
 
-const tabs = [
-  { id: "stats", label: "Overview", icon: "pi pi-chart-bar" },
-  { id: "traffic", label: "Traffic & Performance", icon: "pi pi-chart-line" },
-  { id: "events", label: "Security Events", icon: "pi pi-list" },
-  { id: "blocked", label: "Blocked IPs", icon: "pi pi-ban" },
-  { id: "routes", label: "Rate Limits", icon: "pi pi-lock" },
-  { id: "health", label: "Health", icon: "pi pi-heart" },
-  { id: "settings", label: "Settings", icon: "pi pi-cog" },
-];
+const { t, te, locale } = useI18n();
+
+const tabs = computed(() => [
+  { id: "stats", label: t("security.tabs.overview"), icon: "pi pi-chart-bar" },
+  { id: "traffic", label: t("security.tabs.traffic"), icon: "pi pi-chart-line" },
+  { id: "events", label: t("security.tabs.events"), icon: "pi pi-list" },
+  { id: "blocked", label: t("security.tabs.blocked"), icon: "pi pi-ban" },
+  { id: "routes", label: t("security.tabs.routes"), icon: "pi pi-lock" },
+  { id: "health", label: t("security.tabs.health"), icon: "pi pi-heart" },
+  { id: "settings", label: t("security.tabs.settings"), icon: "pi pi-cog" },
+]);
 
 const { stats, events, eventsTotal, blockedIPs, protectedRoutes, securityEnabled, realtimeCapture } =
   storeToRefs(securityStore);
@@ -733,7 +774,7 @@ const refreshData = async () => {
     fetchRealtimeCaptureStatus(),
   ]);
   loading.value = false;
-  notifications.success("Refreshed", "Security data updated");
+  notifications.success(t("security.notifications.refreshed"), t("security.notifications.dataUpdated"));
 };
 
 const toggleRealtimeCapture = async () => {
@@ -743,10 +784,8 @@ const toggleRealtimeCapture = async () => {
     await securityStore.setRealtimeCapture(newValue);
     realtimeCapture.value = securityStore.realtimeCapture;
     notifications.success(
-      newValue ? "Realtime Capture Enabled" : "Realtime Capture Disabled",
-      newValue
-        ? "Security events will now be captured in realtime using OpenResty/Lua"
-        : "Realtime capture has been disabled",
+      newValue ? t("security.notifications.realtimeEnabled") : t("security.notifications.realtimeDisabled"),
+      newValue ? t("security.notifications.realtimeEnabledDesc") : t("security.notifications.realtimeDisabledDesc"),
     );
   } catch (e: any) {
     const errorData = e.response?.data;
@@ -757,7 +796,7 @@ const toggleRealtimeCapture = async () => {
       realtimeCapture.value = errorData.realtime_capture;
     }
 
-    notifications.error("Failed", details ? `${errorMsg}: ${details}` : errorMsg);
+    notifications.error(t("security.notifications.failed"), details ? `${errorMsg}: ${details}` : errorMsg);
   } finally {
     togglingRealtimeCapture.value = false;
   }
@@ -769,12 +808,12 @@ const refreshSecurityScripts = async () => {
     const result = await securityStore.refreshScripts();
     const vhostCount = result.vhosts_updated?.length || 0;
     notifications.success(
-      "Security Scripts Regenerated",
+      t("security.notifications.scriptsRegenerated"),
       `Agent IP: ${result.agent_ip}, ${vhostCount} vhost(s) updated`,
     );
   } catch (e: any) {
-    const errorMsg = e.response?.data?.error || "Failed to refresh security scripts";
-    notifications.error("Failed", errorMsg);
+    const errorMsg = e.response?.data?.error || t("security.notifications.failed");
+    notifications.error(t("security.notifications.failed"), errorMsg);
   } finally {
     refreshingScripts.value = false;
   }
@@ -799,25 +838,27 @@ const nextPage = () => {
 };
 
 const formatTime = (dateString: string) => {
-  if (!dateString) return "N/A";
+  if (!dateString) return t("common.na");
   const date = new Date(dateString);
   const now = new Date();
   const diff = now.getTime() - date.getTime();
 
   const minutes = Math.floor(diff / 60000);
-  if (minutes < 1) return "just now";
-  if (minutes < 60) return `${minutes}m ago`;
+  if (minutes < 1) return t("common.time.justNow");
+  if (minutes < 60) return t("common.time.mAgo", { n: minutes });
 
   const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
+  if (hours < 24) return t("common.time.hAgo", { n: hours });
 
   const days = Math.floor(hours / 24);
-  if (days < 7) return `${days}d ago`;
+  if (days < 7) return t("common.time.dAgo", { n: days });
 
   return date.toLocaleDateString();
 };
 
 const formatEventType = (type: string) => {
+  const translationKey = `security.events.types.${type}`;
+  if (te(translationKey)) return t(translationKey);
   return type.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
 };
 
@@ -837,12 +878,12 @@ const getTrendBarHeight = (count: number): number => {
 
 const formatTrendDate = (dateStr: string): string => {
   const date = new Date(dateStr);
-  return date.toLocaleDateString("en-US", { weekday: "short" });
+  return date.toLocaleDateString(locale.value, { weekday: "short" });
 };
 
 const showBlockIPDialog = (ip: string) => {
   blockForm.ip = ip;
-  blockForm.reason = "Manual block from security events";
+  blockForm.reason = t("security.notifications.manualBlockReason");
   blockForm.duration = 0;
   showAddBlockDialog.value = true;
 };
@@ -852,13 +893,19 @@ const handleBlockIP = async () => {
   blockingIP.value = true;
   try {
     await securityStore.blockIP(blockForm.ip, blockForm.reason, blockForm.duration);
-    notifications.success("IP Blocked", `${blockForm.ip} has been blocked`);
+    notifications.success(
+      t("security.notifications.ipBlocked"),
+      `${blockForm.ip} ${t("security.notifications.hasBeenBlocked")}`,
+    );
     showAddBlockDialog.value = false;
     blockForm.ip = "";
     blockForm.reason = "";
     blockForm.duration = 0;
   } catch (e: any) {
-    notifications.error("Failed", e.response?.data?.error || "Failed to block IP");
+    notifications.error(
+      t("security.notifications.failed"),
+      e.response?.data?.error || t("security.notifications.blockIpFailed"),
+    );
   } finally {
     blockingIP.value = false;
   }
@@ -868,9 +915,15 @@ const handleUnblockIP = async (ip: string) => {
   unblockingIP.value = ip;
   try {
     await securityStore.unblockIP(ip);
-    notifications.success("IP Unblocked", `${ip} has been unblocked`);
+    notifications.success(
+      t("security.notifications.ipUnblocked"),
+      `${ip} ${t("security.notifications.hasBeenUnblocked")}`,
+    );
   } catch (e: any) {
-    notifications.error("Failed", e.response?.data?.error || "Failed to unblock IP");
+    notifications.error(
+      t("security.notifications.failed"),
+      e.response?.data?.error || t("security.notifications.unblockIpFailed"),
+    );
   } finally {
     unblockingIP.value = null;
   }
@@ -903,18 +956,21 @@ const saveRoute = async () => {
         rate_limit: routeForm.rate_limit,
         block_duration: routeForm.block_duration,
       });
-      notifications.success("Route Updated", "Protected route has been updated");
+      notifications.success(t("security.notifications.routeUpdated"), t("security.notifications.routeUpdatedDesc"));
     } else {
       await securityStore.addProtectedRoute({
         path_pattern: routeForm.path_pattern,
         rate_limit: routeForm.rate_limit,
         block_duration: routeForm.block_duration,
       });
-      notifications.success("Route Added", "Protected route has been added");
+      notifications.success(t("security.notifications.routeAdded"), t("security.notifications.routeAddedDesc"));
     }
     closeRouteDialog();
   } catch (e: any) {
-    notifications.error("Failed", e.response?.data?.error || "Failed to save route");
+    notifications.error(
+      t("security.notifications.failed"),
+      e.response?.data?.error || t("security.notifications.saveRouteFailed"),
+    );
   } finally {
     savingRoute.value = false;
   }
@@ -924,7 +980,10 @@ const toggleRoute = async (route: ProtectedRoute) => {
   try {
     await securityStore.updateProtectedRoute(route.id, { enabled: !route.enabled });
   } catch (e: any) {
-    notifications.error("Failed", e.response?.data?.error || "Failed to toggle route");
+    notifications.error(
+      t("security.notifications.failed"),
+      e.response?.data?.error || t("security.notifications.toggleRouteFailed"),
+    );
   }
 };
 
@@ -938,11 +997,14 @@ const deleteRoute = async () => {
   deletingRoute.value = true;
   try {
     await securityStore.deleteProtectedRoute(routeToDelete.value.id);
-    notifications.success("Route Deleted", "Protected route has been removed");
+    notifications.success(t("security.notifications.routeDeleted"), t("security.notifications.routeDeletedDesc"));
     showDeleteRouteDialog.value = false;
     routeToDelete.value = null;
   } catch (e: any) {
-    notifications.error("Failed", e.response?.data?.error || "Failed to delete route");
+    notifications.error(
+      t("security.notifications.failed"),
+      e.response?.data?.error || t("security.notifications.deleteRouteFailed"),
+    );
   } finally {
     deletingRoute.value = false;
   }
@@ -960,9 +1022,15 @@ const addPreset = async (preset: string) => {
 
   try {
     await securityStore.addProtectedRoute(presetConfig);
-    notifications.success("Preset Added", `${preset} protection has been added`);
+    notifications.success(
+      t("security.notifications.presetAdded"),
+      `${preset} ${t("security.notifications.presetAddedDesc")}`,
+    );
   } catch (e: any) {
-    notifications.error("Failed", e.response?.data?.error || "Failed to add preset");
+    notifications.error(
+      t("security.notifications.failed"),
+      e.response?.data?.error || t("security.notifications.addPresetFailed"),
+    );
   }
 };
 

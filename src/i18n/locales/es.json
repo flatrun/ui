@@ -74,5 +74,1393 @@
       "users": "Usuarios",
       "apiKeys": "Claves API"
     }
+  },
+  "login": {
+    "brandSubtitle": "Gestor de despliegues Docker",
+    "features": {
+      "deployments": "Gestionar despliegues Docker",
+      "monitor": "Monitorear contenedores y recursos",
+      "templates": "Plantillas de despliegue rápido"
+    },
+    "title": "Iniciar sesión",
+    "subtitle": {
+      "default": "Ingrese sus credenciales",
+      "apiKey": "Ingrese su clave API"
+    },
+    "action": {
+      "useCredentials": "Usuario",
+      "useApiKey": "Clave API",
+      "signIn": "Iniciar sesión"
+    },
+    "username": {
+      "label": "Usuario",
+      "placeholder": "Ingrese su usuario"
+    },
+    "password": {
+      "label": "Contraseña",
+      "placeholder": "Ingrese su contraseña"
+    },
+    "apiKey": {
+      "label": "Clave API",
+      "placeholder": "Ingrese su clave API"
+    },
+    "help": {
+      "credentials": "Use sus credenciales de FlatRun",
+      "apiKey": "Las claves API se gestionan en la configuración"
+    }
+  },
+  "home": {
+    "updatedAt": "Actualizado",
+    "action": {
+      "refresh": "Actualizar",
+      "newDeployment": "Nuevo despliegue",
+      "monitoring": {
+        "title": "Monitoreo",
+        "description": "Tráfico y seguridad"
+      },
+      "templates": {
+        "title": "Plantillas",
+        "description": "Explorar apps"
+      },
+      "ssl": {
+        "title": "Certificados SSL",
+        "description": "Gestionar certificados"
+      },
+      "infrastructure": {
+        "title": "Infraestructura",
+        "description": "Nginx, bases de datos"
+      }
+    },
+    "actionGroup": {
+      "title": "Acciones rápidas"
+    },
+    "stat": {
+      "deployment": "Despliegues",
+      "running": "En ejecución",
+      "stopped": "Detenido",
+      "container": "Contenedores"
+    },
+    "deployment": {
+      "title": "Despliegues",
+      "viewAll": "Ver todo",
+      "loading": "Cargando...",
+      "emptyMessage": "Aún no hay despliegues",
+      "emptyAction": "Crear su primer despliegue",
+      "field": {
+        "name": "Nombre",
+        "status": "Estado",
+        "updated": "Actualizado"
+      }
+    },
+    "system": {
+      "title": "Sistema"
+    },
+    "health": {
+      "healthy": "Saludable",
+      "warning": "Advertencia",
+      "critical": "Crítico"
+    },
+    "resource": {
+      "cpu": "CPU",
+      "memory": "Memoria",
+      "disk": "Disco"
+    },
+    "docker": {
+      "title": "Docker",
+      "running": "En ejecución",
+      "images": "Imágenes",
+      "volumes": "Volúmenes",
+      "networks": "Redes"
+    },
+    "security": {
+      "title": "Seguridad",
+      "viewAll": "Ver todo",
+      "severity": {
+        "critical": "Crítico",
+        "high": "Alto"
+      },
+      "events24h": "Eventos 24h",
+      "blockedIps": "IPs bloqueadas",
+      "routes": "rutas",
+      "noData": "Sin datos de seguridad"
+    },
+    "agent": {
+      "title": "Agente",
+      "online": "En línea",
+      "version": "Versión",
+      "endpoint": "Endpoint"
+    },
+    "time": {
+      "justNow": "ahora mismo",
+      "minutes": "hace {n} min",
+      "hours": "hace {n} h",
+      "days": "hace {n} d",
+      "na": "N/A"
+    },
+    "notification": {
+      "refreshing": "Actualizando",
+      "updating": "Actualizando datos...",
+      "updated": "Actualizado",
+      "refreshed": "Panel actualizado",
+      "created": "Creado",
+      "deploymentCreated": "Despliegue creado exitosamente"
+    }
+  },
+  "deployment": {
+    "action": {
+      "searchPlaceholder": "Buscar despliegues...",
+      "new": "Nuevo despliegue",
+      "refresh": "Actualizar",
+      "start": "Iniciar",
+      "stop": "Detener",
+      "restart": "Reiniciar",
+      "logs": "Registros",
+      "settings": "Configuración"
+    },
+    "field": {
+      "name": "Despliegue",
+      "services": "Servicios",
+      "ports": "Puertos",
+      "updated": "Actualizado"
+    },
+    "empty": {
+      "title": "No se encontraron despliegues",
+      "description": "Cree su primer despliegue para comenzar"
+    },
+    "loading": "Cargando despliegues...",
+    "ssl": "SSL",
+    "service": {
+      "count": "{n} servicios"
+    },
+    "notification": {
+      "failedToLoad": "Error al cargar despliegues",
+      "refreshing": "Actualizando",
+      "refreshingDescription": "Obteniendo estado más reciente",
+      "operationSuccess": "{operation} exitoso",
+      "operationSuccessDescription": "{name} {operation}ado exitosamente",
+      "operationFailed": "{operation} falló",
+      "created": "Despliegue creado",
+      "createdDescription": "Nueva carpeta de despliegue creada",
+      "logsFailed": "Error al cargar registros"
+    },
+    "time": {
+      "justNow": "ahora mismo",
+      "minutes": "hace {n} min",
+      "hours": "hace {n} h",
+      "days": "hace {n} d"
+    },
+    "logs": {
+      "loading": "Cargando...",
+      "empty": "No hay registros disponibles",
+      "error": "Error: {message}"
+    },
+    "detail": {
+      "backToDeployments": "Volver a Despliegues",
+      "backToInfrastructure": "Volver a Infraestructura",
+      "loading": "Cargando detalles del despliegue...",
+      "failedToLoad": "Error al cargar el despliegue",
+      "tryAgain": "Intentar de nuevo",
+      "action": {
+        "start": "Iniciar",
+        "stop": "Detener",
+        "restart": "Reiniciar",
+        "rebuild": "Reconstruir",
+        "rebuildTitle": "Recrear contenedores con las últimas imágenes",
+        "pullImage": "Descargar Imagen",
+        "delete": "Eliminar"
+      },
+      "tab": {
+        "overview": "Resumen",
+        "files": "Archivos",
+        "logs": "Registros",
+        "terminal": "Terminal",
+        "environment": "Entorno",
+        "quickActions": "Acciones Rápidas",
+        "backups": "Copias de Seguridad",
+        "security": "Seguridad",
+        "configuration": "Configuración"
+      },
+      "generalInfo": "Información General",
+      "field": {
+        "name": "Nombre",
+        "status": "Estado",
+        "path": "Ruta",
+        "created": "Creado",
+        "lastUpdated": "Última Actualización",
+        "type": "Tipo",
+        "registry": "Registro",
+        "setCredential": "Establecer credencial",
+        "public": "Público",
+        "changeCredential": "Cambiar credencial",
+        "domain": "Dominio",
+        "virtualHost": "Host Virtual",
+        "configured": "Configurado",
+        "notConfigured": "No Configurado",
+        "ssl": "SSL",
+        "enabled": "Habilitado",
+        "disabled": "Deshabilitado",
+        "certificate": "Certificado",
+        "expires": "Expira",
+        "days": "{n} días",
+        "mode": "Modo",
+        "host": "Host",
+        "database": "Base de Datos",
+        "user": "Usuario",
+        "envPrefix": "Prefijo de Entorno"
+      },
+      "loadingStatus": "cargando",
+      "markAsInfrastructure": "Marcar como Infraestructura",
+      "domainAndSSL": "Dominio y SSL",
+      "editDomainSettings": "Editar Configuración de Dominio",
+      "proxy": {
+        "setup": "Configurar Proxy",
+        "setupTitle": "Crear configuración nginx virtual host",
+        "requestSSL": "Solicitar SSL",
+        "requestSSLTitle": "Solicitar certificado Let's Encrypt",
+        "disableSSL": "Deshabilitar SSL",
+        "disableSSLTitle": "Deshabilitar SSL y volver a HTTP",
+        "addDomain": "Agregar Dominio",
+        "delete": "Eliminar",
+        "deleteDomainTitle": "Eliminar este dominio"
+      },
+      "noDomain": "No hay dominio configurado",
+      "configureDomainHint": "Haga clic en el botón de edición para configurar la exposición del dominio",
+      "services": "Servicios",
+      "noServices": "No hay servicios configurados",
+      "serviceAction": {
+        "terminal": "Terminal",
+        "logs": "Registros",
+        "restart": "Reiniciar"
+      },
+      "databases": "Bases de Datos",
+      "resourceUsage": "Uso de Recursos",
+      "resource": {
+        "cpu": "Uso de CPU",
+        "memory": "Uso de Memoria",
+        "disk": "E/S de Disco",
+        "network": "E/S de Red"
+      },
+      "logs": {
+        "allServices": "Todos los Servicios",
+        "last100": "Últimas 100 líneas",
+        "last500": "Últimas 500 líneas",
+        "last1000": "Últimas 1000 líneas",
+        "all": "Todos los registros",
+        "empty": "No hay registros disponibles"
+      },
+      "terminal": {
+        "service": "Servicio:",
+        "connect": "Conectar",
+        "reconnect": "Reconectar",
+        "placeholder": "Acceso a Terminal",
+        "noServices": "No hay servicios disponibles",
+        "status": {
+          "clickToConnect": "Haz clic en Conectar para abrir el terminal",
+          "connecting": "Conectando...",
+          "authenticating": "Autenticando...",
+          "connectionClosed": "Conexión cerrada. Haz clic en Conectar para reconectar.",
+          "connectionFailed": "La conexión falló. Verifica que el contenedor esté en ejecución."
+        }
+      },
+      "environment": {
+        "title": "Variables de Entorno",
+        "add": "Agregar Variable",
+        "noVars": "No hay variables de entorno configuradas",
+        "key": "Clave",
+        "value": "Valor",
+        "actions": "Acciones"
+      },
+      "quickActions": {
+        "title": "Acciones Rápidas",
+        "subtitle": "Ejecutar comandos predefinidos en su despliegue",
+        "add": "Agregar Acción",
+        "noActions": "No hay acciones rápidas configuradas para este despliegue.",
+        "createHint": "Haga clic en \"Agregar Acción\" para crear su primera acción rápida.",
+        "edit": "Editar",
+        "delete": "Eliminar",
+        "run": "Ejecutar",
+        "running": "Ejecutando...",
+        "output": "Salida",
+        "clear": "Limpiar"
+      },
+      "security": {
+        "protection": "Protección de Seguridad",
+        "protectedPaths": "Rutas Protegidas",
+        "blockAccessHint": "Bloquear acceso a archivos sensibles",
+        "rateLimiting": "Limitación de Tasa",
+        "limitRequestsHint": "Limitar solicitudes por ruta",
+        "recentEvents": "Eventos de Seguridad Recientes",
+        "viewAll": "Ver todos",
+        "globalDashboard": "Panel de seguridad global",
+        "enabled": "Habilitado",
+        "disabled": "Deshabilitado",
+        "quickAdd": "Agregado Rápido:",
+        "noPaths": "No hay rutas protegidas",
+        "addPathsHint": "Haga clic en los preajustes de arriba o agregue rutas personalizadas",
+        "customPathPlaceholder": "Ruta personalizada (ej: /storage/*)",
+        "add": "Agregar",
+        "noRateLimits": "No hay límites de tasa",
+        "addLimitsHint": "Agregue límites para protegerse contra el abuso",
+        "path": "Ruta",
+        "rate": "Tasa",
+        "perMin": "/min",
+        "burst": "burst",
+        "noEvents": "No hay eventos de seguridad",
+        "eventsHint": "Los eventos de seguridad para este despliegue aparecerán aquí",
+        "severity": "Severidad",
+        "event": "Evento",
+        "sourceIP": "IP Origen",
+        "requestPath": "Ruta",
+        "time": "Hora"
+      },
+      "modal": {
+        "delete": {
+          "title": "Eliminar Despliegue",
+          "confirm": "¿Está seguro de que desea eliminar {name}?",
+          "options": "Opciones de Eliminación",
+          "deleteVhost": "Eliminar Host Virtual",
+          "deleteVhostHint": "Eliminar configuración nginx",
+          "deleteSSL": "Eliminar Certificado SSL",
+          "deleteSSLHint": "Eliminar archivos de certificado SSL asociados",
+          "deleteDatabase": "Eliminar Base de Datos",
+          "deleteDatabaseHint": "Eliminar base de datos y usuario asociados (si se usa base compartida)",
+          "warning": "Esta acción no se puede deshacer.",
+          "cancel": "Cancelar",
+          "deleting": "Eliminando...",
+          "confirmButton": "Eliminar Despliegue"
+        },
+        "pullImage": {
+          "title": "Descargar Imágenes",
+          "loading": "Cargando información de imágenes...",
+          "noImages": "No se encontraron imágenes descargables en este despliegue.",
+          "build": "Build",
+          "latest": "Última",
+          "versioned": "Versionada",
+          "latestWarning": "Las imágenes etiquetadas como :latest o sin etiqueta pueden cambiar con el tiempo. Descargar sobrescribirá las imágenes existentes con la versión más reciente, lo que puede cambiar el comportamiento de su despliegue.",
+          "versionedInfo": "Las imágenes versionadas (ej: nginx:1.25.3) son inmutables. Volver a descargarlas generalmente es innecesario.",
+          "cancel": "Cancelar",
+          "pullLatestOnly": "Descargar Solo Últimas",
+          "pullAll": "Descargar Todas las Imágenes"
+        },
+        "rebuild": {
+          "title": "Reconstruir Contenedores",
+          "warning": "Esto recreará todos los contenedores",
+          "description": "La reconstrucción detendrá todos los contenedores en ejecución, los eliminará y creará nuevos usando las imágenes actualmente disponibles. Esto es útil después de descargar nuevas imágenes.",
+          "whenToUse": "Cuándo usar:",
+          "whenToUseHint": "Después de descargar nuevas imágenes con \"Descargar Imagen\", use la reconstrucción para aplicar los cambios. Un simple reinicio no usa las nuevas imágenes descargadas.",
+          "cancel": "Cancelar",
+          "rebuild": "Reconstruir Contenedores"
+        },
+        "domainSettings": {
+          "title": "Configuración de Dominio y SSL",
+          "expose": "Exponer a Internet",
+          "exposeHint": "Habilitar proxy inverso para acceso externo",
+          "domain": "Dominio",
+          "domainPlaceholder": "app.example.com",
+          "domainHint": "El nombre de dominio para su despliegue",
+          "containerPort": "Puerto del Contenedor",
+          "containerPortPlaceholder": "80",
+          "containerPortHint": "El puerto en el que escucha su aplicación",
+          "enableSSL": "Habilitar SSL",
+          "sslHint": "Asegure su despliegue con HTTPS",
+          "autoCert": "Generar Certificado Automáticamente",
+          "autoCertHint": "Solicitar automáticamente un certificado Let's Encrypt",
+          "cancel": "Cancelar",
+          "saving": "Guardando...",
+          "save": "Guardar Configuración"
+        },
+        "credential": {
+          "title": "Credencial de Registro",
+          "description": "Seleccione una credencial de registro guardada para usar al descargar imágenes para este despliegue.",
+          "credential": "Credencial",
+          "none": "Ninguna (Registro Público)",
+          "hint": "Esta credencial se usará al descargar imágenes durante el reinicio o actualización.",
+          "manage": "Gestionar credenciales",
+          "cancel": "Cancelar",
+          "saving": "Guardando...",
+          "save": "Guardar"
+        },
+        "envVar": {
+          "add": "Agregar Variable",
+          "edit": "Editar Variable",
+          "key": "Clave",
+          "keyPlaceholder": "VARIABLE_NAME",
+          "keyHint": "El nombre de la variable de entorno (ej: DB_HOST)",
+          "value": "Valor",
+          "valuePlaceholder": "valor",
+          "valueHint": "El valor para esta variable",
+          "cancel": "Cancelar",
+          "saving": "Guardando...",
+          "addButton": "Agregar",
+          "updateButton": "Actualizar"
+        },
+        "quickAction": {
+          "add": "Agregar Acción Rápida",
+          "edit": "Editar Acción Rápida",
+          "name": "Nombre",
+          "namePlaceholder": "ej: Limpiar Caché",
+          "nameHint": "Un nombre descriptivo para la acción",
+          "command": "Comando",
+          "commandPlaceholder": "ej: php artisan cache:clear",
+          "commandHint": "El comando shell para ejecutar en el contenedor",
+          "description": "Descripción",
+          "descriptionPlaceholder": "ej: Limpiar la caché de la aplicación",
+          "descriptionHint": "Descripción opcional de lo que hace esta acción",
+          "icon": "Icono",
+          "iconHint": "Icono para mostrar para esta acción",
+          "targetService": "Servicio Destino",
+          "defaultService": "Predeterminado (primer servicio)",
+          "targetServiceHint": "Contenedor para ejecutar el comando",
+          "cancel": "Cancelar",
+          "saving": "Guardando...",
+          "addButton": "Agregar Acción",
+          "updateButton": "Actualizar Acción",
+          "iconLabels": {
+            "play": "Reproducir",
+            "bolt": "Rayo",
+            "refresh": "Actualizar",
+            "trash": "Basura",
+            "database": "Base de Datos",
+            "cog": "Engranaje",
+            "code": "Código",
+            "sync": "Sincronizar",
+            "download": "Descargar",
+            "upload": "Subir"
+          }
+        },
+        "deleteEnv": {
+          "title": "Eliminar Variable de Entorno",
+          "confirm": "¿Está seguro de que desea eliminar '{key}'?",
+          "confirmButton": "Eliminar"
+        }
+      },
+      "notification": {
+        "proxySetup": "Configuración de Proxy",
+        "proxySetupSuccess": "El host virtual ha sido configurado",
+        "domainDeleted": "Dominio Eliminado",
+        "domainDeletedSuccess": "El dominio ha sido eliminado",
+        "sslRequested": "Certificado Solicitado",
+        "sslRequestedSuccess": "El certificado SSL para {domain} ha sido solicitado",
+        "sslDisabled": "SSL Deshabilitado",
+        "sslDisabledSuccess": "SSL ha sido deshabilitado para {name}",
+        "securitySaved": "Guardado",
+        "securitySavedApplied": "Guardado y Aplicado",
+        "securityVhostUpdated": "Configuración de seguridad actualizada y vhost nginx regenerado",
+        "securityUpdated": "Configuración de seguridad actualizada",
+        "securitySaveFailed": "Error al guardar la configuración de seguridad",
+        "terminalConnected": "Conectado",
+        "terminalConnectedDesc": "Terminal conectado correctamente",
+        "terminalDisconnected": "Desconectado",
+        "terminalDisconnectedDesc": "Conexión del terminal cerrada",
+        "terminalConnectionError": "Error de conexión",
+        "setupFailed": "Configuración fallida",
+        "deleteFailed": "Error al eliminar",
+        "saveFailed": "Error al guardar",
+        "requestFailed": "Solicitud fallida",
+        "addDomainFailed": "No se pudo agregar el dominio",
+        "disableSslFailed": "No se pudo desactivar SSL",
+        "quickActionExecuted": "Acción ejecutada",
+        "quickActionExecutedDesc": "{name} se completó correctamente",
+        "quickActionFailed": "Acción fallida",
+        "quickActionFailedDesc": "{name} falló",
+        "validationError": "Error de validación",
+        "quickActionNameCommandRequired": "El nombre y el comando son obligatorios",
+        "quickActionSaved": "Acción guardada",
+        "quickActionUpdated": "Acción rápida actualizada",
+        "quickActionAdded": "Acción rápida agregada",
+        "quickActionDeleted": "Acción eliminada",
+        "quickActionDeletedDesc": "Acción rápida eliminada",
+        "deleted": "Eliminado",
+        "deploymentDeleted": "El despliegue \"{name}\" ha sido eliminado",
+        "migrated": "Migrado",
+        "migratedDesc": "Despliegue movido a Infrastructure",
+        "migrationFailed": "Migración fallida",
+        "envKeyEmpty": "La clave no puede estar vacía",
+        "envKeyExists": "La clave ya existe",
+        "saved": "Guardado",
+        "variableUpdated": "Variable actualizada",
+        "variableAdded": "Variable agregada",
+        "envRemoved": "Variable de entorno \"{key}\" eliminada",
+        "domainSettingsUpdated": "Configuración de dominio actualizada correctamente",
+        "registryCredentialUpdated": "Credencial de registro actualizada",
+        "copied": "Copiado",
+        "configurationCopied": "Configuración copiada al portapapeles",
+        "serviceConfigurationCopied": "Configuración del servicio copiada al portapapeles",
+        "configurationSaved": "Configuración guardada correctamente",
+        "serviceConfigurationSaved": "Configuración del servicio guardada correctamente",
+        "domainAdded": "Dominio agregado",
+        "domainAddedSuccess": "{domain} ha sido agregado a este despliegue"
+      },
+      "domainForm": {
+        "titleEdit": "Editar dominio",
+        "titleAdd": "Agregar dominio",
+        "defaultService": "Predeterminado ({name})",
+        "section": {
+          "ssl": "Configuración SSL"
+        },
+        "field": {
+          "domain": "Dominio",
+          "service": "Servicio",
+          "containerPort": "Puerto del contenedor",
+          "pathPrefix": "Prefijo de ruta",
+          "domainAliases": "Alias de dominio"
+        },
+        "hint": {
+          "primaryDomain": "El nombre de dominio principal",
+          "pathPrefix": "Prefijo de ruta opcional (ej.: /api/*)",
+          "stripPrefix": "Si se activa, /api/users se enviará al backend como /users",
+          "additionalAliases": "Nombres de dominio adicionales que también deben resolver aquí"
+        },
+        "checkbox": {
+          "stripPrefix": "Quitar prefijo antes de enrutar por proxy",
+          "enableSsl": "Habilitar SSL (HTTPS)",
+          "autoCert": "Solicitar automáticamente certificado Let's Encrypt"
+        },
+        "placeholder": {
+          "domain": "api.example.com",
+          "containerPort": "80",
+          "pathPrefix": "/api/v1",
+          "alias": "www.example.com"
+        },
+        "action": {
+          "addAlias": "Agregar alias",
+          "cancel": "Cancelar",
+          "addDomain": "Agregar dominio",
+          "updateDomain": "Actualizar"
+        }
+      },
+      "domainManager": {
+        "loading": "Cargando...",
+        "status": {
+          "ssl": "SSL",
+          "noCert": "Sin certificado",
+          "noProxy": "Sin proxy"
+        },
+        "action": {
+          "setupProxy": "Configurar proxy",
+          "requestSsl": "Solicitar certificado SSL",
+          "edit": "Editar",
+          "delete": "Eliminar",
+          "addDomain": "Agregar dominio"
+        },
+        "confirmDelete": {
+          "title": "Eliminar dominio",
+          "message": "¿Seguro que deseas eliminar {domain}?",
+          "confirm": "Eliminar"
+        },
+        "notification": {
+          "domainUpdated": "Dominio actualizado",
+          "domainUpdatedDesc": "{domain} ha sido actualizado",
+          "domainAdded": "Dominio agregado",
+          "domainAddedDesc": "{domain} ha sido agregado",
+          "saveFailed": "Error al guardar",
+          "deleteFailed": "Error al eliminar",
+          "certificateRequestFailed": "Error al solicitar el certificado"
+        }
+      },
+      "config": {
+        "serviceYml": "service.yml",
+        "dockerComposeConfig": "Configuración de Docker Compose",
+        "serviceConfig": "Configuración de Servicio",
+        "copy": "Copiar",
+        "edit": "Editar",
+        "cancel": "Cancelar",
+        "save": "Guardar",
+        "noComposeFile": "No se encontró archivo compose",
+        "errorLoadingCompose": "Error al cargar el archivo compose",
+        "serviceConfigNotFound": "Configuración de servicio no encontrada\nEste archivo se creará al guardar"
+      }
+    },
+    "modal": {
+      "operation": {
+        "waitingForOutput": "Esperando salida...",
+        "close": "Cerrar",
+        "starting": "Iniciando",
+        "stopping": "Deteniendo",
+        "restarting": "Reiniciando",
+        "inProgress": "En Progreso...",
+        "completed": "Completado Exitosamente",
+        "failed": "Fallido",
+        "pending": "Pendiente",
+        "title": "Deployment: {operation}"
+      },
+      "logs": {
+        "subtitle": "Salida de logs del contenedor",
+        "empty": "No hay logs disponibles"
+      },
+      "newDeployment": {
+        "title": "Crear Despliegue",
+        "subtitle": "Despliegue su aplicación en pocos pasos",
+        "mode": {
+          "title": "¿Cómo le gustaría desplegar?",
+          "subtitle": "Elija el método de despliegue que mejor funcione para usted",
+          "easy": {
+            "name": "Modo Fácil",
+            "description": "Configuración guiada con plantillas",
+            "badge": "Recomendado",
+            "features": [
+              "Elija entre plantillas preconstruidas",
+              "Configure la base de datos automáticamente",
+              "Configuración de dominio y SSL"
+            ]
+          },
+          "image": {
+            "name": "Desde Imagen",
+            "description": "Despliegue cualquier imagen Docker",
+            "badge": "Rápido",
+            "features": [
+              "Use cualquier imagen pública/privada",
+              "Genere compose automáticamente",
+              "Despliegue rápido"
+            ]
+          },
+          "compose": {
+            "name": "Modo Compose",
+            "description": "Control total con docker-compose",
+            "badge": "Avanzado",
+            "features": [
+              "Escriba su propio archivo compose",
+              "Configuración avanzada",
+              "Para usuarios avanzados"
+            ]
+          }
+        },
+        "steps": {
+          "basics": "Básicos",
+          "database": "Base de datos",
+          "configure": "Configurar",
+          "review": "Revisar",
+          "domains": "Dominios"
+        },
+        "basics": {
+          "deploymentDetails": "Detalles del Despliegue",
+          "name": "Nombre",
+          "namePlaceholder": "mi-app",
+          "nameHint": "Letras minúsculas, números y guiones",
+          "domain": "Dominio",
+          "generating": "generando...",
+          "generateNew": "Generar nuevo subdominio",
+          "useCustomDomain": "Usar dominio personalizado",
+          "customDomain": "Dominio Personalizado",
+          "customDomainPlaceholder": "app.ejemplo.com",
+          "enableHttps": "Habilitar HTTPS",
+          "autoCert": "Aprovisionar certificado automáticamente",
+          "template": "Plantilla",
+          "custom": "Personalizado",
+          "customDesc": "Escriba su propio compose"
+        },
+        "database": {
+          "title": "Base de datos",
+          "none": "Sin Base de datos",
+          "noneDesc": "Omitir configuración de base de datos",
+          "mysql": "MySQL",
+          "mysqlDesc": "Base de datos relacional popular",
+          "postgres": "PostgreSQL",
+          "postgresDesc": "Base de datos open source avanzada",
+          "mariadb": "MariaDB",
+          "mariadbDesc": "Fork compatible con MySQL",
+          "mongodb": "MongoDB",
+          "mongodbDesc": "Base de datos documental NoSQL",
+          "connectionMode": "Modo de Conexión",
+          "useShared": "Usar Compartida",
+          "sharedDesc": "Crear automáticamente en BD compartida",
+          "createNew": "Crear Nueva",
+          "createDesc": "Añadir base de datos a la pila de la app",
+          "useExisting": "Usar Existente",
+          "existingDesc": "Conectar al contenedor local",
+          "external": "Externa",
+          "externalDesc": "Conectar al servidor remoto",
+          "selectContainer": "Seleccionar Contenedor",
+          "loadingContainers": "Cargando contenedores...",
+          "noContainers": "No se encontraron contenedores {type}",
+          "createInstead": "Crear nueva en su lugar",
+          "serverDetails": "Detalles del Servidor",
+          "host": "Host",
+          "hostPlaceholder": "db.ejemplo.com",
+          "port": "Puerto",
+          "credentials": "Credenciales",
+          "dbName": "Nombre de la Base de datos",
+          "dbNamePlaceholder": "app_db",
+          "username": "Nombre de usuario",
+          "usernamePlaceholder": "app",
+          "password": "Contraseña",
+          "rootPassword": "Contraseña Root",
+          "rootPasswordHint": "Dejar vacío para usar la misma contraseña",
+          "testing": "Probando conexión...",
+          "connectionSuccess": "Conexión exitosa",
+          "connectionFailed": "Conexión fallida",
+          "testHint": "Pruebe la conexión antes de continuar",
+          "configPreview": "Vista previa de Configuración",
+          "connection": "Conexión",
+          "database": "Base de datos",
+          "user": "Usuario",
+          "envHint": "Las variables de entorno se añadirán automáticamente a su app",
+          "servicePreview": "Vista previa del Servicio",
+          "stackHint": "Este servicio de base de datos se añadirá a su pila compose",
+          "additionalDatabases": "Bases de datos Adicionales",
+          "alias": "Alias",
+          "addAnother": "Añadir Otra Base de datos",
+          "dbTypes": {
+            "mysql": "MySQL",
+            "postgres": "PostgreSQL",
+            "redis": "Redis",
+            "mongodb": "MongoDB"
+          },
+          "envPreview": "Env: {prefix}_HOST, {prefix}_PORT...",
+          "noDatabaseConfigured": "Ninguna base de datos configurada",
+          "hostPortRequired": "Se requieren host y puerto",
+          "adminPasswordHint": "Contraseña de administrador para la base de datos",
+          "aliasPlaceholder": "p. ej. analytics-db",
+          "existing": "Existente",
+          "shared": "Compartida",
+          "testButton": "Probar conexión"
+        },
+        "compose": {
+          "title": "Modo Compose",
+          "fullControl": "Control Total",
+          "fullControlDesc": "Escriba su propia configuración docker-compose.yml",
+          "multiService": "Soporte Multi-Servicio",
+          "multiServiceDesc": "Defina múltiples servicios, volúmenes y redes",
+          "advancedOptions": "Opciones Avanzadas",
+          "multiDomain": "Configuración Multi-Dominio",
+          "multiDomainDesc": "Enrute diferentes dominios a diferentes servicios",
+          "multiDatabase": "Configuración Multi-Base de datos",
+          "multiDatabaseDesc": "Configure múltiples conexiones de base de datos",
+          "nextStepHint": "Escribirá su archivo compose en el siguiente paso"
+        },
+        "image": {
+          "title": "Imagen Docker",
+          "imageName": "Nombre de la Imagen",
+          "imagePlaceholder": "nginx:latest o ghcr.io/user/app:v1",
+          "imageHint": "Docker Hub, GHCR, o cualquier registro",
+          "privateRegistry": "Registro privado (requiere autenticación)",
+          "useSaved": "Usar credencial guardada",
+          "enterNew": "Ingresar nuevas credenciales",
+          "selectCredential": "Seleccionar Credencial",
+          "chooseCredential": "Elija una credencial guardada",
+          "registryUsername": "Nombre de usuario",
+          "usernamePlaceholder": "Nombre de usuario o nombre del token de acceso",
+          "registryPassword": "Contraseña / Token",
+          "passwordPlaceholder": "Contraseña o token de acceso personal",
+          "saveCredential": "Guardar credencial para uso futuro",
+          "credentialName": "Nombre de la credencial (ej: Mi Docker Hub)",
+          "composeHint": "Se generará automáticamente un archivo compose para su imagen"
+        },
+        "storage": {
+          "title": "Almacenamiento",
+          "mountsConfigured": "{n} punto(s) de montaje configurado(s)",
+          "required": "Requerido",
+          "bindMount": "Montaje Vinculado",
+          "volume": "Volumen"
+        },
+        "domains": {
+          "title": "Configurar Dominios",
+          "subtitle": "Enrute diferentes dominios a diferentes servicios en su pila compose",
+          "primary": "Dominio Principal",
+          "notConfigured": "No configurado",
+          "domain": "Dominio",
+          "domainPlaceholder": "api.ejemplo.com",
+          "serviceName": "Nombre del Servicio",
+          "servicePlaceholder": "api",
+          "serviceHint": "Nombre del servicio desde su archivo compose",
+          "containerPort": "Puerto del Contenedor",
+          "pathPrefix": "Prefijo de Ruta (opcional)",
+          "pathPlaceholder": "/api",
+          "enableSsl": "Habilitar SSL",
+          "addDomain": "Añadir Otro Dominio"
+        },
+        "configure": {
+          "composeTitle": "docker-compose.yml",
+          "format": "Formatear",
+          "copy": "Copiar",
+          "composePlaceholder": "# Configuración Docker Compose...",
+          "environment": "Entorno",
+          "addVariable": "Añadir Variable",
+          "keyPlaceholder": "CLAVE",
+          "valuePlaceholder": "valor",
+          "ports": "Puertos",
+          "addPort": "Añadir Puerto",
+          "containerPortTitle": "Puerto del contenedor",
+          "hostPortPlaceholder": "host",
+          "hostPortTitle": "Puerto host (dejar vacío para solo exponer)",
+          "portHint": "Contenedor:Host - deje host vacío para solo exponer",
+          "options": "Opciones",
+          "startAfterCreation": "Iniciar después de la creación"
+        },
+        "review": {
+          "title": "Listo para Desplegar",
+          "subtitle": "Revise su configuración",
+          "name": "Nombre",
+          "image": "Imagen",
+          "template": "Plantilla",
+          "mode": "Modo",
+          "customCompose": "Compose Personalizado",
+          "domain": "Dominio",
+          "ssl": "SSL",
+          "enabled": "Habilitado",
+          "disabled": "Deshabilitado",
+          "autoStart": "Inicio Automático",
+          "yes": "Sí",
+          "no": "No",
+          "envVars": "Variables de Entorno",
+          "defined": "definidas",
+          "dockerCompose": "Docker Compose",
+          "lines": "líneas"
+        },
+        "footer": {
+          "changeMode": "Cambiar Modo",
+          "back": "Atrás",
+          "cancel": "Cancelar",
+          "getStarted": "Comenzar",
+          "continue": "Continuar",
+          "creating": "Creando...",
+          "deploy": "Desplegar"
+        },
+        "validation": {
+          "nameRequired": "El nombre es requerido",
+          "nameFormat": "Solo se permiten letras minúsculas, números y guiones",
+          "nameExists": "Ya existe un despliegue con este nombre",
+          "composeRequired": "Se requiere configuración compose"
+        },
+        "notification": {
+          "connectionSuccess": "Conexión exitosa",
+          "connectionReachable": "La base de datos es accesible",
+          "connectionFailed": "Conexión fallida",
+          "formatted": "Formato",
+          "yamlFormatted": "Formato YAML aplicado",
+          "copied": "Copiado",
+          "composeCopied": "Contenido de compose copiado",
+          "generateComposeFailed": "No se pudo generar compose",
+          "createFailed": "No se pudo crear el despliegue"
+        }
+      }
+    },
+    "backups": {
+      "title": "Copias de Seguridad",
+      "create": "Crear Copia",
+      "creating": "Creando...",
+      "schedule": "Programar Copia",
+      "loading": "Cargando copias...",
+      "noBackups": "No hay copias aún",
+      "noBackupsDesc": "Cree su primera copia para proteger los datos de su despliegue.",
+      "restore": "Restaurar",
+      "download": "Descargar",
+      "scheduledTitle": "Copias Programadas",
+      "nextRun": "Próxima:",
+      "status": {
+        "completed": "Completada",
+        "pending": "Pendiente",
+        "in_progress": "En progreso",
+        "failed": "Fallida"
+      },
+      "modal": {
+        "schedule": {
+          "title": "Programar Copia Automática",
+          "name": "Nombre de la Tarea",
+          "namePlaceholder": "ej: Copia diaria",
+          "cron": "Horario (Expresión Cron)",
+          "cronPlaceholder": "0 2 * * *",
+          "examples": "Ejemplos:",
+          "dailyAt2am": "diario a las 2am",
+          "every6hours": "cada 6 horas",
+          "retention": "Contador de Retención",
+          "retentionHint": "Número de copias a mantener (las más antiguas se borrarán)",
+          "enableNow": "Habilitar programación inmediatamente",
+          "cancel": "Cancelar",
+          "create": "Crear Programación"
+        },
+        "delete": {
+          "title": "Eliminar Copia",
+          "confirm": "¿Está seguro de que desea eliminar esta copia? Esta acción no se puede deshacer.",
+          "confirmTask": "¿Está seguro de que desea eliminar esta tarea programada?",
+          "delete": "Eliminar"
+        },
+        "restore": {
+          "title": "Restaurar Copia",
+          "confirm": "¿Está seguro de que desea restaurar desde la copia \"{id}\"? Esto sobrescribirá los datos actuales y reiniciará los contenedores.",
+          "restore": "Restaurar"
+        }
+      },
+      "notification": {
+        "error": "Error",
+        "loadFailed": "Error al cargar copias",
+        "backupStarted": "Copia Iniciada",
+        "backupProgress": "La creación de la copia ha sido iniciada",
+        "backupComplete": "Copia Completada",
+        "backupSuccess": "La copia se ha creado exitosamente",
+        "backupFailed": "Copia Fallida",
+        "backupError": "Error al crear la copia",
+        "restoreStarted": "Restauración Iniciada",
+        "restoreProgress": "La restauración de la copia ha sido iniciada",
+        "restoreComplete": "Restauración Completada",
+        "restoreSuccess": "La copia se ha restaurado exitosamente",
+        "restoreFailed": "Restauración Fallida",
+        "restoreError": "Error al restaurar la copia",
+        "deleted": "Copia Eliminada",
+        "deleteSuccess": "La copia ha sido eliminada",
+        "deleteFailed": "Error al eliminar",
+        "deleteError": "Error al eliminar la copia",
+        "scheduleCreated": "Programación Creada",
+        "scheduleSuccess": "La programación de la copia ha sido creada",
+        "scheduleError": "Error al crear la programación",
+        "scheduleEnabled": "Programación Habilitada",
+        "scheduleDisabled": "Programación Deshabilitada",
+        "scheduleUpdate": "La programación \"{name}\" ha sido actualizada",
+        "scheduleUpdateError": "Error al actualizar la programación",
+        "runError": "Error al ejecutar la tarea",
+        "scheduleDeleted": "Programación Eliminada",
+        "scheduleDeleteSuccess": "La programación ha sido eliminada",
+        "scheduleDeleteFailed": "Error al eliminar",
+        "scheduleDeleteError": "Error al eliminar la programación",
+        "backupCompleteDesc": "La copia se creó correctamente",
+        "backupStartedDesc": "La creación de la copia se ha iniciado",
+        "deletedDesc": "La copia se ha eliminado",
+        "lostConnection": "Se perdió la conexión con la tarea",
+        "restoreCompleteDesc": "La copia se restauró correctamente",
+        "restoreStartedDesc": "La restauración de la copia se ha iniciado",
+        "scheduleCreatedDesc": "Se creó la programación de copias",
+        "statusUnknown": "Estado desconocido",
+        "taskDeleted": "Tarea eliminada",
+        "taskDeletedDesc": "La tarea programada se eliminó",
+        "taskStartedDesc": "La ejecución de la tarea de copia se ha iniciado"
+      }
+    },
+    "files": {
+      "title": "Archivos",
+      "hidden": "Ocultos",
+      "listView": "Vista de Lista",
+      "gridView": "Vista de Cuadrícula",
+      "newFolder": "Nueva Carpeta",
+      "upload": "Subir",
+      "uploadFiles": "Subir Archivos",
+      "uploading": "Subiendo {name}...",
+      "loading": "Cargando archivos...",
+      "empty": "No hay archivos aún",
+      "emptyDesc": "Suba archivos o cree carpetas para comenzar",
+      "retry": "Reintentar",
+      "items": "{n} elementos",
+      "total": "{size} total",
+      "table": {
+        "name": "Nombre",
+        "size": "Tamaño",
+        "modified": "Modificado",
+        "actions": "Acciones"
+      },
+      "modal": {
+        "newFolder": {
+          "title": "Nueva Carpeta",
+          "label": "Nombre de la Carpeta",
+          "placeholder": "Ingrese el nombre de la carpeta",
+          "cancel": "Cancelar",
+          "create": "Crear",
+          "name": "Nombre de la carpeta"
+        },
+        "delete": {
+          "title": "Confirmar Eliminación",
+          "confirm": "¿Está seguro de que desea eliminar <strong>{name}</strong>?",
+          "warning": "Esto eliminará todo el contenido dentro de la carpeta.",
+          "cancel": "Cancelar",
+          "delete": "Eliminar"
+        },
+        "editor": {
+          "readOnly": "Solo Lectura",
+          "loading": "Cargando archivo...",
+          "modified": "Modificado",
+          "cancel": "Cancelar",
+          "save": "Guardar",
+          "close": "Cerrar",
+          "edit": "Editar",
+          "unsavedChanges": "Tienes cambios sin guardar. ¿Seguro que quieres cerrar?"
+        }
+      },
+      "notification": {
+        "error": "Error",
+        "loadFailed": "Error al cargar archivos",
+        "uploadSuccess": "Archivos subidos exitosamente",
+        "uploadError": "Error al subir archivos",
+        "folderCreated": "Carpeta creada exitosamente",
+        "folderError": "Error al crear carpeta",
+        "deleted": "Archivo eliminado exitosamente",
+        "deleteError": "Error al eliminar archivo",
+        "saved": "Archivo guardado exitosamente",
+        "saveError": "Error al guardar archivo",
+        "uploadComplete": "Carga completada",
+        "uploadCompleteDesc": "{name} se cargó correctamente",
+        "uploadFailed": "Carga fallida",
+        "downloadFailed": "Descarga fallida",
+        "folderCreatedDesc": "{name} se creó correctamente",
+        "deletedDesc": "{name} se eliminó correctamente",
+        "deleteFailed": "Error al eliminar",
+        "loadError": "No se pudo cargar el archivo",
+        "saveSuccess": "Guardado",
+        "saveSuccessDesc": "{name} se guardó correctamente",
+        "saveFailed": "Error al guardar"
+      },
+      "noFiles": "Aún no hay archivos",
+      "noFilesDesc": "Sube archivos o crea carpetas para comenzar",
+      "colName": "Nombre",
+      "colSize": "Tamaño",
+      "colModified": "Modificado",
+      "colActions": "Acciones",
+      "folder": "Carpeta"
+    },
+    "logViewer": {
+      "searchPlaceholder": "Buscar en registros...",
+      "previous": "Anterior (Shift+Enter)",
+      "next": "Siguiente (Enter)",
+      "close": "Cerrar",
+      "follow": "Seguir",
+      "search": "Buscar (Ctrl+F)",
+      "clear": "Limpiar",
+      "download": "Descargar",
+      "refresh": "Actualizar",
+      "fullscreen": "Pantalla completa",
+      "exitFullscreen": "Salir de pantalla completa",
+      "noResults": "Sin resultados",
+      "empty": "No hay registros disponibles"
+    }
+  },
+  "security": {
+    "title": "Seguridad y monitoreo",
+    "tabs": {
+      "overview": "Resumen",
+      "traffic": "Tráfico y rendimiento",
+      "events": "Eventos de seguridad",
+      "blocked": "IPs bloqueadas",
+      "routes": "Límites de tasa",
+      "health": "Estado",
+      "settings": "Configuración"
+    },
+    "loading": "Cargando datos de seguridad...",
+    "refresh": "Actualizar",
+    "traffic": {
+      "loading": "Analizando patrones de tráfico...",
+      "loadingGeneric": "Cargando...",
+      "tabs": {
+        "overview": "Resumen",
+        "logs": "Registros",
+        "performance": "Rendimiento",
+        "unknown": "Dominios desconocidos"
+      },
+      "actions": {
+        "refresh": "Actualizar",
+        "clear": "Limpiar",
+        "view": "Ver",
+        "viewLogs": "Ver registros",
+        "viewRequests": "Ver solicitudes",
+        "filterByIp": "Filtrar por esta IP",
+        "blockThisIp": "Bloquear esta IP",
+        "checkTraffic": "Comprobar tráfico"
+      },
+      "cards": {
+        "requests": "Solicitudes",
+        "dataTransfer": "Transferencia de datos",
+        "responseTime": "Tiempo de respuesta",
+        "errorRate": "Tasa de error",
+        "slow": "lento",
+        "high": "alto",
+        "avgPerReq": "{value}/sol promedio",
+        "p95": "p95: {value}",
+        "errors4xxTitle": "Errores 4xx",
+        "errors5xxTitle": "Errores 5xx"
+      },
+      "panels": {
+        "domains": "Dominios",
+        "suspiciousIps": "IPs sospechosas",
+        "topSources": "Fuentes principales",
+        "byMethod": "Por método",
+        "byStatus": "Por estado"
+      },
+      "logs": {
+        "filters": {
+          "allDomains": "Todos los dominios",
+          "allStatus": "Todos los estados",
+          "allMethods": "Todos los métodos",
+          "pathPlaceholder": "Filtrar ruta..."
+        },
+        "methods": {
+          "get": "Obtener",
+          "post": "Enviar",
+          "put": "Actualizar",
+          "delete": "Eliminar"
+        },
+        "columns": {
+          "time": "Hora",
+          "domain": "Dominio",
+          "method": "Método",
+          "path": "Ruta",
+          "status": "Estado",
+          "ip": "IP",
+          "responseTime": "Tiempo",
+          "size": "Tamaño"
+        }
+      },
+      "pagination": {
+        "prev": "Anterior",
+        "next": "Siguiente"
+      },
+      "performance": {
+        "slowestEndpoints": "Endpoints más lentos",
+        "byAvgResponseTime": "por tiempo medio de respuesta",
+        "requests": "Solicitudes",
+        "avgTime": "Tiempo prom.",
+        "errors": "Errores",
+        "requestVolume24h": "Volumen de solicitudes (24h)"
+      },
+      "unknown": {
+        "loading": "Cargando estadísticas de dominios desconocidos...",
+        "totalRequests": "Solicitudes totales",
+        "uniqueDomains": "Dominios únicos",
+        "uniqueIps": "IPs únicas",
+        "topUnknownDomains": "Principales dominios desconocidos",
+        "topSourceIps": "Principales IPs de origen",
+        "lastSeen": "Visto por última vez {value}",
+        "infoTitle": "Estas son solicitudes a dominios que no coinciden con ningún despliegue configurado:",
+        "infoRecon": "Intentos de reconocimiento sondeando tu servidor",
+        "infoDns": "DNS mal configurado apuntando a tu IP",
+        "infoBots": "Bots escaneando hosts vulnerables"
+      },
+      "insights": {
+        "trafficUp": "Tráfico +{value}% vs período anterior",
+        "trafficDown": "Tráfico -{value}% vs período anterior",
+        "elevatedErrorRate": "Tasa de error elevada: {value}%",
+        "slowAvgResponse": "Respuesta media lenta: {value}",
+        "dominantIp": "{ip} realizó el {value}% de las solicitudes"
+      },
+      "recommendations": {
+        "investigateIp": "Investigar {ip}",
+        "reviewSuspiciousIps": "Revisar IPs sospechosas",
+        "investigateSlowEndpoint": "Investigar endpoint lento"
+      },
+      "alerts": {
+        "highErrorRateTitle": "Alta tasa de error: {name}",
+        "requestsFailing": "{value}% de las solicitudes fallan",
+        "slowResponsesTitle": "Respuestas lentas: {name}",
+        "avgResponse": "Prom. {value}",
+        "elevatedServerErrors": "Errores de servidor elevados",
+        "errors5xx": "{value} errores 5xx"
+      },
+      "units": {
+        "requests": "{value} solicitudes",
+        "requestsShort": "{value} sol"
+      },
+      "empty": {
+        "noTrafficRecorded": "Aún no hay tráfico registrado",
+        "noLogsForFilters": "Ningún registro coincide con tus filtros",
+        "noSlowEndpoints": "No se detectaron endpoints lentos",
+        "noPerformanceIssues": "No se detectaron problemas de rendimiento",
+        "noUnknownDomainRequests": "No hay solicitudes de dominios desconocidos",
+        "noSourceIpData": "No hay datos de IP de origen",
+        "noUnknownData": "No hay datos de dominios desconocidos disponibles",
+        "noTrafficData": "Aún no hay datos de tráfico"
+      },
+      "blockModal": {
+        "title": "Bloquear dirección IP",
+        "message": "¿Bloquear todas las solicitudes de {ip}? Esto tendrá efecto inmediato.",
+        "reason": "Bloqueado desde panel de tráfico - actividad sospechosa"
+      }
+    },
+    "stats": {
+      "totalEvents": "Eventos totales",
+      "last24h": "Últimas 24 horas",
+      "last7d": "Últimos 7 días",
+      "blockedIps": "IPs bloqueadas",
+      "protectedRoutes": "Rutas protegidas"
+    },
+    "severity": {
+      "title": "Eventos por severidad",
+      "critical": "Crítico",
+      "high": "Alto",
+      "medium": "Medio",
+      "low": "Bajo"
+    },
+    "trend": {
+      "title": "Tendencia de 7 días",
+      "noData": "No hay datos de tendencia"
+    },
+    "topDeployments": {
+      "title": "Principales despliegues por eventos",
+      "noData": "No hay datos de despliegues",
+      "critical": "crítico",
+      "high": "alto"
+    },
+    "topIps": {
+      "title": "IPs más ofensivas",
+      "noData": "No hay datos de IP",
+      "lastSeen": "Última vez visto"
+    },
+    "recentEvents": {
+      "title": "Eventos críticos recientes",
+      "noData": "No hay eventos críticos recientes"
+    },
+    "actions": {
+      "blockIp": "Bloquear IP",
+      "edit": "Editar",
+      "delete": "Eliminar"
+    },
+    "events": {
+      "title": "Eventos de seguridad",
+      "types": {
+        "unauthorized_access": "Acceso no autorizado",
+        "forbidden_access": "Acceso prohibido",
+        "not_found_probe": "Sondeo de no encontrado",
+        "server_error": "Error del servidor",
+        "rate_limit_exceeded": "Límite de tasa excedido",
+        "suspicious_path": "Ruta sospechosa",
+        "scanner_detected": "Escáner detectado"
+      },
+      "filters": {
+        "allSeverities": "Todas las severidades",
+        "allTypes": "Todos los tipos de eventos",
+        "filterByIp": "Filtrar por IP...",
+        "clear": "Limpiar"
+      },
+      "table": {
+        "time": "Hora",
+        "severity": "Severidad",
+        "type": "Tipo",
+        "sourceIp": "IP de origen",
+        "path": "Ruta",
+        "status": "Estado"
+      },
+      "empty": {
+        "title": "No hay eventos de seguridad",
+        "hint": "Los eventos de seguridad aparecerán aquí cuando se detecten"
+      },
+      "pagination": {
+        "previous": "Anterior",
+        "next": "Siguiente"
+      }
+    },
+    "blocked": {
+      "title": "Direcciones IP bloqueadas",
+      "blockIp": "Bloquear IP",
+      "empty": {
+        "title": "No hay IPs bloqueadas",
+        "hint": "Las direcciones IP bloqueadas aparecerán aquí"
+      },
+      "auto": "Auto",
+      "blocked": "Bloqueado",
+      "expires": "Expira",
+      "unblock": "Desbloquear"
+    },
+    "routes": {
+      "title": "Rutas protegidas",
+      "addRoute": "Agregar ruta",
+      "empty": {
+        "title": "No hay rutas protegidas",
+        "hint": "Agrega rutas para aplicar límites de tasa"
+      },
+      "rateLimit": "sol/min",
+      "blockDuration": "Bloqueo:",
+      "seconds": "s",
+      "presets": {
+        "title": "Preajustes rápidos",
+        "wpLogin": "Inicio de sesión WordPress",
+        "admin": "Panel de administración",
+        "api": "Endpoints API"
+      }
+    },
+    "health": {
+      "title": "Estado de seguridad",
+      "checking": "Verificando estado de seguridad...",
+      "empty": "Haz clic en actualizar para comprobar el estado de seguridad",
+      "critical": "Crítico",
+      "regenerateScripts": "Regenerar scripts de seguridad",
+      "regenerating": "Regenerando...",
+      "scriptsHint": "Regenera scripts Lua con la IP actual del agente y recarga nginx"
+    },
+    "settings": {
+      "title": "Configuración de seguridad",
+      "realtimeCapture": {
+        "title": "Captura en tiempo real",
+        "description": "Habilita la captura en tiempo real de eventos de seguridad usando OpenResty/Lua. Los eventos se capturan al ocurrir en lugar de analizarse desde logs.",
+        "requires": "Requiere:",
+        "openresty": "Imagen nginx OpenResty",
+        "enabled": "Habilitado",
+        "disabled": "Deshabilitado",
+        "activeNote": "La captura en tiempo real está activa. Los eventos de seguridad se enviarán directamente desde nginx a la API del agente.",
+        "disabledNote": "La captura en tiempo real está deshabilitada. El bloqueo de IP y límites de tasa seguirán funcionando, pero los eventos solo se capturarán al analizar logs."
+      },
+      "moduleStatus": {
+        "title": "Estado del módulo de seguridad",
+        "description": "El módulo de seguridad gestiona almacenamiento de eventos, bloqueo de IP y configuración de límites de tasa.",
+        "active": "Activo",
+        "inactive": "Inactivo"
+      }
+    },
+    "modals": {
+      "blockIp": {
+        "title": "Bloquear dirección IP",
+        "ipAddress": "Dirección IP",
+        "ipPlaceholder": "192.168.1.1",
+        "reason": "Motivo (opcional)",
+        "reasonPlaceholder": "Bloqueo manual",
+        "duration": "Duración (segundos, 0 = permanente)",
+        "cancel": "Cancelar",
+        "block": "Bloquear IP"
+      },
+      "route": {
+        "addTitle": "Agregar ruta protegida",
+        "editTitle": "Editar ruta protegida",
+        "pathPattern": "Patrón de ruta",
+        "pathPlaceholder": "/wp-login.php, /admin/*, /api/*",
+        "pathHint": "Admite comodines (*)",
+        "rateLimit": "Límite de tasa (sol/min)",
+        "blockDuration": "Duración del bloqueo (segundos)",
+        "cancel": "Cancelar",
+        "add": "Agregar ruta",
+        "update": "Actualizar ruta"
+      },
+      "deleteRoute": {
+        "title": "Eliminar ruta protegida",
+        "confirm": "¿Seguro que quieres eliminar la ruta",
+        "cancel": "Cancelar",
+        "delete": "Eliminar"
+      }
+    },
+    "notifications": {
+      "refreshed": "Actualizado",
+      "dataUpdated": "Datos de seguridad actualizados",
+      "realtimeEnabled": "Captura en tiempo real habilitada",
+      "realtimeDisabled": "Captura en tiempo real deshabilitada",
+      "realtimeEnabledDesc": "Los eventos de seguridad ahora se capturarán en tiempo real mediante OpenResty/Lua",
+      "realtimeDisabledDesc": "La captura en tiempo real ha sido deshabilitada",
+      "scriptsRegenerated": "Scripts de seguridad regenerados",
+      "manualBlockReason": "Bloqueo manual desde eventos de seguridad",
+      "ipBlocked": "IP bloqueada",
+      "hasBeenBlocked": "ha sido bloqueada",
+      "blockIpFailed": "Error al bloquear IP",
+      "ipUnblocked": "IP desbloqueada",
+      "hasBeenUnblocked": "ha sido desbloqueada",
+      "unblockIpFailed": "Error al desbloquear IP",
+      "routeUpdated": "Ruta actualizada",
+      "routeUpdatedDesc": "La ruta protegida ha sido actualizada",
+      "routeAdded": "Ruta agregada",
+      "routeAddedDesc": "La ruta protegida ha sido agregada",
+      "routeDeleted": "Ruta eliminada",
+      "routeDeletedDesc": "La ruta protegida ha sido eliminada",
+      "presetAdded": "Preajuste agregado",
+      "presetAddedDesc": "se ha agregado la protección",
+      "addPresetFailed": "Error al agregar preajuste",
+      "saveRouteFailed": "Error al guardar la ruta",
+      "toggleRouteFailed": "Error al alternar la ruta",
+      "deleteRouteFailed": "Error al eliminar la ruta",
+      "failed": "Falló"
+    }
+  },
+  "common": {
+    "na": "N/D",
+    "time": {
+      "justNow": "ahora mismo",
+      "mAgo": "hace {n}m",
+      "hAgo": "hace {n}h",
+      "dAgo": "hace {n}d"
+    },
+    "error": "Error",
+    "warning": "Advertencia",
+    "success": "Éxito",
+    "confirm": "Confirmar",
+    "cancel": "Cancelar"
   }
 }

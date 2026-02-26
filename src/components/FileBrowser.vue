@@ -16,13 +16,13 @@
         <label class="view-toggle" :class="{ active: showHiddenFiles }">
           <input v-model="showHiddenFiles" type="checkbox" />
           <i class="pi pi-eye" />
-          Hidden
+          {{ $t("deployment.files.hidden") }}
         </label>
         <div class="view-mode-toggle">
           <button
             class="view-mode-btn"
             :class="{ active: viewMode === 'list' }"
-            title="List View"
+            :title="$t('deployment.files.listView')"
             @click="viewMode = 'list'"
           >
             <i class="pi pi-list" />
@@ -30,7 +30,7 @@
           <button
             class="view-mode-btn"
             :class="{ active: viewMode === 'grid' }"
-            title="Grid View"
+            :title="$t('deployment.files.gridView')"
             @click="viewMode = 'grid'"
           >
             <i class="pi pi-th-large" />
@@ -43,11 +43,11 @@
         </button>
         <button class="btn btn-sm btn-secondary" @click="showNewFolderModal = true">
           <i class="pi pi-folder-plus" />
-          New Folder
+          {{ $t("deployment.files.newFolder") }}
         </button>
         <label class="btn btn-sm btn-primary upload-btn">
           <i class="pi pi-upload" />
-          Upload
+          {{ $t("deployment.files.upload") }}
           <input type="file" multiple @change="handleFileSelect" hidden />
         </label>
       </div>
@@ -57,38 +57,38 @@
       <div class="progress-bar">
         <div class="progress-fill" :style="{ width: uploadProgress + '%' }" />
       </div>
-      <span class="progress-text">Uploading {{ uploadFileName }}...</span>
+      <span class="progress-text">{{ $t("deployment.files.uploading", { name: uploadFileName }) }}</span>
     </div>
 
     <div class="browser-content">
       <div v-if="loading && files.length === 0" class="loading-state">
         <i class="pi pi-spin pi-spinner" />
-        <span>Loading files...</span>
+        <span>{{ $t("deployment.files.loading") }}</span>
       </div>
 
       <div v-else-if="error" class="error-state">
         <i class="pi pi-exclamation-triangle" />
         <p>{{ error }}</p>
-        <button class="btn btn-sm btn-primary" @click="refreshFiles">Retry</button>
+        <button class="btn btn-sm btn-primary" @click="refreshFiles">{{ $t("deployment.files.retry") }}</button>
       </div>
 
       <div v-else-if="files.length === 0" class="empty-state">
         <i class="pi pi-folder-open" />
-        <h3>No files yet</h3>
-        <p>Upload files or create folders to get started</p>
+        <h3>{{ $t("deployment.files.noFiles") }}</h3>
+        <p>{{ $t("deployment.files.noFilesDesc") }}</p>
         <label class="btn btn-primary upload-btn">
           <i class="pi pi-upload" />
-          Upload Files
+          {{ $t("deployment.files.uploadFiles") }}
           <input type="file" multiple @change="handleFileSelect" hidden />
         </label>
       </div>
 
       <div v-else-if="viewMode === 'list'" class="file-list">
         <div class="file-list-header">
-          <span class="col-name">Name</span>
-          <span class="col-size">Size</span>
-          <span class="col-modified">Modified</span>
-          <span class="col-actions">Actions</span>
+          <span class="col-name">{{ $t("deployment.files.colName") }}</span>
+          <span class="col-size">{{ $t("deployment.files.colSize") }}</span>
+          <span class="col-modified">{{ $t("deployment.files.colModified") }}</span>
+          <span class="col-actions">{{ $t("deployment.files.colActions") }}</span>
         </div>
         <div
           v-for="file in files"
@@ -102,7 +102,7 @@
             <i :class="getFileIcon(file)" />
             <span class="file-name">{{ file.name }}</span>
             <span v-if="file.is_dir && file.child_count !== undefined" class="child-count">
-              {{ file.child_count }} items
+              {{ $t("deployment.files.items", { n: file.child_count }) }}
             </span>
           </span>
           <span class="col-size">
@@ -112,21 +112,35 @@
             {{ formatDate(file.mod_time) }}
           </span>
           <span class="col-actions" @click.stop>
-            <button v-if="!file.is_dir && isTextFile(file)" class="action-btn" title="View" @click="viewFile(file)">
+            <button
+              v-if="!file.is_dir && isTextFile(file)"
+              class="action-btn"
+              :title="$t('deployment.files.modal.editor.close')"
+              @click="viewFile(file)"
+            >
               <i class="pi pi-eye" />
             </button>
             <button
               v-if="!file.is_dir && isTextFile(file)"
               class="action-btn"
-              title="Edit"
+              :title="$t('deployment.files.modal.editor.edit')"
               @click="openFileEditor(file)"
             >
               <i class="pi pi-pencil" />
             </button>
-            <button v-if="!file.is_dir" class="action-btn" title="Download" @click="downloadFile(file)">
+            <button
+              v-if="!file.is_dir"
+              class="action-btn"
+              :title="$t('deployment.backups.download')"
+              @click="downloadFile(file)"
+            >
               <i class="pi pi-download" />
             </button>
-            <button class="action-btn delete" title="Delete" @click="confirmDelete(file)">
+            <button
+              class="action-btn delete"
+              :title="$t('deployment.files.modal.delete.delete')"
+              @click="confirmDelete(file)"
+            >
               <i class="pi pi-trash" />
             </button>
           </span>
@@ -150,27 +164,41 @@
             {{
               file.is_dir
                 ? file.child_count !== undefined
-                  ? `${file.child_count} items`
-                  : "Folder"
+                  ? $t("deployment.files.items", { n: file.child_count })
+                  : $t("deployment.files.folder")
                 : formatSize(file.size)
             }}
           </div>
           <div class="grid-item-actions" @click.stop>
-            <button v-if="!file.is_dir && isTextFile(file)" class="action-btn" title="View" @click="viewFile(file)">
+            <button
+              v-if="!file.is_dir && isTextFile(file)"
+              class="action-btn"
+              :title="$t('deployment.files.modal.editor.close')"
+              @click="viewFile(file)"
+            >
               <i class="pi pi-eye" />
             </button>
             <button
               v-if="!file.is_dir && isTextFile(file)"
               class="action-btn"
-              title="Edit"
+              :title="$t('deployment.files.modal.editor.edit')"
               @click="openFileEditor(file)"
             >
               <i class="pi pi-pencil" />
             </button>
-            <button v-if="!file.is_dir" class="action-btn" title="Download" @click="downloadFile(file)">
+            <button
+              v-if="!file.is_dir"
+              class="action-btn"
+              :title="$t('deployment.backups.download')"
+              @click="downloadFile(file)"
+            >
               <i class="pi pi-download" />
             </button>
-            <button class="action-btn delete" title="Delete" @click="confirmDelete(file)">
+            <button
+              class="action-btn delete"
+              :title="$t('deployment.files.modal.delete.delete')"
+              @click="confirmDelete(file)"
+            >
               <i class="pi pi-trash" />
             </button>
           </div>
@@ -179,8 +207,8 @@
     </div>
 
     <div v-if="filesInfo" class="browser-footer">
-      <span>{{ filesInfo.file_count }} items</span>
-      <span>{{ formatSize(filesInfo.total_size) }} total</span>
+      <span>{{ $t("deployment.files.items", { n: filesInfo.file_count }) }}</span>
+      <span>{{ $t("deployment.files.total", { size: formatSize(filesInfo.total_size) }) }}</span>
     </div>
 
     <Teleport to="body">
@@ -189,26 +217,28 @@
           <div class="modal-header">
             <h3>
               <i class="pi pi-folder-plus" />
-              New Folder
+              {{ $t("deployment.files.modal.newFolder.title") }}
             </h3>
           </div>
           <div class="modal-body">
             <div class="form-group">
-              <label>Folder Name</label>
+              <label>{{ $t("deployment.files.modal.newFolder.name") }}</label>
               <input
                 v-model="newFolderName"
                 type="text"
                 class="form-input"
-                placeholder="Enter folder name"
+                :placeholder="$t('deployment.files.modal.newFolder.placeholder')"
                 @keyup.enter="createFolder"
               />
             </div>
           </div>
           <div class="modal-footer">
-            <button class="btn btn-secondary" @click="showNewFolderModal = false">Cancel</button>
+            <button class="btn btn-secondary" @click="showNewFolderModal = false">
+              {{ $t("deployment.files.modal.newFolder.cancel") }}
+            </button>
             <button class="btn btn-primary" :disabled="!newFolderName.trim() || creatingFolder" @click="createFolder">
               <i :class="creatingFolder ? 'pi pi-spin pi-spinner' : 'pi pi-check'" />
-              Create
+              {{ $t("deployment.files.modal.newFolder.create") }}
             </button>
           </div>
         </div>
@@ -219,22 +249,22 @@
           <div class="modal-header danger">
             <h3>
               <i class="pi pi-exclamation-triangle" />
-              Confirm Delete
+              {{ $t("deployment.files.modal.delete.title") }}
             </h3>
           </div>
           <div class="modal-body">
-            <p>
-              Are you sure you want to delete
-              <strong>{{ fileToDelete?.name }}</strong
-              >?
-            </p>
-            <p v-if="fileToDelete?.is_dir" class="warning-text">This will delete all contents inside the folder.</p>
+            <!-- eslint-disable vue/no-v-html -->
+            <p v-html="$t('deployment.files.modal.delete.confirm', { name: fileToDelete?.name })" />
+            <!-- eslint-enable vue/no-v-html -->
+            <p v-if="fileToDelete?.is_dir" class="warning-text">{{ $t("deployment.files.modal.delete.warning") }}</p>
           </div>
           <div class="modal-footer">
-            <button class="btn btn-secondary" @click="showDeleteModal = false">Cancel</button>
+            <button class="btn btn-secondary" @click="showDeleteModal = false">
+              {{ $t("deployment.files.modal.delete.cancel") }}
+            </button>
             <button class="btn btn-danger" :disabled="deleting" @click="deleteFile">
               <i :class="deleting ? 'pi pi-spin pi-spinner' : 'pi pi-trash'" />
-              Delete
+              {{ $t("deployment.files.modal.delete.delete") }}
             </button>
           </div>
         </div>
@@ -246,7 +276,7 @@
             <h3>
               <i :class="viewOnly ? 'pi pi-eye' : 'pi pi-file-edit'" />
               {{ editingFile?.name }}
-              <span v-if="viewOnly" class="view-only-badge">Read Only</span>
+              <span v-if="viewOnly" class="view-only-badge">{{ $t("deployment.files.modal.editor.readOnly") }}</span>
             </h3>
             <button class="close-btn" @click="closeFileEditor">
               <i class="pi pi-times" />
@@ -255,7 +285,7 @@
           <div class="modal-body editor-body">
             <div v-if="loadingFileContent" class="loading-editor">
               <i class="pi pi-spin pi-spinner" />
-              Loading file...
+              {{ $t("deployment.files.modal.editor.loading") }}
             </div>
             <Codemirror
               v-else
@@ -267,21 +297,25 @@
           </div>
           <div class="modal-footer">
             <template v-if="viewOnly">
-              <button class="btn btn-secondary" @click="closeFileEditor">Close</button>
+              <button class="btn btn-secondary" @click="closeFileEditor">
+                {{ $t("deployment.files.modal.editor.close") }}
+              </button>
               <button class="btn btn-primary" @click="viewOnly = false">
                 <i class="pi pi-pencil" />
-                Edit
+                {{ $t("deployment.files.modal.editor.edit") }}
               </button>
             </template>
             <template v-else>
               <span v-if="fileModified" class="modified-indicator">
                 <i class="pi pi-circle-fill" />
-                Modified
+                {{ $t("deployment.files.modal.editor.modified") }}
               </span>
-              <button class="btn btn-secondary" @click="closeFileEditor">Cancel</button>
+              <button class="btn btn-secondary" @click="closeFileEditor">
+                {{ $t("deployment.files.modal.editor.cancel") }}
+              </button>
               <button class="btn btn-primary" :disabled="!fileModified || savingFile" @click="saveFile">
                 <i :class="savingFile ? 'pi pi-spin pi-spinner' : 'pi pi-save'" />
-                Save
+                {{ $t("deployment.files.modal.editor.save") }}
               </button>
             </template>
           </div>
@@ -293,6 +327,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from "vue";
+import { useI18n } from "vue-i18n";
 import { Codemirror } from "vue-codemirror";
 import { yaml } from "@codemirror/lang-yaml";
 import { oneDark } from "@codemirror/theme-one-dark";
@@ -303,6 +338,7 @@ const props = defineProps<{
   deploymentName: string;
 }>();
 
+const { t } = useI18n();
 const notifications = useNotificationsStore();
 
 const currentPath = ref("/");
@@ -363,7 +399,7 @@ const fetchFiles = async () => {
     }
     files.value = fileList;
   } catch (err: any) {
-    error.value = err.response?.data?.error || err.message || "Failed to load files";
+    error.value = err.response?.data?.error || err.message || t("deployment.files.notification.loadError");
     files.value = [];
   } finally {
     loading.value = false;
@@ -423,10 +459,13 @@ const uploadFile = async (file: File) => {
 
     await filesApi.upload(props.deploymentName, targetPath, file);
     uploadProgress.value = 100;
-    notifications.success("Upload Complete", `${file.name} uploaded successfully`);
+    notifications.success(
+      t("deployment.files.notification.uploadComplete"),
+      t("deployment.files.notification.uploadCompleteDesc", { name: file.name }),
+    );
   } catch (err: any) {
-    const msg = err.response?.data?.error || err.message || "Upload failed";
-    notifications.error("Upload Failed", msg);
+    const msg = err.response?.data?.error || err.message || t("deployment.files.notification.uploadFailed");
+    notifications.error(t("common.error"), msg);
   } finally {
     uploading.value = false;
     uploadFileName.value = "";
@@ -444,8 +483,8 @@ const downloadFile = async (file: FileInfo) => {
     link.click();
     window.URL.revokeObjectURL(url);
   } catch (err: any) {
-    const msg = err.response?.data?.error || err.message || "Download failed";
-    notifications.error("Download Failed", msg);
+    const msg = err.response?.data?.error || err.message || t("deployment.files.notification.downloadFailed");
+    notifications.error(t("common.error"), msg);
   }
 };
 
@@ -458,13 +497,16 @@ const createFolder = async () => {
       currentPath.value === "/" ? `/${newFolderName.value}` : `${currentPath.value}/${newFolderName.value}`;
 
     await filesApi.createDir(props.deploymentName, targetPath);
-    notifications.success("Folder Created", `${newFolderName.value} created successfully`);
+    notifications.success(
+      t("deployment.files.notification.folderCreated"),
+      t("deployment.files.notification.folderCreatedDesc", { name: newFolderName.value }),
+    );
     showNewFolderModal.value = false;
     newFolderName.value = "";
     refreshFiles();
   } catch (err: any) {
-    const msg = err.response?.data?.error || err.message || "Failed to create folder";
-    notifications.error("Error", msg);
+    const msg = err.response?.data?.error || err.message || t("deployment.files.notification.saveFailed");
+    notifications.error(t("common.error"), msg);
   } finally {
     creatingFolder.value = false;
   }
@@ -481,13 +523,16 @@ const deleteFile = async () => {
   deleting.value = true;
   try {
     await filesApi.delete(props.deploymentName, fileToDelete.value.path);
-    notifications.success("Deleted", `${fileToDelete.value.name} deleted successfully`);
+    notifications.success(
+      t("deployment.files.notification.deleted"),
+      t("deployment.files.notification.deletedDesc", { name: fileToDelete.value?.name }),
+    );
     showDeleteModal.value = false;
     fileToDelete.value = null;
     refreshFiles();
   } catch (err: any) {
-    const msg = err.response?.data?.error || err.message || "Failed to delete";
-    notifications.error("Delete Failed", msg);
+    const msg = err.response?.data?.error || err.message || t("deployment.files.notification.deleteFailed");
+    notifications.error(t("common.error"), msg);
   } finally {
     deleting.value = false;
   }
@@ -599,8 +644,8 @@ const viewFile = async (file: FileInfo) => {
     fileContent.value = response.data;
     originalContent.value = response.data;
   } catch (err: any) {
-    const msg = err.response?.data?.error || err.message || "Failed to load file";
-    notifications.error("Error", msg);
+    const msg = err.response?.data?.error || err.message || t("deployment.files.notification.loadError");
+    notifications.error(t("common.error"), msg);
     showEditorModal.value = false;
   } finally {
     loadingFileContent.value = false;
@@ -620,8 +665,8 @@ const openFileEditor = async (file: FileInfo) => {
     fileContent.value = response.data;
     originalContent.value = response.data;
   } catch (err: any) {
-    const msg = err.response?.data?.error || err.message || "Failed to load file";
-    notifications.error("Error", msg);
+    const msg = err.response?.data?.error || err.message || t("deployment.files.notification.loadError");
+    notifications.error(t("common.error"), msg);
     showEditorModal.value = false;
   } finally {
     loadingFileContent.value = false;
@@ -630,7 +675,7 @@ const openFileEditor = async (file: FileInfo) => {
 
 const closeFileEditor = () => {
   if (!viewOnly.value && fileModified.value) {
-    if (!confirm("You have unsaved changes. Are you sure you want to close?")) {
+    if (!confirm(t("deployment.files.modal.editor.unsavedChanges"))) {
       return;
     }
   }
@@ -650,10 +695,13 @@ const saveFile = async () => {
     const file = new File([blob], editingFile.value.name);
     await filesApi.upload(props.deploymentName, editingFile.value.path, file);
     originalContent.value = fileContent.value;
-    notifications.success("Saved", `${editingFile.value.name} saved successfully`);
+    notifications.success(
+      t("deployment.files.notification.saveSuccess"),
+      t("deployment.files.notification.saveSuccessDesc", { name: editingFile.value?.name }),
+    );
   } catch (err: any) {
-    const msg = err.response?.data?.error || err.message || "Failed to save file";
-    notifications.error("Save Failed", msg);
+    const msg = err.response?.data?.error || err.message || t("deployment.files.notification.saveFailed");
+    notifications.error(t("common.error"), msg);
   } finally {
     savingFile.value = false;
   }

@@ -6,8 +6,8 @@
           <i class="pi pi-box" />
         </div>
         <div class="modal-header-text">
-          <h3>Create Deployment</h3>
-          <p>Deploy your application in just a few steps</p>
+          <h3>{{ $t("deployment.modal.newDeployment.title") }}</h3>
+          <p>{{ $t("deployment.modal.newDeployment.subtitle") }}</p>
         </div>
       </div>
     </template>
@@ -42,8 +42,8 @@
           <!-- Step 0: Mode Selection -->
           <div v-if="currentStep === 0" class="step-panel mode-selection-panel">
             <div class="mode-selection">
-              <h3 class="mode-title">How would you like to deploy?</h3>
-              <p class="mode-subtitle">Choose the deployment method that works best for you</p>
+              <h3 class="mode-title">{{ $t("deployment.modal.newDeployment.mode.title") }}</h3>
+              <p class="mode-subtitle">{{ $t("deployment.modal.newDeployment.mode.subtitle") }}</p>
 
               <div class="deployment-modes">
                 <button
@@ -55,15 +55,21 @@
                     <i class="pi pi-bolt" />
                   </div>
                   <div class="mode-card-content">
-                    <h4>Easy Mode</h4>
-                    <p>Guided setup with templates</p>
+                    <h4>{{ $t("deployment.modal.newDeployment.mode.easy.name") }}</h4>
+                    <p>{{ $t("deployment.modal.newDeployment.mode.easy.description") }}</p>
                     <ul class="mode-features">
-                      <li><i class="pi pi-check" /> Choose from pre-built templates</li>
-                      <li><i class="pi pi-check" /> Auto-configure database</li>
-                      <li><i class="pi pi-check" /> Domain & SSL setup</li>
+                      <li>
+                        <i class="pi pi-check" /> {{ $t("deployment.modal.newDeployment.mode.easy.features[0]") }}
+                      </li>
+                      <li>
+                        <i class="pi pi-check" /> {{ $t("deployment.modal.newDeployment.mode.easy.features[1]") }}
+                      </li>
+                      <li>
+                        <i class="pi pi-check" /> {{ $t("deployment.modal.newDeployment.mode.easy.features[2]") }}
+                      </li>
                     </ul>
                   </div>
-                  <div class="mode-badge recommended">Recommended</div>
+                  <div class="mode-badge recommended">{{ $t("deployment.modal.newDeployment.mode.easy.badge") }}</div>
                 </button>
 
                 <button
@@ -75,15 +81,21 @@
                     <i class="pi pi-box" />
                   </div>
                   <div class="mode-card-content">
-                    <h4>From Image</h4>
-                    <p>Deploy any Docker image</p>
+                    <h4>{{ $t("deployment.modal.newDeployment.mode.image.name") }}</h4>
+                    <p>{{ $t("deployment.modal.newDeployment.mode.image.description") }}</p>
                     <ul class="mode-features">
-                      <li><i class="pi pi-check" /> Use any public/private image</li>
-                      <li><i class="pi pi-check" /> Auto-generate compose</li>
-                      <li><i class="pi pi-check" /> Quick deployment</li>
+                      <li>
+                        <i class="pi pi-check" /> {{ $t("deployment.modal.newDeployment.mode.image.features[0]") }}
+                      </li>
+                      <li>
+                        <i class="pi pi-check" /> {{ $t("deployment.modal.newDeployment.mode.image.features[1]") }}
+                      </li>
+                      <li>
+                        <i class="pi pi-check" /> {{ $t("deployment.modal.newDeployment.mode.image.features[2]") }}
+                      </li>
                     </ul>
                   </div>
-                  <div class="mode-badge">Quick</div>
+                  <div class="mode-badge">{{ $t("deployment.modal.newDeployment.mode.image.badge") }}</div>
                 </button>
 
                 <button
@@ -95,15 +107,21 @@
                     <i class="pi pi-code" />
                   </div>
                   <div class="mode-card-content">
-                    <h4>Compose Mode</h4>
-                    <p>Full control with docker-compose</p>
+                    <h4>{{ $t("deployment.modal.newDeployment.mode.compose.name") }}</h4>
+                    <p>{{ $t("deployment.modal.newDeployment.mode.compose.description") }}</p>
                     <ul class="mode-features">
-                      <li><i class="pi pi-check" /> Write your own compose file</li>
-                      <li><i class="pi pi-check" /> Advanced configuration</li>
-                      <li><i class="pi pi-check" /> For power users</li>
+                      <li>
+                        <i class="pi pi-check" /> {{ $t("deployment.modal.newDeployment.mode.compose.features[0]") }}
+                      </li>
+                      <li>
+                        <i class="pi pi-check" /> {{ $t("deployment.modal.newDeployment.mode.compose.features[1]") }}
+                      </li>
+                      <li>
+                        <i class="pi pi-check" /> {{ $t("deployment.modal.newDeployment.mode.compose.features[2]") }}
+                      </li>
                     </ul>
                   </div>
-                  <div class="mode-badge">Advanced</div>
+                  <div class="mode-badge">{{ $t("deployment.modal.newDeployment.mode.compose.badge") }}</div>
                 </button>
               </div>
             </div>
@@ -119,12 +137,12 @@
                     <div class="section-icon small">
                       <i class="pi pi-pencil" />
                     </div>
-                    <h4>Deployment Details</h4>
+                    <h4>{{ $t("deployment.modal.newDeployment.basics.deploymentDetails") }}</h4>
                   </div>
 
                   <div class="form-field">
                     <label for="name">
-                      Name
+                      {{ $t("deployment.modal.newDeployment.basics.name") }}
                       <span class="required">*</span>
                     </label>
                     <div class="input-wrapper">
@@ -132,7 +150,7 @@
                         id="name"
                         v-model="form.name"
                         type="text"
-                        placeholder="my-app"
+                        :placeholder="$t('deployment.modal.newDeployment.basics.namePlaceholder')"
                         :class="{ error: errors.name }"
                         @input="onNameChange"
                       />
@@ -141,7 +159,7 @@
                       </span>
                     </div>
                     <span v-if="errors.name" class="field-error">{{ errors.name }}</span>
-                    <span v-else class="field-hint">Lowercase letters, numbers, and hyphens</span>
+                    <span v-else class="field-hint">{{ $t("deployment.modal.newDeployment.basics.nameHint") }}</span>
                   </div>
                 </div>
 
@@ -150,14 +168,20 @@
                     <div class="section-icon small">
                       <i class="pi pi-globe" />
                     </div>
-                    <h4>Domain</h4>
+                    <h4>{{ $t("deployment.modal.newDeployment.basics.domain") }}</h4>
                   </div>
 
                   <div v-if="domainSettings.default_domain" class="domain-preview">
                     <div class="domain-url">
                       <span class="protocol">https://</span>
-                      <span class="domain-text">{{ generatedDomain || "generating..." }}</span>
-                      <button class="refresh-domain-btn" title="Generate new subdomain" @click="regenerateSubdomain">
+                      <span class="domain-text">{{
+                        generatedDomain || $t("deployment.modal.newDeployment.basics.generating")
+                      }}</span>
+                      <button
+                        class="refresh-domain-btn"
+                        :title="$t('deployment.modal.newDeployment.basics.generateNew')"
+                        @click="regenerateSubdomain"
+                      >
                         <i class="pi pi-refresh" />
                       </button>
                     </div>
@@ -166,19 +190,19 @@
                   <div class="toggle-option">
                     <label class="toggle-label">
                       <input v-model="form.useCustomDomain" type="checkbox" />
-                      <span class="toggle-text">Use custom domain</span>
+                      <span class="toggle-text">{{ $t("deployment.modal.newDeployment.basics.useCustomDomain") }}</span>
                     </label>
                   </div>
 
                   <Transition name="expand">
                     <div v-if="form.useCustomDomain || !domainSettings.default_domain" class="custom-domain-field">
                       <div class="form-field">
-                        <label for="customDomain">Custom Domain</label>
+                        <label for="customDomain">{{ $t("deployment.modal.newDeployment.basics.customDomain") }}</label>
                         <input
                           id="customDomain"
                           v-model="form.networking.domain"
                           type="text"
-                          placeholder="app.example.com"
+                          :placeholder="$t('deployment.modal.newDeployment.basics.customDomainPlaceholder')"
                         />
                       </div>
                     </div>
@@ -188,14 +212,14 @@
                     <div class="toggle-option">
                       <label class="toggle-label">
                         <input v-model="form.ssl.enabled" type="checkbox" />
-                        <span class="toggle-text">Enable HTTPS</span>
+                        <span class="toggle-text">{{ $t("deployment.modal.newDeployment.basics.enableHttps") }}</span>
                       </label>
                     </div>
                     <Transition name="expand">
                       <div v-if="form.ssl.enabled" class="toggle-option nested">
                         <label class="toggle-label">
                           <input v-model="form.ssl.autoCert" type="checkbox" />
-                          <span class="toggle-text">Auto-provision certificate</span>
+                          <span class="toggle-text">{{ $t("deployment.modal.newDeployment.basics.autoCert") }}</span>
                         </label>
                       </div>
                     </Transition>
@@ -210,7 +234,7 @@
                     <div class="section-icon small">
                       <i class="pi pi-th-large" />
                     </div>
-                    <h4>Template</h4>
+                    <h4>{{ $t("deployment.modal.newDeployment.basics.template") }}</h4>
                   </div>
 
                   <div v-if="loadingQuickApps" class="templates-loading">
@@ -245,8 +269,8 @@
                         <i class="pi pi-code" />
                       </div>
                       <div class="template-info">
-                        <span class="template-name">Custom</span>
-                        <span class="template-desc">Write your own compose</span>
+                        <span class="template-name">{{ $t("deployment.modal.newDeployment.basics.custom") }}</span>
+                        <span class="template-desc">{{ $t("deployment.modal.newDeployment.basics.customDesc") }}</span>
                       </div>
                       <i v-if="selectedQuickApp === 'custom'" class="pi pi-check template-check" />
                     </button>
@@ -259,28 +283,28 @@
                     <div class="section-icon small">
                       <i class="pi pi-code" />
                     </div>
-                    <h4>Compose Mode</h4>
+                    <h4>{{ $t("deployment.modal.newDeployment.compose.title") }}</h4>
                   </div>
                   <div class="compose-info-content">
                     <div class="info-item">
                       <i class="pi pi-file-edit" />
                       <div>
-                        <strong>Full Control</strong>
-                        <p>Write your own docker-compose.yml configuration</p>
+                        <strong>{{ $t("deployment.modal.newDeployment.compose.fullControl") }}</strong>
+                        <p>{{ $t("deployment.modal.newDeployment.compose.fullControlDesc") }}</p>
                       </div>
                     </div>
                     <div class="info-item">
                       <i class="pi pi-sitemap" />
                       <div>
-                        <strong>Multi-Service Support</strong>
-                        <p>Define multiple services, volumes, and networks</p>
+                        <strong>{{ $t("deployment.modal.newDeployment.compose.multiService") }}</strong>
+                        <p>{{ $t("deployment.modal.newDeployment.compose.multiServiceDesc") }}</p>
                       </div>
                     </div>
 
                     <div class="advanced-options-section">
                       <div class="advanced-options-header">
                         <i class="pi pi-sliders-h" />
-                        <span>Advanced Options</span>
+                        <span>{{ $t("deployment.modal.newDeployment.compose.advancedOptions") }}</span>
                       </div>
                       <div class="advanced-options-list">
                         <label class="advanced-option">
@@ -288,9 +312,11 @@
                           <div class="option-content">
                             <span class="option-label">
                               <i class="pi pi-globe" />
-                              Multi-Domain Setup
+                              {{ $t("deployment.modal.newDeployment.compose.multiDomain") }}
                             </span>
-                            <span class="option-desc">Route different domains to different services</span>
+                            <span class="option-desc">{{
+                              $t("deployment.modal.newDeployment.compose.multiDomainDesc")
+                            }}</span>
                           </div>
                         </label>
                         <label class="advanced-option">
@@ -298,9 +324,11 @@
                           <div class="option-content">
                             <span class="option-label">
                               <i class="pi pi-database" />
-                              Multi-Database Setup
+                              {{ $t("deployment.modal.newDeployment.compose.multiDatabase") }}
                             </span>
-                            <span class="option-desc">Configure multiple database connections</span>
+                            <span class="option-desc">{{
+                              $t("deployment.modal.newDeployment.compose.multiDatabaseDesc")
+                            }}</span>
                           </div>
                         </label>
                       </div>
@@ -308,7 +336,7 @@
 
                     <div class="info-hint">
                       <i class="pi pi-info-circle" />
-                      <span>You'll write your compose file in the next step</span>
+                      <span>{{ $t("deployment.modal.newDeployment.compose.nextStepHint") }}</span>
                     </div>
                   </div>
                 </div>
@@ -319,12 +347,12 @@
                     <div class="section-icon small">
                       <i class="pi pi-box" />
                     </div>
-                    <h4>Docker Image</h4>
+                    <h4>{{ $t("deployment.modal.newDeployment.image.title") }}</h4>
                   </div>
                   <div class="image-config-content">
                     <div class="form-field">
                       <label for="imageName">
-                        Image Name
+                        {{ $t("deployment.modal.newDeployment.image.imageName") }}
                         <span class="required">*</span>
                       </label>
                       <div class="input-wrapper">
@@ -332,7 +360,7 @@
                           id="imageName"
                           v-model="form.image"
                           type="text"
-                          placeholder="nginx:latest or ghcr.io/user/app:v1"
+                          :placeholder="$t('deployment.modal.newDeployment.image.imagePlaceholder')"
                           :class="{ error: errors.image }"
                         />
                         <span v-if="form.image && !errors.image" class="input-icon success">
@@ -340,7 +368,7 @@
                         </span>
                       </div>
                       <span v-if="errors.image" class="field-error">{{ errors.image }}</span>
-                      <span v-else class="field-hint">Docker Hub, GHCR, or any registry</span>
+                      <span v-else class="field-hint">{{ $t("deployment.modal.newDeployment.image.imageHint") }}</span>
                     </div>
 
                     <div class="private-registry-toggle">
@@ -348,7 +376,7 @@
                         <input v-model="form.registry.isPrivate" type="checkbox" />
                         <span class="toggle-label">
                           <i class="pi pi-lock" />
-                          Private registry (requires authentication)
+                          {{ $t("deployment.modal.newDeployment.image.privateRegistry") }}
                         </span>
                       </label>
                     </div>
@@ -363,7 +391,7 @@
                               name="credentialSource"
                               :value="true"
                             />
-                            <span class="toggle-label">Use saved credential</span>
+                            <span class="toggle-label">{{ $t("deployment.modal.newDeployment.image.useSaved") }}</span>
                           </label>
                           <label class="toggle-option">
                             <input
@@ -372,7 +400,7 @@
                               name="credentialSource"
                               :value="false"
                             />
-                            <span class="toggle-label">Enter new credentials</span>
+                            <span class="toggle-label">{{ $t("deployment.modal.newDeployment.image.enterNew") }}</span>
                           </label>
                         </div>
 
@@ -381,13 +409,17 @@
                           class="existing-credential-select"
                         >
                           <div class="form-field">
-                            <label for="existingCredential">Select Credential</label>
+                            <label for="existingCredential">{{
+                              $t("deployment.modal.newDeployment.image.selectCredential")
+                            }}</label>
                             <select
                               id="existingCredential"
                               v-model="form.registry.selectedCredentialId"
                               class="form-select"
                             >
-                              <option value="" disabled>Choose a saved credential</option>
+                              <option value="" disabled>
+                                {{ $t("deployment.modal.newDeployment.image.chooseCredential") }}
+                              </option>
                               <option v-for="cred in existingCredentials" :key="cred.id" :value="cred.id">
                                 {{ cred.name }} ({{ cred.username }})
                               </option>
@@ -397,22 +429,26 @@
 
                         <template v-else>
                           <div class="form-field">
-                            <label for="registryUsername">Username</label>
+                            <label for="registryUsername">{{
+                              $t("deployment.modal.newDeployment.image.registryUsername")
+                            }}</label>
                             <input
                               id="registryUsername"
                               v-model="form.registry.username"
                               type="text"
-                              placeholder="Username or access token name"
+                              :placeholder="$t('deployment.modal.newDeployment.image.usernamePlaceholder')"
                             />
                           </div>
                           <div class="form-field">
-                            <label for="registryPassword">Password / Token</label>
+                            <label for="registryPassword">{{
+                              $t("deployment.modal.newDeployment.image.registryPassword")
+                            }}</label>
                             <div class="input-wrapper">
                               <input
                                 id="registryPassword"
                                 v-model="form.registry.password"
                                 :type="showRegistryPassword ? 'text' : 'password'"
-                                placeholder="Password or personal access token"
+                                :placeholder="$t('deployment.modal.newDeployment.image.passwordPlaceholder')"
                               />
                               <button
                                 type="button"
@@ -426,14 +462,16 @@
                           <div class="save-credential-option">
                             <label class="toggle-option">
                               <input v-model="form.registry.saveCredential" type="checkbox" />
-                              <span class="toggle-label">Save credential for future use</span>
+                              <span class="toggle-label">{{
+                                $t("deployment.modal.newDeployment.image.saveCredential")
+                              }}</span>
                             </label>
                             <Transition name="collapse">
                               <div v-if="form.registry.saveCredential" class="credential-name-field">
                                 <input
                                   v-model="form.registry.credentialName"
                                   type="text"
-                                  placeholder="Credential name (e.g., My Docker Hub)"
+                                  :placeholder="$t('deployment.modal.newDeployment.image.credentialName')"
                                 />
                               </div>
                             </Transition>
@@ -444,7 +482,7 @@
 
                     <div class="info-hint">
                       <i class="pi pi-info-circle" />
-                      <span>A compose file will be auto-generated for your image</span>
+                      <span>{{ $t("deployment.modal.newDeployment.image.composeHint") }}</span>
                     </div>
                   </div>
                 </div>
@@ -466,9 +504,13 @@
                     <i class="pi pi-database" />
                   </div>
                   <div class="section-toggle-info">
-                    <h4>Database</h4>
+                    <h4>{{ $t("deployment.modal.newDeployment.database.title") }}</h4>
                     <p>
-                      {{ form.database.type === "none" ? "No database configured" : form.database.type.toUpperCase() }}
+                      {{
+                        form.database.type === "none"
+                          ? $t("deployment.modal.newDeployment.database.noDatabaseConfigured")
+                          : form.database.type.toUpperCase()
+                      }}
                     </p>
                   </div>
                 </div>
@@ -487,8 +529,8 @@
                         <i class="pi pi-times-circle" />
                       </div>
                       <div class="db-option-info">
-                        <span class="db-option-name">No Database</span>
-                        <span class="db-option-desc">Skip database setup</span>
+                        <span class="db-option-name">{{ $t("deployment.modal.newDeployment.database.none") }}</span>
+                        <span class="db-option-desc">{{ $t("deployment.modal.newDeployment.database.noneDesc") }}</span>
                       </div>
                       <i v-if="form.database.type === 'none'" class="pi pi-check db-check" />
                     </button>
@@ -502,8 +544,10 @@
                         <i class="pi pi-database" />
                       </div>
                       <div class="db-option-info">
-                        <span class="db-option-name">MySQL</span>
-                        <span class="db-option-desc">Popular relational database</span>
+                        <span class="db-option-name">{{ $t("deployment.modal.newDeployment.database.mysql") }}</span>
+                        <span class="db-option-desc">{{
+                          $t("deployment.modal.newDeployment.database.mysqlDesc")
+                        }}</span>
                       </div>
                       <i v-if="form.database.type === 'mysql'" class="pi pi-check db-check" />
                     </button>
@@ -517,8 +561,10 @@
                         <i class="pi pi-database" />
                       </div>
                       <div class="db-option-info">
-                        <span class="db-option-name">PostgreSQL</span>
-                        <span class="db-option-desc">Advanced open source database</span>
+                        <span class="db-option-name">{{ $t("deployment.modal.newDeployment.database.postgres") }}</span>
+                        <span class="db-option-desc">{{
+                          $t("deployment.modal.newDeployment.database.postgresDesc")
+                        }}</span>
                       </div>
                       <i v-if="form.database.type === 'postgres'" class="pi pi-check db-check" />
                     </button>
@@ -532,8 +578,10 @@
                         <i class="pi pi-database" />
                       </div>
                       <div class="db-option-info">
-                        <span class="db-option-name">MariaDB</span>
-                        <span class="db-option-desc">MySQL-compatible fork</span>
+                        <span class="db-option-name">{{ $t("deployment.modal.newDeployment.database.mariadb") }}</span>
+                        <span class="db-option-desc">{{
+                          $t("deployment.modal.newDeployment.database.mariadbDesc")
+                        }}</span>
                       </div>
                       <i v-if="form.database.type === 'mariadb'" class="pi pi-check db-check" />
                     </button>
@@ -547,8 +595,10 @@
                         <i class="pi pi-database" />
                       </div>
                       <div class="db-option-info">
-                        <span class="db-option-name">MongoDB</span>
-                        <span class="db-option-desc">NoSQL document database</span>
+                        <span class="db-option-name">{{ $t("deployment.modal.newDeployment.database.mongodb") }}</span>
+                        <span class="db-option-desc">{{
+                          $t("deployment.modal.newDeployment.database.mongodbDesc")
+                        }}</span>
                       </div>
                       <i v-if="form.database.type === 'mongodb'" class="pi pi-check db-check" />
                     </button>
@@ -562,7 +612,7 @@
                           <div class="section-icon small">
                             <i class="pi pi-link" />
                           </div>
-                          <h4>Connection Mode</h4>
+                          <h4>{{ $t("deployment.modal.newDeployment.database.connectionMode") }}</h4>
                         </div>
 
                         <div
@@ -579,10 +629,16 @@
                               <i class="pi pi-share-alt" />
                             </div>
                             <div class="mode-info">
-                              <span class="mode-name">Use Shared</span>
-                              <span class="mode-desc">Auto-create in shared DB</span>
+                              <span class="mode-name">{{
+                                $t("deployment.modal.newDeployment.database.useShared")
+                              }}</span>
+                              <span class="mode-desc">{{
+                                $t("deployment.modal.newDeployment.database.sharedDesc")
+                              }}</span>
                             </div>
-                            <span class="recommended-badge">Recommended</span>
+                            <span class="recommended-badge">{{
+                              $t("deployment.modal.newDeployment.basics.custom")
+                            }}</span>
                           </button>
 
                           <button
@@ -594,8 +650,12 @@
                               <i class="pi pi-plus-circle" />
                             </div>
                             <div class="mode-info">
-                              <span class="mode-name">Create New</span>
-                              <span class="mode-desc">Add database to app stack</span>
+                              <span class="mode-name">{{
+                                $t("deployment.modal.newDeployment.database.createNew")
+                              }}</span>
+                              <span class="mode-desc">{{
+                                $t("deployment.modal.newDeployment.database.createDesc")
+                              }}</span>
                             </div>
                           </button>
 
@@ -608,8 +668,12 @@
                               <i class="pi pi-server" />
                             </div>
                             <div class="mode-info">
-                              <span class="mode-name">Use Existing</span>
-                              <span class="mode-desc">Connect to local container</span>
+                              <span class="mode-name">{{
+                                $t("deployment.modal.newDeployment.database.useExisting")
+                              }}</span>
+                              <span class="mode-desc">{{
+                                $t("deployment.modal.newDeployment.database.existingDesc")
+                              }}</span>
                             </div>
                           </button>
 
@@ -622,8 +686,12 @@
                               <i class="pi pi-globe" />
                             </div>
                             <div class="mode-info">
-                              <span class="mode-name">External</span>
-                              <span class="mode-desc">Connect to remote server</span>
+                              <span class="mode-name">{{
+                                $t("deployment.modal.newDeployment.database.external")
+                              }}</span>
+                              <span class="mode-desc">{{
+                                $t("deployment.modal.newDeployment.database.externalDesc")
+                              }}</span>
                             </div>
                           </button>
                         </div>
@@ -636,7 +704,7 @@
                             <div class="section-icon small">
                               <i class="pi pi-server" />
                             </div>
-                            <h4>Select Container</h4>
+                            <h4>{{ $t("deployment.modal.newDeployment.database.selectContainer") }}</h4>
                             <button
                               class="refresh-btn"
                               :disabled="loadingDbContainers"
@@ -649,13 +717,15 @@
                           <div class="existing-containers">
                             <div v-if="loadingDbContainers" class="loading-containers">
                               <i class="pi pi-spin pi-spinner" />
-                              <span>Loading containers...</span>
+                              <span>{{ $t("deployment.modal.newDeployment.database.loadingContainers") }}</span>
                             </div>
                             <div v-else-if="filteredDbContainers.length === 0" class="no-containers">
                               <i class="pi pi-info-circle" />
-                              <span>No {{ form.database.type }} containers found</span>
+                              <span>{{
+                                $t("deployment.modal.newDeployment.database.noContainers", { type: form.database.type })
+                              }}</span>
                               <button class="switch-mode-btn" @click="form.database.mode = 'create'">
-                                Create new instead
+                                {{ $t("deployment.modal.newDeployment.database.createInstead") }}
                               </button>
                             </div>
                             <div v-else class="container-list">
@@ -689,26 +759,26 @@
                             <div class="section-icon small">
                               <i class="pi pi-globe" />
                             </div>
-                            <h4>Server Details</h4>
+                            <h4>{{ $t("deployment.modal.newDeployment.database.serverDetails") }}</h4>
                           </div>
 
                           <div class="credentials-form">
                             <div class="form-row">
                               <div class="form-field flex-grow">
                                 <label for="externalHost">
-                                  Host
+                                  {{ $t("deployment.modal.newDeployment.database.host") }}
                                   <span class="required">*</span>
                                 </label>
                                 <input
                                   id="externalHost"
                                   v-model="form.database.externalHost"
                                   type="text"
-                                  placeholder="db.example.com"
+                                  :placeholder="$t('deployment.modal.newDeployment.database.hostPlaceholder')"
                                 />
                               </div>
                               <div class="form-field port-field">
                                 <label for="externalPort">
-                                  Port
+                                  {{ $t("deployment.modal.newDeployment.database.port") }}
                                   <span class="required">*</span>
                                 </label>
                                 <input
@@ -729,29 +799,38 @@
                           <div class="section-icon small">
                             <i class="pi pi-key" />
                           </div>
-                          <h4>Credentials</h4>
+                          <h4>{{ $t("deployment.modal.newDeployment.database.credentials") }}</h4>
                         </div>
 
                         <div class="credentials-form">
                           <div class="form-field">
-                            <label for="dbName">Database Name</label>
+                            <label for="dbName">{{ $t("deployment.modal.newDeployment.database.dbName") }}</label>
                             <input
                               id="dbName"
                               v-model="form.database.dbName"
                               type="text"
-                              :placeholder="form.name ? form.name.replace(/-/g, '_') : 'app_db'"
+                              :placeholder="
+                                form.name
+                                  ? form.name.replace(/-/g, '_')
+                                  : $t('deployment.modal.newDeployment.database.dbNamePlaceholder')
+                              "
                             />
                           </div>
 
                           <div class="form-row">
                             <div class="form-field">
-                              <label for="dbUser">Username</label>
-                              <input id="dbUser" v-model="form.database.dbUser" type="text" placeholder="app" />
+                              <label for="dbUser">{{ $t("deployment.modal.newDeployment.database.username") }}</label>
+                              <input
+                                id="dbUser"
+                                v-model="form.database.dbUser"
+                                type="text"
+                                :placeholder="$t('deployment.modal.newDeployment.database.usernamePlaceholder')"
+                              />
                             </div>
 
                             <div class="form-field">
                               <label for="dbPassword">
-                                Password
+                                {{ $t("deployment.modal.newDeployment.database.password") }}
                                 <span v-if="form.database.mode === 'create'" class="required">*</span>
                               </label>
                               <input
@@ -765,14 +844,18 @@
 
                           <Transition name="expand">
                             <div v-if="form.database.mode === 'create'" class="form-field">
-                              <label for="dbRootPassword">Root Password</label>
+                              <label for="dbRootPassword">{{
+                                $t("deployment.modal.newDeployment.database.rootPassword")
+                              }}</label>
                               <input
                                 id="dbRootPassword"
                                 v-model="form.database.dbRootPassword"
                                 type="password"
-                                placeholder="Leave empty to use same as password"
+                                :placeholder="$t('deployment.modal.newDeployment.database.rootPasswordHint')"
                               />
-                              <span class="field-hint">Admin password for new database</span>
+                              <span class="field-hint">{{
+                                $t("deployment.modal.newDeployment.database.adminPasswordHint")
+                              }}</span>
                             </div>
                           </Transition>
                         </div>
@@ -787,19 +870,22 @@
                           <div class="connection-status">
                             <div v-if="form.database.connectionStatus === 'checking'" class="status checking">
                               <i class="pi pi-spin pi-spinner" />
-                              <span>Testing connection...</span>
+                              <span>{{ $t("deployment.modal.newDeployment.database.testing") }}</span>
                             </div>
                             <div v-else-if="form.database.connectionStatus === 'success'" class="status success">
                               <i class="pi pi-check-circle" />
-                              <span>Connection successful</span>
+                              <span>{{ $t("deployment.modal.newDeployment.database.connectionSuccess") }}</span>
                             </div>
                             <div v-else-if="form.database.connectionStatus === 'error'" class="status error">
                               <i class="pi pi-times-circle" />
-                              <span>{{ form.database.connectionError || "Connection failed" }}</span>
+                              <span>{{
+                                form.database.connectionError ||
+                                $t("deployment.modal.newDeployment.database.connectionFailed")
+                              }}</span>
                             </div>
                             <div v-else class="status idle">
                               <i class="pi pi-info-circle" />
-                              <span>Test connection before proceeding</span>
+                              <span>{{ $t("deployment.modal.newDeployment.database.testHint") }}</span>
                             </div>
                           </div>
                           <button
@@ -808,7 +894,7 @@
                             @click="checkDatabaseConnection"
                           >
                             <i class="pi pi-bolt" />
-                            Test
+                            {{ $t("deployment.modal.newDeployment.database.testButton") }}
                           </button>
                         </div>
                       </div>
@@ -822,11 +908,13 @@
                           <div class="section-icon small">
                             <i class="pi pi-eye" />
                           </div>
-                          <h4>Configuration Preview</h4>
+                          <h4>{{ $t("deployment.modal.newDeployment.database.configPreview") }}</h4>
                         </div>
                         <div class="preview-content">
                           <div class="preview-item">
-                            <span class="preview-label">Connection</span>
+                            <span class="preview-label">{{
+                              $t("deployment.modal.newDeployment.database.connection")
+                            }}</span>
                             <code class="preview-value"
                               >{{
                                 form.database.mode === "existing"
@@ -836,18 +924,20 @@
                             >
                           </div>
                           <div class="preview-item">
-                            <span class="preview-label">Database</span>
+                            <span class="preview-label">{{
+                              $t("deployment.modal.newDeployment.database.database")
+                            }}</span>
                             <code class="preview-value">{{
                               form.database.dbName || (form.name ? form.name.replace(/-/g, "_") : "app_db")
                             }}</code>
                           </div>
                           <div class="preview-item">
-                            <span class="preview-label">User</span>
+                            <span class="preview-label">{{ $t("deployment.modal.newDeployment.database.user") }}</span>
                             <code class="preview-value">{{ form.database.dbUser || "app" }}</code>
                           </div>
                           <div class="preview-hint">
                             <i class="pi pi-info-circle" />
-                            Environment variables will be automatically added to your app
+                            {{ $t("deployment.modal.newDeployment.database.envHint") }}
                           </div>
                         </div>
                       </div>
@@ -858,13 +948,13 @@
                           <div class="section-icon small">
                             <i class="pi pi-code" />
                           </div>
-                          <h4>Service Preview</h4>
+                          <h4>{{ $t("deployment.modal.newDeployment.database.servicePreview") }}</h4>
                         </div>
                         <div class="preview-content">
                           <pre class="compose-preview">{{ getDatabaseServiceYaml().trim() }}</pre>
                           <div class="preview-hint">
                             <i class="pi pi-info-circle" />
-                            This database service will be added to your compose stack
+                            {{ $t("deployment.modal.newDeployment.database.stackHint") }}
                           </div>
                         </div>
                       </div>
@@ -872,14 +962,19 @@
                       <!-- Additional Databases (Multi-Database Mode) -->
                       <div v-if="advancedOptions.multiDatabase" class="additional-databases-section">
                         <div class="section-divider">
-                          <span>Additional Databases</span>
+                          <span>{{ $t("deployment.modal.newDeployment.database.additionalDatabases") }}</span>
                         </div>
 
                         <div v-for="(db, index) in additionalDatabases" :key="db.id" class="additional-db-card">
                           <div class="db-card-header">
                             <div class="db-alias-input">
-                              <label>Alias</label>
-                              <input v-model="db.alias" type="text" placeholder="cache" class="alias-field" />
+                              <label>{{ $t("deployment.modal.newDeployment.database.alias") }}</label>
+                              <input
+                                v-model="db.alias"
+                                type="text"
+                                :placeholder="$t('deployment.modal.newDeployment.database.aliasPlaceholder')"
+                                class="alias-field"
+                              />
                             </div>
                             <button class="remove-btn" @click="removeAdditionalDatabase(index)">
                               <i class="pi pi-times" />
@@ -895,7 +990,7 @@
                                 :class="{ selected: db.type === dbType }"
                                 @click="db.type = dbType as any"
                               >
-                                {{ dbType }}
+                                {{ $t(`deployment.modal.newDeployment.database.dbTypes.${dbType}`) }}
                               </button>
                             </div>
 
@@ -907,7 +1002,7 @@
                                 @click="db.mode = 'shared'"
                               >
                                 <i class="pi pi-share-alt" />
-                                Shared
+                                {{ $t("deployment.modal.newDeployment.database.shared") }}
                               </button>
                               <button
                                 class="mode-btn"
@@ -915,7 +1010,7 @@
                                 @click="db.mode = 'existing'"
                               >
                                 <i class="pi pi-server" />
-                                Existing
+                                {{ $t("deployment.modal.newDeployment.database.existing") }}
                               </button>
                               <button
                                 class="mode-btn"
@@ -923,45 +1018,58 @@
                                 @click="db.mode = 'external'"
                               >
                                 <i class="pi pi-globe" />
-                                External
+                                {{ $t("deployment.modal.newDeployment.database.external") }}
                               </button>
                             </div>
 
                             <div v-if="db.mode === 'external' && db.type !== 'none'" class="db-external-config">
                               <div class="form-row">
                                 <div class="form-field flex-grow">
-                                  <label>Host</label>
-                                  <input v-model="db.externalHost" type="text" placeholder="db.example.com" />
+                                  <label>{{ $t("deployment.modal.newDeployment.database.host") }}</label>
+                                  <input
+                                    v-model="db.externalHost"
+                                    type="text"
+                                    :placeholder="$t('deployment.modal.newDeployment.database.hostPlaceholder')"
+                                  />
                                 </div>
                                 <div class="form-field port-field">
-                                  <label>Port</label>
+                                  <label>{{ $t("deployment.modal.newDeployment.database.port") }}</label>
                                   <input v-model="db.externalPort" type="text" placeholder="3306" />
                                 </div>
                               </div>
                               <div class="form-row">
                                 <div class="form-field">
-                                  <label>Database</label>
-                                  <input v-model="db.dbName" type="text" placeholder="mydb" />
+                                  <label>{{ $t("deployment.modal.newDeployment.database.database") }}</label>
+                                  <input
+                                    v-model="db.dbName"
+                                    type="text"
+                                    :placeholder="$t('deployment.modal.newDeployment.database.dbNamePlaceholder')"
+                                  />
                                 </div>
                                 <div class="form-field">
-                                  <label>Username</label>
-                                  <input v-model="db.dbUser" type="text" placeholder="user" />
+                                  <label>{{ $t("deployment.modal.newDeployment.database.username") }}</label>
+                                  <input
+                                    v-model="db.dbUser"
+                                    type="text"
+                                    :placeholder="$t('deployment.modal.newDeployment.database.usernamePlaceholder')"
+                                  />
                                 </div>
                               </div>
                             </div>
 
                             <div class="db-env-preview">
-                              <span class="env-prefix"
-                                >Env: {{ (db.envPrefix || db.alias).toUpperCase() }}_HOST,
-                                {{ (db.envPrefix || db.alias).toUpperCase() }}_PORT...</span
-                              >
+                              <span class="env-prefix">{{
+                                $t("deployment.modal.newDeployment.database.envPreview", {
+                                  prefix: (db.envPrefix || db.alias).toUpperCase(),
+                                })
+                              }}</span>
                             </div>
                           </div>
                         </div>
 
                         <button class="add-db-btn" @click="addAdditionalDatabase">
                           <i class="pi pi-plus" />
-                          Add Another Database
+                          {{ $t("deployment.modal.newDeployment.database.addAnother") }}
                         </button>
                       </div>
                     </div>
@@ -982,8 +1090,14 @@
                     <i class="pi pi-folder" />
                   </div>
                   <div class="section-toggle-info">
-                    <h4>Storage</h4>
-                    <p>{{ form.mounts.filter((m) => m.enabled).length }} mount(s) configured</p>
+                    <h4>{{ $t("deployment.modal.newDeployment.storage.title") }}</h4>
+                    <p>
+                      {{
+                        $t("deployment.modal.newDeployment.storage.mountsConfigured", {
+                          n: form.mounts.filter((m) => m.enabled).length,
+                        })
+                      }}
+                    </p>
                   </div>
                 </div>
                 <i class="pi pi-chevron-down toggle-icon" />
@@ -1007,7 +1121,9 @@
                             @change="toggleMount(mount.id)"
                           />
                           <span class="mount-name">{{ mount.name }}</span>
-                          <span v-if="mount.required" class="required-badge">Required</span>
+                          <span v-if="mount.required" class="required-badge">{{
+                            $t("deployment.modal.newDeployment.storage.required")
+                          }}</span>
                         </label>
                       </div>
                       <p class="mount-description">{{ mount.description }}</p>
@@ -1022,7 +1138,7 @@
                           @click="setMountType(mount.id, 'file')"
                         >
                           <i class="pi pi-file" />
-                          Bind Mount
+                          {{ $t("deployment.modal.newDeployment.storage.bindMount") }}
                         </button>
                         <button
                           class="type-btn"
@@ -1030,7 +1146,7 @@
                           @click="setMountType(mount.id, 'volume')"
                         >
                           <i class="pi pi-database" />
-                          Volume
+                          {{ $t("deployment.modal.newDeployment.storage.volume") }}
                         </button>
                       </div>
                     </div>
@@ -1044,8 +1160,8 @@
           <div v-else-if="currentStepId === 'domains'" class="step-panel domains-step">
             <div class="domains-step-header">
               <div class="step-intro">
-                <h3>Configure Domains</h3>
-                <p>Route different domains to different services in your compose stack</p>
+                <h3>{{ $t("deployment.modal.newDeployment.domains.title") }}</h3>
+                <p>{{ $t("deployment.modal.newDeployment.domains.subtitle") }}</p>
               </div>
             </div>
 
@@ -1053,11 +1169,13 @@
               <!-- Primary Domain (from Step 1) -->
               <div class="domain-card primary">
                 <div class="domain-card-header">
-                  <span class="domain-badge primary-badge">Primary Domain</span>
+                  <span class="domain-badge primary-badge">{{
+                    $t("deployment.modal.newDeployment.domains.primary")
+                  }}</span>
                 </div>
                 <div class="domain-preview">
                   <i class="pi pi-globe" />
-                  <span>{{ effectiveDomain || "Not configured" }}</span>
+                  <span>{{ effectiveDomain || $t("deployment.modal.newDeployment.domains.notConfigured") }}</span>
                   <span class="domain-hint">→ {{ form.name }}:{{ form.networking.ports[0]?.containerPort || 80 }}</span>
                 </div>
               </div>
@@ -1065,7 +1183,9 @@
               <!-- Additional Domains -->
               <div v-for="(domain, index) in additionalDomains" :key="domain.id" class="domain-card">
                 <div class="domain-card-header">
-                  <span class="domain-badge">Domain {{ index + 2 }}</span>
+                  <span class="domain-badge"
+                    >{{ $t("deployment.modal.newDeployment.domains.domain") }} {{ index + 2 }}</span
+                  >
                   <button class="remove-btn" @click="removeAdditionalDomain(index)">
                     <i class="pi pi-times" />
                   </button>
@@ -1073,30 +1193,42 @@
 
                 <div class="domain-form-grid">
                   <div class="form-field">
-                    <label>Domain</label>
-                    <input v-model="domain.domain" type="text" placeholder="api.example.com" />
+                    <label>{{ $t("deployment.modal.newDeployment.domains.domain") }}</label>
+                    <input
+                      v-model="domain.domain"
+                      type="text"
+                      :placeholder="$t('deployment.modal.newDeployment.domains.domainPlaceholder')"
+                    />
                   </div>
 
                   <div class="form-field">
-                    <label>Service Name</label>
-                    <input v-model="domain.service" type="text" placeholder="api" />
-                    <span class="field-hint">Service name from your compose file</span>
+                    <label>{{ $t("deployment.modal.newDeployment.domains.serviceName") }}</label>
+                    <input
+                      v-model="domain.service"
+                      type="text"
+                      :placeholder="$t('deployment.modal.newDeployment.domains.servicePlaceholder')"
+                    />
+                    <span class="field-hint">{{ $t("deployment.modal.newDeployment.domains.serviceHint") }}</span>
                   </div>
 
                   <div class="form-field port-field">
-                    <label>Container Port</label>
+                    <label>{{ $t("deployment.modal.newDeployment.domains.containerPort") }}</label>
                     <input v-model.number="domain.containerPort" type="number" placeholder="80" />
                   </div>
 
                   <div class="form-field">
-                    <label>Path Prefix (optional)</label>
-                    <input v-model="domain.pathPrefix" type="text" placeholder="/api" />
+                    <label>{{ $t("deployment.modal.newDeployment.domains.pathPrefix") }}</label>
+                    <input
+                      v-model="domain.pathPrefix"
+                      type="text"
+                      :placeholder="$t('deployment.modal.newDeployment.domains.pathPlaceholder')"
+                    />
                   </div>
 
                   <div class="ssl-toggle">
                     <label class="toggle-label">
                       <input v-model="domain.ssl.enabled" type="checkbox" />
-                      <span class="toggle-text">Enable SSL</span>
+                      <span class="toggle-text">{{ $t("deployment.modal.newDeployment.domains.enableSsl") }}</span>
                     </label>
                   </div>
                 </div>
@@ -1104,7 +1236,7 @@
 
               <button class="add-domain-btn" @click="addAdditionalDomain">
                 <i class="pi pi-plus" />
-                Add Another Domain
+                {{ $t("deployment.modal.newDeployment.domains.addDomain") }}
               </button>
             </div>
           </div>
@@ -1117,13 +1249,21 @@
                 <div class="compose-header">
                   <div class="compose-title">
                     <i class="pi pi-file-edit" />
-                    <span>docker-compose.yml</span>
+                    <span>{{ $t("deployment.modal.newDeployment.configure.composeTitle") }}</span>
                   </div>
                   <div class="compose-actions">
-                    <button class="action-btn" title="Format" @click="formatCompose">
+                    <button
+                      class="action-btn"
+                      :title="$t('deployment.modal.newDeployment.configure.format')"
+                      @click="formatCompose"
+                    >
                       <i class="pi pi-align-left" />
                     </button>
-                    <button class="action-btn" title="Copy" @click="copyCompose">
+                    <button
+                      class="action-btn"
+                      :title="$t('deployment.modal.newDeployment.configure.copy')"
+                      @click="copyCompose"
+                    >
                       <i class="pi pi-copy" />
                     </button>
                   </div>
@@ -1134,7 +1274,7 @@
                     :style="{ height: '100%' }"
                     :extensions="extensions"
                     :tab-size="2"
-                    placeholder="# Docker Compose configuration..."
+                    :placeholder="$t('deployment.modal.newDeployment.configure.composePlaceholder')"
                   />
                 </div>
                 <div v-if="errors.composeContent" class="compose-error">
@@ -1151,19 +1291,27 @@
                     <div class="section-icon small">
                       <i class="pi pi-key" />
                     </div>
-                    <h4>Environment</h4>
+                    <h4>{{ $t("deployment.modal.newDeployment.configure.environment") }}</h4>
                   </div>
                   <div class="env-section">
                     <div v-for="(env, index) in form.envVars" :key="index" class="env-row">
-                      <input v-model="env.key" placeholder="KEY" class="env-key" />
-                      <input v-model="env.value" placeholder="value" class="env-value" />
+                      <input
+                        v-model="env.key"
+                        :placeholder="$t('deployment.modal.newDeployment.configure.keyPlaceholder') || 'KEY'"
+                        class="env-key"
+                      />
+                      <input
+                        v-model="env.value"
+                        :placeholder="$t('deployment.modal.newDeployment.configure.valuePlaceholder') || 'value'"
+                        class="env-value"
+                      />
                       <button class="env-remove" @click="removeEnvVar(index)">
                         <i class="pi pi-times" />
                       </button>
                     </div>
                     <button class="add-env-btn" @click="addEnvVar">
                       <i class="pi pi-plus" />
-                      Add Variable
+                      {{ $t("deployment.modal.newDeployment.configure.addVariable") }}
                     </button>
                   </div>
                 </div>
@@ -1174,7 +1322,7 @@
                     <div class="section-icon small">
                       <i class="pi pi-sitemap" />
                     </div>
-                    <h4>Ports</h4>
+                    <h4>{{ $t("deployment.modal.newDeployment.configure.ports") }}</h4>
                   </div>
                   <div class="ports-section">
                     <div v-for="(port, index) in form.networking.ports" :key="index" class="port-row">
@@ -1183,16 +1331,23 @@
                         type="number"
                         placeholder="80"
                         class="port-container"
-                        title="Container port"
+                        :title="$t('deployment.modal.newDeployment.configure.containerPortTitle') || 'Container port'"
                         @change="updateComposeWithSettings"
                       />
                       <span class="port-separator">:</span>
                       <input
                         v-model="port.hostPort"
                         type="text"
-                        :placeholder="port.hostPort ? '' : 'host'"
+                        :placeholder="
+                          port.hostPort
+                            ? ''
+                            : $t('deployment.modal.newDeployment.configure.hostPortPlaceholder') || 'host'
+                        "
                         class="port-host"
-                        title="Host port (leave empty for expose only)"
+                        :title="
+                          $t('deployment.modal.newDeployment.configure.hostPortTitle') ||
+                          'Host port (leave empty for expose only)'
+                        "
                         @input="updateComposeWithSettings"
                       />
                       <button
@@ -1205,9 +1360,9 @@
                     </div>
                     <button type="button" class="add-port-btn" @click="addPort">
                       <i class="pi pi-plus" />
-                      Add Port
+                      {{ $t("deployment.modal.newDeployment.configure.addPort") }}
                     </button>
-                    <span class="field-hint">Container:Host - leave host empty to expose only</span>
+                    <span class="field-hint">{{ $t("deployment.modal.newDeployment.configure.portHint") }}</span>
                   </div>
                 </div>
 
@@ -1217,13 +1372,15 @@
                     <div class="section-icon small">
                       <i class="pi pi-cog" />
                     </div>
-                    <h4>Options</h4>
+                    <h4>{{ $t("deployment.modal.newDeployment.configure.options") }}</h4>
                   </div>
                   <div class="options-section">
                     <div class="toggle-option">
                       <label class="toggle-label">
                         <input v-model="form.autoStart" type="checkbox" />
-                        <span class="toggle-text">Start after creation</span>
+                        <span class="toggle-text">{{
+                          $t("deployment.modal.newDeployment.configure.startAfterCreation")
+                        }}</span>
                       </label>
                     </div>
                   </div>
@@ -1241,58 +1398,71 @@
                     <i class="pi pi-check-circle" />
                   </div>
                   <div class="review-title">
-                    <h3>Ready to Deploy</h3>
-                    <p>Review your configuration</p>
+                    <h3>{{ $t("deployment.modal.newDeployment.review.title") }}</h3>
+                    <p>{{ $t("deployment.modal.newDeployment.review.subtitle") }}</p>
                   </div>
                 </div>
 
                 <div class="review-grid">
                   <div class="review-item">
-                    <span class="review-label">Name</span>
+                    <span class="review-label">{{ $t("deployment.modal.newDeployment.review.name") }}</span>
                     <span class="review-value">{{ form.name }}</span>
                   </div>
                   <div v-if="deploymentMode === 'image'" class="review-item">
-                    <span class="review-label">Image</span>
+                    <span class="review-label">{{ $t("deployment.modal.newDeployment.review.image") }}</span>
                     <span class="review-value">{{ form.image }}</span>
                   </div>
                   <div v-else-if="deploymentMode === 'easy'" class="review-item">
-                    <span class="review-label">Template</span>
+                    <span class="review-label">{{ $t("deployment.modal.newDeployment.review.template") }}</span>
                     <span class="review-value">{{ selectedQuickAppName }}</span>
                   </div>
                   <div v-else class="review-item">
-                    <span class="review-label">Mode</span>
-                    <span class="review-value">Custom Compose</span>
+                    <span class="review-label">{{ $t("deployment.modal.newDeployment.review.mode") }}</span>
+                    <span class="review-value">{{ $t("deployment.modal.newDeployment.review.customCompose") }}</span>
                   </div>
                   <div v-if="effectiveDomain" class="review-item full-width">
-                    <span class="review-label">Domain</span>
+                    <span class="review-label">{{ $t("deployment.modal.newDeployment.review.domain") }}</span>
                     <span class="review-value domain">
                       <i class="pi pi-link" />
                       {{ effectiveDomain }}
                     </span>
                   </div>
                   <div class="review-item">
-                    <span class="review-label">SSL</span>
+                    <span class="review-label">{{ $t("deployment.modal.newDeployment.review.ssl") }}</span>
                     <span class="review-badge" :class="form.ssl.enabled ? 'success' : 'neutral'">
-                      {{ form.ssl.enabled ? "Enabled" : "Disabled" }}
+                      {{
+                        form.ssl.enabled
+                          ? $t("deployment.modal.newDeployment.review.enabled")
+                          : $t("deployment.modal.newDeployment.review.disabled")
+                      }}
                     </span>
                   </div>
                   <div class="review-item">
-                    <span class="review-label">Auto Start</span>
+                    <span class="review-label">{{ $t("deployment.modal.newDeployment.review.autoStart") }}</span>
                     <span class="review-badge" :class="form.autoStart ? 'success' : 'neutral'">
-                      {{ form.autoStart ? "Yes" : "No" }}
+                      {{
+                        form.autoStart
+                          ? $t("deployment.modal.newDeployment.review.yes")
+                          : $t("deployment.modal.newDeployment.review.no")
+                      }}
                     </span>
                   </div>
                   <div v-if="form.envVars.length" class="review-item">
-                    <span class="review-label">Env Vars</span>
-                    <span class="review-value">{{ form.envVars.filter((e) => e.key).length }} defined</span>
+                    <span class="review-label">{{ $t("deployment.modal.newDeployment.review.envVars") }}</span>
+                    <span class="review-value"
+                      >{{ form.envVars.filter((e) => e.key).length }}
+                      {{ $t("deployment.modal.newDeployment.review.defined") }}</span
+                    >
                   </div>
                 </div>
 
                 <div class="compose-summary">
                   <div class="compose-summary-header">
                     <i class="pi pi-file-edit" />
-                    <span>Docker Compose</span>
-                    <span class="compose-lines">{{ composeLineCount }} lines</span>
+                    <span>{{ $t("deployment.modal.newDeployment.review.dockerCompose") }}</span>
+                    <span class="compose-lines"
+                      >{{ composeLineCount }} {{ $t("deployment.modal.newDeployment.review.lines") }}</span
+                    >
                   </div>
                   <pre class="compose-preview-code"
                     >{{ form.composeContent.slice(0, 400) }}{{ form.composeContent.length > 400 ? "\n..." : "" }}</pre
@@ -1309,11 +1479,17 @@
       <div class="footer-left">
         <button v-if="currentStep > 0" class="btn btn-ghost" @click="currentStep--">
           <i class="pi pi-arrow-left" />
-          {{ currentStep === 1 ? "Change Mode" : "Back" }}
+          {{
+            currentStep === 1
+              ? $t("deployment.modal.newDeployment.footer.changeMode")
+              : $t("deployment.modal.newDeployment.footer.back")
+          }}
         </button>
       </div>
       <div class="footer-right">
-        <button class="btn btn-secondary" :disabled="creating" @click="handleClose">Cancel</button>
+        <button class="btn btn-secondary" :disabled="creating" @click="handleClose">
+          {{ $t("deployment.modal.newDeployment.footer.cancel") }}
+        </button>
         <button
           v-if="currentStep < steps.length"
           class="btn btn-primary"
@@ -1322,14 +1498,22 @@
         >
           <i v-if="generatingCompose" class="pi pi-spin pi-spinner" />
           <template v-else>
-            {{ currentStep === 0 ? "Get Started" : "Continue" }}
+            {{
+              currentStep === 0
+                ? $t("deployment.modal.newDeployment.footer.getStarted")
+                : $t("deployment.modal.newDeployment.footer.continue")
+            }}
             <i class="pi pi-arrow-right" />
           </template>
         </button>
         <button v-else class="btn btn-primary btn-create" :disabled="creating" @click="handleCreate">
           <i v-if="creating" class="pi pi-spin pi-spinner" />
           <i v-else class="pi pi-rocket" />
-          {{ creating ? "Creating..." : "Deploy" }}
+          {{
+            creating
+              ? $t("deployment.modal.newDeployment.footer.creating")
+              : $t("deployment.modal.newDeployment.footer.deploy")
+          }}
         </button>
       </div>
     </template>
@@ -1338,6 +1522,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, watch, computed, shallowRef } from "vue";
+import { useI18n } from "vue-i18n";
 import { Codemirror } from "vue-codemirror";
 import { yaml } from "@codemirror/lang-yaml";
 import { oneDark } from "@codemirror/theme-one-dark";
@@ -1345,6 +1530,8 @@ import BaseModal from "@/components/base/BaseModal.vue";
 import { deploymentsApi, templatesApi, settingsApi, containersApi, composeApi, credentialsApi } from "@/services/api";
 import type { RegistryCredential } from "@/types";
 import { useNotificationsStore } from "@/stores/notifications";
+
+const { t } = useI18n();
 
 interface TemplateMount {
   id: string;
@@ -1488,23 +1675,23 @@ const removeAdditionalDatabase = (index: number) => {
 };
 
 const easySteps = [
-  { id: "basics", label: "Basics" },
-  { id: "database", label: "Database" },
-  { id: "configure", label: "Configure" },
-  { id: "review", label: "Review" },
+  { id: "basics", label: t("deployment.modal.newDeployment.steps.basics") },
+  { id: "database", label: t("deployment.modal.newDeployment.steps.database") },
+  { id: "configure", label: t("deployment.modal.newDeployment.steps.configure") },
+  { id: "review", label: t("deployment.modal.newDeployment.steps.review") },
 ];
 
 const steps = computed(() => {
   if (deploymentMode.value === "compose") {
     const composeSteps = [
-      { id: "basics", label: "Basics" },
-      { id: "database", label: "Database" },
+      { id: "basics", label: t("deployment.modal.newDeployment.steps.basics") },
+      { id: "database", label: t("deployment.modal.newDeployment.steps.database") },
     ];
     if (advancedOptions.multiDomain) {
-      composeSteps.push({ id: "domains", label: "Domains" });
+      composeSteps.push({ id: "domains", label: t("deployment.modal.newDeployment.steps.domains") });
     }
-    composeSteps.push({ id: "configure", label: "Configure" });
-    composeSteps.push({ id: "review", label: "Review" });
+    composeSteps.push({ id: "configure", label: t("deployment.modal.newDeployment.steps.configure") });
+    composeSteps.push({ id: "review", label: t("deployment.modal.newDeployment.steps.review") });
     return composeSteps;
   }
   return easySteps;
@@ -1746,9 +1933,9 @@ const regenerateSubdomain = () => {
 const onNameChange = () => {
   errors.name = "";
   if (form.name && !/^[a-z0-9-]+$/.test(form.name)) {
-    errors.name = "Only lowercase letters, numbers, and hyphens allowed";
+    errors.name = t("deployment.modal.newDeployment.validation.nameFormat");
   } else if (form.name && existingDeployments.value.includes(form.name)) {
-    errors.name = "A deployment with this name already exists";
+    errors.name = t("deployment.modal.newDeployment.validation.nameExists");
   }
 };
 
@@ -1927,16 +2114,22 @@ const checkDatabaseConnection = async () => {
       const port = form.database.externalPort;
 
       if (!host || !port) {
-        throw new Error("Host and port are required");
+        throw new Error(t("deployment.modal.newDeployment.database.hostPortRequired"));
       }
     }
 
     form.database.connectionStatus = "success";
-    notifications.success("Connection successful", "Database is reachable");
+    notifications.success(
+      t("deployment.modal.newDeployment.notification.connectionSuccess"),
+      t("deployment.modal.newDeployment.notification.connectionReachable"),
+    );
   } catch (error: any) {
     form.database.connectionStatus = "error";
-    form.database.connectionError = error.message || "Failed to connect to database";
-    notifications.error("Connection failed", form.database.connectionError);
+    form.database.connectionError = error.message || t("deployment.modal.newDeployment.notification.connectionFailed");
+    notifications.error(
+      t("deployment.modal.newDeployment.notification.connectionFailed"),
+      form.database.connectionError,
+    );
   }
 };
 
@@ -2101,12 +2294,18 @@ const updateComposeWithSettings = async () => {
 
 const formatCompose = () => {
   // Basic formatting - could be enhanced
-  notifications.info("Format", "YAML formatting applied");
+  notifications.info(
+    t("deployment.modal.newDeployment.notification.formatted"),
+    t("deployment.modal.newDeployment.notification.yamlFormatted"),
+  );
 };
 
 const copyCompose = () => {
   navigator.clipboard.writeText(form.composeContent);
-  notifications.success("Copied", "Compose content copied");
+  notifications.success(
+    t("deployment.modal.newDeployment.notification.copied"),
+    t("deployment.modal.newDeployment.notification.composeCopied"),
+  );
 };
 
 const addEnvVar = () => {
@@ -2162,7 +2361,7 @@ const nextStep = async () => {
       form.composeContent = response.data.content;
     } catch (error: any) {
       const msg = error.response?.data?.error || error.message;
-      notifications.error("Failed to generate compose", msg);
+      notifications.error(t("deployment.modal.newDeployment.notification.generateComposeFailed"), msg);
       generatingCompose.value = false;
       return;
     }
@@ -2315,15 +2514,15 @@ const validate = () => {
   let valid = true;
 
   if (!form.name.trim()) {
-    errors.name = "Name is required";
+    errors.name = t("deployment.modal.newDeployment.validation.nameRequired");
     valid = false;
   } else if (!/^[a-z0-9-]+$/.test(form.name)) {
-    errors.name = "Only lowercase letters, numbers, and hyphens allowed";
+    errors.name = t("deployment.modal.newDeployment.validation.nameFormat");
     valid = false;
   }
 
   if (!form.composeContent.trim()) {
-    errors.composeContent = "Compose configuration is required";
+    errors.composeContent = t("deployment.modal.newDeployment.validation.composeRequired");
     valid = false;
   }
 
@@ -2442,7 +2641,7 @@ const handleCreate = async () => {
     emit("created");
   } catch (e: any) {
     const msg = e.response?.data?.error || e.message;
-    notifications.error("Failed to create deployment", msg);
+    notifications.error(t("deployment.modal.newDeployment.notification.createFailed"), msg);
   } finally {
     creating.value = false;
   }

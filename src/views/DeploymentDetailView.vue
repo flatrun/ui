@@ -9,7 +9,7 @@
         <div class="deployment-title">
           <h1>{{ deployment?.name || $route.params.name }}</h1>
           <span class="status-badge" :class="deployment?.status">
-            {{ deployment?.status || "loading" }}
+            {{ deployment?.status || $t("deployment.detail.loadingStatus") }}
           </span>
         </div>
       </div>
@@ -20,7 +20,7 @@
           :disabled="loading || deployment?.status === 'running'"
           @click="handleOperation('start')"
         >
-          <i class="pi pi-play" /> Start
+          <i class="pi pi-play" /> {{ $t("deployment.detail.action.start") }}
         </button>
         <button
           v-if="canWrite"
@@ -28,7 +28,7 @@
           :disabled="loading || deployment?.status === 'stopped'"
           @click="handleOperation('stop')"
         >
-          <i class="pi pi-stop" /> Stop
+          <i class="pi pi-stop" /> {{ $t("deployment.detail.action.stop") }}
         </button>
         <button
           v-if="canWrite"
@@ -36,36 +36,36 @@
           :disabled="loading || deployment?.status === 'stopped'"
           @click="handleOperation('restart')"
         >
-          <i class="pi pi-refresh" /> Restart
+          <i class="pi pi-refresh" /> {{ $t("deployment.detail.action.restart") }}
         </button>
         <button
           v-if="canWrite"
           class="btn btn-secondary"
           :disabled="loading"
           @click="showRebuildModal = true"
-          title="Recreate containers with latest images"
+          :title="$t('deployment.detail.action.rebuildTitle')"
         >
-          <i class="pi pi-sync" /> Rebuild
+          <i class="pi pi-sync" /> {{ $t("deployment.detail.action.rebuild") }}
         </button>
         <button v-if="canWrite" class="btn btn-secondary" :disabled="loading" @click="openPullImageModal">
-          <i class="pi pi-download" /> Pull Image
+          <i class="pi pi-download" /> {{ $t("deployment.detail.action.pullImage") }}
         </button>
         <button v-if="canDelete" class="btn btn-danger" :disabled="loading" @click="confirmDelete">
-          <i class="pi pi-trash" /> Delete
+          <i class="pi pi-trash" /> {{ $t("deployment.detail.action.delete") }}
         </button>
       </div>
     </div>
 
     <div v-if="loading && !deployment" class="loading-state">
       <i class="pi pi-spin pi-spinner" />
-      <span>Loading deployment details...</span>
+      <span>{{ $t("deployment.detail.loading") }}</span>
     </div>
 
     <div v-else-if="error" class="error-state">
       <i class="pi pi-exclamation-triangle" />
-      <h3>Failed to load deployment</h3>
+      <h3>{{ $t("deployment.detail.failedToLoad") }}</h3>
       <p>{{ error }}</p>
-      <button class="btn btn-primary" @click="fetchDeployment">Try Again</button>
+      <button class="btn btn-primary" @click="fetchDeployment">{{ $t("deployment.detail.tryAgain") }}</button>
     </div>
 
     <template v-else-if="deployment">
@@ -88,38 +88,38 @@
             <div class="info-card">
               <div class="card-header">
                 <i class="pi pi-info-circle" />
-                <h3>General Information</h3>
+                <h3>{{ $t("deployment.detail.generalInfo") }}</h3>
               </div>
               <div class="card-body">
                 <div class="info-row">
-                  <span class="label">Name</span>
+                  <span class="label">{{ $t("deployment.detail.field.name") }}</span>
                   <span class="value">{{ deployment.name }}</span>
                 </div>
                 <div class="info-row">
-                  <span class="label">Status</span>
+                  <span class="label">{{ $t("deployment.detail.field.status") }}</span>
                   <span class="value">
                     <span class="status-indicator" :class="deployment.status" />
                     {{ deployment.status }}
                   </span>
                 </div>
                 <div class="info-row">
-                  <span class="label">Path</span>
+                  <span class="label">{{ $t("deployment.detail.field.path") }}</span>
                   <code class="value path">{{ deployment.path }}</code>
                 </div>
                 <div class="info-row">
-                  <span class="label">Created</span>
+                  <span class="label">{{ $t("deployment.detail.field.created") }}</span>
                   <span class="value">{{ formatDateTime(deployment.created_at) }}</span>
                 </div>
                 <div class="info-row">
-                  <span class="label">Last Updated</span>
+                  <span class="label">{{ $t("deployment.detail.field.lastUpdated") }}</span>
                   <span class="value">{{ formatDateTime(deployment.updated_at) }}</span>
                 </div>
                 <div v-if="deployment.metadata?.type" class="info-row">
-                  <span class="label">Type</span>
+                  <span class="label">{{ $t("deployment.detail.field.type") }}</span>
                   <span class="value type-badge">{{ deployment.metadata.type }}</span>
                 </div>
                 <div class="info-row">
-                  <span class="label">Registry</span>
+                  <span class="label">{{ $t("deployment.detail.field.registry") }}</span>
                   <span class="value">
                     <template v-if="registryCredential">
                       <span class="credential-badge">
@@ -129,16 +129,16 @@
                       <button
                         v-if="canWrite"
                         class="btn btn-sm btn-icon"
-                        title="Change credential"
+                        :title="$t('deployment.detail.field.changeCredential')"
                         @click="openCredentialModal"
                       >
                         <i class="pi pi-pencil" />
                       </button>
                     </template>
                     <template v-else>
-                      <span class="public-badge">Public</span>
+                      <span class="public-badge">{{ $t("deployment.detail.field.public") }}</span>
                       <button v-if="canWrite" class="btn btn-sm btn-link" @click="openCredentialModal">
-                        Set credential
+                        {{ $t("deployment.detail.field.setCredential") }}
                       </button>
                     </template>
                   </span>
@@ -146,7 +146,7 @@
                 <div v-if="!isInfrastructure" class="info-row action-row">
                   <button class="btn btn-sm btn-secondary" @click="migrateToInfrastructure">
                     <i class="pi pi-server" />
-                    Mark as Infrastructure
+                    {{ $t("deployment.detail.markAsInfrastructure") }}
                   </button>
                 </div>
               </div>
@@ -155,11 +155,11 @@
             <div class="info-card">
               <div class="card-header">
                 <i class="pi pi-globe" />
-                <h3>Domain & SSL</h3>
+                <h3>{{ $t("deployment.detail.domainAndSSL") }}</h3>
                 <button
                   v-if="canWrite"
                   class="btn btn-sm btn-icon"
-                  title="Edit Domain Settings"
+                  :title="$t('deployment.detail.editDomainSettings')"
                   @click="openDomainSettings"
                 >
                   <i class="pi pi-pencil" />
@@ -179,7 +179,7 @@
                 </template>
                 <template v-else-if="proxyStatus && proxyStatus.exposed">
                   <div class="info-row">
-                    <span class="label">Domain</span>
+                    <span class="label">{{ $t("deployment.detail.field.domain") }}</span>
                     <span class="value domain-link">
                       <a
                         :href="(proxyStatus.ssl_enabled ? 'https://' : 'http://') + proxyStatus.domain"
@@ -191,24 +191,32 @@
                     </span>
                   </div>
                   <div class="info-row">
-                    <span class="label">Virtual Host</span>
+                    <span class="label">{{ $t("deployment.detail.field.virtualHost") }}</span>
                     <span class="value">
                       <span class="status-badge" :class="proxyStatus.virtual_host_exists ? 'running' : 'stopped'">
-                        {{ proxyStatus.virtual_host_exists ? "Configured" : "Not Configured" }}
+                        {{
+                          proxyStatus.virtual_host_exists
+                            ? $t("deployment.detail.field.configured")
+                            : $t("deployment.detail.field.notConfigured")
+                        }}
                       </span>
                     </span>
                   </div>
                   <div class="info-row">
-                    <span class="label">SSL</span>
+                    <span class="label">{{ $t("deployment.detail.field.ssl") }}</span>
                     <span class="value">
                       <span class="status-badge" :class="proxyStatus.ssl_enabled ? 'running' : 'stopped'">
-                        {{ proxyStatus.ssl_enabled ? "Enabled" : "Disabled" }}
+                        {{
+                          proxyStatus.ssl_enabled
+                            ? $t("deployment.detail.field.enabled")
+                            : $t("deployment.detail.field.disabled")
+                        }}
                       </span>
                     </span>
                   </div>
                   <template v-if="proxyStatus.ssl_enabled && proxyStatus.certificate">
                     <div class="info-row">
-                      <span class="label">Certificate</span>
+                      <span class="label">{{ $t("deployment.detail.field.certificate") }}</span>
                       <span class="value">
                         <span class="status-badge" :class="proxyStatus.certificate.status">
                           {{ proxyStatus.certificate.status }}
@@ -216,9 +224,9 @@
                       </span>
                     </div>
                     <div class="info-row">
-                      <span class="label">Expires</span>
+                      <span class="label">{{ $t("deployment.detail.field.expires") }}</span>
                       <span class="value" :class="{ 'text-warning': proxyStatus.certificate.days_left <= 30 }">
-                        {{ proxyStatus.certificate.days_left }} days ({{
+                        {{ $t("deployment.detail.field.days", { n: proxyStatus.certificate.days_left }) }} ({{
                           formatDateTime(proxyStatus.certificate.not_after)
                         }})
                       </span>
@@ -229,58 +237,58 @@
                       v-if="!proxyStatus.virtual_host_exists"
                       class="btn btn-sm btn-primary"
                       :disabled="settingUpProxy"
-                      title="Create nginx virtual host configuration"
+                      :title="$t('deployment.detail.proxy.setupTitle')"
                       @click="handleSetupProxy"
                     >
                       <i :class="settingUpProxy ? 'pi pi-spin pi-spinner' : 'pi pi-cog'" />
-                      Setup Proxy
+                      {{ $t("deployment.detail.proxy.setup") }}
                     </button>
                     <button
                       v-if="proxyStatus.ssl_enabled && !proxyStatus.certificate_exists"
                       class="btn btn-sm btn-success"
                       :disabled="requestingCert"
-                      title="Request Let's Encrypt certificate"
+                      :title="$t('deployment.detail.proxy.requestSSLTitle')"
                       @click="handleRequestCertificate"
                     >
                       <i :class="requestingCert ? 'pi pi-spin pi-spinner' : 'pi pi-shield'" />
-                      Request SSL
+                      {{ $t("deployment.detail.proxy.requestSSL") }}
                     </button>
                     <button
                       v-if="proxyStatus.ssl_enabled"
                       class="btn btn-sm btn-warning"
                       :disabled="disablingSSL"
-                      title="Disable SSL and revert to HTTP"
+                      :title="$t('deployment.detail.proxy.disableSSLTitle')"
                       @click="handleDisableSSL"
                     >
                       <i :class="disablingSSL ? 'pi pi-spin pi-spinner' : 'pi pi-lock-open'" />
-                      Disable SSL
+                      {{ $t("deployment.detail.proxy.disableSSL") }}
                     </button>
                     <button
                       v-if="canWrite"
                       class="btn btn-sm btn-secondary"
-                      title="Add another domain to this deployment"
+                      :title="$t('deployment.detail.proxy.addDomain')"
                       @click="showAddDomainModal = true"
                     >
                       <i class="pi pi-plus" />
-                      Add Domain
+                      {{ $t("deployment.detail.proxy.addDomain") }}
                     </button>
                     <button
                       v-if="canWrite && singleDomainId"
                       class="btn btn-sm btn-danger"
-                      title="Delete this domain"
+                      :title="$t('deployment.detail.proxy.deleteDomainTitle')"
                       :disabled="deletingDomain"
                       @click="handleDeleteDomain(singleDomainId!)"
                     >
                       <i :class="deletingDomain ? 'pi pi-spin pi-spinner' : 'pi pi-trash'" />
-                      Delete
+                      {{ $t("deployment.detail.proxy.delete") }}
                     </button>
                   </div>
                 </template>
                 <template v-else>
                   <div class="empty-proxy">
                     <i class="pi pi-globe" />
-                    <p>No domain configured</p>
-                    <span class="hint">Click the edit button to configure domain exposure</span>
+                    <p>{{ $t("deployment.detail.noDomain") }}</p>
+                    <span class="hint">{{ $t("deployment.detail.configureDomainHint") }}</span>
                   </div>
                 </template>
               </div>
@@ -289,10 +297,10 @@
             <div class="info-card">
               <div class="card-header">
                 <i class="pi pi-box" />
-                <h3>Services</h3>
+                <h3>{{ $t("deployment.detail.services") }}</h3>
               </div>
               <div class="card-body">
-                <div v-if="services.length === 0" class="empty-services">No services configured</div>
+                <div v-if="services.length === 0" class="empty-services">{{ $t("deployment.detail.noServices") }}</div>
                 <div v-else class="services-list">
                   <div v-for="service in services" :key="service.name" class="service-item">
                     <div class="service-header">
@@ -316,10 +324,18 @@
                       <button class="action-btn" title="Terminal" @click="openTerminal(service)">
                         <i class="pi pi-desktop" />
                       </button>
-                      <button class="action-btn" title="Logs" @click="viewServiceLogs(service)">
+                      <button
+                        class="action-btn"
+                        :title="$t('deployment.detail.serviceAction.logs')"
+                        @click="viewServiceLogs(service)"
+                      >
                         <i class="pi pi-file-edit" />
                       </button>
-                      <button class="action-btn" title="Restart" @click="restartService(service)">
+                      <button
+                        class="action-btn"
+                        :title="$t('deployment.detail.serviceAction.restart')"
+                        @click="restartService(service)"
+                      >
                         <i class="pi pi-refresh" />
                       </button>
                     </div>
@@ -331,7 +347,7 @@
             <div v-if="deployment.metadata?.databases?.length" class="info-card">
               <div class="card-header">
                 <i class="pi pi-database" />
-                <h3>Databases</h3>
+                <h3>{{ $t("deployment.detail.databases") }}</h3>
               </div>
               <div class="card-body">
                 <div class="databases-list">
@@ -342,23 +358,23 @@
                     </div>
                     <div class="database-details">
                       <div class="detail-row">
-                        <span class="detail-label">Mode</span>
+                        <span class="detail-label">{{ $t("deployment.detail.field.mode") }}</span>
                         <span class="detail-value">{{ db.mode }}</span>
                       </div>
                       <div v-if="db.host" class="detail-row">
-                        <span class="detail-label">Host</span>
+                        <span class="detail-label">{{ $t("deployment.detail.field.host") }}</span>
                         <code class="detail-value">{{ db.host }}{{ db.port ? `:${db.port}` : "" }}</code>
                       </div>
                       <div v-if="db.database_name" class="detail-row">
-                        <span class="detail-label">Database</span>
+                        <span class="detail-label">{{ $t("deployment.detail.field.database") }}</span>
                         <code class="detail-value">{{ db.database_name }}</code>
                       </div>
                       <div v-if="db.username" class="detail-row">
-                        <span class="detail-label">User</span>
+                        <span class="detail-label">{{ $t("deployment.detail.field.user") }}</span>
                         <code class="detail-value">{{ db.username }}</code>
                       </div>
                       <div v-if="db.env_prefix" class="detail-row">
-                        <span class="detail-label">Env Prefix</span>
+                        <span class="detail-label">{{ $t("deployment.detail.field.envPrefix") }}</span>
                         <code class="detail-value">{{ db.env_prefix }}_*</code>
                       </div>
                     </div>
@@ -371,12 +387,12 @@
           <div class="info-card wide">
             <div class="card-header">
               <i class="pi pi-chart-line" />
-              <h3>Resource Usage</h3>
+              <h3>{{ $t("deployment.detail.resourceUsage") }}</h3>
             </div>
             <div class="card-body">
               <div class="resource-grid">
                 <div class="resource-item">
-                  <div class="resource-label">CPU Usage</div>
+                  <div class="resource-label">{{ $t("deployment.detail.resource.cpu") }}</div>
                   <div class="resource-bar-wrapper">
                     <div class="resource-bar">
                       <div
@@ -389,7 +405,7 @@
                   </div>
                 </div>
                 <div class="resource-item">
-                  <div class="resource-label">Memory Usage</div>
+                  <div class="resource-label">{{ $t("deployment.detail.resource.memory") }}</div>
                   <div class="resource-bar-wrapper">
                     <div class="resource-bar">
                       <div
@@ -402,7 +418,7 @@
                   </div>
                 </div>
                 <div class="resource-item">
-                  <div class="resource-label">Disk I/O</div>
+                  <div class="resource-label">{{ $t("deployment.detail.resource.disk") }}</div>
                   <div class="resource-bar-wrapper">
                     <div class="resource-bar">
                       <div
@@ -415,7 +431,7 @@
                   </div>
                 </div>
                 <div class="resource-item">
-                  <div class="resource-label">Network I/O</div>
+                  <div class="resource-label">{{ $t("deployment.detail.resource.network") }}</div>
                   <div class="resource-bar-wrapper">
                     <div class="resource-bar">
                       <div
@@ -441,21 +457,21 @@
             :logs="logs"
             :loading="logsLoading"
             :file-name="`${deployment?.name || 'deployment'}-logs.txt`"
-            empty-message="No logs available"
+            :empty-message="$t('deployment.detail.logs.empty')"
             @refresh="fetchLogs"
           >
             <template #filters>
               <select v-model="logsService" class="form-select">
-                <option value="all">All Services</option>
+                <option value="all">{{ $t("deployment.detail.logs.allServices") }}</option>
                 <option v-for="service in services" :key="service.name" :value="service.name">
                   {{ service.name }}
                 </option>
               </select>
               <select v-model="logsTail" class="form-select">
-                <option :value="100">Last 100 lines</option>
-                <option :value="500">Last 500 lines</option>
-                <option :value="1000">Last 1000 lines</option>
-                <option :value="0">All logs</option>
+                <option :value="100">{{ $t("deployment.detail.logs.last100") }}</option>
+                <option :value="500">{{ $t("deployment.detail.logs.last500") }}</option>
+                <option :value="1000">{{ $t("deployment.detail.logs.last1000") }}</option>
+                <option :value="0">{{ $t("deployment.detail.logs.all") }}</option>
               </select>
             </template>
           </LogViewer>
@@ -464,7 +480,7 @@
         <div v-if="activeTab === 'terminal'" class="terminal-tab">
           <div class="terminal-header">
             <div class="terminal-selector">
-              <label>Service:</label>
+              <label>{{ $t("deployment.detail.terminal.service") }}</label>
               <select v-model="terminalService" class="form-select">
                 <option v-for="service in services" :key="service.name" :value="service.container_id">
                   {{ service.name }}
@@ -473,10 +489,10 @@
             </div>
             <div class="terminal-actions">
               <button class="btn btn-sm btn-primary" :disabled="services.length === 0" @click="connectTerminal">
-                <i class="pi pi-play" /> Connect
+                <i class="pi pi-play" /> {{ $t("deployment.detail.terminal.connect") }}
               </button>
               <button class="btn btn-sm btn-secondary" :disabled="services.length === 0" @click="reconnectTerminal">
-                <i class="pi pi-refresh" /> Reconnect
+                <i class="pi pi-refresh" /> {{ $t("deployment.detail.terminal.reconnect") }}
               </button>
             </div>
           </div>
@@ -491,29 +507,29 @@
             />
             <div v-else class="terminal-placeholder">
               <i class="pi pi-desktop" />
-              <h3>Terminal Access</h3>
-              <p>No services available</p>
+              <h3>{{ $t("deployment.detail.terminal.placeholder") }}</h3>
+              <p>{{ $t("deployment.detail.terminal.noServices") }}</p>
             </div>
           </div>
         </div>
 
         <div v-if="activeTab === 'environment'" class="env-tab">
           <div class="env-header">
-            <h3>Environment Variables</h3>
+            <h3>{{ $t("deployment.detail.environment.title") }}</h3>
             <button class="btn btn-sm btn-primary" @click="openAddEnvModal">
-              <i class="pi pi-plus" /> Add Variable
+              <i class="pi pi-plus" /> {{ $t("deployment.detail.environment.add") }}
             </button>
           </div>
           <div class="env-list">
             <div v-if="envVars.length === 0" class="empty-env">
               <i class="pi pi-list" />
-              <p>No environment variables configured</p>
+              <p>{{ $t("deployment.detail.environment.noVars") }}</p>
             </div>
             <div v-else class="env-table">
               <div class="env-row header">
-                <span class="env-key">Key</span>
-                <span class="env-value">Value</span>
-                <span class="env-actions">Actions</span>
+                <span class="env-key">{{ $t("deployment.detail.environment.key") }}</span>
+                <span class="env-value">{{ $t("deployment.detail.environment.value") }}</span>
+                <span class="env-actions">{{ $t("deployment.detail.environment.actions") }}</span>
               </div>
               <div v-for="env in envVars" :key="env.key" class="env-row">
                 <span class="env-key">{{ env.key }}</span>
@@ -540,16 +556,18 @@
         <div v-if="activeTab === 'actions'" class="actions-tab">
           <div class="quick-actions-header">
             <div class="header-text">
-              <h3>Quick Actions</h3>
-              <p class="subtitle">Execute predefined commands on your deployment</p>
+              <h3>{{ $t("deployment.detail.quickActions.title") }}</h3>
+              <p class="subtitle">{{ $t("deployment.detail.quickActions.subtitle") }}</p>
             </div>
-            <button class="btn btn-primary" @click="openAddActionModal"><i class="pi pi-plus" /> Add Action</button>
+            <button class="btn btn-primary" @click="openAddActionModal">
+              <i class="pi pi-plus" /> {{ $t("deployment.detail.quickActions.add") }}
+            </button>
           </div>
 
           <div v-if="!deployment?.metadata?.quick_actions?.length" class="no-actions">
             <i class="pi pi-bolt" />
-            <p>No quick actions configured for this deployment.</p>
-            <span class="hint">Click "Add Action" to create your first quick action.</span>
+            <p>{{ $t("deployment.detail.quickActions.noActions") }}</p>
+            <span class="hint">{{ $t("deployment.detail.quickActions.createHint") }}</span>
           </div>
 
           <div v-else class="actions-grid">
@@ -567,12 +585,16 @@
                   <h4>{{ action.name }}</h4>
                 </div>
                 <div class="action-meta">
-                  <button class="action-meta-btn" title="Edit" @click="openEditActionModal(action)">
+                  <button
+                    class="action-meta-btn"
+                    :title="$t('deployment.detail.quickActions.edit')"
+                    @click="openEditActionModal(action)"
+                  >
                     <i class="pi pi-pencil" />
                   </button>
                   <button
                     class="action-meta-btn action-meta-btn-danger"
-                    title="Delete"
+                    :title="$t('deployment.detail.quickActions.delete')"
                     @click="deleteAction(action.id)"
                   >
                     <i class="pi pi-trash" />
@@ -590,7 +612,11 @@
               >
                 <i v-if="executingAction === action.id" class="pi pi-spin pi-spinner" />
                 <i v-else class="pi pi-play" />
-                {{ executingAction === action.id ? "Running..." : "Run" }}
+                {{
+                  executingAction === action.id
+                    ? $t("deployment.detail.quickActions.running")
+                    : $t("deployment.detail.quickActions.run")
+                }}
               </button>
             </div>
           </div>
@@ -599,9 +625,11 @@
             <div class="output-header">
               <h4>
                 <i class="pi pi-code" />
-                Output
+                {{ $t("deployment.detail.quickActions.output") }}
               </h4>
-              <button class="btn btn-sm btn-secondary" @click="actionOutput = ''">Clear</button>
+              <button class="btn btn-sm btn-secondary" @click="actionOutput = ''">
+                {{ $t("deployment.detail.quickActions.clear") }}
+              </button>
             </div>
             <pre class="output-content">{{ actionOutput }}</pre>
           </div>
@@ -613,9 +641,13 @@
           <div class="security-enable-bar">
             <div class="enable-bar-left">
               <i class="pi pi-shield" :class="{ enabled: securityConfig.enabled }" />
-              <span class="enable-bar-label">Security Protection</span>
+              <span class="enable-bar-label">{{ $t("deployment.detail.security.protection") }}</span>
               <span class="enable-bar-status" :class="{ active: securityConfig.enabled }">
-                {{ securityConfig.enabled ? "Enabled" : "Disabled" }}
+                {{
+                  securityConfig.enabled
+                    ? $t("deployment.detail.security.enabled")
+                    : $t("deployment.detail.security.disabled")
+                }}
               </span>
             </div>
             <label class="toggle-switch">
@@ -633,7 +665,7 @@
                 <span class="summary-value">{{
                   (securityConfig.protected_paths || []).filter((p) => p.enabled).length
                 }}</span>
-                <span class="summary-label">Protected Paths</span>
+                <span class="summary-label">{{ $t("deployment.detail.security.protectedPaths") }}</span>
               </div>
             </div>
             <div class="summary-card">
@@ -644,7 +676,7 @@
                 <span class="summary-value">{{
                   (securityConfig.rate_limits || []).filter((r) => r.enabled).length
                 }}</span>
-                <span class="summary-label">Rate Limits</span>
+                <span class="summary-label">{{ $t("deployment.detail.security.rateLimiting") }}</span>
               </div>
             </div>
             <div class="summary-card">
@@ -653,7 +685,7 @@
               </div>
               <div class="summary-content">
                 <span class="summary-value">{{ securityEvents.length }}</span>
-                <span class="summary-label">Recent Events</span>
+                <span class="summary-label">{{ $t("deployment.detail.security.recentEvents") }}</span>
               </div>
             </div>
             <router-link :to="`/security?deployment=${deployment?.name}`" class="summary-card summary-link">
@@ -661,8 +693,8 @@
                 <i class="pi pi-external-link" />
               </div>
               <div class="summary-content">
-                <span class="summary-label">View All Events</span>
-                <span class="summary-hint">Global security dashboard</span>
+                <span class="summary-label">{{ $t("deployment.detail.security.viewAll") }}</span>
+                <span class="summary-hint">{{ $t("deployment.detail.security.globalDashboard") }}</span>
               </div>
             </router-link>
           </div>
@@ -672,13 +704,13 @@
               <div class="section-header">
                 <div class="section-title">
                   <i class="pi pi-lock" />
-                  <h3>Protected Paths</h3>
+                  <h3>{{ $t("deployment.detail.security.protectedPaths") }}</h3>
                 </div>
-                <span class="section-hint">Block access to sensitive files</span>
+                <span class="section-hint">{{ $t("deployment.detail.security.blockAccessHint") }}</span>
               </div>
               <div class="section-body">
                 <div class="presets-section">
-                  <span class="presets-label">Quick Add:</span>
+                  <span class="presets-label">{{ $t("deployment.detail.security.quickAdd") }}</span>
                   <div class="presets-row">
                     <button
                       v-for="preset in protectedPathPresets"
@@ -696,8 +728,8 @@
                 <div class="paths-list">
                   <div v-if="(securityConfig.protected_paths || []).length === 0" class="empty-state">
                     <i class="pi pi-shield" />
-                    <p>No protected paths</p>
-                    <span>Click presets above or add custom paths</span>
+                    <p>{{ $t("deployment.detail.security.noPaths") }}</p>
+                    <span>{{ $t("deployment.detail.security.addPathsHint") }}</span>
                   </div>
                   <div v-else class="items-list">
                     <div
@@ -714,7 +746,7 @@
                         </label>
                         <button
                           class="btn btn-icon btn-sm btn-ghost"
-                          title="Remove"
+                          :title="$t('deployment.detail.quickActions.delete')"
                           @click="removeProtectedPath(index)"
                         >
                           <i class="pi pi-times" />
@@ -728,11 +760,11 @@
                     v-model="newProtectedPath"
                     type="text"
                     class="form-input"
-                    placeholder="Custom path (e.g., /storage/*)"
+                    :placeholder="$t('deployment.detail.security.customPathPlaceholder')"
                     @keyup.enter="addProtectedPath"
                   />
                   <button class="btn btn-sm btn-primary" :disabled="!newProtectedPath" @click="addProtectedPath">
-                    <i class="pi pi-plus" /> Add
+                    <i class="pi pi-plus" /> {{ $t("deployment.detail.security.add") }}
                   </button>
                 </div>
               </div>
@@ -742,16 +774,16 @@
               <div class="section-header">
                 <div class="section-title">
                   <i class="pi pi-gauge" />
-                  <h3>Rate Limiting</h3>
+                  <h3>{{ $t("deployment.detail.security.rateLimiting") }}</h3>
                 </div>
-                <span class="section-hint">Limit requests per path</span>
+                <span class="section-hint">{{ $t("deployment.detail.security.limitRequestsHint") }}</span>
               </div>
               <div class="section-body">
                 <div class="rates-list">
                   <div v-if="(securityConfig.rate_limits || []).length === 0" class="empty-state">
                     <i class="pi pi-gauge" />
-                    <p>No rate limits</p>
-                    <span>Add limits to protect against abuse</span>
+                    <p>{{ $t("deployment.detail.security.noRateLimits") }}</p>
+                    <span>{{ $t("deployment.detail.security.addLimitsHint") }}</span>
                   </div>
                   <div v-else class="items-list">
                     <div
@@ -763,8 +795,10 @@
                       <div class="rate-info">
                         <code>{{ limit.path }}</code>
                         <span class="rate-config">
-                          <span class="rate-badge">{{ limit.rate }}/min</span>
-                          <span class="burst-badge">burst: {{ limit.burst }}</span>
+                          <span class="rate-badge">{{ limit.rate }}{{ $t("deployment.detail.security.perMin") }}</span>
+                          <span class="burst-badge"
+                            >{{ $t("deployment.detail.security.burst") }}: {{ limit.burst }}</span
+                          >
                         </span>
                       </div>
                       <div class="item-actions">
@@ -772,7 +806,11 @@
                           <input v-model="limit.enabled" type="checkbox" @change="saveSecurityConfig" />
                           <span class="toggle-slider" />
                         </label>
-                        <button class="btn btn-icon btn-sm btn-ghost" title="Remove" @click="removeRateLimit(index)">
+                        <button
+                          class="btn btn-icon btn-sm btn-ghost"
+                          :title="$t('deployment.detail.quickActions.delete')"
+                          @click="removeRateLimit(index)"
+                        >
                           <i class="pi pi-times" />
                         </button>
                       </div>
@@ -780,19 +818,24 @@
                   </div>
                 </div>
                 <div class="add-form rate-form">
-                  <input v-model="newRateLimit.path" type="text" class="form-input" placeholder="Path" />
+                  <input
+                    v-model="newRateLimit.path"
+                    type="text"
+                    class="form-input"
+                    :placeholder="$t('deployment.detail.security.path')"
+                  />
                   <div class="rate-inputs">
                     <div class="input-group">
                       <input v-model.number="newRateLimit.rate" type="number" class="form-input" placeholder="10" />
-                      <span class="input-suffix">/min</span>
+                      <span class="input-suffix">{{ $t("deployment.detail.security.perMin") }}</span>
                     </div>
                     <div class="input-group">
                       <input v-model.number="newRateLimit.burst" type="number" class="form-input" placeholder="5" />
-                      <span class="input-suffix">burst</span>
+                      <span class="input-suffix">{{ $t("deployment.detail.security.burst") }}</span>
                     </div>
                   </div>
                   <button class="btn btn-sm btn-primary" :disabled="!newRateLimit.path" @click="addRateLimit">
-                    <i class="pi pi-plus" /> Add
+                    <i class="pi pi-plus" /> {{ $t("deployment.detail.security.add") }}
                   </button>
                 </div>
               </div>
@@ -803,27 +846,27 @@
             <div class="section-header">
               <div class="section-title">
                 <i class="pi pi-history" />
-                <h3>Recent Security Events</h3>
+                <h3>{{ $t("deployment.detail.security.recentEvents") }}</h3>
               </div>
               <router-link :to="`/security?deployment=${deployment?.name}`" class="view-all-btn">
-                View all <i class="pi pi-arrow-right" />
+                {{ $t("deployment.detail.security.viewAll") }} <i class="pi pi-arrow-right" />
               </router-link>
             </div>
             <div class="section-body">
               <div v-if="securityEvents.length === 0" class="empty-state horizontal">
                 <i class="pi pi-check-circle" />
                 <div class="empty-text">
-                  <p>No security events</p>
-                  <span>Security events for this deployment will appear here</span>
+                  <p>{{ $t("deployment.detail.security.noEvents") }}</p>
+                  <span>{{ $t("deployment.detail.security.eventsHint") }}</span>
                 </div>
               </div>
               <div v-else class="events-table">
                 <div class="events-header">
-                  <span class="col-severity">Severity</span>
-                  <span class="col-type">Event</span>
-                  <span class="col-ip">Source IP</span>
-                  <span class="col-path">Path</span>
-                  <span class="col-time">Time</span>
+                  <span class="col-severity">{{ $t("deployment.detail.security.severity") }}</span>
+                  <span class="col-type">{{ $t("deployment.detail.security.event") }}</span>
+                  <span class="col-ip">{{ $t("deployment.detail.security.sourceIP") }}</span>
+                  <span class="col-path">{{ $t("deployment.detail.security.requestPath") }}</span>
+                  <span class="col-time">{{ $t("deployment.detail.security.time") }}</span>
                 </div>
                 <div class="events-body">
                   <div v-for="event in securityEvents" :key="event.id" class="event-row">
@@ -857,21 +900,27 @@
               @click="activeConfigTab = 'service'"
             >
               <i class="pi pi-cog" />
-              service.yml
+              {{ $t("deployment.detail.config.serviceYml") }}
             </button>
           </div>
 
           <div v-if="activeConfigTab === 'compose'" class="config-section">
             <div class="config-header">
-              <h3>Docker Compose Configuration</h3>
+              <h3>{{ $t("deployment.detail.config.dockerComposeConfig") }}</h3>
               <div class="config-actions">
-                <button class="btn btn-sm btn-secondary" @click="copyConfig"><i class="pi pi-copy" /> Copy</button>
+                <button class="btn btn-sm btn-secondary" @click="copyConfig">
+                  <i class="pi pi-copy" /> {{ $t("deployment.detail.config.copy") }}
+                </button>
                 <button v-if="!isEditingConfig" class="btn btn-sm btn-primary" @click="isEditingConfig = true">
-                  <i class="pi pi-pencil" /> Edit
+                  <i class="pi pi-pencil" /> {{ $t("deployment.detail.config.edit") }}
                 </button>
                 <template v-else>
-                  <button class="btn btn-sm btn-secondary" @click="cancelConfigEdit">Cancel</button>
-                  <button class="btn btn-sm btn-success" @click="saveConfig"><i class="pi pi-check" /> Save</button>
+                  <button class="btn btn-sm btn-secondary" @click="cancelConfigEdit">
+                    {{ $t("deployment.detail.config.cancel") }}
+                  </button>
+                  <button class="btn btn-sm btn-success" @click="saveConfig">
+                    <i class="pi pi-check" /> {{ $t("deployment.detail.config.save") }}
+                  </button>
                 </template>
               </div>
             </div>
@@ -887,22 +936,24 @@
 
           <div v-if="activeConfigTab === 'service'" class="config-section">
             <div class="config-header">
-              <h3>Service Configuration</h3>
+              <h3>{{ $t("deployment.detail.config.serviceConfig") }}</h3>
               <div class="config-actions">
                 <button class="btn btn-sm btn-secondary" @click="copyServiceConfig">
-                  <i class="pi pi-copy" /> Copy
+                  <i class="pi pi-copy" /> {{ $t("deployment.detail.config.copy") }}
                 </button>
                 <button
                   v-if="!isEditingServiceConfig"
                   class="btn btn-sm btn-primary"
                   @click="isEditingServiceConfig = true"
                 >
-                  <i class="pi pi-pencil" /> Edit
+                  <i class="pi pi-pencil" /> {{ $t("deployment.detail.config.edit") }}
                 </button>
                 <template v-else>
-                  <button class="btn btn-sm btn-secondary" @click="cancelServiceConfigEdit">Cancel</button>
+                  <button class="btn btn-sm btn-secondary" @click="cancelServiceConfigEdit">
+                    {{ $t("deployment.detail.config.cancel") }}
+                  </button>
                   <button class="btn btn-sm btn-success" @click="saveServiceConfig">
-                    <i class="pi pi-check" /> Save
+                    <i class="pi pi-check" /> {{ $t("deployment.detail.config.save") }}
                   </button>
                 </template>
               </div>
@@ -938,9 +989,15 @@
               />
               {{ operationTitle }}
             </h3>
-            <span v-if="operationSuccess" class="status-text success">Completed</span>
-            <span v-else-if="operationError" class="status-text error">Failed</span>
-            <span v-else-if="operationRunning" class="status-text running">Running...</span>
+            <span v-if="operationSuccess" class="status-text success">{{
+              $t("deployment.modal.operation.completed")
+            }}</span>
+            <span v-else-if="operationError" class="status-text error">{{
+              $t("deployment.modal.operation.failed")
+            }}</span>
+            <span v-else-if="operationRunning" class="status-text running">{{
+              $t("deployment.modal.operation.inProgress")
+            }}</span>
           </div>
           <div class="modal-body">
             <div v-if="operationError && !operationOutput" class="error-message">
@@ -951,13 +1008,13 @@
                 :logs="operationOutput"
                 :loading="operationRunning"
                 :file-name="`${deployment?.name || 'operation'}-output.txt`"
-                empty-message="Waiting for output..."
+                :empty-message="$t('deployment.modal.operation.waitingForOutput')"
               />
             </div>
           </div>
           <div class="modal-footer">
             <button class="btn btn-secondary" :disabled="operationRunning" @click="showOperationModal = false">
-              Close
+              {{ $t("deployment.modal.operation.close") }}
             </button>
           </div>
         </div>
@@ -970,7 +1027,7 @@
           <div class="modal-header danger">
             <h3>
               <i class="pi pi-trash" />
-              Delete Deployment
+              {{ $t("deployment.detail.modal.delete.title") }}
             </h3>
             <button v-if="!deletingDeployment" class="close-btn" @click="showDeleteDeploymentModal = false">
               <i class="pi pi-times" />
@@ -978,46 +1035,49 @@
           </div>
           <div class="modal-body">
             <p class="delete-warning">
-              Are you sure you want to delete <strong>{{ deployment?.name }}</strong
-              >? This will remove all containers, volumes, and configuration.
+              {{ $t("deployment.detail.modal.delete.confirm", { name: deployment?.name }) }}
             </p>
             <div class="delete-options">
-              <h4>Additional cleanup options:</h4>
+              <h4>{{ $t("deployment.detail.modal.delete.options") }}</h4>
               <label class="delete-option">
                 <input v-model="deleteOptions.deleteVhost" type="checkbox" />
                 <span class="option-content">
-                  <span class="option-label">Delete Virtual Host</span>
-                  <span class="option-hint">Remove nginx proxy configuration</span>
+                  <span class="option-label">{{ $t("deployment.detail.modal.delete.deleteVhost") }}</span>
+                  <span class="option-hint">{{ $t("deployment.detail.modal.delete.deleteVhostHint") }}</span>
                 </span>
               </label>
               <label class="delete-option">
                 <input v-model="deleteOptions.deleteSSL" type="checkbox" />
                 <span class="option-content">
-                  <span class="option-label">Delete SSL Certificate</span>
-                  <span class="option-hint">Remove Let's Encrypt certificate for this domain</span>
+                  <span class="option-label">{{ $t("deployment.detail.modal.delete.deleteSSL") }}</span>
+                  <span class="option-hint">{{ $t("deployment.detail.modal.delete.deleteSSLHint") }}</span>
                 </span>
               </label>
               <label class="delete-option">
                 <input v-model="deleteOptions.deleteDatabase" type="checkbox" />
                 <span class="option-content">
-                  <span class="option-label">Delete Database</span>
-                  <span class="option-hint"> Remove associated database and user (if using shared database) </span>
+                  <span class="option-label">{{ $t("deployment.detail.modal.delete.deleteDatabase") }}</span>
+                  <span class="option-hint"> {{ $t("deployment.detail.modal.delete.deleteDatabaseHint") }} </span>
                 </span>
               </label>
             </div>
             <p class="danger-text">
               <i class="pi pi-exclamation-triangle" />
-              This action cannot be undone.
+              {{ $t("deployment.detail.modal.delete.warning") }}
             </p>
           </div>
           <div class="modal-footer">
             <button class="btn btn-secondary" :disabled="deletingDeployment" @click="showDeleteDeploymentModal = false">
-              Cancel
+              {{ $t("deployment.detail.modal.delete.cancel") }}
             </button>
             <button class="btn btn-danger" :disabled="deletingDeployment" @click="deleteDeployment">
               <i v-if="deletingDeployment" class="pi pi-spin pi-spinner" />
               <i v-else class="pi pi-trash" />
-              {{ deletingDeployment ? "Deleting..." : "Delete Deployment" }}
+              {{
+                deletingDeployment
+                  ? $t("deployment.detail.modal.delete.deleting")
+                  : $t("deployment.detail.modal.delete.confirmButton")
+              }}
             </button>
           </div>
         </div>
@@ -1030,7 +1090,7 @@
           <div class="modal-header">
             <h3>
               <i class="pi pi-download" />
-              Pull Images
+              {{ $t("deployment.detail.modal.pullImage.title") }}
             </h3>
             <button class="close-btn" @click="showPullImageModal = false">
               <i class="pi pi-times" />
@@ -1039,41 +1099,47 @@
           <div class="modal-body">
             <div v-if="loadingImages" class="loading-images">
               <i class="pi pi-spin pi-spinner" />
-              <span>Loading image information...</span>
+              <span>{{ $t("deployment.detail.modal.pullImage.loading") }}</span>
             </div>
             <template v-else>
               <div v-if="deploymentImages.length === 0" class="no-images">
-                <p>No pullable images found in this deployment.</p>
+                <p>{{ $t("deployment.detail.modal.pullImage.noImages") }}</p>
               </div>
               <template v-else>
                 <div class="images-list">
                   <div v-for="img in deploymentImages" :key="img.service" class="image-item">
                     <span class="service-name">{{ img.service }}</span>
-                    <code class="image-name">{{ img.image || "(build)" }}</code>
-                    <span v-if="img.is_build" class="image-badge build">Build</span>
-                    <span v-else-if="img.is_latest" class="image-badge latest">Latest</span>
-                    <span v-else class="image-badge versioned">Versioned</span>
+                    <code class="image-name">{{
+                      img.image || `(${$t("deployment.detail.modal.pullImage.build").toLowerCase()})`
+                    }}</code>
+                    <span v-if="img.is_build" class="image-badge build">{{
+                      $t("deployment.detail.modal.pullImage.build")
+                    }}</span>
+                    <span v-else-if="img.is_latest" class="image-badge latest">{{
+                      $t("deployment.detail.modal.pullImage.latest")
+                    }}</span>
+                    <span v-else class="image-badge versioned">{{
+                      $t("deployment.detail.modal.pullImage.versioned")
+                    }}</span>
                   </div>
                 </div>
                 <div v-if="hasLatestImages" class="warning-box">
                   <i class="pi pi-exclamation-triangle" />
-                  <span>
-                    Images tagged as <strong>:latest</strong> or without a tag may change over time. Pulling will
-                    overwrite existing images with the newest version, which may change the behavior of your deployment.
-                  </span>
+                  <!-- eslint-disable-next-line vue/no-v-html -->
+                  <span v-html="$t('deployment.detail.modal.pullImage.latestWarning')" />
                 </div>
                 <div v-if="hasVersionedImages" class="info-box">
                   <i class="pi pi-info-circle" />
-                  <span>
-                    Versioned images (e.g., <code>nginx:1.25.3</code>) are immutable. Re-pulling them is usually
-                    unnecessary.
-                  </span>
+                  <!-- eslint-disable-next-line vue/no-v-html -->
+                  <span v-html="$t('deployment.detail.modal.pullImage.versionedInfo')" />
                 </div>
               </template>
             </template>
           </div>
           <div class="modal-footer">
-            <button class="btn btn-secondary" @click="showPullImageModal = false">Cancel</button>
+            <button class="btn btn-secondary" @click="showPullImageModal = false">
+              {{ $t("deployment.detail.modal.pullImage.cancel") }}
+            </button>
             <button
               v-if="hasLatestImages && hasVersionedImages"
               class="btn btn-info"
@@ -1081,7 +1147,7 @@
               @click="executePull(true)"
             >
               <i class="pi pi-download" />
-              Pull Latest Only
+              {{ $t("deployment.detail.modal.pullImage.pullLatestOnly") }}
             </button>
             <button
               class="btn btn-primary"
@@ -1089,7 +1155,7 @@
               @click="executePull(false)"
             >
               <i class="pi pi-download" />
-              Pull All Images
+              {{ $t("deployment.detail.modal.pullImage.pullAll") }}
             </button>
           </div>
         </div>
@@ -1102,7 +1168,7 @@
           <div class="modal-header">
             <h3>
               <i class="pi pi-sync" />
-              Rebuild Containers
+              {{ $t("deployment.detail.modal.rebuild.title") }}
             </h3>
             <button class="close-btn" @click="showRebuildModal = false">
               <i class="pi pi-times" />
@@ -1112,26 +1178,27 @@
             <div class="warning-box">
               <i class="pi pi-exclamation-triangle" />
               <div>
-                <strong>This will recreate all containers</strong>
+                <strong>{{ $t("deployment.detail.modal.rebuild.warning") }}</strong>
                 <p>
-                  Rebuilding will stop all running containers, remove them, and create new ones using the currently
-                  available images. This is useful after pulling new images.
+                  {{ $t("deployment.detail.modal.rebuild.description") }}
                 </p>
               </div>
             </div>
             <div class="info-box">
               <i class="pi pi-info-circle" />
               <span>
-                <strong>When to use:</strong> After pulling new images with "Pull Image", use rebuild to apply the
-                changes. A simple restart does not use newly pulled images.
+                <strong>{{ $t("deployment.detail.modal.rebuild.whenToUse") }}</strong>
+                {{ $t("deployment.detail.modal.rebuild.whenToUseHint") }}
               </span>
             </div>
           </div>
           <div class="modal-footer">
-            <button class="btn btn-secondary" @click="showRebuildModal = false">Cancel</button>
+            <button class="btn btn-secondary" @click="showRebuildModal = false">
+              {{ $t("deployment.detail.modal.rebuild.cancel") }}
+            </button>
             <button class="btn btn-warning" @click="executeRebuild">
               <i class="pi pi-sync" />
-              Rebuild Containers
+              {{ $t("deployment.detail.modal.rebuild.rebuild") }}
             </button>
           </div>
         </div>
@@ -1140,10 +1207,10 @@
 
     <ConfirmModal
       :visible="showDeleteEnvModal"
-      title="Delete Environment Variable"
-      :message="`Are you sure you want to delete '${envKeyToDelete}'?`"
+      :title="$t('deployment.detail.modal.deleteEnv.title')"
+      :message="$t('deployment.detail.modal.deleteEnv.confirm', { key: envKeyToDelete })"
       variant="warning"
-      confirm-text="Delete"
+      :confirm-text="$t('deployment.detail.modal.deleteEnv.confirmButton')"
       @confirm="deleteEnvVar"
       @cancel="showDeleteEnvModal = false"
     />
@@ -1154,7 +1221,7 @@
           <div class="modal-header">
             <h3>
               <i class="pi pi-globe" />
-              Domain & SSL Settings
+              {{ $t("deployment.detail.modal.domainSettings.title") }}
             </h3>
             <button class="close-btn" @click="showDomainSettingsModal = false">
               <i class="pi pi-times" />
@@ -1164,9 +1231,9 @@
             <div class="form-group">
               <label class="checkbox-label">
                 <input v-model="domainSettings.expose" type="checkbox" />
-                <span>Expose to Internet</span>
+                <span>{{ $t("deployment.detail.modal.domainSettings.expose") }}</span>
               </label>
-              <span class="hint">Enable reverse proxy for external access</span>
+              <span class="hint">{{ $t("deployment.detail.modal.domainSettings.exposeHint") }}</span>
             </div>
 
             <template v-if="domainSettings.expose">
@@ -1203,25 +1270,31 @@
               <div class="form-group">
                 <label class="checkbox-label">
                   <input v-model="domainSettings.sslEnabled" type="checkbox" />
-                  <span>Enable SSL</span>
+                  <span>{{ $t("deployment.detail.modal.domainSettings.enableSSL") }}</span>
                 </label>
-                <span class="hint">Secure your deployment with HTTPS</span>
+                <span class="hint">{{ $t("deployment.detail.modal.domainSettings.sslHint") }}</span>
               </div>
 
               <div v-if="domainSettings.sslEnabled" class="form-group">
                 <label class="checkbox-label">
                   <input v-model="domainSettings.autoCert" type="checkbox" />
-                  <span>Auto-generate Certificate</span>
+                  <span>{{ $t("deployment.detail.modal.domainSettings.autoCert") }}</span>
                 </label>
-                <span class="hint">Automatically request Let's Encrypt certificate</span>
+                <span class="hint">{{ $t("deployment.detail.modal.domainSettings.autoCertHint") }}</span>
               </div>
             </template>
           </div>
           <div class="modal-footer">
-            <button class="btn btn-secondary" @click="showDomainSettingsModal = false">Cancel</button>
+            <button class="btn btn-secondary" @click="showDomainSettingsModal = false">
+              {{ $t("deployment.detail.modal.domainSettings.cancel") }}
+            </button>
             <button class="btn btn-primary" :disabled="savingDomainSettings" @click="saveDomainSettings">
               <i v-if="savingDomainSettings" class="pi pi-spin pi-spinner" />
-              {{ savingDomainSettings ? "Saving..." : "Save Settings" }}
+              {{
+                savingDomainSettings
+                  ? $t("deployment.detail.modal.domainSettings.saving")
+                  : $t("deployment.detail.modal.domainSettings.save")
+              }}
             </button>
           </div>
         </div>
@@ -1234,7 +1307,7 @@
           <div class="modal-header">
             <h3>
               <i class="pi pi-lock" />
-              Registry Credential
+              {{ $t("deployment.detail.modal.credential.title") }}
             </h3>
             <button class="close-btn" @click="showCredentialModal = false">
               <i class="pi pi-times" />
@@ -1242,27 +1315,35 @@
           </div>
           <div class="modal-body">
             <p class="modal-description">
-              Select a saved registry credential to use when pulling images for this deployment.
+              {{ $t("deployment.detail.modal.credential.description") }}
             </p>
             <div class="form-group">
-              <label>Credential</label>
+              <label>{{ $t("deployment.detail.modal.credential.credential") }}</label>
               <select v-model="selectedCredentialId" class="form-input">
-                <option :value="null">None (Public Registry)</option>
+                <option :value="null">{{ $t("deployment.detail.modal.credential.none") }}</option>
                 <option v-for="cred in allCredentials" :key="cred.id" :value="cred.id">
                   {{ cred.name }} ({{ cred.registry_type_slug }})
                 </option>
               </select>
               <span class="hint">
-                This credential will be used when pulling images on restart or update.
-                <router-link to="/settings?tab=credentials">Manage credentials</router-link>
+                {{ $t("deployment.detail.modal.credential.hint") }}
+                <router-link to="/settings?tab=credentials">{{
+                  $t("deployment.detail.modal.credential.manage")
+                }}</router-link>
               </span>
             </div>
           </div>
           <div class="modal-footer">
-            <button class="btn btn-secondary" @click="showCredentialModal = false">Cancel</button>
+            <button class="btn btn-secondary" @click="showCredentialModal = false">
+              {{ $t("deployment.detail.modal.credential.cancel") }}
+            </button>
             <button class="btn btn-primary" :disabled="savingCredential" @click="saveCredential">
               <i v-if="savingCredential" class="pi pi-spin pi-spinner" />
-              {{ savingCredential ? "Saving..." : "Save" }}
+              {{
+                savingCredential
+                  ? $t("deployment.detail.modal.credential.saving")
+                  : $t("deployment.detail.modal.credential.save")
+              }}
             </button>
           </div>
         </div>
@@ -1275,7 +1356,7 @@
           <div class="modal-header">
             <h3>
               <i class="pi pi-list" />
-              {{ editingEnvVar ? "Edit Variable" : "Add Variable" }}
+              {{ editingEnvVar ? $t("deployment.detail.modal.envVar.edit") : $t("deployment.detail.modal.envVar.add") }}
             </h3>
             <button class="close-btn" @click="showAddEnvModal = false">
               <i class="pi pi-times" />
@@ -1283,27 +1364,40 @@
           </div>
           <div class="modal-body">
             <div class="form-group">
-              <label>Key</label>
+              <label>{{ $t("deployment.detail.modal.envVar.key") }}</label>
               <input
                 v-model="newEnvKey"
                 type="text"
-                placeholder="VARIABLE_NAME"
+                :placeholder="$t('deployment.detail.modal.envVar.keyPlaceholder')"
                 class="form-input"
                 :disabled="!!editingEnvVar"
               />
-              <span class="hint">The environment variable name (e.g., DB_HOST)</span>
+              <span class="hint">{{ $t("deployment.detail.modal.envVar.keyHint") }}</span>
             </div>
             <div class="form-group">
-              <label>Value</label>
-              <input v-model="newEnvValue" type="text" placeholder="value" class="form-input" />
-              <span class="hint">The value for this variable</span>
+              <label>{{ $t("deployment.detail.modal.envVar.value") }}</label>
+              <input
+                v-model="newEnvValue"
+                type="text"
+                :placeholder="$t('deployment.detail.modal.envVar.valuePlaceholder')"
+                class="form-input"
+              />
+              <span class="hint">{{ $t("deployment.detail.modal.envVar.valueHint") }}</span>
             </div>
           </div>
           <div class="modal-footer">
-            <button class="btn btn-secondary" @click="showAddEnvModal = false">Cancel</button>
+            <button class="btn btn-secondary" @click="showAddEnvModal = false">
+              {{ $t("deployment.detail.modal.envVar.cancel") }}
+            </button>
             <button class="btn btn-primary" :disabled="savingEnvVars || !newEnvKey.trim()" @click="saveEnvVar">
               <i v-if="savingEnvVars" class="pi pi-spin pi-spinner" />
-              {{ savingEnvVars ? "Saving..." : editingEnvVar ? "Update" : "Add" }}
+              {{
+                savingEnvVars
+                  ? $t("deployment.detail.modal.envVar.saving")
+                  : editingEnvVar
+                    ? $t("deployment.detail.modal.envVar.updateButton")
+                    : $t("deployment.detail.modal.envVar.addButton")
+              }}
             </button>
           </div>
         </div>
@@ -1316,7 +1410,11 @@
           <div class="modal-header">
             <h3>
               <i class="pi pi-bolt" />
-              {{ editingActionId ? "Edit Quick Action" : "Add Quick Action" }}
+              {{
+                editingActionId
+                  ? $t("deployment.detail.modal.quickAction.edit")
+                  : $t("deployment.detail.modal.quickAction.add")
+              }}
             </h3>
             <button class="close-btn" @click="showActionModal = false">
               <i class="pi pi-times" />
@@ -1324,68 +1422,85 @@
           </div>
           <div class="modal-body">
             <div class="form-group">
-              <label>Name <span class="required">*</span></label>
-              <input v-model="actionForm.name" type="text" placeholder="e.g., Clear Cache" class="form-input" />
-              <span class="hint">A descriptive name for the action</span>
+              <label>{{ $t("deployment.detail.modal.quickAction.name") }} <span class="required">*</span></label>
+              <input
+                v-model="actionForm.name"
+                type="text"
+                :placeholder="$t('deployment.detail.modal.quickAction.namePlaceholder')"
+                class="form-input"
+              />
+              <span class="hint">{{ $t("deployment.detail.modal.quickAction.nameHint") }}</span>
             </div>
             <div class="form-group">
-              <label>Command <span class="required">*</span></label>
+              <label>{{ $t("deployment.detail.modal.quickAction.command") }} <span class="required">*</span></label>
               <input
                 v-model="actionForm.command"
                 type="text"
-                placeholder="e.g., php artisan cache:clear"
+                :placeholder="$t('deployment.detail.modal.quickAction.commandPlaceholder')"
                 class="form-input mono"
               />
-              <span class="hint">The shell command to execute in the container</span>
+              <span class="hint">{{ $t("deployment.detail.modal.quickAction.commandHint") }}</span>
             </div>
             <div class="form-group">
-              <label>Description</label>
+              <label>{{ $t("deployment.detail.modal.quickAction.description") }}</label>
               <input
                 v-model="actionForm.description"
                 type="text"
-                placeholder="e.g., Flush the application cache"
+                :placeholder="$t('deployment.detail.modal.quickAction.descriptionPlaceholder')"
                 class="form-input"
               />
-              <span class="hint">Optional description of what this action does</span>
+              <span class="hint">{{ $t("deployment.detail.modal.quickAction.descriptionHint") }}</span>
             </div>
             <div class="form-row">
               <div class="form-group">
-                <label>Icon</label>
+                <label>{{ $t("deployment.detail.modal.quickAction.icon") }}</label>
                 <select v-model="actionForm.icon" class="form-input">
-                  <option value="pi pi-play">Play</option>
-                  <option value="pi pi-bolt">Bolt</option>
-                  <option value="pi pi-refresh">Refresh</option>
-                  <option value="pi pi-trash">Trash</option>
-                  <option value="pi pi-database">Database</option>
-                  <option value="pi pi-cog">Cog</option>
-                  <option value="pi pi-code">Code</option>
-                  <option value="pi pi-sync">Sync</option>
-                  <option value="pi pi-download">Download</option>
-                  <option value="pi pi-upload">Upload</option>
+                  <option value="pi pi-play">{{ $t("deployment.detail.modal.quickAction.iconLabels.play") }}</option>
+                  <option value="pi pi-bolt">{{ $t("deployment.detail.modal.quickAction.iconLabels.bolt") }}</option>
+                  <option value="pi pi-refresh">{{ $t("deployment.detail.modal.quickAction.iconLabels.refresh") }}</option>
+                  <option value="pi pi-trash">{{ $t("deployment.detail.modal.quickAction.iconLabels.trash") }}</option>
+                  <option value="pi pi-database">
+                    {{ $t("deployment.detail.modal.quickAction.iconLabels.database") }}
+                  </option>
+                  <option value="pi pi-cog">{{ $t("deployment.detail.modal.quickAction.iconLabels.cog") }}</option>
+                  <option value="pi pi-code">{{ $t("deployment.detail.modal.quickAction.iconLabels.code") }}</option>
+                  <option value="pi pi-sync">{{ $t("deployment.detail.modal.quickAction.iconLabels.sync") }}</option>
+                  <option value="pi pi-download">
+                    {{ $t("deployment.detail.modal.quickAction.iconLabels.download") }}
+                  </option>
+                  <option value="pi pi-upload">{{ $t("deployment.detail.modal.quickAction.iconLabels.upload") }}</option>
                 </select>
-                <span class="hint">Icon to display for this action</span>
+                <span class="hint">{{ $t("deployment.detail.modal.quickAction.iconHint") }}</span>
               </div>
               <div class="form-group">
-                <label>Target Service</label>
+                <label>{{ $t("deployment.detail.modal.quickAction.targetService") }}</label>
                 <select v-model="actionForm.service" class="form-input">
-                  <option value="">Default (first service)</option>
+                  <option value="">{{ $t("deployment.detail.modal.quickAction.defaultService") }}</option>
                   <option v-for="svc in deployment?.services" :key="svc.name" :value="svc.name">
                     {{ svc.name }}
                   </option>
                 </select>
-                <span class="hint">Container to run the command in</span>
+                <span class="hint">{{ $t("deployment.detail.modal.quickAction.targetServiceHint") }}</span>
               </div>
             </div>
           </div>
           <div class="modal-footer">
-            <button class="btn btn-secondary" @click="showActionModal = false">Cancel</button>
+            <button class="btn btn-secondary" @click="showActionModal = false">
+              {{ $t("deployment.detail.modal.quickAction.cancel") }}
+            </button>
             <button
               class="btn btn-primary"
               :disabled="savingAction || !actionForm.name || !actionForm.command"
               @click="saveAction"
             >
               <i v-if="savingAction" class="pi pi-spin pi-spinner" />
-              {{ savingAction ? "Saving..." : editingActionId ? "Update Action" : "Add Action" }}
+              {{
+                savingAction
+                  ? $t("deployment.detail.modal.quickAction.saving")
+                  : editingActionId
+                    ? $t("deployment.detail.modal.quickAction.updateButton")
+                    : $t("deployment.detail.modal.quickAction.addButton")
+              }}
             </button>
           </div>
         </div>
@@ -1415,6 +1530,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, nextTick, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import { useI18n } from "vue-i18n";
 import { Codemirror } from "vue-codemirror";
 import { yaml } from "@codemirror/lang-yaml";
 import { oneDark } from "@codemirror/theme-one-dark";
@@ -1440,6 +1556,7 @@ import DomainsManager from "@/components/DomainsManager.vue";
 import DomainFormModal from "@/components/DomainFormModal.vue";
 import ContainerResourcesModal from "@/components/ContainerResourcesModal.vue";
 
+const { t, te } = useI18n();
 const route = useRoute();
 const router = useRouter();
 const notifications = useNotificationsStore();
@@ -1452,7 +1569,9 @@ const backPath = computed(() => {
 });
 
 const backLabel = computed(() => {
-  return route.query.from === "infrastructure" ? "Back to Infrastructure" : "Back to Deployments";
+  return route.query.from === "infrastructure"
+    ? t("deployment.detail.backToInfrastructure")
+    : t("deployment.detail.backToDeployments");
 });
 
 const deployment = ref<any>(null);
@@ -1491,17 +1610,17 @@ const protectedPathPresets = [
   { pattern: "/package.json", label: "package.json" },
 ];
 
-const tabs = [
-  { id: "overview", label: "Overview", icon: "pi pi-info-circle" },
-  { id: "files", label: "Files", icon: "pi pi-folder" },
-  { id: "logs", label: "Logs", icon: "pi pi-file-edit" },
-  { id: "terminal", label: "Terminal", icon: "pi pi-desktop" },
-  { id: "environment", label: "Environment", icon: "pi pi-list" },
-  { id: "actions", label: "Quick Actions", icon: "pi pi-bolt" },
-  { id: "backups", label: "Backups", icon: "pi pi-history" },
-  { id: "security", label: "Security", icon: "pi pi-shield" },
-  { id: "config", label: "Configuration", icon: "pi pi-cog" },
-];
+const tabs = computed(() => [
+  { id: "overview", label: t("deployment.detail.tab.overview"), icon: "pi pi-info-circle" },
+  { id: "files", label: t("deployment.detail.tab.files"), icon: "pi pi-folder" },
+  { id: "logs", label: t("deployment.detail.tab.logs"), icon: "pi pi-file-edit" },
+  { id: "terminal", label: t("deployment.detail.tab.terminal"), icon: "pi pi-desktop" },
+  { id: "environment", label: t("deployment.detail.tab.environment"), icon: "pi pi-list" },
+  { id: "actions", label: t("deployment.detail.tab.quickActions"), icon: "pi pi-bolt" },
+  { id: "backups", label: t("deployment.detail.tab.backups"), icon: "pi pi-history" },
+  { id: "security", label: t("deployment.detail.tab.security"), icon: "pi pi-shield" },
+  { id: "config", label: t("deployment.detail.tab.configuration"), icon: "pi pi-cog" },
+]);
 
 const services = ref<any[]>([]);
 const resourceUsage = ref({
@@ -1642,14 +1761,23 @@ const saveSecurityConfig = async () => {
     const data = response.data as { security: typeof securityConfig.value; vhost_updated?: boolean; warning?: string };
 
     if (data.warning) {
-      notifications.warning("Saved with Warning", data.warning);
+      notifications.warning(t("common.warning"), data.warning);
     } else if (data.vhost_updated) {
-      notifications.success("Saved & Applied", "Security configuration updated and nginx vhost regenerated");
+      notifications.success(
+        t("deployment.detail.notification.securitySavedApplied"),
+        t("deployment.detail.notification.securityVhostUpdated"),
+      );
     } else {
-      notifications.success("Saved", "Security configuration updated");
+      notifications.success(
+        t("deployment.detail.notification.securitySaved"),
+        t("deployment.detail.notification.securityUpdated"),
+      );
     }
   } catch (e: any) {
-    notifications.error("Error", e.response?.data?.error || "Failed to save security configuration");
+    notifications.error(
+      t("common.error"),
+      e.response?.data?.error || t("deployment.detail.notification.securitySaveFailed"),
+    );
   }
 };
 
@@ -1704,20 +1832,22 @@ const removeRateLimit = (index: number) => {
 };
 
 const formatEventType = (type: string) => {
+  const translationKey = `security.events.types.${type}`;
+  if (te(translationKey)) return t(translationKey);
   return type.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
 };
 
 const formatTimeAgo = (dateString: string) => {
-  if (!dateString) return "N/A";
+  if (!dateString) return t("common.na");
   const date = new Date(dateString);
   const now = new Date();
   const diff = now.getTime() - date.getTime();
   const minutes = Math.floor(diff / 60000);
-  if (minutes < 1) return "just now";
-  if (minutes < 60) return `${minutes}m ago`;
+  if (minutes < 1) return t("common.time.justNow");
+  if (minutes < 60) return t("common.time.mAgo", { n: minutes });
   const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
-  return `${Math.floor(hours / 24)}d ago`;
+  if (hours < 24) return t("common.time.hAgo", { n: hours });
+  return t("common.time.dAgo", { n: Math.floor(hours / 24) });
 };
 
 const fetchDeployment = async () => {
@@ -1766,18 +1896,18 @@ const fetchDeployment = async () => {
 
     try {
       const composeResponse = await deploymentsApi.getComposeFile(route.params.name as string);
-      composeConfig.value = composeResponse.data.content || composeResponse.data || "No compose file found";
+      composeConfig.value = composeResponse.data.content || composeResponse.data || t("deployment.detail.config.noComposeFile");
       composeFilename.value = composeResponse.data.filename || "docker-compose.yml";
     } catch (composeErr) {
-      composeConfig.value = "Error loading compose file";
+      composeConfig.value = t("deployment.detail.config.errorLoadingCompose");
       console.error("Failed to load compose file:", composeErr);
     }
 
     try {
       const serviceResponse = await filesApi.getContent(route.params.name as string, "/service.yml");
-      serviceConfig.value = serviceResponse.data || "No service.yml found";
+      serviceConfig.value = serviceResponse.data || t("deployment.detail.config.serviceConfigNotFound");
     } catch (serviceErr) {
-      serviceConfig.value = "# Service configuration not found\n# This file will be created when you save";
+      serviceConfig.value = t("deployment.detail.config.serviceConfigNotFound");
       console.error("Failed to load service.yml:", serviceErr);
     }
 
@@ -1785,7 +1915,7 @@ const fetchDeployment = async () => {
       terminalService.value = services.value[0].container_id;
     }
   } catch (err: any) {
-    error.value = err.message || "Failed to load deployment";
+    error.value = err.message || t("deployment.detail.failedToLoad");
   } finally {
     loading.value = false;
   }
@@ -1795,11 +1925,14 @@ const handleSetupProxy = async () => {
   settingUpProxy.value = true;
   try {
     await proxyApi.setup(route.params.name as string);
-    notifications.success("Proxy Setup", "Virtual host has been configured");
+    notifications.success(
+      t("deployment.detail.notification.proxySetup"),
+      t("deployment.detail.notification.proxySetupSuccess"),
+    );
     await fetchDeployment();
   } catch (err: any) {
     const msg = err.response?.data?.error || err.message;
-    notifications.error("Setup Failed", msg);
+    notifications.error(t("deployment.detail.notification.setupFailed"), msg);
   } finally {
     settingUpProxy.value = false;
   }
@@ -1809,11 +1942,14 @@ const handleDeleteDomain = async (domainId: string) => {
   deletingDomain.value = true;
   try {
     await deploymentsApi.deleteDomain(route.params.name as string, domainId);
-    notifications.success("Domain Deleted", "Domain has been removed");
+    notifications.success(
+      t("deployment.detail.notification.domainDeleted"),
+      t("deployment.detail.notification.domainDeletedSuccess"),
+    );
     await fetchDeployment();
   } catch (err: any) {
     const msg = err.response?.data?.error || err.message;
-    notifications.error("Delete Failed", msg);
+    notifications.error(t("deployment.detail.notification.deleteFailed"), msg);
   } finally {
     deletingDomain.value = false;
   }
@@ -1843,12 +1979,15 @@ const handleAddDomain = async (newDomain: any) => {
       aliases: newDomain.aliases,
     });
 
-    notifications.success("Domain Added", `${newDomain.domain} has been added to this deployment`);
+    notifications.success(
+      t("deployment.detail.notification.domainAdded"),
+      t("deployment.detail.notification.domainAddedSuccess", { domain: newDomain.domain }),
+    );
     showAddDomainModal.value = false;
     await fetchDeployment();
   } catch (err: any) {
     const msg = err.response?.data?.error || err.message;
-    notifications.error("Failed to Add Domain", msg);
+    notifications.error(t("deployment.detail.notification.addDomainFailed"), msg);
   } finally {
     addingDomain.value = false;
   }
@@ -1861,13 +2000,13 @@ const handleRequestCertificate = async () => {
   try {
     await certificatesApi.request(proxyStatus.value.domain);
     notifications.success(
-      "Certificate Requested",
-      `SSL certificate for ${proxyStatus.value.domain} has been requested`,
+      t("deployment.detail.notification.sslRequested"),
+      t("deployment.detail.notification.sslRequestedSuccess", { domain: proxyStatus.value.domain }),
     );
     await fetchDeployment();
   } catch (err: any) {
     const msg = err.response?.data?.error || err.message;
-    notifications.error("Request Failed", msg);
+    notifications.error(t("deployment.detail.notification.requestFailed"), msg);
   } finally {
     requestingCert.value = false;
   }
@@ -1879,11 +2018,14 @@ const handleDisableSSL = async () => {
   disablingSSL.value = true;
   try {
     await deploymentsApi.disableSSL(deployment.value.name);
-    notifications.success("SSL Disabled", `SSL has been disabled for ${deployment.value.name}`);
+    notifications.success(
+      t("deployment.detail.notification.sslDisabled"),
+      t("deployment.detail.notification.sslDisabledSuccess", { name: deployment.value.name }),
+    );
     await fetchDeployment();
   } catch (err: any) {
     const msg = err.response?.data?.error || err.message;
-    notifications.error("Failed to Disable SSL", msg);
+    notifications.error(t("deployment.detail.notification.disableSslFailed"), msg);
   } finally {
     disablingSSL.value = false;
   }
@@ -1920,7 +2062,9 @@ const fetchStats = async () => {
 };
 
 const handleOperation = async (operation: string, onlyLatest: boolean = false) => {
-  operationTitle.value = `${operation.charAt(0).toUpperCase() + operation.slice(1)} Deployment`;
+  operationTitle.value = t("deployment.modal.operation.title", {
+    operation: t(`deployment.modal.operation.${operation}ing`),
+  });
   operationRunning.value = true;
   operationSuccess.value = false;
   operationError.value = "";
@@ -1941,13 +2085,13 @@ const handleOperation = async (operation: string, onlyLatest: boolean = false) =
       response = await deploymentsApi.pullImage(route.params.name as string, onlyLatest);
     }
 
-    operationOutput.value = response?.data?.output || "Operation completed";
+    operationOutput.value = response?.data?.output || t("deployment.modal.operation.completed");
     operationSuccess.value = true;
     await fetchDeployment();
   } catch (err: any) {
     const errorOutput = err.response?.data?.output || err.response?.data?.error || err.message;
     operationOutput.value = errorOutput;
-    operationError.value = "Operation failed";
+    operationError.value = t("deployment.modal.operation.failed");
   } finally {
     operationRunning.value = false;
   }
@@ -1984,12 +2128,18 @@ const executeAction = async (action: { id: string; name: string }) => {
 
   try {
     const response = await deploymentsApi.executeQuickAction(route.params.name as string, action.id);
-    actionOutput.value = response.data.output || "Action completed successfully";
-    notifications.success("Action Executed", `${action.name} completed successfully`);
+    actionOutput.value = response.data.output || t("deployment.modal.operation.completed");
+    notifications.success(
+      t("deployment.detail.notification.quickActionExecuted"),
+      t("deployment.detail.notification.quickActionExecutedDesc", { name: action.name }),
+    );
   } catch (err: any) {
     const errorOutput = err.response?.data?.output || err.response?.data?.error || err.message;
     actionOutput.value = errorOutput;
-    notifications.error("Action Failed", `${action.name} failed`);
+    notifications.error(
+      t("deployment.detail.notification.quickActionFailed"),
+      t("deployment.detail.notification.quickActionFailedDesc", { name: action.name }),
+    );
   } finally {
     executingAction.value = null;
   }
@@ -2021,7 +2171,10 @@ const openEditActionModal = (action: QuickAction) => {
 
 const saveAction = async () => {
   if (!actionForm.value.name || !actionForm.value.command) {
-    notifications.error("Validation Error", "Name and command are required");
+    notifications.error(
+      t("deployment.detail.notification.validationError"),
+      t("deployment.detail.notification.quickActionNameCommandRequired"),
+    );
     return;
   }
 
@@ -2062,10 +2215,15 @@ const saveAction = async () => {
 
     await deploymentsApi.updateMetadata(route.params.name as string, metadata as any);
     showActionModal.value = false;
-    notifications.success("Action Saved", editingActionId.value ? "Quick action updated" : "Quick action added");
+    notifications.success(
+      t("deployment.detail.notification.quickActionSaved"),
+      editingActionId.value
+        ? t("deployment.detail.notification.quickActionUpdated")
+        : t("deployment.detail.notification.quickActionAdded"),
+    );
     await fetchDeployment();
   } catch (err: any) {
-    notifications.error("Save Failed", err.response?.data?.error || err.message);
+    notifications.error(t("deployment.detail.notification.saveFailed"), err.response?.data?.error || err.message);
   } finally {
     savingAction.value = false;
   }
@@ -2082,10 +2240,13 @@ const deleteAction = async (actionId: string) => {
     };
 
     await deploymentsApi.updateMetadata(route.params.name as string, metadata as any);
-    notifications.success("Action Deleted", "Quick action removed");
+    notifications.success(
+      t("deployment.detail.notification.quickActionDeleted"),
+      t("deployment.detail.notification.quickActionDeletedDesc"),
+    );
     await fetchDeployment();
   } catch (err: any) {
-    notifications.error("Delete Failed", err.response?.data?.error || err.message);
+    notifications.error(t("deployment.detail.notification.deleteFailed"), err.response?.data?.error || err.message);
   }
 };
 
@@ -2110,11 +2271,14 @@ const deleteDeployment = async () => {
       deleteVhost: deleteOptions.value.deleteVhost,
     });
     showDeleteDeploymentModal.value = false;
-    notifications.success("Deleted", `Deployment "${deployment.value?.name}" has been deleted`);
+    notifications.success(
+      t("deployment.detail.notification.deleted"),
+      t("deployment.detail.notification.deploymentDeleted", { name: deployment.value?.name }),
+    );
     router.push(backPath.value);
   } catch (err: any) {
     const msg = err.response?.data?.error || err.message;
-    notifications.error("Delete Failed", msg);
+    notifications.error(t("deployment.detail.notification.deleteFailed"), msg);
   } finally {
     deletingDeployment.value = false;
   }
@@ -2127,12 +2291,23 @@ const isInfrastructure = computed(() => {
 const migrateToInfrastructure = async () => {
   try {
     await infrastructureApi.migrate(route.params.name as string);
-    notifications.success("Migrated", "Deployment moved to Infrastructure");
+    notifications.success(
+      t("deployment.detail.notification.migrated"),
+      t("deployment.detail.notification.migratedDesc"),
+    );
     router.push("/infrastructure");
   } catch (err: any) {
     const msg = err.response?.data?.error || err.message;
-    notifications.error("Migration Failed", msg);
+    notifications.error(t("deployment.detail.notification.migrationFailed"), msg);
   }
+};
+
+const openServiceResources = (service: any) => {
+  serviceResourcesModal.value = {
+    visible: true,
+    containerId: service.container_id,
+    containerName: service.name,
+  };
 };
 
 const openServiceResources = (service: any) => {
@@ -2177,15 +2352,21 @@ const reconnectTerminal = async () => {
 };
 
 const onTerminalConnected = () => {
-  notifications.success("Connected", "Terminal connected successfully");
+  notifications.success(
+    t("deployment.detail.notification.terminalConnected"),
+    t("deployment.detail.notification.terminalConnectedDesc"),
+  );
 };
 
 const onTerminalDisconnected = () => {
-  notifications.info("Disconnected", "Terminal connection closed");
+  notifications.info(
+    t("deployment.detail.notification.terminalDisconnected"),
+    t("deployment.detail.notification.terminalDisconnectedDesc"),
+  );
 };
 
 const onTerminalError = (message: string) => {
-  notifications.error("Connection Error", message);
+  notifications.error(t("deployment.detail.notification.terminalConnectionError"), message);
 };
 
 const saveEnvVarsToServer = async () => {
@@ -2196,7 +2377,7 @@ const saveEnvVarsToServer = async () => {
     return true;
   } catch (err: any) {
     const msg = err.response?.data?.error || err.message;
-    notifications.error("Save Failed", msg);
+    notifications.error(t("deployment.detail.notification.saveFailed"), msg);
     return false;
   } finally {
     savingEnvVars.value = false;
@@ -2219,7 +2400,10 @@ const editEnvVar = (env: { key: string; value: string }) => {
 
 const saveEnvVar = async () => {
   if (!newEnvKey.value.trim()) {
-    notifications.error("Validation Error", "Key cannot be empty");
+    notifications.error(
+      t("deployment.detail.notification.validationError"),
+      t("deployment.detail.notification.envKeyEmpty"),
+    );
     return;
   }
 
@@ -2234,7 +2418,10 @@ const saveEnvVar = async () => {
     }
   } else {
     if (envVars.value.some((e) => e.key === newEnvKey.value.trim())) {
-      notifications.error("Validation Error", "Key already exists");
+      notifications.error(
+        t("deployment.detail.notification.validationError"),
+        t("deployment.detail.notification.envKeyExists"),
+      );
       return;
     }
     envVars.value.push({
@@ -2247,7 +2434,12 @@ const saveEnvVar = async () => {
   const success = await saveEnvVarsToServer();
   if (success) {
     showAddEnvModal.value = false;
-    notifications.success("Saved", editingEnvVar.value ? "Variable updated" : "Variable added");
+    notifications.success(
+      t("deployment.detail.notification.saved"),
+      editingEnvVar.value
+        ? t("deployment.detail.notification.variableUpdated")
+        : t("deployment.detail.notification.variableAdded"),
+    );
     editingEnvVar.value = null;
     newEnvKey.value = "";
     newEnvValue.value = "";
@@ -2266,7 +2458,10 @@ const deleteEnvVar = async () => {
 
   const success = await saveEnvVarsToServer();
   if (success) {
-    notifications.success("Deleted", `Environment variable "${keyToDelete}" removed`);
+    notifications.success(
+      t("deployment.detail.notification.deleted"),
+      t("deployment.detail.notification.envRemoved", { key: keyToDelete }),
+    );
   }
   envKeyToDelete.value = "";
 };
@@ -2313,11 +2508,14 @@ const saveDomainSettings = async () => {
       },
     });
     showDomainSettingsModal.value = false;
-    notifications.success("Saved", "Domain settings updated successfully");
+    notifications.success(
+      t("deployment.detail.notification.saved"),
+      t("deployment.detail.notification.domainSettingsUpdated"),
+    );
     await fetchDeployment();
   } catch (err: any) {
     const msg = err.response?.data?.error || err.message;
-    notifications.error("Save Failed", msg);
+    notifications.error(t("deployment.detail.notification.saveFailed"), msg);
   } finally {
     savingDomainSettings.value = false;
   }
@@ -2341,11 +2539,14 @@ const saveCredential = async () => {
       credential_id: selectedCredentialId.value || "",
     });
     showCredentialModal.value = false;
-    notifications.success("Saved", "Registry credential updated");
+    notifications.success(
+      t("deployment.detail.notification.saved"),
+      t("deployment.detail.notification.registryCredentialUpdated"),
+    );
     await fetchDeployment();
   } catch (err: any) {
     const msg = err.response?.data?.error || err.message;
-    notifications.error("Save Failed", msg);
+    notifications.error(t("deployment.detail.notification.saveFailed"), msg);
   } finally {
     savingCredential.value = false;
   }
@@ -2353,12 +2554,18 @@ const saveCredential = async () => {
 
 const copyConfig = () => {
   navigator.clipboard.writeText(composeConfig.value);
-  notifications.success("Copied", "Configuration copied to clipboard");
+  notifications.success(
+    t("deployment.detail.notification.copied"),
+    t("deployment.detail.notification.configurationCopied"),
+  );
 };
 
 const copyServiceConfig = () => {
   navigator.clipboard.writeText(serviceConfig.value);
-  notifications.success("Copied", "Service configuration copied to clipboard");
+  notifications.success(
+    t("deployment.detail.notification.copied"),
+    t("deployment.detail.notification.serviceConfigurationCopied"),
+  );
 };
 
 let originalConfig = "";
@@ -2381,10 +2588,13 @@ const saveConfig = async () => {
     });
     originalConfig = composeConfig.value;
     isEditingConfig.value = false;
-    notifications.success("Saved", "Configuration saved successfully");
+    notifications.success(
+      t("deployment.detail.notification.saved"),
+      t("deployment.detail.notification.configurationSaved"),
+    );
   } catch (err: any) {
     const msg = err.response?.data?.error || err.message;
-    notifications.error("Save Failed", msg);
+    notifications.error(t("deployment.detail.notification.saveFailed"), msg);
   }
 };
 
@@ -2395,11 +2605,14 @@ const saveServiceConfig = async () => {
     await filesApi.upload(route.params.name as string, "/service.yml", file);
     originalServiceConfig = serviceConfig.value;
     isEditingServiceConfig.value = false;
-    notifications.success("Saved", "Service configuration saved successfully");
+    notifications.success(
+      t("deployment.detail.notification.saved"),
+      t("deployment.detail.notification.serviceConfigurationSaved"),
+    );
     await fetchDeployment();
   } catch (err: any) {
     const msg = err.response?.data?.error || err.message;
-    notifications.error("Save Failed", msg);
+    notifications.error(t("deployment.detail.notification.saveFailed"), msg);
   }
 };
 

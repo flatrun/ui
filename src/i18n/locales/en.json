@@ -74,5 +74,1362 @@
       "users": "Users",
       "apiKeys": "API Keys"
     }
+  },
+  "login": {
+    "brandSubtitle": "Docker Deployment Manager",
+    "features": {
+      "deployments": "Manage Docker deployments",
+      "monitor": "Monitor containers & resources",
+      "templates": "Quick app deployment templates"
+    },
+    "title": "Sign In",
+    "subtitle": {
+      "default": "Enter your credentials",
+      "apiKey": "Enter your API key"
+    },
+    "action": {
+      "useCredentials": "Username",
+      "useApiKey": "API Key",
+      "signIn": "Sign In"
+    },
+    "username": {
+      "label": "Username",
+      "placeholder": "Enter your username"
+    },
+    "password": {
+      "label": "Password",
+      "placeholder": "Enter your password"
+    },
+    "apiKey": {
+      "label": "API Key",
+      "placeholder": "Enter your API key"
+    },
+    "help": {
+      "credentials": "Use your FlatRun account credentials",
+      "apiKey": "API keys are managed in the dashboard settings"
+    }
+  },
+  "home": {
+    "updatedAt": "Updated",
+    "action": {
+      "refresh": "Refresh",
+      "newDeployment": "New Deployment",
+      "monitoring": {
+        "title": "Monitoring",
+        "description": "Traffic & security"
+      },
+      "templates": {
+        "title": "Templates",
+        "description": "Browse apps"
+      },
+      "ssl": {
+        "title": "SSL Certs",
+        "description": "Manage certificates"
+      },
+      "infrastructure": {
+        "title": "Infrastructure",
+        "description": "Nginx, databases"
+      }
+    },
+    "actionGroup": {
+      "title": "Quick Actions"
+    },
+    "stat": {
+      "deployment": "Deployments",
+      "running": "Running",
+      "stopped": "Stopped",
+      "container": "Containers"
+    },
+    "deployment": {
+      "title": "Deployments",
+      "viewAll": "View all",
+      "loading": "Loading...",
+      "emptyMessage": "No deployments yet",
+      "emptyAction": "Create your first deployment",
+      "field": {
+        "name": "Name",
+        "status": "Status",
+        "updated": "Updated"
+      }
+    },
+    "system": {
+      "title": "System"
+    },
+    "health": {
+      "healthy": "Healthy",
+      "warning": "Warning",
+      "critical": "Critical"
+    },
+    "resource": {
+      "cpu": "CPU",
+      "memory": "Memory",
+      "disk": "Disk"
+    },
+    "docker": {
+      "title": "Docker",
+      "running": "Running",
+      "images": "Images",
+      "volumes": "Volumes",
+      "networks": "Networks"
+    },
+    "security": {
+      "title": "Security",
+      "viewAll": "View all",
+      "severity": {
+        "critical": "Critical",
+        "high": "High"
+      },
+      "events24h": "24h Events",
+      "blockedIps": "blocked IPs",
+      "routes": "routes",
+      "noData": "No security data"
+    },
+    "agent": {
+      "title": "Agent",
+      "online": "Online",
+      "version": "Version",
+      "endpoint": "Endpoint"
+    },
+    "time": {
+      "justNow": "just now",
+      "minutes": "{n}m ago",
+      "hours": "{n}h ago",
+      "days": "{n}d ago",
+      "na": "N/A"
+    },
+    "notification": {
+      "refreshing": "Refreshing",
+      "updating": "Updating data...",
+      "updated": "Updated",
+      "refreshed": "Dashboard refreshed",
+      "created": "Created",
+      "deploymentCreated": "Deployment created successfully"
+    }
+  },
+  "deployment": {
+    "action": {
+      "searchPlaceholder": "Search deployments...",
+      "new": "New Deployment",
+      "refresh": "Refresh",
+      "start": "Start",
+      "stop": "Stop",
+      "restart": "Restart",
+      "logs": "Logs",
+      "settings": "Settings"
+    },
+    "field": {
+      "name": "Deployment",
+      "services": "Services",
+      "ports": "Ports",
+      "updated": "Updated"
+    },
+    "empty": {
+      "title": "No Deployments Found",
+      "description": "Create your first deployment to get started"
+    },
+    "loading": "Loading deployments...",
+    "ssl": "SSL",
+    "service": {
+      "count": "{n} services"
+    },
+    "notification": {
+      "failedToLoad": "Failed to load deployments",
+      "refreshing": "Refreshing",
+      "refreshingDescription": "Fetching latest deployment status",
+      "operationSuccess": "{operation} successful",
+      "operationSuccessDescription": "{name} {operation}ed successfully",
+      "operationFailed": "{operation} failed",
+      "created": "Deployment created",
+      "createdDescription": "New deployment folder created successfully",
+      "logsFailed": "Failed to load logs"
+    },
+    "time": {
+      "justNow": "just now",
+      "minutes": "{n}m ago",
+      "hours": "{n}h ago",
+      "days": "{n}d ago"
+    },
+    "logs": {
+      "loading": "Loading...",
+      "empty": "No logs available",
+      "error": "Error: {message}"
+    },
+    "backups": {
+      "title": "Backups",
+      "creating": "Creating...",
+      "create": "Create Backup",
+      "schedule": "Schedule Backup",
+      "loading": "Loading backups...",
+      "noBackups": "No backups yet",
+      "noBackupsDesc": "Create your first backup to protect your deployment data.",
+      "restore": "Restore",
+      "download": "Download",
+      "scheduledTitle": "Scheduled Backups",
+      "nextRun": "Next:",
+      "status": {
+        "completed": "Completed",
+        "pending": "Pending",
+        "in_progress": "In Progress",
+        "failed": "Failed"
+      },
+      "modal": {
+        "schedule": {
+          "title": "Schedule Automatic Backup",
+          "name": "Schedule Name",
+          "namePlaceholder": "e.g., Daily backup",
+          "cron": "Schedule (Cron Expression)",
+          "cronPlaceholder": "0 2 * * *",
+          "examples": "Examples:",
+          "dailyAt2am": "daily at 2am",
+          "every6hours": "every 6 hours",
+          "retention": "Retention Count",
+          "retentionHint": "Number of backups to keep (older backups will be deleted)",
+          "enableNow": "Enable schedule immediately",
+          "cancel": "Cancel",
+          "create": "Create Schedule"
+        },
+        "delete": {
+          "title": "Delete Backup",
+          "confirm": "Are you sure you want to delete this backup? This action cannot be undone.",
+          "confirmTask": "Are you sure you want to delete this scheduled task?",
+          "delete": "Delete"
+        },
+        "restore": {
+          "title": "Restore Backup",
+          "confirm": "Are you sure you want to restore from backup \"{id}\"? This will stop the deployment, restore data, and restart it.",
+          "restore": "Restore"
+        }
+      },
+      "notification": {
+        "loadError": "Failed to load backups",
+        "backupStarted": "Backup Started",
+        "backupStartedDesc": "Backup creation has been initiated",
+        "backupComplete": "Backup Complete",
+        "backupCompleteDesc": "Backup has been created successfully",
+        "backupFailed": "Backup Failed",
+        "restoreStarted": "Restore Started",
+        "restoreStartedDesc": "Backup restore has been initiated",
+        "restoreComplete": "Restore Complete",
+        "restoreCompleteDesc": "Backup has been restored successfully",
+        "restoreFailed": "Restore Failed",
+        "statusUnknown": "Status Unknown",
+        "lostConnection": "Lost connection to job",
+        "deleted": "Deleted",
+        "deletedDesc": "Backup has been deleted",
+        "deleteFailed": "Delete Failed",
+        "scheduleCreated": "Schedule Created",
+        "scheduleCreatedDesc": "Backup schedule has been created",
+        "updateFailed": "Update Failed",
+        "scheduleEnabled": "Schedule Enabled",
+        "scheduleDisabled": "Schedule Disabled",
+        "taskStarted": "Task Started",
+        "taskStartedDesc": "Backup task execution has been initiated",
+        "runFailed": "Run Failed",
+        "taskDeleted": "Task Deleted",
+        "taskDeletedDesc": "Scheduled task has been deleted",
+        "error": "Error"
+      }
+    },
+    "files": {
+      "hidden": "Hidden",
+      "listView": "List View",
+      "gridView": "Grid View",
+      "newFolder": "New Folder",
+      "upload": "Upload",
+      "uploading": "Uploading {name}...",
+      "loading": "Loading files...",
+      "retry": "Retry",
+      "noFiles": "No files yet",
+      "noFilesDesc": "Upload files or create folders to get started",
+      "uploadFiles": "Upload Files",
+      "colName": "Name",
+      "colSize": "Size",
+      "colModified": "Modified",
+      "colActions": "Actions",
+      "items": "{n} items",
+      "folder": "Folder",
+      "total": "{size} total",
+      "modal": {
+        "newFolder": {
+          "title": "New Folder",
+          "name": "Folder Name",
+          "placeholder": "Enter folder name",
+          "cancel": "Cancel",
+          "create": "Create"
+        },
+        "delete": {
+          "title": "Confirm Delete",
+          "confirm": "Are you sure you want to delete {name}?",
+          "warning": "This will delete all contents inside the folder.",
+          "cancel": "Cancel",
+          "delete": "Delete"
+        },
+        "editor": {
+          "readOnly": "Read Only",
+          "loading": "Loading file...",
+          "modified": "Modified",
+          "cancel": "Cancel",
+          "save": "Save",
+          "close": "Close",
+          "edit": "Edit",
+          "unsavedChanges": "You have unsaved changes. Are you sure you want to close?"
+        }
+      },
+      "notification": {
+        "uploadComplete": "Upload Complete",
+        "uploadCompleteDesc": "{name} uploaded successfully",
+        "uploadFailed": "Upload Failed",
+        "downloadFailed": "Download Failed",
+        "folderCreated": "Folder Created",
+        "folderCreatedDesc": "{name} created successfully",
+        "deleted": "Deleted",
+        "deletedDesc": "{name} deleted successfully",
+        "deleteFailed": "Delete Failed",
+        "loadError": "Failed to load file",
+        "saveSuccess": "Saved",
+        "saveSuccessDesc": "{name} saved successfully",
+        "saveFailed": "Save Failed"
+      }
+    },
+    "logViewer": {
+      "searchPlaceholder": "Search logs...",
+      "previous": "Previous (Shift+Enter)",
+      "next": "Next (Enter)",
+      "close": "Close",
+      "follow": "Follow",
+      "search": "Search (Ctrl+F)",
+      "clear": "Clear",
+      "download": "Download",
+      "refresh": "Refresh",
+      "fullscreen": "Fullscreen",
+      "exitFullscreen": "Exit Fullscreen",
+      "noResults": "No results",
+      "empty": "No logs available"
+    },
+    "detail": {
+      "backToDeployments": "Back to Deployments",
+      "backToInfrastructure": "Back to Infrastructure",
+      "loading": "Loading deployment details...",
+      "loadingStatus": "loading",
+      "failedToLoad": "Failed to load deployment",
+      "tryAgain": "Try Again",
+      "action": {
+        "start": "Start",
+        "stop": "Stop",
+        "restart": "Restart",
+        "rebuild": "Rebuild",
+        "rebuildTitle": "Recreate containers with latest images",
+        "pullImage": "Pull Image",
+        "delete": "Delete"
+      },
+      "tab": {
+        "overview": "Overview",
+        "files": "Files",
+        "logs": "Logs",
+        "terminal": "Terminal",
+        "environment": "Environment",
+        "quickActions": "Quick Actions",
+        "backups": "Backups",
+        "security": "Security",
+        "configuration": "Configuration"
+      },
+      "generalInfo": "General Information",
+      "field": {
+        "name": "Name",
+        "status": "Status",
+        "path": "Path",
+        "created": "Created",
+        "lastUpdated": "Last Updated",
+        "type": "Type",
+        "mode": "Mode",
+        "host": "Host",
+        "database": "Database",
+        "user": "User",
+        "envPrefix": "Env Prefix",
+        "registry": "Registry",
+        "setCredential": "Set credential",
+        "public": "Public",
+        "changeCredential": "Change credential",
+        "domain": "Domain",
+        "virtualHost": "Virtual Host",
+        "configured": "Configured",
+        "notConfigured": "Not Configured",
+        "ssl": "SSL",
+        "enabled": "Enabled",
+        "disabled": "Disabled",
+        "certificate": "Certificate",
+        "expires": "Expires",
+        "days": "{n} days"
+      },
+      "markAsInfrastructure": "Mark as Infrastructure",
+      "domainAndSSL": "Domain & SSL",
+      "editDomainSettings": "Edit Domain Settings",
+      "proxy": {
+        "setup": "Setup Proxy",
+        "setupTitle": "Create nginx virtual host configuration",
+        "requestSSL": "Request SSL",
+        "requestSSLTitle": "Request Let's Encrypt certificate",
+        "disableSSL": "Disable SSL",
+        "disableSSLTitle": "Disable SSL and revert to HTTP",
+        "addDomain": "Add Domain",
+        "delete": "Delete",
+        "deleteDomainTitle": "Delete this domain"
+      },
+      "noDomain": "No domain configured",
+      "configureDomainHint": "Click the edit button to configure domain exposure",
+      "services": "Services",
+      "noServices": "No services configured",
+      "serviceAction": {
+        "terminal": "Terminal",
+        "logs": "Logs",
+        "restart": "Restart"
+      },
+      "databases": "Databases",
+      "resourceUsage": "Resource Usage",
+      "resource": {
+        "cpu": "CPU Usage",
+        "memory": "Memory Usage",
+        "disk": "Disk I/O",
+        "network": "Network I/O"
+      },
+      "logs": {
+        "allServices": "All Services",
+        "last100": "Last 100 lines",
+        "last500": "Last 500 lines",
+        "last1000": "Last 1000 lines",
+        "all": "All logs",
+        "empty": "No logs available"
+      },
+      "terminal": {
+        "service": "Service:",
+        "connect": "Connect",
+        "reconnect": "Reconnect",
+        "placeholder": "Terminal Access",
+        "noServices": "No services available",
+        "status": {
+          "clickToConnect": "Click Connect to open terminal",
+          "connecting": "Connecting...",
+          "authenticating": "Authenticating...",
+          "connectionClosed": "Connection closed. Click Connect to reconnect.",
+          "connectionFailed": "Connection failed. Check if container is running."
+        }
+      },
+      "environment": {
+        "title": "Environment Variables",
+        "add": "Add Variable",
+        "noVars": "No environment variables configured",
+        "key": "Key",
+        "value": "Value",
+        "actions": "Actions"
+      },
+      "quickActions": {
+        "title": "Quick Actions",
+        "subtitle": "Execute predefined commands on your deployment",
+        "add": "Add Action",
+        "noActions": "No quick actions configured for this deployment.",
+        "createHint": "Click \"Add Action\" to create your first quick action.",
+        "edit": "Edit",
+        "delete": "Delete",
+        "run": "Run",
+        "running": "Running...",
+        "output": "Output",
+        "clear": "Clear"
+      },
+      "security": {
+        "protection": "Security Protection",
+        "protectedPaths": "Protected Paths",
+        "blockAccessHint": "Block access to sensitive files",
+        "rateLimiting": "Rate Limiting",
+        "limitRequestsHint": "Limit requests per path",
+        "recentEvents": "Recent Security Events",
+        "viewAll": "View all",
+        "globalDashboard": "Global security dashboard",
+        "enabled": "Enabled",
+        "disabled": "Disabled",
+        "quickAdd": "Quick Add:",
+        "noPaths": "No protected paths",
+        "addPathsHint": "Click presets above or add custom paths",
+        "customPathPlaceholder": "Custom path (e.g., /storage/*)",
+        "add": "Add",
+        "noRateLimits": "No rate limits",
+        "addLimitsHint": "Add limits to protect against abuse",
+        "path": "Path",
+        "rate": "Rate",
+        "perMin": "/min",
+        "burst": "burst",
+        "noEvents": "No security events",
+        "eventsHint": "Security events for this deployment will appear here",
+        "severity": "Severity",
+        "event": "Event",
+        "sourceIP": "Source IP",
+        "requestPath": "Path",
+        "time": "Time"
+      },
+      "modal": {
+        "delete": {
+          "title": "Delete Deployment",
+          "confirm": "Are you sure you want to delete {name}?",
+          "options": "Delete Options",
+          "deleteVhost": "Delete Virtual Host",
+          "deleteVhostHint": "Remove nginx configuration",
+          "deleteSSL": "Delete SSL Certificate",
+          "deleteSSLHint": "Remove associated SSL certificate files",
+          "deleteDatabase": "Delete Database",
+          "deleteDatabaseHint": "Remove associated database and user (if using shared database)",
+          "warning": "This action cannot be undone.",
+          "cancel": "Cancel",
+          "deleting": "Deleting...",
+          "confirmButton": "Delete Deployment"
+        },
+        "pullImage": {
+          "title": "Pull Images",
+          "loading": "Loading image information...",
+          "noImages": "No pullable images found in this deployment.",
+          "build": "Build",
+          "latest": "Latest",
+          "versioned": "Versioned",
+          "latestWarning": "Images tagged as :latest or without a tag may change over time. Pulling will overwrite existing images with the newest version, which may change the behavior of your deployment.",
+          "versionedInfo": "Versioned images (e.g., nginx:1.25.3) are immutable. Re-pulling them is usually unnecessary.",
+          "cancel": "Cancel",
+          "pullLatestOnly": "Pull Latest Only",
+          "pullAll": "Pull All Images"
+        },
+        "rebuild": {
+          "title": "Rebuild Containers",
+          "warning": "This will recreate all containers",
+          "description": "Rebuilding will stop all running containers, remove them, and create new ones using the currently available images. This is useful after pulling new images.",
+          "whenToUse": "When to use:",
+          "whenToUseHint": "After pulling new images with \"Pull Image\", use rebuild to apply the changes. A simple restart does not use newly pulled images.",
+          "cancel": "Cancel",
+          "rebuild": "Rebuild Containers"
+        },
+        "domainSettings": {
+          "title": "Domain & SSL Settings",
+          "expose": "Expose to Internet",
+          "exposeHint": "Enable reverse proxy for external access",
+          "domain": "Domain",
+          "domainPlaceholder": "app.example.com",
+          "domainHint": "The domain name for your deployment",
+          "containerPort": "Container Port",
+          "containerPortPlaceholder": "80",
+          "containerPortHint": "The port your application listens on",
+          "enableSSL": "Enable SSL",
+          "sslHint": "Secure your deployment with HTTPS",
+          "autoCert": "Auto-generate Certificate",
+          "autoCertHint": "Automatically request Let's Encrypt certificate",
+          "cancel": "Cancel",
+          "saving": "Saving...",
+          "save": "Save Settings"
+        },
+        "credential": {
+          "title": "Registry Credential",
+          "description": "Select a saved registry credential to use when pulling images for this deployment.",
+          "credential": "Credential",
+          "none": "None (Public Registry)",
+          "hint": "This credential will be used when pulling images on restart or update.",
+          "manage": "Manage credentials",
+          "cancel": "Cancel",
+          "saving": "Saving...",
+          "save": "Save"
+        },
+        "envVar": {
+          "add": "Add Variable",
+          "edit": "Edit Variable",
+          "key": "Key",
+          "keyPlaceholder": "VARIABLE_NAME",
+          "keyHint": "The environment variable name (e.g., DB_HOST)",
+          "value": "Value",
+          "valuePlaceholder": "value",
+          "valueHint": "The value for this variable",
+          "cancel": "Cancel",
+          "saving": "Saving...",
+          "addButton": "Add",
+          "updateButton": "Update"
+        },
+        "quickAction": {
+          "add": "Add Quick Action",
+          "edit": "Edit Quick Action",
+          "name": "Name",
+          "namePlaceholder": "e.g., Clear Cache",
+          "nameHint": "A descriptive name for the action",
+          "command": "Command",
+          "commandPlaceholder": "e.g., php artisan cache:clear",
+          "commandHint": "The shell command to execute in the container",
+          "description": "Description",
+          "descriptionPlaceholder": "e.g., Flush the application cache",
+          "descriptionHint": "Optional description of what this action does",
+          "icon": "Icon",
+          "iconHint": "Icon to display for this action",
+          "targetService": "Target Service",
+          "defaultService": "Default (first service)",
+          "targetServiceHint": "Container to run the command in",
+          "cancel": "Cancel",
+          "saving": "Saving...",
+          "addButton": "Add Action",
+          "updateButton": "Update Action",
+          "iconLabels": {
+            "play": "Play",
+            "bolt": "Bolt",
+            "refresh": "Refresh",
+            "trash": "Trash",
+            "database": "Database",
+            "cog": "Cog",
+            "code": "Code",
+            "sync": "Sync",
+            "download": "Download",
+            "upload": "Upload"
+          }
+        },
+        "deleteEnv": {
+          "title": "Delete Environment Variable",
+          "confirm": "Are you sure you want to delete '{key}'?",
+          "confirmButton": "Delete"
+        }
+      },
+      "config": {
+        "serviceYml": "service.yml",
+        "dockerComposeConfig": "Docker Compose Configuration",
+        "serviceConfig": "Service Configuration",
+        "copy": "Copy",
+        "edit": "Edit",
+        "cancel": "Cancel",
+        "save": "Save",
+        "noComposeFile": "No compose file found",
+        "errorLoadingCompose": "Error loading compose file",
+        "serviceConfigNotFound": "Service configuration not found\\nThis file will be created when you save"
+      },
+      "notification": {
+        "domainDeleted": "Domain Deleted",
+        "domainDeletedSuccess": "Domain has been removed",
+        "sslRequested": "Certificate Requested",
+        "sslRequestedSuccess": "SSL certificate for {domain} has been requested",
+        "sslDisabled": "SSL Disabled",
+        "sslDisabledSuccess": "SSL has been disabled for {name}",
+        "securitySaved": "Saved",
+        "securitySavedApplied": "Saved & Applied",
+        "securityVhostUpdated": "Security configuration updated and nginx vhost regenerated",
+        "securityUpdated": "Security configuration updated",
+        "securitySaveFailed": "Failed to save security configuration",
+        "terminalConnected": "Connected",
+        "terminalConnectedDesc": "Terminal connected successfully",
+        "terminalDisconnected": "Disconnected",
+        "terminalDisconnectedDesc": "Terminal connection closed",
+        "terminalConnectionError": "Connection Error",
+        "setupFailed": "Setup Failed",
+        "deleteFailed": "Delete Failed",
+        "saveFailed": "Save Failed",
+        "requestFailed": "Request Failed",
+        "addDomainFailed": "Failed to Add Domain",
+        "disableSslFailed": "Failed to Disable SSL",
+        "quickActionExecuted": "Action Executed",
+        "quickActionExecutedDesc": "{name} completed successfully",
+        "quickActionFailed": "Action Failed",
+        "quickActionFailedDesc": "{name} failed",
+        "validationError": "Validation Error",
+        "quickActionNameCommandRequired": "Name and command are required",
+        "quickActionSaved": "Action Saved",
+        "quickActionUpdated": "Quick action updated",
+        "quickActionAdded": "Quick action added",
+        "quickActionDeleted": "Action Deleted",
+        "quickActionDeletedDesc": "Quick action removed",
+        "deleted": "Deleted",
+        "deploymentDeleted": "Deployment \"{name}\" has been deleted",
+        "migrated": "Migrated",
+        "migratedDesc": "Deployment moved to Infrastructure",
+        "migrationFailed": "Migration Failed",
+        "envKeyEmpty": "Key cannot be empty",
+        "envKeyExists": "Key already exists",
+        "saved": "Saved",
+        "variableUpdated": "Variable updated",
+        "variableAdded": "Variable added",
+        "envRemoved": "Environment variable \"{key}\" removed",
+        "domainSettingsUpdated": "Domain settings updated successfully",
+        "registryCredentialUpdated": "Registry credential updated",
+        "copied": "Copied",
+        "configurationCopied": "Configuration copied to clipboard",
+        "serviceConfigurationCopied": "Service configuration copied to clipboard",
+        "configurationSaved": "Configuration saved successfully",
+        "serviceConfigurationSaved": "Service configuration saved successfully",
+        "domainAdded": "Domain Added",
+        "domainAddedSuccess": "{domain} has been added to this deployment",
+        "proxySetup": "Proxy Setup",
+        "proxySetupSuccess": "Virtual host has been configured"
+      },
+      "domainForm": {
+        "titleEdit": "Edit Domain",
+        "titleAdd": "Add Domain",
+        "defaultService": "Default ({name})",
+        "section": {
+          "ssl": "SSL Configuration"
+        },
+        "field": {
+          "domain": "Domain",
+          "service": "Service",
+          "containerPort": "Container Port",
+          "pathPrefix": "Path Prefix",
+          "domainAliases": "Domain Aliases"
+        },
+        "hint": {
+          "primaryDomain": "The primary domain name",
+          "pathPrefix": "Optional path prefix (e.g., /api/*)",
+          "stripPrefix": "If enabled, /api/users will be sent to the backend as /users",
+          "additionalAliases": "Additional domain names that should also resolve here"
+        },
+        "checkbox": {
+          "stripPrefix": "Strip prefix before proxying",
+          "enableSsl": "Enable SSL (HTTPS)",
+          "autoCert": "Auto-request Let's Encrypt certificate"
+        },
+        "placeholder": {
+          "domain": "api.example.com",
+          "containerPort": "80",
+          "pathPrefix": "/api/v1",
+          "alias": "www.example.com"
+        },
+        "action": {
+          "addAlias": "Add Alias",
+          "cancel": "Cancel",
+          "addDomain": "Add Domain",
+          "updateDomain": "Update"
+        }
+      },
+      "domainManager": {
+        "loading": "Loading...",
+        "status": {
+          "ssl": "SSL",
+          "noCert": "No cert",
+          "noProxy": "No proxy"
+        },
+        "action": {
+          "setupProxy": "Setup Proxy",
+          "requestSsl": "Request SSL Certificate",
+          "edit": "Edit",
+          "delete": "Delete",
+          "addDomain": "Add domain"
+        },
+        "confirmDelete": {
+          "title": "Delete Domain",
+          "message": "Are you sure you want to delete {domain}?",
+          "confirm": "Delete"
+        },
+        "notification": {
+          "domainUpdated": "Domain Updated",
+          "domainUpdatedDesc": "{domain} has been updated",
+          "domainAdded": "Domain Added",
+          "domainAddedDesc": "{domain} has been added",
+          "saveFailed": "Save Failed",
+          "deleteFailed": "Delete Failed",
+          "certificateRequestFailed": "Certificate Request Failed"
+        }
+      }
+    },
+    "modal": {
+      "operation": {
+        "title": "{operation} Deployment",
+        "running": "Running...",
+        "waitingForOutput": "Waiting for output...",
+        "close": "Close",
+        "starting": "Starting",
+        "stopping": "Stopping",
+        "restarting": "Restarting",
+        "inProgress": "In Progress...",
+        "completed": "Completed Successfully",
+        "failed": "Failed",
+        "pending": "Pending"
+      },
+      "logs": {
+        "subtitle": "Container logs output",
+        "empty": "No logs available"
+      },
+      "newDeployment": {
+        "title": "Create Deployment",
+        "subtitle": "Deploy your application in just a few steps",
+        "mode": {
+          "title": "How would you like to deploy?",
+          "subtitle": "Choose the deployment method that works best for you",
+          "easy": {
+            "name": "Easy Mode",
+            "description": "Guided setup with templates",
+            "badge": "Recommended",
+            "features": [
+              "Choose from pre-built templates",
+              "Auto-configure database",
+              "Domain & SSL setup"
+            ]
+          },
+          "image": {
+            "name": "From Image",
+            "description": "Deploy any Docker image",
+            "badge": "Quick",
+            "features": [
+              "Use any public/private image",
+              "Auto-generate compose",
+              "Quick deployment"
+            ]
+          },
+          "compose": {
+            "name": "Compose Mode",
+            "description": "Full control with docker-compose",
+            "badge": "Advanced",
+            "features": [
+              "Write your own compose file",
+              "Advanced configuration",
+              "For power users"
+            ]
+          }
+        },
+        "steps": {
+          "basics": "Basics",
+          "database": "Database",
+          "configure": "Configure",
+          "review": "Review",
+          "domains": "Domains"
+        },
+        "basics": {
+          "deploymentDetails": "Deployment Details",
+          "name": "Name",
+          "namePlaceholder": "my-app",
+          "nameHint": "Lowercase letters, numbers, and hyphens",
+          "domain": "Domain",
+          "generating": "generating...",
+          "generateNew": "Generate new subdomain",
+          "useCustomDomain": "Use custom domain",
+          "customDomain": "Custom Domain",
+          "customDomainPlaceholder": "app.example.com",
+          "enableHttps": "Enable HTTPS",
+          "autoCert": "Auto-provision certificate",
+          "template": "Template",
+          "custom": "Custom",
+          "customDesc": "Write your own compose"
+        },
+        "compose": {
+          "title": "Compose Mode",
+          "fullControl": "Full Control",
+          "fullControlDesc": "Write your own docker-compose.yml configuration",
+          "multiService": "Multi-Service Support",
+          "multiServiceDesc": "Define multiple services, volumes, and networks",
+          "advancedOptions": "Advanced Options",
+          "multiDomain": "Multi-Domain Setup",
+          "multiDomainDesc": "Route different domains to different services",
+          "multiDatabase": "Multi-Database Setup",
+          "multiDatabaseDesc": "Configure multiple database connections",
+          "nextStepHint": "You'll write your compose file in the next step"
+        },
+        "image": {
+          "title": "Docker Image",
+          "imageName": "Image Name",
+          "imagePlaceholder": "nginx:latest or ghcr.io/user/app:v1",
+          "imageHint": "Docker Hub, GHCR, or any registry",
+          "privateRegistry": "Private registry (requires authentication)",
+          "useSaved": "Use saved credential",
+          "enterNew": "Enter new credentials",
+          "selectCredential": "Select Credential",
+          "chooseCredential": "Choose a saved credential",
+          "registryUsername": "Username",
+          "usernamePlaceholder": "Username or access token name",
+          "registryPassword": "Password / Token",
+          "passwordPlaceholder": "Password or personal access token",
+          "saveCredential": "Save credential for future use",
+          "credentialName": "Credential name (e.g., My Docker Hub)",
+          "composeHint": "A compose file will be auto-generated for your image"
+        },
+        "database": {
+          "title": "Database",
+          "none": "No Database",
+          "noneDesc": "Skip database setup",
+          "mysql": "MySQL",
+          "mysqlDesc": "Popular relational database",
+          "postgres": "PostgreSQL",
+          "postgresDesc": "Advanced open source database",
+          "mariadb": "MariaDB",
+          "mariadbDesc": "MySQL-compatible fork",
+          "mongodb": "MongoDB",
+          "mongodbDesc": "NoSQL document database",
+          "connectionMode": "Connection Mode",
+          "useShared": "Use Shared",
+          "sharedDesc": "Auto-create in shared DB",
+          "createNew": "Create New",
+          "createDesc": "Add database to app stack",
+          "useExisting": "Use Existing",
+          "existingDesc": "Connect to local container",
+          "external": "External",
+          "externalDesc": "Connect to remote server",
+          "selectContainer": "Select Container",
+          "loadingContainers": "Loading containers...",
+          "noContainers": "No {type} containers found",
+          "createInstead": "Create new instead",
+          "serverDetails": "Server Details",
+          "host": "Host",
+          "hostPlaceholder": "db.example.com",
+          "port": "Port",
+          "credentials": "Credentials",
+          "dbName": "Database Name",
+          "dbNamePlaceholder": "app_db",
+          "username": "Username",
+          "usernamePlaceholder": "app",
+          "password": "Password",
+          "rootPassword": "Root Password",
+          "rootPasswordHint": "Leave empty to use same as password",
+          "adminPasswordHint": "Admin password for new database",
+          "testing": "Testing connection...",
+          "connectionSuccess": "Connection successful",
+          "connectionFailed": "Connection failed",
+          "testHint": "Test connection before proceeding",
+          "testButton": "Test",
+          "configPreview": "Configuration Preview",
+          "connection": "Connection",
+          "database": "Database",
+          "user": "User",
+          "envHint": "Environment variables will be automatically added to your app",
+          "servicePreview": "Service Preview",
+          "stackHint": "This database service will be added to your compose stack",
+          "additionalDatabases": "Additional Databases",
+          "alias": "Alias",
+          "aliasPlaceholder": "cache",
+          "addAnother": "Add Another Database",
+          "shared": "Shared",
+          "existing": "Existing",
+          "dbTypes": {
+            "mysql": "MySQL",
+            "postgres": "PostgreSQL",
+            "redis": "Redis",
+            "mongodb": "MongoDB"
+          },
+          "envPreview": "Env: {prefix}_HOST, {prefix}_PORT...",
+          "noDatabaseConfigured": "No database configured",
+          "hostPortRequired": "Host and port are required"
+        },
+        "storage": {
+          "title": "Storage",
+          "mountsConfigured": "{n} mount(s) configured",
+          "required": "Required",
+          "bindMount": "Bind Mount",
+          "volume": "Volume"
+        },
+        "domains": {
+          "title": "Configure Domains",
+          "subtitle": "Route different domains to different services in your compose stack",
+          "primary": "Primary Domain",
+          "notConfigured": "Not configured",
+          "domain": "Domain",
+          "domainPlaceholder": "api.example.com",
+          "serviceName": "Service Name",
+          "servicePlaceholder": "api",
+          "serviceHint": "Service name from your compose file",
+          "containerPort": "Container Port",
+          "pathPrefix": "Path Prefix (optional)",
+          "pathPlaceholder": "/api",
+          "enableSsl": "Enable SSL",
+          "addDomain": "Add Another Domain"
+        },
+        "configure": {
+          "composeTitle": "docker-compose.yml",
+          "format": "Format",
+          "copy": "Copy",
+          "composePlaceholder": "# Docker Compose configuration...",
+          "environment": "Environment",
+          "addVariable": "Add Variable",
+          "keyPlaceholder": "KEY",
+          "valuePlaceholder": "value",
+          "ports": "Ports",
+          "addPort": "Add Port",
+          "containerPortTitle": "Container port",
+          "hostPortPlaceholder": "host",
+          "hostPortTitle": "Host port (leave empty for expose only)",
+          "portHint": "Container:Host - leave host empty to expose only",
+          "options": "Options",
+          "startAfterCreation": "Start after creation"
+        },
+        "review": {
+          "title": "Ready to Deploy",
+          "subtitle": "Review your configuration",
+          "name": "Name",
+          "image": "Image",
+          "template": "Template",
+          "mode": "Mode",
+          "customCompose": "Custom Compose",
+          "domain": "Domain",
+          "ssl": "SSL",
+          "enabled": "Enabled",
+          "disabled": "Disabled",
+          "autoStart": "Auto Start",
+          "yes": "Yes",
+          "no": "No",
+          "envVars": "Env Vars",
+          "defined": "defined",
+          "dockerCompose": "Docker Compose",
+          "lines": "lines"
+        },
+        "footer": {
+          "changeMode": "Change Mode",
+          "back": "Back",
+          "cancel": "Cancel",
+          "getStarted": "Get Started",
+          "continue": "Continue",
+          "creating": "Creating...",
+          "deploy": "Deploy"
+        },
+        "validation": {
+          "nameRequired": "Name is required",
+          "nameFormat": "Only lowercase letters, numbers, and hyphens allowed",
+          "nameExists": "A deployment with this name already exists",
+          "composeRequired": "Compose configuration is required"
+        },
+        "notification": {
+          "connectionSuccess": "Connection successful",
+          "connectionReachable": "Database is reachable",
+          "connectionFailed": "Connection failed",
+          "formatted": "Format",
+          "yamlFormatted": "YAML formatting applied",
+          "copied": "Copied",
+          "composeCopied": "Compose content copied",
+          "generateComposeFailed": "Failed to generate compose",
+          "createFailed": "Failed to create deployment"
+        }
+      }
+    }
+  },
+  "security": {
+    "title": "Security & Monitoring",
+    "tabs": {
+      "overview": "Overview",
+      "traffic": "Traffic & Performance",
+      "events": "Security Events",
+      "blocked": "Blocked IPs",
+      "routes": "Rate Limits",
+      "health": "Health",
+      "settings": "Settings"
+    },
+    "loading": "Loading security data...",
+    "refresh": "Refresh",
+    "traffic": {
+      "loading": "Analyzing traffic patterns...",
+      "loadingGeneric": "Loading...",
+      "tabs": {
+        "overview": "Overview",
+        "logs": "Logs",
+        "performance": "Performance",
+        "unknown": "Unknown Domains"
+      },
+      "actions": {
+        "refresh": "Refresh",
+        "clear": "Clear",
+        "view": "View",
+        "viewLogs": "View logs",
+        "viewRequests": "View requests",
+        "filterByIp": "Filter by this IP",
+        "blockThisIp": "Block this IP",
+        "checkTraffic": "Check for Traffic"
+      },
+      "cards": {
+        "requests": "Requests",
+        "dataTransfer": "Data Transfer",
+        "responseTime": "Response Time",
+        "errorRate": "Error Rate",
+        "slow": "slow",
+        "high": "high",
+        "avgPerReq": "{value}/req avg",
+        "p95": "p95: {value}",
+        "errors4xxTitle": "4xx errors",
+        "errors5xxTitle": "5xx errors"
+      },
+      "panels": {
+        "domains": "Domains",
+        "suspiciousIps": "Suspicious IPs",
+        "topSources": "Top Sources",
+        "byMethod": "By Method",
+        "byStatus": "By Status"
+      },
+      "logs": {
+        "filters": {
+          "allDomains": "All domains",
+          "allStatus": "All status",
+          "allMethods": "All methods",
+          "pathPlaceholder": "Filter path..."
+        },
+        "methods": {
+          "get": "GET",
+          "post": "POST",
+          "put": "PUT",
+          "delete": "DELETE"
+        },
+        "columns": {
+          "time": "Time",
+          "domain": "Domain",
+          "method": "Method",
+          "path": "Path",
+          "status": "Status",
+          "ip": "IP",
+          "responseTime": "Time",
+          "size": "Size"
+        }
+      },
+      "pagination": {
+        "prev": "Prev",
+        "next": "Next"
+      },
+      "performance": {
+        "slowestEndpoints": "Slowest Endpoints",
+        "byAvgResponseTime": "by avg response time",
+        "requests": "Requests",
+        "avgTime": "Avg Time",
+        "errors": "Errors",
+        "requestVolume24h": "Request Volume (24h)"
+      },
+      "unknown": {
+        "loading": "Loading unknown domain stats...",
+        "totalRequests": "Total Requests",
+        "uniqueDomains": "Unique Domains",
+        "uniqueIps": "Unique IPs",
+        "topUnknownDomains": "Top Unknown Domains",
+        "topSourceIps": "Top Source IPs",
+        "lastSeen": "Last seen {value}",
+        "infoTitle": "These are requests to domains not matching any configured deployment:",
+        "infoRecon": "Reconnaissance attempts probing your server",
+        "infoDns": "Misconfigured DNS pointing to your IP",
+        "infoBots": "Bots scanning for vulnerable hosts"
+      },
+      "insights": {
+        "trafficUp": "Traffic up {value}% vs previous period",
+        "trafficDown": "Traffic down {value}% vs previous period",
+        "elevatedErrorRate": "Elevated error rate: {value}%",
+        "slowAvgResponse": "Slow avg response: {value}",
+        "dominantIp": "{ip} made {value}% of requests"
+      },
+      "recommendations": {
+        "investigateIp": "Investigate {ip}",
+        "reviewSuspiciousIps": "Review suspicious IPs",
+        "investigateSlowEndpoint": "Investigate slow endpoint"
+      },
+      "alerts": {
+        "highErrorRateTitle": "High error rate: {name}",
+        "requestsFailing": "{value}% of requests failing",
+        "slowResponsesTitle": "Slow responses: {name}",
+        "avgResponse": "Avg {value}",
+        "elevatedServerErrors": "Elevated server errors",
+        "errors5xx": "{value} 5xx errors"
+      },
+      "units": {
+        "requests": "{value} requests",
+        "requestsShort": "{value} req"
+      },
+      "empty": {
+        "noTrafficRecorded": "No traffic recorded yet",
+        "noLogsForFilters": "No logs match your filters",
+        "noSlowEndpoints": "No slow endpoints detected",
+        "noPerformanceIssues": "No performance issues detected",
+        "noUnknownDomainRequests": "No unknown domain requests",
+        "noSourceIpData": "No source IP data",
+        "noUnknownData": "No unknown domain data available",
+        "noTrafficData": "No traffic data yet"
+      },
+      "blockModal": {
+        "title": "Block IP Address",
+        "message": "Block all requests from {ip}? This will take effect immediately.",
+        "reason": "Blocked from traffic dashboard - suspicious activity"
+      }
+    },
+    "stats": {
+      "totalEvents": "Total Events",
+      "last24h": "Last 24 Hours",
+      "last7d": "Last 7 Days",
+      "blockedIps": "Blocked IPs",
+      "protectedRoutes": "Protected Routes"
+    },
+    "severity": {
+      "title": "Events by Severity",
+      "critical": "Critical",
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low"
+    },
+    "trend": {
+      "title": "7-Day Event Trend",
+      "noData": "No trend data available"
+    },
+    "topDeployments": {
+      "title": "Top Deployments by Events",
+      "noData": "No deployment data available",
+      "critical": "critical",
+      "high": "high"
+    },
+    "topIps": {
+      "title": "Top Offending IPs",
+      "noData": "No IP data available",
+      "lastSeen": "Last seen"
+    },
+    "recentEvents": {
+      "title": "Recent Critical Events",
+      "noData": "No recent critical events"
+    },
+    "actions": {
+      "blockIp": "Block IP",
+      "edit": "Edit",
+      "delete": "Delete"
+    },
+    "events": {
+      "title": "Security Events",
+      "types": {
+        "unauthorized_access": "Unauthorized Access",
+        "forbidden_access": "Forbidden Access",
+        "not_found_probe": "Not Found Probe",
+        "server_error": "Server Error",
+        "rate_limit_exceeded": "Rate Limit Exceeded",
+        "suspicious_path": "Suspicious Path",
+        "scanner_detected": "Scanner Detected"
+      },
+      "filters": {
+        "allSeverities": "All Severities",
+        "allTypes": "All Event Types",
+        "filterByIp": "Filter by IP...",
+        "clear": "Clear"
+      },
+      "table": {
+        "time": "Time",
+        "severity": "Severity",
+        "type": "Type",
+        "sourceIp": "Source IP",
+        "path": "Path",
+        "status": "Status"
+      },
+      "empty": {
+        "title": "No security events",
+        "hint": "Security events will appear here when detected"
+      },
+      "pagination": {
+        "previous": "Previous",
+        "next": "Next"
+      }
+    },
+    "blocked": {
+      "title": "Blocked IP Addresses",
+      "blockIp": "Block IP",
+      "empty": {
+        "title": "No blocked IPs",
+        "hint": "Blocked IP addresses will appear here"
+      },
+      "auto": "Auto",
+      "blocked": "Blocked",
+      "expires": "Expires",
+      "unblock": "Unblock"
+    },
+    "routes": {
+      "title": "Protected Routes",
+      "addRoute": "Add Route",
+      "empty": {
+        "title": "No protected routes",
+        "hint": "Add routes to apply rate limiting"
+      },
+      "rateLimit": "req/min",
+      "blockDuration": "Block:",
+      "seconds": "s",
+      "presets": {
+        "title": "Quick Presets",
+        "wpLogin": "WordPress Login",
+        "admin": "Admin Panel",
+        "api": "API Endpoints"
+      }
+    },
+    "health": {
+      "title": "Security Health Status",
+      "checking": "Checking security health...",
+      "empty": "Click refresh to check security health status",
+      "critical": "Critical",
+      "regenerateScripts": "Regenerate Security Scripts",
+      "regenerating": "Regenerating...",
+      "scriptsHint": "Regenerates Lua scripts with current agent IP and reloads nginx"
+    },
+    "settings": {
+      "title": "Security Settings",
+      "realtimeCapture": {
+        "title": "Realtime Event Capture",
+        "description": "Enable real-time security event capture using OpenResty/Lua. When enabled, security events are captured as they happen instead of being parsed from logs. This provides faster detection and more accurate event data.",
+        "requires": "Requires:",
+        "openresty": "OpenResty nginx image",
+        "enabled": "Enabled",
+        "disabled": "Disabled",
+        "activeNote": "Realtime capture is active. Security events will be sent directly from nginx to the agent API. Make sure your nginx container is using the OpenResty image.",
+        "disabledNote": "Realtime capture is disabled. Security features like IP blocking and rate limiting will still work, but events will only be captured when logs are parsed."
+      },
+      "moduleStatus": {
+        "title": "Security Module Status",
+        "description": "The security module handles event storage, IP blocking, and rate limiting configuration.",
+        "active": "Active",
+        "inactive": "Inactive"
+      }
+    },
+    "modals": {
+      "blockIp": {
+        "title": "Block IP Address",
+        "ipAddress": "IP Address",
+        "ipPlaceholder": "192.168.1.1",
+        "reason": "Reason (optional)",
+        "reasonPlaceholder": "Manual block",
+        "duration": "Duration (seconds, 0 = permanent)",
+        "cancel": "Cancel",
+        "block": "Block IP"
+      },
+      "route": {
+        "addTitle": "Add Protected Route",
+        "editTitle": "Edit Protected Route",
+        "pathPattern": "Path Pattern",
+        "pathPlaceholder": "/wp-login.php, /admin/*, /api/*",
+        "pathHint": "Supports wildcards (*)",
+        "rateLimit": "Rate Limit (req/min)",
+        "blockDuration": "Block Duration (seconds)",
+        "cancel": "Cancel",
+        "add": "Add Route",
+        "update": "Update Route"
+      },
+      "deleteRoute": {
+        "title": "Delete Protected Route",
+        "confirm": "Are you sure you want to delete the route",
+        "cancel": "Cancel",
+        "delete": "Delete"
+      }
+    },
+    "notifications": {
+      "refreshed": "Refreshed",
+      "dataUpdated": "Security data updated",
+      "realtimeEnabled": "Realtime Capture Enabled",
+      "realtimeDisabled": "Realtime Capture Disabled",
+      "realtimeEnabledDesc": "Security events will now be captured in realtime using OpenResty/Lua",
+      "realtimeDisabledDesc": "Realtime capture has been disabled",
+      "scriptsRegenerated": "Security Scripts Regenerated",
+      "manualBlockReason": "Manual block from security events",
+      "ipBlocked": "IP Blocked",
+      "hasBeenBlocked": "has been blocked",
+      "blockIpFailed": "Failed to block IP",
+      "ipUnblocked": "IP Unblocked",
+      "hasBeenUnblocked": "has been unblocked",
+      "unblockIpFailed": "Failed to unblock IP",
+      "routeUpdated": "Route Updated",
+      "routeUpdatedDesc": "Protected route has been updated",
+      "routeAdded": "Route Added",
+      "routeAddedDesc": "Protected route has been added",
+      "routeDeleted": "Route Deleted",
+      "routeDeletedDesc": "Protected route has been removed",
+      "presetAdded": "Preset Added",
+      "presetAddedDesc": "protection has been added",
+      "addPresetFailed": "Failed to add preset",
+      "saveRouteFailed": "Failed to save route",
+      "toggleRouteFailed": "Failed to toggle route",
+      "deleteRouteFailed": "Failed to delete route",
+      "failed": "Failed"
+    }
+  },
+  "common": {
+    "na": "N/A",
+    "time": {
+      "justNow": "just now",
+      "mAgo": "{n}m ago",
+      "hAgo": "{n}h ago",
+      "dAgo": "{n}d ago"
+    },
+    "error": "Error",
+    "warning": "Warning",
+    "success": "Success",
+    "confirm": "Confirm",
+    "cancel": "Cancel"
   }
 }

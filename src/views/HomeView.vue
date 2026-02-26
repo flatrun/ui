@@ -1,18 +1,18 @@
 <template>
   <div class="dashboard">
     <div class="dashboard-header">
-      <span class="last-updated" v-if="!loading">
+      <div class="last-updated">
         <i class="pi pi-clock" />
-        Updated {{ lastUpdated }}
-      </span>
+        <span>{{ $t("home.updatedAt") }}: {{ lastUpdated }}</span>
+      </div>
       <div class="header-actions">
         <button class="btn btn-secondary" :disabled="loading" @click="refreshData">
           <i class="pi pi-refresh" :class="{ 'pi-spin': loading }" />
-          <span>Refresh</span>
+          <span>{{ $t("home.action.refresh") }}</span>
         </button>
         <button class="btn btn-primary" @click="showNewDeployment = true">
           <i class="pi pi-plus" />
-          <span>New Deployment</span>
+          <span>{{ $t("home.action.newDeployment") }}</span>
         </button>
       </div>
     </div>
@@ -21,37 +21,37 @@
       <div class="stat-card" @click="$router.push('/deployments')">
         <div class="stat-content">
           <span class="stat-value">{{ stats.total_deployments }}</span>
-          <span class="stat-label">Deployments</span>
+          <span class="stat-label">{{ $t("home.stat.deployment") }}</span>
         </div>
         <div class="stat-icon blue">
-          <i class="pi pi-box" />
+          <i class="pi pi-th-large" />
         </div>
       </div>
       <div class="stat-card" @click="$router.push('/deployments?status=running')">
         <div class="stat-content">
           <span class="stat-value">{{ stats.running }}</span>
-          <span class="stat-label">Running</span>
+          <span class="stat-label">{{ $t("home.stat.running") }}</span>
         </div>
         <div class="stat-icon green">
-          <i class="pi pi-check-circle" />
+          <i class="pi pi-play-circle" />
         </div>
       </div>
       <div class="stat-card" @click="$router.push('/deployments?status=stopped')">
         <div class="stat-content">
           <span class="stat-value">{{ stats.stopped }}</span>
-          <span class="stat-label">Stopped</span>
+          <span class="stat-label">{{ $t("home.stat.stopped") }}</span>
         </div>
         <div class="stat-icon gray">
-          <i class="pi pi-stop-circle" />
+          <i class="pi pi-pause-circle" />
         </div>
       </div>
-      <div class="stat-card">
+      <div class="stat-card" @click="$router.push('/containers')">
         <div class="stat-content">
-          <span class="stat-value">{{ containerStats.running }}/{{ containerStats.total }}</span>
-          <span class="stat-label">Containers</span>
+          <span class="stat-value">{{ containerStats.total }}</span>
+          <span class="stat-label">{{ $t("home.stat.container") }}</span>
         </div>
         <div class="stat-icon purple">
-          <i class="pi pi-server" />
+          <i class="pi pi-box" />
         </div>
       </div>
     </div>
@@ -61,34 +61,34 @@
         <div class="panel deployments-panel">
           <div class="panel-header">
             <div class="panel-title">
-              <i class="pi pi-list" />
-              <span>Deployments</span>
+              <i class="pi pi-th-large" />
+              <span>{{ $t("home.deployment.title") }}</span>
             </div>
             <router-link to="/deployments" class="view-all-link">
-              View all
+              {{ $t("home.deployment.viewAll") }}
               <i class="pi pi-arrow-right" />
             </router-link>
           </div>
           <div class="panel-body">
             <div v-if="loading" class="loading-state">
               <i class="pi pi-spin pi-spinner" />
-              <span>Loading...</span>
+              <span>{{ $t("home.deployment.loading") }}</span>
             </div>
-            <div v-else-if="deployments.length === 0" class="empty-state">
+            <div v-else-if="!deployments.length" class="empty-state">
               <div class="empty-icon">
-                <i class="pi pi-inbox" />
+                <i class="pi pi-th-large" />
               </div>
-              <p>No deployments yet</p>
+              <p>{{ $t("home.deployment.emptyMessage") }}</p>
               <button class="btn btn-primary btn-sm" @click="showNewDeployment = true">
-                Create your first deployment
+                {{ $t("home.deployment.emptyAction") }}
               </button>
             </div>
             <table v-else class="deployments-table">
               <thead>
                 <tr>
-                  <th>Name</th>
-                  <th>Status</th>
-                  <th>Updated</th>
+                  <th>{{ $t("home.deployment.field.name") }}</th>
+                  <th>{{ $t("home.deployment.field.status") }}</th>
+                  <th>{{ $t("home.deployment.field.updated") }}</th>
                   <th />
                 </tr>
               </thead>
@@ -140,35 +140,35 @@
                   <i class="pi pi-chart-line" />
                 </div>
                 <div class="action-label">
-                  <span class="action-name">Monitoring</span>
-                  <span class="action-hint">Traffic & security</span>
+                  <span class="action-name">{{ $t("home.action.monitoring.title") }}</span>
+                  <span class="action-hint">{{ $t("home.action.monitoring.description") }}</span>
                 </div>
               </button>
-              <button class="quick-action" @click="$router.push('/templates')">
-                <div class="action-icon purple">
-                  <i class="pi pi-th-large" />
+              <button class="quick-action" @click="$router.push('/marketplace')">
+                <div class="action-icon green">
+                  <i class="pi pi-compass" />
                 </div>
                 <div class="action-label">
-                  <span class="action-name">Templates</span>
-                  <span class="action-hint">Browse apps</span>
+                  <span class="action-name">{{ $t("home.action.templates.title") }}</span>
+                  <span class="action-hint">{{ $t("home.action.templates.description") }}</span>
                 </div>
               </button>
               <button class="quick-action" @click="$router.push('/certificates')">
-                <div class="action-icon green">
+                <div class="action-icon red">
                   <i class="pi pi-lock" />
                 </div>
                 <div class="action-label">
-                  <span class="action-name">SSL Certs</span>
-                  <span class="action-hint">Manage certificates</span>
+                  <span class="action-name">{{ $t("home.action.ssl.title") }}</span>
+                  <span class="action-hint">{{ $t("home.action.ssl.description") }}</span>
                 </div>
               </button>
               <button class="quick-action" @click="$router.push('/infrastructure')">
-                <div class="action-icon blue">
+                <div class="action-icon orange">
                   <i class="pi pi-server" />
                 </div>
                 <div class="action-label">
-                  <span class="action-name">Infrastructure</span>
-                  <span class="action-hint">Nginx, databases</span>
+                  <span class="action-name">{{ $t("home.action.infrastructure.title") }}</span>
+                  <span class="action-hint">{{ $t("home.action.infrastructure.description") }}</span>
                 </div>
               </button>
             </div>
@@ -181,16 +181,16 @@
           <div class="panel-header">
             <div class="panel-title">
               <i class="pi pi-heart-fill" />
-              <span>System</span>
+              <span>{{ $t("home.system.title") }}</span>
             </div>
             <span class="health-indicator" :class="systemHealth.status">
-              {{ systemHealth.label }}
+              {{ $t(`home.health.${systemHealth.status}`) }}
             </span>
           </div>
           <div class="panel-body">
             <div class="resource-item">
               <div class="resource-header">
-                <span class="resource-label">CPU</span>
+                <span class="resource-label">{{ $t("home.resource.cpu") }}</span>
                 <span class="resource-value">{{ resources.cpu }}%</span>
               </div>
               <div class="resource-bar">
@@ -203,7 +203,7 @@
             </div>
             <div class="resource-item">
               <div class="resource-header">
-                <span class="resource-label">Memory</span>
+                <span class="resource-label">{{ $t("home.resource.memory") }}</span>
                 <span class="resource-value">{{ resources.memory }}%</span>
               </div>
               <div class="resource-bar">
@@ -216,7 +216,7 @@
             </div>
             <div class="resource-item">
               <div class="resource-header">
-                <span class="resource-label">Disk</span>
+                <span class="resource-label">{{ $t("home.resource.disk") }}</span>
                 <span class="resource-value">{{ resources.disk }}%</span>
               </div>
               <div class="resource-bar">
@@ -234,7 +234,7 @@
           <div class="panel-header">
             <div class="panel-title">
               <i class="pi pi-database" />
-              <span>Docker</span>
+              <span>{{ $t("home.docker.title") }}</span>
             </div>
           </div>
           <div class="panel-body">
@@ -243,28 +243,28 @@
                 <i class="pi pi-box" />
                 <div class="docker-info">
                   <span class="docker-value">{{ containerStats.running }}</span>
-                  <span class="docker-label">Running</span>
+                  <span class="docker-label">{{ $t("home.docker.running") }}</span>
                 </div>
               </div>
               <div class="docker-item">
                 <i class="pi pi-image" />
                 <div class="docker-info">
                   <span class="docker-value">{{ dockerResources.images }}</span>
-                  <span class="docker-label">Images</span>
+                  <span class="docker-label">{{ $t("home.docker.images") }}</span>
                 </div>
               </div>
               <div class="docker-item">
                 <i class="pi pi-folder" />
                 <div class="docker-info">
                   <span class="docker-value">{{ dockerResources.volumes }}</span>
-                  <span class="docker-label">Volumes</span>
+                  <span class="docker-label">{{ $t("home.docker.volumes") }}</span>
                 </div>
               </div>
               <div class="docker-item">
                 <i class="pi pi-share-alt" />
                 <div class="docker-info">
                   <span class="docker-value">{{ dockerResources.networks }}</span>
-                  <span class="docker-label">Networks</span>
+                  <span class="docker-label">{{ $t("home.docker.networks") }}</span>
                 </div>
               </div>
             </div>
@@ -275,10 +275,10 @@
           <div class="panel-header">
             <div class="panel-title">
               <i class="pi pi-shield" />
-              <span>Security</span>
+              <span>{{ $t("home.security.title") }}</span>
             </div>
             <router-link to="/security" class="view-all-link">
-              View all
+              {{ $t("home.security.viewAll") }}
               <i class="pi pi-arrow-right" />
             </router-link>
           </div>
@@ -292,32 +292,32 @@
                   >
                     {{ securityStats.by_severity?.critical || 0 }}
                   </span>
-                  <span class="security-stat-label">Critical</span>
+                  <span class="security-stat-label">{{ $t("home.security.severity.critical") }}</span>
                 </div>
                 <div class="security-stat">
                   <span class="security-stat-value" :class="{ warning: (securityStats.by_severity?.high || 0) > 0 }">
                     {{ securityStats.by_severity?.high || 0 }}
                   </span>
-                  <span class="security-stat-label">High</span>
+                  <span class="security-stat-label">{{ $t("home.security.severity.high") }}</span>
                 </div>
                 <div class="security-stat">
                   <span class="security-stat-value">{{ securityStats.last_24_hours }}</span>
-                  <span class="security-stat-label">24h Events</span>
+                  <span class="security-stat-label">{{ $t("home.security.events24h") }}</span>
                 </div>
               </div>
               <div class="security-info-row">
                 <span class="security-info-item">
                   <i class="pi pi-ban" />
-                  {{ securityStats.blocked_ips_count }} blocked IPs
+                  {{ securityStats.blocked_ips_count }} {{ $t("home.security.blockedIps") }}
                 </span>
                 <span class="security-info-item">
                   <i class="pi pi-lock" />
-                  {{ securityStats.protected_routes_count }} routes
+                  {{ securityStats.protected_routes_count }} {{ $t("home.security.routes") }}
                 </span>
               </div>
             </div>
             <div v-else class="security-empty">
-              <span>No security data</span>
+              <span>{{ $t("home.security.noData") }}</span>
             </div>
           </div>
         </div>
@@ -326,21 +326,21 @@
           <div class="panel-header">
             <div class="panel-title">
               <i class="pi pi-cog" />
-              <span>Agent</span>
+              <span>{{ $t("home.agent.title") }}</span>
             </div>
             <span class="agent-status online">
               <i class="pi pi-circle-fill" />
-              Online
+              {{ $t("home.agent.online") }}
             </span>
           </div>
           <div class="panel-body">
             <div class="agent-info">
               <div class="agent-row">
-                <span class="agent-label">Version</span>
+                <span class="agent-label">{{ $t("home.agent.version") }}</span>
                 <code>{{ agentVersion }}</code>
               </div>
               <div class="agent-row">
-                <span class="agent-label">Endpoint</span>
+                <span class="agent-label">{{ $t("home.agent.endpoint") }}</span>
                 <code>{{ apiEndpoint }}</code>
               </div>
             </div>
@@ -359,12 +359,14 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
+import { useI18n } from "vue-i18n";
 import { deploymentsApi, securityApi } from "@/services/api";
 import { useNotificationsStore } from "@/stores/notifications";
 import { useStatsStore } from "@/stores/stats";
 import NewDeploymentModal from "@/components/NewDeploymentModal.vue";
 import type { Deployment, SecurityStats } from "@/types";
 
+const { t } = useI18n();
 const notifications = useNotificationsStore();
 const statsStore = useStatsStore();
 
@@ -409,9 +411,9 @@ const apiEndpoint = computed(() => {
 
 const systemHealth = computed(() => {
   const maxUsage = Math.max(resources.value.cpu, resources.value.memory, resources.value.disk);
-  if (maxUsage > 90) return { status: "critical", label: "Critical" };
-  if (maxUsage > 75) return { status: "warning", label: "Warning" };
-  return { status: "healthy", label: "Healthy" };
+  if (maxUsage > 90) return { status: "critical" };
+  if (maxUsage > 75) return { status: "warning" };
+  return { status: "healthy" };
 });
 
 const getResourceClass = (value: number) => {
@@ -421,20 +423,20 @@ const getResourceClass = (value: number) => {
 };
 
 const formatTime = (dateString: string) => {
-  if (!dateString) return "N/A";
+  if (!dateString) return t("home.time.na");
   const date = new Date(dateString);
   const now = new Date();
   const diff = now.getTime() - date.getTime();
 
   const minutes = Math.floor(diff / 60000);
-  if (minutes < 1) return "just now";
-  if (minutes < 60) return `${minutes}m ago`;
+  if (minutes < 1) return t("home.time.justNow");
+  if (minutes < 60) return t("home.time.minutes", { n: minutes });
 
   const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
+  if (hours < 24) return t("home.time.hours", { n: hours });
 
   const days = Math.floor(hours / 24);
-  return `${days}d ago`;
+  return t("home.time.days", { n: days });
 };
 
 const fetchData = async () => {
@@ -459,16 +461,16 @@ const fetchData = async () => {
 };
 
 const refreshData = () => {
-  notifications.info("Refreshing", "Updating data...");
+  notifications.info(t("home.notification.refreshing"), t("home.notification.updating"));
   fetchData().then(() => {
-    notifications.success("Updated", "Dashboard refreshed");
+    notifications.success(t("home.notification.updated"), t("home.notification.refreshed"));
   });
 };
 
 const onDeploymentCreated = () => {
   showNewDeployment.value = false;
   fetchData();
-  notifications.success("Created", "Deployment created successfully");
+  notifications.success(t("home.notification.created"), t("home.notification.deploymentCreated"));
 };
 
 onMounted(() => {
