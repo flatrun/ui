@@ -708,11 +708,7 @@
             "name": "De Imagem",
             "description": "Implemente qualquer imagem Docker",
             "badge": "Rápido",
-            "features": [
-              "Use qualquer imagem pública/privada",
-              "Gere compose automaticamente",
-              "Implementação rápida"
-            ]
+            "features": ["Use qualquer imagem pública/privada", "Gere compose automaticamente", "Implementação rápida"]
           },
           "compose": {
             "name": "Modo Compose",

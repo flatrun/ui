@@ -708,21 +708,13 @@
             "name": "Desde Imagen",
             "description": "Despliegue cualquier imagen Docker",
             "badge": "Rápido",
-            "features": [
-              "Use cualquier imagen pública/privada",
-              "Genere compose automáticamente",
-              "Despliegue rápido"
-            ]
+            "features": ["Use cualquier imagen pública/privada", "Genere compose automáticamente", "Despliegue rápido"]
           },
           "compose": {
             "name": "Modo Compose",
             "description": "Control total con docker-compose",
             "badge": "Avanzado",
-            "features": [
-              "Escriba su propio archivo compose",
-              "Configuración avanzada",
-              "Para usuarios avanzados"
-            ]
+            "features": ["Escriba su propio archivo compose", "Configuración avanzada", "Para usuarios avanzados"]
           }
         },
         "steps": {

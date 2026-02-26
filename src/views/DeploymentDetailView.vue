@@ -1457,7 +1457,9 @@
                 <select v-model="actionForm.icon" class="form-input">
                   <option value="pi pi-play">{{ $t("deployment.detail.modal.quickAction.iconLabels.play") }}</option>
                   <option value="pi pi-bolt">{{ $t("deployment.detail.modal.quickAction.iconLabels.bolt") }}</option>
-                  <option value="pi pi-refresh">{{ $t("deployment.detail.modal.quickAction.iconLabels.refresh") }}</option>
+                  <option value="pi pi-refresh">
+                    {{ $t("deployment.detail.modal.quickAction.iconLabels.refresh") }}
+                  </option>
                   <option value="pi pi-trash">{{ $t("deployment.detail.modal.quickAction.iconLabels.trash") }}</option>
                   <option value="pi pi-database">
                     {{ $t("deployment.detail.modal.quickAction.iconLabels.database") }}
@@ -1468,7 +1470,9 @@
                   <option value="pi pi-download">
                     {{ $t("deployment.detail.modal.quickAction.iconLabels.download") }}
                   </option>
-                  <option value="pi pi-upload">{{ $t("deployment.detail.modal.quickAction.iconLabels.upload") }}</option>
+                  <option value="pi pi-upload">
+                    {{ $t("deployment.detail.modal.quickAction.iconLabels.upload") }}
+                  </option>
                 </select>
                 <span class="hint">{{ $t("deployment.detail.modal.quickAction.iconHint") }}</span>
               </div>
@@ -1896,7 +1900,8 @@ const fetchDeployment = async () => {
 
     try {
       const composeResponse = await deploymentsApi.getComposeFile(route.params.name as string);
-      composeConfig.value = composeResponse.data.content || composeResponse.data || t("deployment.detail.config.noComposeFile");
+      composeConfig.value =
+        composeResponse.data.content || composeResponse.data || t("deployment.detail.config.noComposeFile");
       composeFilename.value = composeResponse.data.filename || "docker-compose.yml";
     } catch (composeErr) {
       composeConfig.value = t("deployment.detail.config.errorLoadingCompose");

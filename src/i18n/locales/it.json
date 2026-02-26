@@ -718,11 +718,7 @@
             "name": "Modalità Compose",
             "description": "Controllo totale con docker-compose",
             "badge": "Avanzato",
-            "features": [
-              "Scrivi il tuo file compose",
-              "Configurazione avanzata",
-              "Per utenti esperti"
-            ]
+            "features": ["Scrivi il tuo file compose", "Configurazione avanzata", "Per utenti esperti"]
           }
         },
         "steps": {

@@ -30,7 +30,12 @@
             <option value="24h">24h</option>
             <option value="7d">7d</option>
           </select>
-          <button class="btn-icon" :disabled="loading" @click="fetchData" :title="t('security.traffic.actions.refresh')">
+          <button
+            class="btn-icon"
+            :disabled="loading"
+            @click="fetchData"
+            :title="t('security.traffic.actions.refresh')"
+          >
             <i class="pi pi-refresh" :class="{ 'pi-spin': loading }" />
           </button>
         </div>
@@ -81,13 +86,17 @@
             </div>
             <span class="stat-value">{{ formatBytes(stats.total_bytes) }}</span>
             <span class="stat-sub">{{
-              t("security.traffic.cards.avgPerReq", { value: formatBytes(stats.total_bytes / Math.max(stats.total_requests, 1)) })
+              t("security.traffic.cards.avgPerReq", {
+                value: formatBytes(stats.total_bytes / Math.max(stats.total_requests, 1)),
+              })
             }}</span>
           </div>
           <div class="stat-card">
             <div class="stat-header">
               <span class="stat-label">{{ t("security.traffic.cards.responseTime") }}</span>
-              <span v-if="stats.avg_response_time_ms > 500" class="trend down">{{ t("security.traffic.cards.slow") }}</span>
+              <span v-if="stats.avg_response_time_ms > 500" class="trend down">{{
+                t("security.traffic.cards.slow")
+              }}</span>
             </div>
             <span class="stat-value" :class="{ warning: stats.avg_response_time_ms > 500 }">
               {{ formatTime(stats.avg_response_time_ms) }}
@@ -97,12 +106,18 @@
           <div class="stat-card" :class="{ error: globalErrorRate > THRESHOLDS.ERROR_RATE_WARNING }">
             <div class="stat-header">
               <span class="stat-label">{{ t("security.traffic.cards.errorRate") }}</span>
-              <span v-if="globalErrorRate > THRESHOLDS.ERROR_RATE_WARNING" class="trend down">{{ t("security.traffic.cards.high") }}</span>
+              <span v-if="globalErrorRate > THRESHOLDS.ERROR_RATE_WARNING" class="trend down">{{
+                t("security.traffic.cards.high")
+              }}</span>
             </div>
             <span class="stat-value">{{ globalErrorRate }}%</span>
             <div class="error-breakdown">
-              <span class="error-item" :title="t('security.traffic.cards.errors4xxTitle')">4xx: {{ stats.by_status_group?.["4xx"] || 0 }}</span>
-              <span class="error-item" :title="t('security.traffic.cards.errors5xxTitle')">5xx: {{ stats.by_status_group?.["5xx"] || 0 }}</span>
+              <span class="error-item" :title="t('security.traffic.cards.errors4xxTitle')"
+                >4xx: {{ stats.by_status_group?.["4xx"] || 0 }}</span
+              >
+              <span class="error-item" :title="t('security.traffic.cards.errors5xxTitle')"
+                >5xx: {{ stats.by_status_group?.["5xx"] || 0 }}</span
+              >
             </div>
           </div>
         </div>
@@ -147,7 +162,9 @@
                 </div>
                 <i class="pi pi-chevron-right" />
               </div>
-              <div v-if="domainStats.length === 0" class="empty-inline">{{ t("security.traffic.empty.noTrafficRecorded") }}</div>
+              <div v-if="domainStats.length === 0" class="empty-inline">
+                {{ t("security.traffic.empty.noTrafficRecorded") }}
+              </div>
             </div>
           </div>
 
@@ -166,7 +183,9 @@
                   @click="navigateToDeploymentLogs(domain.name)"
                 >
                   <code>{{ domain.name }}</code>
-                  <span>{{ t("security.traffic.units.requestsShort", { value: formatNumber(domain.total_requests) }) }}</span>
+                  <span>{{
+                    t("security.traffic.units.requestsShort", { value: formatNumber(domain.total_requests) })
+                  }}</span>
                 </div>
               </div>
             </div>
@@ -180,10 +199,16 @@
                 <div v-for="ip in suspiciousIPs" :key="ip.ip" class="suspicious-row">
                   <div class="suspicious-info">
                     <code>{{ ip.ip }}</code>
-                    <span class="suspicious-stat">{{ t("security.traffic.units.requests", { value: formatNumber(ip.request_count) }) }}</span>
+                    <span class="suspicious-stat">{{
+                      t("security.traffic.units.requests", { value: formatNumber(ip.request_count) })
+                    }}</span>
                   </div>
                   <div class="suspicious-actions">
-                    <button class="btn-action" :title="t('security.traffic.actions.viewRequests')" @click="filterByIP(ip.ip)">
+                    <button
+                      class="btn-action"
+                      :title="t('security.traffic.actions.viewRequests')"
+                      @click="filterByIP(ip.ip)"
+                    >
                       <i class="pi pi-eye" />
                     </button>
                     <button class="btn-action danger" :title="t('security.actions.blockIp')" @click="blockIP(ip.ip)">
@@ -205,7 +230,11 @@
                     <span>{{ formatNumber(ip.requests) }}</span>
                     <span class="muted">{{ formatBytes(ip.bytes) }}</span>
                   </div>
-                  <button class="btn-icon-xs" :title="t('security.traffic.actions.viewRequests')" @click="filterByIP(ip.ip)">
+                  <button
+                    class="btn-icon-xs"
+                    :title="t('security.traffic.actions.viewRequests')"
+                    @click="filterByIP(ip.ip)"
+                  >
                     <i class="pi pi-filter" />
                   </button>
                 </div>
@@ -280,7 +309,9 @@
             :placeholder="t('security.traffic.logs.filters.pathPlaceholder')"
             @keyup.enter="fetchLogs"
           />
-          <button v-if="hasActiveFilters" class="btn-text" @click="clearLogFilters">{{ t("security.traffic.actions.clear") }}</button>
+          <button v-if="hasActiveFilters" class="btn-text" @click="clearLogFilters">
+            {{ t("security.traffic.actions.clear") }}
+          </button>
         </div>
 
         <div class="logs-table-wrap">
@@ -339,10 +370,18 @@
                 </td>
                 <td class="cell-size">{{ formatBytes(log.bytes_sent) }}</td>
                 <td class="cell-actions">
-                  <button class="btn-icon-sm" :title="t('security.traffic.actions.filterByIp')" @click.stop="filterByIP(log.source_ip)">
+                  <button
+                    class="btn-icon-sm"
+                    :title="t('security.traffic.actions.filterByIp')"
+                    @click.stop="filterByIP(log.source_ip)"
+                  >
                     <i class="pi pi-filter" />
                   </button>
-                  <button class="btn-icon-sm danger" :title="t('security.traffic.actions.blockThisIp')" @click.stop="blockIP(log.source_ip)">
+                  <button
+                    class="btn-icon-sm danger"
+                    :title="t('security.traffic.actions.blockThisIp')"
+                    @click.stop="blockIP(log.source_ip)"
+                  >
                     <i class="pi pi-ban" />
                   </button>
                 </td>
@@ -350,11 +389,15 @@
             </tbody>
           </table>
           <div v-else-if="!logsLoading" class="empty-inline">{{ t("security.traffic.empty.noLogsForFilters") }}</div>
-          <div v-else class="loading-inline"><i class="pi pi-spin pi-spinner" /> {{ t("security.traffic.loadingGeneric") }}</div>
+          <div v-else class="loading-inline">
+            <i class="pi pi-spin pi-spinner" /> {{ t("security.traffic.loadingGeneric") }}
+          </div>
         </div>
 
         <div v-if="logsTotal > logFilters.limit" class="pagination">
-          <button class="btn-sm" :disabled="logFilters.offset === 0" @click="prevPage">{{ t("security.traffic.pagination.prev") }}</button>
+          <button class="btn-sm" :disabled="logFilters.offset === 0" @click="prevPage">
+            {{ t("security.traffic.pagination.prev") }}
+          </button>
           <span
             >{{ logFilters.offset + 1 }}-{{ Math.min(logFilters.offset + logFilters.limit, logsTotal) }} /
             {{ logsTotal }}</span
@@ -375,7 +418,9 @@
               <strong>{{ alert.title }}</strong>
               <span>{{ alert.description }}</span>
             </div>
-            <button v-if="alert.payload" class="btn-sm" @click="handleAlertAction(alert)">{{ t("security.traffic.actions.view") }}</button>
+            <button v-if="alert.payload" class="btn-sm" @click="handleAlertAction(alert)">
+              {{ t("security.traffic.actions.view") }}
+            </button>
           </div>
         </div>
 
@@ -406,7 +451,11 @@
                 <td :class="getTimeClass(ep.avgTime)">{{ formatTime(ep.avgTime) }}</td>
                 <td>{{ ep.errors }}</td>
                 <td class="cell-actions">
-                  <button class="btn-icon-sm" :title="t('security.traffic.actions.viewLogs')" @click="filterByPath(ep.path, ep.deployment)">
+                  <button
+                    class="btn-icon-sm"
+                    :title="t('security.traffic.actions.viewLogs')"
+                    @click="filterByPath(ep.path, ep.deployment)"
+                  >
                     <i class="pi pi-external-link" />
                   </button>
                 </td>
@@ -487,10 +536,14 @@
                 >
                   <div class="dep-main">
                     <code class="dep-name">{{ entry.domain }}</code>
-                    <span class="dep-stat">{{ t("security.traffic.unknown.lastSeen", { value: formatLogTime(entry.last_seen) }) }}</span>
+                    <span class="dep-stat">{{
+                      t("security.traffic.unknown.lastSeen", { value: formatLogTime(entry.last_seen) })
+                    }}</span>
                   </div>
                   <div class="dep-stats">
-                    <span class="dep-stat">{{ t("security.traffic.units.requestsShort", { value: formatNumber(entry.request_count) }) }}</span>
+                    <span class="dep-stat">{{
+                      t("security.traffic.units.requestsShort", { value: formatNumber(entry.request_count) })
+                    }}</span>
                   </div>
                   <i class="pi pi-chevron-right" />
                 </div>
@@ -515,8 +568,14 @@
                     </div>
                   </div>
                   <div class="suspicious-actions">
-                    <span class="suspicious-stat">{{ t("security.traffic.units.requestsShort", { value: formatNumber(entry.request_count) }) }}</span>
-                    <button class="btn-action" :title="t('security.traffic.actions.viewRequests')" @click="filterByIP(entry.ip)">
+                    <span class="suspicious-stat">{{
+                      t("security.traffic.units.requestsShort", { value: formatNumber(entry.request_count) })
+                    }}</span>
+                    <button
+                      class="btn-action"
+                      :title="t('security.traffic.actions.viewRequests')"
+                      @click="filterByIP(entry.ip)"
+                    >
                       <i class="pi pi-eye" />
                     </button>
                     <button class="btn-action danger" :title="t('security.actions.blockIp')" @click="blockIP(entry.ip)">
@@ -1035,10 +1094,7 @@ const confirmBlockIP = async () => {
     showBlockIPModal.value = false;
     await fetchData();
   } catch (e: any) {
-    notifications.error(
-      t("security.notifications.failed"),
-      t("security.notifications.blockIpFailed"),
-    );
+    notifications.error(t("security.notifications.failed"), t("security.notifications.blockIpFailed"));
   } finally {
     blockingIP.value = false;
   }
