@@ -1,8 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { mount, flushPromises } from "@vue/test-utils";
 import { createTestingPinia } from "@pinia/testing";
+import { createI18n } from "vue-i18n";
 import CronJobsView from "./CronJobsView.vue";
 import { useAuthStore } from "@/stores/auth";
+import en from "@/i18n/locales/en.json";
 
 vi.mock("@/services/api", () => ({
   schedulerApi: {
@@ -150,13 +152,21 @@ describe("CronJobsView", () => {
     vi.clearAllMocks();
   });
 
+  const createTestI18n = () =>
+    createI18n({
+      legacy: false,
+      locale: "en",
+      messages: { en },
+    });
+
   const mountView = () => {
     const pinia = createTestingPinia({ createSpy: vi.fn });
+    const i18n = createTestI18n();
     const authStore = useAuthStore(pinia);
     (authStore.hasPermission as ReturnType<typeof vi.fn>).mockReturnValue(true);
     return mount(CronJobsView, {
       global: {
-        plugins: [pinia],
+        plugins: [pinia, i18n],
         stubs: {
           ConfirmModal: true,
           Teleport: true,
@@ -542,9 +552,10 @@ describe("CronJobsView", () => {
   describe("Permission gates", () => {
     const mountViewDenied = () => {
       const pinia = createTestingPinia({ createSpy: vi.fn });
+      const i18n = createTestI18n();
       return mount(CronJobsView, {
         global: {
-          plugins: [pinia],
+          plugins: [pinia, i18n],
           stubs: {
             ConfirmModal: true,
             Teleport: true,

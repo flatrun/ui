@@ -332,6 +332,43 @@
         "logs": "Log",
         "restart": "Riavvia"
       },
+      "valueMap": {
+        "status": {
+          "running": "In esecuzione",
+          "stopped": "Fermato",
+          "starting": "In avvio",
+          "restarting": "Riavvio in corso",
+          "created": "Creato",
+          "exited": "Terminato",
+          "paused": "In pausa",
+          "dead": "Inattivo",
+          "error": "Errore",
+          "unknown": "Sconosciuto"
+        },
+        "certificateStatus": {
+          "valid": "Valido",
+          "pending": "In attesa",
+          "expired": "Scaduto",
+          "error": "Errore",
+          "unknown": "Sconosciuto"
+        },
+        "databaseType": {
+          "mysql": "MySQL",
+          "postgres": "PostgreSQL",
+          "postgresql": "PostgreSQL",
+          "mariadb": "MariaDB",
+          "mongodb": "MongoDB",
+          "redis": "Redis",
+          "sqlite": "SQLite"
+        },
+        "databaseMode": {
+          "internal": "Interno",
+          "external": "Esterno",
+          "shared": "Condiviso",
+          "managed": "Gestito",
+          "local": "Locale"
+        }
+      },
       "databases": "Database",
       "resourceUsage": "Utilizzo Risorse",
       "resource": {
@@ -1385,6 +1422,240 @@
       "restartFailed": "Impossibile riavviare il container"
     }
   },
+  "systemPorts": {
+    "searchPlaceholder": "Cerca porte...",
+    "loading": "Caricamento porte...",
+    "empty": {
+      "title": "Nessuna porta attiva",
+      "text": "Nessuna porta attiva trovata nel sistema."
+    },
+    "table": {
+      "port": "Porta",
+      "process": "Processo",
+      "address": "Indirizzo",
+      "state": "Stato",
+      "actions": "Azioni"
+    },
+    "actions": {
+      "refresh": "Aggiorna",
+      "killProcess": "Termina processo",
+      "cancel": "Annulla",
+      "killing": "Terminazione..."
+    },
+    "value": {
+      "unknown": "Sconosciuto",
+      "pid": "PID: {pid}"
+    },
+    "state": {
+      "listen": "In ascolto",
+      "established": "Stabilito",
+      "time_wait": "Attesa tempo",
+      "close_wait": "Attesa chiusura",
+      "syn_sent": "SYN inviato",
+      "syn_recv": "SYN ricevuto",
+      "fin_wait_1": "Attesa FIN 1",
+      "fin_wait_2": "Attesa FIN 2",
+      "last_ack": "Ultimo ACK",
+      "closing": "Chiusura",
+      "unknown": "Sconosciuto"
+    },
+    "modal": {
+      "kill": {
+        "title": "Termina processo",
+        "confirm": "Sei sicuro di voler terminare questo processo?",
+        "port": "Porta",
+        "process": "Processo",
+        "pid": "PID",
+        "warning": "Questa azione non può essere annullata. Il processo verrà terminato immediatamente.",
+        "button": "Termina processo"
+      }
+    },
+    "notifications": {
+      "fetchFailed": "Impossibile caricare le porte",
+      "killSuccessTitle": "Processo terminato",
+      "killSuccessDesc": "Processo {pid} terminato con successo",
+      "killFailed": "Impossibile terminare il processo"
+    }
+  },
+  "cronJobs": {
+    "title": "Attività pianificate",
+    "subtitle": "Gestisci cron job e comandi pianificati in tutti i deployment",
+    "loading": "Caricamento attività pianificate...",
+    "actions": {
+      "newCronJob": "Nuovo cron job",
+      "clearFilters": "Cancella filtri",
+      "runNow": "Esegui ora",
+      "history": "Cronologia",
+      "cancel": "Annulla",
+      "saving": "Salvataggio...",
+      "update": "Aggiorna",
+      "create": "Crea"
+    },
+    "filters": {
+      "searchPlaceholder": "Cerca attività...",
+      "allDeployments": "Tutti i deployment",
+      "allTypes": "Tutti i tipi",
+      "matchingOfTotal": "{matching} corrispondenze su {total}",
+      "totalTasks": "{count} attività"
+    },
+    "type": {
+      "command": "Comando",
+      "backup": "Backup"
+    },
+    "empty": {
+      "title": "Nessuna attività pianificata",
+      "text": "Crea cron job per eseguire comandi nei tuoi container in base a una pianificazione.",
+      "createFirst": "Crea il primo cron job",
+      "noMatchingTitle": "Nessuna attività corrispondente",
+      "noMatchingText": "Nessuna attività corrisponde ai filtri correnti. Prova a modificare ricerca o filtri."
+    },
+    "field": {
+      "command": "Comando",
+      "service": "Servizio",
+      "lastRun": "Ultima esecuzione",
+      "nextRun": "Prossima esecuzione"
+    },
+    "pagination": {
+      "pageOf": "Pagina {page} di {total}"
+    },
+    "recentExecutions": {
+      "title": "Esecuzioni recenti"
+    },
+    "modal": {
+      "form": {
+        "createTitle": "Crea cron job",
+        "editTitle": "Modifica cron job",
+        "name": "Nome",
+        "namePlaceholder": "Pulizia giornaliera",
+        "deployment": "Deployment",
+        "selectDeployment": "Seleziona deployment...",
+        "schedule": "Pianificazione (espressione cron)",
+        "cronPlaceholder": "0 2 * * *",
+        "cronHintExample": "es. \"0 2 * * *\" = ogni giorno alle 02:00",
+        "serviceOptional": "Servizio (opzionale)",
+        "servicePlaceholder": "web, app, worker...",
+        "serviceHint": "Lascia vuoto per usare il nome del deployment come container",
+        "command": "Comando",
+        "commandPlaceholder": "php artisan schedule:run",
+        "timeoutSeconds": "Timeout (secondi)",
+        "enableTask": "Abilita questa attività"
+      },
+      "output": {
+        "title": "Output esecuzione",
+        "started": "Iniziata",
+        "ended": "Terminata",
+        "duration": "Durata",
+        "output": "Output",
+        "error": "Errore",
+        "noOutput": "Nessun output registrato per questa esecuzione."
+      },
+      "history": {
+        "title": "Cronologia esecuzioni",
+        "noHistory": "Nessuna cronologia di esecuzione per questa attività."
+      },
+      "delete": {
+        "title": "Elimina cron job",
+        "message": "Sei sicuro di voler eliminare '{name}'?",
+        "warning": "Questa azione non può essere annullata. Tutta la cronologia delle esecuzioni andrà persa.",
+        "confirm": "Elimina"
+      }
+    },
+    "notifications": {
+      "loadFailed": "Impossibile caricare le attività pianificate",
+      "taskUpdatedTitle": "Attività aggiornata",
+      "taskUpdatedDesc": "Il cron job \"{name}\" è stato aggiornato",
+      "taskCreatedTitle": "Attività creata",
+      "taskCreatedDesc": "Il cron job \"{name}\" è stato creato",
+      "toggleFailed": "Impossibile attivare/disattivare l'attività",
+      "taskStartedTitle": "Attività avviata",
+      "taskStartedDesc": "\"{name}\" è ora in esecuzione",
+      "taskDeletedTitle": "Attività eliminata",
+      "taskDeletedDesc": "\"{name}\" è stata eliminata"
+    },
+    "value": {
+      "taskNumber": "Attività #{id}"
+    },
+    "execution": {
+      "status": {
+        "completed": "Completata",
+        "failed": "Non riuscita",
+        "running": "In esecuzione",
+        "pending": "In attesa",
+        "cancelled": "Annullata"
+      }
+    },
+    "cron": {
+      "invalid": "Espressione cron non valida",
+      "everyHour": "Ogni ora",
+      "everyMinute": "Ogni minuto",
+      "dailyAt": "Ogni giorno alle {time}",
+      "hourlyAtMinute": "Ogni ora al minuto {minute}",
+      "weeklyOnSundayAt": "Ogni domenica alle {time}",
+      "monthlyOnFirstAt": "Ogni mese il giorno 1 alle {time}"
+    }
+  },
+  "services": {
+    "searchPlaceholder": "Cerca servizi...",
+    "loading": "Caricamento servizi...",
+    "empty": {
+      "title": "Nessun servizio trovato",
+      "text": "Impossibile recuperare i servizi di sistema."
+    },
+    "filters": {
+      "all": "Tutti",
+      "running": "In esecuzione",
+      "stopped": "Fermati",
+      "failed": "Non riusciti"
+    },
+    "table": {
+      "status": "Stato",
+      "service": "Servizio",
+      "description": "Descrizione",
+      "state": "Sottostato",
+      "actions": "Azioni"
+    },
+    "actions": {
+      "refresh": "Aggiorna",
+      "startService": "Avvia servizio",
+      "stopService": "Arresta servizio",
+      "restartService": "Riavvia servizio"
+    },
+    "value": {
+      "unknown": "Sconosciuto"
+    },
+    "statusMap": {
+      "active": "In esecuzione",
+      "inactive": "Fermato",
+      "failed": "Non riuscito",
+      "activating": "Avvio in corso",
+      "deactivating": "Arresto in corso",
+      "reloading": "Ricaricamento",
+      "unknown": "Sconosciuto"
+    },
+    "subMap": {
+      "running": "In esecuzione",
+      "dead": "Inattivo",
+      "failed": "Non riuscito",
+      "exited": "Terminato",
+      "listening": "In ascolto",
+      "stop_sigterm": "Arresto (SIGTERM)",
+      "auto_restart": "Riavvio automatico",
+      "start_pre": "Avvio (Pre)",
+      "start_post": "Avvio (Post)",
+      "reload": "Ricaricamento",
+      "unknown": "Sconosciuto"
+    },
+    "notifications": {
+      "fetchFailed": "Impossibile caricare i servizi",
+      "controlSuccessTitle": "Controllo servizio",
+      "startSuccessDesc": "{name} avviato con successo",
+      "stopSuccessDesc": "{name} arrestato con successo",
+      "restartSuccessDesc": "{name} riavviato con successo",
+      "startFailed": "Impossibile avviare {name}",
+      "stopFailed": "Impossibile arrestare {name}",
+      "restartFailed": "Impossibile riavviare {name}"
+    }
+  },
   "security": {
     "title": "Sicurezza e monitoraggio",
     "tabs": {
@@ -1574,6 +1845,37 @@
         "suspicious_path": "Percorso sospetto",
         "scanner_detected": "Scanner rilevato"
       },
+      "typeMap": {
+        "unauthenticated_access": "Accesso non autenticato",
+        "access_denied": "Accesso negato",
+        "invalid_token": "Token non valido",
+        "csrf_detected": "CSRF rilevato",
+        "sql_injection": "Tentativo di SQL injection",
+        "sqli_attempt": "Tentativo di SQL injection",
+        "xss_attempt": "Tentativo XSS",
+        "command_injection": "Tentativo di command injection",
+        "path_traversal": "Tentativo di path traversal",
+        "directory_traversal": "Tentativo di directory traversal",
+        "bad_bot": "Bot malevolo rilevato",
+        "bot_detected": "Bot rilevato",
+        "brute_force": "Tentativo di forza bruta",
+        "auth_failure": "Errore di autenticazione",
+        "login_failed": "Accesso non riuscito",
+        "malware_request": "Richiesta malware",
+        "waf_block": "Blocco WAF",
+        "dos_detected": "DoS rilevato",
+        "ddos_detected": "DDoS rilevato",
+        "too_many_requests": "Troppe richieste",
+        "unknown": "Evento sconosciuto"
+      },
+      "severity": {
+        "warning": "Avviso",
+        "info": "Info",
+        "notice": "Notifica",
+        "error": "Errore",
+        "unknown": "Sconosciuto"
+      },
+      "dynamicType": "Evento di sicurezza: {type}",
       "filters": {
         "allSeverities": "Tutte le gravità",
         "allTypes": "Tutti i tipi evento",
@@ -1712,6 +2014,71 @@
       "toggleRouteFailed": "Impossibile attivare/disattivare la rotta",
       "deleteRouteFailed": "Impossibile eliminare la rotta",
       "failed": "Operazione non riuscita"
+    }
+  },
+  "infrastructure": {
+    "title": "Infrastruttura",
+    "subtitle": "Gestisci i servizi infrastrutturali principali",
+    "loading": {
+      "services": "Caricamento servizi infrastrutturali..."
+    },
+    "empty": {
+      "title": "Nessun servizio infrastrutturale",
+      "description": "Configura i servizi infrastrutturali nelle Impostazioni per iniziare"
+    },
+    "actions": {
+      "goToSettings": "Vai alle Impostazioni",
+      "start": "Avvia",
+      "stop": "Arresta",
+      "restart": "Riavvia",
+      "logs": "Log",
+      "details": "Dettagli"
+    },
+    "labels": {
+      "container": "Container",
+      "image": "Immagine",
+      "health": "Salute"
+    },
+    "logs": {
+      "subtitle": "Log del servizio",
+      "empty": "Nessun log disponibile",
+      "failedToLoad": "Impossibile caricare i log"
+    },
+    "status": {
+      "running": "In esecuzione",
+      "stopped": "Fermato",
+      "error": "Errore",
+      "unknown": "Sconosciuto",
+      "external": "Esterno"
+    },
+    "health": {
+      "healthy": "Sano",
+      "unhealthy": "Non sano",
+      "starting": "In avvio"
+    },
+    "types": {
+      "nginx": "Nginx",
+      "database": "Database",
+      "redis": "Redis",
+      "certbot": "Certbot",
+      "proxy": "Proxy",
+      "service": "Servizio"
+    },
+    "notifications": {
+      "loadFailed": "Impossibile caricare i servizi infrastrutturali",
+      "serviceStartedTitle": "Servizio avviato",
+      "serviceStarted": "{name} è stato avviato",
+      "serviceStartFailed": "Impossibile avviare {name}",
+      "serviceStoppedTitle": "Servizio arrestato",
+      "serviceStopped": "{name} è stato arrestato",
+      "serviceStoppedReconnected": "{name} è stato arrestato (riconnesso all'API)",
+      "serviceStopFailed": "Impossibile arrestare {name}",
+      "serviceRestartedTitle": "Servizio riavviato",
+      "serviceRestarted": "{name} è stato riavviato",
+      "serviceRestartedSuccess": "{name} riavviato con successo",
+      "serviceRestartFailed": "Impossibile riavviare {name}",
+      "waitingForApi": "In attesa che l'API torni disponibile...",
+      "reconnecting": "Riavvio del servizio, in attesa dell'API..."
     }
   },
   "common": {

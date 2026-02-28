@@ -2,8 +2,8 @@
   <div class="infrastructure-view">
     <div class="view-header">
       <div class="header-content">
-        <h1>Infrastructure</h1>
-        <p class="subtitle">Manage core infrastructure services</p>
+        <h1>{{ t("infrastructure.title") }}</h1>
+        <p class="subtitle">{{ t("infrastructure.subtitle") }}</p>
       </div>
       <div class="header-actions">
         <button class="btn btn-icon" :disabled="loading" @click="fetchServices">
@@ -14,17 +14,17 @@
 
     <div v-if="loading" class="loading-state">
       <i class="pi pi-spin pi-spinner" />
-      <span>Loading infrastructure services...</span>
+      <span>{{ t("infrastructure.loading.services") }}</span>
     </div>
 
     <div v-else class="services-grid">
       <div v-if="services.length === 0" class="empty-state">
         <i class="pi pi-server" />
-        <h3>No Infrastructure Services</h3>
-        <p>Configure infrastructure services in Settings to get started</p>
+        <h3>{{ t("infrastructure.empty.title") }}</h3>
+        <p>{{ t("infrastructure.empty.description") }}</p>
         <router-link to="/settings" class="btn btn-primary">
           <i class="pi pi-cog" />
-          <span>Go to Settings</span>
+          <span>{{ t("infrastructure.actions.goToSettings") }}</span>
         </router-link>
       </div>
 
@@ -33,26 +33,28 @@
         :key="service.name"
         :name="service.name"
         :status="getCardStatus(service)"
-        :subtitle="service.type"
+        :subtitle="getServiceTypeLabel(service.type)"
         :icon="getServiceIcon(service.type)"
         :icon-class="getServiceIconClass(service.type)"
+        :status-label="getStatusLabel(service.status)"
+        :external-label="t('infrastructure.status.external')"
         :external="service.external"
         :clickable="service.managed || service.external"
         @click="(service.managed || service.external) && goToDetails(service.name)"
       >
         <div v-if="hasDetails(service)" class="service-details">
           <div v-if="service.container_id" class="detail-item">
-            <span class="detail-label">Container</span>
+            <span class="detail-label">{{ t("infrastructure.labels.container") }}</span>
             <code>{{ service.container_id.substring(0, 12) }}</code>
           </div>
           <div v-if="service.image" class="detail-item">
-            <span class="detail-label">Image</span>
+            <span class="detail-label">{{ t("infrastructure.labels.image") }}</span>
             <code>{{ service.image }}</code>
           </div>
           <div v-if="service.health" class="detail-item">
-            <span class="detail-label">Health</span>
+            <span class="detail-label">{{ t("infrastructure.labels.health") }}</span>
             <span class="health-badge" :class="getHealthClass(service.health)">
-              {{ service.health }}
+              {{ getHealthLabel(service.health) }}
             </span>
           </div>
         </div>
@@ -65,7 +67,7 @@
             @click.stop="startService(service.name)"
           >
             <i class="pi pi-play" />
-            <span>Start</span>
+            <span>{{ t("infrastructure.actions.start") }}</span>
           </button>
           <button
             v-if="canWrite && !service.external && service.status === 'running'"
@@ -74,7 +76,7 @@
             @click.stop="stopService(service.name)"
           >
             <i class="pi pi-stop" />
-            <span>Stop</span>
+            <span>{{ t("infrastructure.actions.stop") }}</span>
           </button>
           <button
             v-if="canWrite && !service.external && service.status === 'running'"
@@ -83,15 +85,15 @@
             @click.stop="restartService(service.name)"
           >
             <i class="pi pi-refresh" />
-            <span>Restart</span>
+            <span>{{ t("infrastructure.actions.restart") }}</span>
           </button>
           <button v-if="!service.external" class="btn btn-sm btn-secondary" @click.stop="showLogs(service.name)">
             <i class="pi pi-list" />
-            <span>Logs</span>
+            <span>{{ t("infrastructure.actions.logs") }}</span>
           </button>
           <button v-if="service.managed" class="btn btn-sm btn-secondary" @click.stop="goToDetails(service.name)">
             <i class="pi pi-cog" />
-            <span>Details</span>
+            <span>{{ t("infrastructure.actions.details") }}</span>
           </button>
         </template>
       </DeploymentCard>
@@ -100,9 +102,10 @@
     <LogsModal
       :visible="logsModal.visible"
       :title="logsModal.serviceName"
-      subtitle="Service logs"
+      :subtitle="t('infrastructure.logs.subtitle')"
       :logs="logsModal.content"
       :loading="logsModal.loading"
+      :empty-message="t('infrastructure.logs.empty')"
       @close="closeLogs"
       @refresh="refreshLogs"
     />
@@ -112,6 +115,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
+import { useI18n } from "vue-i18n";
 import { infrastructureApi, type InfraService } from "@/services/api";
 import { useNotificationsStore } from "@/stores/notifications";
 import { useAuthStore } from "@/stores/auth";
@@ -120,6 +124,7 @@ import DeploymentCard from "@/components/DeploymentCard.vue";
 import LogsModal from "@/components/LogsModal.vue";
 
 const router = useRouter();
+const { t } = useI18n();
 const notifications = useNotificationsStore();
 const authStore = useAuthStore();
 const canWrite = authStore.hasPermission("infrastructure:write");
@@ -140,7 +145,7 @@ const fetchServices = async () => {
     const response = await infrastructureApi.list();
     services.value = response.data.services || [];
   } catch (e: any) {
-    notifications.error("Error", "Failed to load infrastructure services");
+    notifications.error(t("common.error"), t("infrastructure.notifications.loadFailed"));
   } finally {
     loading.value = false;
   }
@@ -154,10 +159,13 @@ const startService = async (name: string) => {
   actionLoading.value = name;
   try {
     await infrastructureApi.start(name);
-    notifications.success("Service Started", `${name} has been started`);
+    notifications.success(
+      t("infrastructure.notifications.serviceStartedTitle"),
+      t("infrastructure.notifications.serviceStarted", { name }),
+    );
     await fetchServices();
   } catch (e: any) {
-    notifications.error("Error", `Failed to start ${name}`);
+    notifications.error(t("common.error"), t("infrastructure.notifications.serviceStartFailed", { name }));
   } finally {
     actionLoading.value = null;
   }
@@ -173,23 +181,32 @@ const stopService = async (name: string) => {
         {
           onWaiting: (waiting) => {
             if (waiting) {
-              notifications.info("Waiting", `Waiting for API to become available...`);
+              notifications.info(t("common.warning"), t("infrastructure.notifications.waitingForApi"));
             }
           },
         },
       );
       if (serviceRestarted) {
-        notifications.success("Service Stopped", `${name} has been stopped (reconnected to API)`);
+        notifications.success(
+          t("infrastructure.notifications.serviceStoppedTitle"),
+          t("infrastructure.notifications.serviceStoppedReconnected", { name }),
+        );
       } else {
-        notifications.success("Service Stopped", `${name} has been stopped`);
+        notifications.success(
+          t("infrastructure.notifications.serviceStoppedTitle"),
+          t("infrastructure.notifications.serviceStopped", { name }),
+        );
       }
     } else {
       await infrastructureApi.stop(name);
-      notifications.success("Service Stopped", `${name} has been stopped`);
+      notifications.success(
+        t("infrastructure.notifications.serviceStoppedTitle"),
+        t("infrastructure.notifications.serviceStopped", { name }),
+      );
     }
     await fetchServices();
   } catch (e: any) {
-    notifications.error("Error", `Failed to stop ${name}`);
+    notifications.error(t("common.error"), t("infrastructure.notifications.serviceStopFailed", { name }));
   } finally {
     actionLoading.value = null;
   }
@@ -205,23 +222,32 @@ const restartService = async (name: string) => {
         {
           onWaiting: (waiting) => {
             if (waiting) {
-              notifications.info("Reconnecting", `Service restarting, waiting for API...`);
+              notifications.info(t("common.warning"), t("infrastructure.notifications.reconnecting"));
             }
           },
         },
       );
       if (serviceRestarted) {
-        notifications.success("Service Restarted", `${name} restarted successfully`);
+        notifications.success(
+          t("infrastructure.notifications.serviceRestartedTitle"),
+          t("infrastructure.notifications.serviceRestartedSuccess", { name }),
+        );
       } else {
-        notifications.success("Service Restarted", `${name} has been restarted`);
+        notifications.success(
+          t("infrastructure.notifications.serviceRestartedTitle"),
+          t("infrastructure.notifications.serviceRestarted", { name }),
+        );
       }
     } else {
       await infrastructureApi.restart(name);
-      notifications.success("Service Restarted", `${name} has been restarted`);
+      notifications.success(
+        t("infrastructure.notifications.serviceRestartedTitle"),
+        t("infrastructure.notifications.serviceRestarted", { name }),
+      );
     }
     await fetchServices();
   } catch (e: any) {
-    notifications.error("Error", `Failed to restart ${name}`);
+    notifications.error(t("common.error"), t("infrastructure.notifications.serviceRestartFailed", { name }));
   } finally {
     actionLoading.value = null;
   }
@@ -241,9 +267,9 @@ const fetchLogs = async (name: string) => {
   logsModal.value.loading = true;
   try {
     const response = await infrastructureApi.logs(name, 200);
-    logsModal.value.content = response.data.logs || "No logs available";
+    logsModal.value.content = response.data.logs || "";
   } catch (e: any) {
-    logsModal.value.content = "Failed to load logs";
+    logsModal.value.content = t("infrastructure.logs.failedToLoad");
   } finally {
     logsModal.value.loading = false;
   }
@@ -288,6 +314,13 @@ const getCardStatus = (service: InfraService) => {
   return service.status as "running" | "stopped" | "error" | "unknown";
 };
 
+const getStatusLabel = (status: string) => {
+  const normalized = (status || "unknown").toLowerCase();
+  const key = `infrastructure.status.${normalized}`;
+  const translated = t(key);
+  return translated === key ? status : translated;
+};
+
 const getHealthClass = (health: string) => {
   const classes: Record<string, string> = {
     healthy: "health-healthy",
@@ -295,6 +328,20 @@ const getHealthClass = (health: string) => {
     starting: "health-starting",
   };
   return classes[health] || "";
+};
+
+const getHealthLabel = (health: string) => {
+  const normalized = (health || "").toLowerCase();
+  const key = `infrastructure.health.${normalized}`;
+  const translated = t(key);
+  return translated === key ? health : translated;
+};
+
+const getServiceTypeLabel = (type: string) => {
+  const normalized = (type || "").toLowerCase();
+  const key = `infrastructure.types.${normalized}`;
+  const translated = t(key);
+  return translated === key ? type : translated;
 };
 
 const hasDetails = (service: InfraService) => {

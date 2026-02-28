@@ -484,6 +484,43 @@
         "logs": "Logs",
         "restart": "Restart"
       },
+      "valueMap": {
+        "status": {
+          "running": "Running",
+          "stopped": "Stopped",
+          "starting": "Starting",
+          "restarting": "Restarting",
+          "created": "Created",
+          "exited": "Exited",
+          "paused": "Paused",
+          "dead": "Dead",
+          "error": "Error",
+          "unknown": "Unknown"
+        },
+        "certificateStatus": {
+          "valid": "Valid",
+          "pending": "Pending",
+          "expired": "Expired",
+          "error": "Error",
+          "unknown": "Unknown"
+        },
+        "databaseType": {
+          "mysql": "MySQL",
+          "postgres": "PostgreSQL",
+          "postgresql": "PostgreSQL",
+          "mariadb": "MariaDB",
+          "mongodb": "MongoDB",
+          "redis": "Redis",
+          "sqlite": "SQLite"
+        },
+        "databaseMode": {
+          "internal": "Internal",
+          "external": "External",
+          "shared": "Shared",
+          "managed": "Managed",
+          "local": "Local"
+        }
+      },
       "databases": "Databases",
       "resourceUsage": "Resource Usage",
       "resource": {
@@ -1346,6 +1383,240 @@
       "restartFailed": "Failed to restart container"
     }
   },
+  "systemPorts": {
+    "searchPlaceholder": "Search ports...",
+    "loading": "Loading ports...",
+    "empty": {
+      "title": "No Active Ports",
+      "text": "No active ports found on the system."
+    },
+    "table": {
+      "port": "Port",
+      "process": "Process",
+      "address": "Address",
+      "state": "State",
+      "actions": "Actions"
+    },
+    "actions": {
+      "refresh": "Refresh",
+      "killProcess": "Kill Process",
+      "cancel": "Cancel",
+      "killing": "Killing..."
+    },
+    "value": {
+      "unknown": "Unknown",
+      "pid": "PID: {pid}"
+    },
+    "state": {
+      "listen": "Listening",
+      "established": "Established",
+      "time_wait": "Time Wait",
+      "close_wait": "Close Wait",
+      "syn_sent": "Syn Sent",
+      "syn_recv": "Syn Recv",
+      "fin_wait_1": "Fin Wait 1",
+      "fin_wait_2": "Fin Wait 2",
+      "last_ack": "Last Ack",
+      "closing": "Closing",
+      "unknown": "Unknown"
+    },
+    "modal": {
+      "kill": {
+        "title": "Kill Process",
+        "confirm": "Are you sure you want to kill this process?",
+        "port": "Port",
+        "process": "Process",
+        "pid": "PID",
+        "warning": "This action cannot be undone. The process will be terminated immediately.",
+        "button": "Kill Process"
+      }
+    },
+    "notifications": {
+      "fetchFailed": "Failed to fetch ports",
+      "killSuccessTitle": "Process killed",
+      "killSuccessDesc": "Successfully killed process {pid}",
+      "killFailed": "Failed to kill process"
+    }
+  },
+  "cronJobs": {
+    "title": "Scheduled Tasks",
+    "subtitle": "Manage cron jobs and scheduled commands across deployments",
+    "loading": "Loading scheduled tasks...",
+    "actions": {
+      "newCronJob": "New Cron Job",
+      "clearFilters": "Clear Filters",
+      "runNow": "Run Now",
+      "history": "History",
+      "cancel": "Cancel",
+      "saving": "Saving...",
+      "update": "Update",
+      "create": "Create"
+    },
+    "filters": {
+      "searchPlaceholder": "Search tasks...",
+      "allDeployments": "All Deployments",
+      "allTypes": "All Types",
+      "matchingOfTotal": "{matching} matching of {total} total",
+      "totalTasks": "{count} tasks"
+    },
+    "type": {
+      "command": "Command",
+      "backup": "Backup"
+    },
+    "empty": {
+      "title": "No Scheduled Tasks",
+      "text": "Create cron jobs to run commands in your containers on a schedule.",
+      "createFirst": "Create First Cron Job",
+      "noMatchingTitle": "No Matching Tasks",
+      "noMatchingText": "No tasks match your current filters. Try adjusting your search or filters."
+    },
+    "field": {
+      "command": "Command",
+      "service": "Service",
+      "lastRun": "Last run",
+      "nextRun": "Next run"
+    },
+    "pagination": {
+      "pageOf": "Page {page} of {total}"
+    },
+    "recentExecutions": {
+      "title": "Recent Executions"
+    },
+    "modal": {
+      "form": {
+        "createTitle": "Create Cron Job",
+        "editTitle": "Edit Cron Job",
+        "name": "Name",
+        "namePlaceholder": "Daily cleanup",
+        "deployment": "Deployment",
+        "selectDeployment": "Select deployment...",
+        "schedule": "Schedule (Cron Expression)",
+        "cronPlaceholder": "0 2 * * *",
+        "cronHintExample": "e.g., \"0 2 * * *\" = Daily at 2:00 AM",
+        "serviceOptional": "Service (optional)",
+        "servicePlaceholder": "web, app, worker...",
+        "serviceHint": "Leave empty to use deployment name as container",
+        "command": "Command",
+        "commandPlaceholder": "php artisan schedule:run",
+        "timeoutSeconds": "Timeout (seconds)",
+        "enableTask": "Enable this task"
+      },
+      "output": {
+        "title": "Execution Output",
+        "started": "Started",
+        "ended": "Ended",
+        "duration": "Duration",
+        "output": "Output",
+        "error": "Error",
+        "noOutput": "No output recorded for this execution."
+      },
+      "history": {
+        "title": "Execution History",
+        "noHistory": "No execution history for this task."
+      },
+      "delete": {
+        "title": "Delete Cron Job",
+        "message": "Are you sure you want to delete '{name}'?",
+        "warning": "This action cannot be undone. All execution history will be lost.",
+        "confirm": "Delete"
+      }
+    },
+    "notifications": {
+      "loadFailed": "Failed to load scheduled tasks",
+      "taskUpdatedTitle": "Task Updated",
+      "taskUpdatedDesc": "Cron job \"{name}\" has been updated",
+      "taskCreatedTitle": "Task Created",
+      "taskCreatedDesc": "Cron job \"{name}\" has been created",
+      "toggleFailed": "Failed to toggle task",
+      "taskStartedTitle": "Task Started",
+      "taskStartedDesc": "\"{name}\" is now running",
+      "taskDeletedTitle": "Task Deleted",
+      "taskDeletedDesc": "\"{name}\" has been deleted"
+    },
+    "value": {
+      "taskNumber": "Task #{id}"
+    },
+    "execution": {
+      "status": {
+        "completed": "Completed",
+        "failed": "Failed",
+        "running": "Running",
+        "pending": "Pending",
+        "cancelled": "Cancelled"
+      }
+    },
+    "cron": {
+      "invalid": "Invalid cron expression",
+      "everyHour": "Every hour",
+      "everyMinute": "Every minute",
+      "dailyAt": "Daily at {time}",
+      "hourlyAtMinute": "Hourly at minute {minute}",
+      "weeklyOnSundayAt": "Weekly on Sunday at {time}",
+      "monthlyOnFirstAt": "Monthly on the 1st at {time}"
+    }
+  },
+  "services": {
+    "searchPlaceholder": "Search services...",
+    "loading": "Loading services...",
+    "empty": {
+      "title": "No Services Found",
+      "text": "Unable to retrieve system services."
+    },
+    "filters": {
+      "all": "All",
+      "running": "Running",
+      "stopped": "Stopped",
+      "failed": "Failed"
+    },
+    "table": {
+      "status": "Status",
+      "service": "Service",
+      "description": "Description",
+      "state": "State",
+      "actions": "Actions"
+    },
+    "actions": {
+      "refresh": "Refresh",
+      "startService": "Start Service",
+      "stopService": "Stop Service",
+      "restartService": "Restart Service"
+    },
+    "value": {
+      "unknown": "Unknown"
+    },
+    "statusMap": {
+      "active": "Running",
+      "inactive": "Stopped",
+      "failed": "Failed",
+      "activating": "Starting",
+      "deactivating": "Stopping",
+      "reloading": "Reloading",
+      "unknown": "Unknown"
+    },
+    "subMap": {
+      "running": "Running",
+      "dead": "Dead",
+      "failed": "Failed",
+      "exited": "Exited",
+      "listening": "Listening",
+      "stop_sigterm": "Stopping (SIGTERM)",
+      "auto_restart": "Auto Restart",
+      "start_pre": "Starting (Pre)",
+      "start_post": "Starting (Post)",
+      "reload": "Reloading",
+      "unknown": "Unknown"
+    },
+    "notifications": {
+      "fetchFailed": "Failed to fetch services",
+      "controlSuccessTitle": "Service Control",
+      "startSuccessDesc": "{name} started successfully",
+      "stopSuccessDesc": "{name} stopped successfully",
+      "restartSuccessDesc": "{name} restarted successfully",
+      "startFailed": "Failed to start {name}",
+      "stopFailed": "Failed to stop {name}",
+      "restartFailed": "Failed to restart {name}"
+    }
+  },
   "security": {
     "title": "Security & Monitoring",
     "tabs": {
@@ -1535,6 +1806,37 @@
         "suspicious_path": "Suspicious Path",
         "scanner_detected": "Scanner Detected"
       },
+      "typeMap": {
+        "unauthenticated_access": "Unauthenticated Access",
+        "access_denied": "Access Denied",
+        "invalid_token": "Invalid Token",
+        "csrf_detected": "CSRF Detected",
+        "sql_injection": "SQL Injection Attempt",
+        "sqli_attempt": "SQL Injection Attempt",
+        "xss_attempt": "XSS Attempt",
+        "command_injection": "Command Injection Attempt",
+        "path_traversal": "Path Traversal Attempt",
+        "directory_traversal": "Directory Traversal Attempt",
+        "bad_bot": "Bad Bot Detected",
+        "bot_detected": "Bot Detected",
+        "brute_force": "Brute-force Attempt",
+        "auth_failure": "Authentication Failure",
+        "login_failed": "Login Failed",
+        "malware_request": "Malware Request",
+        "waf_block": "WAF Block",
+        "dos_detected": "DoS Detected",
+        "ddos_detected": "DDoS Detected",
+        "too_many_requests": "Too Many Requests",
+        "unknown": "Unknown Event"
+      },
+      "severity": {
+        "warning": "Warning",
+        "info": "Info",
+        "notice": "Notice",
+        "error": "Error",
+        "unknown": "Unknown"
+      },
+      "dynamicType": "Security event: {type}",
       "filters": {
         "allSeverities": "All Severities",
         "allTypes": "All Event Types",
@@ -1673,6 +1975,71 @@
       "toggleRouteFailed": "Failed to toggle route",
       "deleteRouteFailed": "Failed to delete route",
       "failed": "Failed"
+    }
+  },
+  "infrastructure": {
+    "title": "Infrastructure",
+    "subtitle": "Manage core infrastructure services",
+    "loading": {
+      "services": "Loading infrastructure services..."
+    },
+    "empty": {
+      "title": "No Infrastructure Services",
+      "description": "Configure infrastructure services in Settings to get started"
+    },
+    "actions": {
+      "goToSettings": "Go to Settings",
+      "start": "Start",
+      "stop": "Stop",
+      "restart": "Restart",
+      "logs": "Logs",
+      "details": "Details"
+    },
+    "labels": {
+      "container": "Container",
+      "image": "Image",
+      "health": "Health"
+    },
+    "logs": {
+      "subtitle": "Service logs",
+      "empty": "No logs available",
+      "failedToLoad": "Failed to load logs"
+    },
+    "status": {
+      "running": "Running",
+      "stopped": "Stopped",
+      "error": "Error",
+      "unknown": "Unknown",
+      "external": "External"
+    },
+    "health": {
+      "healthy": "Healthy",
+      "unhealthy": "Unhealthy",
+      "starting": "Starting"
+    },
+    "types": {
+      "nginx": "Nginx",
+      "database": "Database",
+      "redis": "Redis",
+      "certbot": "Certbot",
+      "proxy": "Proxy",
+      "service": "Service"
+    },
+    "notifications": {
+      "loadFailed": "Failed to load infrastructure services",
+      "serviceStartedTitle": "Service Started",
+      "serviceStarted": "{name} has been started",
+      "serviceStartFailed": "Failed to start {name}",
+      "serviceStoppedTitle": "Service Stopped",
+      "serviceStopped": "{name} has been stopped",
+      "serviceStoppedReconnected": "{name} has been stopped (reconnected to API)",
+      "serviceStopFailed": "Failed to stop {name}",
+      "serviceRestartedTitle": "Service Restarted",
+      "serviceRestarted": "{name} has been restarted",
+      "serviceRestartedSuccess": "{name} restarted successfully",
+      "serviceRestartFailed": "Failed to restart {name}",
+      "waitingForApi": "Waiting for API to become available...",
+      "reconnecting": "Service restarting, waiting for API..."
     }
   },
   "common": {

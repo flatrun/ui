@@ -5,19 +5,19 @@
       :columns="columns"
       :loading="loading"
       :searchable="true"
-      search-placeholder="Search ports..."
+      :search-placeholder="t('systemPorts.searchPlaceholder')"
       :search-fields="['port', 'process', 'pid', 'protocol']"
       item-key="port"
       :empty-icon="Network"
-      empty-title="No Active Ports"
+      :empty-title="t('systemPorts.empty.title')"
       :empty-text="emptyText"
-      loading-text="Loading ports..."
+      :loading-text="t('systemPorts.loading')"
       :default-page-size="25"
     >
       <template #actions>
         <button class="btn btn-secondary" :disabled="loading" @click="fetchPorts">
           <RefreshCw :size="16" :class="{ spinning: loading }" />
-          Refresh
+          {{ t("systemPorts.actions.refresh") }}
         </button>
       </template>
 
@@ -30,8 +30,8 @@
 
       <template #cell-process="{ item }">
         <div class="process-info">
-          <span class="process-name">{{ item.process || "Unknown" }}</span>
-          <span class="process-pid">PID: {{ item.pid }}</span>
+          <span class="process-name">{{ item.process || t("systemPorts.value.unknown") }}</span>
+          <span class="process-pid">{{ t("systemPorts.value.pid", { pid: item.pid }) }}</span>
         </div>
       </template>
 
@@ -40,8 +40,8 @@
       </template>
 
       <template #cell-state="{ item }">
-        <span class="state-badge" :class="item.state?.toLowerCase()">
-          {{ item.state || "UNKNOWN" }}
+        <span class="state-badge" :class="getStateClass(item.state)">
+          {{ formatState(item.state) }}
         </span>
       </template>
 
@@ -50,7 +50,7 @@
           <button
             v-if="canWrite"
             class="action-btn kill"
-            title="Kill Process"
+            :title="t('systemPorts.actions.killProcess')"
             :disabled="!item.pid"
             @click.stop="confirmKillProcess(item)"
           >
@@ -66,39 +66,41 @@
           <div class="modal-header">
             <h3>
               <AlertTriangle :size="20" />
-              Kill Process
+              {{ t("systemPorts.modal.kill.title") }}
             </h3>
             <button class="close-btn" @click="showKillModal = false">
               <X :size="18" />
             </button>
           </div>
           <div class="modal-body">
-            <p>Are you sure you want to kill this process?</p>
+            <p>{{ t("systemPorts.modal.kill.confirm") }}</p>
             <div class="process-details">
               <div class="detail-row">
-                <span class="label">Port:</span>
+                <span class="label">{{ t("systemPorts.modal.kill.port") }}:</span>
                 <span class="value">{{ selectedPort?.port }}</span>
               </div>
               <div class="detail-row">
-                <span class="label">Process:</span>
-                <span class="value">{{ selectedPort?.process || "Unknown" }}</span>
+                <span class="label">{{ t("systemPorts.modal.kill.process") }}:</span>
+                <span class="value">{{ selectedPort?.process || t("systemPorts.value.unknown") }}</span>
               </div>
               <div class="detail-row">
-                <span class="label">PID:</span>
+                <span class="label">{{ t("systemPorts.modal.kill.pid") }}:</span>
                 <span class="value">{{ selectedPort?.pid }}</span>
               </div>
             </div>
             <div class="warning-message">
               <AlertTriangle :size="16" />
-              <span>This action cannot be undone. The process will be terminated immediately.</span>
+              <span>{{ t("systemPorts.modal.kill.warning") }}</span>
             </div>
           </div>
           <div class="modal-footer">
-            <button class="btn btn-secondary" @click="showKillModal = false">Cancel</button>
+            <button class="btn btn-secondary" @click="showKillModal = false">
+              {{ t("systemPorts.actions.cancel") }}
+            </button>
             <button class="btn btn-danger" :disabled="killing" @click="killProcess">
               <Trash2 v-if="!killing" :size="16" />
               <RefreshCw v-else :size="16" class="spinning" />
-              {{ killing ? "Killing..." : "Kill Process" }}
+              {{ killing ? t("systemPorts.actions.killing") : t("systemPorts.modal.kill.button") }}
             </button>
           </div>
         </div>
@@ -109,6 +111,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
+import { useI18n } from "vue-i18n";
 import { portsApi } from "@/services/api";
 import { useNotificationsStore } from "@/stores/notifications";
 import { useAuthStore } from "@/stores/auth";
@@ -132,18 +135,31 @@ const showKillModal = ref(false);
 const selectedPort = ref<Port | null>(null);
 const killing = ref(false);
 const notifications = useNotificationsStore();
+const { t, te } = useI18n();
 
-const columns = [
-  { key: "port", label: "Port", sortable: true, width: "100px" },
-  { key: "process", label: "Process", sortable: true },
-  { key: "address", label: "Address", sortable: true },
-  { key: "state", label: "State", width: "120px" },
-  { key: "actions", label: "Actions", width: "80px" },
-];
+const columns = computed(() => [
+  { key: "port", label: t("systemPorts.table.port"), sortable: true, width: "100px" },
+  { key: "process", label: t("systemPorts.table.process"), sortable: true },
+  { key: "address", label: t("systemPorts.table.address"), sortable: true },
+  { key: "state", label: t("systemPorts.table.state"), width: "120px" },
+  { key: "actions", label: t("systemPorts.table.actions"), width: "80px" },
+]);
 
 const emptyText = computed(() => {
-  return "No active ports found on the system.";
+  return t("systemPorts.empty.text");
 });
+
+const normalizeState = (state?: string) => (state || "").toLowerCase().replace(/[\s-]+/g, "_");
+
+const getStateClass = (state?: string) => normalizeState(state);
+
+const formatState = (state?: string) => {
+  const normalized = normalizeState(state);
+  if (!normalized) return t("systemPorts.state.unknown");
+  const key = `systemPorts.state.${normalized}`;
+  if (te(key)) return t(key);
+  return state?.toUpperCase() || t("systemPorts.state.unknown");
+};
 
 const fetchPorts = async () => {
   loading.value = true;
@@ -151,7 +167,7 @@ const fetchPorts = async () => {
     const response = await portsApi.list();
     ports.value = response.data.ports || [];
   } catch (error: any) {
-    notifications.error("Failed to fetch ports", error.message);
+    notifications.error(t("common.error"), error.message || t("systemPorts.notifications.fetchFailed"));
     console.error("Failed to fetch ports:", error);
   } finally {
     loading.value = false;
@@ -169,12 +185,15 @@ const killProcess = async () => {
   killing.value = true;
   try {
     await portsApi.kill(selectedPort.value.pid);
-    notifications.success("Process killed", `Successfully killed process ${selectedPort.value.pid}`);
+    notifications.success(
+      t("systemPorts.notifications.killSuccessTitle"),
+      t("systemPorts.notifications.killSuccessDesc", { pid: selectedPort.value.pid }),
+    );
     showKillModal.value = false;
     selectedPort.value = null;
     await fetchPorts();
   } catch (error: any) {
-    notifications.error("Failed to kill process", error.message);
+    notifications.error(t("common.error"), error.message || t("systemPorts.notifications.killFailed"));
     console.error("Failed to kill process:", error);
   } finally {
     killing.value = false;

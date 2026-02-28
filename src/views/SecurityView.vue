@@ -207,7 +207,9 @@
           <div v-if="stats?.recent_critical?.length" class="critical-events-list">
             <div v-for="event in stats.recent_critical" :key="event.id" class="critical-event-item">
               <div class="critical-event-time">{{ formatTime(event.created_at) }}</div>
-              <span class="severity-badge critical">{{ event.severity }}</span>
+              <span class="severity-badge" :class="getSeverityClass(event.severity)">
+                {{ formatEventSeverity(event.severity) }}
+              </span>
               <span class="critical-event-type">{{ formatEventType(event.event_type) }}</span>
               <code class="critical-event-ip">{{ event.source_ip }}</code>
               <span class="critical-event-path">{{ event.request_path || "-" }}</span>
@@ -301,8 +303,8 @@
               <tr v-for="event in events" :key="event.id">
                 <td class="time-cell">{{ formatTime(event.created_at) }}</td>
                 <td>
-                  <span class="severity-badge" :class="event.severity">
-                    {{ event.severity }}
+                  <span class="severity-badge" :class="getSeverityClass(event.severity)">
+                    {{ formatEventSeverity(event.severity) }}
                   </span>
                 </td>
                 <td>{{ formatEventType(event.event_type) }}</td>
@@ -857,9 +859,46 @@ const formatTime = (dateString: string) => {
 };
 
 const formatEventType = (type: string) => {
-  const translationKey = `security.events.types.${type}`;
+  const normalized = normalizeEventToken(type);
+  if (!normalized) return t("common.na");
+
+  const translationKey = `security.events.types.${normalized}`;
   if (te(translationKey)) return t(translationKey);
-  return type.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
+
+  const mappedKey = `security.events.typeMap.${normalized}`;
+  if (te(mappedKey)) return t(mappedKey);
+
+  const humanized = normalized.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
+  return t("security.events.dynamicType", { type: humanized });
+};
+
+const normalizeEventToken = (value?: string) =>
+  (value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[\s-]+/g, "_");
+
+const normalizeSeverity = (severity?: string) => {
+  const normalized = normalizeEventToken(severity);
+  if (!normalized) return "unknown";
+  if (["critical", "severe", "emergency", "alert"].includes(normalized)) return "critical";
+  if (["high", "warning", "warn", "error"].includes(normalized)) return "high";
+  if (["medium", "moderate", "notice"].includes(normalized)) return "medium";
+  if (["low", "info", "informational", "debug"].includes(normalized)) return "low";
+  return normalized;
+};
+
+const getSeverityClass = (severity?: string) => normalizeSeverity(severity);
+
+const formatEventSeverity = (severity?: string) => {
+  const normalized = normalizeSeverity(severity);
+  const severityKey = `security.severity.${normalized}`;
+  if (te(severityKey)) return t(severityKey);
+
+  const mappedKey = `security.events.severity.${normalized}`;
+  if (te(mappedKey)) return t(mappedKey);
+
+  return t("security.events.severity.unknown");
 };
 
 const getSeverityPercentage = (severity: string): number => {

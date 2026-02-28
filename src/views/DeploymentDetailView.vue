@@ -9,7 +9,7 @@
         <div class="deployment-title">
           <h1>{{ deployment?.name || $route.params.name }}</h1>
           <span class="status-badge" :class="deployment?.status">
-            {{ deployment?.status || $t("deployment.detail.loadingStatus") }}
+            {{ formatRuntimeStatus(deployment?.status) || $t("deployment.detail.loadingStatus") }}
           </span>
         </div>
       </div>
@@ -99,7 +99,7 @@
                   <span class="label">{{ $t("deployment.detail.field.status") }}</span>
                   <span class="value">
                     <span class="status-indicator" :class="deployment.status" />
-                    {{ deployment.status }}
+                    {{ formatRuntimeStatus(deployment.status) }}
                   </span>
                 </div>
                 <div class="info-row">
@@ -219,7 +219,7 @@
                       <span class="label">{{ $t("deployment.detail.field.certificate") }}</span>
                       <span class="value">
                         <span class="status-badge" :class="proxyStatus.certificate.status">
-                          {{ proxyStatus.certificate.status }}
+                          {{ formatCertificateStatus(proxyStatus.certificate.status) }}
                         </span>
                       </span>
                     </div>
@@ -305,7 +305,9 @@
                   <div v-for="service in services" :key="service.name" class="service-item">
                     <div class="service-header">
                       <span class="service-name">{{ service.name }}</span>
-                      <span class="service-status" :class="service.status">{{ service.status }}</span>
+                      <span class="service-status" :class="service.status">{{
+                        formatRuntimeStatus(service.status)
+                      }}</span>
                     </div>
                     <div class="service-details">
                       <span class="detail-item">
@@ -354,12 +356,12 @@
                   <div v-for="db in deployment.metadata.databases" :key="db.id" class="database-item">
                     <div class="database-header">
                       <span class="database-alias">{{ db.alias }}</span>
-                      <span class="database-type" :class="db.type">{{ db.type }}</span>
+                      <span class="database-type" :class="db.type">{{ formatDatabaseType(db.type) }}</span>
                     </div>
                     <div class="database-details">
                       <div class="detail-row">
                         <span class="detail-label">{{ $t("deployment.detail.field.mode") }}</span>
-                        <span class="detail-value">{{ db.mode }}</span>
+                        <span class="detail-value">{{ formatDatabaseMode(db.mode) }}</span>
                       </div>
                       <div v-if="db.host" class="detail-row">
                         <span class="detail-label">{{ $t("deployment.detail.field.host") }}</span>
@@ -871,7 +873,9 @@
                 <div class="events-body">
                   <div v-for="event in securityEvents" :key="event.id" class="event-row">
                     <span class="col-severity">
-                      <span class="severity-badge" :class="event.severity">{{ event.severity }}</span>
+                      <span class="severity-badge" :class="getSeverityClass(event.severity)">
+                        {{ formatEventSeverity(event.severity) }}
+                      </span>
                     </span>
                     <span class="col-type">{{ formatEventType(event.event_type) }}</span>
                     <code class="col-ip">{{ event.source_ip }}</code>
@@ -1836,10 +1840,64 @@ const removeRateLimit = (index: number) => {
 };
 
 const formatEventType = (type: string) => {
-  const translationKey = `security.events.types.${type}`;
+  const normalized = normalizeEventToken(type);
+  if (!normalized) return t("common.na");
+
+  const translationKey = `security.events.types.${normalized}`;
   if (te(translationKey)) return t(translationKey);
-  return type.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
+
+  const mappedKey = `security.events.typeMap.${normalized}`;
+  if (te(mappedKey)) return t(mappedKey);
+
+  const humanized = normalized.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
+  return t("security.events.dynamicType", { type: humanized });
 };
+
+const normalizeEventToken = (value?: string) =>
+  (value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[\s-]+/g, "_");
+
+const normalizeSeverity = (severity?: string) => {
+  const normalized = normalizeEventToken(severity);
+  if (!normalized) return "unknown";
+  if (["critical", "severe", "emergency", "alert"].includes(normalized)) return "critical";
+  if (["high", "warning", "warn", "error"].includes(normalized)) return "high";
+  if (["medium", "moderate", "notice"].includes(normalized)) return "medium";
+  if (["low", "info", "informational", "debug"].includes(normalized)) return "low";
+  return normalized;
+};
+
+const getSeverityClass = (severity?: string) => normalizeSeverity(severity);
+
+const formatEventSeverity = (severity?: string) => {
+  const normalized = normalizeSeverity(severity);
+  const severityKey = `security.severity.${normalized}`;
+  if (te(severityKey)) return t(severityKey);
+
+  const mappedKey = `security.events.severity.${normalized}`;
+  if (te(mappedKey)) return t(mappedKey);
+
+  return t("security.events.severity.unknown");
+};
+
+const formatMappedValue = (baseKey: string, value?: string) => {
+  if (!value) return "";
+  const normalized = value.toLowerCase();
+  const key = `${baseKey}.${normalized}`;
+  if (te(key)) return t(key);
+  return value;
+};
+
+const formatRuntimeStatus = (status?: string) => formatMappedValue("deployment.detail.valueMap.status", status);
+
+const formatCertificateStatus = (status?: string) =>
+  formatMappedValue("deployment.detail.valueMap.certificateStatus", status);
+
+const formatDatabaseType = (type?: string) => formatMappedValue("deployment.detail.valueMap.databaseType", type);
+
+const formatDatabaseMode = (mode?: string) => formatMappedValue("deployment.detail.valueMap.databaseMode", mode);
 
 const formatTimeAgo = (dateString: string) => {
   if (!dateString) return t("common.na");
