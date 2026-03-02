@@ -131,7 +131,7 @@
                   v-for="point in stats.events_trend"
                   :key="point.date"
                   class="trend-bar-container"
-                  :title="`${point.date}: ${point.count} events`"
+                  :title="t('security.trend.tooltip', { date: point.date, count: point.count })"
                 >
                   <div class="trend-bar" :style="{ height: getTrendBarHeight(point.count) + '%' }" />
                   <span class="trend-bar-label">{{ formatTrendDate(point.date) }}</span>
@@ -340,7 +340,13 @@
             {{ t("security.events.pagination.previous") }}
           </button>
           <span class="pagination-info">
-            {{ filters.offset + 1 }}-{{ Math.min(filters.offset + filters.limit, eventsTotal) }} of {{ eventsTotal }}
+            {{
+              t("security.events.pagination.rangeOfTotal", {
+                from: filters.offset + 1,
+                to: Math.min(filters.offset + filters.limit, eventsTotal),
+                total: eventsTotal,
+              })
+            }}
           </span>
           <button
             class="btn btn-secondary btn-sm"
@@ -791,7 +797,7 @@ const toggleRealtimeCapture = async () => {
     );
   } catch (e: any) {
     const errorData = e.response?.data;
-    const errorMsg = errorData?.error || "Failed to toggle realtime capture";
+    const errorMsg = errorData?.error || t("security.notifications.toggleRealtimeFailed");
     const details = errorData?.details;
 
     if (typeof errorData?.realtime_capture === "boolean") {
@@ -811,7 +817,7 @@ const refreshSecurityScripts = async () => {
     const vhostCount = result.vhosts_updated?.length || 0;
     notifications.success(
       t("security.notifications.scriptsRegenerated"),
-      `Agent IP: ${result.agent_ip}, ${vhostCount} vhost(s) updated`,
+      t("security.notifications.scriptsRegeneratedDesc", { agentIp: result.agent_ip, count: vhostCount }),
     );
   } catch (e: any) {
     const errorMsg = e.response?.data?.error || t("security.notifications.failed");
@@ -934,7 +940,7 @@ const handleBlockIP = async () => {
     await securityStore.blockIP(blockForm.ip, blockForm.reason, blockForm.duration);
     notifications.success(
       t("security.notifications.ipBlocked"),
-      `${blockForm.ip} ${t("security.notifications.hasBeenBlocked")}`,
+      t("security.notifications.ipBlockedDesc", { ip: blockForm.ip }),
     );
     showAddBlockDialog.value = false;
     blockForm.ip = "";
@@ -954,10 +960,7 @@ const handleUnblockIP = async (ip: string) => {
   unblockingIP.value = ip;
   try {
     await securityStore.unblockIP(ip);
-    notifications.success(
-      t("security.notifications.ipUnblocked"),
-      `${ip} ${t("security.notifications.hasBeenUnblocked")}`,
-    );
+    notifications.success(t("security.notifications.ipUnblocked"), t("security.notifications.ipUnblockedDesc", { ip }));
   } catch (e: any) {
     notifications.error(
       t("security.notifications.failed"),
@@ -1063,7 +1066,7 @@ const addPreset = async (preset: string) => {
     await securityStore.addProtectedRoute(presetConfig);
     notifications.success(
       t("security.notifications.presetAdded"),
-      `${preset} ${t("security.notifications.presetAddedDesc")}`,
+      t("security.notifications.presetAddedDesc", { preset }),
     );
   } catch (e: any) {
     notifications.error(

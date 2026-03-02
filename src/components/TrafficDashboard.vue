@@ -476,7 +476,12 @@
               :key="hour.hour"
               class="hour-bar"
               :style="{ height: getHourlyBarHeight(hour.request_count) + '%' }"
-              :title="`${formatHour(hour.hour)}: ${hour.request_count} requests`"
+              :title="
+                t('security.traffic.performance.hourlyTooltip', {
+                  hour: formatHour(hour.hour),
+                  count: hour.request_count,
+                })
+              "
               :class="{ highlight: isCurrentHour(hour.hour) }"
             />
           </div>

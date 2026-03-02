@@ -2116,7 +2116,8 @@
         "requests": "Solicitudes",
         "avgTime": "Tiempo prom.",
         "errors": "Errores",
-        "requestVolume24h": "Volumen de solicitudes (24h)"
+        "requestVolume24h": "Volumen de solicitudes (24h)",
+        "hourlyTooltip": "{hour}: {count} solicitudes"
       },
       "unknown": {
         "loading": "Cargando estadísticas de dominios desconocidos...",
@@ -2187,7 +2188,8 @@
     },
     "trend": {
       "title": "Tendencia de 7 días",
-      "noData": "No hay datos de tendencia"
+      "noData": "No hay datos de tendencia",
+      "tooltip": "{date}: {count} eventos"
     },
     "topDeployments": {
       "title": "Principales despliegues por eventos",
@@ -2271,7 +2273,8 @@
       },
       "pagination": {
         "previous": "Anterior",
-        "next": "Siguiente"
+        "next": "Siguiente",
+        "rangeOfTotal": "{from}-{to} de {total}"
       }
     },
     "blocked": {
@@ -2310,7 +2313,39 @@
       "critical": "Crítico",
       "regenerateScripts": "Regenerar scripts de seguridad",
       "regenerating": "Regenerando...",
-      "scriptsHint": "Regenera scripts Lua con la IP actual del agente y recarga nginx"
+      "scriptsHint": "Regenera scripts Lua con la IP actual del agente y recarga nginx",
+      "refreshTitle": "Actualizar estado de seguridad",
+      "issuesDetected": "Problemas detectados",
+      "recommendations": "Recomendaciones",
+      "viewDetails": "Ver detalles",
+      "categories": {
+        "connectivity": "Conectividad",
+        "configuration": "Configuración",
+        "deployments": "Despliegues"
+      },
+      "status": {
+        "healthy": "Saludable",
+        "degraded": "Degradado",
+        "broken": "Roto",
+        "disabled": "Deshabilitado",
+        "unknown": "Desconocido"
+      },
+      "checkDescriptions": {
+        "nginx_can_reach_agent": "Verifica que el contenedor nginx pueda acceder a la API del agente para el registro",
+        "security_lua_ip_injected": "Comprueba si security.lua tiene la IP del agente configurada correctamente",
+        "traffic_lua_ip_injected": "Comprueba si traffic.lua tiene la IP del agente configurada correctamente",
+        "traffic_lua_exists": "Verifica que traffic.lua exista en el contenedor nginx",
+        "nginx_conf_has_traffic_module": "Comprueba si nginx.conf carga el módulo Lua de tráfico",
+        "nginx_conf_has_global_traffic_logging": "Comprueba si el registro global de tráfico está habilitado",
+        "vhosts_have_security_hook": "Verifica que los despliegues con seguridad habilitada tengan el hook de seguridad"
+      },
+      "issueMap": {
+        "security_module_not_enabled": "El módulo de seguridad no está habilitado",
+        "failed_to_fetch_health_status": "No se pudo obtener el estado de seguridad"
+      },
+      "recommendationMap": {
+        "enable_security_module": "Habilita el módulo de seguridad para ejecutar comprobaciones de estado"
+      }
     },
     "settings": {
       "title": "Configuración de seguridad",
@@ -2383,12 +2418,34 @@
       "routeDeleted": "Ruta eliminada",
       "routeDeletedDesc": "La ruta protegida ha sido eliminada",
       "presetAdded": "Preajuste agregado",
-      "presetAddedDesc": "se ha agregado la protección",
+      "presetAddedDesc": "Se agregó protección para {preset}",
       "addPresetFailed": "Error al agregar preajuste",
       "saveRouteFailed": "Error al guardar la ruta",
       "toggleRouteFailed": "Error al alternar la ruta",
       "deleteRouteFailed": "Error al eliminar la ruta",
-      "failed": "Falló"
+      "failed": "Falló",
+      "toggleRealtimeFailed": "No se pudo alternar la captura en tiempo real",
+      "scriptsRegeneratedDesc": "IP del agente: {agentIp}, {count} vhost(s) actualizados",
+      "ipBlockedDesc": "{ip} ha sido bloqueada",
+      "ipUnblockedDesc": "{ip} ha sido desbloqueada"
+    },
+    "deploymentTraffic": {
+      "title": "Estadísticas de tráfico",
+      "loading": "Cargando estadísticas de tráfico...",
+      "requests": "Solicitudes",
+      "avgResponse": "Respuesta prom.",
+      "totalBytes": "Bytes totales",
+      "errorRate": "Tasa de error",
+      "topPaths": "Rutas principales",
+      "errorsCount": "{count} errores",
+      "statusTooltip": "{status}: {count} solicitudes",
+      "empty": "No hay datos de tráfico para este despliegue",
+      "timeRange": {
+        "last1h": "Última 1 hora",
+        "last6h": "Últimas 6 horas",
+        "last24h": "Últimas 24 horas",
+        "last7d": "Últimos 7 días"
+      }
     }
   },
   "infrastructure": {
@@ -2469,5 +2526,67 @@
     "success": "Éxito",
     "confirm": "Confirmar",
     "cancel": "Cancelar"
+  },
+  "certificates": {
+    "table": {
+      "searchPlaceholder": "Buscar certificados...",
+      "emptyTitle": "No se encontraron certificados",
+      "emptyText": "Los certificados SSL aparecerán aquí cuando estén configurados en tu despliegue nginx.",
+      "loadingText": "Cargando certificados...",
+      "columns": {
+        "domain": "Dominio",
+        "status": "Estado",
+        "issuer": "Emisor",
+        "daysLeft": "Días restantes",
+        "validFrom": "Válido desde",
+        "expires": "Expira"
+      },
+      "days": "{n} días"
+    },
+    "actions": {
+      "requestCertificate": "Solicitar certificado",
+      "renewAll": "Renovar todo"
+    },
+    "modals": {
+      "delete": {
+        "title": "Eliminar certificado",
+        "message": "¿Seguro que deseas eliminar el certificado para {domain}?",
+        "warning": "Esta acción no se puede deshacer.",
+        "confirm": "Eliminar"
+      },
+      "request": {
+        "title": "Solicitar certificado SSL",
+        "domainLabel": "Dominio",
+        "domainPlaceholder": "ejemplo.com",
+        "hint": "Ingresa el dominio para solicitar un certificado de Let's Encrypt",
+        "cancel": "Cancelar",
+        "request": "Solicitar certificado",
+        "requesting": "Solicitando..."
+      }
+    },
+    "summary": {
+      "valid": "Válido",
+      "expiringSoon": "Por expirar",
+      "expired": "Expirado"
+    },
+    "status": {
+      "valid": "Válido",
+      "expiring": "Por expirar",
+      "expired": "Expirado",
+      "unknown": "Desconocido"
+    },
+    "notifications": {
+      "loadFailedTitle": "Error",
+      "loadFailed": "No se pudieron cargar los certificados",
+      "requestedTitle": "Certificado solicitado",
+      "requested": "Se solicitó el certificado para {domain}",
+      "requestFailedTitle": "Error en la solicitud",
+      "renewCompleteTitle": "Renovación completada",
+      "renewComplete": "Todos los certificados han sido renovados",
+      "renewFailedTitle": "Renovación fallida",
+      "deletedTitle": "Certificado eliminado",
+      "deleted": "Se eliminó el certificado para {domain}",
+      "deleteFailedTitle": "Error al eliminar"
+    }
   }
 }

@@ -3,14 +3,14 @@
     <div class="traffic-header">
       <div class="traffic-title">
         <i class="pi pi-chart-line" />
-        <h4>Traffic Stats</h4>
+        <h4>{{ t("security.deploymentTraffic.title") }}</h4>
       </div>
       <div class="traffic-controls">
         <select v-model="timeRange" class="time-select" @change="fetchData">
-          <option value="1h">Last 1 hour</option>
-          <option value="6h">Last 6 hours</option>
-          <option value="24h">Last 24 hours</option>
-          <option value="7d">Last 7 days</option>
+          <option value="1h">{{ t("security.deploymentTraffic.timeRange.last1h") }}</option>
+          <option value="6h">{{ t("security.deploymentTraffic.timeRange.last6h") }}</option>
+          <option value="24h">{{ t("security.deploymentTraffic.timeRange.last24h") }}</option>
+          <option value="7d">{{ t("security.deploymentTraffic.timeRange.last7d") }}</option>
         </select>
         <button class="btn btn-icon btn-sm" :disabled="loading" @click="fetchData">
           <i class="pi pi-refresh" :class="{ 'pi-spin': loading }" />
@@ -20,26 +20,26 @@
 
     <div v-if="loading && !stats" class="loading-state">
       <i class="pi pi-spin pi-spinner" />
-      <span>Loading traffic stats...</span>
+      <span>{{ t("security.deploymentTraffic.loading") }}</span>
     </div>
 
     <div v-else-if="stats" class="traffic-content">
       <div class="stats-row">
         <div class="stat-item">
           <span class="stat-value">{{ formatNumber(stats.total_requests) }}</span>
-          <span class="stat-label">Requests</span>
+          <span class="stat-label">{{ t("security.deploymentTraffic.requests") }}</span>
         </div>
         <div class="stat-item">
           <span class="stat-value">{{ formatTime(stats.avg_response_time_ms) }}</span>
-          <span class="stat-label">Avg Response</span>
+          <span class="stat-label">{{ t("security.deploymentTraffic.avgResponse") }}</span>
         </div>
         <div class="stat-item">
           <span class="stat-value">{{ formatBytes(stats.total_bytes) }}</span>
-          <span class="stat-label">Total Bytes</span>
+          <span class="stat-label">{{ t("security.deploymentTraffic.totalBytes") }}</span>
         </div>
         <div class="stat-item">
           <span class="stat-value" :class="{ error: errorRate > 5 }">{{ errorRate }}%</span>
-          <span class="stat-label">Error Rate</span>
+          <span class="stat-label">{{ t("security.deploymentTraffic.errorRate") }}</span>
         </div>
       </div>
 
@@ -50,7 +50,7 @@
           class="status-bar"
           :class="getStatusClass(status)"
           :style="{ width: getStatusWidth(count) + '%' }"
-          :title="`${status}: ${count} requests`"
+          :title="t('security.deploymentTraffic.statusTooltip', { status, count })"
         />
       </div>
       <div class="status-legend">
@@ -61,14 +61,16 @@
       </div>
 
       <div v-if="stats.top_paths?.length > 0" class="top-paths">
-        <h5>Top Paths</h5>
+        <h5>{{ t("security.deploymentTraffic.topPaths") }}</h5>
         <div class="paths-list">
           <div v-for="path in stats.top_paths.slice(0, 5)" :key="path.path" class="path-item">
             <span class="path-name">{{ path.path }}</span>
             <div class="path-stats">
               <span class="path-count">{{ formatNumber(path.request_count) }}</span>
               <span class="path-time">{{ formatTime(path.avg_time_ms) }}</span>
-              <span v-if="path.error_count > 0" class="path-errors">{{ path.error_count }} errors</span>
+              <span v-if="path.error_count > 0" class="path-errors">
+                {{ t("security.deploymentTraffic.errorsCount", { count: path.error_count }) }}
+              </span>
             </div>
           </div>
         </div>
@@ -76,13 +78,14 @@
     </div>
 
     <div v-else class="empty-state">
-      <span>No traffic data for this deployment</span>
+      <span>{{ t("security.deploymentTraffic.empty") }}</span>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from "vue";
+import { useI18n } from "vue-i18n";
 import { useTrafficStore } from "@/stores/traffic";
 import type { TrafficStats } from "@/services/api";
 
@@ -92,6 +95,7 @@ const props = defineProps<{
 }>();
 
 const trafficStore = useTrafficStore();
+const { t } = useI18n();
 const stats = ref<TrafficStats | null>(null);
 const loading = ref(false);
 const timeRange = ref("24h");

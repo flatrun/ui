@@ -2081,7 +2081,8 @@
         "requests": "Requests",
         "avgTime": "Avg Time",
         "errors": "Errors",
-        "requestVolume24h": "Request Volume (24h)"
+        "requestVolume24h": "Request Volume (24h)",
+        "hourlyTooltip": "{hour}: {count} requests"
       },
       "unknown": {
         "loading": "Loading unknown domain stats...",
@@ -2152,7 +2153,8 @@
     },
     "trend": {
       "title": "7-Day Event Trend",
-      "noData": "No trend data available"
+      "noData": "No trend data available",
+      "tooltip": "{date}: {count} events"
     },
     "topDeployments": {
       "title": "Top Deployments by Events",
@@ -2236,7 +2238,8 @@
       },
       "pagination": {
         "previous": "Previous",
-        "next": "Next"
+        "next": "Next",
+        "rangeOfTotal": "{from}-{to} of {total}"
       }
     },
     "blocked": {
@@ -2270,12 +2273,62 @@
     },
     "health": {
       "title": "Security Health Status",
+      "refreshTitle": "Refresh health status",
       "checking": "Checking security health...",
       "empty": "Click refresh to check security health status",
       "critical": "Critical",
       "regenerateScripts": "Regenerate Security Scripts",
       "regenerating": "Regenerating...",
-      "scriptsHint": "Regenerates Lua scripts with current agent IP and reloads nginx"
+      "scriptsHint": "Regenerates Lua scripts with current agent IP and reloads nginx",
+      "issuesDetected": "Issues Detected",
+      "recommendations": "Recommendations",
+      "viewDetails": "View Details",
+      "categories": {
+        "connectivity": "Connectivity",
+        "configuration": "Configuration",
+        "deployments": "Deployments"
+      },
+      "status": {
+        "healthy": "Healthy",
+        "degraded": "Degraded",
+        "broken": "Broken",
+        "disabled": "Disabled",
+        "unknown": "Unknown"
+      },
+      "checkDescriptions": {
+        "nginx_can_reach_agent": "Verifies nginx container can reach the agent API for logging",
+        "security_lua_ip_injected": "Checks if security.lua has the agent IP properly configured",
+        "traffic_lua_ip_injected": "Checks if traffic.lua has the agent IP properly configured",
+        "traffic_lua_exists": "Verifies traffic.lua exists in nginx container",
+        "nginx_conf_has_traffic_module": "Checks if nginx.conf loads the traffic Lua module",
+        "nginx_conf_has_global_traffic_logging": "Checks if global traffic logging is enabled",
+        "vhosts_have_security_hook": "Verifies deployments with security enabled have the security hook"
+      },
+      "issueMap": {
+        "security_module_not_enabled": "Security module not enabled",
+        "failed_to_fetch_health_status": "Failed to fetch health status"
+      },
+      "recommendationMap": {
+        "enable_security_module": "Enable the security module to run health checks"
+      }
+    },
+    "deploymentTraffic": {
+      "title": "Traffic Stats",
+      "loading": "Loading traffic stats...",
+      "requests": "Requests",
+      "avgResponse": "Avg Response",
+      "totalBytes": "Total Bytes",
+      "errorRate": "Error Rate",
+      "topPaths": "Top Paths",
+      "errorsCount": "{count} errors",
+      "statusTooltip": "{status}: {count} requests",
+      "empty": "No traffic data for this deployment",
+      "timeRange": {
+        "last1h": "Last 1 hour",
+        "last6h": "Last 6 hours",
+        "last24h": "Last 24 hours",
+        "last7d": "Last 7 days"
+      }
     },
     "settings": {
       "title": "Security Settings",
@@ -2333,13 +2386,17 @@
       "realtimeDisabled": "Realtime Capture Disabled",
       "realtimeEnabledDesc": "Security events will now be captured in realtime using OpenResty/Lua",
       "realtimeDisabledDesc": "Realtime capture has been disabled",
+      "toggleRealtimeFailed": "Failed to toggle realtime capture",
       "scriptsRegenerated": "Security Scripts Regenerated",
+      "scriptsRegeneratedDesc": "Agent IP: {agentIp}, {count} vhost(s) updated",
       "manualBlockReason": "Manual block from security events",
       "ipBlocked": "IP Blocked",
       "hasBeenBlocked": "has been blocked",
+      "ipBlockedDesc": "{ip} has been blocked",
       "blockIpFailed": "Failed to block IP",
       "ipUnblocked": "IP Unblocked",
       "hasBeenUnblocked": "has been unblocked",
+      "ipUnblockedDesc": "{ip} has been unblocked",
       "unblockIpFailed": "Failed to unblock IP",
       "routeUpdated": "Route Updated",
       "routeUpdatedDesc": "Protected route has been updated",
@@ -2348,7 +2405,7 @@
       "routeDeleted": "Route Deleted",
       "routeDeletedDesc": "Protected route has been removed",
       "presetAdded": "Preset Added",
-      "presetAddedDesc": "protection has been added",
+      "presetAddedDesc": "{preset} protection has been added",
       "addPresetFailed": "Failed to add preset",
       "saveRouteFailed": "Failed to save route",
       "toggleRouteFailed": "Failed to toggle route",
@@ -2434,5 +2491,67 @@
     "success": "Success",
     "confirm": "Confirm",
     "cancel": "Cancel"
+  },
+  "certificates": {
+    "table": {
+      "searchPlaceholder": "Search certificates...",
+      "emptyTitle": "No Certificates Found",
+      "emptyText": "SSL certificates will appear here once configured in your nginx deployment.",
+      "loadingText": "Loading certificates...",
+      "columns": {
+        "domain": "Domain",
+        "status": "Status",
+        "issuer": "Issuer",
+        "daysLeft": "Days Left",
+        "validFrom": "Valid From",
+        "expires": "Expires"
+      },
+      "days": "{n} days"
+    },
+    "actions": {
+      "requestCertificate": "Request Certificate",
+      "renewAll": "Renew All"
+    },
+    "modals": {
+      "delete": {
+        "title": "Delete Certificate",
+        "message": "Are you sure you want to delete the certificate for {domain}?",
+        "warning": "This action cannot be undone.",
+        "confirm": "Delete"
+      },
+      "request": {
+        "title": "Request SSL Certificate",
+        "domainLabel": "Domain",
+        "domainPlaceholder": "example.com",
+        "hint": "Enter the domain to request a Let's Encrypt certificate for",
+        "cancel": "Cancel",
+        "request": "Request Certificate",
+        "requesting": "Requesting..."
+      }
+    },
+    "summary": {
+      "valid": "Valid",
+      "expiringSoon": "Expiring Soon",
+      "expired": "Expired"
+    },
+    "status": {
+      "valid": "Valid",
+      "expiring": "Expiring",
+      "expired": "Expired",
+      "unknown": "Unknown"
+    },
+    "notifications": {
+      "loadFailedTitle": "Error",
+      "loadFailed": "Failed to load certificates",
+      "requestedTitle": "Certificate Requested",
+      "requested": "Certificate for {domain} has been requested",
+      "requestFailedTitle": "Request Failed",
+      "renewCompleteTitle": "Renewal Complete",
+      "renewComplete": "All certificates have been renewed",
+      "renewFailedTitle": "Renewal Failed",
+      "deletedTitle": "Certificate Deleted",
+      "deleted": "Certificate for {domain} has been deleted",
+      "deleteFailedTitle": "Delete Failed"
+    }
   }
 }
