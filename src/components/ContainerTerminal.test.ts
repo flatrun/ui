@@ -36,7 +36,7 @@ vi.mock("@xterm/addon-fit", () => ({
 }));
 
 vi.mock("@xterm/addon-web-links", () => ({
-  WebLinksAddon: class MockWebLinksAddon {},
+  WebLinksAddon: class MockWebLinksAddon { },
 }));
 
 // WebSocket ready state constants
@@ -122,7 +122,7 @@ describe("ContainerTerminal", () => {
     } as any;
 
     // Mock localStorage
-    vi.spyOn(Storage.prototype, "getItem").mockReturnValue("test-token");
+    vi.spyOn(localStorage, "getItem").mockReturnValue("test-token");
   });
 
   afterEach(() => {

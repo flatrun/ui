@@ -1,0 +1,216 @@
+
+> @flatrun/ui@0.1.0 test:run
+> vitest run
+
+
+ RUN  v4.0.15 /home/lantum/Desktop/Projects/flatrun-ui
+
+ ❯ src/components/ContainerTerminal.test.ts (15 tests | 15 failed) 201ms
+       × renders terminal container 109ms
+       × renders terminal element 11ms
+       × shows overlay when disconnected 8ms
+       × shows connect button when disconnected 10ms
+       × creates WebSocket with correct URL 9ms
+       × sets binaryType to arraybuffer 5ms
+       × sends auth message on connection 6ms
+       × updates status to connecting when connect clicked 5ms
+       × handles auth_success response 8ms
+       × sends resize message after auth success 6ms
+       × emits disconnected event on close 4ms
+       × emits error event on WebSocket error 4ms
+       × clears terminal when containerId changes 3ms
+       × exposes connect method 3ms
+       × exposes disconnect method 3ms
+ ❯ src/components/BackupsTab.test.ts (33 tests | 33 failed) 388ms
+       × renders the backups tab container 132ms
+       × renders the header with title 11ms
+       × renders Create Backup button 18ms
+       × renders Schedule Backup button 25ms
+       × shows empty state when no backups 9ms
+       × shows helpful message in empty state 15ms
+       × shows loading state when loadingBackups is true 10ms
+       × renders backup items when backups exist 6ms
+       × displays backup ID 14ms
+       × displays backup status 7ms
+       × displays component badges 5ms
+       × has Restore button for each backup 4ms
+       × has Download link for each backup 5ms
+       × has Delete button for each backup 6ms
+       × calls API when Create Backup button is clicked 5ms
+       × disables button while creating backup 9ms
+       × opens confirm modal when delete is clicked 6ms
+       × calls delete API on confirm 4ms
+       × opens confirm modal when restore is clicked 4ms
+       × calls restore API on confirm 5ms
+       × opens schedule modal when button is clicked 5ms
+       × has default form values 5ms
+       × calls API to create scheduled task 6ms
+       × shows scheduled tasks section when tasks exist 5ms
+       × displays task name and cron expression 6ms
+       × has toggle switch for enabling/disabling task 6ms
+       × has run now button for each task 7ms
+       × has delete button for each task 4ms
+       × formatBytes formats bytes correctly 5ms
+       × formatDate formats date correctly 5ms
+       × getDownloadUrl returns correct URL 4ms
+       × starts polling when backup job is created 5ms
+       × stops polling when no active jobs 5ms
+ ❯ src/components/TrafficDashboard.test.ts (48 tests | 48 failed) 682ms
+       × renders the dashboard container 128ms
+       × renders the dashboard header with tabs 33ms
+       × displays all navigation tabs 15ms
+       × has time range selector 14ms
+       × has refresh button 15ms
+       × displays stats grid with 4 cards 13ms
+       × shows Requests stat 11ms
+       × shows Data Transfer stat 13ms
+       × shows Response Time stat 16ms
+       × shows Error Rate stat 15ms
+       × displays Domains panel 12ms
+       × shows domain list with deployment stats 10ms
+       × displays known deployment names 8ms
+       × displays Unknown Domains panel when unknown domains exist 11ms
+       × shows unknown domain count badge 9ms
+       × displays unknown domain names 14ms
+       × shows request count for unknown domains 10ms
+       × unknown domain rows are clickable 18ms
+       × does not show Unknown Domains panel when all domains are known 10ms
+       × displays Suspicious IPs panel when suspicious IPs exist 12ms
+       × shows block button for suspicious IPs 14ms
+       × displays Top Sources panel 10ms
+       × shows IP list 9ms
+       × displays method distribution 12ms
+       × displays status distribution 11ms
+       × shows status groups (2xx, 3xx, 4xx, 5xx) 11ms
+       × has filters bar 9ms
+       × has data table for logs 10ms
+       × log table has required columns 11ms
+       × log rows have filter and block IP buttons 10ms
+       × shows slowest endpoints section 9ms
+       × shows request volume chart when hourly data exists 9ms
+       × shows empty state when no stats 7ms
+       × has button to check for traffic in empty state 6ms
+       × shows loading state when loading and no stats 8ms
+       × has two-column layout in overview 9ms
+       × has panel-stack for secondary panels 11ms
+       × has distribution row 8ms
+       × correctly identifies unknown domains 7ms
+       × domainStats includes all domains 26ms
+       × unknownDomainStats excludes known deployments 10ms
+       × blockIP function exists on component 10ms
+       × blockIP shows confirmation modal 8ms
+       × confirmBlockIP calls securityApi.blockIP 6ms
+       × cancelBlockIP closes modal without calling API 8ms
+       × block button in logs table opens confirmation modal 15ms
+       × block button in suspicious IPs panel opens confirmation modal 10ms
+       × modal closes after successful block 8ms
+ ❯ src/components/NewDeploymentModal.test.ts (34 tests | 34 failed) 471ms
+       × renders when visible is true 175ms
+       × contains header with title 35ms
+       × contains wizard container 10ms
+       × displays step content area 7ms
+       × shows wizard progress bar 18ms
+       × displays step indicators 7ms
+       × shows deployment details section 5ms
+       × has name input field 6ms
+       × shows domain section 20ms
+       × has custom domain checkbox option 7ms
+       × has HTTPS toggle option 4ms
+       × can set compose mode 4ms
+       × resets template when switching to compose mode 5ms
+       × shows name format hint 4ms
+       × shows step labels 4ms
+       × step 1 has active indicator 19ms
+       × initializes with empty form name 3ms
+       × initializes SSL enabled state 7ms
+       × initializes networking state 16ms
+       × shows helpful subtitle text 3ms
+       × initializes with empty deployment mode 7ms
+       × can set easy mode 4ms
+       × can set image mode 13ms
+       × can switch between all deployment modes 12ms
+       × can set image mode directly 15ms
+       × resets image field when leaving image mode 6ms
+       × validates name format - only lowercase, numbers, hyphens allowed 3ms
+       × accepts valid name format 3ms
+       × detects name conflict with existing deployments 5ms
+       × resets template selection when switching modes 3ms
+       × resets image field when switching modes 9ms
+       × initializes with default container port 80 4ms
+       × initializes with empty host port (no port mapping) 7ms
+       × wizard content has overflow handling 8ms
+ ❯ src/views/DeploymentDetailView.test.ts (37 tests | 37 failed) 1075ms
+       × renders the deployment detail view container 237ms
+       × contains detail header 44ms
+       × contains detail tabs section 31ms
+       × displays all nine tabs 29ms
+       × has Overview tab 18ms
+       × has Files tab 19ms
+       × has Logs tab 16ms
+       × has Terminal tab 24ms
+       × has Environment tab 35ms
+       × has Quick Actions tab 31ms
+       × has Backups tab 28ms
+       × has Security tab 34ms
+       × has Configuration tab 32ms
+       × Overview tab is active by default 20ms
+       × can switch tabs by clicking 18ms
+       × has correct tab structure 25ms
+       × renders security tab without errors when protected_paths is undefined 26ms
+       × renders security tab without errors when rate_limits is undefined 56ms
+       × renders security tab without errors when security config is empty object 33ms
+       × displays zero counts when security arrays are empty 15ms
+       × displays start button 47ms
+       × displays stop button 22ms
+       × displays restart button 19ms
+       × displays delete button 27ms
+       × fetches deployment on mount 17ms
+       × fetches environment variables on mount 13ms
+       × hides start button without deployments:write 13ms
+       × hides stop button without deployments:write 16ms
+       × hides restart button without deployments:write 12ms
+       × hides delete button without deployments:delete 14ms
+       × still renders deployment detail view 11ms
+       × computes hasMultipleDomains as false when no domains 13ms
+       × computes hasMultipleDomains as false when one domain 13ms
+       × computes hasMultipleDomains as true when multiple domains 14ms
+       × computes singleDomainId from explicit domain 14ms
+       × computes singleDomainId as 'default' for legacy domain 14ms
+       × computes singleDomainId as null when no domains 16ms
+ ❯ src/views/DeploymentsView.test.ts (19 tests | 19 failed) 484ms
+       × renders the deployments view container 218ms
+       × contains New Deployment button 22ms
+       × contains Refresh button 18ms
+       × has New Deployment button with primary style 16ms
+       × has Refresh button with secondary style 13ms
+       × fetches deployments on mount 11ms
+       × opens new deployment modal when button clicked 9ms
+       × defines correct table columns 14ms
+       × getServiceClass returns correct class for database images 32ms
+       × getServiceClass returns correct class for cache images 16ms
+       × getServiceClass returns correct class for proxy images 9ms
+       × getServiceClass returns app for other images 7ms
+       × hasDatabase detects database services 7ms
+       × getDatabaseType returns correct database type 10ms
+       × getHealthyCount returns correct counts 8ms
+       × getPortMappings extracts port mappings correctly 7ms
+       × formatRelativeTime returns 'just now' for recent times 7ms
+       × hides New Deployment button without deployments:write 29ms
+       × still shows Refresh button without write permission 14ms
+ ✓ src/stores/database.test.ts (15 tests) 571ms
+       ✓ limits history to 100 items  487ms
+ ✓ src/stores/security.test.ts (17 tests) 230ms
+ ✓ src/components/PermissionPicker.test.ts (16 tests) 1495ms
+       ✓ renders all permission groups  307ms
+ ✓ src/utils/template.test.ts (14 tests) 31ms
+ ✓ src/views/SettingsView.test.ts (43 tests) 5350ms
+       ✓ renders the settings view container  487ms
+ ✓ src/__tests__/types.test.ts (10 tests) 19ms
+ ✓ src/views/CronJobsView.test.ts (43 tests) 2890ms
+       ✓ renders the cron jobs view container  526ms
+
+ Test Files  6 failed | 7 passed (13)
+      Tests  186 failed | 158 passed (344)
+   Start at  20:48:10
+   Duration  12.69s (transform 17.44s, setup 0ms, import 36.23s, tests 13.89s, environment 16.62s)
+
