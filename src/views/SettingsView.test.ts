@@ -60,7 +60,7 @@ vi.mock("@/services/api", () => ({
       data: { version: { version: "1.0.0" } },
     }),
   },
-    credentialsApi: {
+  credentialsApi: {
     list: vi.fn().mockResolvedValue({ data: { credentials: [] } }),
     create: vi.fn().mockResolvedValue({ data: { message: "Created", credential: {} } }),
     delete: vi.fn().mockResolvedValue({ data: { message: "Deleted" } }),
