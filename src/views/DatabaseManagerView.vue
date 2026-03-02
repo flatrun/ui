@@ -14,16 +14,16 @@
 
     <div v-if="loading" class="loading-state">
       <RefreshCw :size="32" class="spinning" />
-      <p>Connecting to server...</p>
+      <p>{{ t("databases.manager.loading.connectingToServer") }}</p>
     </div>
 
     <div v-else-if="error && !selectedDatabase" class="error-state">
       <AlertCircle :size="48" />
-      <h3>Connection Failed</h3>
+      <h3>{{ t("databases.manager.error.connectionFailedTitle") }}</h3>
       <p>{{ error }}</p>
       <button class="btn btn-primary" @click="connect">
         <RefreshCw :size="16" />
-        Retry
+        {{ t("databases.common.retry") }}
       </button>
     </div>
 
@@ -126,7 +126,7 @@
           <div class="modal-header">
             <h3>
               <Database :size="20" />
-              Create Database
+              {{ t("databases.manager.modal.createDatabase.title") }}
             </h3>
             <button class="close-btn" @click="showCreateDb = false">
               <X :size="18" />
@@ -134,21 +134,21 @@
           </div>
           <div class="modal-body">
             <div class="form-group">
-              <label>Database Name</label>
+              <label>{{ t("databases.manager.modal.createDatabase.databaseName") }}</label>
               <input
                 v-model="newDbName"
                 type="text"
                 class="form-input"
-                placeholder="my_new_database"
+                :placeholder="t('databases.manager.modal.createDatabase.databaseNamePlaceholder')"
                 @keyup.enter="createDatabase"
               />
             </div>
           </div>
           <div class="modal-footer">
-            <button class="btn btn-secondary" @click="showCreateDb = false">Cancel</button>
+            <button class="btn btn-secondary" @click="showCreateDb = false">{{ t("databases.common.cancel") }}</button>
             <button class="btn btn-primary" :disabled="!newDbName || creatingDb" @click="createDatabase">
               <Plus :size="14" :class="{ spinning: creatingDb }" />
-              Create
+              {{ t("databases.common.create") }}
             </button>
           </div>
         </div>
@@ -161,7 +161,7 @@
           <div class="modal-header">
             <h3>
               <UserPlus :size="20" />
-              Create User
+              {{ t("databases.manager.modal.createUser.title") }}
             </h3>
             <button class="close-btn" @click="showCreateUser = false">
               <X :size="18" />
@@ -169,27 +169,42 @@
           </div>
           <div class="modal-body">
             <div class="form-group">
-              <label>Username</label>
-              <input v-model="newUserForm.username" type="text" class="form-input" placeholder="new_user" />
+              <label>{{ t("databases.manager.modal.createUser.username") }}</label>
+              <input
+                v-model="newUserForm.username"
+                type="text"
+                class="form-input"
+                :placeholder="t('databases.manager.modal.createUser.usernamePlaceholder')"
+              />
             </div>
             <div class="form-group">
-              <label>Password</label>
-              <input v-model="newUserForm.password" type="password" class="form-input" placeholder="••••••••" />
+              <label>{{ t("databases.manager.modal.createUser.password") }}</label>
+              <input
+                v-model="newUserForm.password"
+                type="password"
+                class="form-input"
+                :placeholder="t('databases.manager.modal.createUser.passwordPlaceholder')"
+              />
             </div>
             <div v-if="connection?.type === 'mysql' || connection?.type === 'mariadb'" class="form-group">
-              <label>Host (optional)</label>
-              <input v-model="newUserForm.host" type="text" class="form-input" placeholder="% (any host)" />
+              <label>{{ t("databases.manager.modal.createUser.hostOptional") }}</label>
+              <input
+                v-model="newUserForm.host"
+                type="text"
+                class="form-input"
+                :placeholder="t('databases.manager.modal.createUser.hostPlaceholder')"
+              />
             </div>
             <div class="form-group">
               <label class="checkbox-label">
                 <input v-model="newUserForm.grantDb" type="checkbox" />
-                <span>Grant privileges on a database</span>
+                <span>{{ t("databases.manager.modal.createUser.grantDb") }}</span>
               </label>
             </div>
             <div v-if="newUserForm.grantDb" class="form-group">
-              <label>Database</label>
+              <label>{{ t("databases.list.table.database") }}</label>
               <select v-model="newUserForm.grantDatabase" class="form-select">
-                <option value="">Select database...</option>
+                <option value="">{{ t("databases.manager.modal.createUser.selectDatabase") }}</option>
                 <option v-for="db in databases" :key="db.name" :value="db.name">
                   {{ db.name }}
                 </option>
@@ -197,14 +212,16 @@
             </div>
           </div>
           <div class="modal-footer">
-            <button class="btn btn-secondary" @click="showCreateUser = false">Cancel</button>
+            <button class="btn btn-secondary" @click="showCreateUser = false">
+              {{ t("databases.common.cancel") }}
+            </button>
             <button
               class="btn btn-primary"
               :disabled="!newUserForm.username || !newUserForm.password || creatingUser"
               @click="createUser"
             >
               <UserPlus :size="14" :class="{ spinning: creatingUser }" />
-              Create
+              {{ t("databases.common.create") }}
             </button>
           </div>
         </div>
@@ -217,7 +234,7 @@
           <div class="modal-header danger">
             <h3>
               <Trash2 :size="20" />
-              Delete Database
+              {{ t("databases.manager.modal.deleteDatabase.title") }}
             </h3>
             <button class="close-btn" @click="showDeleteDb = false">
               <X :size="18" />
@@ -225,17 +242,17 @@
           </div>
           <div class="modal-body">
             <p class="confirm-text">
-              Are you sure you want to delete the database
+              {{ t("databases.manager.modal.deleteDatabase.message") }}
               <strong>{{ deleteDbName }}</strong
               >?
             </p>
-            <p class="warning-text">This action cannot be undone. All data will be lost.</p>
+            <p class="warning-text">{{ t("databases.manager.modal.deleteDatabase.warning") }}</p>
           </div>
           <div class="modal-footer">
-            <button class="btn btn-secondary" @click="showDeleteDb = false">Cancel</button>
+            <button class="btn btn-secondary" @click="showDeleteDb = false">{{ t("databases.common.cancel") }}</button>
             <button class="btn btn-danger" :disabled="deletingDb" @click="deleteDatabase">
               <Trash2 :size="14" :class="{ spinning: deletingDb }" />
-              Delete
+              {{ t("databases.common.delete") }}
             </button>
           </div>
         </div>
@@ -248,7 +265,7 @@
           <div class="modal-header danger">
             <h3>
               <Trash2 :size="20" />
-              Delete User
+              {{ t("databases.manager.modal.deleteUser.title") }}
             </h3>
             <button class="close-btn" @click="showDeleteUser = false">
               <X :size="18" />
@@ -256,17 +273,19 @@
           </div>
           <div class="modal-body">
             <p class="confirm-text">
-              Are you sure you want to delete the user
+              {{ t("databases.manager.modal.deleteUser.message") }}
               <strong>{{ deleteUserInfo?.name }}{{ deleteUserInfo?.host ? `@${deleteUserInfo.host}` : "" }}</strong
               >?
             </p>
-            <p class="warning-text">This action cannot be undone.</p>
+            <p class="warning-text">{{ t("databases.manager.modal.deleteUser.warning") }}</p>
           </div>
           <div class="modal-footer">
-            <button class="btn btn-secondary" @click="showDeleteUser = false">Cancel</button>
+            <button class="btn btn-secondary" @click="showDeleteUser = false">
+              {{ t("databases.common.cancel") }}
+            </button>
             <button class="btn btn-danger" :disabled="deletingUser" @click="deleteUser">
               <Trash2 :size="14" :class="{ spinning: deletingUser }" />
-              Delete
+              {{ t("databases.common.delete") }}
             </button>
           </div>
         </div>
@@ -286,6 +305,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
+import { useI18n } from "vue-i18n";
 import { useRoute, useRouter } from "vue-router";
 import { useNotificationsStore } from "@/stores/notifications";
 import { useDatabaseStore } from "@/stores/database";
@@ -339,6 +359,7 @@ const route = useRoute();
 const router = useRouter();
 const notifications = useNotificationsStore();
 const databaseStore = useDatabaseStore();
+const { t } = useI18n();
 
 const connection = ref<DatabaseConnection | null>(null);
 const loading = ref(true);
@@ -408,11 +429,23 @@ const exportRows = ref<any[][]>([]);
 const exportRowCount = ref<number | undefined>(undefined);
 
 const tabs = computed(() => [
-  { id: "tables" as const, label: "Tables", icon: Table2, count: tables.value.length, badge: null },
-  { id: "schema" as const, label: "Schema", icon: Columns, count: null, badge: null },
-  { id: "query" as const, label: "Query", icon: Code, count: null, badge: null },
-  { id: "history" as const, label: "History", icon: History, count: null, badge: null },
-  { id: "backup" as const, label: "Backup", icon: HardDrive, count: null, badge: "Soon" },
+  {
+    id: "tables" as const,
+    label: t("databases.manager.tabs.tables"),
+    icon: Table2,
+    count: tables.value.length,
+    badge: null,
+  },
+  { id: "schema" as const, label: t("databases.manager.tabs.schema"), icon: Columns, count: null, badge: null },
+  { id: "query" as const, label: t("databases.manager.tabs.query"), icon: Code, count: null, badge: null },
+  { id: "history" as const, label: t("databases.manager.tabs.history"), icon: History, count: null, badge: null },
+  {
+    id: "backup" as const,
+    label: t("databases.manager.tabs.backup"),
+    icon: HardDrive,
+    count: null,
+    badge: t("databases.manager.tabs.soon"),
+  },
 ]);
 
 function getConnectionConfig(): DatabaseConnectionConfig {
@@ -439,7 +472,7 @@ function loadConnection() {
 
 async function connect() {
   if (!connection.value) {
-    error.value = "Connection not found";
+    error.value = t("databases.manager.error.connectionNotFound");
     loading.value = false;
     return;
   }
@@ -488,7 +521,10 @@ async function refreshServerData() {
     databases.value = dbsRes.data.databases || [];
     users.value = usersRes.data.users || [];
   } catch (err: any) {
-    notifications.error("Refresh Failed", err.response?.data?.error || err.message);
+    notifications.error(
+      t("databases.manager.notifications.refreshFailedTitle"),
+      err.response?.data?.error || err.message,
+    );
   } finally {
     refreshing.value = false;
   }
@@ -642,7 +678,10 @@ function loadQueryFromHistory(query: string) {
 }
 
 function handleExportDatabase(dbName: string) {
-  notifications.info("Export", `Database export for ${dbName} - feature coming soon`);
+  notifications.info(
+    t("databases.manager.notifications.exportTitle"),
+    t("databases.manager.notifications.exportDesc", { name: dbName }),
+  );
 }
 
 function handleExportTable(tableName: string) {
@@ -656,7 +695,10 @@ function handleExportTable(tableName: string) {
 }
 
 function handleEditUser(user: { name: string; host?: string }) {
-  notifications.info("Edit User", `Editing privileges for ${user.name} - feature coming soon`);
+  notifications.info(
+    t("databases.manager.notifications.editUserTitle"),
+    t("databases.manager.notifications.editUserDesc", { name: user.name }),
+  );
 }
 
 async function handleSelectDatabase(dbName: string) {
@@ -680,14 +722,20 @@ async function createDatabase() {
   try {
     const config = getConnectionConfig();
     await databasesApi.createDatabase(config, newDbName.value);
-    notifications.success("Database Created", `Database '${newDbName.value}' created`);
+    notifications.success(
+      t("databases.manager.notifications.databaseCreatedTitle"),
+      t("databases.manager.notifications.databaseCreatedDesc", { name: newDbName.value }),
+    );
     showCreateDb.value = false;
     newDbName.value = "";
 
     const res = await databasesApi.listDatabases(config);
     databases.value = res.data.databases || [];
   } catch (err: any) {
-    notifications.error("Failed", err.response?.data?.error || err.message);
+    notifications.error(
+      t("databases.manager.notifications.operationFailedTitle"),
+      err.response?.data?.error || err.message,
+    );
   } finally {
     creatingDb.value = false;
   }
@@ -715,14 +763,20 @@ async function createUser() {
       );
     }
 
-    notifications.success("User Created", `User '${newUserForm.value.username}' created`);
+    notifications.success(
+      t("databases.manager.notifications.userCreatedTitle"),
+      t("databases.manager.notifications.userCreatedDesc", { name: newUserForm.value.username }),
+    );
     showCreateUser.value = false;
     newUserForm.value = { username: "", password: "", host: "", grantDb: false, grantDatabase: "" };
 
     const res = await databasesApi.listUsers(config);
     users.value = res.data.users || [];
   } catch (err: any) {
-    notifications.error("Failed", err.response?.data?.error || err.message);
+    notifications.error(
+      t("databases.manager.notifications.operationFailedTitle"),
+      err.response?.data?.error || err.message,
+    );
   } finally {
     creatingUser.value = false;
   }
@@ -745,7 +799,10 @@ async function deleteDatabase() {
   try {
     const config = getConnectionConfig();
     await databasesApi.deleteDatabase(config, deleteDbName.value);
-    notifications.success("Database Deleted", `Database '${deleteDbName.value}' deleted`);
+    notifications.success(
+      t("databases.manager.notifications.databaseDeletedTitle"),
+      t("databases.manager.notifications.databaseDeletedDesc", { name: deleteDbName.value }),
+    );
     showDeleteDb.value = false;
 
     if (selectedDatabase.value === deleteDbName.value) {
@@ -758,7 +815,10 @@ async function deleteDatabase() {
     const res = await databasesApi.listDatabases(config);
     databases.value = res.data.databases || [];
   } catch (err: any) {
-    notifications.error("Failed", err.response?.data?.error || err.message);
+    notifications.error(
+      t("databases.manager.notifications.operationFailedTitle"),
+      err.response?.data?.error || err.message,
+    );
   } finally {
     deletingDb.value = false;
   }
@@ -771,14 +831,20 @@ async function deleteUser() {
   try {
     const config = getConnectionConfig();
     await databasesApi.deleteUser(config, deleteUserInfo.value.name, deleteUserInfo.value.host);
-    notifications.success("User Deleted", `User '${deleteUserInfo.value.name}' deleted`);
+    notifications.success(
+      t("databases.manager.notifications.userDeletedTitle"),
+      t("databases.manager.notifications.userDeletedDesc", { name: deleteUserInfo.value.name }),
+    );
     showDeleteUser.value = false;
     deleteUserInfo.value = null;
 
     const res = await databasesApi.listUsers(config);
     users.value = res.data.users || [];
   } catch (err: any) {
-    notifications.error("Failed", err.response?.data?.error || err.message);
+    notifications.error(
+      t("databases.manager.notifications.operationFailedTitle"),
+      err.response?.data?.error || err.message,
+    );
   } finally {
     deletingUser.value = false;
   }

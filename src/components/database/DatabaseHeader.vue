@@ -3,14 +3,16 @@
     <div class="header-left">
       <button class="btn btn-secondary" @click="$emit('back')">
         <ArrowLeft :size="16" />
-        {{ selectedDatabase ? "All Databases" : "Back" }}
+        {{ selectedDatabase ? t("databases.manager.header.allDatabases") : t("databases.common.back") }}
       </button>
       <div class="server-info">
         <Database :size="24" :class="{ 'db-icon': !!selectedDatabase }" />
         <div class="server-details">
-          <h1>{{ selectedDatabase || connection?.name || "Database Server" }}</h1>
+          <h1>{{ selectedDatabase || connection?.name || t("databases.manager.header.databaseServer") }}</h1>
           <template v-if="selectedDatabase">
-            <span class="db-meta">{{ tableCount }} tables · {{ connection?.type }}</span>
+            <span class="db-meta"
+              >{{ t("databases.manager.header.tablesCount", { count: tableCount }) }} · {{ connection?.type }}</span
+            >
           </template>
           <template v-else>
             <code>{{ connection?.host }}:{{ connection?.port }}</code>
@@ -29,7 +31,7 @@
       </button>
       <button v-if="selectedDatabase" class="btn btn-danger btn-sm" @click="$emit('delete-database', selectedDatabase)">
         <Trash2 :size="14" />
-        Drop Database
+        {{ t("databases.manager.header.dropDatabase") }}
       </button>
       <ConnectionStatus :status="connectionStatus" :latency="latency" />
     </div>
@@ -37,6 +39,7 @@
 </template>
 
 <script setup lang="ts">
+import { useI18n } from "vue-i18n";
 import { Database, ArrowLeft, RefreshCw, Trash2 } from "lucide-vue-next";
 import ConnectionStatus from "./ConnectionStatus.vue";
 
@@ -67,6 +70,8 @@ defineEmits<{
   refresh: [];
   "delete-database": [dbName: string];
 }>();
+
+const { t } = useI18n();
 </script>
 
 <style scoped>

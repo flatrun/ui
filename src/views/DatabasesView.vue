@@ -5,23 +5,23 @@
       :columns="columns"
       :loading="loading"
       :searchable="true"
-      search-placeholder="Search servers..."
+      :search-placeholder="t('databases.list.searchPlaceholder')"
       :search-fields="['name', 'type', 'host', 'database']"
       item-key="id"
       :empty-icon="Database"
-      empty-title="No Database Servers"
-      empty-text="Add a database server to get started."
-      loading-text="Loading servers..."
+      :empty-title="t('databases.list.emptyTitle')"
+      :empty-text="t('databases.list.emptyText')"
+      :loading-text="t('databases.list.loading')"
       :default-page-size="25"
     >
       <template #actions>
         <button class="btn btn-primary" @click="showAddModal = true">
           <Plus :size="16" />
-          Add Server
+          {{ t("databases.list.actions.addServer") }}
         </button>
         <button class="btn btn-secondary" :disabled="loading" @click="loadConnections">
           <RefreshCw :size="16" :class="{ spinning: loading }" />
-          Refresh
+          {{ t("databases.list.actions.refresh") }}
         </button>
       </template>
 
@@ -52,16 +52,28 @@
 
       <template #cell-actions="{ item }">
         <div class="action-buttons">
-          <button class="action-btn connect" title="Open Manager" @click.stop="openConnection(item)">
+          <button
+            class="action-btn connect"
+            :title="t('databases.list.tooltips.openManager')"
+            @click.stop="openConnection(item)"
+          >
             <Link :size="14" />
           </button>
-          <button class="action-btn test" title="Test Connection" @click.stop="testConnection(item)">
+          <button
+            class="action-btn test"
+            :title="t('databases.list.tooltips.testConnection')"
+            @click.stop="testConnection(item)"
+          >
             <Zap :size="14" />
           </button>
-          <button class="action-btn edit" title="Edit" @click.stop="editConnection(item)">
+          <button class="action-btn edit" :title="t('databases.list.tooltips.edit')" @click.stop="editConnection(item)">
             <Pencil :size="14" />
           </button>
-          <button class="action-btn delete" title="Delete" @click.stop="confirmDelete(item)">
+          <button
+            class="action-btn delete"
+            :title="t('databases.list.tooltips.delete')"
+            @click.stop="confirmDelete(item)"
+          >
             <Trash2 :size="14" />
           </button>
         </div>
@@ -74,7 +86,7 @@
           <div class="modal-header">
             <h3>
               <Database :size="20" />
-              {{ editingConnection ? "Edit Server" : "Add Database Server" }}
+              {{ editingConnection ? t("databases.list.modal.editTitle") : t("databases.list.modal.addTitle") }}
             </h3>
             <button class="close-btn" @click="closeModal">
               <X :size="18" />
@@ -82,28 +94,36 @@
           </div>
           <div class="modal-body">
             <div class="form-group">
-              <label>Connection Name</label>
-              <input v-model="connectionForm.name" type="text" class="form-input" placeholder="My Database" />
+              <label>{{ t("databases.list.modal.fields.connectionName") }}</label>
+              <input
+                v-model="connectionForm.name"
+                type="text"
+                class="form-input"
+                :placeholder="t('databases.list.modal.placeholders.connectionName')"
+              />
             </div>
 
             <div class="form-group">
-              <label>Database Type</label>
+              <label>{{ t("databases.list.modal.fields.databaseType") }}</label>
               <select v-model="connectionForm.type" class="form-select">
-                <option value="mysql">MySQL</option>
-                <option value="postgresql">PostgreSQL</option>
-                <option value="mariadb">MariaDB</option>
-                <option value="mongodb">MongoDB</option>
-                <option value="redis">Redis</option>
+                <option v-for="dbType in dbTypeOptions" :key="dbType.value" :value="dbType.value">
+                  {{ dbType.label }}
+                </option>
               </select>
             </div>
 
             <div class="form-row">
               <div class="form-group flex-grow">
-                <label>Host</label>
-                <input v-model="connectionForm.host" type="text" class="form-input" placeholder="localhost" />
+                <label>{{ t("databases.list.modal.fields.host") }}</label>
+                <input
+                  v-model="connectionForm.host"
+                  type="text"
+                  class="form-input"
+                  :placeholder="t('databases.list.modal.placeholders.host')"
+                />
               </div>
               <div class="form-group port-field">
-                <label>Port</label>
+                <label>{{ t("databases.list.modal.fields.port") }}</label>
                 <input
                   v-model.number="connectionForm.port"
                   type="number"
@@ -114,36 +134,51 @@
             </div>
 
             <div class="form-group">
-              <label>Database Name</label>
-              <input v-model="connectionForm.database" type="text" class="form-input" placeholder="my_database" />
+              <label>{{ t("databases.list.modal.fields.databaseName") }}</label>
+              <input
+                v-model="connectionForm.database"
+                type="text"
+                class="form-input"
+                :placeholder="t('databases.list.modal.placeholders.databaseName')"
+              />
             </div>
 
             <div class="form-row">
               <div class="form-group flex-grow">
-                <label>Username</label>
-                <input v-model="connectionForm.username" type="text" class="form-input" placeholder="root" />
+                <label>{{ t("databases.list.modal.fields.username") }}</label>
+                <input
+                  v-model="connectionForm.username"
+                  type="text"
+                  class="form-input"
+                  :placeholder="t('databases.list.modal.placeholders.username')"
+                />
               </div>
               <div class="form-group flex-grow">
-                <label>Password</label>
-                <input v-model="connectionForm.password" type="password" class="form-input" placeholder="••••••••" />
+                <label>{{ t("databases.list.modal.fields.password") }}</label>
+                <input
+                  v-model="connectionForm.password"
+                  type="password"
+                  class="form-input"
+                  :placeholder="t('databases.list.modal.placeholders.password')"
+                />
               </div>
             </div>
 
             <div class="form-group">
               <label class="checkbox-label">
                 <input v-model="connectionForm.fromContainer" type="checkbox" />
-                <span>Link to Docker Container</span>
+                <span>{{ t("databases.list.modal.fields.linkToContainer") }}</span>
               </label>
             </div>
 
             <div v-if="connectionForm.fromContainer" class="form-group">
-              <label>Select Container</label>
+              <label>{{ t("databases.list.modal.fields.selectContainer") }}</label>
               <select
                 v-model="connectionForm.container"
                 class="form-select"
                 @change="onContainerSelect(connectionForm.container)"
               >
-                <option value="">Select a container...</option>
+                <option value="">{{ t("databases.list.modal.placeholders.selectContainer") }}</option>
                 <option v-for="container in dbContainers" :key="container.id" :value="container.name">
                   {{ container.name }} ({{ container.image }})
                 </option>
@@ -151,14 +186,14 @@
             </div>
           </div>
           <div class="modal-footer">
-            <button class="btn btn-secondary" @click="closeModal">Cancel</button>
+            <button class="btn btn-secondary" @click="closeModal">{{ t("databases.common.cancel") }}</button>
             <button class="btn btn-secondary" :disabled="testing" @click="testFormConnection">
               <Zap :size="14" :class="{ spinning: testing }" />
-              Test
+              {{ t("databases.common.test") }}
             </button>
             <button class="btn btn-primary" :disabled="saving" @click="saveConnection">
               <Save :size="14" :class="{ spinning: saving }" />
-              {{ editingConnection ? "Update" : "Save" }}
+              {{ editingConnection ? t("databases.common.update") : t("databases.common.save") }}
             </button>
           </div>
         </div>
@@ -167,10 +202,10 @@
 
     <ConfirmModal
       :visible="showDeleteModal"
-      title="Delete Server"
-      :message="`Are you sure you want to delete '${connectionToDelete?.name}'?`"
+      :title="t('databases.list.confirmDelete.title')"
+      :message="t('databases.list.confirmDelete.message', { name: connectionToDelete?.name || '' })"
       variant="danger"
-      confirm-text="Delete"
+      :confirm-text="t('databases.list.confirmDelete.confirm')"
       @confirm="deleteConnection"
       @cancel="showDeleteModal = false"
     />
@@ -178,7 +213,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
+import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 import { useNotificationsStore } from "@/stores/notifications";
 import { containersApi, databasesApi, type DatabaseConnectionConfig } from "@/services/api";
@@ -209,6 +245,7 @@ interface DbContainer {
 
 const router = useRouter();
 const notifications = useNotificationsStore();
+const { t } = useI18n();
 const connections = ref<DatabaseConnection[]>([]);
 const loading = ref(false);
 const saving = ref(false);
@@ -243,14 +280,22 @@ const connectionForm = ref({
   container: "",
 });
 
-const columns = [
-  { key: "type", label: "Type", width: "120px" },
-  { key: "name", label: "Server", sortable: true },
-  { key: "host", label: "Host", sortable: true },
-  { key: "database", label: "Database", sortable: true },
-  { key: "status", label: "Status", width: "120px" },
-  { key: "actions", label: "Actions", width: "160px" },
-];
+const columns = computed(() => [
+  { key: "type", label: t("databases.list.table.type"), width: "120px" },
+  { key: "name", label: t("databases.list.table.server"), sortable: true },
+  { key: "host", label: t("databases.list.table.host"), sortable: true },
+  { key: "database", label: t("databases.list.table.database"), sortable: true },
+  { key: "status", label: t("databases.list.table.status"), width: "120px" },
+  { key: "actions", label: t("databases.list.table.actions"), width: "160px" },
+]);
+
+const dbTypeOptions = computed(() => [
+  { value: "mysql", label: t("databases.list.dbTypes.mysql") },
+  { value: "postgresql", label: t("databases.list.dbTypes.postgresql") },
+  { value: "mariadb", label: t("databases.list.dbTypes.mariadb") },
+  { value: "mongodb", label: t("databases.list.dbTypes.mongodb") },
+  { value: "redis", label: t("databases.list.dbTypes.redis") },
+]);
 
 const getDbIcon = (_type: string) => {
   return Database;
@@ -311,7 +356,7 @@ const loadConnections = async () => {
       connections.value = JSON.parse(stored);
     }
   } catch (error: any) {
-    notifications.error("Failed to load connections", error.message);
+    notifications.error(t("databases.list.notifications.loadFailedTitle"), error.message);
   } finally {
     loading.value = false;
   }
@@ -352,14 +397,20 @@ const openConnection = (conn: DatabaseConnection) => {
 };
 
 const testConnection = async (conn: DatabaseConnection) => {
-  notifications.info("Testing Connection", `Testing ${conn.name}...`);
+  notifications.info(
+    t("databases.list.notifications.testingTitle"),
+    t("databases.list.notifications.testingDesc", { name: conn.name }),
+  );
   const startTime = performance.now();
   try {
     const config = getConnectionConfig(conn);
     const res = await databasesApi.testConnection(config);
     const latency = Math.round(performance.now() - startTime);
     if (res.data.success) {
-      notifications.success("Connection Test", `${conn.name} is reachable (${latency}ms)`);
+      notifications.success(
+        t("databases.list.notifications.testSuccessTitle"),
+        t("databases.list.notifications.testSuccessDesc", { name: conn.name, latency }),
+      );
       const idx = connections.value.findIndex((c) => c.id === conn.id);
       if (idx !== -1) {
         connections.value[idx].status = "connected";
@@ -370,7 +421,10 @@ const testConnection = async (conn: DatabaseConnection) => {
       throw new Error(res.data.error || "Connection failed");
     }
   } catch (error: any) {
-    notifications.error("Connection Failed", error.response?.data?.error || error.message);
+    notifications.error(
+      t("databases.list.notifications.testFailedTitle"),
+      error.response?.data?.error || error.message,
+    );
     const idx = connections.value.findIndex((c) => c.id === conn.id);
     if (idx !== -1) {
       connections.value[idx].status = "error";
@@ -394,12 +448,18 @@ const testFormConnection = async () => {
     };
     const res = await databasesApi.testConnection(config);
     if (res.data.success) {
-      notifications.success("Connection Test", "Connection successful!");
+      notifications.success(
+        t("databases.list.notifications.testSuccessTitle"),
+        t("databases.list.notifications.testFormSuccessDesc"),
+      );
     } else {
       throw new Error(res.data.error || "Connection failed");
     }
   } catch (error: any) {
-    notifications.error("Connection Failed", error.response?.data?.error || error.message);
+    notifications.error(
+      t("databases.list.notifications.testFailedTitle"),
+      error.response?.data?.error || error.message,
+    );
   } finally {
     testing.value = false;
   }
@@ -423,7 +483,10 @@ const editConnection = (conn: DatabaseConnection) => {
 
 const saveConnection = async () => {
   if (!connectionForm.value.name || !connectionForm.value.host) {
-    notifications.warning("Validation", "Name and host are required");
+    notifications.warning(
+      t("databases.list.notifications.validationTitle"),
+      t("databases.list.notifications.nameHostRequired"),
+    );
     return;
   }
 
@@ -456,9 +519,12 @@ const saveConnection = async () => {
 
     saveConnections();
     closeModal();
-    notifications.success("Saved", `Connection ${newConnection.name} saved successfully`);
+    notifications.success(
+      t("databases.list.notifications.savedTitle"),
+      t("databases.list.notifications.savedDesc", { name: newConnection.name }),
+    );
   } catch (error: any) {
-    notifications.error("Failed to save", error.message);
+    notifications.error(t("databases.list.notifications.saveFailedTitle"), error.message);
   } finally {
     saving.value = false;
   }
@@ -473,7 +539,10 @@ const deleteConnection = () => {
   if (connectionToDelete.value) {
     connections.value = connections.value.filter((c) => c.id !== connectionToDelete.value!.id);
     saveConnections();
-    notifications.success("Deleted", `Connection removed`);
+    notifications.success(
+      t("databases.list.notifications.deletedTitle"),
+      t("databases.list.notifications.deletedDesc"),
+    );
   }
   showDeleteModal.value = false;
   connectionToDelete.value = null;

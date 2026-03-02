@@ -1598,6 +1598,385 @@
       "monthlyOnFirstAt": "Monatlich am 1. um {time}"
     }
   },
+  "dns": {
+    "common": {
+      "zones": "Zonen",
+      "type": "Typ",
+      "name": "Name",
+      "content": "Inhalt",
+      "ttl": "TTL",
+      "status": "Status",
+      "actions": "Aktionen",
+      "priority": "Priorität",
+      "settings": "Einstellungen",
+      "enabled": "Aktiviert",
+      "yes": "Ja",
+      "no": "Nein",
+      "cancel": "Abbrechen",
+      "close": "Schließen",
+      "create": "Erstellen",
+      "update": "Aktualisieren",
+      "delete": "Löschen",
+      "saving": "Speichern..."
+    },
+    "zones": {
+      "setup": {
+        "title": "DNS-Server",
+        "subtitle": "Hosten Sie Ihren eigenen autoritativen DNS-Server mit PowerDNS",
+        "note": "Dadurch wird PowerDNS als Infrastruktur-Service bereitgestellt",
+        "actions": {
+          "enable": "DNS-Server aktivieren",
+          "starting": "Startet..."
+        },
+        "features": {
+          "fullControl": {
+            "title": "Volle DNS-Kontrolle",
+            "description": "Verwalten Sie A-, AAAA-, CNAME-, MX-, TXT- und weitere Record-Typen"
+          },
+          "noDependencies": {
+            "title": "Keine externen Abhängigkeiten",
+            "description": "Ihre DNS-Einträge bleiben auf Ihrem Server"
+          },
+          "restApi": {
+            "title": "REST-API",
+            "description": "Programmgesteuerter Zugriff für Automatisierung"
+          }
+        }
+      },
+      "manager": {
+        "powerDnsRunning": "PowerDNS läuft",
+        "loadingZones": "Zonen werden geladen...",
+        "emptyZones": "Keine DNS-Zonen konfiguriert",
+        "serial": "Seriennummer: {value}",
+        "recordsCount": "{count} Einträge",
+        "actions": {
+          "addZone": "Zone hinzufügen",
+          "createFirstZone": "Erste Zone erstellen"
+        }
+      },
+      "records": {
+        "zoneType": "Zonentyp",
+        "serial": "Seriennummer",
+        "dnssec": "DNSSEC",
+        "loadingRecords": "Einträge werden geladen...",
+        "emptyRecords": "Keine Einträge gefunden",
+        "actions": {
+          "addRecord": "Eintrag hinzufügen"
+        }
+      },
+      "zoneKinds": {
+        "native": "Nativ",
+        "master": "Master",
+        "slave": "Slave"
+      },
+      "modal": {
+        "zone": {
+          "title": "DNS-Zone erstellen",
+          "domainName": "Domainname",
+          "domainPlaceholder": "example.com",
+          "domainHint": "Geben Sie den Domainnamen für diese Zone ein",
+          "zoneType": "Zonentyp",
+          "nameservers": "Nameserver",
+          "nameserversPlaceholder": "ns1.example.com\nns2.example.com",
+          "nameserversHint": "Ein Nameserver pro Zeile",
+          "create": "Zone erstellen",
+          "creating": "Erstelle..."
+        },
+        "record": {
+          "addTitle": "DNS-Eintrag hinzufügen",
+          "editTitle": "Eintrag bearbeiten",
+          "nameHint": "Verwenden Sie @ für die Root-Domain oder geben Sie eine Subdomain ein",
+          "contentPlaceholder": "IP-Adresse oder Hostname",
+          "contentHint": "Für mehrere Werte einen pro Zeile eingeben",
+          "ttlSeconds": "TTL (Sekunden)",
+          "ttlPlaceholder": "3600",
+          "ttlHint": "Time-to-live (60s - 7 Tage). Häufig: 300 (5min), 3600 (1h)",
+          "priorityPlaceholder": "10"
+        },
+        "settings": {
+          "title": "DNS-Server-Einstellungen",
+          "serverInformation": "Serverinformationen",
+          "running": "Läuft",
+          "listenAddress": "Listen-Adresse",
+          "apiPort": "API-Port",
+          "restartService": "Service neu starten",
+          "disableDnsServer": "DNS-Server deaktivieren"
+        }
+      },
+      "confirm": {
+        "deleteRecord": {
+          "title": "Eintrag löschen",
+          "message": "Möchten Sie diesen {type}-Eintrag für {name} wirklich löschen?",
+          "warning": "Diese Aktion kann nicht rückgängig gemacht werden."
+        },
+        "deleteZone": {
+          "title": "Zone löschen",
+          "message": "Möchten Sie die Zone {name} wirklich löschen?",
+          "warning": "Alle Einträge in dieser Zone werden dauerhaft gelöscht.",
+          "confirm": "Zone löschen"
+        }
+      },
+      "notifications": {
+        "serverEnabledTitle": "DNS-Server aktiviert",
+        "serverEnabledDesc": "PowerDNS läuft jetzt",
+        "enableFailedTitle": "Aktivierung fehlgeschlagen",
+        "enableFailedDesc": "DNS-Server konnte nicht aktiviert werden",
+        "serviceRestartedTitle": "Service neu gestartet",
+        "serviceRestartedDesc": "PowerDNS wurde neu gestartet",
+        "restartFailedTitle": "Neustart fehlgeschlagen",
+        "restartFailedDesc": "Service konnte nicht neu gestartet werden",
+        "serverDisabledTitle": "DNS-Server deaktiviert",
+        "serverDisabledDesc": "PowerDNS wurde gestoppt",
+        "disableFailedTitle": "Deaktivierung fehlgeschlagen",
+        "disableFailedDesc": "Service konnte nicht deaktiviert werden",
+        "loadFailedTitle": "Laden fehlgeschlagen",
+        "loadZonesFailedDesc": "Zonen konnten nicht geladen werden",
+        "loadRecordsFailedDesc": "Einträge konnten nicht geladen werden",
+        "zoneCreatedTitle": "Zone erstellt",
+        "zoneCreatedDesc": "DNS-Zone {name} wurde erstellt",
+        "createFailedTitle": "Erstellen fehlgeschlagen",
+        "createZoneFailedDesc": "Zone konnte nicht erstellt werden",
+        "zoneDeletedTitle": "Zone gelöscht",
+        "zoneDeletedDesc": "DNS-Zone {name} wurde gelöscht",
+        "deleteFailedTitle": "Löschen fehlgeschlagen",
+        "deleteZoneFailedDesc": "Zone konnte nicht gelöscht werden",
+        "recordUpdatedTitle": "Eintrag aktualisiert",
+        "recordCreatedTitle": "Eintrag erstellt",
+        "recordSavedDesc": "DNS-Eintrag wurde gespeichert",
+        "saveFailedTitle": "Speichern fehlgeschlagen",
+        "saveRecordFailedDesc": "Eintrag konnte nicht gespeichert werden",
+        "recordDeletedTitle": "Eintrag gelöscht",
+        "recordDeletedDesc": "DNS-Eintrag wurde gelöscht",
+        "deleteRecordFailedDesc": "Eintrag konnte nicht gelöscht werden"
+      }
+    },
+    "external": {
+      "setup": {
+        "title": "Externe DNS-Anbieter",
+        "subtitle": "Verbinden Sie externe DNS-Anbieter wie Cloudflare, Route53 oder DigitalOcean",
+        "selectProvider": "Anbieter auswählen",
+        "enterCredentials": "Anmeldedaten eingeben",
+        "connect": "Verbinden",
+        "connecting": "Verbinde..."
+      },
+      "manager": {
+        "disconnect": "Trennen",
+        "loadingZones": "Zonen werden geladen...",
+        "emptyZones": "Keine DNS-Zonen gefunden",
+        "recordsCount": "{count} Einträge",
+        "addRecord": "Eintrag hinzufügen",
+        "loadingRecords": "Einträge werden geladen...",
+        "emptyRecords": "Keine DNS-Einträge gefunden",
+        "proxied": "Proxy"
+      },
+      "zoneStatus": {
+        "active": "Aktiv",
+        "inactive": "Inaktiv",
+        "pending": "Ausstehend",
+        "error": "Fehler",
+        "unknown": "Unbekannt"
+      },
+      "modal": {
+        "record": {
+          "addTitle": "DNS-Eintrag hinzufügen",
+          "editTitle": "Eintrag bearbeiten",
+          "namePlaceholder": "@ für Root oder Subdomain",
+          "nameHint": "@ für die Root-Domain verwenden",
+          "contentPlaceholder": "IP-Adresse oder Hostname",
+          "ttlAuto": "Auto",
+          "ttlHint": "TTL für DNS-Cache. Auto lässt den Anbieter wählen.",
+          "ttlOptions": {
+            "auto": "Auto (Anbieter-Standard)",
+            "min1": "1 Minute",
+            "min5": "5 Minuten",
+            "min10": "10 Minuten",
+            "hour1": "1 Stunde",
+            "day1": "1 Tag"
+          },
+          "priorityPlaceholder": "10",
+          "proxyThroughCloudflare": "Über Cloudflare proxien"
+        }
+      },
+      "confirm": {
+        "deleteRecord": {
+          "title": "Eintrag löschen",
+          "message": "Möchten Sie diesen {type}-Eintrag für {name} wirklich löschen?",
+          "warning": "Diese Aktion kann nicht rückgängig gemacht werden."
+        }
+      },
+      "notifications": {
+        "connectedTitle": "Verbunden",
+        "connectedDesc": "Verbunden mit {provider}",
+        "recordUpdatedTitle": "Eintrag aktualisiert",
+        "recordUpdatedDesc": "DNS-Eintrag wurde aktualisiert",
+        "recordCreatedTitle": "Eintrag erstellt",
+        "recordCreatedDesc": "DNS-Eintrag wurde erstellt",
+        "recordDeletedTitle": "Eintrag gelöscht",
+        "recordDeletedDesc": "DNS-Eintrag wurde gelöscht"
+      }
+    }
+  },
+  "databases": {
+    "common": {
+      "cancel": "Abbrechen",
+      "refresh": "Aktualisieren",
+      "create": "Erstellen",
+      "update": "Aktualisieren",
+      "save": "Speichern",
+      "delete": "Löschen",
+      "test": "Testen",
+      "export": "Exportieren",
+      "retry": "Erneut versuchen",
+      "back": "Zurück"
+    },
+    "list": {
+      "searchPlaceholder": "Server suchen...",
+      "emptyTitle": "Keine Datenbankserver",
+      "emptyText": "Fügen Sie einen Datenbankserver hinzu, um zu starten.",
+      "loading": "Server werden geladen...",
+      "actions": {
+        "addServer": "Server hinzufügen",
+        "refresh": "Aktualisieren"
+      },
+      "table": {
+        "type": "Typ",
+        "server": "Server",
+        "host": "Host",
+        "database": "Datenbank",
+        "status": "Status",
+        "actions": "Aktionen"
+      },
+      "tooltips": {
+        "openManager": "Manager öffnen",
+        "testConnection": "Verbindung testen",
+        "edit": "Bearbeiten",
+        "delete": "Löschen"
+      },
+      "dbTypes": {
+        "mysql": "MySQL",
+        "postgresql": "PostgreSQL",
+        "mariadb": "MariaDB",
+        "mongodb": "MongoDB",
+        "redis": "Redis"
+      },
+      "modal": {
+        "addTitle": "Datenbankserver hinzufügen",
+        "editTitle": "Server bearbeiten",
+        "fields": {
+          "connectionName": "Verbindungsname",
+          "databaseType": "Datenbanktyp",
+          "host": "Host",
+          "port": "Port",
+          "databaseName": "Datenbankname",
+          "username": "Benutzername",
+          "password": "Passwort",
+          "linkToContainer": "Mit Docker-Container verknüpfen",
+          "selectContainer": "Container auswählen"
+        },
+        "placeholders": {
+          "connectionName": "Meine Datenbank",
+          "host": "localhost",
+          "databaseName": "meine_datenbank",
+          "username": "root",
+          "password": "••••••••",
+          "selectContainer": "Container auswählen..."
+        }
+      },
+      "confirmDelete": {
+        "title": "Server löschen",
+        "message": "Möchten Sie '{name}' wirklich löschen?",
+        "confirm": "Löschen"
+      },
+      "notifications": {
+        "loadFailedTitle": "Verbindungen konnten nicht geladen werden",
+        "testingTitle": "Verbindung wird getestet",
+        "testingDesc": "{name} wird getestet...",
+        "testSuccessTitle": "Verbindungstest",
+        "testSuccessDesc": "{name} ist erreichbar ({latency}ms)",
+        "testFormSuccessDesc": "Verbindung erfolgreich!",
+        "testFailedTitle": "Verbindung fehlgeschlagen",
+        "validationTitle": "Validierung",
+        "nameHostRequired": "Name und Host sind erforderlich",
+        "savedTitle": "Gespeichert",
+        "savedDesc": "Verbindung {name} wurde erfolgreich gespeichert",
+        "saveFailedTitle": "Speichern fehlgeschlagen",
+        "deletedTitle": "Gelöscht",
+        "deletedDesc": "Verbindung entfernt"
+      }
+    },
+    "connectionStatus": {
+      "connected": "Verbunden",
+      "disconnected": "Getrennt",
+      "error": "Fehler"
+    },
+    "manager": {
+      "loading": {
+        "connectingToServer": "Verbindung zum Server wird hergestellt..."
+      },
+      "error": {
+        "connectionFailedTitle": "Verbindung fehlgeschlagen",
+        "connectionNotFound": "Verbindung nicht gefunden"
+      },
+      "header": {
+        "allDatabases": "Alle Datenbanken",
+        "databaseServer": "Datenbankserver",
+        "tablesCount": "{count} Tabellen",
+        "dropDatabase": "Datenbank löschen"
+      },
+      "tabs": {
+        "tables": "Tabellen",
+        "schema": "Schema",
+        "query": "Abfrage",
+        "history": "Verlauf",
+        "backup": "Backup",
+        "soon": "Bald"
+      },
+      "modal": {
+        "createDatabase": {
+          "title": "Datenbank erstellen",
+          "databaseName": "Datenbankname",
+          "databaseNamePlaceholder": "meine_neue_datenbank"
+        },
+        "createUser": {
+          "title": "Benutzer erstellen",
+          "username": "Benutzername",
+          "usernamePlaceholder": "neuer_benutzer",
+          "password": "Passwort",
+          "passwordPlaceholder": "••••••••",
+          "hostOptional": "Host (optional)",
+          "hostPlaceholder": "% (beliebiger Host)",
+          "grantDb": "Berechtigungen für eine Datenbank vergeben",
+          "selectDatabase": "Datenbank auswählen..."
+        },
+        "deleteDatabase": {
+          "title": "Datenbank löschen",
+          "message": "Möchten Sie die Datenbank wirklich löschen",
+          "warning": "Diese Aktion kann nicht rückgängig gemacht werden. Alle Daten gehen verloren."
+        },
+        "deleteUser": {
+          "title": "Benutzer löschen",
+          "message": "Möchten Sie den Benutzer wirklich löschen",
+          "warning": "Diese Aktion kann nicht rückgängig gemacht werden."
+        }
+      },
+      "notifications": {
+        "refreshFailedTitle": "Aktualisierung fehlgeschlagen",
+        "exportTitle": "Export",
+        "exportDesc": "Datenbankexport für {name} - Funktion folgt bald",
+        "editUserTitle": "Benutzer bearbeiten",
+        "editUserDesc": "Berechtigungen für {name} werden bearbeitet - Funktion folgt bald",
+        "databaseCreatedTitle": "Datenbank erstellt",
+        "databaseCreatedDesc": "Datenbank '{name}' wurde erstellt",
+        "userCreatedTitle": "Benutzer erstellt",
+        "userCreatedDesc": "Benutzer '{name}' wurde erstellt",
+        "databaseDeletedTitle": "Datenbank gelöscht",
+        "databaseDeletedDesc": "Datenbank '{name}' wurde gelöscht",
+        "userDeletedTitle": "Benutzer gelöscht",
+        "userDeletedDesc": "Benutzer '{name}' wurde gelöscht",
+        "operationFailedTitle": "Fehlgeschlagen"
+      }
+    }
+  },
   "services": {
     "searchPlaceholder": "Services suchen...",
     "loading": "Services werden geladen...",

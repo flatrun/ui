@@ -10,12 +10,15 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
+import { useI18n } from "vue-i18n";
 import { Wifi, WifiOff, AlertCircle } from "lucide-vue-next";
 
 const props = defineProps<{
   status: "connected" | "disconnected" | "error";
   latency?: number | null;
 }>();
+
+const { t } = useI18n();
 
 const statusIcon = computed(() => {
   switch (props.status) {
@@ -31,11 +34,11 @@ const statusIcon = computed(() => {
 const statusLabel = computed(() => {
   switch (props.status) {
     case "connected":
-      return "Connected";
+      return t("databases.connectionStatus.connected");
     case "error":
-      return "Error";
+      return t("databases.connectionStatus.error");
     default:
-      return "Disconnected";
+      return t("databases.connectionStatus.disconnected");
   }
 });
 </script>
