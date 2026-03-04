@@ -2596,5 +2596,74 @@
       "deleted": "Zertifikat für {domain} wurde gelöscht",
       "deleteFailedTitle": "Löschen fehlgeschlagen"
     }
+  },
+  "apps": {
+    "marketplace": {
+      "title": "App-Marktplatz",
+      "subtitle": "Erweitern Sie Flatrun mit leistungsstarken Apps und Integrationen",
+      "searchPlaceholder": "Apps suchen...",
+      "categories": {
+        "all": "Alle",
+        "cms": "CMS",
+        "database": "Datenbank",
+        "email": "E-Mail",
+        "security": "Sicherheit",
+        "backup": "Backup",
+        "monitoring": "Monitoring"
+      },
+      "badges": {
+        "featured": "Empfohlen"
+      },
+      "actions": {
+        "installed": "Installiert",
+        "install": "Installieren",
+        "details": "Details"
+      },
+      "empty": {
+        "title": "Keine Apps gefunden",
+        "description": "Versuchen Sie, Suche oder Filter anzupassen."
+      }
+    },
+    "installed": {
+      "table": {
+        "searchPlaceholder": "Apps suchen...",
+        "emptyTitle": "Keine Apps installiert",
+        "emptyText": "Erweitern Sie Flatrun, indem Sie Apps aus dem Marktplatz installieren.",
+        "loadingText": "Apps werden geladen...",
+        "columns": {
+          "name": "Name",
+          "status": "Status",
+          "type": "Typ",
+          "category": "Kategorie",
+          "author": "Autor",
+          "capabilities": "Funktionen",
+          "actions": "Aktionen"
+        },
+        "capabilitiesCount": "{n} Funktionen"
+      },
+      "actions": {
+        "installApp": "App installieren",
+        "configure": "Konfigurieren",
+        "uninstall": "Deinstallieren"
+      },
+      "status": {
+        "enabled": "Aktiviert",
+        "disabled": "Deaktiviert"
+      },
+      "sections": {
+        "capabilities": "Funktionen",
+        "dashboardExtensions": "Dashboard-Erweiterungen",
+        "apiEndpoints": "API-Endpunkte ({n})",
+        "apiMore": "+{n} weitere Endpunkte"
+      },
+      "modals": {
+        "install": {
+          "title": "App installieren",
+          "description": "App-Installation aus dem Marktplatz folgt in Kuerze.",
+          "hint": "Vorerst legen Sie App-Ordner manuell in {0} ab",
+          "close": "Schliessen"
+        }
+      }
+    }
   }
 }

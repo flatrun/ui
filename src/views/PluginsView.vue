@@ -6,19 +6,19 @@
       item-key="name"
       :loading="loading"
       :searchable="true"
-      search-placeholder="Search apps..."
+      :search-placeholder="t('apps.installed.table.searchPlaceholder')"
       :search-fields="['display_name', 'name', 'description', 'category', 'author']"
       :toggleable="true"
       default-view-mode="grid"
       empty-icon="pi pi-th-large"
-      empty-title="No Apps Installed"
-      empty-text="Extend Flatrun's functionality by installing apps from the marketplace."
-      loading-text="Loading apps..."
+      :empty-title="t('apps.installed.table.emptyTitle')"
+      :empty-text="t('apps.installed.table.emptyText')"
+      :loading-text="t('apps.installed.table.loadingText')"
     >
       <template #actions>
         <button class="btn btn-primary" @click="showInstallModal = true">
           <i class="pi pi-plus" />
-          Install App
+          {{ t("apps.installed.actions.installApp") }}
         </button>
         <button class="btn btn-icon" :disabled="loading" @click="fetchPlugins">
           <i class="pi pi-refresh" :class="{ 'pi-spin': loading }" />
@@ -28,7 +28,7 @@
       <template #empty-action>
         <button class="btn btn-primary" @click="showInstallModal = true">
           <i class="pi pi-plus" />
-          Install App
+          {{ t("apps.installed.actions.installApp") }}
         </button>
       </template>
 
@@ -48,18 +48,20 @@
 
       <template #cell-enabled="{ item }">
         <span class="status-badge" :class="item.enabled ? 'enabled' : 'disabled'">
-          {{ item.enabled ? "Enabled" : "Disabled" }}
+          {{ item.enabled ? t("apps.installed.status.enabled") : t("apps.installed.status.disabled") }}
         </span>
       </template>
 
-      <template #cell-capabilities="{ item }"> {{ item.capabilities?.length || 0 }} capabilities </template>
+      <template #cell-capabilities="{ item }">
+        {{ t("apps.installed.table.capabilitiesCount", { n: item.capabilities?.length || 0 }) }}
+      </template>
 
       <template #cell-actions>
         <div class="table-actions">
-          <button class="btn-icon-xs" title="Configure">
+          <button class="btn-icon-xs" :title="t('apps.installed.actions.configure')">
             <i class="pi pi-cog" />
           </button>
-          <button class="btn-icon-xs danger" title="Uninstall">
+          <button class="btn-icon-xs danger" :title="t('apps.installed.actions.uninstall')">
             <i class="pi pi-trash" />
           </button>
         </div>
@@ -78,7 +80,7 @@
               </div>
               <div class="plugin-status">
                 <span class="status-badge" :class="plugin.enabled ? 'enabled' : 'disabled'">
-                  {{ plugin.enabled ? "Enabled" : "Disabled" }}
+                  {{ plugin.enabled ? t("apps.installed.status.enabled") : t("apps.installed.status.disabled") }}
                 </span>
               </div>
             </div>
@@ -90,21 +92,21 @@
 
               <div class="plugin-info-grid">
                 <div class="info-item">
-                  <span class="info-label">Type</span>
+                  <span class="info-label">{{ t("apps.installed.table.columns.type") }}</span>
                   <span class="info-value">{{ plugin.type }}</span>
                 </div>
                 <div class="info-item">
-                  <span class="info-label">Category</span>
+                  <span class="info-label">{{ t("apps.installed.table.columns.category") }}</span>
                   <span class="info-value">{{ plugin.category }}</span>
                 </div>
                 <div class="info-item">
-                  <span class="info-label">Author</span>
+                  <span class="info-label">{{ t("apps.installed.table.columns.author") }}</span>
                   <span class="info-value">{{ plugin.author }}</span>
                 </div>
               </div>
 
               <div v-if="plugin.capabilities?.length" class="capabilities-section">
-                <span class="section-label">Capabilities</span>
+                <span class="section-label">{{ t("apps.installed.sections.capabilities") }}</span>
                 <div class="capabilities-list">
                   <span v-for="cap in plugin.capabilities" :key="cap" class="capability-tag">
                     {{ formatCapability(cap) }}
@@ -113,7 +115,7 @@
               </div>
 
               <div v-if="plugin.dashboard_extensions?.length" class="extensions-section">
-                <span class="section-label">Dashboard Extensions</span>
+                <span class="section-label">{{ t("apps.installed.sections.dashboardExtensions") }}</span>
                 <div class="extensions-list">
                   <div v-for="ext in plugin.dashboard_extensions" :key="ext.location" class="extension-item">
                     <i class="pi pi-puzzle-piece" />
@@ -124,7 +126,9 @@
               </div>
 
               <div v-if="plugin.api?.length" class="api-section">
-                <span class="section-label">API Endpoints ({{ plugin.api.length }})</span>
+                <span class="section-label">{{
+                  t("apps.installed.sections.apiEndpoints", { n: plugin.api.length })
+                }}</span>
                 <div class="api-list">
                   <div v-for="endpoint in plugin.api.slice(0, 3)" :key="endpoint.path" class="api-item">
                     <span class="api-method" :class="endpoint.method.toLowerCase()">
@@ -132,7 +136,9 @@
                     </span>
                     <code>{{ endpoint.path }}</code>
                   </div>
-                  <div v-if="plugin.api.length > 3" class="api-more">+{{ plugin.api.length - 3 }} more endpoints</div>
+                  <div v-if="plugin.api.length > 3" class="api-more">
+                    {{ t("apps.installed.sections.apiMore", { n: plugin.api.length - 3 }) }}
+                  </div>
                 </div>
               </div>
             </div>
@@ -140,11 +146,11 @@
             <div class="plugin-footer">
               <button class="btn btn-sm btn-secondary">
                 <i class="pi pi-cog" />
-                Configure
+                {{ t("apps.installed.actions.configure") }}
               </button>
               <button class="btn btn-sm btn-danger">
                 <i class="pi pi-trash" />
-                Uninstall
+                {{ t("apps.installed.actions.uninstall") }}
               </button>
             </div>
           </div>
@@ -158,21 +164,22 @@
           <div class="modal-header">
             <h3>
               <i class="pi pi-download" />
-              Install App
+              {{ t("apps.installed.modals.install.title") }}
             </h3>
             <button class="close-btn" @click="showInstallModal = false">
               <i class="pi pi-times" />
             </button>
           </div>
           <div class="modal-body">
-            <p>App installation from marketplace coming soon.</p>
-            <p class="hint">
-              For now, manually place app folders in
+            <p>{{ t("apps.installed.modals.install.description") }}</p>
+            <i18n-t keypath="apps.installed.modals.install.hint" tag="p" class="hint">
               <code>.flatrun/plugins/</code>
-            </p>
+            </i18n-t>
           </div>
           <div class="modal-footer">
-            <button class="btn btn-secondary" @click="showInstallModal = false">Close</button>
+            <button class="btn btn-secondary" @click="showInstallModal = false">
+              {{ t("apps.installed.modals.install.close") }}
+            </button>
           </div>
         </div>
       </div>
@@ -181,7 +188,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
+import { useI18n } from "vue-i18n";
 import { usePluginsStore } from "@/stores/plugins";
 import { storeToRefs } from "pinia";
 import DataTable from "@/components/DataTable.vue";
@@ -189,18 +197,19 @@ import DataTable from "@/components/DataTable.vue";
 const pluginsStore = usePluginsStore();
 const { plugins, loading } = storeToRefs(pluginsStore);
 const { fetchPlugins } = pluginsStore;
+const { t } = useI18n();
 
 const showInstallModal = ref(false);
 
-const columns = [
-  { key: "display_name", label: "Name", sortable: true },
-  { key: "enabled", label: "Status", sortable: true },
-  { key: "type", label: "Type", sortable: true },
-  { key: "category", label: "Category", sortable: true },
-  { key: "author", label: "Author", sortable: true },
-  { key: "capabilities", label: "Capabilities" },
-  { key: "actions", label: "Actions", width: "100px" },
-];
+const columns = computed(() => [
+  { key: "display_name", label: t("apps.installed.table.columns.name"), sortable: true },
+  { key: "enabled", label: t("apps.installed.table.columns.status"), sortable: true },
+  { key: "type", label: t("apps.installed.table.columns.type"), sortable: true },
+  { key: "category", label: t("apps.installed.table.columns.category"), sortable: true },
+  { key: "author", label: t("apps.installed.table.columns.author"), sortable: true },
+  { key: "capabilities", label: t("apps.installed.table.columns.capabilities") },
+  { key: "actions", label: t("apps.installed.table.columns.actions"), width: "100px" },
+]);
 
 const getPluginIcon = (category: string) => {
   const icons: Record<string, string> = {

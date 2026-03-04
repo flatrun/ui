@@ -2553,5 +2553,74 @@
       "deleted": "Certificate for {domain} has been deleted",
       "deleteFailedTitle": "Delete Failed"
     }
+  },
+  "apps": {
+    "marketplace": {
+      "title": "App Marketplace",
+      "subtitle": "Extend Flatrun with powerful apps and integrations",
+      "searchPlaceholder": "Search apps...",
+      "categories": {
+        "all": "All",
+        "cms": "CMS",
+        "database": "Database",
+        "email": "Email",
+        "security": "Security",
+        "backup": "Backup",
+        "monitoring": "Monitoring"
+      },
+      "badges": {
+        "featured": "Featured"
+      },
+      "actions": {
+        "installed": "Installed",
+        "install": "Install",
+        "details": "Details"
+      },
+      "empty": {
+        "title": "No Apps Found",
+        "description": "Try adjusting your search or filters."
+      }
+    },
+    "installed": {
+      "table": {
+        "searchPlaceholder": "Search apps...",
+        "emptyTitle": "No Apps Installed",
+        "emptyText": "Extend Flatrun's functionality by installing apps from the marketplace.",
+        "loadingText": "Loading apps...",
+        "columns": {
+          "name": "Name",
+          "status": "Status",
+          "type": "Type",
+          "category": "Category",
+          "author": "Author",
+          "capabilities": "Capabilities",
+          "actions": "Actions"
+        },
+        "capabilitiesCount": "{n} capabilities"
+      },
+      "actions": {
+        "installApp": "Install App",
+        "configure": "Configure",
+        "uninstall": "Uninstall"
+      },
+      "status": {
+        "enabled": "Enabled",
+        "disabled": "Disabled"
+      },
+      "sections": {
+        "capabilities": "Capabilities",
+        "dashboardExtensions": "Dashboard Extensions",
+        "apiEndpoints": "API Endpoints ({n})",
+        "apiMore": "+{n} more endpoints"
+      },
+      "modals": {
+        "install": {
+          "title": "Install App",
+          "description": "App installation from marketplace coming soon.",
+          "hint": "For now, manually place app folders in {0}",
+          "close": "Close"
+        }
+      }
+    }
   }
 }

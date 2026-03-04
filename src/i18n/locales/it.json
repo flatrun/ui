@@ -2592,5 +2592,74 @@
       "deleted": "Il certificato per {domain} è stato eliminato",
       "deleteFailedTitle": "Eliminazione non riuscita"
     }
+  },
+  "apps": {
+    "marketplace": {
+      "title": "Marketplace app",
+      "subtitle": "Estendi Flatrun con app e integrazioni potenti",
+      "searchPlaceholder": "Cerca app...",
+      "categories": {
+        "all": "Tutte",
+        "cms": "CMS",
+        "database": "Database",
+        "email": "Email",
+        "security": "Sicurezza",
+        "backup": "Backup",
+        "monitoring": "Monitoraggio"
+      },
+      "badges": {
+        "featured": "In evidenza"
+      },
+      "actions": {
+        "installed": "Installata",
+        "install": "Installa",
+        "details": "Dettagli"
+      },
+      "empty": {
+        "title": "Nessuna app trovata",
+        "description": "Prova a modificare la ricerca o i filtri."
+      }
+    },
+    "installed": {
+      "table": {
+        "searchPlaceholder": "Cerca app...",
+        "emptyTitle": "Nessuna app installata",
+        "emptyText": "Estendi Flatrun installando app dal marketplace.",
+        "loadingText": "Caricamento app...",
+        "columns": {
+          "name": "Nome",
+          "status": "Stato",
+          "type": "Tipo",
+          "category": "Categoria",
+          "author": "Autore",
+          "capabilities": "Capacita",
+          "actions": "Azioni"
+        },
+        "capabilitiesCount": "{n} capacita"
+      },
+      "actions": {
+        "installApp": "Installa app",
+        "configure": "Configura",
+        "uninstall": "Disinstalla"
+      },
+      "status": {
+        "enabled": "Abilitata",
+        "disabled": "Disabilitata"
+      },
+      "sections": {
+        "capabilities": "Capacita",
+        "dashboardExtensions": "Estensioni dashboard",
+        "apiEndpoints": "Endpoint API ({n})",
+        "apiMore": "+{n} endpoint in piu"
+      },
+      "modals": {
+        "install": {
+          "title": "Installa app",
+          "description": "Installazione dal marketplace disponibile a breve.",
+          "hint": "Per ora, posiziona manualmente le cartelle delle app in {0}",
+          "close": "Chiudi"
+        }
+      }
+    }
   }
 }

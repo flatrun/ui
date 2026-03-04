@@ -2561,5 +2561,74 @@
       "deleted": "Le certificat pour {domain} a été supprimé",
       "deleteFailedTitle": "Échec de la suppression"
     }
+  },
+  "apps": {
+    "marketplace": {
+      "title": "Marketplace d'applications",
+      "subtitle": "Etendez Flatrun avec des applications et des integrations puissantes",
+      "searchPlaceholder": "Rechercher des apps...",
+      "categories": {
+        "all": "Toutes",
+        "cms": "CMS",
+        "database": "Base de donnees",
+        "email": "Email",
+        "security": "Securite",
+        "backup": "Sauvegarde",
+        "monitoring": "Surveillance"
+      },
+      "badges": {
+        "featured": "En vedette"
+      },
+      "actions": {
+        "installed": "Installee",
+        "install": "Installer",
+        "details": "Details"
+      },
+      "empty": {
+        "title": "Aucune app trouvee",
+        "description": "Essayez d'ajuster votre recherche ou vos filtres."
+      }
+    },
+    "installed": {
+      "table": {
+        "searchPlaceholder": "Rechercher des apps...",
+        "emptyTitle": "Aucune app installee",
+        "emptyText": "Etendez Flatrun en installant des apps depuis le marketplace.",
+        "loadingText": "Chargement des apps...",
+        "columns": {
+          "name": "Nom",
+          "status": "Statut",
+          "type": "Type",
+          "category": "Categorie",
+          "author": "Auteur",
+          "capabilities": "Capacites",
+          "actions": "Actions"
+        },
+        "capabilitiesCount": "{n} capacites"
+      },
+      "actions": {
+        "installApp": "Installer une app",
+        "configure": "Configurer",
+        "uninstall": "Desinstaller"
+      },
+      "status": {
+        "enabled": "Activee",
+        "disabled": "Desactivee"
+      },
+      "sections": {
+        "capabilities": "Capacites",
+        "dashboardExtensions": "Extensions du tableau de bord",
+        "apiEndpoints": "Endpoints API ({n})",
+        "apiMore": "+{n} endpoints en plus"
+      },
+      "modals": {
+        "install": {
+          "title": "Installer une app",
+          "description": "L'installation depuis le marketplace arrive bientot.",
+          "hint": "Pour l'instant, placez manuellement les dossiers d'apps dans {0}",
+          "close": "Fermer"
+        }
+      }
+    }
   }
 }

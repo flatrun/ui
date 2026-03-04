@@ -2588,5 +2588,74 @@
       "deleted": "Se eliminó el certificado para {domain}",
       "deleteFailedTitle": "Error al eliminar"
     }
+  },
+  "apps": {
+    "marketplace": {
+      "title": "Mercado de aplicaciones",
+      "subtitle": "Amplia Flatrun con potentes apps e integraciones",
+      "searchPlaceholder": "Buscar apps...",
+      "categories": {
+        "all": "Todas",
+        "cms": "CMS",
+        "database": "Base de datos",
+        "email": "Correo",
+        "security": "Seguridad",
+        "backup": "Copia de seguridad",
+        "monitoring": "Monitoreo"
+      },
+      "badges": {
+        "featured": "Destacada"
+      },
+      "actions": {
+        "installed": "Instalada",
+        "install": "Instalar",
+        "details": "Detalles"
+      },
+      "empty": {
+        "title": "No se encontraron apps",
+        "description": "Intenta ajustar tu búsqueda o filtros."
+      }
+    },
+    "installed": {
+      "table": {
+        "searchPlaceholder": "Buscar apps...",
+        "emptyTitle": "No hay apps instaladas",
+        "emptyText": "Amplía Flatrun instalando apps desde el marketplace.",
+        "loadingText": "Cargando apps...",
+        "columns": {
+          "name": "Nombre",
+          "status": "Estado",
+          "type": "Tipo",
+          "category": "Categoría",
+          "author": "Autor",
+          "capabilities": "Capacidades",
+          "actions": "Acciones"
+        },
+        "capabilitiesCount": "{n} capacidades"
+      },
+      "actions": {
+        "installApp": "Instalar app",
+        "configure": "Configurar",
+        "uninstall": "Desinstalar"
+      },
+      "status": {
+        "enabled": "Habilitada",
+        "disabled": "Deshabilitada"
+      },
+      "sections": {
+        "capabilities": "Capacidades",
+        "dashboardExtensions": "Extensiones del panel",
+        "apiEndpoints": "Endpoints de API ({n})",
+        "apiMore": "+{n} endpoints más"
+      },
+      "modals": {
+        "install": {
+          "title": "Instalar app",
+          "description": "La instalación desde el marketplace estará disponible pronto.",
+          "hint": "Por ahora, coloca manualmente las carpetas de la app en {0}",
+          "close": "Cerrar"
+        }
+      }
+    }
   }
 }
