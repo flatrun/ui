@@ -908,11 +908,7 @@
             "name": "Mode Compose",
             "description": "Contrôle total avec docker-compose",
             "badge": "Avancé",
-            "features": [
-              "Écrivez votre propre fichier compose",
-              "Configuration avancée",
-              "Pour utilisateurs avancés"
-            ]
+            "features": ["Écrivez votre propre fichier compose", "Configuration avancée", "Pour utilisateurs avancés"]
           }
         },
         "steps": {

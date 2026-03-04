@@ -63,7 +63,12 @@
                 </span>
               </td>
               <td class="actions-cell">
-                <button v-if="canWrite" class="btn btn-icon btn-sm" :title="t('users.actions.edit')" @click="editUser(user)">
+                <button
+                  v-if="canWrite"
+                  class="btn btn-icon btn-sm"
+                  :title="t('users.actions.edit')"
+                  @click="editUser(user)"
+                >
                   <i class="pi pi-pencil" />
                 </button>
                 <button

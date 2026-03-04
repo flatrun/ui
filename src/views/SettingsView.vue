@@ -589,7 +589,9 @@
               </div>
 
               <div class="form-group">
-                <label class="form-label">{{ t("settings.security.autoBlocking.thresholds.authFailures.label") }}</label>
+                <label class="form-label">{{
+                  t("settings.security.autoBlocking.thresholds.authFailures.label")
+                }}</label>
                 <span class="form-hint">{{ t("settings.security.autoBlocking.thresholds.authFailures.hint") }}</span>
                 <input
                   v-model.number="securitySettings.auth_failure_threshold"
@@ -611,7 +613,9 @@
               </div>
 
               <div class="form-group">
-                <label class="form-label">{{ t("settings.security.autoBlocking.thresholds.repeatedHits.label") }}</label>
+                <label class="form-label">{{
+                  t("settings.security.autoBlocking.thresholds.repeatedHits.label")
+                }}</label>
                 <span class="form-hint">{{ t("settings.security.autoBlocking.thresholds.repeatedHits.hint") }}</span>
                 <input
                   v-model.number="securitySettings.repeated_hits_threshold"
@@ -754,7 +758,9 @@
                       <i class="pi pi-user" />
                       {{ cred.username }}
                     </span>
-                    <span v-if="cred.is_default" class="credential-badge default">{{ t("settings.value.default") }}</span>
+                    <span v-if="cred.is_default" class="credential-badge default">{{
+                      t("settings.value.default")
+                    }}</span>
                   </div>
                 </div>
                 <div v-if="canDeleteRegistries" class="credential-actions">
@@ -775,24 +781,24 @@
 
         <!-- Delete Confirmation Modal -->
         <Teleport to="body">
-            <div v-if="showDeleteConfirm" class="modal-overlay" @click.self="cancelDeleteCredential">
-              <div class="confirm-modal">
-                <div class="confirm-icon danger">
-                  <i class="pi pi-exclamation-triangle" />
-                </div>
-                <h3>{{ t("settings.credentials.delete.title") }}</h3>
-                <i18n-t keypath="settings.credentials.delete.message" tag="p">
-                  <strong>{{ credentialToDelete?.name }}</strong>
-                </i18n-t>
-                <div class="confirm-actions">
-                  <button class="btn btn-secondary" @click="cancelDeleteCredential">{{ t("common.cancel") }}</button>
-                  <button class="btn btn-danger" :disabled="deletingCredentialId !== null" @click="deleteCredential">
-                    <i v-if="deletingCredentialId" class="pi pi-spin pi-spinner" />
-                    {{ t("settings.credentials.actions.delete") }}
-                  </button>
-                </div>
+          <div v-if="showDeleteConfirm" class="modal-overlay" @click.self="cancelDeleteCredential">
+            <div class="confirm-modal">
+              <div class="confirm-icon danger">
+                <i class="pi pi-exclamation-triangle" />
+              </div>
+              <h3>{{ t("settings.credentials.delete.title") }}</h3>
+              <i18n-t keypath="settings.credentials.delete.message" tag="p">
+                <strong>{{ credentialToDelete?.name }}</strong>
+              </i18n-t>
+              <div class="confirm-actions">
+                <button class="btn btn-secondary" @click="cancelDeleteCredential">{{ t("common.cancel") }}</button>
+                <button class="btn btn-danger" :disabled="deletingCredentialId !== null" @click="deleteCredential">
+                  <i v-if="deletingCredentialId" class="pi pi-spin pi-spinner" />
+                  {{ t("settings.credentials.actions.delete") }}
+                </button>
               </div>
             </div>
+          </div>
         </Teleport>
       </div>
     </div>
@@ -1010,7 +1016,10 @@ const createCredential = async () => {
       password: newCredential.password,
       is_default: newCredential.is_default,
     });
-    notifications.success(t("settings.credentials.notifications.savedTitle"), t("settings.credentials.notifications.savedDesc"));
+    notifications.success(
+      t("settings.credentials.notifications.savedTitle"),
+      t("settings.credentials.notifications.savedDesc"),
+    );
     resetNewCredentialForm();
     showAddCredentialForm.value = false;
     await fetchCredentials();
@@ -1199,9 +1208,15 @@ const saveSecuritySettings = async () => {
       if (action.errors && action.errors.length > 0) {
         notifications.error(t("settings.security.notifications.updateWarningTitle"), action.errors.join(", "));
       } else if (action.container_recreated) {
-        notifications.success(t("settings.notifications.savedTitle"), t("settings.security.notifications.savedRecreated"));
+        notifications.success(
+          t("settings.notifications.savedTitle"),
+          t("settings.security.notifications.savedRecreated"),
+        );
       } else if (action.nginx_reloaded) {
-        notifications.success(t("settings.notifications.savedTitle"), t("settings.security.notifications.savedReloaded"));
+        notifications.success(
+          t("settings.notifications.savedTitle"),
+          t("settings.security.notifications.savedReloaded"),
+        );
       } else {
         notifications.success(t("settings.notifications.savedTitle"), t("settings.security.notifications.saved"));
       }
@@ -1248,7 +1263,10 @@ const testConnection = async () => {
 };
 
 const refreshData = () => {
-  notifications.info(t("settings.general.quickActions.refreshingTitle"), t("settings.general.quickActions.refreshingDesc"));
+  notifications.info(
+    t("settings.general.quickActions.refreshingTitle"),
+    t("settings.general.quickActions.refreshingDesc"),
+  );
   window.location.reload();
 };
 

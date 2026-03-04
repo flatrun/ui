@@ -888,31 +888,19 @@
             "name": "Easy Mode",
             "description": "Guided setup with templates",
             "badge": "Recommended",
-            "features": [
-              "Choose from pre-built templates",
-              "Auto-configure database",
-              "Domain & SSL setup"
-            ]
+            "features": ["Choose from pre-built templates", "Auto-configure database", "Domain & SSL setup"]
           },
           "image": {
             "name": "From Image",
             "description": "Deploy any Docker image",
             "badge": "Quick",
-            "features": [
-              "Use any public/private image",
-              "Auto-generate compose",
-              "Quick deployment"
-            ]
+            "features": ["Use any public/private image", "Auto-generate compose", "Quick deployment"]
           },
           "compose": {
             "name": "Compose Mode",
             "description": "Full control with docker-compose",
             "badge": "Advanced",
-            "features": [
-              "Write your own compose file",
-              "Advanced configuration",
-              "For power users"
-            ]
+            "features": ["Write your own compose file", "Advanced configuration", "For power users"]
           }
         },
         "steps": {
