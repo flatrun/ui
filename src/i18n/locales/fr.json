@@ -908,7 +908,11 @@
             "name": "Mode Compose",
             "description": "Contrôle total avec docker-compose",
             "badge": "Avancé",
-            "features": ["Écrivez votre propre fichier compose", "Configuration avancée", "Pour utilisateurs avancés"]
+            "features": [
+              "Écrivez votre propre fichier compose",
+              "Configuration avancée",
+              "Pour utilisateurs avancés"
+            ]
           }
         },
         "steps": {
@@ -2629,6 +2633,495 @@
           "close": "Fermer"
         }
       }
+    }
+  },
+  "users": {
+    "title": "Utilisateurs",
+    "loading": "Chargement des utilisateurs...",
+    "actions": {
+      "addUser": "Ajouter un utilisateur",
+      "retry": "Reessayer",
+      "add": "Ajouter",
+      "edit": "Modifier",
+      "delete": "Supprimer",
+      "create": "Creer",
+      "update": "Mettre a jour",
+      "saving": "Enregistrement..."
+    },
+    "table": {
+      "columns": {
+        "username": "Nom d'utilisateur",
+        "email": "Email",
+        "role": "Role",
+        "permissions": "Autorisations",
+        "deployments": "Deploiements",
+        "status": "Statut",
+        "actions": "Actions"
+      },
+      "permissions": {
+        "custom": "Personnalise ({n})",
+        "roleDefaults": "Par defaut du role"
+      }
+    },
+    "status": {
+      "active": "Actif",
+      "inactive": "Inactif"
+    },
+    "roles": {
+      "admin": "Admin",
+      "operator": "Operateur",
+      "viewer": "Lecteur"
+    },
+    "accessLevels": {
+      "read": "Lecture",
+      "write": "Ecriture",
+      "admin": "Admin"
+    },
+    "dialog": {
+      "createTitle": "Creer un utilisateur",
+      "editTitle": "Modifier l'utilisateur",
+      "tabs": {
+        "profile": "Profil",
+        "permissions": "Autorisations",
+        "deployments": "Deploiements"
+      },
+      "permissions": {
+        "customize": "Personnaliser les autorisations",
+        "roleDefaultsHint": "Utilisation des autorisations par defaut du role {0}. Activez la case ci-dessus pour remplacer."
+      },
+      "deployments": {
+        "hint": "Controlez a quels deploiements cet utilisateur peut acceder et avec quel niveau.",
+        "selectDeployment": "Selectionner un deploiement...",
+        "none": "Aucun acces aux deploiements attribue"
+      }
+    },
+    "fields": {
+      "username": "Nom d'utilisateur",
+      "email": "Email",
+      "password": "Mot de passe",
+      "role": "Role"
+    },
+    "delete": {
+      "title": "Supprimer l'utilisateur",
+      "message": "Etes-vous sur de vouloir supprimer l'utilisateur {0}?",
+      "deleting": "Suppression..."
+    },
+    "notifications": {
+      "createdTitle": "Utilisateur cree",
+      "createdDesc": "L'utilisateur a ete cree",
+      "createFailedTitle": "Echec de creation",
+      "updatedTitle": "Utilisateur mis a jour",
+      "updatedDesc": "L'utilisateur a ete mis a jour",
+      "updateFailedTitle": "Echec de mise a jour",
+      "deletedTitle": "Utilisateur supprime",
+      "deletedDesc": "L'utilisateur a ete supprime",
+      "deleteFailedTitle": "Echec de suppression",
+      "assignDeploymentFailedTitle": "Echec d'attribution",
+      "updateDeploymentFailedTitle": "Echec de mise a jour",
+      "removeDeploymentFailedTitle": "Echec de suppression"
+    }
+  },
+  "apiKeys": {
+    "title": "Cles API",
+    "loading": "Chargement des cles API...",
+    "actions": {
+      "createKey": "Creer une cle API",
+      "retry": "Reessayer",
+      "create": "Creer",
+      "creating": "Creation...",
+      "revoke": "Revoquer",
+      "revoking": "Revocation...",
+      "delete": "Supprimer",
+      "deleting": "Suppression...",
+      "done": "Termine"
+    },
+    "table": {
+      "columns": {
+        "name": "Nom",
+        "keyPrefix": "Prefixe",
+        "role": "Role",
+        "status": "Statut",
+        "lastUsed": "Derniere utilisation",
+        "expires": "Expire",
+        "actions": "Actions"
+      }
+    },
+    "roles": {
+      "inherited": "Herite"
+    },
+    "status": {
+      "active": "Active",
+      "revoked": "Revoquee"
+    },
+    "create": {
+      "title": "Creer une cle API",
+      "fields": {
+        "name": "Nom",
+        "descriptionOptional": "Description (optionnel)",
+        "roleOverrideOptional": "Role (optionnel)",
+        "customizePermissions": "Personnaliser les autorisations",
+        "permissions": "Autorisations",
+        "rolePermissions": "Autorisations du role ({role})",
+        "expiration": "Expiration"
+      },
+      "placeholders": {
+        "name": "ex. Pipeline CI/CD",
+        "description": "A quoi sert cette cle?"
+      },
+      "options": {
+        "inheritFromUser": "Heriter de l'utilisateur"
+      },
+      "hints": {
+        "roleInherit": "Laisser vide pour heriter du role du compte utilisateur",
+        "customizePermissions": "Remplace les autorisations par defaut du role selectionne"
+      }
+    },
+    "expiration": {
+      "never": "Jamais",
+      "days": "{n} jour(s)",
+      "years": "{n} an(s)"
+    },
+    "value": {
+      "never": "Jamais",
+      "expired": "Expiree"
+    },
+    "newKey": {
+      "title": "Cle API creee",
+      "warning": "Copiez cette cle maintenant. Vous ne pourrez plus la voir!"
+    },
+    "revoke": {
+      "title": "Revoquer la cle API",
+      "message": "Etes-vous sur de vouloir revoquer la cle API {0}? Cette action est irreversible."
+    },
+    "delete": {
+      "title": "Supprimer la cle API",
+      "message": "Etes-vous sur de vouloir supprimer la cle API {0}?"
+    },
+    "notifications": {
+      "createdTitle": "Cle API creee",
+      "createdDesc": "La cle API a ete creee",
+      "createFailedTitle": "Echec de creation",
+      "revokedTitle": "Cle API revoquee",
+      "revokedDesc": "La cle API a ete revoquee",
+      "revokeFailedTitle": "Echec de revocation",
+      "deletedTitle": "Cle API supprimee",
+      "deletedDesc": "La cle API a ete supprimee",
+      "deleteFailedTitle": "Echec de suppression"
+    }
+  },
+  "settings": {
+    "tabs": {
+      "general": "General",
+      "domain": "Domaine",
+      "infrastructure": "Infrastructure",
+      "security": "Securite & Surveillance",
+      "healthChecks": "Verifications",
+      "credentials": "Identifiants"
+    },
+    "loading": "Chargement des parametres...",
+    "value": {
+      "enabled": "Active",
+      "disabled": "Desactive",
+      "default": "Par defaut"
+    },
+    "actions": {
+      "saveChanges": "Enregistrer"
+    },
+    "notifications": {
+      "savedTitle": "Parametres enregistres",
+      "loadFailed": "Impossible de charger les parametres",
+      "domainSaved": "La configuration du domaine a ete mise a jour",
+      "domainSaveFailed": "Impossible d'enregistrer la configuration du domaine",
+      "infrastructureSaved": "La configuration de l'infrastructure a ete mise a jour",
+      "infrastructureSaveFailed": "Impossible d'enregistrer la configuration de l'infrastructure"
+    },
+    "general": {
+      "systemInfo": {
+        "title": "Informations systeme",
+        "agentStatus": "Statut de l'agent",
+        "online": "En ligne",
+        "agentVersion": "Version de l'agent",
+        "uiVersion": "Version UI"
+      },
+      "quickActions": {
+        "title": "Actions rapides",
+        "testConnection": "Tester la connexion",
+        "refreshTemplates": "Actualiser les templates",
+        "refreshing": "Actualisation...",
+        "refreshAll": "Tout actualiser",
+        "clearCache": "Vider le cache",
+        "connectionOkTitle": "Connexion OK",
+        "connectionOkDesc": "L'agent repond normalement",
+        "connectionFailedTitle": "Connexion echouee",
+        "connectionFailedDesc": "Impossible de joindre l'agent",
+        "cacheClearedTitle": "Cache vide",
+        "cacheClearedDesc": "Le stockage local a ete efface",
+        "templatesRefreshedTitle": "Templates actualises",
+        "templatesRefreshedDesc": "{n} template(s) mis a jour",
+        "templatesRefreshFailed": "Echec de l'actualisation des templates",
+        "refreshingTitle": "Actualisation",
+        "refreshingDesc": "Rechargement de toutes les donnees..."
+      },
+      "agentConfig": {
+        "title": "Configuration de l'agent",
+        "readOnly": "Lecture seule",
+        "deploymentsPath": "Chemin des deploiements",
+        "apiPort": "Port API",
+        "cors": "CORS",
+        "allowedOrigins": "Origines autorisees"
+      },
+      "configPreview": {
+        "title": "Apercu de configuration",
+        "note": "Pour modifier les parametres de l'agent, editez le fichier de configuration sur votre serveur et redemarrez l'agent. Generalement situe a {0}"
+      }
+    },
+    "domain": {
+      "title": "Configuration du domaine",
+      "defaultDomain": {
+        "label": "Domaine par defaut",
+        "hint": "Domaine de base pour les sous-domaines generes",
+        "placeholder": "example.com"
+      },
+      "subdomainStyle": {
+        "label": "Style de sous-domaine",
+        "hint": "Format pour les sous-domaines generes",
+        "options": {
+          "words": "Mots (swift-river-123)",
+          "hex": "Hex (a1b2c3d4)",
+          "short": "Court (swi-riv)"
+        }
+      },
+      "autoSubdomain": {
+        "label": "Sous-domaine auto",
+        "hint": "Generer des sous-domaines aleatoires pour les deploiements"
+      },
+      "autoSsl": {
+        "label": "SSL auto",
+        "hint": "Demander automatiquement des certificats SSL"
+      }
+    },
+    "infrastructure": {
+      "actions": {
+        "save": "Enregistrer l'infrastructure"
+      },
+      "networks": {
+        "title": "Reseaux",
+        "proxyNetwork": {
+          "label": "Reseau proxy",
+          "hint": "Reseau Docker pour la communication nginx/web",
+          "placeholder": "proxy"
+        },
+        "databaseNetwork": {
+          "label": "Reseau base de donnees",
+          "hint": "Reseau Docker pour la base de donnees",
+          "placeholder": "database"
+        }
+      },
+      "nginx": {
+        "title": "Nginx",
+        "dockerImage": "Image Docker",
+        "containerName": "Nom du conteneur",
+        "configPath": {
+          "label": "Chemin config",
+          "hint": "Chemin vers le dossier conf.d de nginx"
+        },
+        "reloadCommand": {
+          "label": "Commande de rechargement",
+          "hint": "Commande pour recharger la configuration nginx"
+        },
+        "external": {
+          "label": "Nginx externe",
+          "hint": "Utiliser une installation nginx existante au lieu du conteneur"
+        },
+        "placeholders": {
+          "image": "nginx:alpine",
+          "containerName": "nginx",
+          "configPath": "/deployments/nginx/conf.d",
+          "reloadCommand": "nginx -s reload"
+        }
+      },
+      "certbot": {
+        "title": "SSL / Certbot",
+        "dockerImage": "Image Docker",
+        "email": {
+          "label": "Email",
+          "hint": "Email pour les notifications Let's Encrypt"
+        },
+        "certsPath": {
+          "label": "Chemin des certificats",
+          "hint": "Laisser vide pour la valeur par defaut (nginx/certs)"
+        },
+        "webrootPath": {
+          "label": "Chemin webroot",
+          "hint": "Laisser vide pour la valeur par defaut (nginx/html)"
+        },
+        "dnsProvider": {
+          "label": "Fournisseur DNS",
+          "hint": "Optionnel : pour challenge DNS-01",
+          "none": "Aucun (HTTP-01)"
+        },
+        "staging": {
+          "label": "Mode staging",
+          "hint": "Utiliser le serveur staging Let's Encrypt pour les tests"
+        },
+        "placeholders": {
+          "image": "certbot/certbot",
+          "email": "admin@example.com",
+          "certsPath": "Defaut : {deployments}/nginx/certs/live",
+          "webrootPath": "Defaut : {deployments}/nginx/html"
+        }
+      },
+      "sharedDatabase": {
+        "title": "Base de donnees partagee",
+        "databaseType": "Type de base de donnees",
+        "containerName": "Nom du conteneur",
+        "host": {
+          "label": "Hote",
+          "hint": "Souvent identique au nom du conteneur"
+        },
+        "port": "Port",
+        "rootUser": "Utilisateur root",
+        "rootPassword": "Mot de passe root"
+      },
+      "sharedRedis": {
+        "title": "Redis partage",
+        "containerName": "Nom du conteneur",
+        "host": "Hote",
+        "port": "Port",
+        "password": {
+          "label": "Mot de passe",
+          "hint": "Laisser vide si aucune authentification"
+        }
+      }
+    },
+    "security": {
+      "actions": {
+        "save": "Enregistrer la securite"
+      },
+      "module": {
+        "title": "Module de securite",
+        "description": "Le module de securite capture des evenements en temps reel via OpenResty/Lua, surveille les acces non autorises, les chemins suspects et l'activite de scan. Necessite l'image nginx OpenResty.",
+        "retentionDays": {
+          "label": "Jours de retention",
+          "hint": "Combien de temps conserver les evenements de securite"
+        },
+        "rateThreshold": {
+          "label": "Seuil de taux",
+          "hint": "Requetes par minute pour declencher une alerte"
+        }
+      },
+      "autoBlocking": {
+        "title": "Blocage automatique",
+        "duration": {
+          "label": "Duree de blocage",
+          "hint": "Combien de temps bloquer automatiquement (ex. 24h, 1h, 30m)"
+        },
+        "detectionWindow": {
+          "label": "Fenetre de detection",
+          "hint": "Fenetre de temps pour compter les violations (ex. 2m, 5m)"
+        },
+        "thresholds": {
+          "title": "Seuils de detection",
+          "hint": "Les IP depassant ces seuils seront bloquees automatiquement.",
+          "notFound": {
+            "label": "Reponses 404",
+            "hint": "Nombre max d'erreurs 404 (sondage)"
+          },
+          "authFailures": {
+            "label": "Echecs d'auth",
+            "hint": "Nombre max de reponses 401/403"
+          },
+          "uniquePaths": {
+            "label": "Chemins uniques",
+            "hint": "Nombre max de chemins differents (scan)"
+          },
+          "repeatedHits": {
+            "label": "Frappes repetees",
+            "hint": "Nombre max de frappes sur le meme chemin"
+          }
+        }
+      },
+      "notifications": {
+        "updateWarningTitle": "Avertissement de mise a jour securite",
+        "saved": "La configuration de securite a ete mise a jour",
+        "savedRecreated": "Securite mise a jour et conteneur nginx recree",
+        "savedReloaded": "Securite mise a jour et nginx recharge",
+        "saveFailed": "Impossible d'enregistrer les parametres de securite"
+      }
+    },
+    "credentials": {
+      "title": "Identifiants de registre",
+      "description": "Gerez les identifiants enregistres pour les registres Docker prives. Ils peuvent etre utilises pour tirer des images privees ou deployer depuis des registres prives.",
+      "loading": "Chargement des identifiants...",
+      "empty": {
+        "title": "Aucun identifiant enregistre",
+        "description": "Cliquez sur \"Ajouter un identifiant\" pour enregistrer des identifiants pour des images privees."
+      },
+      "addForm": {
+        "title": "Ajouter un identifiant"
+      },
+      "fields": {
+        "name": "Nom",
+        "username": "Nom d'utilisateur",
+        "passwordOrToken": "Mot de passe / Token",
+        "setDefault": "Definir par defaut"
+      },
+      "placeholders": {
+        "name": "ex. Docker Hub, GitHub Container Registry",
+        "username": "Nom d'utilisateur ou token",
+        "passwordOrToken": "Mot de passe ou jeton d'acces"
+      },
+      "actions": {
+        "addCredential": "Ajouter un identifiant",
+        "saveCredential": "Enregistrer",
+        "deleteCredential": "Supprimer l'identifiant",
+        "delete": "Supprimer"
+      },
+      "delete": {
+        "title": "Supprimer l'identifiant",
+        "message": "Etes-vous sur de vouloir supprimer {0}? Cette action est irreversible."
+      },
+      "notifications": {
+        "deletedTitle": "Identifiant supprime",
+        "deletedDesc": "L'identifiant a ete supprime.",
+        "deleteFailedTitle": "Echec de suppression",
+        "deleteFailedDesc": "Une erreur est survenue lors de la suppression.",
+        "missingFieldsTitle": "Champs manquants",
+        "missingFieldsDesc": "Veuillez remplir tous les champs requis.",
+        "savedTitle": "Identifiant enregistre",
+        "savedDesc": "L'identifiant a ete ajoute.",
+        "saveFailedTitle": "Echec d'enregistrement",
+        "saveFailedDesc": "Une erreur est survenue lors de l'enregistrement."
+      }
+    }
+  },
+  "permissions": {
+    "level": {
+      "read": "Lire",
+      "write": "Ecrire",
+      "delete": "Supprimer"
+    },
+    "groups": {
+      "deployments": "Deploiements",
+      "containers": "Conteneurs",
+      "images": "Images",
+      "volumes": "Volumes",
+      "databases": "Bases de donnees",
+      "infrastructure": "Infrastructure",
+      "scheduler": "Planificateur",
+      "system": "Systeme",
+      "dns": "DNS",
+      "registries": "Registres",
+      "templates": "Modeles",
+      "traffic": "Trafic",
+      "networks": "Reseaux",
+      "certificates": "Certificats",
+      "security": "Securite",
+      "backups": "Sauvegardes",
+      "users": "Utilisateurs",
+      "apiKeys": "Cles API",
+      "settings": "Parametres",
+      "audit": "Audit"
     }
   }
 }

@@ -1,27 +1,27 @@
 <template>
   <div class="apikeys-view">
     <div class="view-header">
-      <h1>API Keys</h1>
+      <h1>{{ t("apiKeys.title") }}</h1>
       <div class="header-actions">
         <button class="btn btn-icon" :disabled="loading" @click="loadAPIKeys">
           <i class="pi pi-refresh" :class="{ 'pi-spin': loading }" />
         </button>
         <button v-if="canWrite" class="btn btn-primary" @click="showCreateDialog = true">
           <i class="pi pi-plus" />
-          <span>Create API Key</span>
+          <span>{{ t("apiKeys.actions.createKey") }}</span>
         </button>
       </div>
     </div>
 
     <div v-if="loading && !apiKeys.length" class="loading-state">
       <i class="pi pi-spin pi-spinner" />
-      <span>Loading API keys...</span>
+      <span>{{ t("apiKeys.loading") }}</span>
     </div>
 
     <div v-else-if="error" class="error-state">
       <i class="pi pi-exclamation-circle" />
       <span>{{ error }}</span>
-      <button class="btn btn-sm" @click="loadAPIKeys">Retry</button>
+      <button class="btn btn-sm" @click="loadAPIKeys">{{ t("apiKeys.actions.retry") }}</button>
     </div>
 
     <div v-else class="apikeys-content">
@@ -29,13 +29,13 @@
         <table class="data-table">
           <thead>
             <tr>
-              <th>Name</th>
-              <th>Key Prefix</th>
-              <th>Role</th>
-              <th>Status</th>
-              <th>Last Used</th>
-              <th>Expires</th>
-              <th>Actions</th>
+              <th>{{ t("apiKeys.table.columns.name") }}</th>
+              <th>{{ t("apiKeys.table.columns.keyPrefix") }}</th>
+              <th>{{ t("apiKeys.table.columns.role") }}</th>
+              <th>{{ t("apiKeys.table.columns.status") }}</th>
+              <th>{{ t("apiKeys.table.columns.lastUsed") }}</th>
+              <th>{{ t("apiKeys.table.columns.expires") }}</th>
+              <th>{{ t("apiKeys.table.columns.actions") }}</th>
             </tr>
           </thead>
           <tbody>
@@ -51,12 +51,12 @@
                 <code>{{ key.key_prefix }}</code>
               </td>
               <td>
-                <span v-if="key.role" class="role-badge" :class="key.role">{{ key.role }}</span>
-                <span v-else class="role-badge inherit">Inherited</span>
+                <span v-if="key.role" class="role-badge" :class="key.role">{{ formatRole(key.role) }}</span>
+                <span v-else class="role-badge inherit">{{ t("apiKeys.roles.inherited") }}</span>
               </td>
               <td>
                 <span class="status-badge" :class="key.is_active ? 'active' : 'inactive'">
-                  {{ key.is_active ? "Active" : "Revoked" }}
+                  {{ key.is_active ? t("apiKeys.status.active") : t("apiKeys.status.revoked") }}
                 </span>
               </td>
               <td>{{ formatDate(key.last_used_at) }}</td>
@@ -65,7 +65,7 @@
                 <button
                   v-if="key.is_active && canWrite"
                   class="btn btn-icon btn-sm"
-                  title="Revoke"
+                  :title="t('apiKeys.actions.revoke')"
                   @click="confirmRevoke(key)"
                 >
                   <i class="pi pi-ban" />
@@ -73,7 +73,7 @@
                 <button
                   v-if="canDelete"
                   class="btn btn-icon btn-sm btn-danger"
-                  title="Delete"
+                  :title="t('apiKeys.actions.delete')"
                   @click="confirmDelete(key)"
                 >
                   <i class="pi pi-trash" />
@@ -89,60 +89,64 @@
     <div v-if="showCreateDialog" class="modal-overlay" @click.self="closeDialogs">
       <div class="modal-content">
         <div class="modal-header">
-          <h2>Create API Key</h2>
+          <h2>{{ t("apiKeys.create.title") }}</h2>
           <button class="btn btn-icon" @click="closeDialogs">
             <i class="pi pi-times" />
           </button>
         </div>
         <form @submit.prevent="createAPIKey">
           <div class="form-group">
-            <label>Name</label>
-            <input v-model="formData.name" type="text" placeholder="e.g., CI/CD Pipeline" required />
+            <label>{{ t("apiKeys.create.fields.name") }}</label>
+            <input v-model="formData.name" type="text" :placeholder="t('apiKeys.create.placeholders.name')" required />
           </div>
           <div class="form-group">
-            <label>Description (optional)</label>
-            <input v-model="formData.description" type="text" placeholder="What is this key used for?" />
+            <label>{{ t("apiKeys.create.fields.descriptionOptional") }}</label>
+            <input
+              v-model="formData.description"
+              type="text"
+              :placeholder="t('apiKeys.create.placeholders.description')"
+            />
           </div>
           <div class="form-group">
-            <label>Role Override (optional)</label>
+            <label>{{ t("apiKeys.create.fields.roleOverrideOptional") }}</label>
             <select v-model="formData.role" @change="onRoleChange">
-              <option value="">Inherit from user</option>
-              <option v-if="authStore.isAdmin" value="admin">Admin</option>
-              <option value="operator">Operator</option>
-              <option value="viewer">Viewer</option>
+              <option value="">{{ t("apiKeys.create.options.inheritFromUser") }}</option>
+              <option v-if="authStore.isAdmin" value="admin">{{ t("users.roles.admin") }}</option>
+              <option value="operator">{{ t("users.roles.operator") }}</option>
+              <option value="viewer">{{ t("users.roles.viewer") }}</option>
             </select>
-            <small>Leave empty to inherit the role from the user account</small>
+            <small>{{ t("apiKeys.create.hints.roleInherit") }}</small>
           </div>
           <div class="form-group">
             <label class="checkbox-label">
               <input v-model="formData.useCustomPermissions" type="checkbox" @change="onCustomPermissionsToggle" />
-              <span>Customize permissions</span>
+              <span>{{ t("apiKeys.create.fields.customizePermissions") }}</span>
             </label>
-            <small>Override the default permissions for the selected role</small>
+            <small>{{ t("apiKeys.create.hints.customizePermissions") }}</small>
           </div>
           <div v-if="formData.useCustomPermissions" class="form-group">
-            <label>Permissions</label>
+            <label>{{ t("apiKeys.create.fields.permissions") }}</label>
             <PermissionPicker v-model="formData.permissions" />
           </div>
           <div v-else-if="formData.role" class="form-group">
-            <label>Role permissions ({{ formData.role }})</label>
+            <label>{{ t("apiKeys.create.fields.rolePermissions", { role: formatRole(formData.role) }) }}</label>
             <PermissionPicker :model-value="roleDefaultPermissions" readonly />
           </div>
           <div class="form-group">
-            <label>Expiration</label>
+            <label>{{ t("apiKeys.create.fields.expiration") }}</label>
             <select v-model="formData.expires_in">
-              <option :value="0">Never</option>
-              <option :value="86400">1 day</option>
-              <option :value="604800">7 days</option>
-              <option :value="2592000">30 days</option>
-              <option :value="7776000">90 days</option>
-              <option :value="31536000">1 year</option>
+              <option :value="0">{{ t("apiKeys.expiration.never") }}</option>
+              <option :value="86400">{{ t("apiKeys.expiration.days", { n: 1 }) }}</option>
+              <option :value="604800">{{ t("apiKeys.expiration.days", { n: 7 }) }}</option>
+              <option :value="2592000">{{ t("apiKeys.expiration.days", { n: 30 }) }}</option>
+              <option :value="7776000">{{ t("apiKeys.expiration.days", { n: 90 }) }}</option>
+              <option :value="31536000">{{ t("apiKeys.expiration.years", { n: 1 }) }}</option>
             </select>
           </div>
           <div class="modal-actions">
-            <button type="button" class="btn" @click="closeDialogs">Cancel</button>
+            <button type="button" class="btn" @click="closeDialogs">{{ t("common.cancel") }}</button>
             <button type="submit" class="btn btn-primary" :disabled="saving">
-              {{ saving ? "Creating..." : "Create" }}
+              {{ saving ? t("apiKeys.actions.creating") : t("apiKeys.actions.create") }}
             </button>
           </div>
         </form>
@@ -153,12 +157,12 @@
     <div v-if="showNewKeyDialog" class="modal-overlay">
       <div class="modal-content">
         <div class="modal-header">
-          <h2>API Key Created</h2>
+          <h2>{{ t("apiKeys.newKey.title") }}</h2>
         </div>
         <div class="new-key-content">
           <div class="warning-banner">
             <i class="pi pi-exclamation-triangle" />
-            <span>Copy this key now. You won't be able to see it again!</span>
+            <span>{{ t("apiKeys.newKey.warning") }}</span>
           </div>
           <div class="key-display">
             <code>{{ newKeyValue }}</code>
@@ -168,7 +172,7 @@
           </div>
         </div>
         <div class="modal-actions">
-          <button class="btn btn-primary" @click="closeNewKeyDialog">Done</button>
+          <button class="btn btn-primary" @click="closeNewKeyDialog">{{ t("apiKeys.actions.done") }}</button>
         </div>
       </div>
     </div>
@@ -177,16 +181,15 @@
     <div v-if="showRevokeDialog" class="modal-overlay" @click.self="closeDialogs">
       <div class="modal-content modal-sm">
         <div class="modal-header">
-          <h2>Revoke API Key</h2>
+          <h2>{{ t("apiKeys.revoke.title") }}</h2>
         </div>
-        <p>
-          Are you sure you want to revoke API key <strong>{{ selectedKey?.name }}</strong
-          >? This action cannot be undone.
-        </p>
+        <i18n-t keypath="apiKeys.revoke.message" tag="p">
+          <strong>{{ selectedKey?.name }}</strong>
+        </i18n-t>
         <div class="modal-actions">
-          <button class="btn" @click="closeDialogs">Cancel</button>
+          <button class="btn" @click="closeDialogs">{{ t("common.cancel") }}</button>
           <button class="btn btn-danger" :disabled="saving" @click="revokeKey">
-            {{ saving ? "Revoking..." : "Revoke" }}
+            {{ saving ? t("apiKeys.actions.revoking") : t("apiKeys.actions.revoke") }}
           </button>
         </div>
       </div>
@@ -196,16 +199,15 @@
     <div v-if="showDeleteDialog" class="modal-overlay" @click.self="closeDialogs">
       <div class="modal-content modal-sm">
         <div class="modal-header">
-          <h2>Delete API Key</h2>
+          <h2>{{ t("apiKeys.delete.title") }}</h2>
         </div>
-        <p>
-          Are you sure you want to delete API key <strong>{{ selectedKey?.name }}</strong
-          >?
-        </p>
+        <i18n-t keypath="apiKeys.delete.message" tag="p">
+          <strong>{{ selectedKey?.name }}</strong>
+        </i18n-t>
         <div class="modal-actions">
-          <button class="btn" @click="closeDialogs">Cancel</button>
+          <button class="btn" @click="closeDialogs">{{ t("common.cancel") }}</button>
           <button class="btn btn-danger" :disabled="saving" @click="deleteKey">
-            {{ saving ? "Deleting..." : "Delete" }}
+            {{ saving ? t("apiKeys.actions.deleting") : t("apiKeys.actions.delete") }}
           </button>
         </div>
       </div>
@@ -215,14 +217,18 @@
 
 <script setup lang="ts">
 import { ref, onMounted, computed } from "vue";
+import { useI18n } from "vue-i18n";
 import type { APIKey, UserRole, Permission } from "@/types";
 import { useUsersStore } from "@/stores/users";
 import { useAuthStore } from "@/stores/auth";
+import { useNotificationsStore } from "@/stores/notifications";
 import PermissionPicker from "@/components/PermissionPicker.vue";
 import { getRolePermissions } from "@/utils/permissions";
 
 const usersStore = useUsersStore();
 const authStore = useAuthStore();
+const notifications = useNotificationsStore();
+const { t, te, locale } = useI18n();
 
 const apiKeys = computed(() => usersStore.apiKeys);
 const loading = computed(() => usersStore.loading);
@@ -252,6 +258,11 @@ const roleDefaultPermissions = computed(() => {
   if (!formData.value.role) return [];
   return getRolePermissions(formData.value.role as UserRole);
 });
+
+const formatRole = (role: string) => {
+  const key = `users.roles.${role}`;
+  return te(key) ? t(key) : role;
+};
 
 const onRoleChange = () => {
   if (formData.value.useCustomPermissions && formData.value.role) {
@@ -283,6 +294,7 @@ const createAPIKey = async () => {
     newKeyValue.value = result.api_key.key || "";
     showCreateDialog.value = false;
     showNewKeyDialog.value = true;
+    notifications.success(t("apiKeys.notifications.createdTitle"), t("apiKeys.notifications.createdDesc"));
     formData.value = {
       name: "",
       description: "",
@@ -292,7 +304,7 @@ const createAPIKey = async () => {
       permissions: [],
     };
   } catch (e: any) {
-    alert(e.message);
+    notifications.error(t("apiKeys.notifications.createFailedTitle"), e.response?.data?.error || e.message);
   } finally {
     saving.value = false;
   }
@@ -313,9 +325,10 @@ const revokeKey = async () => {
   saving.value = true;
   try {
     await usersStore.revokeAPIKey(selectedKey.value.id);
+    notifications.success(t("apiKeys.notifications.revokedTitle"), t("apiKeys.notifications.revokedDesc"));
     closeDialogs();
   } catch (e: any) {
-    alert(e.message);
+    notifications.error(t("apiKeys.notifications.revokeFailedTitle"), e.response?.data?.error || e.message);
   } finally {
     saving.value = false;
   }
@@ -326,9 +339,10 @@ const deleteKey = async () => {
   saving.value = true;
   try {
     await usersStore.deleteAPIKey(selectedKey.value.id);
+    notifications.success(t("apiKeys.notifications.deletedTitle"), t("apiKeys.notifications.deletedDesc"));
     closeDialogs();
   } catch (e: any) {
-    alert(e.message);
+    notifications.error(t("apiKeys.notifications.deleteFailedTitle"), e.response?.data?.error || e.message);
   } finally {
     saving.value = false;
   }
@@ -359,8 +373,8 @@ const closeNewKeyDialog = () => {
 };
 
 const formatDate = (date?: string) => {
-  if (!date) return "Never";
-  return new Date(date).toLocaleDateString(undefined, {
+  if (!date) return t("apiKeys.value.never");
+  return new Date(date).toLocaleDateString(locale.value || undefined, {
     year: "numeric",
     month: "short",
     day: "numeric",
@@ -370,10 +384,10 @@ const formatDate = (date?: string) => {
 };
 
 const formatExpiry = (date?: string) => {
-  if (!date) return "Never";
+  if (!date) return t("apiKeys.value.never");
   const d = new Date(date);
-  if (d < new Date()) return "Expired";
-  return d.toLocaleDateString(undefined, {
+  if (d < new Date()) return t("apiKeys.value.expired");
+  return d.toLocaleDateString(locale.value || undefined, {
     year: "numeric",
     month: "short",
     day: "numeric",

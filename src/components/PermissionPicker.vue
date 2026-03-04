@@ -39,6 +39,7 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
+import { useI18n } from "vue-i18n";
 
 interface PermissionEntry {
   value: string;
@@ -61,177 +62,50 @@ const emit = defineEmits<{
   "update:modelValue": [value: string[]];
 }>();
 
-const permissionGroups: PermissionGroup[] = [
-  {
-    key: "deployments",
-    label: "Deployments",
-    permissions: [
-      { value: "deployments:read", label: "Read", level: "read" },
-      { value: "deployments:write", label: "Write", level: "write" },
-      { value: "deployments:delete", label: "Delete", level: "delete" },
-    ],
-  },
-  {
-    key: "containers",
-    label: "Containers",
-    permissions: [
-      { value: "containers:read", label: "Read", level: "read" },
-      { value: "containers:write", label: "Write", level: "write" },
-      { value: "containers:delete", label: "Delete", level: "delete" },
-    ],
-  },
-  {
-    key: "images",
-    label: "Images",
-    permissions: [
-      { value: "images:read", label: "Read", level: "read" },
-      { value: "images:write", label: "Write", level: "write" },
-      { value: "images:delete", label: "Delete", level: "delete" },
-    ],
-  },
-  {
-    key: "volumes",
-    label: "Volumes",
-    permissions: [
-      { value: "volumes:read", label: "Read", level: "read" },
-      { value: "volumes:write", label: "Write", level: "write" },
-      { value: "volumes:delete", label: "Delete", level: "delete" },
-    ],
-  },
-  {
-    key: "databases",
-    label: "Databases",
-    permissions: [
-      { value: "databases:read", label: "Read", level: "read" },
-      { value: "databases:write", label: "Write", level: "write" },
-      { value: "databases:delete", label: "Delete", level: "delete" },
-    ],
-  },
-  {
-    key: "infrastructure",
-    label: "Infrastructure",
-    permissions: [
-      { value: "infrastructure:read", label: "Read", level: "read" },
-      { value: "infrastructure:write", label: "Write", level: "write" },
-    ],
-  },
-  {
-    key: "scheduler",
-    label: "Scheduler",
-    permissions: [
-      { value: "scheduler:read", label: "Read", level: "read" },
-      { value: "scheduler:write", label: "Write", level: "write" },
-      { value: "scheduler:delete", label: "Delete", level: "delete" },
-    ],
-  },
-  {
-    key: "system",
-    label: "System",
-    permissions: [
-      { value: "system:read", label: "Read", level: "read" },
-      { value: "system:write", label: "Write", level: "write" },
-    ],
-  },
-  {
-    key: "dns",
-    label: "DNS",
-    permissions: [
-      { value: "dns:read", label: "Read", level: "read" },
-      { value: "dns:write", label: "Write", level: "write" },
-    ],
-  },
-  {
-    key: "registries",
-    label: "Registries",
-    permissions: [
-      { value: "registries:read", label: "Read", level: "read" },
-      { value: "registries:write", label: "Write", level: "write" },
-      { value: "registries:delete", label: "Delete", level: "delete" },
-    ],
-  },
-  {
-    key: "templates",
-    label: "Templates",
-    permissions: [
-      { value: "templates:read", label: "Read", level: "read" },
-      { value: "templates:write", label: "Write", level: "write" },
-    ],
-  },
-  {
-    key: "traffic",
-    label: "Traffic",
-    permissions: [
-      { value: "traffic:read", label: "Read", level: "read" },
-      { value: "traffic:write", label: "Write", level: "write" },
-    ],
-  },
-  {
-    key: "networks",
-    label: "Networks",
-    permissions: [
-      { value: "networks:read", label: "Read", level: "read" },
-      { value: "networks:write", label: "Write", level: "write" },
-      { value: "networks:delete", label: "Delete", level: "delete" },
-    ],
-  },
-  {
-    key: "certificates",
-    label: "Certificates",
-    permissions: [
-      { value: "certificates:read", label: "Read", level: "read" },
-      { value: "certificates:write", label: "Write", level: "write" },
-      { value: "certificates:delete", label: "Delete", level: "delete" },
-    ],
-  },
-  {
-    key: "security",
-    label: "Security",
-    permissions: [
-      { value: "security:read", label: "Read", level: "read" },
-      { value: "security:write", label: "Write", level: "write" },
-    ],
-  },
-  {
-    key: "backups",
-    label: "Backups",
-    permissions: [
-      { value: "backups:read", label: "Read", level: "read" },
-      { value: "backups:write", label: "Write", level: "write" },
-      { value: "backups:delete", label: "Delete", level: "delete" },
-    ],
-  },
-  {
-    key: "users",
-    label: "Users",
-    permissions: [
-      { value: "users:read", label: "Read", level: "read" },
-      { value: "users:write", label: "Write", level: "write" },
-      { value: "users:delete", label: "Delete", level: "delete" },
-    ],
-  },
-  {
-    key: "apikeys",
-    label: "API Keys",
-    permissions: [
-      { value: "apikeys:read", label: "Read", level: "read" },
-      { value: "apikeys:write", label: "Write", level: "write" },
-      { value: "apikeys:delete", label: "Delete", level: "delete" },
-    ],
-  },
-  {
-    key: "settings",
-    label: "Settings",
-    permissions: [
-      { value: "settings:read", label: "Read", level: "read" },
-      { value: "settings:write", label: "Write", level: "write" },
-    ],
-  },
-  {
-    key: "audit",
-    label: "Audit",
-    permissions: [{ value: "audit:read", label: "Read", level: "read" }],
-  },
-];
+const { t } = useI18n();
+
+const permissionGroups = computed<PermissionGroup[]>(() => {
+  const readLabel = t("permissions.level.read");
+  const writeLabel = t("permissions.level.write");
+  const deleteLabel = t("permissions.level.delete");
+
+  const rw = (prefix: string): PermissionEntry[] => [
+    { value: `${prefix}:read`, label: readLabel, level: "read" },
+    { value: `${prefix}:write`, label: writeLabel, level: "write" },
+  ];
+
+  const rwd = (prefix: string): PermissionEntry[] => [
+    ...rw(prefix),
+    { value: `${prefix}:delete`, label: deleteLabel, level: "delete" },
+  ];
+
+  return [
+    { key: "deployments", label: t("permissions.groups.deployments"), permissions: rwd("deployments") },
+    { key: "containers", label: t("permissions.groups.containers"), permissions: rwd("containers") },
+    { key: "images", label: t("permissions.groups.images"), permissions: rwd("images") },
+    { key: "volumes", label: t("permissions.groups.volumes"), permissions: rwd("volumes") },
+    { key: "databases", label: t("permissions.groups.databases"), permissions: rwd("databases") },
+    { key: "infrastructure", label: t("permissions.groups.infrastructure"), permissions: rw("infrastructure") },
+    { key: "scheduler", label: t("permissions.groups.scheduler"), permissions: rwd("scheduler") },
+    { key: "system", label: t("permissions.groups.system"), permissions: rw("system") },
+    { key: "dns", label: t("permissions.groups.dns"), permissions: rw("dns") },
+    { key: "registries", label: t("permissions.groups.registries"), permissions: rwd("registries") },
+    { key: "templates", label: t("permissions.groups.templates"), permissions: rw("templates") },
+    { key: "traffic", label: t("permissions.groups.traffic"), permissions: rw("traffic") },
+    { key: "networks", label: t("permissions.groups.networks"), permissions: rwd("networks") },
+    { key: "certificates", label: t("permissions.groups.certificates"), permissions: rwd("certificates") },
+    { key: "security", label: t("permissions.groups.security"), permissions: rw("security") },
+    { key: "backups", label: t("permissions.groups.backups"), permissions: rwd("backups") },
+    { key: "users", label: t("permissions.groups.users"), permissions: rwd("users") },
+    { key: "apikeys", label: t("permissions.groups.apiKeys"), permissions: rwd("apikeys") },
+    { key: "settings", label: t("permissions.groups.settings"), permissions: rw("settings") },
+    {
+      key: "audit",
+      label: t("permissions.groups.audit"),
+      permissions: [{ value: "audit:read", label: readLabel, level: "read" }],
+    },
+  ];
+});
 
 const selected = computed(() => new Set(props.modelValue));
 

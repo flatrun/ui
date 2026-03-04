@@ -2665,5 +2665,494 @@
         }
       }
     }
+  },
+  "users": {
+    "title": "Benutzer",
+    "loading": "Benutzer werden geladen...",
+    "actions": {
+      "addUser": "Benutzer hinzufügen",
+      "retry": "Erneut versuchen",
+      "add": "Hinzufügen",
+      "edit": "Bearbeiten",
+      "delete": "Löschen",
+      "create": "Erstellen",
+      "update": "Aktualisieren",
+      "saving": "Speichern..."
+    },
+    "table": {
+      "columns": {
+        "username": "Benutzername",
+        "email": "E-Mail",
+        "role": "Rolle",
+        "permissions": "Berechtigungen",
+        "deployments": "Deployments",
+        "status": "Status",
+        "actions": "Aktionen"
+      },
+      "permissions": {
+        "custom": "Benutzerdefiniert ({n})",
+        "roleDefaults": "Rollenstandard"
+      }
+    },
+    "status": {
+      "active": "Aktiv",
+      "inactive": "Inaktiv"
+    },
+    "roles": {
+      "admin": "Admin",
+      "operator": "Operator",
+      "viewer": "Viewer"
+    },
+    "accessLevels": {
+      "read": "Lesen",
+      "write": "Schreiben",
+      "admin": "Admin"
+    },
+    "dialog": {
+      "createTitle": "Benutzer erstellen",
+      "editTitle": "Benutzer bearbeiten",
+      "tabs": {
+        "profile": "Profil",
+        "permissions": "Berechtigungen",
+        "deployments": "Deployments"
+      },
+      "permissions": {
+        "customize": "Berechtigungen anpassen",
+        "roleDefaultsHint": "Verwendet Rollenstandard von {0}. Aktivieren Sie das Kontrollkaestchen oben, um zu ueberschreiben."
+      },
+      "deployments": {
+        "hint": "Steuern Sie, auf welche Deployments dieser Benutzer zugreifen kann und mit welchem Zugriff.",
+        "selectDeployment": "Deployment auswaehlen...",
+        "none": "Kein Deployment-Zugriff zugewiesen"
+      }
+    },
+    "fields": {
+      "username": "Benutzername",
+      "email": "E-Mail",
+      "password": "Passwort",
+      "role": "Rolle"
+    },
+    "delete": {
+      "title": "Benutzer loeschen",
+      "message": "Moechten Sie den Benutzer {0} wirklich loeschen?",
+      "deleting": "Loeschen..."
+    },
+    "notifications": {
+      "createdTitle": "Benutzer erstellt",
+      "createdDesc": "Benutzer wurde erstellt",
+      "createFailedTitle": "Erstellen fehlgeschlagen",
+      "updatedTitle": "Benutzer aktualisiert",
+      "updatedDesc": "Benutzer wurde aktualisiert",
+      "updateFailedTitle": "Aktualisierung fehlgeschlagen",
+      "deletedTitle": "Benutzer geloescht",
+      "deletedDesc": "Benutzer wurde geloescht",
+      "deleteFailedTitle": "Loeschen fehlgeschlagen",
+      "assignDeploymentFailedTitle": "Zuweisung fehlgeschlagen",
+      "updateDeploymentFailedTitle": "Aktualisierung fehlgeschlagen",
+      "removeDeploymentFailedTitle": "Entfernen fehlgeschlagen"
+    }
+  },
+  "apiKeys": {
+    "title": "API-Schluessel",
+    "loading": "API-Schluessel werden geladen...",
+    "actions": {
+      "createKey": "API-Schluessel erstellen",
+      "retry": "Erneut versuchen",
+      "create": "Erstellen",
+      "creating": "Wird erstellt...",
+      "revoke": "Widerrufen",
+      "revoking": "Wird widerrufen...",
+      "delete": "Loeschen",
+      "deleting": "Loeschen...",
+      "done": "Fertig"
+    },
+    "table": {
+      "columns": {
+        "name": "Name",
+        "keyPrefix": "Schluessel-Praefix",
+        "role": "Rolle",
+        "status": "Status",
+        "lastUsed": "Zuletzt verwendet",
+        "expires": "Laeuft ab",
+        "actions": "Aktionen"
+      }
+    },
+    "roles": {
+      "inherited": "Geerbt"
+    },
+    "status": {
+      "active": "Aktiv",
+      "revoked": "Widerrufen"
+    },
+    "create": {
+      "title": "API-Schluessel erstellen",
+      "fields": {
+        "name": "Name",
+        "descriptionOptional": "Beschreibung (optional)",
+        "roleOverrideOptional": "Rolle ueberschreiben (optional)",
+        "customizePermissions": "Berechtigungen anpassen",
+        "permissions": "Berechtigungen",
+        "rolePermissions": "Rollenberechtigungen ({role})",
+        "expiration": "Ablauf"
+      },
+      "placeholders": {
+        "name": "z.B. CI/CD Pipeline",
+        "description": "Wofuer wird dieser Schluessel verwendet?"
+      },
+      "options": {
+        "inheritFromUser": "Vom Benutzer uebernehmen"
+      },
+      "hints": {
+        "roleInherit": "Leer lassen, um die Rolle vom Benutzer zu uebernehmen",
+        "customizePermissions": "Ueberschreibt die Standardberechtigungen der ausgewaehlten Rolle"
+      }
+    },
+    "expiration": {
+      "never": "Nie",
+      "days": "{n} Tag(e)",
+      "years": "{n} Jahr(e)"
+    },
+    "value": {
+      "never": "Nie",
+      "expired": "Abgelaufen"
+    },
+    "newKey": {
+      "title": "API-Schluessel erstellt",
+      "warning": "Kopieren Sie diesen Schluessel jetzt. Er wird nicht erneut angezeigt!"
+    },
+    "revoke": {
+      "title": "API-Schluessel widerrufen",
+      "message": "Moechten Sie den API-Schluessel {0} wirklich widerrufen? Diese Aktion kann nicht rueckgaengig gemacht werden."
+    },
+    "delete": {
+      "title": "API-Schluessel loeschen",
+      "message": "Moechten Sie den API-Schluessel {0} wirklich loeschen?"
+    },
+    "notifications": {
+      "createdTitle": "API-Schluessel erstellt",
+      "createdDesc": "API-Schluessel wurde erstellt",
+      "createFailedTitle": "Erstellen fehlgeschlagen",
+      "revokedTitle": "API-Schluessel widerrufen",
+      "revokedDesc": "API-Schluessel wurde widerrufen",
+      "revokeFailedTitle": "Widerruf fehlgeschlagen",
+      "deletedTitle": "API-Schluessel geloescht",
+      "deletedDesc": "API-Schluessel wurde geloescht",
+      "deleteFailedTitle": "Loeschen fehlgeschlagen"
+    }
+  },
+  "settings": {
+    "tabs": {
+      "general": "Allgemein",
+      "domain": "Domain",
+      "infrastructure": "Infrastruktur",
+      "security": "Sicherheit & Ueberwachung",
+      "healthChecks": "Statuspruefungen",
+      "credentials": "Zugangsdaten"
+    },
+    "loading": "Einstellungen werden geladen...",
+    "value": {
+      "enabled": "Aktiviert",
+      "disabled": "Deaktiviert",
+      "default": "Standard"
+    },
+    "actions": {
+      "saveChanges": "Aenderungen speichern"
+    },
+    "notifications": {
+      "savedTitle": "Einstellungen gespeichert",
+      "loadFailed": "Einstellungen konnten nicht geladen werden",
+      "domainSaved": "Domain-Konfiguration wurde aktualisiert",
+      "domainSaveFailed": "Domain-Einstellungen konnten nicht gespeichert werden",
+      "infrastructureSaved": "Infrastruktur-Konfiguration wurde aktualisiert",
+      "infrastructureSaveFailed": "Infrastruktur-Einstellungen konnten nicht gespeichert werden"
+    },
+    "general": {
+      "systemInfo": {
+        "title": "Systeminformationen",
+        "agentStatus": "Agent-Status",
+        "online": "Online",
+        "agentVersion": "Agent-Version",
+        "uiVersion": "UI-Version"
+      },
+      "quickActions": {
+        "title": "Schnellaktionen",
+        "testConnection": "Verbindung testen",
+        "refreshTemplates": "Templates aktualisieren",
+        "refreshing": "Aktualisieren...",
+        "refreshAll": "Alles aktualisieren",
+        "clearCache": "Cache leeren",
+        "connectionOkTitle": "Verbindung OK",
+        "connectionOkDesc": "Agent antwortet normal",
+        "connectionFailedTitle": "Verbindung fehlgeschlagen",
+        "connectionFailedDesc": "Agent ist nicht erreichbar",
+        "cacheClearedTitle": "Cache geleert",
+        "cacheClearedDesc": "Lokaler Speicher wurde geleert",
+        "templatesRefreshedTitle": "Templates aktualisiert",
+        "templatesRefreshedDesc": "{n} Template(s) aktualisiert",
+        "templatesRefreshFailed": "Templates konnten nicht aktualisiert werden",
+        "refreshingTitle": "Aktualisieren",
+        "refreshingDesc": "Alle Daten werden neu geladen..."
+      },
+      "agentConfig": {
+        "title": "Agent-Konfiguration",
+        "readOnly": "Nur lesen",
+        "deploymentsPath": "Deployments-Pfad",
+        "apiPort": "API-Port",
+        "cors": "CORS",
+        "allowedOrigins": "Zulaessige Urspruenge"
+      },
+      "configPreview": {
+        "title": "Konfigurationsvorschau",
+        "note": "Um Agent-Einstellungen zu aendern, bearbeiten Sie die Konfigurationsdatei auf Ihrem Server und starten Sie den Agent neu. Typischerweise unter {0}"
+      }
+    },
+    "domain": {
+      "title": "Domain-Konfiguration",
+      "defaultDomain": {
+        "label": "Standard-Domain",
+        "hint": "Basisdomain fuer automatisch erzeugte Subdomains",
+        "placeholder": "example.com"
+      },
+      "subdomainStyle": {
+        "label": "Subdomain-Stil",
+        "hint": "Format fuer automatisch erzeugte Subdomains",
+        "options": {
+          "words": "Woerter (swift-river-123)",
+          "hex": "Hex (a1b2c3d4)",
+          "short": "Kurz (swi-riv)"
+        }
+      },
+      "autoSubdomain": {
+        "label": "Auto-Subdomain",
+        "hint": "Zufaellige Subdomains fuer neue Deployments erzeugen"
+      },
+      "autoSsl": {
+        "label": "Auto SSL",
+        "hint": "SSL-Zertifikate automatisch anfordern"
+      }
+    },
+    "infrastructure": {
+      "actions": {
+        "save": "Infrastruktur speichern"
+      },
+      "networks": {
+        "title": "Netzwerke",
+        "proxyNetwork": {
+          "label": "Proxy-Netzwerk",
+          "hint": "Docker-Netzwerk fuer nginx/web Container-Kommunikation",
+          "placeholder": "proxy"
+        },
+        "databaseNetwork": {
+          "label": "Datenbank-Netzwerk",
+          "hint": "Docker-Netzwerk fuer Datenbank-Container-Kommunikation",
+          "placeholder": "database"
+        }
+      },
+      "nginx": {
+        "title": "Nginx",
+        "dockerImage": "Docker-Image",
+        "containerName": "Container-Name",
+        "configPath": {
+          "label": "Config-Pfad",
+          "hint": "Pfad zum nginx conf.d Verzeichnis"
+        },
+        "reloadCommand": {
+          "label": "Reload-Befehl",
+          "hint": "Befehl zum Neuladen der nginx-Konfiguration"
+        },
+        "external": {
+          "label": "Externes Nginx",
+          "hint": "Vorhandene nginx-Installation statt Docker-Container verwenden"
+        },
+        "placeholders": {
+          "image": "nginx:alpine",
+          "containerName": "nginx",
+          "configPath": "/deployments/nginx/conf.d",
+          "reloadCommand": "nginx -s reload"
+        }
+      },
+      "certbot": {
+        "title": "SSL / Certbot",
+        "dockerImage": "Docker-Image",
+        "email": {
+          "label": "E-Mail",
+          "hint": "E-Mail fuer Let's Encrypt Benachrichtigungen"
+        },
+        "certsPath": {
+          "label": "Zertifikats-Pfad",
+          "hint": "Leer lassen, um Standard zu verwenden (nginx/certs)"
+        },
+        "webrootPath": {
+          "label": "Webroot-Pfad",
+          "hint": "Leer lassen, um Standard zu verwenden (nginx/html)"
+        },
+        "dnsProvider": {
+          "label": "DNS-Provider",
+          "hint": "Optional: fuer DNS-01 Challenge",
+          "none": "Keiner (HTTP-01)"
+        },
+        "staging": {
+          "label": "Staging-Modus",
+          "hint": "Let's Encrypt Staging-Server zum Testen verwenden"
+        },
+        "placeholders": {
+          "image": "certbot/certbot",
+          "email": "admin@example.com",
+          "certsPath": "Standard: {deployments}/nginx/certs/live",
+          "webrootPath": "Standard: {deployments}/nginx/html"
+        }
+      },
+      "sharedDatabase": {
+        "title": "Gemeinsame Datenbank",
+        "databaseType": "Datenbanktyp",
+        "containerName": "Container-Name",
+        "host": {
+          "label": "Host",
+          "hint": "Meist identisch mit dem Container-Namen"
+        },
+        "port": "Port",
+        "rootUser": "Root-Benutzer",
+        "rootPassword": "Root-Passwort"
+      },
+      "sharedRedis": {
+        "title": "Gemeinsames Redis",
+        "containerName": "Container-Name",
+        "host": "Host",
+        "port": "Port",
+        "password": {
+          "label": "Passwort",
+          "hint": "Leer lassen, wenn keine Authentifizierung"
+        }
+      }
+    },
+    "security": {
+      "actions": {
+        "save": "Sicherheits-Einstellungen speichern"
+      },
+      "module": {
+        "title": "Sicherheitsmodul",
+        "description": "Das Sicherheitsmodul erfasst Ereignisse in Echtzeit mit OpenResty/Lua und ueberwacht unbefugte Zugriffe, verdaechtige Pfade und Scanner-Aktivitaet. Erfordert OpenResty nginx Image.",
+        "retentionDays": {
+          "label": "Aufbewahrungstage",
+          "hint": "Wie lange Sicherheitsereignisse gespeichert werden"
+        },
+        "rateThreshold": {
+          "label": "Rate-Schwelle",
+          "hint": "Anfragen pro Minute, um eine High-Rate-Warnung auszulösen"
+        }
+      },
+      "autoBlocking": {
+        "title": "Auto-Blockierung",
+        "duration": {
+          "label": "Auto-Block Dauer",
+          "hint": "Wie lange IPs automatisch blockiert werden (z.B. 24h, 1h, 30m)"
+        },
+        "detectionWindow": {
+          "label": "Erkennungsfenster",
+          "hint": "Zeitfenster fuer das Zaehlen von Verstoessen (z.B. 2m, 5m)"
+        },
+        "thresholds": {
+          "title": "Erkennungsschwellen",
+          "hint": "IPs, die diese Schwellen im Erkennungsfenster uebersteigen, werden automatisch blockiert.",
+          "notFound": {
+            "label": "404 Antworten",
+            "hint": "Max. 404 Fehler (Pfad-Probing)"
+          },
+          "authFailures": {
+            "label": "Auth-Fehler",
+            "hint": "Max. 401/403 Antworten"
+          },
+          "uniquePaths": {
+            "label": "Eindeutige Pfade",
+            "hint": "Max. unterschiedliche Pfade (Scanning)"
+          },
+          "repeatedHits": {
+            "label": "Wiederholte Treffer",
+            "hint": "Max. Treffer auf denselben Pfad (Hammering)"
+          }
+        }
+      },
+      "notifications": {
+        "updateWarningTitle": "Warnung: Sicherheitsupdate",
+        "saved": "Sicherheitskonfiguration wurde aktualisiert",
+        "savedRecreated": "Sicherheitskonfiguration aktualisiert und nginx-Container neu erstellt",
+        "savedReloaded": "Sicherheitskonfiguration aktualisiert und nginx neu geladen",
+        "saveFailed": "Sicherheits-Einstellungen konnten nicht gespeichert werden"
+      }
+    },
+    "credentials": {
+      "title": "Registry-Zugangsdaten",
+      "description": "Verwalten Sie gespeicherte Zugangsdaten fuer private Docker-Registries. Diese koennen beim Pullen privater Images oder beim Deployment verwendet werden.",
+      "loading": "Zugangsdaten werden geladen...",
+      "empty": {
+        "title": "Keine gespeicherten Zugangsdaten",
+        "description": "Klicken Sie oben auf \"Zugangsdaten hinzufuegen\", um Zugangsdaten fuer private Images zu speichern."
+      },
+      "addForm": {
+        "title": "Neue Zugangsdaten hinzufuegen"
+      },
+      "fields": {
+        "name": "Name",
+        "username": "Benutzername",
+        "passwordOrToken": "Passwort / Token",
+        "setDefault": "Als Standard festlegen"
+      },
+      "placeholders": {
+        "name": "z.B. Docker Hub, GitHub Container Registry",
+        "username": "Benutzername oder Token-Name",
+        "passwordOrToken": "Passwort oder Personal Access Token"
+      },
+      "actions": {
+        "addCredential": "Zugangsdaten hinzufuegen",
+        "saveCredential": "Zugangsdaten speichern",
+        "deleteCredential": "Zugangsdaten loeschen",
+        "delete": "Loeschen"
+      },
+      "delete": {
+        "title": "Zugangsdaten loeschen",
+        "message": "Moechten Sie {0} wirklich loeschen? Diese Aktion kann nicht rueckgaengig gemacht werden."
+      },
+      "notifications": {
+        "deletedTitle": "Zugangsdaten geloescht",
+        "deletedDesc": "Die Zugangsdaten wurden entfernt.",
+        "deleteFailedTitle": "Zugangsdaten konnten nicht geloescht werden",
+        "deleteFailedDesc": "Beim Loeschen ist ein Fehler aufgetreten.",
+        "missingFieldsTitle": "Fehlende Felder",
+        "missingFieldsDesc": "Bitte fuellen Sie alle Pflichtfelder aus.",
+        "savedTitle": "Zugangsdaten gespeichert",
+        "savedDesc": "Die Zugangsdaten wurden hinzugefuegt.",
+        "saveFailedTitle": "Zugangsdaten konnten nicht gespeichert werden",
+        "saveFailedDesc": "Beim Speichern ist ein Fehler aufgetreten."
+      }
+    }
+  },
+  "permissions": {
+    "level": {
+      "read": "Lesen",
+      "write": "Schreiben",
+      "delete": "Loeschen"
+    },
+    "groups": {
+      "deployments": "Bereitstellungen",
+      "containers": "Container",
+      "images": "Images",
+      "volumes": "Volumes",
+      "databases": "Datenbanken",
+      "infrastructure": "Infrastruktur",
+      "scheduler": "Geplante Aufgaben",
+      "system": "System",
+      "dns": "DNS",
+      "registries": "Registries",
+      "templates": "Vorlagen",
+      "traffic": "Traffic",
+      "networks": "Netzwerke",
+      "certificates": "Zertifikate",
+      "security": "Sicherheit",
+      "backups": "Backups",
+      "users": "Benutzer",
+      "apiKeys": "API-Schluessel",
+      "settings": "Einstellungen",
+      "audit": "Audit"
+    }
   }
 }

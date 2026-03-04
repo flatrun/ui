@@ -3,6 +3,7 @@ import { mount, flushPromises } from "@vue/test-utils";
 import { createTestingPinia } from "@pinia/testing";
 import SettingsView from "./SettingsView.vue";
 import { useAuthStore } from "@/stores/auth";
+import i18n from "@/i18n";
 
 vi.mock("@/services/api", () => ({
   settingsApi: {
@@ -84,7 +85,7 @@ describe("SettingsView", () => {
     (authStore.hasPermission as ReturnType<typeof vi.fn>).mockReturnValue(true);
     return mount(SettingsView, {
       global: {
-        plugins: [pinia],
+        plugins: [pinia, i18n],
       },
     });
   };

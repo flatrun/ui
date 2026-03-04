@@ -745,7 +745,11 @@
             "name": "De Imagem",
             "description": "Implemente qualquer imagem Docker",
             "badge": "Rápido",
-            "features": ["Use qualquer imagem pública/privada", "Gere compose automaticamente", "Implementação rápida"]
+            "features": [
+              "Use qualquer imagem pública/privada",
+              "Gere compose automaticamente",
+              "Implementação rápida"
+            ]
           },
           "compose": {
             "name": "Modo Compose",
@@ -2660,6 +2664,495 @@
           "close": "Fechar"
         }
       }
+    }
+  },
+  "users": {
+    "title": "Utilizadores",
+    "loading": "A carregar utilizadores...",
+    "actions": {
+      "addUser": "Adicionar utilizador",
+      "retry": "Tentar novamente",
+      "add": "Adicionar",
+      "edit": "Editar",
+      "delete": "Eliminar",
+      "create": "Criar",
+      "update": "Atualizar",
+      "saving": "A guardar..."
+    },
+    "table": {
+      "columns": {
+        "username": "Nome de utilizador",
+        "email": "Email",
+        "role": "Funcao",
+        "permissions": "Permissoes",
+        "deployments": "Deployments",
+        "status": "Estado",
+        "actions": "Acoes"
+      },
+      "permissions": {
+        "custom": "Personalizado ({n})",
+        "roleDefaults": "Predefinido da funcao"
+      }
+    },
+    "status": {
+      "active": "Ativo",
+      "inactive": "Inativo"
+    },
+    "roles": {
+      "admin": "Admin",
+      "operator": "Operador",
+      "viewer": "Leitor"
+    },
+    "accessLevels": {
+      "read": "Leitura",
+      "write": "Escrita",
+      "admin": "Admin"
+    },
+    "dialog": {
+      "createTitle": "Criar utilizador",
+      "editTitle": "Editar utilizador",
+      "tabs": {
+        "profile": "Perfil",
+        "permissions": "Permissoes",
+        "deployments": "Deployments"
+      },
+      "permissions": {
+        "customize": "Personalizar permissoes",
+        "roleDefaultsHint": "A usar as permissoes predefinidas da funcao {0}. Ative a caixa acima para substituir."
+      },
+      "deployments": {
+        "hint": "Controle a que deployments este utilizador pode aceder e com que nivel.",
+        "selectDeployment": "Selecionar deployment...",
+        "none": "Nenhum acesso a deployment atribuido"
+      }
+    },
+    "fields": {
+      "username": "Nome de utilizador",
+      "email": "Email",
+      "password": "Palavra-passe",
+      "role": "Funcao"
+    },
+    "delete": {
+      "title": "Eliminar utilizador",
+      "message": "Tem a certeza de que pretende eliminar o utilizador {0}?",
+      "deleting": "A eliminar..."
+    },
+    "notifications": {
+      "createdTitle": "Utilizador criado",
+      "createdDesc": "O utilizador foi criado",
+      "createFailedTitle": "Falha ao criar",
+      "updatedTitle": "Utilizador atualizado",
+      "updatedDesc": "O utilizador foi atualizado",
+      "updateFailedTitle": "Falha ao atualizar",
+      "deletedTitle": "Utilizador eliminado",
+      "deletedDesc": "O utilizador foi eliminado",
+      "deleteFailedTitle": "Falha ao eliminar",
+      "assignDeploymentFailedTitle": "Falha na atribuicao",
+      "updateDeploymentFailedTitle": "Falha ao atualizar",
+      "removeDeploymentFailedTitle": "Falha ao remover"
+    }
+  },
+  "apiKeys": {
+    "title": "Chaves API",
+    "loading": "A carregar chaves API...",
+    "actions": {
+      "createKey": "Criar chave API",
+      "retry": "Tentar novamente",
+      "create": "Criar",
+      "creating": "A criar...",
+      "revoke": "Revogar",
+      "revoking": "A revogar...",
+      "delete": "Eliminar",
+      "deleting": "A eliminar...",
+      "done": "Concluido"
+    },
+    "table": {
+      "columns": {
+        "name": "Nome",
+        "keyPrefix": "Prefixo",
+        "role": "Funcao",
+        "status": "Estado",
+        "lastUsed": "Ultima utilizacao",
+        "expires": "Expira",
+        "actions": "Acoes"
+      }
+    },
+    "roles": {
+      "inherited": "Herdado"
+    },
+    "status": {
+      "active": "Ativa",
+      "revoked": "Revogada"
+    },
+    "create": {
+      "title": "Criar chave API",
+      "fields": {
+        "name": "Nome",
+        "descriptionOptional": "Descricao (opcional)",
+        "roleOverrideOptional": "Funcao (opcional)",
+        "customizePermissions": "Personalizar permissoes",
+        "permissions": "Permissoes",
+        "rolePermissions": "Permissoes da funcao ({role})",
+        "expiration": "Expiracao"
+      },
+      "placeholders": {
+        "name": "ex. Pipeline CI/CD",
+        "description": "Para que serve esta chave?"
+      },
+      "options": {
+        "inheritFromUser": "Herdar do utilizador"
+      },
+      "hints": {
+        "roleInherit": "Deixe vazio para herdar a funcao do utilizador",
+        "customizePermissions": "Substitui as permissoes predefinidas da funcao selecionada"
+      }
+    },
+    "expiration": {
+      "never": "Nunca",
+      "days": "{n} dia(s)",
+      "years": "{n} ano(s)"
+    },
+    "value": {
+      "never": "Nunca",
+      "expired": "Expirada"
+    },
+    "newKey": {
+      "title": "Chave API criada",
+      "warning": "Copie esta chave agora. Nao podera ve-la novamente."
+    },
+    "revoke": {
+      "title": "Revogar chave API",
+      "message": "Tem a certeza de que pretende revogar a chave API {0}? Esta acao nao pode ser desfeita."
+    },
+    "delete": {
+      "title": "Eliminar chave API",
+      "message": "Tem a certeza de que pretende eliminar a chave API {0}?"
+    },
+    "notifications": {
+      "createdTitle": "Chave API criada",
+      "createdDesc": "A chave API foi criada",
+      "createFailedTitle": "Falha ao criar",
+      "revokedTitle": "Chave API revogada",
+      "revokedDesc": "A chave API foi revogada",
+      "revokeFailedTitle": "Falha ao revogar",
+      "deletedTitle": "Chave API eliminada",
+      "deletedDesc": "A chave API foi eliminada",
+      "deleteFailedTitle": "Falha ao eliminar"
+    }
+  },
+  "settings": {
+    "tabs": {
+      "general": "Geral",
+      "domain": "Dominio",
+      "infrastructure": "Infraestrutura",
+      "security": "Seguranca e monitorizacao",
+      "healthChecks": "Verificacoes",
+      "credentials": "Credenciais"
+    },
+    "loading": "A carregar definicoes...",
+    "value": {
+      "enabled": "Ativado",
+      "disabled": "Desativado",
+      "default": "Predefinido"
+    },
+    "actions": {
+      "saveChanges": "Guardar alteracoes"
+    },
+    "notifications": {
+      "savedTitle": "Definicoes guardadas",
+      "loadFailed": "Falha ao carregar definicoes",
+      "domainSaved": "A configuracao de dominio foi atualizada",
+      "domainSaveFailed": "Falha ao guardar definicoes de dominio",
+      "infrastructureSaved": "A configuracao de infraestrutura foi atualizada",
+      "infrastructureSaveFailed": "Falha ao guardar definicoes de infraestrutura"
+    },
+    "general": {
+      "systemInfo": {
+        "title": "Informacoes do sistema",
+        "agentStatus": "Estado do agente",
+        "online": "Online",
+        "agentVersion": "Versao do agente",
+        "uiVersion": "Versao da UI"
+      },
+      "quickActions": {
+        "title": "Acoes rapidas",
+        "testConnection": "Testar ligacao",
+        "refreshTemplates": "Atualizar templates",
+        "refreshing": "A atualizar...",
+        "refreshAll": "Atualizar tudo",
+        "clearCache": "Limpar cache",
+        "connectionOkTitle": "Ligacao OK",
+        "connectionOkDesc": "O agente esta a responder normalmente",
+        "connectionFailedTitle": "Falha na ligacao",
+        "connectionFailedDesc": "Nao foi possivel contactar o agente",
+        "cacheClearedTitle": "Cache limpo",
+        "cacheClearedDesc": "O armazenamento local foi limpo",
+        "templatesRefreshedTitle": "Templates atualizados",
+        "templatesRefreshedDesc": "{n} template(s) atualizados",
+        "templatesRefreshFailed": "Falha ao atualizar templates",
+        "refreshingTitle": "A atualizar",
+        "refreshingDesc": "A recarregar todos os dados..."
+      },
+      "agentConfig": {
+        "title": "Configuracao do agente",
+        "readOnly": "So leitura",
+        "deploymentsPath": "Caminho de deployments",
+        "apiPort": "Porta API",
+        "cors": "CORS",
+        "allowedOrigins": "Origens permitidas"
+      },
+      "configPreview": {
+        "title": "Pre-visualizacao de configuracao",
+        "note": "Para modificar as definicoes do agente, edite o ficheiro de configuracao no servidor e reinicie o agente. Normalmente em {0}"
+      }
+    },
+    "domain": {
+      "title": "Configuracao de dominio",
+      "defaultDomain": {
+        "label": "Dominio predefinido",
+        "hint": "Dominio base para subdominios gerados automaticamente",
+        "placeholder": "example.com"
+      },
+      "subdomainStyle": {
+        "label": "Estilo de subdominio",
+        "hint": "Formato para subdominios gerados automaticamente",
+        "options": {
+          "words": "Palavras (swift-river-123)",
+          "hex": "Hex (a1b2c3d4)",
+          "short": "Curto (swi-riv)"
+        }
+      },
+      "autoSubdomain": {
+        "label": "Subdominio automatico",
+        "hint": "Gerar subdominios aleatorios para novos deployments"
+      },
+      "autoSsl": {
+        "label": "SSL automatico",
+        "hint": "Solicitar certificados SSL automaticamente"
+      }
+    },
+    "infrastructure": {
+      "actions": {
+        "save": "Guardar infraestrutura"
+      },
+      "networks": {
+        "title": "Redes",
+        "proxyNetwork": {
+          "label": "Rede proxy",
+          "hint": "Rede Docker para comunicacao nginx/web",
+          "placeholder": "proxy"
+        },
+        "databaseNetwork": {
+          "label": "Rede de base de dados",
+          "hint": "Rede Docker para comunicacao com base de dados",
+          "placeholder": "database"
+        }
+      },
+      "nginx": {
+        "title": "Nginx",
+        "dockerImage": "Imagem Docker",
+        "containerName": "Nome do contentor",
+        "configPath": {
+          "label": "Caminho de config",
+          "hint": "Caminho para o diretorio conf.d do nginx"
+        },
+        "reloadCommand": {
+          "label": "Comando de reload",
+          "hint": "Comando para recarregar a configuracao do nginx"
+        },
+        "external": {
+          "label": "Nginx externo",
+          "hint": "Usar instalacao nginx existente em vez do contentor"
+        },
+        "placeholders": {
+          "image": "nginx:alpine",
+          "containerName": "nginx",
+          "configPath": "/deployments/nginx/conf.d",
+          "reloadCommand": "nginx -s reload"
+        }
+      },
+      "certbot": {
+        "title": "SSL / Certbot",
+        "dockerImage": "Imagem Docker",
+        "email": {
+          "label": "Email",
+          "hint": "Email para notificacoes do Let's Encrypt"
+        },
+        "certsPath": {
+          "label": "Caminho de certificados",
+          "hint": "Deixe vazio para usar o predefinido (nginx/certs)"
+        },
+        "webrootPath": {
+          "label": "Caminho webroot",
+          "hint": "Deixe vazio para usar o predefinido (nginx/html)"
+        },
+        "dnsProvider": {
+          "label": "Fornecedor DNS",
+          "hint": "Opcional: para desafio DNS-01",
+          "none": "Nenhum (HTTP-01)"
+        },
+        "staging": {
+          "label": "Modo staging",
+          "hint": "Usar servidor staging do Let's Encrypt para testes"
+        },
+        "placeholders": {
+          "image": "certbot/certbot",
+          "email": "admin@example.com",
+          "certsPath": "Predefinido: {deployments}/nginx/certs/live",
+          "webrootPath": "Predefinido: {deployments}/nginx/html"
+        }
+      },
+      "sharedDatabase": {
+        "title": "Base de dados partilhada",
+        "databaseType": "Tipo de base de dados",
+        "containerName": "Nome do contentor",
+        "host": {
+          "label": "Host",
+          "hint": "Normalmente igual ao nome do contentor"
+        },
+        "port": "Porta",
+        "rootUser": "Utilizador root",
+        "rootPassword": "Palavra-passe root"
+      },
+      "sharedRedis": {
+        "title": "Redis partilhado",
+        "containerName": "Nome do contentor",
+        "host": "Host",
+        "port": "Porta",
+        "password": {
+          "label": "Palavra-passe",
+          "hint": "Deixe vazio se nao houver autenticacao"
+        }
+      }
+    },
+    "security": {
+      "actions": {
+        "save": "Guardar seguranca"
+      },
+      "module": {
+        "title": "Modulo de seguranca",
+        "description": "O modulo de seguranca captura eventos em tempo real usando OpenResty/Lua, monitorizando acessos nao autorizados, caminhos suspeitos e atividade de scan. Requer imagem nginx OpenResty.",
+        "retentionDays": {
+          "label": "Dias de retencao",
+          "hint": "Quanto tempo manter eventos de seguranca"
+        },
+        "rateThreshold": {
+          "label": "Limite de taxa",
+          "hint": "Pedidos por minuto para disparar alerta de taxa alta"
+        }
+      },
+      "autoBlocking": {
+        "title": "Bloqueio automatico",
+        "duration": {
+          "label": "Duracao do bloqueio",
+          "hint": "Quanto tempo bloquear IPs automaticamente (ex. 24h, 1h, 30m)"
+        },
+        "detectionWindow": {
+          "label": "Janela de detecao",
+          "hint": "Janela de tempo para contar violacoes (ex. 2m, 5m)"
+        },
+        "thresholds": {
+          "title": "Limiares de detecao",
+          "hint": "IPs que excedam estes limiares serao bloqueados automaticamente.",
+          "notFound": {
+            "label": "Respostas 404",
+            "hint": "Maximo de erros 404 (sondagem)"
+          },
+          "authFailures": {
+            "label": "Falhas de autenticacao",
+            "hint": "Maximo de respostas 401/403"
+          },
+          "uniquePaths": {
+            "label": "Caminhos unicos",
+            "hint": "Maximo de caminhos diferentes (scan)"
+          },
+          "repeatedHits": {
+            "label": "Toques repetidos",
+            "hint": "Maximo de toques no mesmo caminho"
+          }
+        }
+      },
+      "notifications": {
+        "updateWarningTitle": "Aviso de atualizacao de seguranca",
+        "saved": "A configuracao de seguranca foi atualizada",
+        "savedRecreated": "Seguranca atualizada e contentor nginx recriado",
+        "savedReloaded": "Seguranca atualizada e nginx recarregado",
+        "saveFailed": "Falha ao guardar definicoes de seguranca"
+      }
+    },
+    "credentials": {
+      "title": "Credenciais de registo",
+      "description": "Gira credenciais guardadas para registos Docker privados. Podem ser usadas ao obter imagens privadas ou ao fazer deploy a partir de registos privados.",
+      "loading": "A carregar credenciais...",
+      "empty": {
+        "title": "Sem credenciais guardadas",
+        "description": "Clique em \"Adicionar credencial\" para guardar credenciais para imagens privadas."
+      },
+      "addForm": {
+        "title": "Adicionar nova credencial"
+      },
+      "fields": {
+        "name": "Nome",
+        "username": "Nome de utilizador",
+        "passwordOrToken": "Palavra-passe / Token",
+        "setDefault": "Definir como predefinida"
+      },
+      "placeholders": {
+        "name": "ex. Docker Hub, GitHub Container Registry",
+        "username": "Nome de utilizador ou nome do token",
+        "passwordOrToken": "Palavra-passe ou token de acesso"
+      },
+      "actions": {
+        "addCredential": "Adicionar credencial",
+        "saveCredential": "Guardar credencial",
+        "deleteCredential": "Eliminar credencial",
+        "delete": "Eliminar"
+      },
+      "delete": {
+        "title": "Eliminar credencial",
+        "message": "Tem a certeza de que pretende eliminar {0}? Esta acao nao pode ser desfeita."
+      },
+      "notifications": {
+        "deletedTitle": "Credencial eliminada",
+        "deletedDesc": "A credencial foi removida.",
+        "deleteFailedTitle": "Falha ao eliminar credencial",
+        "deleteFailedDesc": "Ocorreu um erro ao eliminar a credencial.",
+        "missingFieldsTitle": "Campos em falta",
+        "missingFieldsDesc": "Preencha todos os campos obrigatorios.",
+        "savedTitle": "Credencial guardada",
+        "savedDesc": "A credencial foi adicionada.",
+        "saveFailedTitle": "Falha ao guardar credencial",
+        "saveFailedDesc": "Ocorreu um erro ao guardar a credencial."
+      }
+    }
+  },
+  "permissions": {
+    "level": {
+      "read": "Ler",
+      "write": "Escrever",
+      "delete": "Eliminar"
+    },
+    "groups": {
+      "deployments": "Implementações",
+      "containers": "Contentores",
+      "images": "Imagens",
+      "volumes": "Volumes",
+      "databases": "Bases de dados",
+      "infrastructure": "Infraestrutura",
+      "scheduler": "Agendador",
+      "system": "Sistema",
+      "dns": "DNS",
+      "registries": "Registos",
+      "templates": "Modelos",
+      "traffic": "Tráfego",
+      "networks": "Redes",
+      "certificates": "Certificados",
+      "security": "Segurança",
+      "backups": "Backups",
+      "users": "Utilizadores",
+      "apiKeys": "Chaves API",
+      "settings": "Definições",
+      "audit": "Auditoria"
     }
   }
 }
