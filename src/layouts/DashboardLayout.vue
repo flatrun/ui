@@ -6,10 +6,44 @@
       </div>
 
       <div v-if="!sidebarCollapsed" class="environment-selector">
-        <div class="env-current">
+        <div class="env-current" @click="envDropdownOpen = !envDropdownOpen">
           <i class="pi pi-server" />
-          <span>Local Environment</span>
-          <i class="pi pi-chevron-down" />
+          <span>{{ currentServerName }}</span>
+          <i class="pi" :class="envDropdownOpen ? 'pi-chevron-up' : 'pi-chevron-down'" />
+        </div>
+        <div v-if="envDropdownOpen" class="env-dropdown">
+          <div
+            class="env-option active"
+            @click="envDropdownOpen = false"
+          >
+            <i class="pi pi-server" />
+            <div class="env-option-info">
+              <span class="env-option-name">{{ currentServerName }}</span>
+              <span class="env-option-hint">Current server</span>
+            </div>
+            <i class="pi pi-check" />
+          </div>
+          <div
+            v-for="peer in clusterPeers"
+            :key="peer.id"
+            class="env-option"
+            @click="envDropdownOpen = false"
+          >
+            <i class="pi pi-server" />
+            <div class="env-option-info">
+              <span class="env-option-name">{{ peer.name }}</span>
+              <span class="env-option-hint">{{ peer.status }}</span>
+            </div>
+          </div>
+          <router-link
+            v-if="authStore.hasPermission('cluster:read')"
+            to="/cluster"
+            class="env-option env-manage"
+            @click="envDropdownOpen = false"
+          >
+            <i class="pi pi-cog" />
+            <span class="env-option-name">Manage Cluster</span>
+          </router-link>
         </div>
       </div>
 
@@ -138,6 +172,7 @@
               active-class="active"
             >
               Cluster
+              <span v-if="clusterPeers.length" class="nav-count">{{ clusterPeers.length + 1 }}</span>
             </router-link>
             <router-link
               v-if="authStore.hasPermission('infrastructure:read')"
@@ -405,6 +440,7 @@ import { ref, reactive, computed, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useStatsStore } from "@/stores/stats";
 import { useAuthStore } from "@/stores/auth";
+import { clusterApi, type ClusterPeer } from "@/services/api";
 import Logo from "@/components/base/Logo.vue";
 
 const route = useRoute();
@@ -413,6 +449,9 @@ const statsStore = useStatsStore();
 const authStore = useAuthStore();
 const sidebarCollapsed = ref(false);
 const isRefreshing = ref(false);
+const envDropdownOpen = ref(false);
+const currentServerName = ref("Local Server");
+const clusterPeers = ref<ClusterPeer[]>([]);
 
 const expandedGroups = reactive({
   stacks: true,
@@ -545,9 +584,23 @@ const handleLogout = () => {
   router.push("/login");
 };
 
+const fetchClusterInfo = async () => {
+  try {
+    const res = await clusterApi.getStatus();
+    if (res.data.enabled && res.data.server_name) {
+      currentServerName.value = res.data.server_name;
+      const peersRes = await clusterApi.listPeers();
+      clusterPeers.value = peersRes.data.peers || [];
+    }
+  } catch {
+    // cluster not available
+  }
+};
+
 onMounted(() => {
   statsStore.fetchAll();
   authStore.fetchCurrentUser();
+  fetchClusterInfo();
   setInterval(() => statsStore.fetchAll(), 15000);
 });
 </script>
@@ -617,6 +670,80 @@ onMounted(() => {
 .env-current i:last-child {
   margin-left: auto;
   font-size: 0.75rem;
+}
+
+.env-dropdown {
+  margin-top: 0.375rem;
+  background: #1e293b;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+
+.env-option {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.625rem;
+  cursor: pointer;
+  transition: background 0.15s;
+  color: #94a3b8;
+  font-size: 0.8125rem;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.env-option:last-child {
+  border-bottom: none;
+}
+
+.env-option:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: white;
+}
+
+.env-option.active {
+  color: #60a5fa;
+}
+
+.env-option.active .pi-check {
+  margin-left: auto;
+  font-size: 0.6875rem;
+}
+
+.env-option i:first-child {
+  font-size: 0.8125rem;
+  width: 16px;
+  text-align: center;
+}
+
+.env-option-info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.env-option-name {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.env-option-hint {
+  font-size: 0.625rem;
+  color: #64748b;
+}
+
+.env-manage {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  color: #64748b;
+}
+
+.env-manage:hover {
+  color: #94a3b8;
 }
 
 .nav-menu {
