@@ -117,15 +117,24 @@
           </div>
         </div>
 
-        <div class="panel quick-actions-panel">
+        <div class="panel shortcuts-panel">
           <div class="panel-header">
             <div class="panel-title">
-              <i class="pi pi-bolt" />
-              <span>Quick Actions</span>
+              <i class="pi pi-compass" />
+              <span>Shortcuts</span>
             </div>
           </div>
           <div class="panel-body">
             <div class="actions-row">
+              <button class="quick-action" @click="$router.push('/server-info')">
+                <div class="action-icon teal">
+                  <i class="pi pi-info-circle" />
+                </div>
+                <div class="action-label">
+                  <span class="action-name">Server Info</span>
+                  <span class="action-hint">Host & network</span>
+                </div>
+              </button>
               <button class="quick-action" @click="$router.push('/security')">
                 <div class="action-icon orange">
                   <i class="pi pi-chart-line" />
@@ -822,7 +831,7 @@ onMounted(() => {
 
 .actions-row {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: 0.75rem;
 }
 
@@ -881,6 +890,11 @@ onMounted(() => {
 .action-icon.purple {
   background: rgba(139, 92, 246, 0.1);
   color: #8b5cf6;
+}
+
+.action-icon.teal {
+  background: rgba(20, 184, 166, 0.1);
+  color: #14b8a6;
 }
 
 .action-icon.orange {
