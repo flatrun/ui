@@ -22,10 +22,9 @@
         <i class="pi pi-sitemap" />
         <h3>Cluster Not Enabled</h3>
         <p>Enable clustering in your agent configuration to connect multiple servers.</p>
-        <code class="config-hint">cluster:
-  enabled: true
-  server_name: "my-server"
-  advertise_url: "https://my-server:8090"</code>
+        <code class="config-hint"
+          >cluster: enabled: true server_name: "my-server" advertise_url: "https://my-server:8090"</code
+        >
       </div>
     </template>
 
@@ -103,7 +102,9 @@
                   <strong>{{ peer.name }}</strong>
                 </div>
               </td>
-              <td><code>{{ peer.url }}</code></td>
+              <td>
+                <code>{{ peer.url }}</code>
+              </td>
               <td>
                 <span class="peer-status" :class="peer.status">
                   {{ peer.status }}
@@ -164,12 +165,7 @@
           <p class="modal-hint">Enter the invite token and the URL of the server that generated it.</p>
           <div class="form-group">
             <label for="peerUrl">Peer Server URL</label>
-            <input
-              id="peerUrl"
-              v-model="acceptForm.peerUrl"
-              type="url"
-              placeholder="https://other-server:8090"
-            />
+            <input id="peerUrl" v-model="acceptForm.peerUrl" type="url" placeholder="https://other-server:8090" />
           </div>
           <div class="form-group">
             <label for="inviteTokenInput">Invite Token</label>
@@ -208,7 +204,9 @@
           </button>
         </div>
         <div class="modal-body">
-          <p>Are you sure you want to remove <strong>{{ peerToRemove?.name }}</strong> from the cluster?</p>
+          <p>
+            Are you sure you want to remove <strong>{{ peerToRemove?.name }}</strong> from the cluster?
+          </p>
           <p class="warning-text">
             <i class="pi pi-exclamation-triangle" />
             This will disconnect the peer server. You'll need a new invite to reconnect.

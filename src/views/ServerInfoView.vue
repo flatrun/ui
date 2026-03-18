@@ -87,7 +87,9 @@
           </thead>
           <tbody>
             <tr v-for="resolver in networkHealth.dns.resolvers" :key="resolver.server">
-              <td><code>{{ resolver.server }}</code></td>
+              <td>
+                <code>{{ resolver.server }}</code>
+              </td>
               <td>
                 <span class="status-badge" :class="resolver.healthy ? 'ok' : 'fail'">
                   <i :class="resolver.healthy ? 'pi pi-check-circle' : 'pi pi-times-circle'" />
@@ -119,13 +121,17 @@
           </thead>
           <tbody>
             <tr v-for="iface in allInterfaces" :key="iface.name">
-              <td><code>{{ iface.name }}</code></td>
+              <td>
+                <code>{{ iface.name }}</code>
+              </td>
               <td>
                 <div class="address-list">
                   <code v-for="addr in iface.addresses" :key="addr" class="address-chip">{{ addr }}</code>
                 </div>
               </td>
-              <td><span class="muted">{{ iface.flags }}</span></td>
+              <td>
+                <span class="muted">{{ iface.flags }}</span>
+              </td>
             </tr>
           </tbody>
         </table>

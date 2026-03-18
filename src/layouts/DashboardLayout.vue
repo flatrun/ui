@@ -12,10 +12,7 @@
           <i class="pi" :class="envDropdownOpen ? 'pi-chevron-up' : 'pi-chevron-down'" />
         </div>
         <div v-if="envDropdownOpen" class="env-dropdown">
-          <div
-            class="env-option active"
-            @click="envDropdownOpen = false"
-          >
+          <div class="env-option active" @click="envDropdownOpen = false">
             <i class="pi pi-server" />
             <div class="env-option-info">
               <span class="env-option-name">{{ currentServerName }}</span>
@@ -23,12 +20,7 @@
             </div>
             <i class="pi pi-check" />
           </div>
-          <div
-            v-for="peer in clusterPeers"
-            :key="peer.id"
-            class="env-option"
-            @click="envDropdownOpen = false"
-          >
+          <div v-for="peer in clusterPeers" :key="peer.id" class="env-option" @click="envDropdownOpen = false">
             <i class="pi pi-server" />
             <div class="env-option-info">
               <span class="env-option-name">{{ peer.name }}</span>
@@ -536,7 +528,9 @@ const breadcrumbs = computed(() => {
   } else if (["containers", "images", "volumes", "networks", "docker-ports"].includes(routeName)) {
     crumbs.push({ label: "Docker", path: "" });
     crumbs.push({ label: currentPageTitle.value, path: "" });
-  } else if (["infrastructure", "system-ports", "services", "cron-jobs", "server-info", "cluster"].includes(routeName)) {
+  } else if (
+    ["infrastructure", "system-ports", "services", "cron-jobs", "server-info", "cluster"].includes(routeName)
+  ) {
     crumbs.push({ label: "System", path: "" });
     crumbs.push({ label: currentPageTitle.value, path: "" });
   } else if (routeName === "databases") {

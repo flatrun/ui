@@ -27,11 +27,15 @@
               </div>
               <div class="resource-display">
                 <span class="resource-label">Memory</span>
-                <span class="resource-value">{{ resources.memory_limit > 0 ? formatBytes(resources.memory_limit) : "Unlimited" }}</span>
+                <span class="resource-value">{{
+                  resources.memory_limit > 0 ? formatBytes(resources.memory_limit) : "Unlimited"
+                }}</span>
               </div>
               <div class="resource-display">
                 <span class="resource-label">Memory + Swap</span>
-                <span class="resource-value">{{ resources.memory_swap > 0 ? formatBytes(resources.memory_swap) : "Unlimited" }}</span>
+                <span class="resource-value">{{
+                  resources.memory_swap > 0 ? formatBytes(resources.memory_swap) : "Unlimited"
+                }}</span>
               </div>
               <div class="resource-display">
                 <span class="resource-label">CPU Shares</span>
@@ -229,9 +233,12 @@ const saveResources = async () => {
   }
 };
 
-watch(() => props.visible, (val) => {
-  if (val) fetchResources();
-});
+watch(
+  () => props.visible,
+  (val) => {
+    if (val) fetchResources();
+  },
+);
 </script>
 
 <style scoped>
