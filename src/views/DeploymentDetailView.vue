@@ -310,6 +310,9 @@
                       </span>
                     </div>
                     <div class="service-actions">
+                      <button class="action-btn" title="Resources" @click="openServiceResources(service)">
+                        <i class="pi pi-sliders-h" />
+                      </button>
                       <button class="action-btn" title="Terminal" @click="openTerminal(service)">
                         <i class="pi pi-desktop" />
                       </button>
@@ -1384,6 +1387,15 @@
       @save="handleAddDomain"
       @cancel="showAddDomainModal = false"
     />
+
+    <ContainerResourcesModal
+      :visible="serviceResourcesModal.visible"
+      :container-id="serviceResourcesModal.containerId"
+      :container-name="serviceResourcesModal.containerName"
+      :can-write="canWrite"
+      @close="serviceResourcesModal.visible = false"
+      @updated="serviceResourcesModal.visible = false"
+    />
   </div>
 </template>
 
@@ -1413,6 +1425,7 @@ import ContainerTerminal from "@/components/ContainerTerminal.vue";
 import BackupsTab from "@/components/BackupsTab.vue";
 import DomainsManager from "@/components/DomainsManager.vue";
 import DomainFormModal from "@/components/DomainFormModal.vue";
+import ContainerResourcesModal from "@/components/ContainerResourcesModal.vue";
 
 const route = useRoute();
 const router = useRouter();
@@ -1439,6 +1452,12 @@ const requestingCert = ref(false);
 const disablingSSL = ref(false);
 const showAddDomainModal = ref(false);
 const addingDomain = ref(false);
+
+const serviceResourcesModal = ref({
+  visible: false,
+  containerId: "",
+  containerName: "",
+});
 
 const securityConfig = ref<DeploymentSecurityConfig>({
   enabled: false,
@@ -2100,6 +2119,14 @@ const migrateToInfrastructure = async () => {
     const msg = err.response?.data?.error || err.message;
     notifications.error("Migration Failed", msg);
   }
+};
+
+const openServiceResources = (service: any) => {
+  serviceResourcesModal.value = {
+    visible: true,
+    containerId: service.container_id,
+    containerName: service.name,
+  };
 };
 
 const openTerminal = (service: any) => {

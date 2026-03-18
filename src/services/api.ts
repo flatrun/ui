@@ -275,6 +275,21 @@ export const composeApi = {
     ),
 };
 
+export interface ResourceLimits {
+  memory_limit: number;
+  memory_swap: number;
+  cpus: number;
+  cpu_shares: number;
+  restart_policy: string;
+}
+
+export interface ResourceUpdate {
+  memory_limit?: number;
+  memory_swap?: number;
+  cpus?: number;
+  cpu_shares?: number;
+}
+
 export const containersApi = {
   list: () => apiClient.get<{ containers: any[] }>("/containers"),
   start: (id: string) => apiClient.post(`/containers/${id}/start`),
@@ -296,6 +311,9 @@ export const containersApi = {
         pids: number;
       }>;
     }>("/containers/stats"),
+  getResources: (id: string) => apiClient.get<{ resources: ResourceLimits }>(`/containers/${id}/resources`),
+  updateResources: (id: string, update: ResourceUpdate) =>
+    apiClient.put<{ message: string; resources: ResourceLimits }>(`/containers/${id}/resources`, update),
 };
 
 export const imagesApi = {

@@ -87,6 +87,9 @@
           <button v-if="canWrite" class="action-btn restart" title="Restart" @click.stop="restartContainer(item.id)">
             <RotateCw :size="14" />
           </button>
+          <button class="action-btn resources" title="Resources" @click.stop="showResources(item.id, item.name)">
+            <Gauge :size="14" />
+          </button>
           <button class="action-btn logs" title="Logs" @click.stop="showLogs(item.id, item.name)">
             <FileText :size="14" />
           </button>
@@ -140,6 +143,15 @@
       @confirm="confirmBulkRemove"
       @cancel="showBulkDeleteModal = false"
     />
+
+    <ContainerResourcesModal
+      :visible="resourcesModal.visible"
+      :container-id="resourcesModal.containerId"
+      :container-name="resourcesModal.containerName"
+      :can-write="canWrite"
+      @close="resourcesModal.visible = false"
+      @updated="onResourcesUpdated"
+    />
   </div>
 </template>
 
@@ -151,7 +163,8 @@ import { useAuthStore } from "@/stores/auth";
 import DataTable from "@/components/DataTable.vue";
 import LogsModal from "@/components/LogsModal.vue";
 import ConfirmModal from "@/components/ConfirmModal.vue";
-import { RefreshCw, Play, Square, RotateCw, FileText, Trash2, Package, Link } from "lucide-vue-next";
+import ContainerResourcesModal from "@/components/ContainerResourcesModal.vue";
+import { RefreshCw, Play, Square, RotateCw, FileText, Trash2, Package, Link, Gauge } from "lucide-vue-next";
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -204,6 +217,12 @@ const bulkDeleteIds = ref<string[]>([]);
 const bulkDeleteClearFn = ref<(() => void) | null>(null);
 const bulkDeleting = ref(false);
 
+const resourcesModal = ref({
+  visible: false,
+  containerId: "",
+  containerName: "",
+});
+
 const columns = [
   { key: "status", label: "Status", width: "60px" },
   { key: "name", label: "Container", sortable: true },
@@ -211,7 +230,7 @@ const columns = [
   { key: "image", label: "Image", sortable: true },
   { key: "ports", label: "Ports" },
   { key: "created", label: "Created", sortable: true },
-  { key: "actions", label: "Actions", width: "160px" },
+  { key: "actions", label: "Actions", width: "192px" },
 ];
 
 const statusFilters = computed(() => [
@@ -299,6 +318,14 @@ const confirmDeleteContainer = async () => {
     showDeleteModal.value = false;
     containerToDelete.value = null;
   }
+};
+
+const showResources = (id: string, name: string) => {
+  resourcesModal.value = { visible: true, containerId: id, containerName: name };
+};
+
+const onResourcesUpdated = () => {
+  resourcesModal.value.visible = false;
 };
 
 const showLogs = async (id: string, name: string) => {
@@ -512,6 +539,14 @@ onMounted(() => {
 }
 .action-btn.restart:hover {
   background: var(--color-info-100);
+}
+
+.action-btn.resources {
+  background: rgba(139, 92, 246, 0.1);
+  color: #7c3aed;
+}
+.action-btn.resources:hover {
+  background: rgba(139, 92, 246, 0.2);
 }
 
 .action-btn.logs {
