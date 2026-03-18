@@ -124,6 +124,12 @@ const routes: RouteRecordRaw[] = [
         meta: { permission: "infrastructure:read" },
       },
       {
+        path: "server-info",
+        name: "server-info",
+        component: () => import("@/views/ServerInfoView.vue"),
+        meta: { permission: "system:read" },
+      },
+      {
         path: "security",
         name: "security",
         component: () => import("@/views/SecurityView.vue"),

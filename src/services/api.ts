@@ -321,6 +321,43 @@ export const healthApi = {
   stats: () => apiClient.get("/stats"),
 };
 
+export interface NetworkInterface {
+  name: string;
+  addresses: string[];
+  flags: string;
+}
+
+export interface ServerInfo {
+  hostname: string;
+  public_ipv4: string;
+  public_ipv6: string;
+  interfaces: NetworkInterface[];
+}
+
+export interface ResolverCheck {
+  server: string;
+  healthy: boolean;
+  latency_ms: number;
+  error?: string;
+}
+
+export interface DNSHealthInfo {
+  healthy: boolean;
+  resolvers: ResolverCheck[];
+}
+
+export interface NetworkHealth {
+  external_access: boolean;
+  dns: DNSHealthInfo;
+  interfaces: NetworkInterface[];
+  checked_at: string;
+}
+
+export const serverApi = {
+  getInfo: () => apiClient.get<{ server: ServerInfo }>("/server/info"),
+  getNetworkHealth: () => apiClient.get<{ network_health: NetworkHealth }>("/server/network-health"),
+};
+
 export interface FileInfo {
   name: string;
   path: string;

@@ -123,6 +123,14 @@
           </div>
           <div v-show="expandedGroups.system && !sidebarCollapsed" class="nav-group-items">
             <router-link
+              v-if="authStore.hasPermission('system:read')"
+              to="/server-info"
+              class="nav-subitem"
+              active-class="active"
+            >
+              Server Info
+            </router-link>
+            <router-link
               v-if="authStore.hasPermission('infrastructure:read')"
               to="/infrastructure"
               class="nav-subitem"
@@ -453,6 +461,7 @@ const currentPageTitle = computed(() => {
     "system-ports": "System Ports",
     services: "System Services",
     "cron-jobs": "Cron Jobs",
+    "server-info": "Server Info",
     databases: "Database Servers",
     security: "Security & Monitoring",
     certificates: "SSL Certificates",
@@ -478,7 +487,7 @@ const breadcrumbs = computed(() => {
   } else if (["containers", "images", "volumes", "networks", "docker-ports"].includes(routeName)) {
     crumbs.push({ label: "Docker", path: "" });
     crumbs.push({ label: currentPageTitle.value, path: "" });
-  } else if (["infrastructure", "system-ports", "services", "cron-jobs"].includes(routeName)) {
+  } else if (["infrastructure", "system-ports", "services", "cron-jobs", "server-info"].includes(routeName)) {
     crumbs.push({ label: "System", path: "" });
     crumbs.push({ label: currentPageTitle.value, path: "" });
   } else if (routeName === "databases") {
