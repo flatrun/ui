@@ -275,6 +275,21 @@ export const composeApi = {
     ),
 };
 
+export interface ResourceLimits {
+  memory_limit: number;
+  memory_swap: number;
+  cpus: number;
+  cpu_shares: number;
+  restart_policy: string;
+}
+
+export interface ResourceUpdate {
+  memory_limit?: number;
+  memory_swap?: number;
+  cpus?: number;
+  cpu_shares?: number;
+}
+
 export const containersApi = {
   list: () => apiClient.get<{ containers: any[] }>("/containers"),
   start: (id: string) => apiClient.post(`/containers/${id}/start`),
@@ -296,6 +311,9 @@ export const containersApi = {
         pids: number;
       }>;
     }>("/containers/stats"),
+  getResources: (id: string) => apiClient.get<{ resources: ResourceLimits }>(`/containers/${id}/resources`),
+  updateResources: (id: string, update: ResourceUpdate) =>
+    apiClient.put<{ message: string; resources: ResourceLimits }>(`/containers/${id}/resources`, update),
 };
 
 export const imagesApi = {
@@ -319,6 +337,43 @@ export const volumesApi = {
 export const healthApi = {
   check: () => apiClient.get("/health"),
   stats: () => apiClient.get("/stats"),
+};
+
+export interface NetworkInterface {
+  name: string;
+  addresses: string[];
+  flags: string;
+}
+
+export interface ServerInfo {
+  hostname: string;
+  public_ipv4: string;
+  public_ipv6: string;
+  interfaces: NetworkInterface[];
+}
+
+export interface ResolverCheck {
+  server: string;
+  healthy: boolean;
+  latency_ms: number;
+  error?: string;
+}
+
+export interface DNSHealthInfo {
+  healthy: boolean;
+  resolvers: ResolverCheck[];
+}
+
+export interface NetworkHealth {
+  external_access: boolean;
+  dns: DNSHealthInfo;
+  interfaces: NetworkInterface[];
+  checked_at: string;
+}
+
+export const serverApi = {
+  getInfo: () => apiClient.get<{ server: ServerInfo }>("/server/info"),
+  getNetworkHealth: () => apiClient.get<{ network_health: NetworkHealth }>("/server/network-health"),
 };
 
 export interface FileInfo {
@@ -1109,6 +1164,44 @@ export const powerDnsApi = {
 
   updateRecords: (zoneId: string, rrsets: PowerDNSRRSet[]) =>
     apiClient.patch<PowerDNSZone>(`/dns/powerdns/zones/${zoneId}`, { rrsets }),
+};
+
+export interface ClusterStatus {
+  enabled: boolean;
+  server_name?: string;
+  peer_count?: number;
+  version?: { version: string; build_time: string; git_commit: string };
+}
+
+export interface ClusterPeer {
+  id: number;
+  name: string;
+  url: string;
+  status: string;
+  created_at: string;
+  last_seen_at?: string;
+}
+
+export interface ClusterInvite {
+  invite_token: string;
+  expires_at: string;
+}
+
+export interface ClusterAcceptResult {
+  peer_name: string;
+  peer_url: string;
+  status: string;
+}
+
+export const clusterApi = {
+  getStatus: () => apiClient.get<ClusterStatus>("/cluster/status"),
+  listPeers: () => apiClient.get<{ peers: ClusterPeer[] }>("/cluster/peers"),
+  createInvite: () => apiClient.post<ClusterInvite>("/cluster/invite"),
+  acceptInvite: (inviteToken: string, peerUrl: string) =>
+    apiClient.post<ClusterAcceptResult>("/cluster/accept", { invite_token: inviteToken, peer_url: peerUrl }),
+  removePeer: (name: string) => apiClient.delete<{ status: string; peer: string }>(`/cluster/peers/${name}`),
+  getAggregatedDeployments: () => apiClient.get("/cluster/deployments"),
+  getAggregatedStats: () => apiClient.get("/cluster/stats"),
 };
 
 import type { User, APIKey, UserRole, UserDeploymentAccess } from "@/types";
