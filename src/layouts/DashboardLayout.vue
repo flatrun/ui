@@ -108,7 +108,8 @@
           v-if="
             authStore.hasPermission('system:read') ||
             authStore.hasPermission('infrastructure:read') ||
-            authStore.hasPermission('scheduler:read')
+            authStore.hasPermission('scheduler:read') ||
+            authStore.hasPermission('cluster:read')
           "
           class="nav-group"
         >
@@ -129,6 +130,14 @@
               active-class="active"
             >
               Server Info
+            </router-link>
+            <router-link
+              v-if="authStore.hasPermission('cluster:read')"
+              to="/cluster"
+              class="nav-subitem"
+              active-class="active"
+            >
+              Cluster
             </router-link>
             <router-link
               v-if="authStore.hasPermission('infrastructure:read')"
@@ -462,6 +471,7 @@ const currentPageTitle = computed(() => {
     services: "System Services",
     "cron-jobs": "Cron Jobs",
     "server-info": "Server Info",
+    cluster: "Cluster",
     databases: "Database Servers",
     security: "Security & Monitoring",
     certificates: "SSL Certificates",
@@ -487,7 +497,7 @@ const breadcrumbs = computed(() => {
   } else if (["containers", "images", "volumes", "networks", "docker-ports"].includes(routeName)) {
     crumbs.push({ label: "Docker", path: "" });
     crumbs.push({ label: currentPageTitle.value, path: "" });
-  } else if (["infrastructure", "system-ports", "services", "cron-jobs", "server-info"].includes(routeName)) {
+  } else if (["infrastructure", "system-ports", "services", "cron-jobs", "server-info", "cluster"].includes(routeName)) {
     crumbs.push({ label: "System", path: "" });
     crumbs.push({ label: currentPageTitle.value, path: "" });
   } else if (routeName === "databases") {

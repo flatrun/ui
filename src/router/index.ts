@@ -130,6 +130,12 @@ const routes: RouteRecordRaw[] = [
         meta: { permission: "system:read" },
       },
       {
+        path: "cluster",
+        name: "cluster",
+        component: () => import("@/views/ClusterView.vue"),
+        meta: { permission: "cluster:read" },
+      },
+      {
         path: "security",
         name: "security",
         component: () => import("@/views/SecurityView.vue"),

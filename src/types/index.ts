@@ -332,4 +332,6 @@ export type Permission =
   | "templates:read"
   | "templates:write"
   | "traffic:read"
-  | "traffic:write";
+  | "traffic:write"
+  | "cluster:read"
+  | "cluster:write";
