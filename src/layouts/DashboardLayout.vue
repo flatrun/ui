@@ -31,8 +31,8 @@
           </div>
           <div v-show="expandedGroups.stacks && !sidebarCollapsed" class="nav-group-items">
             <router-link to="/deployments" class="nav-subitem" active-class="active">
-              <span class="nav-count">{{ stats.deployments }}</span>
               Deployments
+              <span class="nav-count">{{ stats.deployments }}</span>
             </router-link>
           </div>
         </div>
@@ -62,8 +62,8 @@
               class="nav-subitem"
               active-class="active"
             >
-              <span class="nav-count">{{ stats.containers }}</span>
               Containers
+              <span class="nav-count">{{ stats.containers }}</span>
             </router-link>
             <router-link
               v-if="authStore.hasPermission('images:read')"
@@ -71,8 +71,8 @@
               class="nav-subitem"
               active-class="active"
             >
-              <span class="nav-count">{{ stats.images }}</span>
               Images
+              <span class="nav-count">{{ stats.images }}</span>
             </router-link>
             <router-link
               v-if="authStore.hasPermission('volumes:read')"
@@ -80,8 +80,8 @@
               class="nav-subitem"
               active-class="active"
             >
-              <span class="nav-count">{{ stats.volumes }}</span>
               Volumes
+              <span class="nav-count">{{ stats.volumes }}</span>
             </router-link>
             <router-link
               v-if="authStore.hasPermission('networks:read')"
@@ -89,8 +89,8 @@
               class="nav-subitem"
               active-class="active"
             >
-              <span class="nav-count">{{ stats.networks }}</span>
               Networks
+              <span class="nav-count">{{ stats.networks }}</span>
             </router-link>
             <router-link
               v-if="authStore.hasPermission('containers:read')"
@@ -98,8 +98,8 @@
               class="nav-subitem"
               active-class="active"
             >
-              <span class="nav-count">{{ stats.dockerPorts }}</span>
               Port Mappings
+              <span class="nav-count">{{ stats.dockerPorts }}</span>
             </router-link>
           </div>
         </div>
@@ -136,8 +136,8 @@
               class="nav-subitem"
               active-class="active"
             >
-              <span class="nav-count">{{ stats.infrastructure }}</span>
               Infrastructure
+              <span class="nav-count">{{ stats.infrastructure }}</span>
             </router-link>
             <router-link
               v-if="authStore.hasPermission('system:read')"
@@ -145,8 +145,8 @@
               class="nav-subitem"
               active-class="active"
             >
-              <span class="nav-count">{{ stats.ports }}</span>
               Ports
+              <span class="nav-count">{{ stats.ports }}</span>
             </router-link>
             <router-link
               v-if="authStore.hasPermission('system:read')"
@@ -154,8 +154,8 @@
               class="nav-subitem"
               active-class="active"
             >
-              <span class="nav-count">{{ stats.services }}</span>
               Services
+              <span class="nav-count">{{ stats.services }}</span>
             </router-link>
             <router-link
               v-if="authStore.hasPermission('scheduler:read')"
@@ -180,8 +180,8 @@
           </div>
           <div v-show="expandedGroups.databases && !sidebarCollapsed" class="nav-group-items">
             <router-link to="/databases" class="nav-subitem" active-class="active">
-              <span class="nav-count">{{ stats.databases }}</span>
               Servers
+              <span class="nav-count">{{ stats.databases }}</span>
             </router-link>
           </div>
         </div>
@@ -230,8 +230,8 @@
               class="nav-subitem"
               active-class="active"
             >
-              <span class="nav-count">{{ stats.certificates }}</span>
               Certificates
+              <span class="nav-count">{{ stats.certificates }}</span>
             </router-link>
           </div>
         </div>
@@ -248,8 +248,8 @@
           </div>
           <div v-show="expandedGroups.extensions && !sidebarCollapsed" class="nav-group-items">
             <router-link to="/apps" class="nav-subitem" active-class="active">
-              <span class="nav-count">{{ stats.apps }}</span>
               Installed Apps
+              <span class="nav-count">{{ stats.apps }}</span>
             </router-link>
             <router-link to="/marketplace" class="nav-subitem" active-class="active"> Marketplace </router-link>
           </div>
@@ -709,7 +709,7 @@ onMounted(() => {
   border-radius: 9999px;
   font-size: 0.6875rem;
   font-weight: 600;
-  margin-right: auto;
+  margin-left: auto;
 }
 
 .sidebar-footer {
