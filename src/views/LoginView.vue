@@ -3,7 +3,7 @@
     <div class="login-left">
       <div class="brand">
         <Logo variant="full" size="lg" />
-        <p>Docker Deployment Manager</p>
+        <p>Containerized apps and server management</p>
       </div>
 
       <div class="features">

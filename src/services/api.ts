@@ -16,7 +16,7 @@ import type {
   DomainConfig,
 } from "@/types";
 
-const apiClient = axios.create({
+export const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_URL || "/api",
   headers: {
     "Content-Type": "application/json",
@@ -34,7 +34,7 @@ apiClient.interceptors.request.use((config) => {
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    if (error.response?.status === 401 && !window.location.pathname.includes("/setup")) {
       localStorage.removeItem("auth_token");
       window.location.href = "/login";
     }

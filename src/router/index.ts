@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from "vue-router";
 import type { RouteRecordRaw } from "vue-router";
 import type { Permission } from "@/types";
 import { useAuthStore } from "@/stores/auth";
+import { useSetupStore } from "@/stores/setup";
 import DashboardLayout from "@/layouts/DashboardLayout.vue";
 
 const routes: RouteRecordRaw[] = [
@@ -9,6 +10,12 @@ const routes: RouteRecordRaw[] = [
     path: "/login",
     name: "login",
     component: () => import("@/views/LoginView.vue"),
+    meta: { requiresAuth: false },
+  },
+  {
+    path: "/setup",
+    name: "setup",
+    component: () => import("@/views/SetupView.vue"),
     meta: { requiresAuth: false },
   },
   {
@@ -181,6 +188,18 @@ const router = createRouter({
 });
 
 router.beforeEach((to, _from, next) => {
+  const setup = useSetupStore();
+
+  if (setup.initialized === false && to.path !== "/setup") {
+    next("/setup");
+    return;
+  }
+
+  if (setup.initialized === true && to.path === "/setup") {
+    next("/login");
+    return;
+  }
+
   const token = localStorage.getItem("auth_token");
   const requiresAuth = to.matched.some((record) => record.meta.requiresAuth !== false);
 
