@@ -70,6 +70,12 @@ export const useStatsStore = defineStore("stats", () => {
         docker.volumes = data.volumes?.total || 0;
         docker.networks = data.networks?.total || 0;
         docker.ports = data.ports?.total || 0;
+
+        system.ports = data.system_ports?.total || 0;
+        system.services = data.services?.total || 0;
+        system.infrastructure = data.infrastructure?.total || 0;
+        system.certificates = data.certificates?.total || 0;
+        system.apps = data.apps?.total || 0;
       }
 
       if (statsRes.data?.system) {
