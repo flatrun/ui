@@ -5,6 +5,9 @@ module.exports = {
     browser: true,
     es2021: true,
   },
+  globals: {
+    __APP_VERSION__: 'readonly',
+  },
   extends: [
     'eslint:recommended',
     'plugin:vue/vue3-recommended',
