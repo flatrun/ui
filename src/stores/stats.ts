@@ -1,12 +1,17 @@
 import { defineStore } from "pinia";
 import { ref, reactive } from "vue";
 import { healthApi } from "@/services/api";
+import { isAgentCompatible } from "@/utils/version";
 
 export const useStatsStore = defineStore("stats", () => {
   const loading = ref(false);
   const lastUpdated = ref<Date | null>(null);
   const agentOnline = ref(false);
   const agentVersion = ref("unknown");
+  const agentCompatible = ref(true);
+  const agentCompatibilityMessage = ref("");
+  const agentDevBuild = ref(false);
+  const versionWarningDismissed = ref(false);
 
   const deployments = reactive({
     total: 0,
@@ -52,6 +57,10 @@ export const useStatsStore = defineStore("stats", () => {
       agentOnline.value = healthRes.data.status === "healthy";
       if (healthRes.data.version?.version) {
         agentVersion.value = healthRes.data.version.version;
+        const compat = isAgentCompatible(agentVersion.value);
+        agentCompatible.value = compat.compatible;
+        agentCompatibilityMessage.value = compat.message;
+        agentDevBuild.value = compat.dev || false;
       }
 
       const statsRes = await healthApi.stats();
@@ -112,6 +121,10 @@ export const useStatsStore = defineStore("stats", () => {
     lastUpdated,
     agentOnline,
     agentVersion,
+    agentCompatible,
+    agentCompatibilityMessage,
+    agentDevBuild,
+    versionWarningDismissed,
     deployments,
     containers,
     docker,

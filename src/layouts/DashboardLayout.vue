@@ -420,6 +420,15 @@
         </div>
       </header>
 
+      <div v-if="!statsStore.agentCompatible && !statsStore.versionWarningDismissed" class="version-warning">
+        <i class="pi pi-exclamation-triangle" />
+        <span>{{ statsStore.agentCompatibilityMessage }}</span>
+        <span class="version-details">UI v{{ uiVersion }} / Agent v{{ statsStore.agentVersion }}</span>
+        <button v-if="statsStore.agentDevBuild" class="dismiss-btn" @click="statsStore.versionWarningDismissed = true">
+          <i class="pi pi-times" />
+        </button>
+      </div>
+
       <div class="content-area">
         <router-view />
       </div>
@@ -439,6 +448,7 @@ const route = useRoute();
 const router = useRouter();
 const statsStore = useStatsStore();
 const authStore = useAuthStore();
+const uiVersion = __APP_VERSION__;
 const sidebarCollapsed = ref(false);
 const isRefreshing = ref(false);
 const envDropdownOpen = ref(false);
@@ -1100,5 +1110,40 @@ onMounted(() => {
   flex: 1;
   padding: 1.5rem;
   background: #f8fafc;
+}
+
+.version-warning {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: var(--color-warning-50);
+  border-bottom: 1px solid var(--color-warning-500);
+  color: var(--color-warning-700);
+  font-size: var(--text-sm);
+}
+
+.version-warning .pi {
+  color: var(--color-warning-600);
+}
+
+.version-warning .version-details {
+  margin-left: auto;
+  font-size: var(--text-xs);
+  color: var(--color-warning-600);
+}
+
+.version-warning .dismiss-btn {
+  background: none;
+  border: none;
+  color: var(--color-warning-700);
+  cursor: pointer;
+  padding: 0.25rem;
+  margin-left: 0.5rem;
+  border-radius: var(--radius-sm);
+}
+
+.version-warning .dismiss-btn:hover {
+  background: var(--color-warning-100);
 }
 </style>
