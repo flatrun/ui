@@ -1951,7 +1951,6 @@ const getDatabaseServiceYaml = () => {
     return `
   db:
     image: mysql:8
-    container_name: ${form.name}-db
     environment:
       MYSQL_ROOT_PASSWORD: ${rootPassword}
       MYSQL_DATABASE: ${dbName}
@@ -1966,7 +1965,6 @@ const getDatabaseServiceYaml = () => {
     return `
   db:
     image: mariadb:10
-    container_name: ${form.name}-db
     environment:
       MYSQL_ROOT_PASSWORD: ${rootPassword}
       MYSQL_DATABASE: ${dbName}
@@ -1981,7 +1979,6 @@ const getDatabaseServiceYaml = () => {
     return `
   db:
     image: postgres:15
-    container_name: ${form.name}-db
     environment:
       POSTGRES_DB: ${dbName}
       POSTGRES_USER: ${db.dbUser || "app"}
@@ -1995,7 +1992,6 @@ const getDatabaseServiceYaml = () => {
     return `
   db:
     image: mongo:6
-    container_name: ${form.name}-db
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${db.dbUser || "app"}
       MONGO_INITDB_ROOT_PASSWORD: ${db.dbPassword}
@@ -2032,7 +2028,6 @@ const buildComposeTemplate = (name: string, ports: { containerPort: number; host
 services:
   app:
     image: nginx:alpine
-    container_name: ${name}
     ${portConfig}
     networks:
       - ${networkName}
@@ -2072,7 +2067,6 @@ const buildComposeFromImage = () => {
 services:
   app:
     image: ${image}
-    container_name: ${name}
     ${portConfig}
     networks:
       - ${networkName}

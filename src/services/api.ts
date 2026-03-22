@@ -1,6 +1,7 @@
 import axios from "axios";
 import type {
   Deployment,
+  Service,
   Network,
   Certificate,
   ProxyStatus,
@@ -83,6 +84,7 @@ export const deploymentsApi = {
     const queryString = params.toString();
     return apiClient.delete(`/deployments/${name}${queryString ? `?${queryString}` : ""}`);
   },
+  getServices: (name: string) => apiClient.get<{ services: Service[] }>(`/deployments/${name}/services`),
   start: (name: string) => apiClient.post(`/deployments/${name}/start`),
   stop: (name: string) => apiClient.post(`/deployments/${name}/stop`),
   restart: (name: string) => apiClient.post(`/deployments/${name}/restart`),
