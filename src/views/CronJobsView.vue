@@ -229,15 +229,21 @@
             </div>
 
             <div class="form-group">
-              <label for="service">Service (optional)</label>
-              <input
+              <label for="service">
+                Service
+                <i v-if="loadingServices" class="pi pi-spin pi-spinner" style="margin-left: 4px" />
+              </label>
+              <select
                 id="service"
                 v-model="form.service"
-                type="text"
-                placeholder="web, app, worker..."
-                :disabled="saving"
-              />
-              <span class="hint">Leave empty to use deployment name as container</span>
+                :disabled="saving || loadingServices || !form.deployment_name"
+              >
+                <option value="">Default ({{ form.deployment_name || "select deployment" }})</option>
+                <option v-for="svc in deploymentServices" :key="svc.name" :value="svc.name">
+                  {{ svc.name }}
+                </option>
+              </select>
+              <span class="hint">Target service container for the command</span>
             </div>
 
             <div class="form-group">
@@ -374,7 +380,7 @@
 import { ref, computed, onMounted, watch } from "vue";
 import { schedulerApi, deploymentsApi } from "@/services/api";
 import type { ScheduledTask, TaskExecution } from "@/services/api";
-import type { Deployment } from "@/types";
+import type { Deployment, Service } from "@/types";
 import { useNotificationsStore } from "@/stores/notifications";
 import { useAuthStore } from "@/stores/auth";
 import ConfirmModal from "@/components/ConfirmModal.vue";
@@ -512,6 +518,34 @@ const defaultForm = (): CronJobForm => ({
 });
 
 const form = ref<CronJobForm>(defaultForm());
+const deploymentServices = ref<Service[]>([]);
+const loadingServices = ref(false);
+
+const fetchDeploymentServices = async (deploymentName: string) => {
+  if (!deploymentName) {
+    deploymentServices.value = [];
+    return;
+  }
+  loadingServices.value = true;
+  try {
+    const response = await deploymentsApi.getServices(deploymentName);
+    deploymentServices.value = response.data.services || [];
+  } catch {
+    deploymentServices.value = [];
+  } finally {
+    loadingServices.value = false;
+  }
+};
+
+watch(
+  () => form.value.deployment_name,
+  (name, oldName) => {
+    if (oldName) {
+      form.value.service = "";
+    }
+    fetchDeploymentServices(name);
+  },
+);
 
 const isFormValid = computed(() => {
   return Boolean(
