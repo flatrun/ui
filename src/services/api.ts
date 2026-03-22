@@ -49,6 +49,7 @@ export interface ServiceMetadata {
   networking: {
     expose: boolean;
     domain: string;
+    service?: string;
     container_port: number;
     protocol: string;
     proxy_type: string;

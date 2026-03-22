@@ -1176,15 +1176,28 @@
                 <span class="hint">The domain name for your deployment</span>
               </div>
 
-              <div class="form-group">
-                <label>Container Port</label>
-                <input
-                  v-model.number="domainSettings.containerPort"
-                  type="number"
-                  placeholder="80"
-                  class="form-input"
-                />
-                <span class="hint">The port your application listens on</span>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Service</label>
+                  <select v-model="domainSettings.service" class="form-select">
+                    <option value="">Default ({{ route.params.name }})</option>
+                    <option v-for="svc in services" :key="svc.name" :value="svc.name">
+                      {{ svc.name }}
+                    </option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label>Container Port</label>
+                  <input
+                    v-model.number="domainSettings.containerPort"
+                    type="number"
+                    placeholder="80"
+                    class="form-input"
+                    min="1"
+                    max="65535"
+                  />
+                </div>
               </div>
 
               <div class="form-group">
@@ -1592,6 +1605,7 @@ const savingDomainSettings = ref(false);
 const domainSettings = ref({
   expose: false,
   domain: "",
+  service: "",
   containerPort: 80,
   sslEnabled: false,
   autoCert: false,
@@ -2263,6 +2277,7 @@ const openDomainSettings = () => {
     domainSettings.value = {
       expose: metadata.networking?.expose || false,
       domain: metadata.networking?.domain || "",
+      service: metadata.networking?.service || "",
       containerPort: metadata.networking?.container_port || 80,
       sslEnabled: metadata.ssl?.enabled || false,
       autoCert: metadata.ssl?.auto_cert || false,
@@ -2271,6 +2286,7 @@ const openDomainSettings = () => {
     domainSettings.value = {
       expose: proxyStatus.value?.exposed || false,
       domain: proxyStatus.value?.domain || "",
+      service: "",
       containerPort: 80,
       sslEnabled: proxyStatus.value?.ssl_enabled || false,
       autoCert: false,
@@ -2286,6 +2302,7 @@ const saveDomainSettings = async () => {
       networking: {
         expose: domainSettings.value.expose,
         domain: domainSettings.value.domain,
+        service: domainSettings.value.service,
         container_port: domainSettings.value.containerPort,
         protocol: "http",
         proxy_type: "http",

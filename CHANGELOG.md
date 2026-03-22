@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.1.5] - 2026-03-22
+
+### Added
+- Setup wizard with guided onboarding flow
+- Agent version compatibility check with min/max bounds
+- Dev build detection with dismissable warning banner
+- Service selector in cron job form with live API lookup
+- Service selector in Domain & SSL Settings modal
+- `getServices` API function for deployment service discovery
+
+### Enhanced
+- Shared `apiClient` across stores (removed setup store duplicate)
+- Clipboard fallback for non-HTTPS environments
+- Better error differentiation (network vs server) in setup store
+
+### Fixed
+- Removed hardcoded container names from compose templates
+- Service dropdown resets when deployment changes in cron form
+- Version warning persists in store for session duration
+
 ## [0.1.0] - 2026-03-19
 
 ### Added

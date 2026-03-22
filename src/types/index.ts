@@ -70,6 +70,7 @@ export interface QuickAction {
 export interface NetworkingConfig {
   expose: boolean;
   domain: string;
+  service?: string;
   container_port: number;
   protocol: string;
   proxy_type?: string;
