@@ -4,7 +4,12 @@
       <div class="header-left">
         <div class="search-box">
           <i class="pi pi-search" />
-          <input v-model="searchQuery" type="text" placeholder="Search apps..." class="search-input" />
+          <input
+            v-model="searchQuery"
+            type="text"
+            :placeholder="t('apps.marketplace.searchPlaceholder')"
+            class="search-input"
+          />
         </div>
         <div class="category-filters">
           <button
@@ -23,8 +28,8 @@
 
     <div class="marketplace-banner">
       <div class="banner-content">
-        <h2>App Marketplace</h2>
-        <p>Extend Flatrun with powerful apps and integrations</p>
+        <h2>{{ t("apps.marketplace.title") }}</h2>
+        <p>{{ t("apps.marketplace.subtitle") }}</p>
       </div>
       <div class="banner-decoration">
         <i class="pi pi-shopping-bag" />
@@ -39,7 +44,7 @@
           </div>
           <div v-if="app.featured" class="featured-badge">
             <i class="pi pi-star-fill" />
-            Featured
+            {{ t("apps.marketplace.badges.featured") }}
           </div>
         </div>
         <div class="app-card-body">
@@ -65,11 +70,11 @@
         <div class="app-card-footer">
           <button class="btn btn-primary" :disabled="app.installed">
             <i :class="app.installed ? 'pi pi-check' : 'pi pi-download'" />
-            {{ app.installed ? "Installed" : "Install" }}
+            {{ app.installed ? t("apps.marketplace.actions.installed") : t("apps.marketplace.actions.install") }}
           </button>
           <button class="btn btn-secondary">
             <i class="pi pi-info-circle" />
-            Details
+            {{ t("apps.marketplace.actions.details") }}
           </button>
         </div>
       </div>
@@ -77,14 +82,15 @@
 
     <div v-if="filteredApps.length === 0" class="empty-state">
       <i class="pi pi-search" />
-      <h3>No Apps Found</h3>
-      <p>Try adjusting your search or filters.</p>
+      <h3>{{ t("apps.marketplace.empty.title") }}</h3>
+      <p>{{ t("apps.marketplace.empty.description") }}</p>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed } from "vue";
+import { useI18n } from "vue-i18n";
 
 interface MarketplaceApp {
   id: string;
@@ -101,16 +107,17 @@ interface MarketplaceApp {
 
 const searchQuery = ref("");
 const selectedCategory = ref("all");
+const { t } = useI18n();
 
-const categories = [
-  { value: "all", label: "All", icon: "pi pi-th-large" },
-  { value: "cms", label: "CMS", icon: "pi pi-globe" },
-  { value: "database", label: "Database", icon: "pi pi-database" },
-  { value: "email", label: "Email", icon: "pi pi-envelope" },
-  { value: "security", label: "Security", icon: "pi pi-shield" },
-  { value: "backup", label: "Backup", icon: "pi pi-save" },
-  { value: "monitoring", label: "Monitoring", icon: "pi pi-chart-line" },
-];
+const categories = computed(() => [
+  { value: "all", label: t("apps.marketplace.categories.all"), icon: "pi pi-th-large" },
+  { value: "cms", label: t("apps.marketplace.categories.cms"), icon: "pi pi-globe" },
+  { value: "database", label: t("apps.marketplace.categories.database"), icon: "pi pi-database" },
+  { value: "email", label: t("apps.marketplace.categories.email"), icon: "pi pi-envelope" },
+  { value: "security", label: t("apps.marketplace.categories.security"), icon: "pi pi-shield" },
+  { value: "backup", label: t("apps.marketplace.categories.backup"), icon: "pi pi-save" },
+  { value: "monitoring", label: t("apps.marketplace.categories.monitoring"), icon: "pi pi-chart-line" },
+]);
 
 const apps = ref<MarketplaceApp[]>([
   {

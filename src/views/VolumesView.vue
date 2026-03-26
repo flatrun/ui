@@ -3,15 +3,15 @@
     <div class="stats-bar">
       <div class="stat-item">
         <span class="stat-value">{{ volumes.length }}</span>
-        <span class="stat-label">Total Volumes</span>
+        <span class="stat-label">{{ $t("volumes.stats.totalVolumes") }}</span>
       </div>
       <div class="stat-item">
         <span class="stat-value">{{ inUseVolumes }}</span>
-        <span class="stat-label">In Use</span>
+        <span class="stat-label">{{ $t("volumes.stats.inUse") }}</span>
       </div>
       <div class="stat-item warning">
         <span class="stat-value">{{ unusedVolumes }}</span>
-        <span class="stat-label">Unused</span>
+        <span class="stat-label">{{ $t("volumes.stats.unused") }}</span>
       </div>
     </div>
 
@@ -20,37 +20,37 @@
       :columns="columns"
       :loading="loading"
       :searchable="true"
-      search-placeholder="Search volumes..."
+      :search-placeholder="$t('volumes.searchPlaceholder')"
       :search-fields="['name', 'driver']"
       :selectable="true"
       :toggleable="true"
       item-key="name"
       empty-icon="pi pi-database"
-      empty-title="No Volumes Found"
-      empty-text="Create volumes to persist container data."
-      loading-text="Loading volumes..."
+      :empty-title="$t('volumes.empty.title')"
+      :empty-text="$t('volumes.empty.text')"
+      :loading-text="$t('volumes.loading')"
       :default-page-size="25"
       default-view-mode="grid"
     >
       <template #actions>
         <button v-if="canWrite" class="btn btn-primary" @click="showCreateModal = true">
           <i class="pi pi-plus" />
-          Create Volume
+          {{ $t("volumes.actions.createVolume") }}
         </button>
         <button class="btn btn-secondary" :disabled="loading" @click="fetchVolumes">
           <i class="pi pi-refresh" :class="{ 'pi-spin': loading }" />
-          Refresh
+          {{ $t("volumes.actions.refresh") }}
         </button>
         <button v-if="canDelete" class="btn btn-warning" :disabled="unusedVolumes === 0" @click="pruneVolumes">
           <i class="pi pi-trash" />
-          Prune Unused
+          {{ $t("volumes.actions.pruneUnused") }}
         </button>
       </template>
 
       <template #empty-action>
         <button v-if="canWrite" class="btn btn-primary" @click="showCreateModal = true">
           <i class="pi pi-plus" />
-          Create Volume
+          {{ $t("volumes.actions.createVolume") }}
         </button>
       </template>
 
@@ -64,7 +64,7 @@
 
       <template #cell-status="{ item }">
         <span class="status-badge" :class="item.in_use ? 'in-use' : 'unused'">
-          {{ item.in_use ? "In Use" : "Unused" }}
+          {{ item.in_use ? $t("volumes.status.inUse") : $t("volumes.status.unused") }}
         </span>
       </template>
 
@@ -78,13 +78,17 @@
 
       <template #cell-actions="{ item }">
         <div class="table-actions">
-          <button class="action-btn inspect" title="Inspect" @click.stop="inspectVolume(item.name)">
+          <button
+            class="action-btn inspect"
+            :title="$t('volumes.actions.inspect')"
+            @click.stop="inspectVolume(item.name)"
+          >
             <i class="pi pi-info-circle" />
           </button>
           <button
             v-if="canDelete"
             class="action-btn delete"
-            title="Remove"
+            :title="$t('volumes.actions.remove')"
             :disabled="item.in_use"
             @click.stop="deleteVolume(item.name)"
           >
@@ -122,7 +126,7 @@
               </div>
               <div class="volume-status">
                 <span class="status-badge" :class="volume.in_use ? 'in-use' : 'unused'">
-                  {{ volume.in_use ? "In Use" : "Unused" }}
+                  {{ volume.in_use ? $t("volumes.status.inUse") : $t("volumes.status.unused") }}
                 </span>
               </div>
             </div>
@@ -130,21 +134,21 @@
             <div class="volume-card-body">
               <div class="volume-details">
                 <div class="detail-item">
-                  <span class="detail-label">Mount Point</span>
+                  <span class="detail-label">{{ $t("volumes.table.mountPoint") }}</span>
                   <code class="detail-value path">{{ volume.mountpoint }}</code>
                 </div>
                 <div class="detail-item">
-                  <span class="detail-label">Created</span>
+                  <span class="detail-label">{{ $t("volumes.table.created") }}</span>
                   <span class="detail-value">{{ formatDate(volume.created) }}</span>
                 </div>
                 <div v-if="volume.size" class="detail-item">
-                  <span class="detail-label">Size</span>
+                  <span class="detail-label">{{ $t("volumes.table.size") }}</span>
                   <span class="detail-value">{{ formatSize(volume.size) }}</span>
                 </div>
               </div>
 
               <div v-if="volume.labels && Object.keys(volume.labels).length > 0" class="volume-labels">
-                <span class="labels-title">Labels</span>
+                <span class="labels-title">{{ $t("volumes.labelsTitle") }}</span>
                 <div class="labels-list">
                   <span v-for="(value, key) in volume.labels" :key="key" class="label-tag">
                     {{ key }}: {{ value }}
@@ -153,7 +157,7 @@
               </div>
 
               <div v-if="volume.containers?.length" class="volume-containers">
-                <span class="containers-title">Mounted by</span>
+                <span class="containers-title">{{ $t("volumes.mountedBy") }}</span>
                 <div class="containers-list">
                   <span v-for="container in volume.containers" :key="container" class="container-tag">
                     <i class="pi pi-box" />
@@ -164,13 +168,17 @@
             </div>
 
             <div class="volume-card-actions">
-              <button class="action-btn inspect" title="Inspect" @click="inspectVolume(volume.name)">
+              <button
+                class="action-btn inspect"
+                :title="$t('volumes.actions.inspect')"
+                @click="inspectVolume(volume.name)"
+              >
                 <i class="pi pi-info-circle" />
               </button>
               <button
                 v-if="canDelete"
                 class="action-btn delete"
-                title="Remove"
+                :title="$t('volumes.actions.remove')"
                 :disabled="volume.in_use"
                 @click="deleteVolume(volume.name)"
               >
@@ -183,18 +191,18 @@
 
       <template #bulk-actions="{ selectedItems, clearSelection }">
         <button v-if="canDelete" class="btn btn-sm btn-danger" @click="bulkRemove(selectedItems, clearSelection)">
-          <i class="pi pi-trash" /> Remove
+          <i class="pi pi-trash" /> {{ $t("volumes.actions.remove") }}
         </button>
       </template>
     </DataTable>
 
     <ConfirmModal
       :visible="showDeleteModal"
-      title="Remove Volume"
-      :message="`Remove volume '${volumeToDelete}'?`"
-      warning="This cannot be undone."
+      :title="$t('volumes.confirm.removeTitle')"
+      :message="$t('volumes.confirm.removeMessage', { name: volumeToDelete })"
+      :warning="$t('volumes.confirm.warning')"
       variant="danger"
-      confirm-text="Remove"
+      :confirm-text="$t('volumes.actions.remove')"
       :loading="deleting"
       @confirm="confirmDeleteVolume"
       @cancel="showDeleteModal = false"
@@ -202,11 +210,11 @@
 
     <ConfirmModal
       :visible="showBulkDeleteModal"
-      title="Remove Volumes"
-      :message="`Remove ${bulkDeleteNames.length} volumes?`"
-      warning="This cannot be undone."
+      :title="$t('volumes.confirm.removeManyTitle')"
+      :message="$t('volumes.confirm.removeManyMessage', { count: bulkDeleteNames.length })"
+      :warning="$t('volumes.confirm.warning')"
       variant="danger"
-      confirm-text="Remove All"
+      :confirm-text="$t('volumes.confirm.removeAll')"
       :loading="bulkDeleting"
       @confirm="confirmBulkRemove"
       @cancel="showBulkDeleteModal = false"
@@ -214,11 +222,11 @@
 
     <ConfirmModal
       :visible="showPruneModal"
-      title="Prune Unused Volumes"
-      message="Remove all unused volumes?"
-      warning="This cannot be undone."
+      :title="$t('volumes.confirm.pruneTitle')"
+      :message="$t('volumes.confirm.pruneMessage')"
+      :warning="$t('volumes.confirm.warning')"
       variant="warning"
-      confirm-text="Prune"
+      :confirm-text="$t('volumes.actions.prune')"
       :loading="pruning"
       @confirm="confirmPrune"
       @cancel="showPruneModal = false"
@@ -230,7 +238,7 @@
           <div class="modal-header">
             <h3>
               <i class="pi pi-plus-circle" />
-              Create Volume
+              {{ $t("volumes.create.title") }}
             </h3>
             <button class="close-btn" @click="showCreateModal = false">
               <i class="pi pi-times" />
@@ -238,37 +246,54 @@
           </div>
           <div class="modal-body">
             <div class="form-group">
-              <label>Volume Name</label>
-              <input v-model="newVolumeName" type="text" placeholder="my-volume" class="form-input" />
+              <label>{{ $t("volumes.create.name") }}</label>
+              <input
+                v-model="newVolumeName"
+                type="text"
+                :placeholder="$t('volumes.create.namePlaceholder')"
+                class="form-input"
+              />
             </div>
             <div class="form-group">
-              <label>Driver</label>
+              <label>{{ $t("volumes.table.driver") }}</label>
               <select v-model="newVolumeDriver" class="form-input">
                 <option value="local">local</option>
               </select>
             </div>
             <div class="form-group">
-              <label>Labels (optional)</label>
+              <label>{{ $t("volumes.create.labelsOptional") }}</label>
               <div class="labels-input">
                 <div v-for="(label, index) in newVolumeLabels" :key="index" class="label-row">
-                  <input v-model="label.key" type="text" placeholder="key" class="form-input small" />
-                  <input v-model="label.value" type="text" placeholder="value" class="form-input small" />
+                  <input
+                    v-model="label.key"
+                    type="text"
+                    :placeholder="$t('volumes.create.keyPlaceholder')"
+                    class="form-input small"
+                  />
+                  <input
+                    v-model="label.value"
+                    type="text"
+                    :placeholder="$t('volumes.create.valuePlaceholder')"
+                    class="form-input small"
+                  />
                   <button class="remove-label" @click="removeLabel(index)">
                     <i class="pi pi-times" />
                   </button>
                 </div>
                 <button class="add-label-btn" @click="addLabel">
                   <i class="pi pi-plus" />
-                  Add Label
+                  {{ $t("volumes.create.addLabel") }}
                 </button>
               </div>
             </div>
           </div>
           <div class="modal-footer">
-            <button class="btn btn-secondary" @click="showCreateModal = false">Cancel</button>
+            <button class="btn btn-secondary" @click="showCreateModal = false">
+              {{ $t("volumes.create.cancel") }}
+            </button>
             <button class="btn btn-primary" :disabled="!newVolumeName || creating" @click="createVolume">
               <i v-if="creating" class="pi pi-spin pi-spinner" />
-              {{ creating ? "Creating..." : "Create Volume" }}
+              {{ creating ? $t("volumes.create.creating") : $t("volumes.actions.createVolume") }}
             </button>
           </div>
         </div>
@@ -279,6 +304,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
+import { useI18n } from "vue-i18n";
 import { volumesApi } from "@/services/api";
 import { useAuthStore } from "@/stores/auth";
 import DataTable from "@/components/DataTable.vue";
@@ -296,6 +322,7 @@ interface Volume {
 }
 
 const authStore = useAuthStore();
+const { t } = useI18n();
 const canWrite = authStore.hasPermission("volumes:write");
 const canDelete = authStore.hasPermission("volumes:delete");
 const volumes = ref<Volume[]>([]);
@@ -318,14 +345,14 @@ const bulkDeleting = ref(false);
 const showPruneModal = ref(false);
 const pruning = ref(false);
 
-const columns = [
-  { key: "name", label: "Name", sortable: true },
-  { key: "driver", label: "Driver" },
-  { key: "status", label: "Status" },
-  { key: "mountpoint", label: "Mount Point" },
-  { key: "created", label: "Created", sortable: true },
-  { key: "actions", label: "Actions", width: "100px" },
-];
+const columns = computed(() => [
+  { key: "name", label: t("volumes.table.name"), sortable: true },
+  { key: "driver", label: t("volumes.table.driver") },
+  { key: "status", label: t("volumes.table.status") },
+  { key: "mountpoint", label: t("volumes.table.mountPoint") },
+  { key: "created", label: t("volumes.table.created"), sortable: true },
+  { key: "actions", label: t("volumes.table.actions"), width: "100px" },
+]);
 
 const inUseVolumes = computed(() => volumes.value.filter((v) => v.in_use).length);
 const unusedVolumes = computed(() => volumes.value.filter((v) => !v.in_use).length);
@@ -343,7 +370,9 @@ const fetchVolumes = async () => {
 };
 
 const formatDate = (timestamp: string) => {
+  if (!timestamp) return t("common.na");
   const date = new Date(timestamp);
+  if (Number.isNaN(date.getTime())) return t("common.na");
   return date.toLocaleDateString() + " " + date.toLocaleTimeString();
 };
 

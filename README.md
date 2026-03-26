@@ -32,6 +32,7 @@ FlatRun UI provides a user-friendly dashboard for managing Docker deployments th
 ## Development
 
 ### Prerequisites
+
 - Node.js 18+ and npm
 
 ### Setup
@@ -75,8 +76,10 @@ Create a `.env.local` file to configure the API connection:
 
 ```bash
 # FlatRun Agent API URL
-VITE_API_URL=http://localhost:8090
+VITE_API_URL=http://localhost:8090/api
 ```
+
+`VITE_API_URL` must include the `/api` prefix used by the agent routes.
 
 For production deployments:
 
@@ -101,8 +104,8 @@ If running the UI on a different domain/port than the agent, ensure the agent's 
 api:
   enable_cors: true
   allowed_origins:
-    - http://localhost:5173  # Development
-    - https://your-ui-domain.com  # Production
+    - http://localhost:5173 # Development
+    - https://your-ui-domain.com # Production
 ```
 
 ## Available Scripts
@@ -160,16 +163,19 @@ EXPOSE 80
 ## Troubleshooting
 
 ### Cannot connect to agent
+
 - Verify the agent is running: `systemctl status flatrun-agent`
 - Check `VITE_API_URL` is correct in your `.env.local`
 - Ensure CORS is configured if running on different domains
 
 ### Authentication fails
+
 - Verify the API key matches the agent's configuration
 - Check browser console for specific error messages
 - Ensure JWT secret is properly set in agent config
 
 ### UI shows no deployments
+
 - Confirm the agent's `deployments_path` is accessible
 - Check that deployments have valid `docker-compose.yml` files
 

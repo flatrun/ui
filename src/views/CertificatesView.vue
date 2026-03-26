@@ -6,23 +6,23 @@
       item-key="domain"
       :loading="loading"
       :searchable="true"
-      search-placeholder="Search certificates..."
+      :search-placeholder="t('certificates.table.searchPlaceholder')"
       :search-fields="['domain', 'issuer', 'status']"
       :toggleable="true"
       default-view-mode="grid"
       empty-icon="pi pi-shield"
-      empty-title="No Certificates Found"
-      empty-text="SSL certificates will appear here once configured in your nginx deployment."
-      loading-text="Loading certificates..."
+      :empty-title="t('certificates.table.emptyTitle')"
+      :empty-text="t('certificates.table.emptyText')"
+      :loading-text="t('certificates.table.loadingText')"
     >
       <template #actions>
         <button v-if="canWrite" class="btn btn-primary" @click="showRequestModal = true">
           <i class="pi pi-plus" />
-          Request Certificate
+          {{ t("certificates.actions.requestCertificate") }}
         </button>
         <button v-if="canWrite" class="btn btn-secondary" :disabled="renewingAll" @click="handleRenewAll">
           <i class="pi pi-sync" :class="{ 'pi-spin': renewingAll }" />
-          Renew All
+          {{ t("certificates.actions.renewAll") }}
         </button>
         <button class="btn btn-icon" :disabled="loading" @click="fetchCertificates">
           <i class="pi pi-refresh" :class="{ 'pi-spin': loading }" />
@@ -38,12 +38,14 @@
 
       <template #cell-status="{ item }">
         <span class="status-badge" :class="item.status">
-          {{ item.status }}
+          {{ formatStatus(item.status) }}
         </span>
       </template>
 
       <template #cell-days_left="{ item }">
-        <span class="days-left" :class="daysLeftClass(item.days_left)"> {{ item.days_left }} days </span>
+        <span class="days-left" :class="daysLeftClass(item.days_left)">
+          {{ t("certificates.table.days", { n: item.days_left }) }}
+        </span>
       </template>
 
       <template #cell-not_before="{ item }">
@@ -61,7 +63,7 @@
               <div class="cert-status">
                 <span class="status-badge" :class="cert.status">
                   <i :class="statusIcon(cert.status)" />
-                  {{ cert.status }}
+                  {{ formatStatus(cert.status) }}
                 </span>
               </div>
               <div class="cert-domain">
@@ -73,21 +75,21 @@
             <div class="cert-body">
               <div class="cert-info-grid">
                 <div class="info-item">
-                  <span class="info-label">Issuer</span>
+                  <span class="info-label">{{ t("certificates.table.columns.issuer") }}</span>
                   <span class="info-value">{{ cert.issuer }}</span>
                 </div>
                 <div class="info-item">
-                  <span class="info-label">Days Left</span>
+                  <span class="info-label">{{ t("certificates.table.columns.daysLeft") }}</span>
                   <span class="info-value days-left" :class="daysLeftClass(cert.days_left)">
-                    {{ cert.days_left }} days
+                    {{ t("certificates.table.days", { n: cert.days_left }) }}
                   </span>
                 </div>
                 <div class="info-item">
-                  <span class="info-label">Valid From</span>
+                  <span class="info-label">{{ t("certificates.table.columns.validFrom") }}</span>
                   <span class="info-value">{{ formatDate(cert.not_before) }}</span>
                 </div>
                 <div class="info-item">
-                  <span class="info-label">Expires</span>
+                  <span class="info-label">{{ t("certificates.table.columns.expires") }}</span>
                   <span class="info-value">{{ formatDate(cert.not_after) }}</span>
                 </div>
               </div>
@@ -114,11 +116,11 @@
 
     <ConfirmModal
       :visible="showDeleteModal"
-      title="Delete Certificate"
-      :message="`Are you sure you want to delete the certificate for ${domainToDelete}?`"
-      warning="This action cannot be undone."
+      :title="t('certificates.modals.delete.title')"
+      :message="t('certificates.modals.delete.message', { domain: domainToDelete || '' })"
+      :warning="t('certificates.modals.delete.warning')"
       variant="danger"
-      confirm-text="Delete"
+      :confirm-text="t('certificates.modals.delete.confirm')"
       :loading="!!deleting"
       @confirm="confirmDelete"
       @cancel="showDeleteModal = false"
@@ -130,7 +132,7 @@
           <div class="modal-header">
             <h3>
               <i class="pi pi-shield" />
-              Request SSL Certificate
+              {{ t("certificates.modals.request.title") }}
             </h3>
             <button class="close-btn" @click="showRequestModal = false">
               <i class="pi pi-times" />
@@ -139,17 +141,25 @@
 
           <div class="modal-body">
             <div class="form-group">
-              <label for="domain">Domain</label>
-              <input id="domain" v-model="newDomain" type="text" placeholder="example.com" :disabled="requesting" />
-              <span class="hint">Enter the domain to request a Let's Encrypt certificate for</span>
+              <label for="domain">{{ t("certificates.modals.request.domainLabel") }}</label>
+              <input
+                id="domain"
+                v-model="newDomain"
+                type="text"
+                :placeholder="t('certificates.modals.request.domainPlaceholder')"
+                :disabled="requesting"
+              />
+              <span class="hint">{{ t("certificates.modals.request.hint") }}</span>
             </div>
           </div>
 
           <div class="modal-footer">
-            <button class="btn btn-secondary" :disabled="requesting" @click="showRequestModal = false">Cancel</button>
+            <button class="btn btn-secondary" :disabled="requesting" @click="showRequestModal = false">
+              {{ t("certificates.modals.request.cancel") }}
+            </button>
             <button class="btn btn-primary" :disabled="requesting || !newDomain.trim()" @click="handleRequest">
               <i v-if="requesting" class="pi pi-spin pi-spinner" />
-              {{ requesting ? "Requesting..." : "Request Certificate" }}
+              {{ requesting ? t("certificates.modals.request.requesting") : t("certificates.modals.request.request") }}
             </button>
           </div>
         </div>
@@ -163,7 +173,7 @@
         </div>
         <div class="summary-info">
           <span class="summary-count">{{ validCount }}</span>
-          <span class="summary-label">Valid</span>
+          <span class="summary-label">{{ t("certificates.summary.valid") }}</span>
         </div>
       </div>
       <div class="summary-card">
@@ -172,7 +182,7 @@
         </div>
         <div class="summary-info">
           <span class="summary-count">{{ expiringCount }}</span>
-          <span class="summary-label">Expiring Soon</span>
+          <span class="summary-label">{{ t("certificates.summary.expiringSoon") }}</span>
         </div>
       </div>
       <div class="summary-card">
@@ -181,7 +191,7 @@
         </div>
         <div class="summary-info">
           <span class="summary-count">{{ expiredCount }}</span>
-          <span class="summary-label">Expired</span>
+          <span class="summary-label">{{ t("certificates.summary.expired") }}</span>
         </div>
       </div>
     </div>
@@ -190,6 +200,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
+import { useI18n } from "vue-i18n";
 import { certificatesApi } from "@/services/api";
 import { useNotificationsStore } from "@/stores/notifications";
 import { useAuthStore } from "@/stores/auth";
@@ -199,6 +210,7 @@ import type { Certificate } from "@/types";
 
 const notifications = useNotificationsStore();
 const authStore = useAuthStore();
+const { t, locale, te } = useI18n();
 const canWrite = authStore.hasPermission("certificates:write");
 const canDelete = authStore.hasPermission("certificates:delete");
 const certificates = ref<Certificate[]>([]);
@@ -212,14 +224,14 @@ const deleting = ref<string | null>(null);
 const showDeleteModal = ref(false);
 const domainToDelete = ref<string | null>(null);
 
-const columns = [
-  { key: "domain", label: "Domain", sortable: true },
-  { key: "status", label: "Status", sortable: true },
-  { key: "issuer", label: "Issuer", sortable: true },
-  { key: "days_left", label: "Days Left", sortable: true },
-  { key: "not_before", label: "Valid From", sortable: true },
-  { key: "not_after", label: "Expires", sortable: true },
-];
+const columns = computed(() => [
+  { key: "domain", label: t("certificates.table.columns.domain"), sortable: true },
+  { key: "status", label: t("certificates.table.columns.status"), sortable: true },
+  { key: "issuer", label: t("certificates.table.columns.issuer"), sortable: true },
+  { key: "days_left", label: t("certificates.table.columns.daysLeft"), sortable: true },
+  { key: "not_before", label: t("certificates.table.columns.validFrom"), sortable: true },
+  { key: "not_after", label: t("certificates.table.columns.expires"), sortable: true },
+]);
 
 const validCount = computed(() => certificates.value.filter((c) => c.status === "valid").length);
 const expiringCount = computed(() => certificates.value.filter((c) => c.status === "expiring").length);
@@ -232,7 +244,7 @@ const fetchCertificates = async () => {
     const response = await certificatesApi.list();
     certificates.value = response.data.certificates || [];
   } catch (e: any) {
-    notifications.error("Error", "Failed to load certificates");
+    notifications.error(t("certificates.notifications.loadFailedTitle"), t("certificates.notifications.loadFailed"));
   } finally {
     loading.value = false;
   }
@@ -245,13 +257,16 @@ const handleRequest = async () => {
 
   try {
     await certificatesApi.request(newDomain.value.trim());
-    notifications.success("Certificate Requested", `Certificate for ${newDomain.value} has been requested`);
+    notifications.success(
+      t("certificates.notifications.requestedTitle"),
+      t("certificates.notifications.requested", { domain: newDomain.value.trim() }),
+    );
     showRequestModal.value = false;
     newDomain.value = "";
     await fetchCertificates();
   } catch (e: any) {
     const msg = e.response?.data?.error || e.message;
-    notifications.error("Request Failed", msg);
+    notifications.error(t("certificates.notifications.requestFailedTitle"), msg);
   } finally {
     requesting.value = false;
   }
@@ -262,11 +277,14 @@ const handleRenewAll = async () => {
 
   try {
     await certificatesApi.renew();
-    notifications.success("Renewal Complete", "All certificates have been renewed");
+    notifications.success(
+      t("certificates.notifications.renewCompleteTitle"),
+      t("certificates.notifications.renewComplete"),
+    );
     await fetchCertificates();
   } catch (e: any) {
     const msg = e.response?.data?.error || e.message;
-    notifications.error("Renewal Failed", msg);
+    notifications.error(t("certificates.notifications.renewFailedTitle"), msg);
   } finally {
     renewingAll.value = false;
   }
@@ -284,11 +302,14 @@ const confirmDelete = async () => {
 
   try {
     await certificatesApi.delete(domainToDelete.value);
-    notifications.success("Certificate Deleted", `Certificate for ${domainToDelete.value} has been deleted`);
+    notifications.success(
+      t("certificates.notifications.deletedTitle"),
+      t("certificates.notifications.deleted", { domain: domainToDelete.value }),
+    );
     await fetchCertificates();
   } catch (e: any) {
     const msg = e.response?.data?.error || e.message;
-    notifications.error("Delete Failed", msg);
+    notifications.error(t("certificates.notifications.deleteFailedTitle"), msg);
   } finally {
     deleting.value = null;
     showDeleteModal.value = false;
@@ -309,6 +330,11 @@ const statusIcon = (status: string) => {
   }
 };
 
+const formatStatus = (status: string) => {
+  const key = `certificates.status.${status}`;
+  return te(key) ? t(key) : t("certificates.status.unknown");
+};
+
 const daysLeftClass = (days: number) => {
   if (days <= 0) return "critical";
   if (days <= 30) return "warning";
@@ -317,7 +343,8 @@ const daysLeftClass = (days: number) => {
 
 const formatDate = (dateString: string) => {
   const date = new Date(dateString);
-  return date.toLocaleDateString("en-US", {
+  if (Number.isNaN(date.getTime())) return t("common.na");
+  return date.toLocaleDateString(locale.value || "en-US", {
     year: "numeric",
     month: "short",
     day: "numeric",

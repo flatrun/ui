@@ -5,14 +5,14 @@
       :columns="columns"
       :loading="loading"
       :searchable="true"
-      search-placeholder="Search containers..."
+      :search-placeholder="$t('containers.searchPlaceholder')"
       :search-fields="['name', 'image', 'id']"
       :selectable="true"
       item-key="id"
       :empty-icon="Package"
-      empty-title="No Containers Found"
+      :empty-title="$t('containers.empty.title')"
       :empty-text="emptyText"
-      loading-text="Loading containers..."
+      :loading-text="$t('containers.loading')"
       :default-page-size="25"
     >
       <template #filters>
@@ -33,7 +33,7 @@
       <template #actions>
         <button class="btn btn-secondary" :disabled="loading" @click="fetchContainers">
           <RefreshCw :size="16" :class="{ spinning: loading }" />
-          Refresh
+          {{ $t("containers.actions.refresh") }}
         </button>
       </template>
 
@@ -76,24 +76,40 @@
           <button
             v-if="canWrite && item.state === 'running'"
             class="action-btn stop"
-            title="Stop"
+            :title="$t('containers.actions.stop')"
             @click.stop="stopContainer(item.id)"
           >
             <Square :size="14" />
           </button>
-          <button v-else-if="canWrite" class="action-btn start" title="Start" @click.stop="startContainer(item.id)">
+          <button
+            v-else-if="canWrite"
+            class="action-btn start"
+            :title="$t('containers.actions.start')"
+            @click.stop="startContainer(item.id)"
+          >
             <Play :size="14" />
           </button>
-          <button v-if="canWrite" class="action-btn restart" title="Restart" @click.stop="restartContainer(item.id)">
+          <button
+            v-if="canWrite"
+            class="action-btn restart"
+            :title="$t('containers.actions.restart')"
+            @click.stop="restartContainer(item.id)"
+          >
             <RotateCw :size="14" />
           </button>
-          <button class="action-btn resources" title="Resources" @click.stop="showResources(item.id, item.name)">
-            <Gauge :size="14" />
-          </button>
-          <button class="action-btn logs" title="Logs" @click.stop="showLogs(item.id, item.name)">
+          <button
+            class="action-btn logs"
+            :title="$t('containers.actions.logs')"
+            @click.stop="showLogs(item.id, item.name)"
+          >
             <FileText :size="14" />
           </button>
-          <button v-if="canDelete" class="action-btn delete" title="Remove" @click.stop="deleteContainer(item.id)">
+          <button
+            v-if="canDelete"
+            class="action-btn delete"
+            :title="$t('containers.actions.remove')"
+            @click.stop="deleteContainer(item.id)"
+          >
             <Trash2 :size="14" />
           </button>
         </div>
@@ -101,13 +117,13 @@
 
       <template #bulk-actions="{ selectedItems, clearSelection }">
         <button v-if="canWrite" class="btn btn-sm btn-secondary" @click="bulkStart(selectedItems, clearSelection)">
-          <Play :size="14" /> Start
+          <Play :size="14" /> {{ $t("containers.actions.start") }}
         </button>
         <button v-if="canWrite" class="btn btn-sm btn-secondary" @click="bulkStop(selectedItems, clearSelection)">
-          <Square :size="14" /> Stop
+          <Square :size="14" /> {{ $t("containers.actions.stop") }}
         </button>
         <button v-if="canDelete" class="btn btn-sm btn-danger" @click="bulkRemove(selectedItems, clearSelection)">
-          <Trash2 :size="14" /> Remove
+          <Trash2 :size="14" /> {{ $t("containers.actions.remove") }}
         </button>
       </template>
     </DataTable>
@@ -115,18 +131,18 @@
     <LogsModal
       :visible="showLogsModal"
       :title="selectedContainerName"
-      subtitle="Container logs output"
+      :subtitle="$t('containers.logs.subtitle')"
       :logs="containerLogs"
       @close="showLogsModal = false"
     />
 
     <ConfirmModal
       :visible="showDeleteModal"
-      title="Remove Container"
-      :message="`Are you sure you want to remove this container?`"
-      warning="The container will be permanently removed."
+      :title="$t('containers.confirm.removeTitle')"
+      :message="$t('containers.confirm.removeMessage')"
+      :warning="$t('containers.confirm.removeWarning')"
       variant="danger"
-      confirm-text="Remove"
+      :confirm-text="$t('containers.actions.remove')"
       :loading="deleting"
       @confirm="confirmDeleteContainer"
       @cancel="showDeleteModal = false"
@@ -134,11 +150,11 @@
 
     <ConfirmModal
       :visible="showBulkDeleteModal"
-      title="Remove Containers"
-      :message="`Are you sure you want to remove ${bulkDeleteIds.length} containers?`"
-      warning="These containers will be permanently removed."
+      :title="$t('containers.confirm.removeManyTitle')"
+      :message="$t('containers.confirm.removeManyMessage', { count: bulkDeleteIds.length })"
+      :warning="$t('containers.confirm.removeManyWarning')"
       variant="danger"
-      confirm-text="Remove All"
+      :confirm-text="$t('containers.confirm.removeAll')"
       :loading="bulkDeleting"
       @confirm="confirmBulkRemove"
       @cancel="showBulkDeleteModal = false"
@@ -158,6 +174,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
+import { useI18n } from "vue-i18n";
 import { containersApi } from "@/services/api";
 import { useAuthStore } from "@/stores/auth";
 import DataTable from "@/components/DataTable.vue";
@@ -167,6 +184,7 @@ import ContainerResourcesModal from "@/components/ContainerResourcesModal.vue";
 import { RefreshCw, Play, Square, RotateCw, FileText, Trash2, Package, Link, Gauge } from "lucide-vue-next";
 
 const router = useRouter();
+const { t } = useI18n();
 const authStore = useAuthStore();
 const canWrite = authStore.hasPermission("containers:write");
 const canDelete = authStore.hasPermission("containers:delete");
@@ -223,25 +241,25 @@ const resourcesModal = ref({
   containerName: "",
 });
 
-const columns = [
-  { key: "status", label: "Status", width: "60px" },
-  { key: "name", label: "Container", sortable: true },
-  { key: "deployment", label: "Deployment", sortable: true },
-  { key: "image", label: "Image", sortable: true },
-  { key: "ports", label: "Ports" },
-  { key: "created", label: "Created", sortable: true },
-  { key: "actions", label: "Actions", width: "192px" },
-];
+const columns = computed(() => [
+  { key: "status", label: t("containers.table.status"), width: "60px" },
+  { key: "name", label: t("containers.table.container"), sortable: true },
+  { key: "deployment", label: t("containers.table.deployment"), sortable: true },
+  { key: "image", label: t("containers.table.image"), sortable: true },
+  { key: "ports", label: t("containers.table.ports") },
+  { key: "created", label: t("containers.table.created"), sortable: true },
+  { key: "actions", label: t("containers.table.actions"), width: "160px" },
+]);
 
 const statusFilters = computed(() => [
-  { label: "All", value: "all", count: containers.value.length },
+  { label: t("containers.filters.all"), value: "all", count: containers.value.length },
   {
-    label: "Running",
+    label: t("containers.filters.running"),
     value: "running",
     count: containers.value.filter((c) => c.state === "running").length,
   },
   {
-    label: "Stopped",
+    label: t("containers.filters.stopped"),
     value: "exited",
     count: containers.value.filter((c) => c.state === "exited").length,
   },
@@ -254,9 +272,9 @@ const filteredContainers = computed(() => {
 
 const emptyText = computed(() => {
   if (activeFilter.value !== "all") {
-    return "Try adjusting your filters.";
+    return t("containers.empty.adjustFilters");
   }
-  return "No Docker containers are currently running.";
+  return t("containers.empty.noRunning");
 });
 
 const fetchContainers = async () => {
@@ -276,14 +294,16 @@ const fetchContainers = async () => {
 };
 
 const formatTime = (timestamp: string) => {
+  if (!timestamp) return t("common.na");
   const date = new Date(timestamp);
+  if (Number.isNaN(date.getTime())) return t("common.na");
   const now = new Date();
   const diff = now.getTime() - date.getTime();
   const days = Math.floor(diff / (1000 * 60 * 60 * 24));
 
-  if (days === 0) return "Today";
-  if (days === 1) return "Yesterday";
-  if (days < 7) return `${days} days ago`;
+  if (days === 0) return t("containers.time.today");
+  if (days === 1) return t("containers.time.yesterday");
+  if (days < 7) return t("containers.time.daysAgo", { n: days });
   return date.toLocaleDateString();
 };
 

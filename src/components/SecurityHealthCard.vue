@@ -3,8 +3,8 @@
     <div class="health-header">
       <div class="health-title">
         <i class="pi pi-shield" />
-        <h4>Security Health Status</h4>
-        <button class="btn btn-icon btn-sm" title="Refresh health status" @click="fetchHealth">
+        <h4>{{ t("security.health.title") }}</h4>
+        <button class="btn btn-icon btn-sm" :title="t('security.health.refreshTitle')" @click="fetchHealth">
           <i class="pi pi-refresh" :class="{ 'pi-spin': loading }" />
         </button>
       </div>
@@ -16,7 +16,7 @@
 
     <div v-if="loading" class="health-loading">
       <i class="pi pi-spin pi-spinner" />
-      <span>Checking security health...</span>
+      <span>{{ t("security.health.checking") }}</span>
     </div>
 
     <div v-else-if="health" class="health-content">
@@ -26,7 +26,9 @@
             <div class="category-title">
               <i :class="category.icon" />
               <h5>{{ category.label }}</h5>
-              <span v-if="category.id === 'connectivity'" class="critical-badge">Critical</span>
+              <span v-if="category.id === 'connectivity'" class="critical-badge">{{
+                t("security.health.critical")
+              }}</span>
             </div>
             <span class="category-status" :class="getCategoryStatus(category)">
               {{ getCategoryPassedCount(category) }}/{{ category.checks.length }}
@@ -56,28 +58,28 @@
       </div>
 
       <div v-if="health.issues?.length > 0" class="health-issues">
-        <h5>Issues Detected</h5>
+        <h5>{{ t("security.health.issuesDetected") }}</h5>
         <ul class="issues-list">
           <li v-for="(issue, idx) in health.issues" :key="idx">
             <i class="pi pi-exclamation-triangle" />
-            <span>{{ issue }}</span>
+            <span>{{ formatHealthIssue(issue) }}</span>
           </li>
         </ul>
       </div>
 
       <div v-if="health.recommendations?.length > 0" class="health-recommendations">
-        <h5>Recommendations</h5>
+        <h5>{{ t("security.health.recommendations") }}</h5>
         <ul class="recommendations-list">
           <li v-for="(rec, idx) in health.recommendations" :key="idx">
             <i class="pi pi-info-circle" />
-            <span>{{ rec }}</span>
+            <span>{{ formatHealthRecommendation(rec) }}</span>
           </li>
         </ul>
       </div>
 
       <div v-if="health.details && Object.keys(health.details).length > 0" class="health-details">
         <details>
-          <summary>View Details</summary>
+          <summary>{{ t("security.health.viewDetails") }}</summary>
           <pre>{{ JSON.stringify(health.details, null, 2) }}</pre>
         </details>
       </div>
@@ -85,7 +87,7 @@
 
     <div v-else class="health-empty">
       <i class="pi pi-info-circle" />
-      <span>Click refresh to check security health status</span>
+      <span>{{ t("security.health.empty") }}</span>
     </div>
   </div>
 </template>
@@ -93,6 +95,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
 import { storeToRefs } from "pinia";
+import { useI18n } from "vue-i18n";
 import { useSecurityStore } from "@/stores/security";
 
 interface CheckCategory {
@@ -109,17 +112,18 @@ const props = defineProps<{
 const securityStore = useSecurityStore();
 const { health } = storeToRefs(securityStore);
 const loading = ref(false);
+const { t, te } = useI18n();
 
-const checkCategories: CheckCategory[] = [
+const checkCategories = computed<CheckCategory[]>(() => [
   {
     id: "connectivity",
-    label: "Connectivity",
+    label: t("security.health.categories.connectivity"),
     icon: "pi pi-wifi",
     checks: ["nginx_can_reach_agent"],
   },
   {
     id: "configuration",
-    label: "Configuration",
+    label: t("security.health.categories.configuration"),
     icon: "pi pi-cog",
     checks: [
       "security_lua_ip_injected",
@@ -131,26 +135,16 @@ const checkCategories: CheckCategory[] = [
   },
   {
     id: "deployments",
-    label: "Deployments",
+    label: t("security.health.categories.deployments"),
     icon: "pi pi-server",
     checks: ["vhosts_have_security_hook"],
   },
-];
-
-const checkDescriptions: Record<string, string> = {
-  nginx_can_reach_agent: "Verifies nginx container can reach the agent API for logging",
-  security_lua_ip_injected: "Checks if security.lua has the agent IP properly configured",
-  traffic_lua_ip_injected: "Checks if traffic.lua has the agent IP properly configured",
-  traffic_lua_exists: "Verifies traffic.lua exists in nginx container",
-  nginx_conf_has_traffic_module: "Checks if nginx.conf loads the traffic Lua module",
-  nginx_conf_has_global_traffic_logging: "Checks if global traffic logging is enabled",
-  vhosts_have_security_hook: "Verifies deployments with security enabled have the security hook",
-};
+]);
 
 const categorizedChecks = computed(() => {
   if (!health.value?.checks) return [];
 
-  return checkCategories
+  return checkCategories.value
     .map((category) => ({
       ...category,
       checks: category.checks.filter((check) => check in health.value!.checks),
@@ -180,18 +174,9 @@ const getHealthIcon = (status: string): string => {
 };
 
 const formatHealthStatus = (status: string): string => {
-  switch (status) {
-    case "healthy":
-      return "Healthy";
-    case "degraded":
-      return "Degraded";
-    case "broken":
-      return "Broken";
-    case "disabled":
-      return "Disabled";
-    default:
-      return "Unknown";
-  }
+  const key = `security.health.status.${status || "unknown"}`;
+  if (te(key)) return t(key);
+  return t("security.health.status.unknown");
 };
 
 const formatCheckName = (name: string): string => {
@@ -202,7 +187,29 @@ const formatCheckName = (name: string): string => {
 };
 
 const getCheckDescription = (name: string): string => {
-  return checkDescriptions[name] || formatCheckName(name);
+  const key = `security.health.checkDescriptions.${name}`;
+  if (te(key)) return t(key);
+  return formatCheckName(name);
+};
+
+const toMessageKey = (value: string): string => {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "");
+};
+
+const formatHealthIssue = (issue: string): string => {
+  if (!issue) return issue;
+  const key = `security.health.issueMap.${toMessageKey(issue)}`;
+  return te(key) ? t(key) : issue;
+};
+
+const formatHealthRecommendation = (recommendation: string): string => {
+  if (!recommendation) return recommendation;
+  const key = `security.health.recommendationMap.${toMessageKey(recommendation)}`;
+  return te(key) ? t(key) : recommendation;
 };
 
 const getCategoryPassedCount = (category: CheckCategory): number => {

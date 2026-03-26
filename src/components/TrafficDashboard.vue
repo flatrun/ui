@@ -2,7 +2,7 @@
   <div class="traffic-dashboard">
     <div v-if="loading && !stats" class="loading-state">
       <i class="pi pi-spin pi-spinner" />
-      <span>Analyzing traffic patterns...</span>
+      <span>{{ t("security.traffic.loading") }}</span>
     </div>
 
     <div v-else-if="stats" class="traffic-content">
@@ -30,7 +30,12 @@
             <option value="24h">24h</option>
             <option value="7d">7d</option>
           </select>
-          <button class="btn-icon" :disabled="loading" @click="fetchData" title="Refresh">
+          <button
+            class="btn-icon"
+            :disabled="loading"
+            @click="fetchData"
+            :title="t('security.traffic.actions.refresh')"
+          >
             <i class="pi pi-refresh" :class="{ 'pi-spin': loading }" />
           </button>
         </div>
@@ -64,7 +69,7 @@
         <div class="stats-grid">
           <div class="stat-card">
             <div class="stat-header">
-              <span class="stat-label">Requests</span>
+              <span class="stat-label">{{ t("security.traffic.cards.requests") }}</span>
               <span v-if="requestsTrend !== 0" class="trend" :class="requestsTrend > 0 ? 'up' : 'down'">
                 <i :class="requestsTrend > 0 ? 'pi pi-arrow-up' : 'pi pi-arrow-down'" />
                 {{ Math.abs(requestsTrend) }}%
@@ -77,32 +82,42 @@
           </div>
           <div class="stat-card">
             <div class="stat-header">
-              <span class="stat-label">Data Transfer</span>
+              <span class="stat-label">{{ t("security.traffic.cards.dataTransfer") }}</span>
             </div>
             <span class="stat-value">{{ formatBytes(stats.total_bytes) }}</span>
-            <span class="stat-sub"
-              >{{ formatBytes(stats.total_bytes / Math.max(stats.total_requests, 1)) }}/req avg</span
-            >
+            <span class="stat-sub">{{
+              t("security.traffic.cards.avgPerReq", {
+                value: formatBytes(stats.total_bytes / Math.max(stats.total_requests, 1)),
+              })
+            }}</span>
           </div>
           <div class="stat-card">
             <div class="stat-header">
-              <span class="stat-label">Response Time</span>
-              <span v-if="stats.avg_response_time_ms > 500" class="trend down">slow</span>
+              <span class="stat-label">{{ t("security.traffic.cards.responseTime") }}</span>
+              <span v-if="stats.avg_response_time_ms > 500" class="trend down">{{
+                t("security.traffic.cards.slow")
+              }}</span>
             </div>
             <span class="stat-value" :class="{ warning: stats.avg_response_time_ms > 500 }">
               {{ formatTime(stats.avg_response_time_ms) }}
             </span>
-            <span class="stat-sub">p95: {{ formatTime(estimatedP95) }}</span>
+            <span class="stat-sub">{{ t("security.traffic.cards.p95", { value: formatTime(estimatedP95) }) }}</span>
           </div>
           <div class="stat-card" :class="{ error: globalErrorRate > THRESHOLDS.ERROR_RATE_WARNING }">
             <div class="stat-header">
-              <span class="stat-label">Error Rate</span>
-              <span v-if="globalErrorRate > THRESHOLDS.ERROR_RATE_WARNING" class="trend down">high</span>
+              <span class="stat-label">{{ t("security.traffic.cards.errorRate") }}</span>
+              <span v-if="globalErrorRate > THRESHOLDS.ERROR_RATE_WARNING" class="trend down">{{
+                t("security.traffic.cards.high")
+              }}</span>
             </div>
             <span class="stat-value">{{ globalErrorRate }}%</span>
             <div class="error-breakdown">
-              <span class="error-item" title="4xx errors">4xx: {{ stats.by_status_group?.["4xx"] || 0 }}</span>
-              <span class="error-item" title="5xx errors">5xx: {{ stats.by_status_group?.["5xx"] || 0 }}</span>
+              <span class="error-item" :title="t('security.traffic.cards.errors4xxTitle')"
+                >4xx: {{ stats.by_status_group?.["4xx"] || 0 }}</span
+              >
+              <span class="error-item" :title="t('security.traffic.cards.errors5xxTitle')"
+                >5xx: {{ stats.by_status_group?.["5xx"] || 0 }}</span
+              >
             </div>
           </div>
         </div>
@@ -112,7 +127,7 @@
           <!-- Domains Traffic -->
           <div class="panel">
             <div class="panel-header">
-              <h3>Domains</h3>
+              <h3>{{ t("security.traffic.panels.domains") }}</h3>
               <span class="count">{{ domainStats.length }}</span>
             </div>
             <div class="deployment-list">
@@ -147,7 +162,9 @@
                 </div>
                 <i class="pi pi-chevron-right" />
               </div>
-              <div v-if="domainStats.length === 0" class="empty-inline">No traffic recorded yet</div>
+              <div v-if="domainStats.length === 0" class="empty-inline">
+                {{ t("security.traffic.empty.noTrafficRecorded") }}
+              </div>
             </div>
           </div>
 
@@ -155,7 +172,7 @@
           <div class="panel-stack">
             <div v-if="unknownDomainStats.length > 0" class="panel warning-panel">
               <div class="panel-header">
-                <h3><i class="pi pi-question-circle" /> Unknown Domains</h3>
+                <h3><i class="pi pi-question-circle" /> {{ t("security.traffic.tabs.unknown") }}</h3>
                 <span class="count">{{ unknownDomainStats.length }}</span>
               </div>
               <div class="unknown-list">
@@ -166,27 +183,35 @@
                   @click="navigateToDeploymentLogs(domain.name)"
                 >
                   <code>{{ domain.name }}</code>
-                  <span>{{ formatNumber(domain.total_requests) }} req</span>
+                  <span>{{
+                    t("security.traffic.units.requestsShort", { value: formatNumber(domain.total_requests) })
+                  }}</span>
                 </div>
               </div>
             </div>
 
             <div v-if="suspiciousIPs.length > 0" class="panel warning-panel">
               <div class="panel-header">
-                <h3><i class="pi pi-exclamation-triangle" /> Suspicious IPs</h3>
+                <h3><i class="pi pi-exclamation-triangle" /> {{ t("security.traffic.panels.suspiciousIps") }}</h3>
                 <span class="count">{{ suspiciousIPs.length }}</span>
               </div>
               <div class="suspicious-list">
                 <div v-for="ip in suspiciousIPs" :key="ip.ip" class="suspicious-row">
                   <div class="suspicious-info">
                     <code>{{ ip.ip }}</code>
-                    <span class="suspicious-stat">{{ formatNumber(ip.request_count) }} requests</span>
+                    <span class="suspicious-stat">{{
+                      t("security.traffic.units.requests", { value: formatNumber(ip.request_count) })
+                    }}</span>
                   </div>
                   <div class="suspicious-actions">
-                    <button class="btn-action" title="View requests" @click="filterByIP(ip.ip)">
+                    <button
+                      class="btn-action"
+                      :title="t('security.traffic.actions.viewRequests')"
+                      @click="filterByIP(ip.ip)"
+                    >
                       <i class="pi pi-eye" />
                     </button>
-                    <button class="btn-action danger" title="Block IP" @click="blockIP(ip.ip)">
+                    <button class="btn-action danger" :title="t('security.actions.blockIp')" @click="blockIP(ip.ip)">
                       <i class="pi pi-ban" />
                     </button>
                   </div>
@@ -196,7 +221,7 @@
 
             <div class="panel">
               <div class="panel-header">
-                <h3>Top Sources</h3>
+                <h3>{{ t("security.traffic.panels.topSources") }}</h3>
               </div>
               <div class="ip-list">
                 <div v-for="ip in topIPs" :key="ip.ip" class="ip-row">
@@ -205,7 +230,11 @@
                     <span>{{ formatNumber(ip.requests) }}</span>
                     <span class="muted">{{ formatBytes(ip.bytes) }}</span>
                   </div>
-                  <button class="btn-icon-xs" title="View requests" @click="filterByIP(ip.ip)">
+                  <button
+                    class="btn-icon-xs"
+                    :title="t('security.traffic.actions.viewRequests')"
+                    @click="filterByIP(ip.ip)"
+                  >
                     <i class="pi pi-filter" />
                   </button>
                 </div>
@@ -217,7 +246,7 @@
         <!-- Method & Status Distribution -->
         <div class="distribution-row">
           <div class="distribution-card">
-            <h4>By Method</h4>
+            <h4>{{ t("security.traffic.panels.byMethod") }}</h4>
             <div class="dist-bars">
               <div v-for="(count, method) in stats.by_method" :key="method" class="dist-item">
                 <span class="dist-label">{{ method }}</span>
@@ -229,7 +258,7 @@
             </div>
           </div>
           <div class="distribution-card">
-            <h4>By Status</h4>
+            <h4>{{ t("security.traffic.panels.byStatus") }}</h4>
             <div class="status-grid">
               <div class="status-item success">
                 <span class="status-code">2xx</span>
@@ -256,31 +285,33 @@
       <div v-show="activeSubTab === 'logs'" class="tab-content">
         <div class="filters-bar">
           <select v-model="logFilters.deployment" class="select-compact" @change="fetchLogs">
-            <option value="">All domains</option>
+            <option value="">{{ t("security.traffic.logs.filters.allDomains") }}</option>
             <option v-for="dep in allDomains" :key="dep" :value="dep">{{ dep }}</option>
           </select>
           <select v-model="logFilters.status_group" class="select-compact" @change="fetchLogs">
-            <option value="">All status</option>
+            <option value="">{{ t("security.traffic.logs.filters.allStatus") }}</option>
             <option value="2xx">2xx</option>
             <option value="3xx">3xx</option>
             <option value="4xx">4xx</option>
             <option value="5xx">5xx</option>
           </select>
           <select v-model="logFilters.method" class="select-compact" @change="fetchLogs">
-            <option value="">All methods</option>
-            <option value="GET">GET</option>
-            <option value="POST">POST</option>
-            <option value="PUT">PUT</option>
-            <option value="DELETE">DELETE</option>
+            <option value="">{{ t("security.traffic.logs.filters.allMethods") }}</option>
+            <option value="GET">{{ t("security.traffic.logs.methods.get") }}</option>
+            <option value="POST">{{ t("security.traffic.logs.methods.post") }}</option>
+            <option value="PUT">{{ t("security.traffic.logs.methods.put") }}</option>
+            <option value="DELETE">{{ t("security.traffic.logs.methods.delete") }}</option>
           </select>
           <input
             v-model="logFilters.path"
             type="text"
             class="input-compact"
-            placeholder="Filter path..."
+            :placeholder="t('security.traffic.logs.filters.pathPlaceholder')"
             @keyup.enter="fetchLogs"
           />
-          <button v-if="hasActiveFilters" class="btn-text" @click="clearLogFilters">Clear</button>
+          <button v-if="hasActiveFilters" class="btn-text" @click="clearLogFilters">
+            {{ t("security.traffic.actions.clear") }}
+          </button>
         </div>
 
         <div class="logs-table-wrap">
@@ -288,31 +319,31 @@
             <thead>
               <tr>
                 <th class="sortable" @click="toggleSort('created_at')">
-                  Time
+                  {{ t("security.traffic.logs.columns.time") }}
                   <i
                     v-if="sortField === 'created_at'"
                     :class="sortDir === 'asc' ? 'pi pi-sort-up' : 'pi pi-sort-down'"
                   />
                 </th>
-                <th>Domain</th>
-                <th>Method</th>
-                <th>Path</th>
+                <th>{{ t("security.traffic.logs.columns.domain") }}</th>
+                <th>{{ t("security.traffic.logs.columns.method") }}</th>
+                <th>{{ t("security.traffic.logs.columns.path") }}</th>
                 <th class="sortable" @click="toggleSort('status_code')">
-                  Status
+                  {{ t("security.traffic.logs.columns.status") }}
                   <i
                     v-if="sortField === 'status_code'"
                     :class="sortDir === 'asc' ? 'pi pi-sort-up' : 'pi pi-sort-down'"
                   />
                 </th>
-                <th>IP</th>
+                <th>{{ t("security.traffic.logs.columns.ip") }}</th>
                 <th class="sortable" @click="toggleSort('response_time_ms')">
-                  Time
+                  {{ t("security.traffic.logs.columns.responseTime") }}
                   <i
                     v-if="sortField === 'response_time_ms'"
                     :class="sortDir === 'asc' ? 'pi pi-sort-up' : 'pi pi-sort-down'"
                   />
                 </th>
-                <th>Size</th>
+                <th>{{ t("security.traffic.logs.columns.size") }}</th>
                 <th />
               </tr>
             </thead>
@@ -339,28 +370,40 @@
                 </td>
                 <td class="cell-size">{{ formatBytes(log.bytes_sent) }}</td>
                 <td class="cell-actions">
-                  <button class="btn-icon-sm" title="Filter by this IP" @click.stop="filterByIP(log.source_ip)">
+                  <button
+                    class="btn-icon-sm"
+                    :title="t('security.traffic.actions.filterByIp')"
+                    @click.stop="filterByIP(log.source_ip)"
+                  >
                     <i class="pi pi-filter" />
                   </button>
-                  <button class="btn-icon-sm danger" title="Block this IP" @click.stop="blockIP(log.source_ip)">
+                  <button
+                    class="btn-icon-sm danger"
+                    :title="t('security.traffic.actions.blockThisIp')"
+                    @click.stop="blockIP(log.source_ip)"
+                  >
                     <i class="pi pi-ban" />
                   </button>
                 </td>
               </tr>
             </tbody>
           </table>
-          <div v-else-if="!logsLoading" class="empty-inline">No logs match your filters</div>
-          <div v-else class="loading-inline"><i class="pi pi-spin pi-spinner" /> Loading...</div>
+          <div v-else-if="!logsLoading" class="empty-inline">{{ t("security.traffic.empty.noLogsForFilters") }}</div>
+          <div v-else class="loading-inline">
+            <i class="pi pi-spin pi-spinner" /> {{ t("security.traffic.loadingGeneric") }}
+          </div>
         </div>
 
         <div v-if="logsTotal > logFilters.limit" class="pagination">
-          <button class="btn-sm" :disabled="logFilters.offset === 0" @click="prevPage">Prev</button>
+          <button class="btn-sm" :disabled="logFilters.offset === 0" @click="prevPage">
+            {{ t("security.traffic.pagination.prev") }}
+          </button>
           <span
             >{{ logFilters.offset + 1 }}-{{ Math.min(logFilters.offset + logFilters.limit, logsTotal) }} /
             {{ logsTotal }}</span
           >
           <button class="btn-sm" :disabled="logFilters.offset + logFilters.limit >= logsTotal" @click="nextPage">
-            Next
+            {{ t("security.traffic.pagination.next") }}
           </button>
         </div>
       </div>
@@ -375,24 +418,26 @@
               <strong>{{ alert.title }}</strong>
               <span>{{ alert.description }}</span>
             </div>
-            <button v-if="alert.payload" class="btn-sm" @click="handleAlertAction(alert)">View</button>
+            <button v-if="alert.payload" class="btn-sm" @click="handleAlertAction(alert)">
+              {{ t("security.traffic.actions.view") }}
+            </button>
           </div>
         </div>
 
         <!-- Slow Endpoints -->
         <div class="panel">
           <div class="panel-header">
-            <h3>Slowest Endpoints</h3>
-            <span class="muted">by avg response time</span>
+            <h3>{{ t("security.traffic.performance.slowestEndpoints") }}</h3>
+            <span class="muted">{{ t("security.traffic.performance.byAvgResponseTime") }}</span>
           </div>
           <table v-if="slowEndpoints.length > 0" class="data-table compact">
             <thead>
               <tr>
-                <th>Deployment</th>
-                <th>Path</th>
-                <th>Requests</th>
-                <th>Avg Time</th>
-                <th>Errors</th>
+                <th>{{ t("security.traffic.logs.columns.domain") }}</th>
+                <th>{{ t("security.traffic.logs.columns.path") }}</th>
+                <th>{{ t("security.traffic.performance.requests") }}</th>
+                <th>{{ t("security.traffic.performance.avgTime") }}</th>
+                <th>{{ t("security.traffic.performance.errors") }}</th>
                 <th />
               </tr>
             </thead>
@@ -406,20 +451,24 @@
                 <td :class="getTimeClass(ep.avgTime)">{{ formatTime(ep.avgTime) }}</td>
                 <td>{{ ep.errors }}</td>
                 <td class="cell-actions">
-                  <button class="btn-icon-sm" title="View logs" @click="filterByPath(ep.path, ep.deployment)">
+                  <button
+                    class="btn-icon-sm"
+                    :title="t('security.traffic.actions.viewLogs')"
+                    @click="filterByPath(ep.path, ep.deployment)"
+                  >
                     <i class="pi pi-external-link" />
                   </button>
                 </td>
               </tr>
             </tbody>
           </table>
-          <div v-else class="empty-inline">No slow endpoints detected</div>
+          <div v-else class="empty-inline">{{ t("security.traffic.empty.noSlowEndpoints") }}</div>
         </div>
 
         <!-- Hourly Chart -->
         <div v-if="stats.requests_per_hour?.length > 0" class="panel">
           <div class="panel-header">
-            <h3>Request Volume (24h)</h3>
+            <h3>{{ t("security.traffic.performance.requestVolume24h") }}</h3>
           </div>
           <div class="hourly-chart">
             <div
@@ -427,7 +476,12 @@
               :key="hour.hour"
               class="hour-bar"
               :style="{ height: getHourlyBarHeight(hour.request_count) + '%' }"
-              :title="`${formatHour(hour.hour)}: ${hour.request_count} requests`"
+              :title="
+                t('security.traffic.performance.hourlyTooltip', {
+                  hour: formatHour(hour.hour),
+                  count: hour.request_count,
+                })
+              "
               :class="{ highlight: isCurrentHour(hour.hour) }"
             />
           </div>
@@ -440,33 +494,33 @@
 
         <div v-if="performanceAlerts.length === 0 && slowEndpoints.length === 0" class="empty-state-sm">
           <i class="pi pi-check-circle" />
-          <span>No performance issues detected</span>
+          <span>{{ t("security.traffic.empty.noPerformanceIssues") }}</span>
         </div>
       </div>
 
       <!-- Unknown Domains Tab -->
       <div v-show="activeSubTab === 'unknown'" class="tab-content">
         <div v-if="loadingUnknown && !unknownStats" class="loading-inline">
-          <i class="pi pi-spin pi-spinner" /> Loading unknown domain stats...
+          <i class="pi pi-spin pi-spinner" /> {{ t("security.traffic.unknown.loading") }}
         </div>
 
         <template v-else-if="unknownStats">
           <div class="stats-grid">
             <div class="stat-card" :class="{ error: (unknownStats.total_requests || 0) > 0 }">
               <div class="stat-header">
-                <span class="stat-label">Total Requests</span>
+                <span class="stat-label">{{ t("security.traffic.unknown.totalRequests") }}</span>
               </div>
               <span class="stat-value">{{ formatNumber(unknownStats.total_requests || 0) }}</span>
             </div>
             <div class="stat-card">
               <div class="stat-header">
-                <span class="stat-label">Unique Domains</span>
+                <span class="stat-label">{{ t("security.traffic.unknown.uniqueDomains") }}</span>
               </div>
               <span class="stat-value">{{ unknownStats.top_domains?.length || 0 }}</span>
             </div>
             <div class="stat-card">
               <div class="stat-header">
-                <span class="stat-label">Unique IPs</span>
+                <span class="stat-label">{{ t("security.traffic.unknown.uniqueIps") }}</span>
               </div>
               <span class="stat-value">{{ unknownStats.top_ips?.length || 0 }}</span>
             </div>
@@ -475,7 +529,7 @@
           <div class="two-col">
             <div class="panel">
               <div class="panel-header">
-                <h3>Top Unknown Domains</h3>
+                <h3>{{ t("security.traffic.unknown.topUnknownDomains") }}</h3>
                 <span class="count">{{ unknownStats.top_domains?.length || 0 }}</span>
               </div>
               <div v-if="unknownStats.top_domains?.length" class="deployment-list">
@@ -487,20 +541,24 @@
                 >
                   <div class="dep-main">
                     <code class="dep-name">{{ entry.domain }}</code>
-                    <span class="dep-stat">Last seen {{ formatLogTime(entry.last_seen) }}</span>
+                    <span class="dep-stat">{{
+                      t("security.traffic.unknown.lastSeen", { value: formatLogTime(entry.last_seen) })
+                    }}</span>
                   </div>
                   <div class="dep-stats">
-                    <span class="dep-stat">{{ formatNumber(entry.request_count) }} req</span>
+                    <span class="dep-stat">{{
+                      t("security.traffic.units.requestsShort", { value: formatNumber(entry.request_count) })
+                    }}</span>
                   </div>
                   <i class="pi pi-chevron-right" />
                 </div>
               </div>
-              <div v-else class="empty-inline">No unknown domain requests</div>
+              <div v-else class="empty-inline">{{ t("security.traffic.empty.noUnknownDomainRequests") }}</div>
             </div>
 
             <div class="panel">
               <div class="panel-header">
-                <h3>Top Source IPs</h3>
+                <h3>{{ t("security.traffic.unknown.topSourceIps") }}</h3>
                 <span class="count">{{ unknownStats.top_ips?.length || 0 }}</span>
               </div>
               <div v-if="unknownStats.top_ips?.length" class="suspicious-list">
@@ -515,28 +573,34 @@
                     </div>
                   </div>
                   <div class="suspicious-actions">
-                    <span class="suspicious-stat">{{ formatNumber(entry.request_count) }} req</span>
-                    <button class="btn-action" title="View requests" @click="filterByIP(entry.ip)">
+                    <span class="suspicious-stat">{{
+                      t("security.traffic.units.requestsShort", { value: formatNumber(entry.request_count) })
+                    }}</span>
+                    <button
+                      class="btn-action"
+                      :title="t('security.traffic.actions.viewRequests')"
+                      @click="filterByIP(entry.ip)"
+                    >
                       <i class="pi pi-eye" />
                     </button>
-                    <button class="btn-action danger" title="Block IP" @click="blockIP(entry.ip)">
+                    <button class="btn-action danger" :title="t('security.actions.blockIp')" @click="blockIP(entry.ip)">
                       <i class="pi pi-ban" />
                     </button>
                   </div>
                 </div>
               </div>
-              <div v-else class="empty-inline">No source IP data</div>
+              <div v-else class="empty-inline">{{ t("security.traffic.empty.noSourceIpData") }}</div>
             </div>
           </div>
 
           <div class="unknown-info-panel">
             <i class="pi pi-info-circle" />
             <div>
-              <p>These are requests to domains not matching any configured deployment:</p>
+              <p>{{ t("security.traffic.unknown.infoTitle") }}</p>
               <ul>
-                <li>Reconnaissance attempts probing your server</li>
-                <li>Misconfigured DNS pointing to your IP</li>
-                <li>Bots scanning for vulnerable hosts</li>
+                <li>{{ t("security.traffic.unknown.infoRecon") }}</li>
+                <li>{{ t("security.traffic.unknown.infoDns") }}</li>
+                <li>{{ t("security.traffic.unknown.infoBots") }}</li>
               </ul>
             </div>
           </div>
@@ -544,23 +608,23 @@
 
         <div v-else class="empty-state-sm">
           <i class="pi pi-question-circle" />
-          <span>No unknown domain data available</span>
+          <span>{{ t("security.traffic.empty.noUnknownData") }}</span>
         </div>
       </div>
     </div>
 
     <div v-else class="empty-state">
       <i class="pi pi-chart-line" />
-      <p>No traffic data yet</p>
-      <button class="btn-primary" @click="fetchData">Check for Traffic</button>
+      <p>{{ t("security.traffic.empty.noTrafficData") }}</p>
+      <button class="btn-primary" @click="fetchData">{{ t("security.traffic.actions.checkTraffic") }}</button>
     </div>
 
     <ConfirmModal
       :visible="showBlockIPModal"
-      title="Block IP Address"
-      :message="`Block all requests from ${ipToBlock}? This will take effect immediately.`"
+      :title="t('security.traffic.blockModal.title')"
+      :message="t('security.traffic.blockModal.message', { ip: ipToBlock })"
       variant="danger"
-      confirm-text="Block IP"
+      :confirm-text="t('security.actions.blockIp')"
       :loading="blockingIP"
       @confirm="confirmBlockIP"
       @cancel="cancelBlockIP"
@@ -571,6 +635,7 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted, watch } from "vue";
 import { storeToRefs } from "pinia";
+import { useI18n } from "vue-i18n";
 import { useTrafficStore } from "@/stores/traffic";
 import { useDeploymentsStore } from "@/stores/deployments";
 import { useNotificationsStore } from "@/stores/notifications";
@@ -585,6 +650,7 @@ const props = defineProps<{
 const trafficStore = useTrafficStore();
 const deploymentsStore = useDeploymentsStore();
 const notifications = useNotificationsStore();
+const { t } = useI18n();
 const { stats, logs, logsTotal, loading } = storeToRefs(trafficStore);
 const { deployments } = storeToRefs(deploymentsStore);
 
@@ -643,12 +709,12 @@ type ActionType =
   | { type: "navigate"; tab: string }
   | { type: "block_ip"; ip: string };
 
-const subTabs = [
-  { id: "overview", label: "Overview", icon: "pi pi-chart-bar" },
-  { id: "logs", label: "Logs", icon: "pi pi-list" },
-  { id: "performance", label: "Performance", icon: "pi pi-bolt" },
-  { id: "unknown", label: "Unknown Domains", icon: "pi pi-question-circle" },
-];
+const subTabs = computed(() => [
+  { id: "overview", label: t("security.traffic.tabs.overview"), icon: "pi pi-chart-bar" },
+  { id: "logs", label: t("security.traffic.tabs.logs"), icon: "pi pi-list" },
+  { id: "performance", label: t("security.traffic.tabs.performance"), icon: "pi pi-bolt" },
+  { id: "unknown", label: t("security.traffic.tabs.unknown"), icon: "pi pi-question-circle" },
+]);
 
 const logFilters = reactive({
   deployment: "",
@@ -722,14 +788,14 @@ const insights = computed((): Insight[] => {
       id: "traffic-up",
       type: "info",
       icon: "pi pi-arrow-up",
-      text: `Traffic up ${requestsTrend.value}% vs previous period`,
+      text: t("security.traffic.insights.trafficUp", { value: requestsTrend.value }),
     });
   } else if (requestsTrend.value < -THRESHOLDS.TRAFFIC_CHANGE_SIGNIFICANT) {
     list.push({
       id: "traffic-down",
       type: "warning",
       icon: "pi pi-arrow-down",
-      text: `Traffic down ${Math.abs(requestsTrend.value)}% vs previous period`,
+      text: t("security.traffic.insights.trafficDown", { value: Math.abs(requestsTrend.value) }),
     });
   }
 
@@ -738,7 +804,7 @@ const insights = computed((): Insight[] => {
       id: "high-errors",
       type: "anomaly",
       icon: "pi pi-exclamation-circle",
-      text: `Elevated error rate: ${globalErrorRate.value}%`,
+      text: t("security.traffic.insights.elevatedErrorRate", { value: globalErrorRate.value }),
       payload: { type: "navigate", tab: "performance" },
     });
   }
@@ -748,7 +814,7 @@ const insights = computed((): Insight[] => {
       id: "slow-response",
       type: "warning",
       icon: "pi pi-clock",
-      text: `Slow avg response: ${formatTime(stats.value.avg_response_time_ms)}`,
+      text: t("security.traffic.insights.slowAvgResponse", { value: formatTime(stats.value.avg_response_time_ms) }),
       payload: { type: "navigate", tab: "performance" },
     });
   }
@@ -759,7 +825,10 @@ const insights = computed((): Insight[] => {
       id: "dominant-ip",
       type: "anomaly",
       icon: "pi pi-user",
-      text: `${topIP.ip} made ${Math.round((topIP.request_count / stats.value.total_requests) * 100)}% of requests`,
+      text: t("security.traffic.insights.dominantIp", {
+        ip: topIP.ip,
+        value: Math.round((topIP.request_count / stats.value.total_requests) * 100),
+      }),
       payload: { type: "filter_ip", ip: topIP.ip },
     });
   }
@@ -798,7 +867,7 @@ const recommendations = computed((): Recommendation[] => {
       id: "investigate-ip",
       severity: "warning",
       icon: "pi pi-ban",
-      action: `Investigate ${topIP.ip}`,
+      action: t("security.traffic.recommendations.investigateIp", { ip: topIP.ip }),
       payload: { type: "filter_ip", ip: topIP.ip },
     });
   }
@@ -808,7 +877,7 @@ const recommendations = computed((): Recommendation[] => {
       id: "suspicious-ips",
       severity: "warning",
       icon: "pi pi-exclamation-triangle",
-      action: "Review suspicious IPs",
+      action: t("security.traffic.recommendations.reviewSuspiciousIps"),
       payload: { type: "navigate", tab: "overview" },
     });
   }
@@ -819,7 +888,7 @@ const recommendations = computed((): Recommendation[] => {
       id: "slow-endpoint",
       severity: "critical",
       icon: "pi pi-clock",
-      action: "Investigate slow endpoint",
+      action: t("security.traffic.recommendations.investigateSlowEndpoint"),
       payload: { type: "filter_path", path: slowest.path, deployment: slowest.deployment },
     });
   }
@@ -851,8 +920,8 @@ const performanceAlerts = computed((): PerformanceAlert[] => {
           id: `error-${dep.name}`,
           severity: "critical",
           icon: "pi pi-times-circle",
-          title: `High error rate: ${dep.name}`,
-          description: `${dep.error_rate.toFixed(1)}% of requests failing`,
+          title: t("security.traffic.alerts.highErrorRateTitle", { name: dep.name }),
+          description: t("security.traffic.alerts.requestsFailing", { value: dep.error_rate.toFixed(1) }),
           payload: { type: "filter_deployment", deployment: dep.name },
         });
       }
@@ -861,8 +930,8 @@ const performanceAlerts = computed((): PerformanceAlert[] => {
           id: `slow-${dep.name}`,
           severity: "warning",
           icon: "pi pi-clock",
-          title: `Slow responses: ${dep.name}`,
-          description: `Avg ${formatTime(dep.avg_response_time)}`,
+          title: t("security.traffic.alerts.slowResponsesTitle", { name: dep.name }),
+          description: t("security.traffic.alerts.avgResponse", { value: formatTime(dep.avg_response_time) }),
           payload: { type: "filter_deployment", deployment: dep.name },
         });
       }
@@ -875,8 +944,8 @@ const performanceAlerts = computed((): PerformanceAlert[] => {
       id: "5xx-high",
       severity: "critical",
       icon: "pi pi-server",
-      title: "Elevated server errors",
-      description: `${formatNumber(serverErrors)} 5xx errors`,
+      title: t("security.traffic.alerts.elevatedServerErrors"),
+      description: t("security.traffic.alerts.errors5xx", { value: formatNumber(serverErrors) }),
       payload: { type: "navigate", tab: "logs" },
     });
   }
@@ -1022,12 +1091,15 @@ const blockIP = (ip: string) => {
 const confirmBlockIP = async () => {
   blockingIP.value = true;
   try {
-    await securityApi.blockIP(ipToBlock.value, "Blocked from traffic dashboard - suspicious activity");
-    notifications.success("IP Blocked", `${ipToBlock.value} has been blocked`);
+    await securityApi.blockIP(ipToBlock.value, t("security.traffic.blockModal.reason"));
+    notifications.success(
+      t("security.notifications.ipBlocked"),
+      `${ipToBlock.value} ${t("security.notifications.hasBeenBlocked")}`,
+    );
     showBlockIPModal.value = false;
     await fetchData();
   } catch (e: any) {
-    notifications.error("Error", `Failed to block IP: ${e.message}`);
+    notifications.error(t("security.notifications.failed"), t("security.notifications.blockIpFailed"));
   } finally {
     blockingIP.value = false;
   }
@@ -1165,7 +1237,7 @@ const formatLogTime = (dateString: string) => {
   const now = new Date();
   const diff = now.getTime() - date.getTime();
   const mins = Math.floor(diff / 60000);
-  if (mins < 1) return "now";
+  if (mins < 1) return t("common.time.justNow");
   if (mins < 60) return `${mins}m`;
   const hrs = Math.floor(mins / 60);
   if (hrs < 24) return `${hrs}h`;

@@ -4,13 +4,13 @@
       <div class="setup-card">
         <div class="setup-header">
           <i class="pi pi-cloud" />
-          <h2>External DNS Providers</h2>
-          <p>Connect to external DNS providers like Cloudflare, Route53, or DigitalOcean</p>
+          <h2>{{ t("dns.external.setup.title") }}</h2>
+          <p>{{ t("dns.external.setup.subtitle") }}</p>
         </div>
 
         <div class="setup-body">
           <div class="form-group">
-            <label>Select Provider</label>
+            <label>{{ t("dns.external.setup.selectProvider") }}</label>
             <div class="provider-grid">
               <button
                 v-for="provider in dnsStore.providers"
@@ -26,7 +26,7 @@
           </div>
 
           <div v-if="dnsStore.currentProvider" class="credentials-form">
-            <h3>Enter Credentials</h3>
+            <h3>{{ t("dns.external.setup.enterCredentials") }}</h3>
             <div v-for="field in dnsStore.currentProvider.credentials" :key="field.name" class="form-group">
               <label :for="field.name">{{ field.label }}</label>
               <input
@@ -48,7 +48,7 @@
             <button class="btn btn-primary" :disabled="dnsStore.loading || !hasCredentials" @click="handleConnect">
               <i v-if="dnsStore.loading" class="pi pi-spin pi-spinner" />
               <i v-else class="pi pi-link" />
-              {{ dnsStore.loading ? "Connecting..." : "Connect" }}
+              {{ dnsStore.loading ? t("dns.external.setup.connecting") : t("dns.external.setup.connect") }}
             </button>
           </div>
         </div>
@@ -64,7 +64,7 @@
           </div>
           <button class="btn btn-secondary btn-sm" @click="handleDisconnect">
             <i class="pi pi-sign-out" />
-            Disconnect
+            {{ t("dns.external.manager.disconnect") }}
           </button>
         </div>
       </div>
@@ -73,7 +73,7 @@
         <div class="section-header">
           <h3>
             <i class="pi pi-list" />
-            DNS Zones
+            {{ t("dns.common.zones") }}
           </h3>
           <button class="btn btn-icon" :disabled="dnsStore.loading" @click="dnsStore.fetchZones">
             <i class="pi pi-refresh" :class="{ 'pi-spin': dnsStore.loading }" />
@@ -82,12 +82,12 @@
 
         <div v-if="dnsStore.loading && dnsStore.zones.length === 0" class="loading-state">
           <i class="pi pi-spin pi-spinner" />
-          <span>Loading zones...</span>
+          <span>{{ t("dns.external.manager.loadingZones") }}</span>
         </div>
 
         <div v-else-if="dnsStore.zones.length === 0" class="empty-state">
           <i class="pi pi-inbox" />
-          <span>No DNS zones found</span>
+          <span>{{ t("dns.external.manager.emptyZones") }}</span>
         </div>
 
         <div v-else class="zones-grid">
@@ -97,8 +97,10 @@
               {{ zone.name }}
             </div>
             <div class="zone-meta">
-              <span v-if="zone.record_count !== undefined" class="zone-records"> {{ zone.record_count }} records </span>
-              <span class="zone-status" :class="zone.status">{{ zone.status }}</span>
+              <span v-if="zone.record_count !== undefined" class="zone-records">
+                {{ t("dns.external.manager.recordsCount", { count: zone.record_count }) }}
+              </span>
+              <span class="zone-status" :class="zone.status">{{ formatZoneStatus(zone.status) }}</span>
             </div>
             <i class="pi pi-chevron-right zone-arrow" />
           </div>
@@ -110,7 +112,7 @@
           <div class="breadcrumb">
             <button class="breadcrumb-btn" @click="dnsStore.clearZone">
               <i class="pi pi-arrow-left" />
-              Zones
+              {{ t("dns.common.zones") }}
             </button>
             <span class="breadcrumb-separator">/</span>
             <span class="breadcrumb-current">
@@ -121,7 +123,7 @@
           <div class="section-actions">
             <button class="btn btn-primary" @click="showCreateModal = true">
               <i class="pi pi-plus" />
-              Add Record
+              {{ t("dns.external.manager.addRecord") }}
             </button>
             <button
               class="btn btn-icon"
@@ -135,24 +137,24 @@
 
         <div v-if="dnsStore.loading && dnsStore.records.length === 0" class="loading-state">
           <i class="pi pi-spin pi-spinner" />
-          <span>Loading records...</span>
+          <span>{{ t("dns.external.manager.loadingRecords") }}</span>
         </div>
 
         <div v-else-if="dnsStore.records.length === 0" class="empty-state">
           <i class="pi pi-inbox" />
-          <span>No DNS records found</span>
+          <span>{{ t("dns.external.manager.emptyRecords") }}</span>
         </div>
 
         <div v-else class="records-table">
           <table>
             <thead>
               <tr>
-                <th>Type</th>
-                <th>Name</th>
-                <th>Content</th>
-                <th>TTL</th>
-                <th v-if="dnsStore.selectedProvider === 'cloudflare'">Proxied</th>
-                <th>Actions</th>
+                <th>{{ t("dns.common.type") }}</th>
+                <th>{{ t("dns.common.name") }}</th>
+                <th>{{ t("dns.common.content") }}</th>
+                <th>{{ t("dns.common.ttl") }}</th>
+                <th v-if="dnsStore.selectedProvider === 'cloudflare'">{{ t("dns.external.manager.proxied") }}</th>
+                <th>{{ t("dns.common.actions") }}</th>
               </tr>
             </thead>
             <tbody>
@@ -167,7 +169,7 @@
                 <td>{{ formatTTL(record.ttl) }}</td>
                 <td v-if="dnsStore.selectedProvider === 'cloudflare'">
                   <span class="proxied-badge" :class="{ active: record.proxied }">
-                    {{ record.proxied ? "Yes" : "No" }}
+                    {{ record.proxied ? t("dns.common.yes") : t("dns.common.no") }}
                   </span>
                 </td>
                 <td class="actions-cell">
@@ -191,7 +193,7 @@
           <div class="modal-header">
             <h3>
               <i class="pi pi-file-edit" />
-              {{ showEditModal ? "Edit Record" : "Add DNS Record" }}
+              {{ showEditModal ? t("dns.external.modal.record.editTitle") : t("dns.external.modal.record.addTitle") }}
             </h3>
             <button class="close-btn" @click="closeModals">
               <i class="pi pi-times" />
@@ -200,7 +202,7 @@
 
           <div class="modal-body">
             <div class="form-group">
-              <label for="record-type">Type</label>
+              <label for="record-type">{{ t("dns.common.type") }}</label>
               <select id="record-type" v-model="recordForm.type" :disabled="showEditModal">
                 <option value="A">A</option>
                 <option value="AAAA">AAAA</option>
@@ -213,45 +215,55 @@
             </div>
 
             <div v-if="!showEditModal" class="form-group">
-              <label for="record-name">Name</label>
-              <input id="record-name" v-model="recordForm.name" type="text" placeholder="@ for root, or subdomain" />
-              <span class="hint">Use @ for the root domain</span>
+              <label for="record-name">{{ t("dns.common.name") }}</label>
+              <input
+                id="record-name"
+                v-model="recordForm.name"
+                type="text"
+                :placeholder="t('dns.external.modal.record.namePlaceholder')"
+              />
+              <span class="hint">{{ t("dns.external.modal.record.nameHint") }}</span>
             </div>
 
             <div class="form-group">
-              <label for="record-content">Content</label>
+              <label for="record-content">{{ t("dns.common.content") }}</label>
               <input
                 id="record-content"
                 v-model="recordForm.content"
                 type="text"
-                placeholder="IP address or hostname"
+                :placeholder="t('dns.external.modal.record.contentPlaceholder')"
               />
             </div>
 
             <div class="form-row">
               <div class="form-group">
-                <label for="record-ttl">TTL</label>
+                <label for="record-ttl">{{ t("dns.common.ttl") }}</label>
                 <select id="record-ttl" v-model.number="recordForm.ttl">
-                  <option :value="1">Auto (Provider Default)</option>
-                  <option :value="60">1 minute</option>
-                  <option :value="300">5 minutes</option>
-                  <option :value="600">10 minutes</option>
-                  <option :value="3600">1 hour</option>
-                  <option :value="86400">1 day</option>
+                  <option :value="1">{{ t("dns.external.modal.record.ttlOptions.auto") }}</option>
+                  <option :value="60">{{ t("dns.external.modal.record.ttlOptions.min1") }}</option>
+                  <option :value="300">{{ t("dns.external.modal.record.ttlOptions.min5") }}</option>
+                  <option :value="600">{{ t("dns.external.modal.record.ttlOptions.min10") }}</option>
+                  <option :value="3600">{{ t("dns.external.modal.record.ttlOptions.hour1") }}</option>
+                  <option :value="86400">{{ t("dns.external.modal.record.ttlOptions.day1") }}</option>
                 </select>
-                <span class="hint">Time-to-live for DNS cache. Auto lets the provider choose.</span>
+                <span class="hint">{{ t("dns.external.modal.record.ttlHint") }}</span>
               </div>
 
               <div v-if="recordForm.type === 'MX'" class="form-group">
-                <label for="record-priority">Priority</label>
-                <input id="record-priority" v-model.number="recordForm.priority" type="number" placeholder="10" />
+                <label for="record-priority">{{ t("dns.common.priority") }}</label>
+                <input
+                  id="record-priority"
+                  v-model.number="recordForm.priority"
+                  type="number"
+                  :placeholder="t('dns.external.modal.record.priorityPlaceholder')"
+                />
               </div>
             </div>
 
             <div v-if="dnsStore.selectedProvider === 'cloudflare'" class="form-group checkbox-group">
               <label>
                 <input v-model="recordForm.proxied" type="checkbox" />
-                <span>Proxy through Cloudflare</span>
+                <span>{{ t("dns.external.modal.record.proxyThroughCloudflare") }}</span>
               </label>
             </div>
 
@@ -262,10 +274,12 @@
           </div>
 
           <div class="modal-footer">
-            <button class="btn btn-secondary" :disabled="saving" @click="closeModals">Cancel</button>
+            <button class="btn btn-secondary" :disabled="saving" @click="closeModals">
+              {{ t("dns.common.cancel") }}
+            </button>
             <button class="btn btn-primary" :disabled="saving || !isFormValid" @click="handleSaveRecord">
               <i v-if="saving" class="pi pi-spin pi-spinner" />
-              {{ saving ? "Saving..." : showEditModal ? "Update" : "Create" }}
+              {{ saving ? t("dns.common.saving") : showEditModal ? t("dns.common.update") : t("dns.common.create") }}
             </button>
           </div>
         </div>
@@ -274,11 +288,16 @@
 
     <ConfirmModal
       :visible="showDeleteModal"
-      title="Delete Record"
-      :message="`Are you sure you want to delete this ${recordToDelete?.type} record for ${recordToDelete?.name}?`"
-      warning="This action cannot be undone."
+      :title="t('dns.external.confirm.deleteRecord.title')"
+      :message="
+        t('dns.external.confirm.deleteRecord.message', {
+          type: recordToDelete?.type || '',
+          name: recordToDelete?.name || '',
+        })
+      "
+      :warning="t('dns.external.confirm.deleteRecord.warning')"
       variant="danger"
-      confirm-text="Delete"
+      :confirm-text="t('dns.common.delete')"
       :loading="deleting"
       @confirm="handleDeleteRecord"
       @cancel="showDeleteModal = false"
@@ -288,6 +307,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
+import { useI18n } from "vue-i18n";
 import { useDnsStore } from "@/stores/dns";
 import { useNotificationsStore } from "@/stores/notifications";
 import ConfirmModal from "@/components/ConfirmModal.vue";
@@ -295,6 +315,7 @@ import type { DNSRecord, DNSRecordCreate, DNSRecordUpdate } from "@/services/api
 
 const dnsStore = useDnsStore();
 const notifications = useNotificationsStore();
+const { t, te } = useI18n();
 
 const showCreateModal = ref(false);
 const showEditModal = ref(false);
@@ -346,17 +367,30 @@ const providerIcon = (provider: string) => {
 };
 
 const formatTTL = (ttl: number) => {
-  if (ttl === 1) return "Auto";
+  if (ttl === 1) return t("dns.external.modal.record.ttlAuto");
   if (ttl < 60) return `${ttl}s`;
   if (ttl < 3600) return `${Math.floor(ttl / 60)}m`;
   if (ttl < 86400) return `${Math.floor(ttl / 3600)}h`;
   return `${Math.floor(ttl / 86400)}d`;
 };
 
+const formatZoneStatus = (status?: string) => {
+  const normalized = (status || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[\s-]+/g, "_");
+  const key = `dns.external.zoneStatus.${normalized}`;
+  if (normalized && te(key)) return t(key);
+  return status || t("common.na");
+};
+
 const handleConnect = async () => {
   const valid = await dnsStore.validateCredentials();
   if (valid) {
-    notifications.success("Connected", `Connected to ${dnsStore.currentProvider?.display_name}`);
+    notifications.success(
+      t("dns.external.notifications.connectedTitle"),
+      t("dns.external.notifications.connectedDesc", { provider: dnsStore.currentProvider?.display_name || "" }),
+    );
     await dnsStore.fetchZones();
   }
 };
@@ -398,7 +432,10 @@ const handleSaveRecord = async () => {
       };
       const result = await dnsStore.updateRecord(dnsStore.selectedZone.id, recordToEdit.value.id, update);
       if (result) {
-        notifications.success("Record Updated", "DNS record has been updated");
+        notifications.success(
+          t("dns.external.notifications.recordUpdatedTitle"),
+          t("dns.external.notifications.recordUpdatedDesc"),
+        );
         closeModals();
       }
     } else {
@@ -412,7 +449,10 @@ const handleSaveRecord = async () => {
       };
       const result = await dnsStore.createRecord(dnsStore.selectedZone.id, create);
       if (result) {
-        notifications.success("Record Created", "DNS record has been created");
+        notifications.success(
+          t("dns.external.notifications.recordCreatedTitle"),
+          t("dns.external.notifications.recordCreatedDesc"),
+        );
         closeModals();
       }
     }
@@ -429,7 +469,10 @@ const handleDeleteRecord = async () => {
   try {
     const success = await dnsStore.deleteRecord(dnsStore.selectedZone.id, recordToDelete.value.id);
     if (success) {
-      notifications.success("Record Deleted", "DNS record has been deleted");
+      notifications.success(
+        t("dns.external.notifications.recordDeletedTitle"),
+        t("dns.external.notifications.recordDeletedDesc"),
+      );
     }
   } finally {
     deleting.value = false;

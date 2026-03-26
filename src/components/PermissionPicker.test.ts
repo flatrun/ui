@@ -1,10 +1,23 @@
 import { describe, it, expect } from "vitest";
 import { mount } from "@vue/test-utils";
+import { createI18n } from "vue-i18n";
 import PermissionPicker from "./PermissionPicker.vue";
+import en from "@/i18n/locales/en.json";
 
 describe("PermissionPicker", () => {
+  const i18n = createI18n({
+    legacy: false,
+    locale: "en",
+    messages: { en },
+  });
+
   const mountPicker = (props: { modelValue: string[]; readonly?: boolean }) => {
-    return mount(PermissionPicker, { props });
+    return mount(PermissionPicker, {
+      props,
+      global: {
+        plugins: [i18n],
+      },
+    });
   };
 
   describe("Rendering", () => {

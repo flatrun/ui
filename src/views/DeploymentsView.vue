@@ -5,13 +5,13 @@
       :columns="columns"
       :loading="loading"
       :searchable="true"
-      search-placeholder="Search deployments..."
+      :search-placeholder="$t('deployment.action.searchPlaceholder')"
       :search-fields="['name', 'path', 'status']"
       item-key="name"
       :empty-icon="Inbox"
-      empty-title="No Deployments Found"
-      empty-text="Create your first deployment to get started"
-      loading-text="Loading deployments..."
+      :empty-title="$t('deployment.empty.title')"
+      :empty-text="$t('deployment.empty.description')"
+      :loading-text="$t('deployment.loading')"
       :default-page-size="12"
       :toggleable="true"
       default-view-mode="grid"
@@ -19,11 +19,11 @@
       <template #actions>
         <button v-if="canWrite" class="btn btn-primary" @click="showNewDeploymentModal = true">
           <Plus :size="16" />
-          New Deployment
+          {{ $t("deployment.action.new") }}
         </button>
         <button class="btn btn-secondary" :disabled="loading" @click="refreshDeployments">
           <RefreshCw :size="16" :class="{ spinning: loading }" />
-          Refresh
+          {{ $t("deployment.action.refresh") }}
         </button>
       </template>
 
@@ -85,7 +85,7 @@
           <button
             v-if="canWrite"
             class="action-btn start"
-            title="Start"
+            :title="$t('deployment.action.start')"
             :disabled="item.status === 'running'"
             @click.stop="handleOperation('start', item.name)"
           >
@@ -94,7 +94,7 @@
           <button
             v-if="canWrite"
             class="action-btn stop"
-            title="Stop"
+            :title="$t('deployment.action.stop')"
             :disabled="item.status === 'stopped'"
             @click.stop="handleOperation('stop', item.name)"
           >
@@ -103,13 +103,13 @@
           <button
             v-if="canWrite"
             class="action-btn restart"
-            title="Restart"
+            :title="$t('deployment.action.restart')"
             :disabled="item.status === 'stopped'"
             @click.stop="handleOperation('restart', item.name)"
           >
             <RotateCw :size="14" />
           </button>
-          <button class="action-btn logs" title="Logs" @click.stop="viewLogs(item.name)">
+          <button class="action-btn logs" :title="$t('deployment.action.logs')" @click.stop="viewLogs(item.name)">
             <FileText :size="14" />
           </button>
         </div>
@@ -145,7 +145,7 @@
                 {{ deployment.metadata.networking.domain }}
                 <ExternalLink :size="12" />
               </a>
-              <span v-if="deployment.metadata?.ssl?.enabled" class="ssl-badge"> SSL </span>
+              <span v-if="deployment.metadata?.ssl?.enabled" class="ssl-badge"> {{ $t("deployment.ssl") }} </span>
             </div>
 
             <!-- Port Links (shown when no domain but has port mappings) -->
@@ -223,7 +223,9 @@
               </div>
               <div class="meta-item">
                 <Layers :size="12" />
-                <span class="meta-value">{{ deployment.services?.length || 0 }} services</span>
+                <span class="meta-value">{{
+                  t("deployment.service.count", { n: deployment.services?.length || 0 })
+                }}</span>
               </div>
               <div class="meta-item">
                 <Clock :size="12" />
@@ -235,7 +237,7 @@
               <button
                 v-if="canWrite"
                 class="icon-btn start"
-                title="Start"
+                :title="$t('deployment.action.start')"
                 :disabled="deployment.status === 'running'"
                 @click="handleOperation('start', deployment.name)"
               >
@@ -244,7 +246,7 @@
               <button
                 v-if="canWrite"
                 class="icon-btn stop"
-                title="Stop"
+                :title="$t('deployment.action.stop')"
                 :disabled="deployment.status === 'stopped'"
                 @click="handleOperation('stop', deployment.name)"
               >
@@ -253,16 +255,20 @@
               <button
                 v-if="canWrite"
                 class="icon-btn restart"
-                title="Restart"
+                :title="$t('deployment.action.restart')"
                 :disabled="deployment.status === 'stopped'"
                 @click="handleOperation('restart', deployment.name)"
               >
                 <RotateCw :size="14" />
               </button>
-              <button class="icon-btn logs" title="Logs" @click="viewLogs(deployment.name)">
+              <button class="icon-btn logs" :title="$t('deployment.action.logs')" @click="viewLogs(deployment.name)">
                 <FileText :size="14" />
               </button>
-              <button class="icon-btn settings" title="Settings" @click="goToDeployment(deployment.name)">
+              <button
+                class="icon-btn settings"
+                :title="$t('deployment.action.settings')"
+                @click="goToDeployment(deployment.name)"
+              >
                 <Settings :size="14" />
               </button>
             </template>
@@ -284,7 +290,9 @@
     <LogsModal
       :visible="logsModal.visible"
       :title="logsModal.deploymentName"
+      :subtitle="$t('deployment.modal.logs.subtitle')"
       :logs="logsModal.logs"
+      :empty-message="$t('deployment.modal.logs.empty')"
       @close="logsModal.visible = false"
     />
 
@@ -299,6 +307,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
+import { useI18n } from "vue-i18n";
 import { deploymentsApi } from "@/services/api";
 import { useNotificationsStore } from "@/stores/notifications";
 import { useAuthStore } from "@/stores/auth";
@@ -330,6 +339,7 @@ import {
 } from "lucide-vue-next";
 import type { Service } from "@/types";
 
+const { t } = useI18n();
 const router = useRouter();
 const notifications = useNotificationsStore();
 const authStore = useAuthStore();
@@ -355,10 +365,10 @@ const logsModal = ref({
 
 const columns = [
   { key: "status", label: "", width: "40px" },
-  { key: "name", label: "Deployment", sortable: true },
-  { key: "services", label: "Services", width: "180px" },
-  { key: "ports", label: "Ports", width: "140px" },
-  { key: "updated", label: "Updated", sortable: true, width: "120px" },
+  { key: "name", label: t("deployment.field.name"), sortable: true },
+  { key: "services", label: t("deployment.field.services"), width: "180px" },
+  { key: "ports", label: t("deployment.field.ports"), width: "140px" },
+  { key: "updated", label: t("deployment.field.updated"), sortable: true, width: "120px" },
   { key: "actions", label: "", width: "140px" },
 ];
 
@@ -368,7 +378,7 @@ const fetchDeployments = async () => {
     const response = await deploymentsApi.list();
     deployments.value = response.data.deployments || [];
   } catch (e: any) {
-    notifications.error("Failed to load deployments", e.message);
+    notifications.error(t("deployment.notification.failedToLoad"), e.message);
   } finally {
     loading.value = false;
   }
@@ -376,7 +386,7 @@ const fetchDeployments = async () => {
 
 const refreshDeployments = () => {
   fetchDeployments();
-  notifications.info("Refreshing", "Fetching latest deployment status");
+  notifications.info(t("deployment.notification.refreshing"), t("deployment.notification.refreshingDescription"));
 };
 
 const handleOperation = async (op: "start" | "stop" | "restart", name: string) => {
@@ -399,11 +409,15 @@ const handleOperation = async (op: "start" | "stop" | "restart", name: string) =
       response = await deploymentsApi.restart(name);
     }
 
-    operationModal.value.output = response?.data?.output || "Operation completed";
+    operationModal.value.output =
+      response?.data?.output || t("deployment.notification.operationSuccess", { operation: op });
     operationModal.value.isSuccess = true;
     operationModal.value.isRunning = false;
 
-    notifications.success(`${op} successful`, `${name} ${op}ed successfully`);
+    notifications.success(
+      t("deployment.notification.operationSuccess", { operation: op }),
+      t("deployment.notification.operationSuccessDescription", { name, operation: op }),
+    );
     await fetchDeployments();
   } catch (e: any) {
     const errorMsg = e.response?.data?.output || e.response?.data?.error || e.message;
@@ -411,7 +425,7 @@ const handleOperation = async (op: "start" | "stop" | "restart", name: string) =
     operationModal.value.isSuccess = false;
     operationModal.value.isRunning = false;
 
-    notifications.error(`${op} failed`, errorMsg);
+    notifications.error(t("deployment.notification.operationFailed", { operation: op }), errorMsg);
   }
 };
 
@@ -423,22 +437,22 @@ const viewLogs = async (name: string) => {
   logsModal.value = {
     visible: true,
     deploymentName: name,
-    logs: "Loading...",
+    logs: t("deployment.logs.loading"),
   };
 
   try {
     const response = await deploymentsApi.logs(name);
-    logsModal.value.logs = response.data.logs || "No logs available";
+    logsModal.value.logs = response.data.logs || t("deployment.logs.empty");
   } catch (e: any) {
-    logsModal.value.logs = `Error: ${e.message}`;
-    notifications.error("Failed to load logs", e.message);
+    logsModal.value.logs = t("deployment.logs.error", { message: e.message });
+    notifications.error(t("deployment.notification.logsFailed"), e.message);
   }
 };
 
 const onDeploymentCreated = () => {
   showNewDeploymentModal.value = false;
   fetchDeployments();
-  notifications.success("Deployment created", "New deployment folder created successfully");
+  notifications.success(t("deployment.notification.created"), t("deployment.notification.createdDescription"));
 };
 
 const goToDeployment = (name: string) => {
@@ -690,10 +704,10 @@ const formatRelativeTime = (dateStr: string) => {
   const diffHours = Math.floor(diffMins / 60);
   const diffDays = Math.floor(diffHours / 24);
 
-  if (diffMins < 1) return "just now";
-  if (diffMins < 60) return `${diffMins}m ago`;
-  if (diffHours < 24) return `${diffHours}h ago`;
-  if (diffDays < 7) return `${diffDays}d ago`;
+  if (diffMins < 1) return t("deployment.time.justNow");
+  if (diffMins < 60) return t("deployment.time.minutes", { n: diffMins });
+  if (diffHours < 24) return t("deployment.time.hours", { n: diffHours });
+  if (diffDays < 7) return t("deployment.time.days", { n: diffDays });
   return formatDate(dateStr);
 };
 

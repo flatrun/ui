@@ -34,9 +34,9 @@ withDefaults(
     emptyMessage?: string;
   }>(),
   {
-    subtitle: "Container logs output",
+    subtitle: "", // Will be set by parent or default to translation key
     loading: false,
-    emptyMessage: "No logs available",
+    emptyMessage: "", // Will be set by parent or default to translation key
   },
 );
 

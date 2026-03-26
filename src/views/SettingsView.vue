@@ -20,7 +20,7 @@
 
     <div v-if="loading" class="loading-state">
       <i class="pi pi-spin pi-spinner" />
-      <span>Loading settings...</span>
+      <span>{{ t("settings.loading") }}</span>
     </div>
 
     <div v-else class="settings-content">
@@ -30,20 +30,20 @@
           <div class="settings-card">
             <div class="card-header">
               <i class="pi pi-info-circle" />
-              <h3>System Information</h3>
+              <h3>{{ t("settings.general.systemInfo.title") }}</h3>
             </div>
             <div class="card-body">
               <div class="info-grid">
                 <div class="info-item">
-                  <span class="info-label">Agent Status</span>
-                  <span class="status-badge enabled">Online</span>
+                  <span class="info-label">{{ t("settings.general.systemInfo.agentStatus") }}</span>
+                  <span class="status-badge enabled">{{ t("settings.general.systemInfo.online") }}</span>
                 </div>
                 <div class="info-item">
-                  <span class="info-label">Agent Version</span>
+                  <span class="info-label">{{ t("settings.general.systemInfo.agentVersion") }}</span>
                   <code>{{ agentVersion }}</code>
                 </div>
                 <div class="info-item">
-                  <span class="info-label">UI Version</span>
+                  <span class="info-label">{{ t("settings.general.systemInfo.uiVersion") }}</span>
                   <code>{{ uiVersion }}</code>
                 </div>
               </div>
@@ -53,25 +53,31 @@
           <div class="settings-card">
             <div class="card-header">
               <i class="pi pi-bolt" />
-              <h3>Quick Actions</h3>
+              <h3>{{ t("settings.general.quickActions.title") }}</h3>
             </div>
             <div class="card-body">
               <div class="actions-grid">
                 <button class="action-btn" @click="testConnection">
                   <i class="pi pi-check-circle" />
-                  <span>Test Connection</span>
+                  <span>{{ t("settings.general.quickActions.testConnection") }}</span>
                 </button>
                 <button class="action-btn" :disabled="refreshingTemplates" @click="refreshTemplates">
                   <i class="pi pi-box" :class="{ 'pi-spin': refreshingTemplates }" />
-                  <span>{{ refreshingTemplates ? "Refreshing..." : "Refresh Templates" }}</span>
+                  <span>
+                    {{
+                      refreshingTemplates
+                        ? t("settings.general.quickActions.refreshing")
+                        : t("settings.general.quickActions.refreshTemplates")
+                    }}
+                  </span>
                 </button>
                 <button class="action-btn" @click="refreshData">
                   <i class="pi pi-sync" />
-                  <span>Refresh All</span>
+                  <span>{{ t("settings.general.quickActions.refreshAll") }}</span>
                 </button>
                 <button class="action-btn" @click="clearCache">
                   <i class="pi pi-trash" />
-                  <span>Clear Cache</span>
+                  <span>{{ t("settings.general.quickActions.clearCache") }}</span>
                 </button>
               </div>
             </div>
@@ -81,27 +87,27 @@
         <div class="settings-card">
           <div class="card-header">
             <i class="pi pi-cog" />
-            <h3>Agent Configuration</h3>
-            <span class="badge">Read-only</span>
+            <h3>{{ t("settings.general.agentConfig.title") }}</h3>
+            <span class="badge">{{ t("settings.general.agentConfig.readOnly") }}</span>
           </div>
           <div class="card-body">
             <div class="config-grid">
               <div class="config-item">
-                <span class="config-label">Deployments Path</span>
+                <span class="config-label">{{ t("settings.general.agentConfig.deploymentsPath") }}</span>
                 <code>{{ settings.deployments_path }}</code>
               </div>
               <div class="config-item">
-                <span class="config-label">API Port</span>
+                <span class="config-label">{{ t("settings.general.agentConfig.apiPort") }}</span>
                 <code>{{ settings.api_port }}</code>
               </div>
               <div class="config-item">
-                <span class="config-label">CORS</span>
+                <span class="config-label">{{ t("settings.general.agentConfig.cors") }}</span>
                 <span class="status-badge" :class="settings.enable_cors ? 'enabled' : 'disabled'">
-                  {{ settings.enable_cors ? "Enabled" : "Disabled" }}
+                  {{ settings.enable_cors ? t("settings.value.enabled") : t("settings.value.disabled") }}
                 </span>
               </div>
               <div class="config-item full-width">
-                <span class="config-label">Allowed Origins</span>
+                <span class="config-label">{{ t("settings.general.agentConfig.allowedOrigins") }}</span>
                 <div class="origins-list">
                   <code v-for="origin in settings.allowed_origins" :key="origin">{{ origin }}</code>
                 </div>
@@ -113,16 +119,15 @@
         <div class="settings-card collapsible" :class="{ collapsed: configCollapsed }">
           <div class="card-header clickable" @click="configCollapsed = !configCollapsed">
             <i class="pi pi-file-edit" />
-            <h3>Configuration Preview</h3>
+            <h3>{{ t("settings.general.configPreview.title") }}</h3>
             <i class="pi chevron" :class="configCollapsed ? 'pi-chevron-down' : 'pi-chevron-up'" />
           </div>
           <div v-show="!configCollapsed" class="card-body">
             <div class="config-note">
               <i class="pi pi-info-circle" />
-              <p>
-                To modify agent settings, edit the configuration file on your server and restart the agent. Typically
-                located at <code>/etc/flatrun/config.yml</code>
-              </p>
+              <i18n-t keypath="settings.general.configPreview.note" tag="p">
+                <code>/etc/flatrun/config.yml</code>
+              </i18n-t>
             </div>
             <pre class="config-preview">{{ configYaml }}</pre>
           </div>
@@ -134,36 +139,36 @@
         <div class="settings-card">
           <div class="card-header">
             <i class="pi pi-globe" />
-            <h3>Domain Configuration</h3>
+            <h3>{{ t("settings.domain.title") }}</h3>
           </div>
           <div class="card-body">
             <div class="form-grid">
               <div class="form-group full-width">
-                <label class="form-label">Default Domain</label>
-                <span class="form-hint">Base domain for auto-generated subdomains</span>
+                <label class="form-label">{{ t("settings.domain.defaultDomain.label") }}</label>
+                <span class="form-hint">{{ t("settings.domain.defaultDomain.hint") }}</span>
                 <input
                   v-model="domainSettings.default_domain"
                   type="text"
-                  placeholder="example.com"
+                  :placeholder="t('settings.domain.defaultDomain.placeholder')"
                   class="form-input"
                 />
               </div>
 
               <div class="form-group">
-                <label class="form-label">Subdomain Style</label>
-                <span class="form-hint">Format for auto-generated subdomains</span>
+                <label class="form-label">{{ t("settings.domain.subdomainStyle.label") }}</label>
+                <span class="form-hint">{{ t("settings.domain.subdomainStyle.hint") }}</span>
                 <select v-model="domainSettings.subdomain_style" class="form-select">
-                  <option value="words">Words (swift-river-123)</option>
-                  <option value="hex">Hex (a1b2c3d4)</option>
-                  <option value="short">Short (swi-riv)</option>
+                  <option value="words">{{ t("settings.domain.subdomainStyle.options.words") }}</option>
+                  <option value="hex">{{ t("settings.domain.subdomainStyle.options.hex") }}</option>
+                  <option value="short">{{ t("settings.domain.subdomainStyle.options.short") }}</option>
                 </select>
               </div>
 
               <div class="form-group">
                 <div class="toggle-row">
                   <div class="toggle-info">
-                    <label class="form-label">Auto Subdomain</label>
-                    <span class="form-hint">Generate random subdomains for new deployments</span>
+                    <label class="form-label">{{ t("settings.domain.autoSubdomain.label") }}</label>
+                    <span class="form-hint">{{ t("settings.domain.autoSubdomain.hint") }}</span>
                   </div>
                   <label class="toggle-switch">
                     <input v-model="domainSettings.auto_subdomain" type="checkbox" />
@@ -175,8 +180,8 @@
               <div class="form-group">
                 <div class="toggle-row">
                   <div class="toggle-info">
-                    <label class="form-label">Auto SSL</label>
-                    <span class="form-hint">Request SSL certificates automatically</span>
+                    <label class="form-label">{{ t("settings.domain.autoSsl.label") }}</label>
+                    <span class="form-hint">{{ t("settings.domain.autoSsl.hint") }}</span>
                   </div>
                   <label class="toggle-switch">
                     <input v-model="domainSettings.auto_ssl" type="checkbox" />
@@ -190,7 +195,7 @@
               <button class="btn btn-primary" :disabled="savingDomain" @click="saveDomainSettings">
                 <i v-if="savingDomain" class="pi pi-spin pi-spinner" />
                 <i v-else class="pi pi-save" />
-                <span>Save Changes</span>
+                <span>{{ t("settings.actions.saveChanges") }}</span>
               </button>
             </div>
           </div>
@@ -202,27 +207,27 @@
         <div class="settings-card">
           <div class="card-header">
             <i class="pi pi-share-alt" />
-            <h3>Networks</h3>
+            <h3>{{ t("settings.infrastructure.networks.title") }}</h3>
           </div>
           <div class="card-body">
             <div class="form-grid">
               <div class="form-group">
-                <label class="form-label">Proxy Network</label>
-                <span class="form-hint">Docker network for nginx/web container communication</span>
+                <label class="form-label">{{ t("settings.infrastructure.networks.proxyNetwork.label") }}</label>
+                <span class="form-hint">{{ t("settings.infrastructure.networks.proxyNetwork.hint") }}</span>
                 <input
                   v-model="infrastructureSettings.default_proxy_network"
                   type="text"
-                  placeholder="proxy"
+                  :placeholder="t('settings.infrastructure.networks.proxyNetwork.placeholder')"
                   class="form-input"
                 />
               </div>
               <div class="form-group">
-                <label class="form-label">Database Network</label>
-                <span class="form-hint">Docker network for database container communication</span>
+                <label class="form-label">{{ t("settings.infrastructure.networks.databaseNetwork.label") }}</label>
+                <span class="form-hint">{{ t("settings.infrastructure.networks.databaseNetwork.hint") }}</span>
                 <input
                   v-model="infrastructureSettings.default_database_network"
                   type="text"
-                  placeholder="database"
+                  :placeholder="t('settings.infrastructure.networks.databaseNetwork.placeholder')"
                   class="form-input"
                 />
               </div>
@@ -233,7 +238,7 @@
         <div class="settings-card">
           <div class="card-header">
             <i class="pi pi-server" />
-            <h3>Nginx</h3>
+            <h3>{{ t("settings.infrastructure.nginx.title") }}</h3>
             <label class="toggle-switch">
               <input v-model="nginxSettings.enabled" type="checkbox" />
               <span class="toggle-slider" />
@@ -242,38 +247,48 @@
           <div v-if="nginxSettings.enabled" class="card-body">
             <div class="form-grid">
               <div class="form-group">
-                <label class="form-label">Docker Image</label>
-                <input v-model="nginxSettings.image" type="text" placeholder="nginx:alpine" class="form-input" />
+                <label class="form-label">{{ t("settings.infrastructure.nginx.dockerImage") }}</label>
+                <input
+                  v-model="nginxSettings.image"
+                  type="text"
+                  :placeholder="t('settings.infrastructure.nginx.placeholders.image')"
+                  class="form-input"
+                />
               </div>
               <div class="form-group">
-                <label class="form-label">Container Name</label>
-                <input v-model="nginxSettings.container_name" type="text" placeholder="nginx" class="form-input" />
+                <label class="form-label">{{ t("settings.infrastructure.nginx.containerName") }}</label>
+                <input
+                  v-model="nginxSettings.container_name"
+                  type="text"
+                  :placeholder="t('settings.infrastructure.nginx.placeholders.containerName')"
+                  class="form-input"
+                />
               </div>
               <div class="form-group">
-                <label class="form-label">Config Path</label>
-                <span class="form-hint">Path to nginx conf.d directory</span>
+                <label class="form-label">{{ t("settings.infrastructure.nginx.configPath.label") }}</label>
+                <span class="form-hint">{{ t("settings.infrastructure.nginx.configPath.hint") }}</span>
                 <input
                   v-model="nginxSettings.config_path"
                   type="text"
-                  placeholder="/deployments/nginx/conf.d"
+                  :placeholder="t('settings.infrastructure.nginx.placeholders.configPath')"
                   class="form-input"
                 />
               </div>
               <div class="form-group full-width">
-                <label class="form-label">Reload Command</label>
-                <span class="form-hint">Command to reload nginx configuration</span>
+                <label class="form-label">{{ t("settings.infrastructure.nginx.reloadCommand.label") }}</label>
+                <span class="form-hint">{{ t("settings.infrastructure.nginx.reloadCommand.hint") }}</span>
                 <input
                   v-model="nginxSettings.reload_command"
                   type="text"
-                  placeholder="nginx -s reload"
+                  :placeholder="t('settings.infrastructure.nginx.placeholders.reloadCommand')"
                   class="form-input"
                 />
               </div>
               <div class="form-group full-width">
                 <div class="toggle-row">
                   <div class="toggle-info">
-                    <label class="form-label">External Nginx</label>
-                    <span class="form-hint">Use an existing nginx installation instead of Docker container</span>
+                    <label class="form-label">{{ t("settings.infrastructure.nginx.external.label") }}</label>
+                    <span class="form-hint">{{ t("settings.infrastructure.nginx.external.hint") }}</span>
                   </div>
                   <label class="toggle-switch">
                     <input v-model="nginxSettings.external" type="checkbox" />
@@ -288,7 +303,7 @@
         <div class="settings-card">
           <div class="card-header">
             <i class="pi pi-lock" />
-            <h3>SSL / Certbot</h3>
+            <h3>{{ t("settings.infrastructure.certbot.title") }}</h3>
             <label class="toggle-switch">
               <input v-model="certbotSettings.enabled" type="checkbox" />
               <span class="toggle-slider" />
@@ -297,44 +312,49 @@
           <div v-if="certbotSettings.enabled" class="card-body">
             <div class="form-grid">
               <div class="form-group">
-                <label class="form-label">Docker Image</label>
-                <input v-model="certbotSettings.image" type="text" placeholder="certbot/certbot" class="form-input" />
+                <label class="form-label">{{ t("settings.infrastructure.certbot.dockerImage") }}</label>
+                <input
+                  v-model="certbotSettings.image"
+                  type="text"
+                  :placeholder="t('settings.infrastructure.certbot.placeholders.image')"
+                  class="form-input"
+                />
               </div>
               <div class="form-group">
-                <label class="form-label">Email</label>
-                <span class="form-hint">Email for Let's Encrypt notifications</span>
+                <label class="form-label">{{ t("settings.infrastructure.certbot.email.label") }}</label>
+                <span class="form-hint">{{ t("settings.infrastructure.certbot.email.hint") }}</span>
                 <input
                   v-model="certbotSettings.email"
                   type="email"
-                  placeholder="admin@example.com"
+                  :placeholder="t('settings.infrastructure.certbot.placeholders.email')"
                   class="form-input"
                 />
               </div>
               <div class="form-group">
-                <label class="form-label">Certificates Path</label>
-                <span class="form-hint">Leave empty to use default (nginx/certs)</span>
+                <label class="form-label">{{ t("settings.infrastructure.certbot.certsPath.label") }}</label>
+                <span class="form-hint">{{ t("settings.infrastructure.certbot.certsPath.hint") }}</span>
                 <input
                   v-model="certbotSettings.certs_path"
                   type="text"
-                  placeholder="Default: {deployments}/nginx/certs/live"
+                  :placeholder="t('settings.infrastructure.certbot.placeholders.certsPath')"
                   class="form-input"
                 />
               </div>
               <div class="form-group">
-                <label class="form-label">Webroot Path</label>
-                <span class="form-hint">Leave empty to use default (nginx/html)</span>
+                <label class="form-label">{{ t("settings.infrastructure.certbot.webrootPath.label") }}</label>
+                <span class="form-hint">{{ t("settings.infrastructure.certbot.webrootPath.hint") }}</span>
                 <input
                   v-model="certbotSettings.webroot_path"
                   type="text"
-                  placeholder="Default: {deployments}/nginx/html"
+                  :placeholder="t('settings.infrastructure.certbot.placeholders.webrootPath')"
                   class="form-input"
                 />
               </div>
               <div class="form-group">
-                <label class="form-label">DNS Provider</label>
-                <span class="form-hint">Optional: for DNS-01 challenge</span>
+                <label class="form-label">{{ t("settings.infrastructure.certbot.dnsProvider.label") }}</label>
+                <span class="form-hint">{{ t("settings.infrastructure.certbot.dnsProvider.hint") }}</span>
                 <select v-model="certbotSettings.dns_provider" class="form-select">
-                  <option value="">None (HTTP-01)</option>
+                  <option value="">{{ t("settings.infrastructure.certbot.dnsProvider.none") }}</option>
                   <option value="cloudflare">Cloudflare</option>
                   <option value="route53">AWS Route53</option>
                   <option value="digitalocean">DigitalOcean</option>
@@ -343,8 +363,8 @@
               <div class="form-group">
                 <div class="toggle-row">
                   <div class="toggle-info">
-                    <label class="form-label">Staging Mode</label>
-                    <span class="form-hint">Use Let's Encrypt staging server for testing</span>
+                    <label class="form-label">{{ t("settings.infrastructure.certbot.staging.label") }}</label>
+                    <span class="form-hint">{{ t("settings.infrastructure.certbot.staging.hint") }}</span>
                   </div>
                   <label class="toggle-switch">
                     <input v-model="certbotSettings.staging" type="checkbox" />
@@ -359,7 +379,7 @@
         <div class="settings-card">
           <div class="card-header">
             <i class="pi pi-database" />
-            <h3>Shared Database</h3>
+            <h3>{{ t("settings.infrastructure.sharedDatabase.title") }}</h3>
             <label class="toggle-switch">
               <input v-model="infrastructureSettings.database.enabled" type="checkbox" />
               <span class="toggle-slider" />
@@ -368,7 +388,7 @@
           <div v-if="infrastructureSettings.database.enabled" class="card-body">
             <div class="form-grid">
               <div class="form-group">
-                <label class="form-label">Database Type</label>
+                <label class="form-label">{{ t("settings.infrastructure.sharedDatabase.databaseType") }}</label>
                 <select v-model="infrastructureSettings.database.type" class="form-select">
                   <option value="mysql">MySQL</option>
                   <option value="mariadb">MariaDB</option>
@@ -376,7 +396,7 @@
                 </select>
               </div>
               <div class="form-group">
-                <label class="form-label">Container Name</label>
+                <label class="form-label">{{ t("settings.infrastructure.sharedDatabase.containerName") }}</label>
                 <input
                   v-model="infrastructureSettings.database.container"
                   type="text"
@@ -385,8 +405,8 @@
                 />
               </div>
               <div class="form-group">
-                <label class="form-label">Host</label>
-                <span class="form-hint">Usually same as container name</span>
+                <label class="form-label">{{ t("settings.infrastructure.sharedDatabase.host.label") }}</label>
+                <span class="form-hint">{{ t("settings.infrastructure.sharedDatabase.host.hint") }}</span>
                 <input
                   v-model="infrastructureSettings.database.host"
                   type="text"
@@ -395,7 +415,7 @@
                 />
               </div>
               <div class="form-group">
-                <label class="form-label">Port</label>
+                <label class="form-label">{{ t("settings.infrastructure.sharedDatabase.port") }}</label>
                 <input
                   v-model.number="infrastructureSettings.database.port"
                   type="number"
@@ -404,7 +424,7 @@
                 />
               </div>
               <div class="form-group">
-                <label class="form-label">Root User</label>
+                <label class="form-label">{{ t("settings.infrastructure.sharedDatabase.rootUser") }}</label>
                 <input
                   v-model="infrastructureSettings.database.root_user"
                   type="text"
@@ -413,7 +433,7 @@
                 />
               </div>
               <div class="form-group">
-                <label class="form-label">Root Password</label>
+                <label class="form-label">{{ t("settings.infrastructure.sharedDatabase.rootPassword") }}</label>
                 <input
                   v-model="infrastructureSettings.database.root_password"
                   type="password"
@@ -428,7 +448,7 @@
         <div class="settings-card">
           <div class="card-header">
             <i class="pi pi-bolt" />
-            <h3>Shared Redis</h3>
+            <h3>{{ t("settings.infrastructure.sharedRedis.title") }}</h3>
             <label class="toggle-switch">
               <input v-model="infrastructureSettings.redis.enabled" type="checkbox" />
               <span class="toggle-slider" />
@@ -437,7 +457,7 @@
           <div v-if="infrastructureSettings.redis.enabled" class="card-body">
             <div class="form-grid">
               <div class="form-group">
-                <label class="form-label">Container Name</label>
+                <label class="form-label">{{ t("settings.infrastructure.sharedRedis.containerName") }}</label>
                 <input
                   v-model="infrastructureSettings.redis.container"
                   type="text"
@@ -446,11 +466,11 @@
                 />
               </div>
               <div class="form-group">
-                <label class="form-label">Host</label>
+                <label class="form-label">{{ t("settings.infrastructure.sharedRedis.host") }}</label>
                 <input v-model="infrastructureSettings.redis.host" type="text" placeholder="redis" class="form-input" />
               </div>
               <div class="form-group">
-                <label class="form-label">Port</label>
+                <label class="form-label">{{ t("settings.infrastructure.sharedRedis.port") }}</label>
                 <input
                   v-model.number="infrastructureSettings.redis.port"
                   type="number"
@@ -459,8 +479,8 @@
                 />
               </div>
               <div class="form-group">
-                <label class="form-label">Password</label>
-                <span class="form-hint">Leave empty if no authentication</span>
+                <label class="form-label">{{ t("settings.infrastructure.sharedRedis.password.label") }}</label>
+                <span class="form-hint">{{ t("settings.infrastructure.sharedRedis.password.hint") }}</span>
                 <input
                   v-model="infrastructureSettings.redis.password"
                   type="password"
@@ -476,7 +496,7 @@
           <button class="btn btn-primary" :disabled="savingInfrastructure" @click="saveInfrastructureSettings">
             <i v-if="savingInfrastructure" class="pi pi-spin pi-spinner" />
             <i v-else class="pi pi-save" />
-            <span>Save Infrastructure Settings</span>
+            <span>{{ t("settings.infrastructure.actions.save") }}</span>
           </button>
         </div>
       </div>
@@ -486,7 +506,7 @@
         <div class="settings-card">
           <div class="card-header">
             <i class="pi pi-shield" />
-            <h3>Security Module</h3>
+            <h3>{{ t("settings.security.module.title") }}</h3>
             <label class="toggle-switch">
               <input v-model="securitySettings.enabled" type="checkbox" />
               <span class="toggle-slider" />
@@ -495,16 +515,13 @@
           <div v-if="securitySettings.enabled" class="card-body">
             <div class="config-note">
               <i class="pi pi-info-circle" />
-              <p>
-                The security module captures events in realtime using OpenResty/Lua, monitoring unauthorized access
-                attempts, suspicious paths, and scanner activity. Requires OpenResty nginx image.
-              </p>
+              <p>{{ t("settings.security.module.description") }}</p>
             </div>
 
             <div class="form-grid">
               <div class="form-group">
-                <label class="form-label">Retention Days</label>
-                <span class="form-hint">How long to keep security events</span>
+                <label class="form-label">{{ t("settings.security.module.retentionDays.label") }}</label>
+                <span class="form-hint">{{ t("settings.security.module.retentionDays.hint") }}</span>
                 <input
                   v-model.number="securitySettings.retention_days"
                   type="number"
@@ -514,8 +531,8 @@
               </div>
 
               <div class="form-group">
-                <label class="form-label">Rate Threshold</label>
-                <span class="form-hint">Requests per minute to trigger high rate alert</span>
+                <label class="form-label">{{ t("settings.security.module.rateThreshold.label") }}</label>
+                <span class="form-hint">{{ t("settings.security.module.rateThreshold.hint") }}</span>
                 <input
                   v-model.number="securitySettings.rate_threshold"
                   type="number"
@@ -530,7 +547,7 @@
         <div class="settings-card">
           <div class="card-header">
             <i class="pi pi-ban" />
-            <h3>Auto-Blocking</h3>
+            <h3>{{ t("settings.security.autoBlocking.title") }}</h3>
             <label class="toggle-switch">
               <input v-model="securitySettings.auto_block_enabled" type="checkbox" />
               <span class="toggle-slider" />
@@ -539,8 +556,8 @@
           <div v-if="securitySettings.auto_block_enabled" class="card-body">
             <div class="form-grid">
               <div class="form-group">
-                <label class="form-label">Auto-Block Duration</label>
-                <span class="form-hint">How long to block IPs automatically (e.g., 24h, 1h, 30m)</span>
+                <label class="form-label">{{ t("settings.security.autoBlocking.duration.label") }}</label>
+                <span class="form-hint">{{ t("settings.security.autoBlocking.duration.hint") }}</span>
                 <input
                   v-model="securitySettings.auto_block_duration"
                   type="text"
@@ -550,21 +567,19 @@
               </div>
 
               <div class="form-group">
-                <label class="form-label">Detection Window</label>
-                <span class="form-hint">Time window for counting violations (e.g., 2m, 5m)</span>
+                <label class="form-label">{{ t("settings.security.autoBlocking.detectionWindow.label") }}</label>
+                <span class="form-hint">{{ t("settings.security.autoBlocking.detectionWindow.hint") }}</span>
                 <input v-model="securitySettings.detection_window" type="text" placeholder="2m" class="form-input" />
               </div>
             </div>
 
-            <h4 class="subsection-title">Detection Thresholds</h4>
-            <p class="subsection-hint">
-              IPs exceeding these thresholds within the detection window will be auto-blocked.
-            </p>
+            <h4 class="subsection-title">{{ t("settings.security.autoBlocking.thresholds.title") }}</h4>
+            <p class="subsection-hint">{{ t("settings.security.autoBlocking.thresholds.hint") }}</p>
 
             <div class="form-grid">
               <div class="form-group">
-                <label class="form-label">404 Responses</label>
-                <span class="form-hint">Max 404 errors (path probing)</span>
+                <label class="form-label">{{ t("settings.security.autoBlocking.thresholds.notFound.label") }}</label>
+                <span class="form-hint">{{ t("settings.security.autoBlocking.thresholds.notFound.hint") }}</span>
                 <input
                   v-model.number="securitySettings.not_found_threshold"
                   type="number"
@@ -574,8 +589,10 @@
               </div>
 
               <div class="form-group">
-                <label class="form-label">Auth Failures</label>
-                <span class="form-hint">Max 401/403 responses</span>
+                <label class="form-label">{{
+                  t("settings.security.autoBlocking.thresholds.authFailures.label")
+                }}</label>
+                <span class="form-hint">{{ t("settings.security.autoBlocking.thresholds.authFailures.hint") }}</span>
                 <input
                   v-model.number="securitySettings.auth_failure_threshold"
                   type="number"
@@ -585,8 +602,8 @@
               </div>
 
               <div class="form-group">
-                <label class="form-label">Unique Paths</label>
-                <span class="form-hint">Max different paths (scanning)</span>
+                <label class="form-label">{{ t("settings.security.autoBlocking.thresholds.uniquePaths.label") }}</label>
+                <span class="form-hint">{{ t("settings.security.autoBlocking.thresholds.uniquePaths.hint") }}</span>
                 <input
                   v-model.number="securitySettings.unique_paths_threshold"
                   type="number"
@@ -596,8 +613,10 @@
               </div>
 
               <div class="form-group">
-                <label class="form-label">Repeated Hits</label>
-                <span class="form-hint">Max hits to same path (hammering)</span>
+                <label class="form-label">{{
+                  t("settings.security.autoBlocking.thresholds.repeatedHits.label")
+                }}</label>
+                <span class="form-hint">{{ t("settings.security.autoBlocking.thresholds.repeatedHits.hint") }}</span>
                 <input
                   v-model.number="securitySettings.repeated_hits_threshold"
                   type="number"
@@ -613,7 +632,7 @@
           <button class="btn btn-primary" :disabled="savingSecurity" @click="saveSecuritySettings">
             <i v-if="savingSecurity" class="pi pi-spin pi-spinner" />
             <i v-else class="pi pi-save" />
-            <span>Save Security Settings</span>
+            <span>{{ t("settings.security.actions.save") }}</span>
           </button>
         </div>
       </div>
@@ -628,52 +647,55 @@
         <div class="settings-card">
           <div class="card-header">
             <i class="pi pi-key" />
-            <h3>Registry Credentials</h3>
+            <h3>{{ t("settings.credentials.title") }}</h3>
             <button
               v-if="canWriteRegistries && !showAddCredentialForm"
               class="btn btn-primary btn-sm header-action"
               @click="showAddCredentialForm = true"
             >
               <i class="pi pi-plus" />
-              Add Credential
+              {{ t("settings.credentials.actions.addCredential") }}
             </button>
           </div>
           <div class="card-body">
-            <p class="section-description">
-              Manage saved credentials for private Docker registries. These credentials can be used when pulling private
-              images or deploying from private registries.
-            </p>
+            <p class="section-description">{{ t("settings.credentials.description") }}</p>
 
             <!-- Add Credential Form -->
             <div v-if="showAddCredentialForm" class="add-credential-form">
-              <h4>Add New Credential</h4>
+              <h4>{{ t("settings.credentials.addForm.title") }}</h4>
               <div class="credential-form-grid">
                 <div class="form-group">
-                  <label class="form-label">Name <span class="required">*</span></label>
+                  <label class="form-label">
+                    {{ t("settings.credentials.fields.name") }} <span class="required">*</span>
+                  </label>
                   <input
                     v-model="newCredential.name"
                     type="text"
                     class="form-control"
-                    placeholder="e.g., Docker Hub, GitHub Container Registry"
+                    :placeholder="t('settings.credentials.placeholders.name')"
                   />
                 </div>
                 <div class="form-group">
-                  <label class="form-label">Username <span class="required">*</span></label>
+                  <label class="form-label">
+                    {{ t("settings.credentials.fields.username") }} <span class="required">*</span>
+                  </label>
                   <input
                     v-model="newCredential.username"
                     type="text"
                     class="form-control"
-                    placeholder="Username or access token name"
+                    :placeholder="t('settings.credentials.placeholders.username')"
                   />
                 </div>
                 <div class="form-group">
-                  <label class="form-label">Password / Token <span class="required">*</span></label>
+                  <label class="form-label">
+                    {{ t("settings.credentials.fields.passwordOrToken") }} <span class="required">*</span>
+                  </label>
                   <div class="password-input-wrapper">
                     <input
                       v-model="newCredential.password"
                       :type="showCredentialPassword ? 'text' : 'password'"
                       class="form-control"
-                      placeholder="Password or personal access token"
+                      :placeholder="t('settings.credentials.placeholders.passwordOrToken')"
                     />
                     <button
                       type="button"
@@ -687,7 +709,7 @@
                 <div class="form-group checkbox-group">
                   <label class="checkbox-label">
                     <input v-model="newCredential.is_default" type="checkbox" />
-                    <span>Set as default credential</span>
+                    <span>{{ t("settings.credentials.fields.setDefault") }}</span>
                   </label>
                 </div>
               </div>
@@ -700,7 +722,7 @@
                     resetNewCredentialForm();
                   "
                 >
-                  Cancel
+                  {{ t("common.cancel") }}
                 </button>
                 <button
                   class="btn btn-primary"
@@ -711,22 +733,20 @@
                 >
                   <i v-if="savingCredential" class="pi pi-spin pi-spinner" />
                   <i v-else class="pi pi-save" />
-                  Save Credential
+                  {{ t("settings.credentials.actions.saveCredential") }}
                 </button>
               </div>
             </div>
 
             <div v-if="loadingCredentials" class="loading-inline">
               <i class="pi pi-spin pi-spinner" />
-              <span>Loading credentials...</span>
+              <span>{{ t("settings.credentials.loading") }}</span>
             </div>
 
             <div v-else-if="credentials.length === 0 && !showAddCredentialForm" class="empty-state">
               <i class="pi pi-key" />
-              <p>No saved credentials</p>
-              <span class="empty-hint">
-                Click "Add Credential" above to save registry credentials for private images.
-              </span>
+              <p>{{ t("settings.credentials.empty.title") }}</p>
+              <span class="empty-hint">{{ t("settings.credentials.empty.description") }}</span>
             </div>
 
             <div v-else-if="credentials.length > 0" class="credentials-list">
@@ -738,14 +758,16 @@
                       <i class="pi pi-user" />
                       {{ cred.username }}
                     </span>
-                    <span v-if="cred.is_default" class="credential-badge default">Default</span>
+                    <span v-if="cred.is_default" class="credential-badge default">{{
+                      t("settings.value.default")
+                    }}</span>
                   </div>
                 </div>
                 <div v-if="canDeleteRegistries" class="credential-actions">
                   <button
                     class="btn btn-icon btn-danger-ghost"
                     :disabled="deletingCredentialId === cred.id"
-                    title="Delete credential"
+                    :title="t('settings.credentials.actions.deleteCredential')"
                     @click="confirmDeleteCredential(cred)"
                   >
                     <i v-if="deletingCredentialId === cred.id" class="pi pi-spin pi-spinner" />
@@ -764,16 +786,15 @@
               <div class="confirm-icon danger">
                 <i class="pi pi-exclamation-triangle" />
               </div>
-              <h3>Delete Credential</h3>
-              <p>
-                Are you sure you want to delete <strong>{{ credentialToDelete?.name }}</strong
-                >? This action cannot be undone.
-              </p>
+              <h3>{{ t("settings.credentials.delete.title") }}</h3>
+              <i18n-t keypath="settings.credentials.delete.message" tag="p">
+                <strong>{{ credentialToDelete?.name }}</strong>
+              </i18n-t>
               <div class="confirm-actions">
-                <button class="btn btn-secondary" @click="cancelDeleteCredential">Cancel</button>
+                <button class="btn btn-secondary" @click="cancelDeleteCredential">{{ t("common.cancel") }}</button>
                 <button class="btn btn-danger" :disabled="deletingCredentialId !== null" @click="deleteCredential">
                   <i v-if="deletingCredentialId" class="pi pi-spin pi-spinner" />
-                  Delete
+                  {{ t("settings.credentials.actions.delete") }}
                 </button>
               </div>
             </div>
@@ -786,6 +807,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from "vue";
+import { useI18n } from "vue-i18n";
 import { settingsApi, healthApi, templatesApi, credentialsApi } from "@/services/api";
 import type { DomainSettings } from "@/services/api";
 import type { RegistryCredential } from "@/types";
@@ -800,6 +822,7 @@ const canWriteSettings = authStore.hasPermission("settings:write");
 const canWriteRegistries = authStore.hasPermission("registries:write");
 const canDeleteRegistries = authStore.hasPermission("registries:delete");
 const notifications = useNotificationsStore();
+const { t } = useI18n();
 const loading = ref(false);
 const savingDomain = ref(false);
 const savingInfrastructure = ref(false);
@@ -808,14 +831,14 @@ const agentVersion = ref("unknown");
 const activeTab = ref("general");
 const configCollapsed = ref(true);
 
-const tabs = [
-  { id: "general", label: "General", icon: "pi pi-home" },
-  { id: "domain", label: "Domain", icon: "pi pi-globe" },
-  { id: "infrastructure", label: "Infrastructure", icon: "pi pi-server" },
-  { id: "security", label: "Security & Monitoring", icon: "pi pi-shield" },
-  { id: "healthchecks", label: "Health Checks", icon: "pi pi-heart" },
-  { id: "credentials", label: "Credentials", icon: "pi pi-key" },
-];
+const tabs = computed(() => [
+  { id: "general", label: t("settings.tabs.general"), icon: "pi pi-home" },
+  { id: "domain", label: t("settings.tabs.domain"), icon: "pi pi-globe" },
+  { id: "infrastructure", label: t("settings.tabs.infrastructure"), icon: "pi pi-server" },
+  { id: "security", label: t("settings.tabs.security"), icon: "pi pi-shield" },
+  { id: "healthchecks", label: t("settings.tabs.healthChecks"), icon: "pi pi-heart" },
+  { id: "credentials", label: t("settings.tabs.credentials"), icon: "pi pi-key" },
+]);
 
 const settings = reactive({
   deployments_path: "",
@@ -951,12 +974,18 @@ const deleteCredential = async () => {
   try {
     await credentialsApi.delete(id);
     credentials.value = credentials.value.filter((c) => c.id !== id);
-    notifications.success("Credential deleted", "The credential has been removed.");
+    notifications.success(
+      t("settings.credentials.notifications.deletedTitle"),
+      t("settings.credentials.notifications.deletedDesc"),
+    );
     showDeleteConfirm.value = false;
     credentialToDelete.value = null;
   } catch (error) {
     console.error("Failed to delete credential:", error);
-    notifications.error("Failed to delete credential", "An error occurred while deleting the credential.");
+    notifications.error(
+      t("settings.credentials.notifications.deleteFailedTitle"),
+      t("settings.credentials.notifications.deleteFailedDesc"),
+    );
   } finally {
     deletingCredentialId.value = null;
   }
@@ -972,7 +1001,10 @@ const resetNewCredentialForm = () => {
 
 const createCredential = async () => {
   if (!newCredential.name || !newCredential.username || !newCredential.password) {
-    notifications.error("Missing fields", "Please fill in all required fields.");
+    notifications.error(
+      t("settings.credentials.notifications.missingFieldsTitle"),
+      t("settings.credentials.notifications.missingFieldsDesc"),
+    );
     return;
   }
   savingCredential.value = true;
@@ -984,13 +1016,19 @@ const createCredential = async () => {
       password: newCredential.password,
       is_default: newCredential.is_default,
     });
-    notifications.success("Credential saved", "The credential has been added.");
+    notifications.success(
+      t("settings.credentials.notifications.savedTitle"),
+      t("settings.credentials.notifications.savedDesc"),
+    );
     resetNewCredentialForm();
     showAddCredentialForm.value = false;
     await fetchCredentials();
   } catch (error) {
     console.error("Failed to create credential:", error);
-    notifications.error("Failed to save credential", "An error occurred while saving the credential.");
+    notifications.error(
+      t("settings.credentials.notifications.saveFailedTitle"),
+      t("settings.credentials.notifications.saveFailedDesc"),
+    );
   } finally {
     savingCredential.value = false;
   }
@@ -1065,7 +1103,7 @@ const fetchSettings = async () => {
       securitySettings.repeated_hits_threshold = data.security.repeated_hits_threshold || 30;
     }
   } catch (e: any) {
-    notifications.error("Error", "Failed to load settings");
+    notifications.error(t("common.error"), t("settings.notifications.loadFailed"));
   } finally {
     loading.value = false;
   }
@@ -1083,9 +1121,9 @@ const saveDomainSettings = async () => {
         subdomain_style: domainSettings.subdomain_style,
       },
     });
-    notifications.success("Settings Saved", "Domain configuration has been updated");
+    notifications.success(t("settings.notifications.savedTitle"), t("settings.notifications.domainSaved"));
   } catch (e: any) {
-    notifications.error("Error", "Failed to save domain settings");
+    notifications.error(t("common.error"), t("settings.notifications.domainSaveFailed"));
   } finally {
     savingDomain.value = false;
   }
@@ -1134,9 +1172,9 @@ const saveInfrastructureSettings = async () => {
         },
       },
     });
-    notifications.success("Settings Saved", "Infrastructure configuration has been updated");
+    notifications.success(t("settings.notifications.savedTitle"), t("settings.notifications.infrastructureSaved"));
   } catch (e: any) {
-    notifications.error("Error", "Failed to save infrastructure settings");
+    notifications.error(t("common.error"), t("settings.notifications.infrastructureSaveFailed"));
   } finally {
     savingInfrastructure.value = false;
   }
@@ -1164,20 +1202,26 @@ const saveSecuritySettings = async () => {
 
     // Check for nginx errors
     if (data.nginx_error) {
-      notifications.error("Security Update Warning", data.nginx_error);
+      notifications.error(t("settings.security.notifications.updateWarningTitle"), data.nginx_error);
     } else if (data.nginx_action) {
       const action = data.nginx_action;
       if (action.errors && action.errors.length > 0) {
-        notifications.error("Security Update Warning", action.errors.join(", "));
+        notifications.error(t("settings.security.notifications.updateWarningTitle"), action.errors.join(", "));
       } else if (action.container_recreated) {
-        notifications.success("Settings Saved", "Security configuration updated and nginx container recreated");
+        notifications.success(
+          t("settings.notifications.savedTitle"),
+          t("settings.security.notifications.savedRecreated"),
+        );
       } else if (action.nginx_reloaded) {
-        notifications.success("Settings Saved", "Security configuration updated and nginx reloaded");
+        notifications.success(
+          t("settings.notifications.savedTitle"),
+          t("settings.security.notifications.savedReloaded"),
+        );
       } else {
-        notifications.success("Settings Saved", "Security configuration has been updated");
+        notifications.success(t("settings.notifications.savedTitle"), t("settings.security.notifications.saved"));
       }
     } else {
-      notifications.success("Settings Saved", "Security configuration has been updated");
+      notifications.success(t("settings.notifications.savedTitle"), t("settings.security.notifications.saved"));
     }
 
     // Sync local state with server response
@@ -1195,9 +1239,9 @@ const saveSecuritySettings = async () => {
       securitySettings.repeated_hits_threshold = data.security.repeated_hits_threshold;
     }
   } catch (e: any) {
-    const errorMsg = e.response?.data?.error || "Failed to save security settings";
+    const errorMsg = e.response?.data?.error || t("settings.security.notifications.saveFailed");
     const details = e.response?.data?.details || "";
-    notifications.error("Error", details ? `${errorMsg}: ${details}` : errorMsg);
+    notifications.error(t("common.error"), details ? `${errorMsg}: ${details}` : errorMsg);
   } finally {
     savingSecurity.value = false;
   }
@@ -1206,29 +1250,44 @@ const saveSecuritySettings = async () => {
 const testConnection = async () => {
   try {
     await healthApi.check();
-    notifications.success("Connection OK", "Agent is responding normally");
+    notifications.success(
+      t("settings.general.quickActions.connectionOkTitle"),
+      t("settings.general.quickActions.connectionOkDesc"),
+    );
   } catch {
-    notifications.error("Connection Failed", "Unable to reach the agent");
+    notifications.error(
+      t("settings.general.quickActions.connectionFailedTitle"),
+      t("settings.general.quickActions.connectionFailedDesc"),
+    );
   }
 };
 
 const refreshData = () => {
-  notifications.info("Refreshing", "Reloading all data...");
+  notifications.info(
+    t("settings.general.quickActions.refreshingTitle"),
+    t("settings.general.quickActions.refreshingDesc"),
+  );
   window.location.reload();
 };
 
 const clearCache = () => {
   localStorage.clear();
-  notifications.success("Cache Cleared", "Local storage has been cleared");
+  notifications.success(
+    t("settings.general.quickActions.cacheClearedTitle"),
+    t("settings.general.quickActions.cacheClearedDesc"),
+  );
 };
 
 const refreshTemplates = async () => {
   refreshingTemplates.value = true;
   try {
     const response = await templatesApi.refresh();
-    notifications.success("Templates Refreshed", `${response.data.count} templates updated`);
+    notifications.success(
+      t("settings.general.quickActions.templatesRefreshedTitle"),
+      t("settings.general.quickActions.templatesRefreshedDesc", { n: response.data.count }),
+    );
   } catch {
-    notifications.error("Error", "Failed to refresh templates");
+    notifications.error(t("common.error"), t("settings.general.quickActions.templatesRefreshFailed"));
   } finally {
     refreshingTemplates.value = false;
   }

@@ -4,8 +4,8 @@
       <div class="setup-card">
         <div class="setup-header">
           <i class="pi pi-server" />
-          <h2>DNS Server</h2>
-          <p>Host your own authoritative DNS server with PowerDNS</p>
+          <h2>{{ t("dns.zones.setup.title") }}</h2>
+          <p>{{ t("dns.zones.setup.subtitle") }}</p>
         </div>
 
         <div class="setup-body">
@@ -13,22 +13,22 @@
             <div class="feature-item">
               <i class="pi pi-check-circle" />
               <div>
-                <strong>Full DNS Control</strong>
-                <span>Manage A, AAAA, CNAME, MX, TXT, and more record types</span>
+                <strong>{{ t("dns.zones.setup.features.fullControl.title") }}</strong>
+                <span>{{ t("dns.zones.setup.features.fullControl.description") }}</span>
               </div>
             </div>
             <div class="feature-item">
               <i class="pi pi-check-circle" />
               <div>
-                <strong>No External Dependencies</strong>
-                <span>Your DNS records stay on your server</span>
+                <strong>{{ t("dns.zones.setup.features.noDependencies.title") }}</strong>
+                <span>{{ t("dns.zones.setup.features.noDependencies.description") }}</span>
               </div>
             </div>
             <div class="feature-item">
               <i class="pi pi-check-circle" />
               <div>
-                <strong>REST API</strong>
-                <span>Programmatic access for automation</span>
+                <strong>{{ t("dns.zones.setup.features.restApi.title") }}</strong>
+                <span>{{ t("dns.zones.setup.features.restApi.description") }}</span>
               </div>
             </div>
           </div>
@@ -36,12 +36,12 @@
           <button class="btn btn-primary" :disabled="loading" @click="handleEnableService">
             <i v-if="loading" class="pi pi-spin pi-spinner" />
             <i v-else class="pi pi-play" />
-            {{ loading ? "Starting..." : "Enable DNS Server" }}
+            {{ loading ? t("dns.zones.setup.actions.starting") : t("dns.zones.setup.actions.enable") }}
           </button>
 
           <p class="setup-note">
             <i class="pi pi-info-circle" />
-            This will deploy PowerDNS as an infrastructure service
+            {{ t("dns.zones.setup.note") }}
           </p>
         </div>
       </div>
@@ -52,13 +52,13 @@
         <div class="header-left">
           <div class="service-badge">
             <span class="status-dot online" />
-            <span>PowerDNS Running</span>
+            <span>{{ t("dns.zones.manager.powerDnsRunning") }}</span>
           </div>
         </div>
         <div class="header-right">
           <button class="btn btn-secondary btn-sm" @click="showSettingsModal = true">
             <i class="pi pi-cog" />
-            Settings
+            {{ t("dns.common.settings") }}
           </button>
         </div>
       </div>
@@ -67,12 +67,12 @@
         <div class="section-header">
           <h3>
             <i class="pi pi-list" />
-            DNS Zones
+            {{ t("dns.common.zones") }}
           </h3>
           <div class="section-actions">
             <button class="btn btn-primary" @click="showCreateZoneModal = true">
               <i class="pi pi-plus" />
-              Add Zone
+              {{ t("dns.zones.manager.actions.addZone") }}
             </button>
             <button class="btn btn-icon" :disabled="loading" @click="fetchZones">
               <i class="pi pi-refresh" :class="{ 'pi-spin': loading }" />
@@ -82,15 +82,15 @@
 
         <div v-if="loading && zones.length === 0" class="loading-state">
           <i class="pi pi-spin pi-spinner" />
-          <span>Loading zones...</span>
+          <span>{{ t("dns.zones.manager.loadingZones") }}</span>
         </div>
 
         <div v-else-if="zones.length === 0" class="empty-state">
           <i class="pi pi-inbox" />
-          <span>No DNS zones configured</span>
+          <span>{{ t("dns.zones.manager.emptyZones") }}</span>
           <button class="btn btn-primary btn-sm" @click="showCreateZoneModal = true">
             <i class="pi pi-plus" />
-            Create Your First Zone
+            {{ t("dns.zones.manager.actions.createFirstZone") }}
           </button>
         </div>
 
@@ -103,11 +103,13 @@
               </div>
               <div class="zone-meta">
                 <span class="zone-type">{{ zone.kind }}</span>
-                <span class="zone-serial">Serial: {{ zone.serial }}</span>
+                <span class="zone-serial">{{ t("dns.zones.manager.serial", { value: zone.serial }) }}</span>
               </div>
             </div>
             <div class="zone-stats">
-              <span class="zone-records">{{ zone.rrsets?.length || 0 }} records</span>
+              <span class="zone-records">{{
+                t("dns.zones.manager.recordsCount", { count: zone.rrsets?.length || 0 })
+              }}</span>
               <i class="pi pi-chevron-right" />
             </div>
           </div>
@@ -119,7 +121,7 @@
           <div class="breadcrumb">
             <button class="breadcrumb-btn" @click="clearZone">
               <i class="pi pi-arrow-left" />
-              Zones
+              {{ t("dns.common.zones") }}
             </button>
             <span class="breadcrumb-separator">/</span>
             <span class="breadcrumb-current">
@@ -130,7 +132,7 @@
           <div class="section-actions">
             <button class="btn btn-primary" @click="showCreateRecordModal = true">
               <i class="pi pi-plus" />
-              Add Record
+              {{ t("dns.zones.records.actions.addRecord") }}
             </button>
             <button class="btn btn-icon" :disabled="loading" @click="fetchRecords">
               <i class="pi pi-refresh" :class="{ 'pi-spin': loading }" />
@@ -140,38 +142,38 @@
 
         <div class="zone-details">
           <div class="detail-row">
-            <span class="detail-label">Zone Type</span>
+            <span class="detail-label">{{ t("dns.zones.records.zoneType") }}</span>
             <span class="detail-value">{{ selectedZone.kind }}</span>
           </div>
           <div class="detail-row">
-            <span class="detail-label">Serial</span>
+            <span class="detail-label">{{ t("dns.zones.records.serial") }}</span>
             <span class="detail-value">{{ selectedZone.serial }}</span>
           </div>
           <div v-if="selectedZone.dnssec" class="detail-row">
-            <span class="detail-label">DNSSEC</span>
-            <span class="detail-value badge-success">Enabled</span>
+            <span class="detail-label">{{ t("dns.zones.records.dnssec") }}</span>
+            <span class="detail-value badge-success">{{ t("dns.common.enabled") }}</span>
           </div>
         </div>
 
         <div v-if="loading && records.length === 0" class="loading-state">
           <i class="pi pi-spin pi-spinner" />
-          <span>Loading records...</span>
+          <span>{{ t("dns.zones.records.loadingRecords") }}</span>
         </div>
 
         <div v-else-if="records.length === 0" class="empty-state">
           <i class="pi pi-inbox" />
-          <span>No records found</span>
+          <span>{{ t("dns.zones.records.emptyRecords") }}</span>
         </div>
 
         <div v-else class="records-table">
           <table>
             <thead>
               <tr>
-                <th>Type</th>
-                <th>Name</th>
-                <th>Content</th>
-                <th>TTL</th>
-                <th>Actions</th>
+                <th>{{ t("dns.common.type") }}</th>
+                <th>{{ t("dns.common.name") }}</th>
+                <th>{{ t("dns.common.content") }}</th>
+                <th>{{ t("dns.common.ttl") }}</th>
+                <th>{{ t("dns.common.actions") }}</th>
               </tr>
             </thead>
             <tbody>
@@ -209,7 +211,7 @@
           <div class="modal-header">
             <h3>
               <i class="pi pi-globe" />
-              Create DNS Zone
+              {{ t("dns.zones.modal.zone.title") }}
             </h3>
             <button class="close-btn" @click="showCreateZoneModal = false">
               <i class="pi pi-times" />
@@ -218,37 +220,44 @@
 
           <div class="modal-body">
             <div class="form-group">
-              <label for="zone-name">Domain Name</label>
-              <input id="zone-name" v-model="zoneForm.name" type="text" placeholder="example.com" />
-              <span class="hint">Enter the domain name for this zone</span>
+              <label for="zone-name">{{ t("dns.zones.modal.zone.domainName") }}</label>
+              <input
+                id="zone-name"
+                v-model="zoneForm.name"
+                type="text"
+                :placeholder="t('dns.zones.modal.zone.domainPlaceholder')"
+              />
+              <span class="hint">{{ t("dns.zones.modal.zone.domainHint") }}</span>
             </div>
 
             <div class="form-group">
-              <label for="zone-type">Zone Type</label>
+              <label for="zone-type">{{ t("dns.zones.modal.zone.zoneType") }}</label>
               <select id="zone-type" v-model="zoneForm.kind">
-                <option value="Native">Native</option>
-                <option value="Master">Master</option>
-                <option value="Slave">Slave</option>
+                <option value="Native">{{ t("dns.zones.zoneKinds.native") }}</option>
+                <option value="Master">{{ t("dns.zones.zoneKinds.master") }}</option>
+                <option value="Slave">{{ t("dns.zones.zoneKinds.slave") }}</option>
               </select>
             </div>
 
             <div class="form-group">
-              <label for="zone-nameservers">Nameservers</label>
+              <label for="zone-nameservers">{{ t("dns.zones.modal.zone.nameservers") }}</label>
               <textarea
                 id="zone-nameservers"
                 v-model="zoneForm.nameservers"
                 rows="3"
-                placeholder="ns1.example.com&#10;ns2.example.com"
+                :placeholder="t('dns.zones.modal.zone.nameserversPlaceholder')"
               />
-              <span class="hint">One nameserver per line</span>
+              <span class="hint">{{ t("dns.zones.modal.zone.nameserversHint") }}</span>
             </div>
           </div>
 
           <div class="modal-footer">
-            <button class="btn btn-secondary" :disabled="saving" @click="showCreateZoneModal = false">Cancel</button>
+            <button class="btn btn-secondary" :disabled="saving" @click="showCreateZoneModal = false">
+              {{ t("dns.common.cancel") }}
+            </button>
             <button class="btn btn-primary" :disabled="saving || !zoneForm.name" @click="handleCreateZone">
               <i v-if="saving" class="pi pi-spin pi-spinner" />
-              {{ saving ? "Creating..." : "Create Zone" }}
+              {{ saving ? t("dns.zones.modal.zone.creating") : t("dns.zones.modal.zone.create") }}
             </button>
           </div>
         </div>
@@ -259,7 +268,7 @@
           <div class="modal-header">
             <h3>
               <i class="pi pi-file-edit" />
-              {{ showEditRecordModal ? "Edit Record" : "Add DNS Record" }}
+              {{ showEditRecordModal ? t("dns.zones.modal.record.editTitle") : t("dns.zones.modal.record.addTitle") }}
             </h3>
             <button class="close-btn" @click="closeRecordModals">
               <i class="pi pi-times" />
@@ -268,7 +277,7 @@
 
           <div class="modal-body">
             <div class="form-group">
-              <label for="record-type">Type</label>
+              <label for="record-type">{{ t("dns.common.type") }}</label>
               <select id="record-type" v-model="recordForm.type" :disabled="showEditRecordModal">
                 <option value="A">A</option>
                 <option value="AAAA">AAAA</option>
@@ -283,7 +292,7 @@
             </div>
 
             <div class="form-group">
-              <label for="record-name">Name</label>
+              <label for="record-name">{{ t("dns.common.name") }}</label>
               <input
                 id="record-name"
                 v-model="recordForm.name"
@@ -291,46 +300,55 @@
                 :placeholder="selectedZone?.name"
                 :disabled="showEditRecordModal"
               />
-              <span class="hint">Use @ for the root domain, or enter subdomain</span>
+              <span class="hint">{{ t("dns.zones.modal.record.nameHint") }}</span>
             </div>
 
             <div class="form-group">
-              <label for="record-content">Content</label>
+              <label for="record-content">{{ t("dns.common.content") }}</label>
               <textarea
                 id="record-content"
                 v-model="recordForm.content"
                 rows="2"
-                placeholder="IP address or hostname"
+                :placeholder="t('dns.zones.modal.record.contentPlaceholder')"
               />
-              <span class="hint">For multiple values, enter one per line</span>
+              <span class="hint">{{ t("dns.zones.modal.record.contentHint") }}</span>
             </div>
 
             <div class="form-row">
               <div class="form-group">
-                <label for="record-ttl">TTL (seconds)</label>
+                <label for="record-ttl">{{ t("dns.zones.modal.record.ttlSeconds") }}</label>
                 <input
                   id="record-ttl"
                   v-model.number="recordForm.ttl"
                   type="number"
                   min="60"
                   max="604800"
-                  placeholder="3600"
+                  :placeholder="t('dns.zones.modal.record.ttlPlaceholder')"
                 />
-                <span class="hint">Time-to-live (60s - 7 days). Common: 300 (5min), 3600 (1hr)</span>
+                <span class="hint">{{ t("dns.zones.modal.record.ttlHint") }}</span>
               </div>
 
               <div v-if="recordForm.type === 'MX' || recordForm.type === 'SRV'" class="form-group">
-                <label for="record-priority">Priority</label>
-                <input id="record-priority" v-model.number="recordForm.priority" type="number" placeholder="10" />
+                <label for="record-priority">{{ t("dns.common.priority") }}</label>
+                <input
+                  id="record-priority"
+                  v-model.number="recordForm.priority"
+                  type="number"
+                  :placeholder="t('dns.zones.modal.record.priorityPlaceholder')"
+                />
               </div>
             </div>
           </div>
 
           <div class="modal-footer">
-            <button class="btn btn-secondary" :disabled="saving" @click="closeRecordModals">Cancel</button>
+            <button class="btn btn-secondary" :disabled="saving" @click="closeRecordModals">
+              {{ t("dns.common.cancel") }}
+            </button>
             <button class="btn btn-primary" :disabled="saving || !isRecordFormValid" @click="handleSaveRecord">
               <i v-if="saving" class="pi pi-spin pi-spinner" />
-              {{ saving ? "Saving..." : showEditRecordModal ? "Update" : "Create" }}
+              {{
+                saving ? t("dns.common.saving") : showEditRecordModal ? t("dns.common.update") : t("dns.common.create")
+              }}
             </button>
           </div>
         </div>
@@ -341,7 +359,7 @@
           <div class="modal-header">
             <h3>
               <i class="pi pi-cog" />
-              DNS Server Settings
+              {{ t("dns.zones.modal.settings.title") }}
             </h3>
             <button class="close-btn" @click="showSettingsModal = false">
               <i class="pi pi-times" />
@@ -350,42 +368,42 @@
 
           <div class="modal-body">
             <div class="settings-section">
-              <h4>Server Information</h4>
+              <h4>{{ t("dns.zones.modal.settings.serverInformation") }}</h4>
               <div class="info-grid">
                 <div class="info-item">
-                  <span class="info-label">Status</span>
+                  <span class="info-label">{{ t("dns.common.status") }}</span>
                   <span class="info-value">
-                    <span class="status-badge online">Running</span>
+                    <span class="status-badge online">{{ t("dns.zones.modal.settings.running") }}</span>
                   </span>
                 </div>
                 <div class="info-item">
-                  <span class="info-label">Listen Address</span>
+                  <span class="info-label">{{ t("dns.zones.modal.settings.listenAddress") }}</span>
                   <span class="info-value">0.0.0.0:53</span>
                 </div>
                 <div class="info-item">
-                  <span class="info-label">API Port</span>
+                  <span class="info-label">{{ t("dns.zones.modal.settings.apiPort") }}</span>
                   <span class="info-value">8081</span>
                 </div>
               </div>
             </div>
 
             <div class="settings-section">
-              <h4>Actions</h4>
+              <h4>{{ t("dns.common.actions") }}</h4>
               <div class="action-buttons">
                 <button class="btn btn-secondary" @click="handleRestartService">
                   <i class="pi pi-refresh" />
-                  Restart Service
+                  {{ t("dns.zones.modal.settings.restartService") }}
                 </button>
                 <button class="btn btn-danger" @click="handleDisableService">
                   <i class="pi pi-power-off" />
-                  Disable DNS Server
+                  {{ t("dns.zones.modal.settings.disableDnsServer") }}
                 </button>
               </div>
             </div>
           </div>
 
           <div class="modal-footer">
-            <button class="btn btn-secondary" @click="showSettingsModal = false">Close</button>
+            <button class="btn btn-secondary" @click="showSettingsModal = false">{{ t("dns.common.close") }}</button>
           </div>
         </div>
       </div>
@@ -393,11 +411,16 @@
 
     <ConfirmModal
       :visible="showDeleteModal"
-      title="Delete Record"
-      :message="`Are you sure you want to delete this ${recordToDelete?.type} record for ${recordToDelete?.name}?`"
-      warning="This action cannot be undone."
+      :title="t('dns.zones.confirm.deleteRecord.title')"
+      :message="
+        t('dns.zones.confirm.deleteRecord.message', {
+          type: recordToDelete?.type || '',
+          name: recordToDelete?.name || '',
+        })
+      "
+      :warning="t('dns.zones.confirm.deleteRecord.warning')"
       variant="danger"
-      confirm-text="Delete"
+      :confirm-text="t('dns.common.delete')"
       :loading="deleting"
       @confirm="handleDeleteRecord"
       @cancel="showDeleteModal = false"
@@ -405,11 +428,11 @@
 
     <ConfirmModal
       :visible="showDeleteZoneModal"
-      title="Delete Zone"
-      :message="`Are you sure you want to delete the zone ${zoneToDelete?.name}?`"
-      warning="All records in this zone will be permanently deleted."
+      :title="t('dns.zones.confirm.deleteZone.title')"
+      :message="t('dns.zones.confirm.deleteZone.message', { name: zoneToDelete?.name || '' })"
+      :warning="t('dns.zones.confirm.deleteZone.warning')"
       variant="danger"
-      confirm-text="Delete Zone"
+      :confirm-text="t('dns.zones.confirm.deleteZone.confirm')"
       :loading="deleting"
       @confirm="handleDeleteZone"
       @cancel="showDeleteZoneModal = false"
@@ -419,11 +442,13 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
+import { useI18n } from "vue-i18n";
 import { useNotificationsStore } from "@/stores/notifications";
 import ConfirmModal from "@/components/ConfirmModal.vue";
 import { powerDnsApi, type PowerDNSZone, type PowerDNSRRSet } from "@/services/api";
 
 const notifications = useNotificationsStore();
+const { t } = useI18n();
 
 const serviceRunning = ref(false);
 const loading = ref(false);
@@ -495,10 +520,16 @@ const handleEnableService = async () => {
   try {
     await powerDnsApi.enableService();
     serviceRunning.value = true;
-    notifications.success("DNS Server Enabled", "PowerDNS service is now running");
+    notifications.success(
+      t("dns.zones.notifications.serverEnabledTitle"),
+      t("dns.zones.notifications.serverEnabledDesc"),
+    );
     await fetchZones();
   } catch (e: any) {
-    notifications.error("Enable Failed", e.response?.data?.error || e.message || "Failed to enable DNS server");
+    notifications.error(
+      t("dns.zones.notifications.enableFailedTitle"),
+      e.response?.data?.error || e.message || t("dns.zones.notifications.enableFailedDesc"),
+    );
   } finally {
     loading.value = false;
   }
@@ -508,9 +539,15 @@ const handleRestartService = async () => {
   loading.value = true;
   try {
     await powerDnsApi.restartService();
-    notifications.success("Service Restarted", "PowerDNS service has been restarted");
+    notifications.success(
+      t("dns.zones.notifications.serviceRestartedTitle"),
+      t("dns.zones.notifications.serviceRestartedDesc"),
+    );
   } catch (e: any) {
-    notifications.error("Restart Failed", e.response?.data?.error || "Failed to restart service");
+    notifications.error(
+      t("dns.zones.notifications.restartFailedTitle"),
+      e.response?.data?.error || t("dns.zones.notifications.restartFailedDesc"),
+    );
   } finally {
     loading.value = false;
     showSettingsModal.value = false;
@@ -524,9 +561,15 @@ const handleDisableService = async () => {
     serviceRunning.value = false;
     zones.value = [];
     selectedZone.value = null;
-    notifications.success("DNS Server Disabled", "PowerDNS service has been stopped");
+    notifications.success(
+      t("dns.zones.notifications.serverDisabledTitle"),
+      t("dns.zones.notifications.serverDisabledDesc"),
+    );
   } catch (e: any) {
-    notifications.error("Disable Failed", e.response?.data?.error || "Failed to disable service");
+    notifications.error(
+      t("dns.zones.notifications.disableFailedTitle"),
+      e.response?.data?.error || t("dns.zones.notifications.disableFailedDesc"),
+    );
   } finally {
     loading.value = false;
     showSettingsModal.value = false;
@@ -539,7 +582,10 @@ const fetchZones = async () => {
     const response = await powerDnsApi.listZones();
     zones.value = response.data.zones || [];
   } catch (e: any) {
-    notifications.error("Load Failed", e.response?.data?.error || e.message || "Failed to load zones");
+    notifications.error(
+      t("dns.zones.notifications.loadFailedTitle"),
+      e.response?.data?.error || e.message || t("dns.zones.notifications.loadZonesFailedDesc"),
+    );
   } finally {
     loading.value = false;
   }
@@ -563,7 +609,10 @@ const fetchRecords = async () => {
     const response = await powerDnsApi.getZone(selectedZone.value.id);
     records.value = response.data.rrsets || [];
   } catch (e: any) {
-    notifications.error("Load Failed", e.response?.data?.error || e.message || "Failed to load records");
+    notifications.error(
+      t("dns.zones.notifications.loadFailedTitle"),
+      e.response?.data?.error || e.message || t("dns.zones.notifications.loadRecordsFailedDesc"),
+    );
   } finally {
     loading.value = false;
   }
@@ -584,12 +633,18 @@ const handleCreateZone = async () => {
       nameservers,
     });
 
-    notifications.success("Zone Created", `DNS zone ${zoneForm.value.name} has been created`);
+    notifications.success(
+      t("dns.zones.notifications.zoneCreatedTitle"),
+      t("dns.zones.notifications.zoneCreatedDesc", { name: zoneForm.value.name }),
+    );
     showCreateZoneModal.value = false;
     Object.assign(zoneForm.value, initialZoneFormState);
     await fetchZones();
   } catch (e: any) {
-    notifications.error("Create Failed", e.response?.data?.error || e.message || "Failed to create zone");
+    notifications.error(
+      t("dns.zones.notifications.createFailedTitle"),
+      e.response?.data?.error || e.message || t("dns.zones.notifications.createZoneFailedDesc"),
+    );
   } finally {
     saving.value = false;
   }
@@ -601,10 +656,16 @@ const handleDeleteZone = async () => {
   deleting.value = true;
   try {
     await powerDnsApi.deleteZone(zoneToDelete.value.id);
-    notifications.success("Zone Deleted", `DNS zone ${zoneToDelete.value.name} has been deleted`);
+    notifications.success(
+      t("dns.zones.notifications.zoneDeletedTitle"),
+      t("dns.zones.notifications.zoneDeletedDesc", { name: zoneToDelete.value.name }),
+    );
     await fetchZones();
   } catch (e: any) {
-    notifications.error("Delete Failed", e.response?.data?.error || "Failed to delete zone");
+    notifications.error(
+      t("dns.zones.notifications.deleteFailedTitle"),
+      e.response?.data?.error || t("dns.zones.notifications.deleteZoneFailedDesc"),
+    );
   } finally {
     deleting.value = false;
     showDeleteZoneModal.value = false;
@@ -661,11 +722,19 @@ const handleSaveRecord = async () => {
 
     await powerDnsApi.updateRecords(selectedZone.value.id, [rrset]);
 
-    notifications.success(showEditRecordModal.value ? "Record Updated" : "Record Created", "DNS record has been saved");
+    notifications.success(
+      showEditRecordModal.value
+        ? t("dns.zones.notifications.recordUpdatedTitle")
+        : t("dns.zones.notifications.recordCreatedTitle"),
+      t("dns.zones.notifications.recordSavedDesc"),
+    );
     closeRecordModals();
     await fetchRecords();
   } catch (e: any) {
-    notifications.error("Save Failed", e.response?.data?.error || e.message || "Failed to save record");
+    notifications.error(
+      t("dns.zones.notifications.saveFailedTitle"),
+      e.response?.data?.error || e.message || t("dns.zones.notifications.saveRecordFailedDesc"),
+    );
   } finally {
     saving.value = false;
   }
@@ -685,10 +754,16 @@ const handleDeleteRecord = async () => {
     };
 
     await powerDnsApi.updateRecords(selectedZone.value.id, [rrset]);
-    notifications.success("Record Deleted", "DNS record has been deleted");
+    notifications.success(
+      t("dns.zones.notifications.recordDeletedTitle"),
+      t("dns.zones.notifications.recordDeletedDesc"),
+    );
     await fetchRecords();
   } catch (e: any) {
-    notifications.error("Delete Failed", e.response?.data?.error || "Failed to delete record");
+    notifications.error(
+      t("dns.zones.notifications.deleteFailedTitle"),
+      e.response?.data?.error || t("dns.zones.notifications.deleteRecordFailedDesc"),
+    );
   } finally {
     deleting.value = false;
     showDeleteModal.value = false;

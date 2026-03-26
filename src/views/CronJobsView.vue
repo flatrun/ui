@@ -2,13 +2,13 @@
   <div class="cron-jobs-view">
     <div class="view-header">
       <div class="header-left">
-        <h2>Scheduled Tasks</h2>
-        <p class="subtitle">Manage cron jobs and scheduled commands across deployments</p>
+        <h2>{{ t("cronJobs.title") }}</h2>
+        <p class="subtitle">{{ t("cronJobs.subtitle") }}</p>
       </div>
       <div class="header-actions">
         <button v-if="canWrite" class="btn btn-primary" @click="openCreateModal">
           <i class="pi pi-plus" />
-          New Cron Job
+          {{ t("cronJobs.actions.newCronJob") }}
         </button>
         <button class="btn btn-icon" :disabled="loading" @click="fetchTasks">
           <i class="pi pi-refresh" :class="{ 'pi-spin': loading }" />
@@ -19,47 +19,47 @@
     <div v-if="tasks.length > 0 || searchQuery || filterDeployment || filterType" class="filters-bar">
       <div class="search-box">
         <i class="pi pi-search" />
-        <input v-model="searchQuery" type="text" placeholder="Search tasks..." />
+        <input v-model="searchQuery" type="text" :placeholder="t('cronJobs.filters.searchPlaceholder')" />
       </div>
       <select v-model="filterDeployment" class="filter-select">
-        <option value="">All Deployments</option>
+        <option value="">{{ t("cronJobs.filters.allDeployments") }}</option>
         <option v-for="dep in uniqueDeployments" :key="dep" :value="dep">
           {{ dep }}
         </option>
       </select>
       <select v-model="filterType" class="filter-select">
-        <option value="">All Types</option>
-        <option value="command">Command</option>
-        <option value="backup">Backup</option>
+        <option value="">{{ t("cronJobs.filters.allTypes") }}</option>
+        <option value="command">{{ t("cronJobs.type.command") }}</option>
+        <option value="backup">{{ t("cronJobs.type.backup") }}</option>
       </select>
       <div class="filter-summary">
         <template v-if="filteredTasks.length !== tasks.length">
-          {{ filteredTasks.length }} matching of {{ tasks.length }} total
+          {{ t("cronJobs.filters.matchingOfTotal", { matching: filteredTasks.length, total: tasks.length }) }}
         </template>
-        <template v-else> {{ tasks.length }} tasks </template>
+        <template v-else> {{ t("cronJobs.filters.totalTasks", { count: tasks.length }) }} </template>
       </div>
     </div>
 
     <div v-if="loading && tasks.length === 0" class="loading-state">
       <i class="pi pi-spin pi-spinner" />
-      <span>Loading scheduled tasks...</span>
+      <span>{{ t("cronJobs.loading") }}</span>
     </div>
 
     <div v-else-if="tasks.length === 0" class="empty-state">
       <i class="pi pi-clock" />
-      <h3>No Scheduled Tasks</h3>
-      <p>Create cron jobs to run commands in your containers on a schedule.</p>
+      <h3>{{ t("cronJobs.empty.title") }}</h3>
+      <p>{{ t("cronJobs.empty.text") }}</p>
       <button v-if="canWrite" class="btn btn-primary" @click="openCreateModal">
         <i class="pi pi-plus" />
-        Create First Cron Job
+        {{ t("cronJobs.empty.createFirst") }}
       </button>
     </div>
 
     <div v-else-if="filteredTasks.length === 0 && (searchQuery || filterDeployment || filterType)" class="empty-state">
       <i class="pi pi-filter-slash" />
-      <h3>No Matching Tasks</h3>
-      <p>No tasks match your current filters. Try adjusting your search or filters.</p>
-      <button class="btn btn-secondary" @click="clearFilters">Clear Filters</button>
+      <h3>{{ t("cronJobs.empty.noMatchingTitle") }}</h3>
+      <p>{{ t("cronJobs.empty.noMatchingText") }}</p>
+      <button class="btn btn-secondary" @click="clearFilters">{{ t("cronJobs.actions.clearFilters") }}</button>
     </div>
 
     <div v-else class="tasks-grid">
@@ -67,7 +67,7 @@
         <div class="task-header">
           <div class="task-type" :class="task.type">
             <i :class="task.type === 'backup' ? 'pi pi-database' : 'pi pi-code'" />
-            {{ task.type }}
+            {{ formatTaskType(task.type) }}
           </div>
           <div class="task-toggle">
             <label class="switch">
@@ -96,20 +96,20 @@
           </div>
 
           <div v-if="task.type === 'command' && task.config.command_config" class="task-command">
-            <div class="command-label">Command:</div>
+            <div class="command-label">{{ t("cronJobs.field.command") }}:</div>
             <code class="command-value">{{ task.config.command_config.command }}</code>
             <div v-if="task.config.command_config.service" class="command-service">
-              Service: {{ task.config.command_config.service }}
+              {{ t("cronJobs.field.service") }}: {{ task.config.command_config.service }}
             </div>
           </div>
 
           <div class="task-timing">
             <div v-if="task.last_run" class="timing-item">
-              <span class="timing-label">Last run:</span>
+              <span class="timing-label">{{ t("cronJobs.field.lastRun") }}:</span>
               <span class="timing-value">{{ formatDate(task.last_run) }}</span>
             </div>
             <div v-if="task.next_run && task.enabled" class="timing-item">
-              <span class="timing-label">Next run:</span>
+              <span class="timing-label">{{ t("cronJobs.field.nextRun") }}:</span>
               <span class="timing-value">{{ formatDate(task.next_run) }}</span>
             </div>
           </div>
@@ -123,11 +123,11 @@
             @click="runTaskNow(task)"
           >
             <i :class="runningTask === task.id ? 'pi pi-spin pi-spinner' : 'pi pi-play'" />
-            Run Now
+            {{ t("cronJobs.actions.runNow") }}
           </button>
           <button class="btn btn-sm btn-secondary" @click="viewExecutions(task)">
             <i class="pi pi-history" />
-            History
+            {{ t("cronJobs.actions.history") }}
           </button>
           <button v-if="canWrite" class="btn btn-sm btn-secondary" @click="openEditModal(task)">
             <i class="pi pi-pencil" />
@@ -166,11 +166,13 @@
         <i class="pi pi-angle-double-right" />
       </button>
 
-      <span class="pagination-info"> Page {{ currentPage }} of {{ totalPages }} </span>
+      <span class="pagination-info">
+        {{ t("cronJobs.pagination.pageOf", { page: currentPage, total: totalPages }) }}
+      </span>
     </div>
 
     <div v-if="recentExecutions.length > 0" class="recent-executions">
-      <h3>Recent Executions</h3>
+      <h3>{{ t("cronJobs.recentExecutions.title") }}</h3>
       <div class="executions-list">
         <div v-for="exec in recentExecutions" :key="exec.id" class="execution-item" :class="exec.status">
           <div class="exec-status">
@@ -197,7 +199,7 @@
           <div class="modal-header">
             <h3>
               <i class="pi pi-clock" />
-              {{ editingTask ? "Edit Cron Job" : "Create Cron Job" }}
+              {{ editingTask ? t("cronJobs.modal.form.editTitle") : t("cronJobs.modal.form.createTitle") }}
             </h3>
             <button class="close-btn" @click="closeModal">
               <i class="pi pi-times" />
@@ -206,14 +208,20 @@
 
           <div class="modal-body">
             <div class="form-group">
-              <label for="name">Name</label>
-              <input id="name" v-model="form.name" type="text" placeholder="Daily cleanup" :disabled="saving" />
+              <label for="name">{{ t("cronJobs.modal.form.name") }}</label>
+              <input
+                id="name"
+                v-model="form.name"
+                type="text"
+                :placeholder="t('cronJobs.modal.form.namePlaceholder')"
+                :disabled="saving"
+              />
             </div>
 
             <div class="form-group">
-              <label for="deployment">Deployment</label>
+              <label for="deployment">{{ t("cronJobs.modal.form.deployment") }}</label>
               <select id="deployment" v-model="form.deployment_name" :disabled="saving || !!editingTask">
-                <option value="">Select deployment...</option>
+                <option value="">{{ t("cronJobs.modal.form.selectDeployment") }}</option>
                 <option v-for="dep in deployments" :key="dep.name" :value="dep.name">
                   {{ dep.name }}
                 </option>
@@ -221,60 +229,68 @@
             </div>
 
             <div class="form-group">
-              <label for="cron">Schedule (Cron Expression)</label>
-              <input id="cron" v-model="form.cron_expr" type="text" placeholder="0 2 * * *" :disabled="saving" />
+              <label for="cron">{{ t("cronJobs.modal.form.schedule") }}</label>
+              <input
+                id="cron"
+                v-model="form.cron_expr"
+                type="text"
+                :placeholder="t('cronJobs.modal.form.cronPlaceholder')"
+                :disabled="saving"
+              />
               <span class="hint">
-                {{ form.cron_expr ? cronToHuman(form.cron_expr) : 'e.g., "0 2 * * *" = Daily at 2:00 AM' }}
+                {{ form.cron_expr ? cronToHuman(form.cron_expr) : t("cronJobs.modal.form.cronHintExample") }}
               </span>
             </div>
 
             <div class="form-group">
-              <label for="service">
-                Service
-                <i v-if="loadingServices" class="pi pi-spin pi-spinner" style="margin-left: 4px" />
-              </label>
-              <select
+              <label for="service">{{ t("cronJobs.modal.form.serviceOptional") }}</label>
+              <input
                 id="service"
                 v-model="form.service"
-                :disabled="saving || loadingServices || !form.deployment_name"
-              >
-                <option value="">Default ({{ form.deployment_name || "select deployment" }})</option>
-                <option v-for="svc in deploymentServices" :key="svc.name" :value="svc.name">
-                  {{ svc.name }}
-                </option>
-              </select>
-              <span class="hint">Target service container for the command</span>
+                type="text"
+                :placeholder="t('cronJobs.modal.form.servicePlaceholder')"
+                :disabled="saving"
+              />
+              <span class="hint">{{ t("cronJobs.modal.form.serviceHint") }}</span>
             </div>
 
             <div class="form-group">
-              <label for="command">Command</label>
+              <label for="command">{{ t("cronJobs.modal.form.command") }}</label>
               <textarea
                 id="command"
                 v-model="form.command"
                 rows="3"
-                placeholder="php artisan schedule:run"
+                :placeholder="t('cronJobs.modal.form.commandPlaceholder')"
                 :disabled="saving"
               />
             </div>
 
             <div class="form-group">
-              <label for="timeout">Timeout (seconds)</label>
+              <label for="timeout">{{ t("cronJobs.modal.form.timeoutSeconds") }}</label>
               <input id="timeout" v-model.number="form.timeout" type="number" min="1" max="3600" :disabled="saving" />
             </div>
 
             <div class="form-group checkbox-group">
               <label class="checkbox-label">
                 <input v-model="form.enabled" type="checkbox" :disabled="saving" />
-                <span>Enable this task</span>
+                <span>{{ t("cronJobs.modal.form.enableTask") }}</span>
               </label>
             </div>
           </div>
 
           <div class="modal-footer">
-            <button class="btn btn-secondary" :disabled="saving" @click="closeModal">Cancel</button>
+            <button class="btn btn-secondary" :disabled="saving" @click="closeModal">
+              {{ t("cronJobs.actions.cancel") }}
+            </button>
             <button class="btn btn-primary" :disabled="saving || !isFormValid" @click="saveTask">
               <i v-if="saving" class="pi pi-spin pi-spinner" />
-              {{ saving ? "Saving..." : editingTask ? "Update" : "Create" }}
+              {{
+                saving
+                  ? t("cronJobs.actions.saving")
+                  : editingTask
+                    ? t("cronJobs.actions.update")
+                    : t("cronJobs.actions.create")
+              }}
             </button>
           </div>
         </div>
@@ -288,7 +304,7 @@
           <div class="modal-header">
             <h3>
               <i class="pi pi-file-export" />
-              Execution Output
+              {{ t("cronJobs.modal.output.title") }}
             </h3>
             <button class="close-btn" @click="showOutputModal = false">
               <i class="pi pi-times" />
@@ -299,24 +315,26 @@
             <div v-if="selectedExecution" class="execution-details">
               <div class="exec-meta">
                 <span class="exec-status-badge" :class="selectedExecution.status">
-                  {{ selectedExecution.status }}
+                  {{ formatExecutionStatus(selectedExecution.status) }}
                 </span>
-                <span>Started: {{ formatDate(selectedExecution.started_at) }}</span>
-                <span v-if="selectedExecution.ended_at"> Ended: {{ formatDate(selectedExecution.ended_at) }} </span>
+                <span>{{ t("cronJobs.modal.output.started") }}: {{ formatDate(selectedExecution.started_at) }}</span>
+                <span v-if="selectedExecution.ended_at">
+                  {{ t("cronJobs.modal.output.ended") }}: {{ formatDate(selectedExecution.ended_at) }}
+                </span>
                 <span v-if="selectedExecution.duration_ms">
-                  Duration: {{ (selectedExecution.duration_ms / 1000).toFixed(2) }}s
+                  {{ t("cronJobs.modal.output.duration") }}: {{ (selectedExecution.duration_ms / 1000).toFixed(2) }}s
                 </span>
               </div>
               <div v-if="selectedExecution.output" class="output-block">
-                <h4>Output</h4>
+                <h4>{{ t("cronJobs.modal.output.output") }}</h4>
                 <pre>{{ selectedExecution.output }}</pre>
               </div>
               <div v-if="selectedExecution.error" class="error-block">
-                <h4>Error</h4>
+                <h4>{{ t("cronJobs.modal.output.error") }}</h4>
                 <pre>{{ selectedExecution.error }}</pre>
               </div>
               <div v-if="!selectedExecution.output && !selectedExecution.error" class="no-output">
-                No output recorded for this execution.
+                {{ t("cronJobs.modal.output.noOutput") }}
               </div>
             </div>
           </div>
@@ -331,7 +349,7 @@
           <div class="modal-header">
             <h3>
               <i class="pi pi-history" />
-              Execution History: {{ selectedTask?.name }}
+              {{ t("cronJobs.modal.history.title") }}: {{ selectedTask?.name }}
             </h3>
             <button class="close-btn" @click="showHistoryModal = false">
               <i class="pi pi-times" />
@@ -339,12 +357,12 @@
           </div>
 
           <div class="modal-body">
-            <div v-if="taskExecutions.length === 0" class="no-history">No execution history for this task.</div>
+            <div v-if="taskExecutions.length === 0" class="no-history">{{ t("cronJobs.modal.history.noHistory") }}</div>
             <div v-else class="history-list">
               <div v-for="exec in taskExecutions" :key="exec.id" class="history-item" :class="exec.status">
                 <div class="history-status">
                   <i :class="statusIcon(exec.status)" />
-                  <span>{{ exec.status }}</span>
+                  <span>{{ formatExecutionStatus(exec.status) }}</span>
                 </div>
                 <div class="history-time">
                   {{ formatDate(exec.started_at) }}
@@ -364,11 +382,11 @@
 
     <ConfirmModal
       :visible="showDeleteModal"
-      title="Delete Cron Job"
-      :message="`Are you sure you want to delete '${taskToDelete?.name}'?`"
-      warning="This action cannot be undone. All execution history will be lost."
+      :title="t('cronJobs.modal.delete.title')"
+      :message="t('cronJobs.modal.delete.message', { name: taskToDelete?.name || '' })"
+      :warning="t('cronJobs.modal.delete.warning')"
       variant="danger"
-      confirm-text="Delete"
+      :confirm-text="t('cronJobs.modal.delete.confirm')"
       :loading="deleting"
       @confirm="deleteTask"
       @cancel="showDeleteModal = false"
@@ -378,6 +396,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from "vue";
+import { useI18n } from "vue-i18n";
 import { schedulerApi, deploymentsApi } from "@/services/api";
 import type { ScheduledTask, TaskExecution } from "@/services/api";
 import type { Deployment, Service } from "@/types";
@@ -393,6 +412,7 @@ const authStore = useAuthStore();
 const canWrite = authStore.hasPermission("scheduler:write");
 const canDelete = authStore.hasPermission("scheduler:delete");
 const notifications = useNotificationsStore();
+const { t, te, locale } = useI18n();
 
 const tasks = ref<ScheduledTask[]>([]);
 const deployments = ref<Deployment[]>([]);
@@ -563,7 +583,7 @@ const fetchTasks = async () => {
     tasks.value = tasksRes.data.tasks || [];
     recentExecutions.value = execsRes.data.executions || [];
   } catch (e: any) {
-    notifications.error("Error", "Failed to load scheduled tasks");
+    notifications.error(t("common.error"), t("cronJobs.notifications.loadFailed"));
   } finally {
     loading.value = false;
   }
@@ -631,17 +651,23 @@ const saveTask = async () => {
         enabled: data.enabled,
         config: data.config,
       });
-      notifications.success("Task Updated", `Cron job "${data.name}" has been updated`);
+      notifications.success(
+        t("cronJobs.notifications.taskUpdatedTitle"),
+        t("cronJobs.notifications.taskUpdatedDesc", { name: data.name }),
+      );
     } else {
       await schedulerApi.createTask(data);
-      notifications.success("Task Created", `Cron job "${data.name}" has been created`);
+      notifications.success(
+        t("cronJobs.notifications.taskCreatedTitle"),
+        t("cronJobs.notifications.taskCreatedDesc", { name: data.name }),
+      );
     }
 
     closeModal();
     await fetchTasks();
   } catch (e: any) {
     const msg = e.response?.data?.error || e.message;
-    notifications.error("Error", msg);
+    notifications.error(t("common.error"), msg);
   } finally {
     saving.value = false;
   }
@@ -653,7 +679,7 @@ const toggleTask = async (task: ScheduledTask) => {
     await schedulerApi.updateTask(task.id, { enabled: !task.enabled });
     await fetchTasks();
   } catch (e: any) {
-    notifications.error("Error", "Failed to toggle task");
+    notifications.error(t("common.error"), t("cronJobs.notifications.toggleFailed"));
   } finally {
     togglingTask.value = null;
   }
@@ -663,11 +689,14 @@ const runTaskNow = async (task: ScheduledTask) => {
   runningTask.value = task.id;
   try {
     await schedulerApi.runTaskNow(task.id);
-    notifications.success("Task Started", `"${task.name}" is now running`);
+    notifications.success(
+      t("cronJobs.notifications.taskStartedTitle"),
+      t("cronJobs.notifications.taskStartedDesc", { name: task.name }),
+    );
     setTimeout(() => fetchTasks(), 2000);
   } catch (e: any) {
     const msg = e.response?.data?.error || e.message;
-    notifications.error("Error", msg);
+    notifications.error(t("common.error"), msg);
   } finally {
     runningTask.value = null;
   }
@@ -684,13 +713,16 @@ const deleteTask = async () => {
   deleting.value = true;
   try {
     await schedulerApi.deleteTask(taskToDelete.value.id);
-    notifications.success("Task Deleted", `"${taskToDelete.value.name}" has been deleted`);
+    notifications.success(
+      t("cronJobs.notifications.taskDeletedTitle"),
+      t("cronJobs.notifications.taskDeletedDesc", { name: taskToDelete.value.name }),
+    );
     showDeleteModal.value = false;
     taskToDelete.value = null;
     await fetchTasks();
   } catch (e: any) {
     const msg = e.response?.data?.error || e.message;
-    notifications.error("Error", msg);
+    notifications.error(t("common.error"), msg);
   } finally {
     deleting.value = false;
   }
@@ -714,7 +746,27 @@ const viewExecutionOutput = (exec: TaskExecution) => {
 
 const getTaskName = (taskId: number): string => {
   const task = tasks.value.find((t) => t.id === taskId);
-  return task?.name || `Task #${taskId}`;
+  return task?.name || t("cronJobs.value.taskNumber", { id: taskId });
+};
+
+const normalizeToken = (value?: string) =>
+  (value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[\s-]+/g, "_");
+
+const formatTaskType = (type?: string) => {
+  const normalized = normalizeToken(type);
+  const key = `cronJobs.type.${normalized}`;
+  if (te(key)) return t(key);
+  return type || t("common.na");
+};
+
+const formatExecutionStatus = (status?: string) => {
+  const normalized = normalizeToken(status);
+  const key = `cronJobs.execution.status.${normalized}`;
+  if (te(key)) return t(key);
+  return status || t("common.na");
 };
 
 const statusIcon = (status: string) => {
@@ -732,29 +784,29 @@ const statusIcon = (status: string) => {
 
 const cronToHuman = (expr: string): string => {
   const parts = expr.split(" ");
-  if (parts.length !== 5) return "Invalid cron expression";
+  if (parts.length !== 5) return t("cronJobs.cron.invalid");
 
   const [minute, hour, dayOfMonth, month, dayOfWeek] = parts;
 
   if (minute === "0" && hour === "*" && dayOfMonth === "*" && month === "*" && dayOfWeek === "*") {
-    return "Every hour";
+    return t("cronJobs.cron.everyHour");
   }
   if (minute === "*" && hour === "*" && dayOfMonth === "*" && month === "*" && dayOfWeek === "*") {
-    return "Every minute";
+    return t("cronJobs.cron.everyMinute");
   }
   if (dayOfMonth === "*" && month === "*" && dayOfWeek === "*") {
     if (minute !== "*" && hour !== "*") {
-      return `Daily at ${hour.padStart(2, "0")}:${minute.padStart(2, "0")}`;
+      return t("cronJobs.cron.dailyAt", { time: `${hour.padStart(2, "0")}:${minute.padStart(2, "0")}` });
     }
     if (minute !== "*" && hour === "*") {
-      return `Hourly at minute ${minute}`;
+      return t("cronJobs.cron.hourlyAtMinute", { minute });
     }
   }
   if (dayOfWeek === "0" && dayOfMonth === "*" && month === "*") {
-    return `Weekly on Sunday at ${hour.padStart(2, "0")}:${minute.padStart(2, "0")}`;
+    return t("cronJobs.cron.weeklyOnSundayAt", { time: `${hour.padStart(2, "0")}:${minute.padStart(2, "0")}` });
   }
   if (dayOfMonth === "1" && month === "*" && dayOfWeek === "*") {
-    return `Monthly on the 1st at ${hour.padStart(2, "0")}:${minute.padStart(2, "0")}`;
+    return t("cronJobs.cron.monthlyOnFirstAt", { time: `${hour.padStart(2, "0")}:${minute.padStart(2, "0")}` });
   }
 
   return expr;
@@ -762,7 +814,7 @@ const cronToHuman = (expr: string): string => {
 
 const formatDate = (dateString: string) => {
   const date = new Date(dateString);
-  return date.toLocaleString("en-US", {
+  return date.toLocaleString(locale.value, {
     month: "short",
     day: "numeric",
     hour: "2-digit",

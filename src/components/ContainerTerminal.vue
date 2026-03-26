@@ -12,7 +12,7 @@
           class="btn btn-primary"
           @click="connect"
         >
-          Connect
+          {{ $t("deployment.detail.terminal.connect") }}
         </button>
       </div>
     </div>
@@ -20,7 +20,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch } from "vue";
+import { ref, computed, onMounted, onUnmounted, watch } from "vue";
+import { useI18n } from "vue-i18n";
 import { Terminal } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
 import { WebLinksAddon } from "@xterm/addon-web-links";
@@ -35,10 +36,12 @@ const emit = defineEmits<{
   (e: "disconnected"): void;
   (e: "error", message: string): void;
 }>();
+const { t } = useI18n();
 
 const terminalRef = ref<HTMLElement | null>(null);
 const connectionStatus = ref<"disconnected" | "connecting" | "connected" | "error">("disconnected");
-const statusMessage = ref("Click Connect to open terminal");
+const statusMessageKey = ref("deployment.detail.terminal.status.clickToConnect");
+const statusMessage = computed(() => (statusMessageKey.value ? t(statusMessageKey.value) : ""));
 
 let terminal: Terminal | null = null;
 let fitAddon: FitAddon | null = null;
@@ -68,7 +71,7 @@ const connect = () => {
   }
 
   connectionStatus.value = "connecting";
-  statusMessage.value = "Connecting...";
+  statusMessageKey.value = "deployment.detail.terminal.status.connecting";
   authenticated = false;
 
   socket = new WebSocket(getWebSocketUrl());
@@ -79,12 +82,12 @@ const connect = () => {
     const token = localStorage.getItem("auth_token");
     if (token) {
       socket?.send(JSON.stringify({ type: "auth", token }));
-      statusMessage.value = "Authenticating...";
+      statusMessageKey.value = "deployment.detail.terminal.status.authenticating";
     } else {
       // No token, assume auth is disabled
       authenticated = true;
       connectionStatus.value = "connected";
-      statusMessage.value = "";
+      statusMessageKey.value = "";
       emit("connected");
       if (terminal) {
         terminal.focus();
@@ -108,7 +111,7 @@ const connect = () => {
         if (parsed.type === "auth_success") {
           authenticated = true;
           connectionStatus.value = "connected";
-          statusMessage.value = "";
+          statusMessageKey.value = "";
           emit("connected");
           if (terminal) {
             terminal.focus();
@@ -140,16 +143,16 @@ const connect = () => {
 
   socket.onclose = () => {
     connectionStatus.value = "disconnected";
-    statusMessage.value = "Connection closed. Click Connect to reconnect.";
+    statusMessageKey.value = "deployment.detail.terminal.status.connectionClosed";
     authenticated = false;
     emit("disconnected");
   };
 
   socket.onerror = () => {
     connectionStatus.value = "error";
-    statusMessage.value = "Connection failed. Check if container is running.";
+    statusMessageKey.value = "deployment.detail.terminal.status.connectionFailed";
     authenticated = false;
-    emit("error", "WebSocket connection failed");
+    emit("error", t("deployment.detail.terminal.status.connectionFailed"));
   };
 };
 
@@ -237,7 +240,7 @@ watch(
     if (newId !== oldId) {
       disconnect();
       connectionStatus.value = "disconnected";
-      statusMessage.value = "Click Connect to open terminal";
+      statusMessageKey.value = "deployment.detail.terminal.status.clickToConnect";
       if (terminal) {
         terminal.clear();
       }

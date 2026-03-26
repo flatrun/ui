@@ -2,7 +2,7 @@
   <div class="domains-manager">
     <div v-if="loading" class="loading-state">
       <i class="pi pi-spin pi-spinner" />
-      Loading...
+      {{ $t("deployment.detail.domainManager.loading") }}
     </div>
 
     <template v-else>
@@ -22,11 +22,15 @@
           <div class="domain-status">
             <span v-if="d.ssl?.enabled" class="status-pill" :class="hasCertificate(d.domain) ? 'success' : 'warning'">
               <i :class="hasCertificate(d.domain) ? 'pi pi-lock' : 'pi pi-lock-open'" />
-              {{ hasCertificate(d.domain) ? "SSL" : "No cert" }}
+              {{
+                hasCertificate(d.domain)
+                  ? $t("deployment.detail.domainManager.status.ssl")
+                  : $t("deployment.detail.domainManager.status.noCert")
+              }}
             </span>
             <span v-if="!proxyConfigured" class="status-pill warning">
               <i class="pi pi-exclamation-triangle" />
-              No proxy
+              {{ $t("deployment.detail.domainManager.status.noProxy") }}
             </span>
           </div>
 
@@ -34,7 +38,7 @@
             <button
               v-if="canEdit && !proxyConfigured"
               class="action-btn primary"
-              title="Setup Proxy"
+              :title="$t('deployment.detail.domainManager.action.setupProxy')"
               :disabled="settingUpProxy"
               @click="$emit('setupProxy')"
             >
@@ -43,22 +47,34 @@
             <button
               v-if="canEdit && d.ssl?.enabled && d.ssl?.auto_cert && !hasCertificate(d.domain)"
               class="action-btn success"
-              title="Request SSL Certificate"
+              :title="$t('deployment.detail.domainManager.action.requestSsl')"
               :disabled="requestingCerts[d.domain]"
               @click="requestCertificate(d.domain)"
             >
               <i :class="requestingCerts[d.domain] ? 'pi pi-spin pi-spinner' : 'pi pi-shield'" />
             </button>
-            <button v-if="canEdit" class="action-btn" title="Edit" @click="editDomain(d)">
+            <button
+              v-if="canEdit"
+              class="action-btn"
+              :title="$t('deployment.detail.domainManager.action.edit')"
+              @click="editDomain(d)"
+            >
               <i class="pi pi-pencil" />
             </button>
-            <button v-if="canEdit" class="action-btn danger" title="Delete" @click="confirmDeleteDomain(d)">
+            <button
+              v-if="canEdit"
+              class="action-btn danger"
+              :title="$t('deployment.detail.domainManager.action.delete')"
+              @click="confirmDeleteDomain(d)"
+            >
               <i class="pi pi-trash" />
             </button>
           </div>
         </div>
       </div>
-      <button v-if="canEdit" class="add-link" @click="showAddModal = true"><i class="pi pi-plus" /> Add domain</button>
+      <button v-if="canEdit" class="add-link" @click="showAddModal = true">
+        <i class="pi pi-plus" /> {{ $t("deployment.detail.domainManager.action.addDomain") }}
+      </button>
     </template>
 
     <DomainFormModal
@@ -74,10 +90,14 @@
 
     <ConfirmModal
       :visible="showDeleteModal"
-      title="Delete Domain"
-      :message="`Are you sure you want to delete ${deletingDomain?.domain}${deletingDomain?.path_prefix || ''}?`"
+      :title="$t('deployment.detail.domainManager.confirmDelete.title')"
+      :message="
+        $t('deployment.detail.domainManager.confirmDelete.message', {
+          domain: `${deletingDomain?.domain || ''}${deletingDomain?.path_prefix || ''}`,
+        })
+      "
       variant="danger"
-      confirm-text="Delete"
+      :confirm-text="$t('deployment.detail.domainManager.confirmDelete.confirm')"
       :loading="deleting"
       @confirm="handleDeleteDomain"
       @cancel="showDeleteModal = false"
@@ -87,6 +107,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from "vue";
+import { useI18n } from "vue-i18n";
 import type { DomainConfig, Service, ProxyStatus, Certificate } from "@/types";
 import { deploymentsApi, certificatesApi } from "@/services/api";
 import { useNotificationsStore } from "@/stores/notifications";
@@ -94,6 +115,7 @@ import DomainFormModal from "./DomainFormModal.vue";
 import ConfirmModal from "./ConfirmModal.vue";
 
 const notifications = useNotificationsStore();
+const { t } = useI18n();
 
 const props = defineProps<{
   deploymentName: string;
@@ -177,17 +199,23 @@ async function handleSaveDomain(domain: DomainConfig) {
   try {
     if (editingDomain.value && editingDomain.value.id) {
       await deploymentsApi.updateDomain(props.deploymentName, editingDomain.value.id, domain);
-      notifications.success("Domain Updated", `${domain.domain} has been updated`);
+      notifications.success(
+        t("deployment.detail.domainManager.notification.domainUpdated"),
+        t("deployment.detail.domainManager.notification.domainUpdatedDesc", { domain: domain.domain }),
+      );
     } else {
       await deploymentsApi.addDomain(props.deploymentName, domain);
-      notifications.success("Domain Added", `${domain.domain} has been added`);
+      notifications.success(
+        t("deployment.detail.domainManager.notification.domainAdded"),
+        t("deployment.detail.domainManager.notification.domainAddedDesc", { domain: domain.domain }),
+      );
     }
     await fetchDomains();
     closeModals();
     emit("updated");
   } catch (err: any) {
     const msg = err.response?.data?.error || err.message;
-    notifications.error("Save Failed", msg);
+    notifications.error(t("deployment.detail.domainManager.notification.saveFailed"), msg);
   } finally {
     saving.value = false;
   }
@@ -198,14 +226,17 @@ async function handleDeleteDomain() {
   deleting.value = true;
   try {
     await deploymentsApi.deleteDomain(props.deploymentName, deletingDomain.value.id);
-    notifications.success("Domain Deleted", `${deletingDomain.value.domain} has been removed`);
+    notifications.success(
+      t("deployment.detail.notification.domainDeleted"),
+      t("deployment.detail.notification.domainDeletedSuccess"),
+    );
     await fetchDomains();
     showDeleteModal.value = false;
     deletingDomain.value = null;
     emit("updated");
   } catch (err: any) {
     const msg = err.response?.data?.error || err.message;
-    notifications.error("Delete Failed", msg);
+    notifications.error(t("deployment.detail.domainManager.notification.deleteFailed"), msg);
   } finally {
     deleting.value = false;
   }
@@ -215,11 +246,14 @@ async function requestCertificate(domain: string) {
   requestingCerts.value[domain] = true;
   try {
     await certificatesApi.request(domain);
-    notifications.success("Certificate Requested", `SSL certificate for ${domain} has been requested`);
+    notifications.success(
+      t("deployment.detail.notification.sslRequested"),
+      t("deployment.detail.notification.sslRequestedSuccess", { domain }),
+    );
     emit("updated");
   } catch (err: any) {
     const msg = err.response?.data?.error || err.message;
-    notifications.error("Certificate Request Failed", msg);
+    notifications.error(t("deployment.detail.domainManager.notification.certificateRequestFailed"), msg);
   } finally {
     requestingCerts.value[domain] = false;
   }

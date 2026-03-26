@@ -122,7 +122,7 @@ describe("ContainerTerminal", () => {
     } as any;
 
     // Mock localStorage
-    vi.spyOn(Storage.prototype, "getItem").mockReturnValue("test-token");
+    vi.spyOn(localStorage, "getItem").mockReturnValue("test-token");
   });
 
   afterEach(() => {

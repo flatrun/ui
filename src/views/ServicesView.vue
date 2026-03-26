@@ -5,13 +5,13 @@
       :columns="columns"
       :loading="loading"
       :searchable="true"
-      search-placeholder="Search services..."
+      :search-placeholder="t('services.searchPlaceholder')"
       :search-fields="['name', 'description', 'status']"
       item-key="name"
       :empty-icon="Cog"
-      empty-title="No Services Found"
-      empty-text="Unable to retrieve system services."
-      loading-text="Loading services..."
+      :empty-title="t('services.empty.title')"
+      :empty-text="t('services.empty.text')"
+      :loading-text="t('services.loading')"
       :default-page-size="25"
     >
       <template #actions>
@@ -28,15 +28,15 @@
         </div>
         <button class="btn btn-secondary" :disabled="loading" @click="fetchServices">
           <RefreshCw :size="16" :class="{ spinning: loading }" />
-          Refresh
+          {{ t("services.actions.refresh") }}
         </button>
       </template>
 
       <template #cell-status="{ item }">
         <div class="status-wrapper">
-          <span class="status-dot" :class="item.active" />
-          <span class="status-badge" :class="item.active">
-            {{ item.active }}
+          <span class="status-dot" :class="getActiveClass(item.active)" />
+          <span class="status-badge" :class="getActiveClass(item.active)">
+            {{ formatActiveState(item.active) }}
           </span>
         </div>
       </template>
@@ -49,29 +49,29 @@
       </template>
 
       <template #cell-description="{ item }">
-        <span class="service-description">{{ item.description || "—" }}</span>
+        <span class="service-description">{{ item.description || t("common.na") }}</span>
       </template>
 
       <template #cell-sub="{ item }">
-        <span class="sub-state" :class="item.sub">
-          {{ item.sub }}
+        <span class="sub-state" :class="getSubClass(item.sub)">
+          {{ formatSubState(item.sub) }}
         </span>
       </template>
 
       <template #cell-actions="{ item }">
         <div class="action-buttons">
           <button
-            v-if="canWrite && item.active !== 'active'"
+            v-if="canWrite && getActiveClass(item.active) !== 'active'"
             class="action-btn start"
-            title="Start Service"
+            :title="t('services.actions.startService')"
             @click.stop="controlService(item.name, 'start')"
           >
             <Play :size="14" />
           </button>
           <button
-            v-if="canWrite && item.active === 'active'"
+            v-if="canWrite && getActiveClass(item.active) === 'active'"
             class="action-btn stop"
-            title="Stop Service"
+            :title="t('services.actions.stopService')"
             @click.stop="controlService(item.name, 'stop')"
           >
             <Square :size="14" />
@@ -79,7 +79,7 @@
           <button
             v-if="canWrite"
             class="action-btn restart"
-            title="Restart Service"
+            :title="t('services.actions.restartService')"
             @click.stop="controlService(item.name, 'restart')"
           >
             <RotateCw :size="14" />
@@ -92,6 +92,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
+import { useI18n } from "vue-i18n";
 import { systemServicesApi } from "@/services/api";
 import { useNotificationsStore } from "@/stores/notifications";
 import { useAuthStore } from "@/stores/auth";
@@ -113,26 +114,56 @@ const allServices = ref<SystemService[]>([]);
 const loading = ref(false);
 const activeFilter = ref("all");
 const notifications = useNotificationsStore();
+const { t, te } = useI18n();
 
-const filterOptions = [
-  { label: "All", value: "all" },
-  { label: "Running", value: "active" },
-  { label: "Stopped", value: "inactive" },
-  { label: "Failed", value: "failed" },
-];
+const normalizeToken = (value?: string) =>
+  (value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[\s-]+/g, "_");
+
+const normalizeActiveState = (value?: string) => {
+  const normalized = normalizeToken(value);
+  if (!normalized) return "unknown";
+  if (normalized === "running") return "active";
+  if (normalized === "stopped") return "inactive";
+  return normalized;
+};
+
+const filterOptions = computed(() => [
+  { label: t("services.filters.all"), value: "all" },
+  { label: t("services.filters.running"), value: "active" },
+  { label: t("services.filters.stopped"), value: "inactive" },
+  { label: t("services.filters.failed"), value: "failed" },
+]);
 
 const services = computed(() => {
   if (activeFilter.value === "all") return allServices.value;
-  return allServices.value.filter((s) => s.active === activeFilter.value);
+  return allServices.value.filter((s) => normalizeActiveState(s.active) === activeFilter.value);
 });
 
-const columns = [
-  { key: "status", label: "", width: "80px" },
-  { key: "name", label: "Service", sortable: true },
-  { key: "description", label: "Description", sortable: true },
-  { key: "sub", label: "State", sortable: true, width: "120px" },
-  { key: "actions", label: "Actions", width: "120px" },
-];
+const columns = computed(() => [
+  { key: "status", label: t("services.table.status"), width: "80px" },
+  { key: "name", label: t("services.table.service"), sortable: true },
+  { key: "description", label: t("services.table.description"), sortable: true },
+  { key: "sub", label: t("services.table.state"), sortable: true, width: "140px" },
+  { key: "actions", label: t("services.table.actions"), width: "120px" },
+]);
+
+const getActiveClass = (value?: string) => normalizeActiveState(value);
+const getSubClass = (value?: string) => normalizeToken(value);
+
+const formatWithMap = (baseKey: string, value?: string, fallbackKey?: string) => {
+  const normalized = normalizeToken(value);
+  if (!normalized) return fallbackKey ? t(fallbackKey) : "";
+  const key = `${baseKey}.${normalized}`;
+  if (te(key)) return t(key);
+  return value || (fallbackKey ? t(fallbackKey) : "");
+};
+
+const formatActiveState = (value?: string) =>
+  formatWithMap("services.statusMap", normalizeActiveState(value), "services.value.unknown");
+const formatSubState = (value?: string) => formatWithMap("services.subMap", value, "services.value.unknown");
 
 const fetchServices = async () => {
   loading.value = true;
@@ -140,7 +171,7 @@ const fetchServices = async () => {
     const response = await systemServicesApi.list();
     allServices.value = response.data.services || [];
   } catch (error: any) {
-    notifications.error("Failed to fetch services", error.message);
+    notifications.error(t("common.error"), error.message || t("services.notifications.fetchFailed"));
     allServices.value = [];
   } finally {
     loading.value = false;
@@ -156,10 +187,12 @@ const controlService = async (name: string, action: "start" | "stop" | "restart"
     } else if (action === "restart") {
       await systemServicesApi.restart(name);
     }
-    notifications.success("Service Control", `Successfully ${action}ed ${name}`);
+    const successKey = `services.notifications.${action}SuccessDesc`;
+    notifications.success(t("services.notifications.controlSuccessTitle"), t(successKey, { name }));
     await fetchServices();
   } catch (error: any) {
-    notifications.error(`Failed to ${action} service`, error.message);
+    const failKey = `services.notifications.${action}Failed`;
+    notifications.error(t("common.error"), error.message || t(failKey, { name }));
   }
 };
 

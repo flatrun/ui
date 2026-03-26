@@ -200,7 +200,7 @@ describe("BackupsTab", () => {
 
       const statusBadge = wrapper.find(".backup-status");
       expect(statusBadge.exists()).toBe(true);
-      expect(statusBadge.text()).toBe("completed");
+      expect(statusBadge.text().toLowerCase()).toBe("completed");
     });
 
     it("displays component badges", async () => {

@@ -10,12 +10,12 @@
           <h3>{{ name }}</h3>
           <div v-if="subtitle || external" class="header-meta">
             <span v-if="subtitle" class="subtitle">{{ subtitle }}</span>
-            <span v-if="external" class="external-tag">External</span>
+            <span v-if="external" class="external-tag">{{ externalLabel || "External" }}</span>
           </div>
         </div>
         <span class="status-badge" :class="status">
           <span class="status-dot" />
-          {{ status }}
+          {{ statusLabel || status }}
         </span>
       </div>
     </div>
@@ -35,6 +35,8 @@ defineProps<{
   name: string;
   status: "running" | "stopped" | "error" | "unknown" | "external";
   subtitle?: string;
+  statusLabel?: string;
+  externalLabel?: string;
   icon?: string;
   iconClass?: string;
   logo?: string;

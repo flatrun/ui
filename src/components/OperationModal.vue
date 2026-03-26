@@ -23,22 +23,27 @@
       <LogViewer
         :logs="output"
         :loading="isRunning && !output"
-        empty-message="Waiting for output..."
+        :empty-message="t('deployment.modal.operation.waitingForOutput')"
         :file-name="`${deploymentName}-${operation}.txt`"
         :max-height="300"
       />
     </div>
 
     <template #footer>
-      <button class="btn btn-secondary" :disabled="isRunning" @click="handleClose">Close</button>
+      <button class="btn btn-secondary" :disabled="isRunning" @click="handleClose">
+        {{ $t("deployment.modal.operation.close") }}
+      </button>
     </template>
   </BaseModal>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, watch } from "vue";
+import { useI18n } from "vue-i18n";
 import BaseModal from "./base/BaseModal.vue";
 import LogViewer from "./LogViewer.vue";
+
+const { t } = useI18n();
 
 const props = defineProps<{
   visible: boolean;
@@ -56,9 +61,9 @@ const elapsedTime = ref("0s");
 
 const title = computed(() => {
   const ops: Record<string, string> = {
-    start: "Starting",
-    stop: "Stopping",
-    restart: "Restarting",
+    start: t("deployment.modal.operation.starting"),
+    stop: t("deployment.modal.operation.stopping"),
+    restart: t("deployment.modal.operation.restarting"),
   };
   return `${ops[props.operation]} ${props.deploymentName}`;
 });
@@ -78,10 +83,10 @@ const statusIcon = computed(() => {
 });
 
 const statusLabel = computed(() => {
-  if (props.isRunning) return "In Progress...";
-  if (props.isSuccess === true) return "Completed Successfully";
-  if (props.isSuccess === false) return "Failed";
-  return "Pending";
+  if (props.isRunning) return t("deployment.modal.operation.inProgress");
+  if (props.isSuccess === true) return t("deployment.modal.operation.completed");
+  if (props.isSuccess === false) return t("deployment.modal.operation.failed");
+  return t("deployment.modal.operation.pending");
 });
 
 watch(

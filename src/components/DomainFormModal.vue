@@ -4,7 +4,9 @@
       <div v-if="visible" class="modal-overlay" @click.self="!loading && emit('cancel')">
         <div class="domain-form-modal">
           <div class="modal-header">
-            <h3>{{ domain ? "Edit Domain" : "Add Domain" }}</h3>
+            <h3>
+              {{ domain ? $t("deployment.detail.domainForm.titleEdit") : $t("deployment.detail.domainForm.titleAdd") }}
+            </h3>
             <button class="close-btn" :disabled="loading" @click="emit('cancel')">
               <i class="pi pi-times" />
             </button>
@@ -12,16 +14,24 @@
 
           <form class="modal-body" @submit.prevent="handleSubmit">
             <div class="form-group">
-              <label>Domain <span class="required">*</span></label>
-              <input v-model="form.domain" type="text" class="form-input" placeholder="api.example.com" required />
-              <span class="hint">The primary domain name</span>
+              <label>{{ $t("deployment.detail.domainForm.field.domain") }} <span class="required">*</span></label>
+              <input
+                v-model="form.domain"
+                type="text"
+                class="form-input"
+                :placeholder="$t('deployment.detail.domainForm.placeholder.domain')"
+                required
+              />
+              <span class="hint">{{ $t("deployment.detail.domainForm.hint.primaryDomain") }}</span>
             </div>
 
             <div class="form-row">
               <div class="form-group">
-                <label>Service</label>
+                <label>{{ $t("deployment.detail.domainForm.field.service") }}</label>
                 <select v-model="form.service" class="form-select">
-                  <option value="">Default ({{ deploymentName }})</option>
+                  <option value="">
+                    {{ $t("deployment.detail.domainForm.defaultService", { name: deploymentName }) }}
+                  </option>
                   <option v-for="service in services" :key="service.name" :value="service.name">
                     {{ service.name }}
                   </option>
@@ -29,12 +39,12 @@
               </div>
 
               <div class="form-group">
-                <label>Container Port</label>
+                <label>{{ $t("deployment.detail.domainForm.field.containerPort") }}</label>
                 <input
                   v-model.number="form.container_port"
                   type="number"
                   class="form-input"
-                  placeholder="80"
+                  :placeholder="$t('deployment.detail.domainForm.placeholder.containerPort')"
                   min="1"
                   max="65535"
                 />
@@ -42,60 +52,76 @@
             </div>
 
             <div class="form-group">
-              <label>Path Prefix</label>
-              <input v-model="form.path_prefix" type="text" class="form-input" placeholder="/api/v1" />
-              <span class="hint">Optional path prefix (e.g., /api/*)</span>
+              <label>{{ $t("deployment.detail.domainForm.field.pathPrefix") }}</label>
+              <input
+                v-model="form.path_prefix"
+                type="text"
+                class="form-input"
+                :placeholder="$t('deployment.detail.domainForm.placeholder.pathPrefix')"
+              />
+              <span class="hint">{{ $t("deployment.detail.domainForm.hint.pathPrefix") }}</span>
             </div>
 
             <div v-if="form.path_prefix" class="form-group checkbox-group">
               <label class="checkbox-label">
                 <input v-model="form.strip_prefix" type="checkbox" />
-                <span>Strip prefix before proxying</span>
+                <span>{{ $t("deployment.detail.domainForm.checkbox.stripPrefix") }}</span>
               </label>
-              <span class="hint">If enabled, /api/users will be sent to the backend as /users</span>
+              <span class="hint">{{ $t("deployment.detail.domainForm.hint.stripPrefix") }}</span>
             </div>
 
             <div class="form-section">
-              <h4>SSL Configuration</h4>
+              <h4>{{ $t("deployment.detail.domainForm.section.ssl") }}</h4>
 
               <div class="form-group checkbox-group">
                 <label class="checkbox-label">
                   <input v-model="form.ssl.enabled" type="checkbox" />
-                  <span>Enable SSL (HTTPS)</span>
+                  <span>{{ $t("deployment.detail.domainForm.checkbox.enableSsl") }}</span>
                 </label>
               </div>
 
               <div v-if="form.ssl.enabled" class="form-group checkbox-group">
                 <label class="checkbox-label">
                   <input v-model="form.ssl.auto_cert" type="checkbox" />
-                  <span>Auto-request Let's Encrypt certificate</span>
+                  <span>{{ $t("deployment.detail.domainForm.checkbox.autoCert") }}</span>
                 </label>
               </div>
             </div>
 
             <div class="form-group">
-              <label>Domain Aliases</label>
+              <label>{{ $t("deployment.detail.domainForm.field.domainAliases") }}</label>
               <div class="aliases-input">
                 <div v-for="(alias, index) in form.aliases" :key="index" class="alias-item">
-                  <input v-model="form.aliases[index]" type="text" class="form-input" placeholder="www.example.com" />
+                  <input
+                    v-model="form.aliases[index]"
+                    type="text"
+                    class="form-input"
+                    :placeholder="$t('deployment.detail.domainForm.placeholder.alias')"
+                  />
                   <button type="button" class="remove-btn" @click="removeAlias(index)">
                     <i class="pi pi-times" />
                   </button>
                 </div>
                 <button type="button" class="btn btn-sm btn-secondary" @click="addAlias">
                   <i class="pi pi-plus" />
-                  Add Alias
+                  {{ $t("deployment.detail.domainForm.action.addAlias") }}
                 </button>
               </div>
-              <span class="hint">Additional domain names that should also resolve here</span>
+              <span class="hint">{{ $t("deployment.detail.domainForm.hint.additionalAliases") }}</span>
             </div>
           </form>
 
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" :disabled="loading" @click="emit('cancel')">Cancel</button>
+            <button type="button" class="btn btn-secondary" :disabled="loading" @click="emit('cancel')">
+              {{ $t("deployment.detail.domainForm.action.cancel") }}
+            </button>
             <button type="button" class="btn btn-primary" :disabled="loading || !isValid" @click="handleSubmit">
               <i v-if="loading" class="pi pi-spin pi-spinner" />
-              {{ domain ? "Update" : "Add Domain" }}
+              {{
+                domain
+                  ? $t("deployment.detail.domainForm.action.updateDomain")
+                  : $t("deployment.detail.domainForm.action.addDomain")
+              }}
             </button>
           </div>
         </div>

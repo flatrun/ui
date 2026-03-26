@@ -1,27 +1,27 @@
 <template>
   <div class="users-view">
     <div class="view-header">
-      <h1>Users</h1>
+      <h1>{{ t("users.title") }}</h1>
       <div class="header-actions">
         <button class="btn btn-icon" :disabled="loading" @click="loadUsers">
           <i class="pi pi-refresh" :class="{ 'pi-spin': loading }" />
         </button>
         <button v-if="canWrite" class="btn btn-primary" @click="showCreateDialog = true">
           <i class="pi pi-plus" />
-          <span>Add User</span>
+          <span>{{ t("users.actions.addUser") }}</span>
         </button>
       </div>
     </div>
 
     <div v-if="loading && !users.length" class="loading-state">
       <i class="pi pi-spin pi-spinner" />
-      <span>Loading users...</span>
+      <span>{{ t("users.loading") }}</span>
     </div>
 
     <div v-else-if="error" class="error-state">
       <i class="pi pi-exclamation-circle" />
       <span>{{ error }}</span>
-      <button class="btn btn-sm" @click="loadUsers">Retry</button>
+      <button class="btn btn-sm" @click="loadUsers">{{ t("users.actions.retry") }}</button>
     </div>
 
     <div v-else class="users-content">
@@ -29,13 +29,13 @@
         <table class="data-table">
           <thead>
             <tr>
-              <th>Username</th>
-              <th>Email</th>
-              <th>Role</th>
-              <th>Permissions</th>
-              <th>Deployments</th>
-              <th>Status</th>
-              <th>Actions</th>
+              <th>{{ t("users.table.columns.username") }}</th>
+              <th>{{ t("users.table.columns.email") }}</th>
+              <th>{{ t("users.table.columns.role") }}</th>
+              <th>{{ t("users.table.columns.permissions") }}</th>
+              <th>{{ t("users.table.columns.deployments") }}</th>
+              <th>{{ t("users.table.columns.status") }}</th>
+              <th>{{ t("users.table.columns.actions") }}</th>
             </tr>
           </thead>
           <tbody>
@@ -46,30 +46,35 @@
               </td>
               <td>{{ user.email || "-" }}</td>
               <td>
-                <span class="role-badge" :class="user.role">{{ user.role }}</span>
+                <span class="role-badge" :class="user.role">{{ formatRole(user.role) }}</span>
               </td>
               <td>
                 <span v-if="user.permissions && user.permissions.length" class="perm-indicator custom">
-                  Custom ({{ user.permissions.length }})
+                  {{ t("users.table.permissions.custom", { n: user.permissions.length }) }}
                 </span>
-                <span v-else class="perm-indicator default">Role defaults</span>
+                <span v-else class="perm-indicator default">{{ t("users.table.permissions.roleDefaults") }}</span>
               </td>
               <td>
                 <span class="deploy-count">{{ user.deployment_count ?? 0 }}</span>
               </td>
               <td>
                 <span class="status-badge" :class="user.is_active ? 'active' : 'inactive'">
-                  {{ user.is_active ? "Active" : "Inactive" }}
+                  {{ user.is_active ? t("users.status.active") : t("users.status.inactive") }}
                 </span>
               </td>
               <td class="actions-cell">
-                <button v-if="canWrite" class="btn btn-icon btn-sm" title="Edit" @click="editUser(user)">
+                <button
+                  v-if="canWrite"
+                  class="btn btn-icon btn-sm"
+                  :title="t('users.actions.edit')"
+                  @click="editUser(user)"
+                >
                   <i class="pi pi-pencil" />
                 </button>
                 <button
                   v-if="canDelete && user.id !== currentUser?.id"
                   class="btn btn-icon btn-sm btn-danger"
-                  title="Delete"
+                  :title="t('users.actions.delete')"
                   @click="confirmDelete(user)"
                 >
                   <i class="pi pi-trash" />
@@ -85,7 +90,7 @@
     <div v-if="showCreateDialog || showEditDialog" class="modal-overlay" @click.self="closeDialogs">
       <div class="modal-content">
         <div class="modal-header">
-          <h2>{{ showEditDialog ? "Edit User" : "Create User" }}</h2>
+          <h2>{{ showEditDialog ? t("users.dialog.editTitle") : t("users.dialog.createTitle") }}</h2>
           <button class="btn btn-icon" @click="closeDialogs">
             <i class="pi pi-times" />
           </button>
@@ -98,7 +103,7 @@
             @click="activeTab = 'profile'"
           >
             <i class="pi pi-user" />
-            Profile
+            {{ t("users.dialog.tabs.profile") }}
           </button>
           <button
             class="tab-btn"
@@ -107,7 +112,7 @@
             @click="activeTab = 'permissions'"
           >
             <i class="pi pi-shield" />
-            Permissions
+            {{ t("users.dialog.tabs.permissions") }}
           </button>
           <button
             v-if="showEditDialog"
@@ -117,7 +122,7 @@
             @click="activeTab = 'deployments'"
           >
             <i class="pi pi-box" />
-            Deployments
+            {{ t("users.dialog.tabs.deployments") }}
             <span v-if="userDeployments.length" class="tab-count">{{ userDeployments.length }}</span>
           </button>
         </div>
@@ -125,29 +130,29 @@
           <!-- Profile Tab -->
           <div v-show="activeTab === 'profile'" class="tab-panel">
             <div class="form-group">
-              <label>Username</label>
+              <label>{{ t("users.fields.username") }}</label>
               <input v-model="formData.username" type="text" required :disabled="showEditDialog" />
             </div>
             <div class="form-group">
-              <label>Email</label>
+              <label>{{ t("users.fields.email") }}</label>
               <input v-model="formData.email" type="email" />
             </div>
             <div v-if="!showEditDialog" class="form-group">
-              <label>Password</label>
+              <label>{{ t("users.fields.password") }}</label>
               <input v-model="formData.password" type="password" required />
             </div>
             <div class="form-group">
-              <label>Role</label>
+              <label>{{ t("users.fields.role") }}</label>
               <select v-model="formData.role" required>
-                <option value="admin">Admin</option>
-                <option value="operator">Operator</option>
-                <option value="viewer">Viewer</option>
+                <option value="admin">{{ t("users.roles.admin") }}</option>
+                <option value="operator">{{ t("users.roles.operator") }}</option>
+                <option value="viewer">{{ t("users.roles.viewer") }}</option>
               </select>
             </div>
             <div v-if="showEditDialog" class="form-group">
               <label class="checkbox-label">
                 <input v-model="formData.is_active" type="checkbox" />
-                <span>Active</span>
+                <span>{{ t("users.status.active") }}</span>
               </label>
             </div>
           </div>
@@ -157,12 +162,16 @@
             <div class="form-group">
               <label class="checkbox-label">
                 <input v-model="formData.useCustomPermissions" type="checkbox" @change="onCustomPermissionsToggle" />
-                <span>Customize permissions</span>
+                <span>{{ t("users.dialog.permissions.customize") }}</span>
               </label>
-              <p v-if="!formData.useCustomPermissions" class="tab-hint">
-                Using <span class="role-perm-badge" :class="formData.role">{{ formData.role }}</span> role defaults.
-                Enable the checkbox above to override.
-              </p>
+              <i18n-t
+                v-if="!formData.useCustomPermissions"
+                keypath="users.dialog.permissions.roleDefaultsHint"
+                tag="p"
+                class="tab-hint"
+              >
+                <span class="role-perm-badge" :class="formData.role">{{ formatRole(formData.role) }}</span>
+              </i18n-t>
             </div>
             <PermissionPicker v-if="formData.useCustomPermissions" v-model="formData.customPermissions" />
             <PermissionPicker v-else :model-value="selectedRolePermissions" readonly />
@@ -170,16 +179,16 @@
 
           <!-- Deployments Tab (edit only) -->
           <div v-if="showEditDialog" v-show="activeTab === 'deployments'" class="tab-panel">
-            <p class="tab-hint">Control which deployments this user can access and at what level.</p>
+            <p class="tab-hint">{{ t("users.dialog.deployments.hint") }}</p>
             <div class="add-deployment-form">
               <select v-model="newDeployment.name">
-                <option value="">Select deployment...</option>
+                <option value="">{{ t("users.dialog.deployments.selectDeployment") }}</option>
                 <option v-for="dep in availableDeployments" :key="dep" :value="dep">{{ dep }}</option>
               </select>
               <select v-model="newDeployment.access_level">
-                <option value="read">Read</option>
-                <option value="write">Write</option>
-                <option value="admin">Admin</option>
+                <option value="read">{{ t("users.accessLevels.read") }}</option>
+                <option value="write">{{ t("users.accessLevels.write") }}</option>
+                <option value="admin">{{ t("users.accessLevels.admin") }}</option>
               </select>
               <button
                 type="button"
@@ -187,7 +196,7 @@
                 :disabled="!newDeployment.name"
                 @click="addDeploymentAccess"
               >
-                Add
+                {{ t("users.actions.add") }}
               </button>
             </div>
             <div v-if="userDeployments.length" class="deployments-list">
@@ -197,9 +206,9 @@
                   :value="dep.access_level"
                   @change="updateDeploymentAccess(dep.deployment_name, ($event.target as HTMLSelectElement).value)"
                 >
-                  <option value="read">Read</option>
-                  <option value="write">Write</option>
-                  <option value="admin">Admin</option>
+                  <option value="read">{{ t("users.accessLevels.read") }}</option>
+                  <option value="write">{{ t("users.accessLevels.write") }}</option>
+                  <option value="admin">{{ t("users.accessLevels.admin") }}</option>
                 </select>
                 <button
                   type="button"
@@ -212,14 +221,20 @@
             </div>
             <div v-else class="no-deployments">
               <i class="pi pi-info-circle" />
-              <span>No deployment access assigned</span>
+              <span>{{ t("users.dialog.deployments.none") }}</span>
             </div>
           </div>
 
           <div class="modal-actions">
-            <button type="button" class="btn" @click="closeDialogs">Cancel</button>
+            <button type="button" class="btn" @click="closeDialogs">{{ t("common.cancel") }}</button>
             <button type="submit" class="btn btn-primary" :disabled="saving">
-              {{ saving ? "Saving..." : showEditDialog ? "Update" : "Create" }}
+              {{
+                saving
+                  ? t("users.actions.saving")
+                  : showEditDialog
+                    ? t("users.actions.update")
+                    : t("users.actions.create")
+              }}
             </button>
           </div>
         </form>
@@ -230,16 +245,15 @@
     <div v-if="showDeleteDialog" class="modal-overlay" @click.self="closeDialogs">
       <div class="modal-content modal-sm">
         <div class="modal-header">
-          <h2>Delete User</h2>
+          <h2>{{ t("users.delete.title") }}</h2>
         </div>
-        <p>
-          Are you sure you want to delete user <strong>{{ selectedUser?.username }}</strong
-          >?
-        </p>
+        <i18n-t keypath="users.delete.message" tag="p">
+          <strong>{{ selectedUser?.username }}</strong>
+        </i18n-t>
         <div class="modal-actions">
-          <button class="btn" @click="closeDialogs">Cancel</button>
+          <button class="btn" @click="closeDialogs">{{ t("common.cancel") }}</button>
           <button class="btn btn-danger" :disabled="saving" @click="deleteUser">
-            {{ saving ? "Deleting..." : "Delete" }}
+            {{ saving ? t("users.delete.deleting") : t("users.actions.delete") }}
           </button>
         </div>
       </div>
@@ -249,15 +263,19 @@
 
 <script setup lang="ts">
 import { ref, onMounted, computed } from "vue";
+import { useI18n } from "vue-i18n";
 import type { User, UserRole, UserDeploymentAccess, Permission } from "@/types";
 import { useUsersStore } from "@/stores/users";
 import { useAuthStore } from "@/stores/auth";
 import { deploymentsApi } from "@/services/api";
+import { useNotificationsStore } from "@/stores/notifications";
 import PermissionPicker from "@/components/PermissionPicker.vue";
 import { getRolePermissions } from "@/utils/permissions";
 
 const usersStore = useUsersStore();
 const authStore = useAuthStore();
+const notifications = useNotificationsStore();
+const { t, te } = useI18n();
 
 const users = computed(() => usersStore.users);
 const loading = computed(() => usersStore.loading);
@@ -304,6 +322,11 @@ const loadUsers = async () => {
   await usersStore.fetchUsers();
 };
 
+const formatRole = (role: string) => {
+  const key = `users.roles.${role}`;
+  return te(key) ? t(key) : role;
+};
+
 const loadAllDeployments = async () => {
   try {
     const response = await deploymentsApi.list();
@@ -348,9 +371,10 @@ const createUser = async () => {
       role: formData.value.role,
       permissions: formData.value.useCustomPermissions ? formData.value.customPermissions : undefined,
     });
+    notifications.success(t("users.notifications.createdTitle"), t("users.notifications.createdDesc"));
     closeDialogs();
   } catch (e: any) {
-    alert(e.message);
+    notifications.error(t("users.notifications.createFailedTitle"), e.response?.data?.error || e.message);
   } finally {
     saving.value = false;
   }
@@ -373,9 +397,10 @@ const updateUser = async () => {
       is_active: formData.value.is_active,
       permissions,
     });
+    notifications.success(t("users.notifications.updatedTitle"), t("users.notifications.updatedDesc"));
     closeDialogs();
   } catch (e: any) {
-    alert(e.message);
+    notifications.error(t("users.notifications.updateFailedTitle"), e.response?.data?.error || e.message);
   } finally {
     saving.value = false;
   }
@@ -386,9 +411,10 @@ const deleteUser = async () => {
   saving.value = true;
   try {
     await usersStore.deleteUser(selectedUser.value.id);
+    notifications.success(t("users.notifications.deletedTitle"), t("users.notifications.deletedDesc"));
     closeDialogs();
   } catch (e: any) {
-    alert(e.message);
+    notifications.error(t("users.notifications.deleteFailedTitle"), e.response?.data?.error || e.message);
   } finally {
     saving.value = false;
   }
@@ -409,7 +435,7 @@ const addDeploymentAccess = async () => {
     });
     newDeployment.value = { name: "", access_level: "read" };
   } catch (e: any) {
-    alert(e.message);
+    notifications.error(t("users.notifications.assignDeploymentFailedTitle"), e.response?.data?.error || e.message);
   }
 };
 
@@ -422,7 +448,7 @@ const updateDeploymentAccess = async (deploymentName: string, accessLevel: strin
       dep.access_level = accessLevel as "read" | "write" | "admin";
     }
   } catch (e: any) {
-    alert(e.message);
+    notifications.error(t("users.notifications.updateDeploymentFailedTitle"), e.response?.data?.error || e.message);
   }
 };
 
@@ -432,7 +458,7 @@ const removeDeploymentAccess = async (deploymentName: string) => {
     await usersStore.removeDeploymentAccess(selectedUser.value.id, deploymentName);
     userDeployments.value = userDeployments.value.filter((d) => d.deployment_name !== deploymentName);
   } catch (e: any) {
-    alert(e.message);
+    notifications.error(t("users.notifications.removeDeploymentFailedTitle"), e.response?.data?.error || e.message);
   }
 };
 

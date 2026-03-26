@@ -63,9 +63,16 @@ export const useAuthStore = defineStore("auth", () => {
   const login = async (apiKey: string) => {
     loading.value = true;
     error.value = "";
+    const normalizedApiKey = apiKey.trim();
+
+    if (!normalizedApiKey) {
+      error.value = "API key is required";
+      loading.value = false;
+      return false;
+    }
 
     try {
-      const response = await apiClient.post("/auth/login", { api_key: apiKey });
+      const response = await apiClient.post("/auth/login", { api_key: normalizedApiKey });
       token.value = response.data.token;
       localStorage.setItem("auth_token", response.data.token);
 
