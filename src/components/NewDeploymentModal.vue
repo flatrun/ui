@@ -734,7 +734,10 @@
 
                         <div class="credentials-form">
                           <div class="form-field">
-                            <label for="dbName">Database Name</label>
+                            <label for="dbName">
+                              Database Name
+                              <span v-if="form.database.mode === 'existing'" class="required">*</span>
+                            </label>
                             <input
                               id="dbName"
                               v-model="form.database.dbName"
@@ -745,14 +748,21 @@
 
                           <div class="form-row">
                             <div class="form-field">
-                              <label for="dbUser">Username</label>
+                              <label for="dbUser">
+                                Username
+                                <span v-if="form.database.mode === 'existing'" class="required">*</span>
+                              </label>
                               <input id="dbUser" v-model="form.database.dbUser" type="text" placeholder="app" />
                             </div>
 
                             <div class="form-field">
                               <label for="dbPassword">
                                 Password
-                                <span v-if="form.database.mode === 'create'" class="required">*</span>
+                                <span
+                                  v-if="form.database.mode === 'create' || form.database.mode === 'existing'"
+                                  class="required"
+                                  >*</span
+                                >
                               </label>
                               <input
                                 id="dbPassword"
@@ -837,23 +847,15 @@
                           </div>
                           <div class="preview-item">
                             <span class="preview-label">Database</span>
-                            <code class="preview-value">{{
-                              form.database.dbName ||
-                              (form.name ? form.name.replace(/-/g, "_") + "_primary_db" : "app_primary_db")
-                            }}</code>
+                            <code class="preview-value">{{ form.database.dbName || "—" }}</code>
                           </div>
                           <div class="preview-item">
                             <span class="preview-label">User</span>
-                            <code class="preview-value">{{
-                              form.database.dbUser ||
-                              (form.name ? form.name.replace(/-/g, "_") + "_primary_user" : "app_primary_user")
-                            }}</code>
+                            <code class="preview-value">{{ form.database.dbUser || "—" }}</code>
                           </div>
                           <div class="preview-item">
                             <span class="preview-label">Password</span>
-                            <code class="preview-value">{{
-                              form.database.dbPassword ? "••••••••" : "(auto-generated)"
-                            }}</code>
+                            <code class="preview-value">{{ form.database.dbPassword ? "••••••••" : "—" }}</code>
                           </div>
                           <div class="preview-hint">
                             <i class="pi pi-info-circle" />
@@ -1662,8 +1664,15 @@ const canProceed = computed(() => {
   if (deploymentMode.value === "easy") {
     if (currentStep.value === 2) {
       if (form.database.type !== "none") {
-        if (form.database.mode === "existing" && !form.database.existingContainer) {
-          return false;
+        if (form.database.mode === "existing") {
+          if (
+            !form.database.existingContainer ||
+            !form.database.dbName.trim() ||
+            !form.database.dbUser.trim() ||
+            !form.database.dbPassword.trim()
+          ) {
+            return false;
+          }
         }
         if (form.database.mode === "external") {
           if (!form.database.externalHost.trim() || !form.database.externalPort.trim()) {
@@ -2377,38 +2386,44 @@ const handleCreate = async () => {
       }
     }
 
+    const mapDbToPayload = (db: DatabaseFormConfig) => ({
+      alias: db.alias,
+      type: db.type,
+      mode: db.mode,
+      service: db.service || undefined,
+      existing_container: db.mode === "existing" ? db.existingContainer : undefined,
+      external_host: db.mode === "external" ? db.externalHost : undefined,
+      external_port:
+        (db.mode === "existing" || db.mode === "external") && db.externalPort ? parseInt(db.externalPort) : undefined,
+      database_name: db.dbName || undefined,
+      username: db.dbUser || undefined,
+      password: db.mode === "existing" || db.mode === "external" ? db.dbPassword || undefined : undefined,
+      env_prefix: db.envPrefix || db.alias,
+    });
+
     const databases: Record<string, any>[] = [];
 
     if (form.database.mode === "existing" && form.database.existingContainer && form.database.type !== "none") {
-      databases.push({
-        alias: "primary",
-        type: form.database.type,
-        mode: "existing",
-        existing_container: form.database.existingContainer,
-        database_name: form.database.dbName || undefined,
-        username: form.database.dbUser || undefined,
-        password: form.database.dbPassword || undefined,
-        external_port: form.database.externalPort ? parseInt(form.database.externalPort) : undefined,
-      });
+      databases.push(
+        mapDbToPayload({
+          id: "primary",
+          alias: "primary",
+          type: form.database.type,
+          mode: "existing",
+          service: "",
+          existingContainer: form.database.existingContainer,
+          externalHost: "",
+          externalPort: form.database.externalPort,
+          dbName: form.database.dbName,
+          dbUser: form.database.dbUser,
+          dbPassword: form.database.dbPassword,
+          envPrefix: "",
+        }),
+      );
     }
 
     if (advancedOptions.multiDatabase && additionalDatabases.value.length > 0) {
-      const extraDbs = additionalDatabases.value
-        .filter((db) => db.type !== "none")
-        .map((db) => ({
-          alias: db.alias,
-          type: db.type,
-          mode: db.mode,
-          service: db.service || undefined,
-          existing_container: db.mode === "existing" ? db.existingContainer : undefined,
-          external_host: db.mode === "external" ? db.externalHost : undefined,
-          external_port: db.mode === "external" && db.externalPort ? parseInt(db.externalPort) : undefined,
-          database_name: db.dbName || undefined,
-          username: db.dbUser || undefined,
-          password: db.mode === "existing" || db.mode === "external" ? db.dbPassword || undefined : undefined,
-          env_prefix: db.envPrefix || db.alias,
-        }));
-      databases.push(...extraDbs);
+      additionalDatabases.value.filter((db) => db.type !== "none").forEach((db) => databases.push(mapDbToPayload(db)));
     }
 
     if (databases.length > 0) {
