@@ -838,12 +838,22 @@
                           <div class="preview-item">
                             <span class="preview-label">Database</span>
                             <code class="preview-value">{{
-                              form.database.dbName || (form.name ? form.name.replace(/-/g, "_") : "app_db")
+                              form.database.dbName ||
+                              (form.name ? form.name.replace(/-/g, "_") + "_primary_db" : "app_primary_db")
                             }}</code>
                           </div>
                           <div class="preview-item">
                             <span class="preview-label">User</span>
-                            <code class="preview-value">{{ form.database.dbUser || "app" }}</code>
+                            <code class="preview-value">{{
+                              form.database.dbUser ||
+                              (form.name ? form.name.replace(/-/g, "_") + "_primary_user" : "app_primary_user")
+                            }}</code>
+                          </div>
+                          <div class="preview-item">
+                            <span class="preview-label">Password</span>
+                            <code class="preview-value">{{
+                              form.database.dbPassword ? "••••••••" : "(auto-generated)"
+                            }}</code>
                           </div>
                           <div class="preview-hint">
                             <i class="pi pi-info-circle" />
@@ -2367,8 +2377,23 @@ const handleCreate = async () => {
       }
     }
 
+    const databases: Record<string, any>[] = [];
+
+    if (form.database.mode === "existing" && form.database.existingContainer && form.database.type !== "none") {
+      databases.push({
+        alias: "primary",
+        type: form.database.type,
+        mode: "existing",
+        existing_container: form.database.existingContainer,
+        database_name: form.database.dbName || undefined,
+        username: form.database.dbUser || undefined,
+        password: form.database.dbPassword || undefined,
+        external_port: form.database.externalPort ? parseInt(form.database.externalPort) : undefined,
+      });
+    }
+
     if (advancedOptions.multiDatabase && additionalDatabases.value.length > 0) {
-      const databases = additionalDatabases.value
+      const extraDbs = additionalDatabases.value
         .filter((db) => db.type !== "none")
         .map((db) => ({
           alias: db.alias,
@@ -2380,12 +2405,14 @@ const handleCreate = async () => {
           external_port: db.mode === "external" && db.externalPort ? parseInt(db.externalPort) : undefined,
           database_name: db.dbName || undefined,
           username: db.dbUser || undefined,
+          password: db.mode === "existing" || db.mode === "external" ? db.dbPassword || undefined : undefined,
           env_prefix: db.envPrefix || db.alias,
         }));
+      databases.push(...extraDbs);
+    }
 
-      if (databases.length > 0) {
-        payload.databases = databases;
-      }
+    if (databases.length > 0) {
+      payload.databases = databases;
     }
 
     if (finalDomain) {
