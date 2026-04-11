@@ -246,6 +246,16 @@
                       Request SSL
                     </button>
                     <button
+                      v-if="proxyStatus.ssl_enabled && proxyStatus.certificate_exists"
+                      class="btn btn-sm btn-secondary"
+                      :disabled="renewingSSL"
+                      title="Renew SSL certificates for this deployment"
+                      @click="handleRenewDeploymentSSL"
+                    >
+                      <i :class="renewingSSL ? 'pi pi-spin pi-spinner' : 'pi pi-sync'" />
+                      Renew SSL
+                    </button>
+                    <button
                       v-if="proxyStatus.ssl_enabled"
                       class="btn btn-sm btn-warning"
                       :disabled="disablingSSL"
@@ -1463,6 +1473,7 @@ const proxyStatus = ref<ProxyStatus | null>(null);
 const settingUpProxy = ref(false);
 const requestingCert = ref(false);
 const disablingSSL = ref(false);
+const renewingSSL = ref(false);
 const showAddDomainModal = ref(false);
 const addingDomain = ref(false);
 
@@ -1870,6 +1881,31 @@ const handleRequestCertificate = async () => {
     notifications.error("Request Failed", msg);
   } finally {
     requestingCert.value = false;
+  }
+};
+
+const handleRenewDeploymentSSL = async () => {
+  if (!deployment.value) return;
+
+  renewingSSL.value = true;
+  try {
+    const response = await certificatesApi.renewDeployment(deployment.value.name);
+    const result = response.data.result;
+    if (result && result.success === false) {
+      const failed = (result.results || [])
+        .filter((r: any) => !r.success)
+        .map((r: any) => r.domain)
+        .join(", ");
+      notifications.error("Partial Renewal", `Some certificates failed to renew: ${failed}`);
+    } else {
+      notifications.success("SSL Renewed", `Certificates for ${deployment.value.name} have been renewed`);
+    }
+    await fetchDeployment();
+  } catch (err: any) {
+    const msg = err.response?.data?.error || err.message;
+    notifications.error("Renewal Failed", msg);
+  } finally {
+    renewingSSL.value = false;
   }
 };
 

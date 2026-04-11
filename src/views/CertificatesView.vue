@@ -56,12 +56,21 @@
 
       <template #grid="{ items }">
         <div class="certificates-grid">
-          <div v-for="cert in items" :key="cert.domain" class="cert-card" :class="cert.status">
+          <div
+            v-for="cert in items"
+            :key="cert.domain"
+            class="cert-card"
+            :class="cert.status"
+            @click="openDetails(cert)"
+          >
             <div class="cert-header">
               <div class="cert-status">
                 <span class="status-badge" :class="cert.status">
                   <i :class="statusIcon(cert.status)" />
                   {{ cert.status }}
+                </span>
+                <span v-if="cert.auto_renew" class="auto-renew-chip" title="Auto-renew enabled">
+                  <i class="pi pi-sync" /> auto
                 </span>
               </div>
               <div class="cert-domain">
@@ -98,14 +107,26 @@
                 <i class="pi pi-folder" />
                 <span>{{ cert.path }}</span>
               </div>
-              <button
-                v-if="canDelete"
-                class="btn btn-danger-sm"
-                :disabled="deleting === cert.domain"
-                @click.stop="handleDelete(cert.domain)"
-              >
-                <i :class="deleting === cert.domain ? 'pi pi-spin pi-spinner' : 'pi pi-trash'" />
-              </button>
+              <div class="cert-actions">
+                <button
+                  v-if="canWrite"
+                  class="btn btn-icon-sm"
+                  :disabled="renewingDomain === cert.domain"
+                  title="Renew certificate"
+                  @click.stop="handleRenewOne(cert.domain)"
+                >
+                  <i :class="renewingDomain === cert.domain ? 'pi pi-spin pi-spinner' : 'pi pi-sync'" />
+                </button>
+                <button
+                  v-if="canDelete"
+                  class="btn btn-danger-sm"
+                  :disabled="deleting === cert.domain"
+                  title="Delete certificate"
+                  @click.stop="handleDelete(cert.domain)"
+                >
+                  <i :class="deleting === cert.domain ? 'pi pi-spin pi-spinner' : 'pi pi-trash'" />
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -125,6 +146,95 @@
     />
 
     <Teleport to="body">
+      <div v-if="detailsCert" class="modal-overlay" @click.self="closeDetails">
+        <div class="modal-container modal-lg">
+          <div class="modal-header">
+            <h3>
+              <i class="pi pi-shield" />
+              Certificate Details
+            </h3>
+            <button class="close-btn" @click="closeDetails">
+              <i class="pi pi-times" />
+            </button>
+          </div>
+          <div class="modal-body">
+            <div class="details-grid">
+              <div class="info-item">
+                <span class="info-label">Domain</span>
+                <span class="info-value">{{ detailsCert.domain }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Status</span>
+                <span class="status-badge" :class="detailsCert.status">
+                  <i :class="statusIcon(detailsCert.status)" />
+                  {{ detailsCert.status }}
+                </span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Issuer</span>
+                <span class="info-value">{{ detailsCert.issuer }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Days Left</span>
+                <span class="info-value days-left" :class="daysLeftClass(detailsCert.days_left)">
+                  {{ detailsCert.days_left }} days
+                </span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Valid From</span>
+                <span class="info-value">{{ formatDate(detailsCert.not_before) }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Expires</span>
+                <span class="info-value">{{ formatDate(detailsCert.not_after) }}</span>
+              </div>
+              <div v-if="detailsCert.deployment_id" class="info-item info-item-wide">
+                <span class="info-label">Deployment</span>
+                <router-link
+                  class="info-value deployment-link"
+                  :to="`/deployments/${detailsCert.deployment_id}`"
+                  @click="closeDetails"
+                >
+                  <i class="pi pi-box" />
+                  {{ detailsCert.deployment_id }}
+                </router-link>
+              </div>
+              <div class="info-item info-item-wide">
+                <span class="info-label">Path</span>
+                <span class="info-value path">{{ detailsCert.path }}</span>
+              </div>
+            </div>
+
+            <div v-if="canWrite" class="auto-renew-row">
+              <div>
+                <div class="auto-renew-title">Auto-Renewal</div>
+                <div class="hint">When enabled, this certificate will be renewed automatically before it expires.</div>
+              </div>
+              <label class="switch">
+                <input
+                  type="checkbox"
+                  :checked="detailsCert.auto_renew"
+                  :disabled="autoRenewSaving"
+                  @change="handleAutoRenewToggle($event)"
+                />
+                <span class="slider" />
+              </label>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" @click="closeDetails">Close</button>
+            <button
+              v-if="canWrite"
+              class="btn btn-primary"
+              :disabled="renewingDomain === detailsCert.domain"
+              @click="handleRenewOne(detailsCert.domain)"
+            >
+              <i :class="renewingDomain === detailsCert.domain ? 'pi pi-spin pi-spinner' : 'pi pi-sync'" />
+              {{ renewingDomain === detailsCert.domain ? "Renewing..." : "Renew Now" }}
+            </button>
+          </div>
+        </div>
+      </div>
       <div v-if="showRequestModal" class="modal-overlay" @click.self="showRequestModal = false">
         <div class="modal-container">
           <div class="modal-header">
@@ -207,10 +317,14 @@ const showRequestModal = ref(false);
 const newDomain = ref("");
 const requesting = ref(false);
 const renewingAll = ref(false);
+const renewingDomain = ref<string | null>(null);
 const deleting = ref<string | null>(null);
 
 const showDeleteModal = ref(false);
 const domainToDelete = ref<string | null>(null);
+
+const detailsCert = ref<Certificate | null>(null);
+const autoRenewSaving = ref(false);
 
 const columns = [
   { key: "domain", label: "Domain", sortable: true },
@@ -269,6 +383,56 @@ const handleRenewAll = async () => {
     notifications.error("Renewal Failed", msg);
   } finally {
     renewingAll.value = false;
+  }
+};
+
+const handleRenewOne = async (domain: string) => {
+  renewingDomain.value = domain;
+  try {
+    await certificatesApi.renewOne(domain);
+    notifications.success("Certificate Renewed", `Certificate for ${domain} has been renewed`);
+    await fetchCertificates();
+    if (detailsCert.value?.domain === domain) {
+      const refreshed = certificates.value.find((c) => c.domain === domain);
+      if (refreshed) detailsCert.value = refreshed;
+    }
+  } catch (e: any) {
+    const msg = e.response?.data?.error || e.message;
+    notifications.error("Renewal Failed", msg);
+  } finally {
+    renewingDomain.value = null;
+  }
+};
+
+const openDetails = (cert: Certificate) => {
+  detailsCert.value = { ...cert };
+};
+
+const closeDetails = () => {
+  detailsCert.value = null;
+};
+
+const handleAutoRenewToggle = async (event: Event) => {
+  if (!detailsCert.value) return;
+  const target = event.target as HTMLInputElement;
+  const enabled = target.checked;
+  const domain = detailsCert.value.domain;
+  autoRenewSaving.value = true;
+  try {
+    await certificatesApi.setAutoRenew(domain, enabled);
+    detailsCert.value.auto_renew = enabled;
+    const idx = certificates.value.findIndex((c) => c.domain === domain);
+    if (idx >= 0) certificates.value[idx] = { ...certificates.value[idx], auto_renew: enabled };
+    notifications.success(
+      enabled ? "Auto-Renew Enabled" : "Auto-Renew Disabled",
+      `${domain} will ${enabled ? "now be" : "no longer be"} renewed automatically`,
+    );
+  } catch (e: any) {
+    target.checked = !enabled;
+    const msg = e.response?.data?.error || e.message;
+    notifications.error("Update Failed", msg);
+  } finally {
+    autoRenewSaving.value = false;
   }
 };
 
@@ -742,9 +906,170 @@ onMounted(() => {
   color: #6b7280;
 }
 
+.cert-card {
+  cursor: pointer;
+}
+
+.cert-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.btn-icon-sm {
+  padding: 0.375rem;
+  background: #eef2ff;
+  color: #4338ca;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-icon-sm:hover:not(:disabled) {
+  background: #e0e7ff;
+}
+
+.btn-icon-sm:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.cert-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.auto-renew-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  background: #eef2ff;
+  color: #4338ca;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.modal-container.modal-lg {
+  max-width: 640px;
+}
+
+.details-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem 1.5rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.details-grid .info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.details-grid .info-item-wide {
+  grid-column: span 2;
+}
+
+.info-value.path {
+  font-family: "SF Mono", "Fira Code", monospace;
+  font-size: 0.75rem;
+  word-break: break-all;
+}
+
+.deployment-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  color: #4338ca;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.deployment-link:hover {
+  text-decoration: underline;
+}
+
+.auto-renew-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding-top: 1.25rem;
+}
+
+.auto-renew-title {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 0.25rem;
+}
+
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #d1d5db;
+  border-radius: 9999px;
+  transition: 0.2s;
+}
+
+.slider::before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  border-radius: 50%;
+  transition: 0.2s;
+}
+
+.switch input:checked + .slider {
+  background-color: #6366f1;
+}
+
+.switch input:checked + .slider::before {
+  transform: translateX(20px);
+}
+
+.switch input:disabled + .slider {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 @media (max-width: 768px) {
   .certificates-grid {
     grid-template-columns: 1fr;
+  }
+  .details-grid {
+    grid-template-columns: 1fr;
+  }
+  .details-grid .info-item-wide {
+    grid-column: span 1;
   }
 }
 </style>

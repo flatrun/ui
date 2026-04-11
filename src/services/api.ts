@@ -157,12 +157,25 @@ export const networksApi = {
 
 export const certificatesApi = {
   list: () => apiClient.get<{ certificates: Certificate[] }>("/certificates"),
+  get: (domain: string) => apiClient.get<{ certificate: Certificate }>(`/certificates/${encodeURIComponent(domain)}`),
   request: (domain: string) =>
     apiClient.post<{ message: string; result: any }>("/certificates", {
       domain,
     }),
   renew: () => apiClient.post<{ message: string; result: any }>("/certificates/renew"),
-  delete: (domain: string) => apiClient.delete(`/certificates/${domain}`),
+  renewOne: (domain: string) =>
+    apiClient.post<{ message: string; domain: string; result: any }>(
+      `/certificates/${encodeURIComponent(domain)}/renew`,
+    ),
+  setAutoRenew: (domain: string, autoRenew: boolean) =>
+    apiClient.patch<{ domain: string; auto_renew: boolean }>(`/certificates/${encodeURIComponent(domain)}/auto-renew`, {
+      auto_renew: autoRenew,
+    }),
+  renewDeployment: (name: string) =>
+    apiClient.post<{ message: string; deployment: string; result: any }>(
+      `/deployments/${encodeURIComponent(name)}/certificates/renew`,
+    ),
+  delete: (domain: string) => apiClient.delete(`/certificates/${encodeURIComponent(domain)}`),
 };
 
 export const proxyApi = {
