@@ -28,6 +28,7 @@ export interface ServiceMetadata {
   quick_actions?: QuickAction[];
   security?: DeploymentSecurityConfig;
   credential_id?: string;
+  service_credentials?: Record<string, string>;
   domains?: DomainConfig[];
   databases?: DatabaseConfig[];
 }
@@ -167,6 +168,7 @@ export interface RegistryCredential {
   id: string;
   name: string;
   registry_type_slug: string;
+  registry_url?: string;
   username: string;
   email?: string;
   is_default: boolean;

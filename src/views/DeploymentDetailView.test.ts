@@ -91,6 +91,10 @@ vi.mock("@/services/api", () => ({
     write: vi.fn().mockResolvedValue({ data: { message: "Written" } }),
     getContent: vi.fn().mockResolvedValue({ data: { content: "" } }),
   },
+  credentialsApi: {
+    list: vi.fn().mockResolvedValue({ data: { credentials: [] } }),
+    get: vi.fn().mockResolvedValue({ data: { credential: null } }),
+  },
 }));
 
 vi.mock("@/composables/useNotifications", () => ({

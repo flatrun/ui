@@ -120,7 +120,7 @@
                 </div>
                 <div class="info-row">
                   <span class="label">Registry</span>
-                  <span class="value">
+                  <span class="value value-inline">
                     <template v-if="registryCredential">
                       <span class="credential-badge">
                         <i class="pi pi-lock" />
@@ -141,6 +141,19 @@
                         Set credential
                       </button>
                     </template>
+                  </span>
+                </div>
+                <div v-if="hasServiceCredentials" class="info-row">
+                  <span class="label">Per-service</span>
+                  <span class="value service-credentials-summary">
+                    <span
+                      v-for="(credId, svc) in deployment.metadata?.service_credentials || {}"
+                      :key="svc"
+                      class="credential-badge"
+                    >
+                      <i class="pi pi-lock" />
+                      {{ svc }} → {{ credentialNameFor(credId) }}
+                    </span>
                   </span>
                 </div>
                 <div v-if="!isInfrastructure" class="info-row action-row">
@@ -180,7 +193,7 @@
                 <template v-else-if="proxyStatus && proxyStatus.exposed">
                   <div class="info-row">
                     <span class="label">Domain</span>
-                    <span class="value domain-link">
+                    <span class="value value-inline domain-link">
                       <a
                         :href="(proxyStatus.ssl_enabled ? 'https://' : 'http://') + proxyStatus.domain"
                         target="_blank"
@@ -188,22 +201,79 @@
                         {{ proxyStatus.domain }}
                         <i class="pi pi-external-link" />
                       </a>
+                      <button
+                        v-if="canWrite"
+                        class="btn btn-sm btn-icon"
+                        title="Add another domain to this deployment"
+                        @click="showAddDomainModal = true"
+                      >
+                        <i class="pi pi-plus" />
+                      </button>
+                      <button
+                        v-if="canWrite && singleDomainId"
+                        class="btn btn-sm btn-icon btn-icon-danger"
+                        title="Delete this domain"
+                        :disabled="deletingDomain"
+                        @click="handleDeleteDomain(singleDomainId!)"
+                      >
+                        <i :class="deletingDomain ? 'pi pi-spin pi-spinner' : 'pi pi-trash'" />
+                      </button>
                     </span>
                   </div>
                   <div class="info-row">
                     <span class="label">Virtual Host</span>
-                    <span class="value">
+                    <span class="value value-inline">
                       <span class="status-badge" :class="proxyStatus.virtual_host_exists ? 'running' : 'stopped'">
                         {{ proxyStatus.virtual_host_exists ? "Configured" : "Not Configured" }}
                       </span>
+                      <button
+                        v-if="!proxyStatus.virtual_host_exists"
+                        class="btn btn-sm btn-primary"
+                        :disabled="settingUpProxy"
+                        title="Create nginx virtual host configuration"
+                        @click="handleSetupProxy"
+                      >
+                        <i :class="settingUpProxy ? 'pi pi-spin pi-spinner' : 'pi pi-cog'" />
+                        Setup
+                      </button>
                     </span>
                   </div>
                   <div class="info-row">
                     <span class="label">SSL</span>
-                    <span class="value">
+                    <span class="value value-inline">
                       <span class="status-badge" :class="proxyStatus.ssl_enabled ? 'running' : 'stopped'">
                         {{ proxyStatus.ssl_enabled ? "Enabled" : "Disabled" }}
                       </span>
+                      <button
+                        v-if="proxyStatus.ssl_enabled && !proxyStatus.certificate_exists"
+                        class="btn btn-sm btn-success"
+                        :disabled="requestingCert"
+                        title="Request Let's Encrypt certificate"
+                        @click="handleRequestCertificate"
+                      >
+                        <i :class="requestingCert ? 'pi pi-spin pi-spinner' : 'pi pi-shield'" />
+                        Request
+                      </button>
+                      <button
+                        v-if="proxyStatus.ssl_enabled && proxyStatus.certificate_exists"
+                        class="btn btn-sm btn-secondary"
+                        :disabled="renewingSSL"
+                        title="Renew SSL certificates for this deployment"
+                        @click="handleRenewDeploymentSSL"
+                      >
+                        <i :class="renewingSSL ? 'pi pi-spin pi-spinner' : 'pi pi-sync'" />
+                        Renew
+                      </button>
+                      <button
+                        v-if="proxyStatus.ssl_enabled"
+                        class="btn btn-sm btn-warning"
+                        :disabled="disablingSSL"
+                        title="Disable SSL and revert to HTTP"
+                        @click="handleDisableSSL"
+                      >
+                        <i :class="disablingSSL ? 'pi pi-spin pi-spinner' : 'pi pi-lock-open'" />
+                        Disable
+                      </button>
                     </span>
                   </div>
                   <template v-if="proxyStatus.ssl_enabled && proxyStatus.certificate">
@@ -224,67 +294,6 @@
                       </span>
                     </div>
                   </template>
-                  <div class="proxy-actions">
-                    <button
-                      v-if="!proxyStatus.virtual_host_exists"
-                      class="btn btn-sm btn-primary"
-                      :disabled="settingUpProxy"
-                      title="Create nginx virtual host configuration"
-                      @click="handleSetupProxy"
-                    >
-                      <i :class="settingUpProxy ? 'pi pi-spin pi-spinner' : 'pi pi-cog'" />
-                      Setup Proxy
-                    </button>
-                    <button
-                      v-if="proxyStatus.ssl_enabled && !proxyStatus.certificate_exists"
-                      class="btn btn-sm btn-success"
-                      :disabled="requestingCert"
-                      title="Request Let's Encrypt certificate"
-                      @click="handleRequestCertificate"
-                    >
-                      <i :class="requestingCert ? 'pi pi-spin pi-spinner' : 'pi pi-shield'" />
-                      Request SSL
-                    </button>
-                    <button
-                      v-if="proxyStatus.ssl_enabled && proxyStatus.certificate_exists"
-                      class="btn btn-sm btn-secondary"
-                      :disabled="renewingSSL"
-                      title="Renew SSL certificates for this deployment"
-                      @click="handleRenewDeploymentSSL"
-                    >
-                      <i :class="renewingSSL ? 'pi pi-spin pi-spinner' : 'pi pi-sync'" />
-                      Renew SSL
-                    </button>
-                    <button
-                      v-if="proxyStatus.ssl_enabled"
-                      class="btn btn-sm btn-warning"
-                      :disabled="disablingSSL"
-                      title="Disable SSL and revert to HTTP"
-                      @click="handleDisableSSL"
-                    >
-                      <i :class="disablingSSL ? 'pi pi-spin pi-spinner' : 'pi pi-lock-open'" />
-                      Disable SSL
-                    </button>
-                    <button
-                      v-if="canWrite"
-                      class="btn btn-sm btn-secondary"
-                      title="Add another domain to this deployment"
-                      @click="showAddDomainModal = true"
-                    >
-                      <i class="pi pi-plus" />
-                      Add Domain
-                    </button>
-                    <button
-                      v-if="canWrite && singleDomainId"
-                      class="btn btn-sm btn-danger"
-                      title="Delete this domain"
-                      :disabled="deletingDomain"
-                      @click="handleDeleteDomain(singleDomainId!)"
-                    >
-                      <i :class="deletingDomain ? 'pi pi-spin pi-spinner' : 'pi pi-trash'" />
-                      Delete
-                    </button>
-                  </div>
                 </template>
                 <template v-else>
                   <div class="empty-proxy">
@@ -1255,15 +1264,34 @@
               Select a saved registry credential to use when pulling images for this deployment.
             </p>
             <div class="form-group">
-              <label>Credential</label>
+              <label>Default credential</label>
               <select v-model="selectedCredentialId" class="form-input">
                 <option :value="null">None (Public Registry)</option>
                 <option v-for="cred in allCredentials" :key="cred.id" :value="cred.id">
                   {{ cred.name }} ({{ cred.registry_type_slug }})
                 </option>
               </select>
+              <span class="hint">Used for images without a per-service mapping below.</span>
+            </div>
+            <div v-if="credentialServiceNames.length > 0" class="form-group">
+              <label>Per-service overrides</label>
+              <div class="service-credentials-list">
+                <div v-for="svc in credentialServiceNames" :key="svc" class="service-credential-row">
+                  <span class="service-credential-name">{{ svc }}</span>
+                  <select
+                    :value="selectedServiceCredentials[svc] || ''"
+                    class="form-input"
+                    @change="setServiceCredential(svc, ($event.target as HTMLSelectElement).value)"
+                  >
+                    <option value="">Inherit default</option>
+                    <option v-for="cred in allCredentials" :key="cred.id" :value="cred.id">
+                      {{ cred.name }} ({{ cred.registry_type_slug }})
+                    </option>
+                  </select>
+                </div>
+              </div>
               <span class="hint">
-                This credential will be used when pulling images on restart or update.
+                Override the default for specific services, useful for compose files that pull from multiple registries.
                 <router-link to="/settings?tab=credentials">Manage credentials</router-link>
               </span>
             </div>
@@ -1423,7 +1451,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, nextTick, watch } from "vue";
+import { ref, reactive, computed, onMounted, onUnmounted, nextTick, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { Codemirror } from "vue-codemirror";
 import { yaml } from "@codemirror/lang-yaml";
@@ -1544,7 +1572,31 @@ const registryCredential = ref<RegistryCredential | null>(null);
 const allCredentials = ref<RegistryCredential[]>([]);
 const showCredentialModal = ref(false);
 const selectedCredentialId = ref<string | null>(null);
+const selectedServiceCredentials = reactive<Record<string, string>>({});
 const savingCredential = ref(false);
+
+const credentialServiceNames = computed(() => {
+  const fromServices = (services.value || []).map((s) => s.name).filter(Boolean);
+  const fromMetadata = Object.keys(deployment.value?.metadata?.service_credentials || {});
+  return Array.from(new Set([...fromServices, ...fromMetadata])).sort();
+});
+
+const hasServiceCredentials = computed(() => {
+  const mapping = deployment.value?.metadata?.service_credentials || {};
+  return Object.keys(mapping).length > 0;
+});
+
+const credentialNameFor = (id: string) => {
+  return allCredentials.value.find((c) => c.id === id)?.name || id;
+};
+
+const setServiceCredential = (service: string, credentialId: string) => {
+  if (!credentialId) {
+    delete selectedServiceCredentials[service];
+  } else {
+    selectedServiceCredentials[service] = credentialId;
+  }
+};
 
 const showDeleteEnvModal = ref(false);
 const envKeyToDelete = ref("");
@@ -2361,6 +2413,11 @@ const saveDomainSettings = async () => {
 
 const openCredentialModal = async () => {
   selectedCredentialId.value = deployment.value?.metadata?.credential_id || null;
+  for (const key of Object.keys(selectedServiceCredentials)) delete selectedServiceCredentials[key];
+  const existing: Record<string, string> = deployment.value?.metadata?.service_credentials || {};
+  for (const [svc, credId] of Object.entries(existing)) {
+    if (credId) selectedServiceCredentials[svc] = credId;
+  }
   try {
     const response = await credentialsApi.list();
     allCredentials.value = response.data.credentials || [];
@@ -2375,6 +2432,7 @@ const saveCredential = async () => {
   try {
     await deploymentsApi.updateMetadata(route.params.name as string, {
       credential_id: selectedCredentialId.value || "",
+      service_credentials: { ...selectedServiceCredentials },
     });
     showCredentialModal.value = false;
     notifications.success("Saved", "Registry credential updated");
@@ -2476,6 +2534,14 @@ watch(activeTab, (newTab) => {
 
 onMounted(() => {
   fetchDeployment();
+  credentialsApi
+    .list()
+    .then((response) => {
+      allCredentials.value = response.data.credentials || [];
+    })
+    .catch(() => {
+      allCredentials.value = [];
+    });
   refreshInterval = window.setInterval(() => {
     if (logsFollow.value && activeTab.value === "logs") {
       fetchLogs();
@@ -2800,6 +2866,26 @@ onUnmounted(() => {
   border-radius: var(--radius-sm);
 }
 
+.info-row .value-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.info-row .value-inline .btn {
+  padding: 2px var(--space-2);
+  font-size: var(--text-xs);
+  line-height: 1.4;
+}
+
+.info-row .value-inline .btn-icon {
+  width: 24px;
+  height: 24px;
+  padding: 0;
+}
+
 .status-indicator {
   display: inline-block;
   width: 8px;
@@ -2849,19 +2935,6 @@ onUnmounted(() => {
 
 .text-warning {
   color: var(--color-warning-600);
-}
-
-.proxy-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-  margin-top: var(--space-3);
-  padding-top: var(--space-3);
-  border-top: 1px solid var(--color-gray-100);
-}
-
-.proxy-actions .btn {
-  white-space: nowrap;
 }
 
 .empty-proxy {
@@ -3516,6 +3589,15 @@ onUnmounted(() => {
 .btn-icon:hover {
   background: var(--color-gray-200);
   color: var(--color-gray-900);
+}
+
+.btn-icon.btn-icon-danger {
+  color: var(--color-danger-600);
+}
+
+.btn-icon.btn-icon-danger:hover {
+  background: var(--color-danger-50);
+  color: var(--color-danger-700);
 }
 
 .card-header {

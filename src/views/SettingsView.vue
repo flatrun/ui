@@ -658,6 +658,22 @@
                   />
                 </div>
                 <div class="form-group">
+                  <label class="form-label">Registry <span class="required">*</span></label>
+                  <select v-model="newCredential.registry_type_slug" class="form-control">
+                    <option v-for="rt in registryTypes" :key="rt.slug" :value="rt.slug">{{ rt.name }}</option>
+                  </select>
+                </div>
+                <div v-if="requiresRegistryURL" class="form-group">
+                  <label class="form-label">Registry URL <span class="required">*</span></label>
+                  <input
+                    v-model="newCredential.registry_url"
+                    type="text"
+                    class="form-control"
+                    :placeholder="registryURLPlaceholder"
+                  />
+                  <small class="field-hint">Account-specific hostname for this registry.</small>
+                </div>
+                <div class="form-group">
                   <label class="form-label">Username <span class="required">*</span></label>
                   <input
                     v-model="newCredential.username"
@@ -702,13 +718,7 @@
                 >
                   Cancel
                 </button>
-                <button
-                  class="btn btn-primary"
-                  :disabled="
-                    savingCredential || !newCredential.name || !newCredential.username || !newCredential.password
-                  "
-                  @click="createCredential"
-                >
+                <button class="btn btn-primary" :disabled="!canSubmitCredential" @click="createCredential">
                   <i v-if="savingCredential" class="pi pi-spin pi-spinner" />
                   <i v-else class="pi pi-save" />
                   Save Credential
@@ -786,9 +796,9 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from "vue";
-import { settingsApi, healthApi, templatesApi, credentialsApi } from "@/services/api";
+import { settingsApi, healthApi, templatesApi, credentialsApi, registriesApi } from "@/services/api";
 import type { DomainSettings } from "@/services/api";
-import type { RegistryCredential } from "@/types";
+import type { RegistryCredential, RegistryType } from "@/types";
 import { useNotificationsStore } from "@/stores/notifications";
 import { useAuthStore } from "@/stores/auth";
 import SecurityHealthCard from "@/components/SecurityHealthCard.vue";
@@ -897,9 +907,36 @@ const credentialToDelete = ref<RegistryCredential | null>(null);
 const showCredentialPassword = ref(false);
 const newCredential = reactive({
   name: "",
+  registry_type_slug: "docker-hub",
+  registry_url: "",
   username: "",
   password: "",
   is_default: false,
+});
+const registryTypes = ref<RegistryType[]>([]);
+
+const DYNAMIC_URL_SLUGS = new Set(["ecr", "gar", "acr"]);
+
+const requiresRegistryURL = computed(() => DYNAMIC_URL_SLUGS.has(newCredential.registry_type_slug));
+
+const registryURLPlaceholder = computed(() => {
+  switch (newCredential.registry_type_slug) {
+    case "ecr":
+      return "123456789.dkr.ecr.us-east-1.amazonaws.com";
+    case "gar":
+      return "europe-docker.pkg.dev";
+    case "acr":
+      return "myregistry.azurecr.io";
+    default:
+      return "";
+  }
+});
+
+const canSubmitCredential = computed(() => {
+  if (savingCredential.value) return false;
+  if (!newCredential.name || !newCredential.username || !newCredential.password) return false;
+  if (requiresRegistryURL.value && !newCredential.registry_url) return false;
+  return true;
 });
 
 const uiVersion = __APP_VERSION__;
@@ -964,14 +1001,25 @@ const deleteCredential = async () => {
 
 const resetNewCredentialForm = () => {
   newCredential.name = "";
+  newCredential.registry_type_slug = "docker-hub";
+  newCredential.registry_url = "";
   newCredential.username = "";
   newCredential.password = "";
   newCredential.is_default = false;
   showCredentialPassword.value = false;
 };
 
+const fetchRegistryTypes = async () => {
+  try {
+    const response = await registriesApi.list();
+    registryTypes.value = response.data.registry_types || [];
+  } catch (error) {
+    console.error("Failed to fetch registry types:", error);
+  }
+};
+
 const createCredential = async () => {
-  if (!newCredential.name || !newCredential.username || !newCredential.password) {
+  if (!canSubmitCredential.value) {
     notifications.error("Missing fields", "Please fill in all required fields.");
     return;
   }
@@ -979,7 +1027,8 @@ const createCredential = async () => {
   try {
     await credentialsApi.create({
       name: newCredential.name,
-      registry_type_slug: "docker-hub",
+      registry_type_slug: newCredential.registry_type_slug,
+      registry_url: newCredential.registry_url || undefined,
       username: newCredential.username,
       password: newCredential.password,
       is_default: newCredential.is_default,
@@ -1247,6 +1296,7 @@ onMounted(() => {
   fetchSettings();
   fetchAgentVersion();
   fetchCredentials();
+  fetchRegistryTypes();
 });
 </script>
 
