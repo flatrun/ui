@@ -63,6 +63,7 @@ export interface ServiceMetadata {
     interval: string;
   };
   credential_id?: string;
+  service_credentials?: Record<string, string>;
 }
 
 export interface EnvVar {
@@ -631,6 +632,7 @@ export const credentialsApi = {
   create: (data: {
     name: string;
     registry_type_slug: string;
+    registry_url?: string;
     username: string;
     password: string;
     email?: string;
@@ -640,6 +642,7 @@ export const credentialsApi = {
     id: string,
     data: {
       name?: string;
+      registry_url?: string;
       username?: string;
       password?: string;
       email?: string;

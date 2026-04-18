@@ -439,6 +439,35 @@
                             </Transition>
                           </div>
                         </template>
+
+                        <Transition name="collapse">
+                          <div
+                            v-if="existingCredentials.length > 0 && composeServiceNames.length > 1"
+                            class="per-service-credentials"
+                          >
+                            <div class="form-field">
+                              <label>Per-service credentials (optional)</label>
+                              <div class="per-service-list">
+                                <div v-for="svc in composeServiceNames" :key="svc" class="per-service-row">
+                                  <span class="per-service-name">{{ svc }}</span>
+                                  <select
+                                    :value="form.registry.serviceCredentials[svc] || ''"
+                                    class="form-select"
+                                    @change="setServiceCredential(svc, ($event.target as HTMLSelectElement).value)"
+                                  >
+                                    <option value="">Use default</option>
+                                    <option v-for="cred in existingCredentials" :key="cred.id" :value="cred.id">
+                                      {{ cred.name }} ({{ cred.registry_type_slug }})
+                                    </option>
+                                  </select>
+                                </div>
+                              </div>
+                              <span class="hint">
+                                Override the default credential for individual services pulling from other registries.
+                              </span>
+                            </div>
+                          </div>
+                        </Transition>
                       </div>
                     </Transition>
 
@@ -1356,6 +1385,7 @@ import { oneDark } from "@codemirror/theme-one-dark";
 import BaseModal from "@/components/base/BaseModal.vue";
 import { deploymentsApi, templatesApi, settingsApi, containersApi, composeApi, credentialsApi } from "@/services/api";
 import type { RegistryCredential } from "@/types";
+import { extractComposeServiceNames } from "@/utils/compose";
 import { useNotificationsStore } from "@/stores/notifications";
 
 interface TemplateMount {
@@ -1421,6 +1451,16 @@ const deploymentMode = ref<"" | "easy" | "compose" | "image">("");
 const showRegistryPassword = ref(false);
 const existingCredentials = ref<RegistryCredential[]>([]);
 const loadingCredentials = ref(false);
+
+const composeServiceNames = computed(() => extractComposeServiceNames(form.composeContent));
+
+const setServiceCredential = (service: string, credentialId: string) => {
+  if (!credentialId) {
+    delete form.registry.serviceCredentials[service];
+  } else {
+    form.registry.serviceCredentials[service] = credentialId;
+  }
+};
 
 const advancedOptions = reactive({
   multiDomain: false,
@@ -1604,6 +1644,7 @@ const form = reactive({
     password: "",
     saveCredential: false,
     credentialName: "",
+    serviceCredentials: {} as Record<string, string>,
   },
 });
 
@@ -2238,6 +2279,7 @@ watch(
         password: "",
         saveCredential: false,
         credentialName: "",
+        serviceCredentials: {},
       };
       showRegistryPassword.value = false;
       existingDbContainers.value = [];
@@ -2384,6 +2426,10 @@ const handleCreate = async () => {
           credential_name: form.registry.credentialName || `${form.name}-registry`,
         };
       }
+      const serviceCreds = Object.fromEntries(Object.entries(form.registry.serviceCredentials).filter(([, id]) => id));
+      if (Object.keys(serviceCreds).length > 0) {
+        payload.service_credentials = serviceCreds;
+      }
     }
 
     const mapDbToPayload = (db: DatabaseFormConfig) => ({
@@ -2430,9 +2476,8 @@ const handleCreate = async () => {
       payload.databases = databases;
     }
 
+    const domainsArray = [];
     if (finalDomain) {
-      const domainsArray = [];
-
       domainsArray.push({
         id: "primary",
         domain: finalDomain,
@@ -2458,27 +2503,27 @@ const handleCreate = async () => {
           }
         }
       }
-
-      payload.metadata = {
-        name: form.name,
-        type: "web",
-        networking: {
-          expose: true,
-          domain: finalDomain,
-          container_port: form.networking.ports[0]?.containerPort || 80,
-          protocol: form.networking.protocol || "http",
-        },
-        ssl: {
-          enabled: form.ssl.enabled,
-          auto_cert: form.ssl.autoCert,
-        },
-        healthcheck: {
-          path: "/health",
-          interval: "30s",
-        },
-        domains: domainsArray.length > 1 ? domainsArray : undefined,
-      };
     }
+
+    payload.metadata = {
+      name: form.name,
+      type: "web",
+      networking: {
+        expose: Boolean(finalDomain),
+        domain: finalDomain || "",
+        container_port: form.networking.ports[0]?.containerPort || 80,
+        protocol: form.networking.protocol || "http",
+      },
+      ssl: {
+        enabled: form.ssl.enabled,
+        auto_cert: form.ssl.autoCert,
+      },
+      healthcheck: {
+        path: "/health",
+        interval: "30s",
+      },
+      domains: domainsArray.length > 1 ? domainsArray : undefined,
+    };
 
     await deploymentsApi.create(payload);
     emit("created");
