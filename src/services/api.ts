@@ -108,6 +108,25 @@ export const deploymentsApi = {
     apiClient.post<{ message: string; action_id: string; output: string }>(`/deployments/${name}/actions/${actionId}`),
   logs: (name: string) => apiClient.get(`/deployments/${name}/logs`),
   getComposeFile: (name: string) => apiClient.get(`/deployments/${name}/compose`),
+  addComposeMount: (
+    name: string,
+    mount: {
+      source_path: string;
+      target_path: string;
+      service_name: string;
+      read_only: boolean;
+      selinux?: "" | "z" | "Z";
+    },
+  ) =>
+    apiClient.post<{
+      message: string;
+      name: string;
+      filename: string;
+      content: string;
+      service_name: string;
+      mount: string;
+      added: boolean;
+    }>(`/deployments/${name}/compose/mount`, mount),
   getStats: (name: string) =>
     apiClient.get<{
       deployment: string;

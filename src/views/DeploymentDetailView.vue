@@ -452,7 +452,12 @@
         </div>
 
         <div v-if="activeTab === 'files'" class="files-tab">
-          <FileBrowser :deployment-name="route.params.name as string" />
+          <FileBrowser
+            :deployment-name="route.params.name as string"
+            :service-names="composeServiceNames"
+            :mounts="composeMounts"
+            @mount-compose="handleComposeMount"
+          />
         </div>
 
         <div v-if="activeTab === 'logs'" class="logs-tab">
@@ -885,7 +890,7 @@
               <h3>Docker Compose Configuration</h3>
               <div class="config-actions">
                 <button class="btn btn-sm btn-secondary" @click="copyConfig"><i class="pi pi-copy" /> Copy</button>
-                <button v-if="!isEditingConfig" class="btn btn-sm btn-primary" @click="isEditingConfig = true">
+                <button v-if="!isEditingConfig" class="btn btn-sm btn-primary" @click="startConfigEdit">
                   <i class="pi pi-pencil" /> Edit
                 </button>
                 <template v-else>
@@ -1477,6 +1482,7 @@ import BackupsTab from "@/components/BackupsTab.vue";
 import DomainsManager from "@/components/DomainsManager.vue";
 import DomainFormModal from "@/components/DomainFormModal.vue";
 import ContainerResourcesModal from "@/components/ContainerResourcesModal.vue";
+import { extractComposeMounts, extractComposeServiceNames } from "@/utils/compose";
 
 const route = useRoute();
 const router = useRouter();
@@ -1589,6 +1595,14 @@ const hasServiceCredentials = computed(() => {
 const credentialNameFor = (id: string) => {
   return allCredentials.value.find((c) => c.id === id)?.name || id;
 };
+
+const composeServiceNames = computed(() => {
+  const names = extractComposeServiceNames(composeConfig.value);
+  if (names.length > 0) return names;
+  return services.value.map((service) => service.name).filter(Boolean);
+});
+
+const composeMounts = computed(() => extractComposeMounts(composeConfig.value));
 
 const setServiceCredential = (service: string, credentialId: string) => {
   if (!credentialId) {
@@ -2445,6 +2459,39 @@ const saveCredential = async () => {
   }
 };
 
+const handleComposeMount = async (mount: {
+  sourcePath: string;
+  targetPath: string;
+  serviceName: string;
+  readOnly: boolean;
+  name: string;
+}) => {
+  try {
+    const response = await deploymentsApi.addComposeMount(route.params.name as string, {
+      source_path: mount.sourcePath,
+      target_path: mount.targetPath,
+      service_name: mount.serviceName,
+      read_only: mount.readOnly,
+    });
+
+    composeConfig.value = response.data.content;
+    originalConfig = response.data.content;
+    composeFilename.value = response.data.filename || composeFilename.value;
+    activeTab.value = "config";
+    activeConfigTab.value = "compose";
+    isEditingConfig.value = false;
+
+    if (response.data.added) {
+      notifications.success("Mount Added", `${mount.name} mounted into ${response.data.service_name}.`);
+    } else {
+      notifications.info("Mount Exists", `${mount.name} is already mounted in ${response.data.service_name}.`);
+    }
+  } catch (err: any) {
+    const msg = err.response?.data?.error || err.message;
+    notifications.error("Mount Failed", msg || "Could not update compose configuration");
+  }
+};
+
 const copyConfig = () => {
   navigator.clipboard.writeText(composeConfig.value);
   notifications.success("Copied", "Configuration copied to clipboard");
@@ -2457,6 +2504,11 @@ const copyServiceConfig = () => {
 
 let originalConfig = "";
 let originalServiceConfig = "";
+
+const startConfigEdit = () => {
+  originalConfig = composeConfig.value;
+  isEditingConfig.value = true;
+};
 
 const cancelConfigEdit = () => {
   composeConfig.value = originalConfig;
@@ -2496,12 +2548,6 @@ const saveServiceConfig = async () => {
     notifications.error("Save Failed", msg);
   }
 };
-
-watch(isEditingConfig, (editing) => {
-  if (editing) {
-    originalConfig = composeConfig.value;
-  }
-});
 
 watch(isEditingServiceConfig, (editing) => {
   if (editing) {
