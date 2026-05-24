@@ -126,6 +126,14 @@
             <button v-if="!file.is_dir" class="action-btn" title="Download" @click="downloadFile(file)">
               <i class="pi pi-download" />
             </button>
+            <button
+              class="action-btn"
+              :class="{ 'is-mounted': fileMounts(file).length > 0 }"
+              :title="mountTooltip(file)"
+              @click="openMountModal(file)"
+            >
+              <i class="pi pi-link" />
+            </button>
             <button class="action-btn delete" title="Delete" @click="confirmDelete(file)">
               <i class="pi pi-trash" />
             </button>
@@ -169,6 +177,14 @@
             </button>
             <button v-if="!file.is_dir" class="action-btn" title="Download" @click="downloadFile(file)">
               <i class="pi pi-download" />
+            </button>
+            <button
+              class="action-btn"
+              :class="{ 'is-mounted': fileMounts(file).length > 0 }"
+              :title="mountTooltip(file)"
+              @click="openMountModal(file)"
+            >
+              <i class="pi pi-link" />
             </button>
             <button class="action-btn delete" title="Delete" @click="confirmDelete(file)">
               <i class="pi pi-trash" />
@@ -240,6 +256,52 @@
         </div>
       </div>
 
+      <div v-if="showMountModal" class="modal-overlay" @click.self="showMountModal = false">
+        <div class="modal-container small">
+          <div class="modal-header">
+            <h3>
+              <i class="pi pi-link" />
+              Add Compose Mount
+            </h3>
+          </div>
+          <div class="modal-body">
+            <div class="mount-source">
+              <span>Host path</span>
+              <code>{{ mountSourcePath }}</code>
+            </div>
+            <div class="form-group">
+              <label>Service</label>
+              <select v-model="mountServiceName" class="form-input">
+                <option v-for="service in mountServiceOptions" :key="service" :value="service">
+                  {{ service }}
+                </option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Container path</label>
+              <input
+                v-model="mountTargetPath"
+                type="text"
+                class="form-input"
+                placeholder="/app/storage"
+                @keyup.enter="confirmMount"
+              />
+            </div>
+            <label class="checkbox-label">
+              <input v-model="mountReadOnly" type="checkbox" />
+              <span>Read only</span>
+            </label>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" @click="showMountModal = false">Cancel</button>
+            <button class="btn btn-primary" :disabled="!mountTargetPath.trim()" @click="confirmMount">
+              <i class="pi pi-check" />
+              Add Mount
+            </button>
+          </div>
+        </div>
+      </div>
+
       <div v-if="showEditorModal" class="modal-overlay">
         <div class="modal-container editor-modal">
           <div class="modal-header">
@@ -298,9 +360,25 @@ import { yaml } from "@codemirror/lang-yaml";
 import { oneDark } from "@codemirror/theme-one-dark";
 import { filesApi, type FileInfo } from "@/services/api";
 import { useNotificationsStore } from "@/stores/notifications";
+import { toComposeRelativePath, type ComposeMount } from "@/utils/compose";
 
 const props = defineProps<{
   deploymentName: string;
+  serviceNames?: string[];
+  mounts?: ComposeMount[];
+}>();
+
+const emit = defineEmits<{
+  mountCompose: [
+    mount: {
+      sourcePath: string;
+      targetPath: string;
+      serviceName: string;
+      readOnly: boolean;
+      isDirectory: boolean;
+      name: string;
+    },
+  ];
 }>();
 
 const notifications = useNotificationsStore();
@@ -324,6 +402,12 @@ const showDeleteModal = ref(false);
 const fileToDelete = ref<FileInfo | null>(null);
 const deleting = ref(false);
 
+const showMountModal = ref(false);
+const fileToMount = ref<FileInfo | null>(null);
+const mountServiceName = ref("");
+const mountTargetPath = ref("");
+const mountReadOnly = ref(false);
+
 const showHiddenFiles = ref(true);
 const viewMode = ref<"list" | "grid">("list");
 
@@ -338,6 +422,37 @@ const viewOnly = ref(false);
 const editorExtensions = [yaml(), oneDark];
 
 const fileModified = computed(() => fileContent.value !== originalContent.value);
+
+const mountServiceOptions = computed(() => {
+  const names = props.serviceNames?.filter(Boolean) || [];
+  return names.length > 0 ? names : [props.deploymentName];
+});
+
+const mountSourcePath = computed(() => {
+  if (!fileToMount.value) return "";
+  return toComposeRelativePath(fileToMount.value.path);
+});
+
+const mountsBySource = computed(() => {
+  const grouped = new Map<string, ComposeMount[]>();
+  for (const mount of props.mounts || []) {
+    const list = grouped.get(mount.source);
+    if (list) list.push(mount);
+    else grouped.set(mount.source, [mount]);
+  }
+  return grouped;
+});
+
+const fileMounts = (file: FileInfo): ComposeMount[] => {
+  return mountsBySource.value.get(toComposeRelativePath(file.path)) || [];
+};
+
+const mountTooltip = (file: FileInfo): string => {
+  const matches = fileMounts(file);
+  if (matches.length === 0) return "Add compose mount";
+  const services = Array.from(new Set(matches.map((m) => m.service))).join(", ");
+  return `Mounted in ${services}`;
+};
 
 const pathParts = computed(() => {
   return currentPath.value.split("/").filter((p) => p.length > 0);
@@ -473,6 +588,29 @@ const createFolder = async () => {
 const confirmDelete = (file: FileInfo) => {
   fileToDelete.value = file;
   showDeleteModal.value = true;
+};
+
+const openMountModal = (file: FileInfo) => {
+  fileToMount.value = file;
+  mountServiceName.value = mountServiceOptions.value[0] || props.deploymentName;
+  mountTargetPath.value = file.path;
+  mountReadOnly.value = !file.is_dir;
+  showMountModal.value = true;
+};
+
+const confirmMount = () => {
+  if (!fileToMount.value || !mountTargetPath.value.trim()) return;
+
+  emit("mountCompose", {
+    sourcePath: mountSourcePath.value,
+    targetPath: mountTargetPath.value.trim(),
+    serviceName: mountServiceName.value,
+    readOnly: mountReadOnly.value,
+    isDirectory: fileToMount.value.is_dir,
+    name: fileToMount.value.name,
+  });
+  showMountModal.value = false;
+  fileToMount.value = null;
 };
 
 const deleteFile = async () => {
@@ -831,7 +969,7 @@ onMounted(() => {
 
 .file-list-header {
   display: grid;
-  grid-template-columns: 1fr 100px 180px 100px;
+  grid-template-columns: 1fr 100px 180px 116px;
   padding: var(--space-2) var(--space-4);
   background: var(--color-gray-50);
   border-bottom: 1px solid var(--color-gray-200);
@@ -842,7 +980,7 @@ onMounted(() => {
 
 .file-item {
   display: grid;
-  grid-template-columns: 1fr 100px 180px 100px;
+  grid-template-columns: 1fr 100px 180px 116px;
   padding: var(--space-3) var(--space-4);
   border-bottom: 1px solid var(--color-gray-100);
   cursor: pointer;
@@ -904,8 +1042,8 @@ onMounted(() => {
 }
 
 .action-btn {
-  width: 28px;
-  height: 28px;
+  width: 24px;
+  height: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -920,6 +1058,15 @@ onMounted(() => {
 .action-btn:hover {
   background: var(--color-gray-200);
   color: var(--color-gray-900);
+}
+
+.action-btn.is-mounted {
+  background: var(--color-success-50);
+  color: var(--color-success-700);
+}
+
+.action-btn.is-mounted:hover {
+  background: var(--color-success-100);
 }
 
 .action-btn.delete {
@@ -992,6 +1139,35 @@ onMounted(() => {
 .warning-text {
   color: var(--color-warning-600);
   font-size: var(--text-sm);
+}
+
+.mount-source {
+  display: grid;
+  gap: var(--space-1);
+  margin-bottom: var(--space-3);
+}
+
+.mount-source span {
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--color-gray-700);
+}
+
+.mount-source code {
+  padding: var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--color-gray-100);
+  color: var(--color-gray-700);
+  word-break: break-all;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--color-gray-700);
+  cursor: pointer;
 }
 
 .modal-footer {
