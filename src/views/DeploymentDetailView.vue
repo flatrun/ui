@@ -456,6 +456,7 @@
             :deployment-name="route.params.name as string"
             :service-names="composeServiceNames"
             :mounts="composeMounts"
+            :enable-mount="true"
             @mount-compose="handleComposeMount"
           />
         </div>

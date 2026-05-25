@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.2.0] - 2026-05-25
+
+### Added
+- API key edit dialog with per-deployment access levels (read/write/admin)
+- Shared `TabbedFormModal` and `DeploymentAccessField` components used by both user and API key dialogs
+- Deployment protected-mode panel: blocked actions, blocked command rules, human-readable rule explanations
+- System terminal protection panel in settings, sharing the same rule helpers
+- System-wide file manager with chmod, file creation, hidden-file and system-folder toggles
+- System-wide terminal view gated by a new permission
+- Default landing on the user's home directory in the system file manager
+
+### Enhanced
+- File browser is now context-agnostic via an injected API adapter; row actions collapsed into an overflow menu
+- Auth interceptor narrowed so a per-resource 401 no longer logs the user out
+- Vite dev proxy tightened to a regex prefix so `/api-keys` is not swallowed by the `/api` rule
+
+### Fixed
+- Mount action restored in the deployment file browser after the file-manager refactor
+- Stair-step rendering in the system terminal (line-feed conversion)
+- Modal corners not rounded due to missing overflow clipping
+- Blank initial render in the file view while the first listing was in flight
+- Danger button colors falling back to white due to an undefined CSS variable
+
 ## [0.1.5] - 2026-03-22
 
 ### Added
