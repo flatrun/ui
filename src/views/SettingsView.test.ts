@@ -97,10 +97,10 @@ describe("SettingsView", () => {
   });
 
   describe("Tab navigation", () => {
-    it("displays all six tabs", () => {
+    it("displays all seven tabs", () => {
       const wrapper = mountView();
       const tabs = wrapper.findAll(".tab");
-      expect(tabs.length).toBe(6);
+      expect(tabs.length).toBe(7);
     });
 
     it("has General tab", () => {
@@ -126,6 +126,11 @@ describe("SettingsView", () => {
     it("has Credentials tab", () => {
       const wrapper = mountView();
       expect(wrapper.text()).toContain("Credentials");
+    });
+
+    it("has Terminal tab", () => {
+      const wrapper = mountView();
+      expect(wrapper.text()).toContain("Terminal");
     });
 
     it("General tab is active by default", () => {

@@ -138,6 +138,7 @@ const connect = () => {
         // Not JSON, might be an error message before auth
       }
       // If we get data before auth_success, show as error
+      // eslint-disable-next-line no-control-regex
       const text = data.replace(/\x1b\[[0-9;]*m/g, "").trim();
       if (text) {
         explicitCloseMessage = text;

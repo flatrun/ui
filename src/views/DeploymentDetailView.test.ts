@@ -159,11 +159,11 @@ describe("DeploymentDetailView", () => {
   });
 
   describe("Tab navigation", () => {
-    it("displays all nine tabs", async () => {
+    it("displays all ten tabs", async () => {
       const wrapper = mountView();
       await flushPromises();
       const tabs = wrapper.findAll(".tab-btn");
-      expect(tabs.length).toBe(9);
+      expect(tabs.length).toBe(10);
     });
 
     it("has Overview tab", async () => {
@@ -212,6 +212,13 @@ describe("DeploymentDetailView", () => {
       const wrapper = mountView();
       await flushPromises();
       expect(wrapper.text()).toContain("Security");
+    });
+
+    it("has Settings tab", async () => {
+      const wrapper = mountView();
+      await flushPromises();
+      const tabs = wrapper.findAll(".tab-btn");
+      expect(tabs.some((t) => t.text().trim() === "Settings")).toBe(true);
     });
 
     it("has Configuration tab", async () => {

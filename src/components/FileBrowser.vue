@@ -386,7 +386,7 @@
             </div>
             <div class="permissions-grid">
               <div class="permissions-grid-header">
-                <span></span>
+                <span />
                 <span>Read</span>
                 <span>Write</span>
                 <span>Execute</span>
@@ -551,10 +551,6 @@ const toggleRowMenu = (path: string) => {
   rowMenuOpenFor.value = rowMenuOpenFor.value === path ? null : path;
 };
 
-const closeRowMenu = () => {
-  rowMenuOpenFor.value = null;
-};
-
 const onMenuAction = (action: "mount" | "permissions" | "delete", file: FileInfo) => {
   rowMenuOpenFor.value = null;
   if (action === "mount") openMountModal(file);
@@ -632,13 +628,6 @@ const mountsBySource = computed(() => {
 
 const fileMounts = (file: FileInfo): ComposeMount[] => {
   return mountsBySource.value.get(toComposeRelativePath(file.path)) || [];
-};
-
-const mountTooltip = (file: FileInfo): string => {
-  const matches = fileMounts(file);
-  if (matches.length === 0) return "Add compose mount";
-  const services = Array.from(new Set(matches.map((m) => m.service))).join(", ");
-  return `Mounted in ${services}`;
 };
 
 const pathParts = computed(() => {
