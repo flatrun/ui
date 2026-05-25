@@ -865,6 +865,153 @@
           </div>
         </div>
 
+        <div v-if="activeTab === 'settings'" class="settings-tab">
+          <div class="security-section protected-mode-section">
+            <div class="section-header">
+              <div class="section-title">
+                <i class="pi pi-lock" />
+                <h3>Protected Mode</h3>
+              </div>
+              <label class="toggle-switch">
+                <input
+                  v-model="protectedMode.enabled"
+                  type="checkbox"
+                  :disabled="savingProtectedMode"
+                  @change="saveProtectedMode"
+                />
+                <span class="toggle-slider" />
+              </label>
+            </div>
+            <p class="section-description">
+              When enabled, the actions selected below are refused with a 423 Locked status. Use this on production
+              deployments to prevent accidental destructive operations.
+            </p>
+            <div class="section-body">
+              <div class="protected-mode-grid">
+                <label class="delete-option compact">
+                  <input
+                    v-model="protectedMode.disable_terminal"
+                    type="checkbox"
+                    :disabled="!protectedMode.enabled || savingProtectedMode"
+                    @change="saveProtectedMode"
+                  />
+                  <span class="option-content">
+                    <span class="option-label">Disable terminal</span>
+                    <span class="option-hint">Block interactive shell sessions</span>
+                  </span>
+                </label>
+                <div class="blocked-actions">
+                  <span class="field-label">Blocked actions</span>
+                  <span class="field-help"
+                    >Click an action to toggle whether it is refused while protected mode is on.</span
+                  >
+                  <div class="action-chips">
+                    <button
+                      v-for="action in protectedActionOptions"
+                      :key="action.value"
+                      class="preset-btn"
+                      :class="{ active: isProtectedActionBlocked(action.value) }"
+                      :disabled="!protectedMode.enabled || savingProtectedMode"
+                      :title="action.hint"
+                      @click="toggleProtectedAction(action.value)"
+                    >
+                      <i :class="isProtectedActionBlocked(action.value) ? 'pi pi-check' : 'pi pi-plus'" />
+                      {{ action.label }}
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="command-rules">
+                <div class="rules-header">
+                  <span class="field-label">Blocked commands</span>
+                  <span class="enable-bar-status" :class="{ active: protectedMode.enabled }">
+                    {{ protectedMode.blocked_command_rules?.length || 0 }}
+                  </span>
+                </div>
+                <p class="field-help">
+                  Each rule refuses terminal commands and quick actions whose command string matches the pattern. Rules
+                  apply only while protected mode is on.
+                </p>
+                <div v-if="!(protectedMode.blocked_command_rules || []).length" class="empty-state horizontal">
+                  <i class="pi pi-code" />
+                  <div class="empty-text">
+                    <p>No command rules yet</p>
+                    <span>Add a pattern below (e.g. contains "rm -rf") to start blocking commands.</span>
+                  </div>
+                </div>
+                <div v-else class="items-list">
+                  <div
+                    v-for="(rule, index) in protectedMode.blocked_command_rules"
+                    :key="rule.id || index"
+                    class="list-item command-rule-item"
+                  >
+                    <div class="rule-summary">
+                      <code class="rule-pattern">{{ rule.pattern }}</code>
+                      <div class="rule-meta">
+                        <span class="rule-badge">{{ rule.match }}</span>
+                        <span v-if="rule.case_sensitive" class="rule-badge subtle">case sensitive</span>
+                      </div>
+                      <p class="rule-explanation">{{ describeBlockedRule(rule) }}</p>
+                    </div>
+                    <div class="item-actions">
+                      <button
+                        class="btn btn-icon btn-sm btn-ghost"
+                        :disabled="savingProtectedMode"
+                        title="Remove"
+                        @click="removeProtectedCommandRule(index)"
+                      >
+                        <i class="pi pi-times" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <div class="add-form command-rule-form">
+                  <div class="command-rule-form-row">
+                    <select v-model="newCommandRule.match" class="form-select" :disabled="!protectedMode.enabled">
+                      <option value="contains">Contains</option>
+                      <option value="equals">Equals</option>
+                      <option value="prefix">Prefix</option>
+                      <option value="suffix">Suffix</option>
+                      <option value="matches">Regex</option>
+                    </select>
+                    <input
+                      v-model="newCommandRule.pattern"
+                      type="text"
+                      class="form-input"
+                      placeholder="Command pattern (e.g. rm -rf)"
+                      :disabled="!protectedMode.enabled"
+                      @keyup.enter="addProtectedCommandRule"
+                    />
+                    <label class="case-toggle">
+                      <input
+                        v-model="newCommandRule.case_sensitive"
+                        type="checkbox"
+                        :disabled="!protectedMode.enabled"
+                      />
+                      <span>Case</span>
+                    </label>
+                    <button
+                      class="btn btn-sm btn-primary"
+                      :disabled="!protectedMode.enabled || !newCommandRule.pattern"
+                      @click="addProtectedCommandRule"
+                    >
+                      <i class="pi pi-plus" /> Add
+                    </button>
+                  </div>
+                  <p class="rule-preview">
+                    <i class="pi pi-info-circle" />
+                    {{ matchTypeHints[newCommandRule.match] }}.
+                    <span v-if="newCommandRule.pattern" class="rule-preview-sentence">
+                      Preview: {{ describeBlockedRule(newCommandRule) }}.
+                    </span>
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div v-if="activeTab === 'config'" class="config-tab">
           <div class="config-sub-tabs">
             <button
@@ -1473,7 +1620,15 @@ import {
 } from "@/services/api";
 import { useNotificationsStore } from "@/stores/notifications";
 import { useAuthStore } from "@/stores/auth";
-import type { ProxyStatus, QuickAction, SecurityEvent, DeploymentSecurityConfig, RegistryCredential } from "@/types";
+import type {
+  ProxyStatus,
+  QuickAction,
+  SecurityEvent,
+  DeploymentSecurityConfig,
+  RegistryCredential,
+  ProtectedCommandRule,
+  ProtectedModeConfig,
+} from "@/types";
 import FileBrowser from "@/components/FileBrowser.vue";
 import LogViewer from "@/components/LogViewer.vue";
 import ConfirmModal from "@/components/ConfirmModal.vue";
@@ -1483,6 +1638,7 @@ import DomainsManager from "@/components/DomainsManager.vue";
 import DomainFormModal from "@/components/DomainFormModal.vue";
 import ContainerResourcesModal from "@/components/ContainerResourcesModal.vue";
 import { extractComposeMounts, extractComposeServiceNames } from "@/utils/compose";
+import { matchTypeHints, describeBlockedRule } from "@/utils/protectedMode";
 
 const route = useRoute();
 const router = useRouter();
@@ -1523,9 +1679,31 @@ const securityConfig = ref<DeploymentSecurityConfig>({
   protected_paths: [],
   rate_limits: [],
 });
+const protectedMode = ref<ProtectedModeConfig>({
+  enabled: false,
+  blocked_actions: [],
+  blocked_command_rules: [],
+  disable_terminal: false,
+});
+const savingProtectedMode = ref(false);
+const newCommandRule = ref<ProtectedCommandRule>({
+  match: "contains",
+  pattern: "",
+  case_sensitive: false,
+});
 const securityEvents = ref<SecurityEvent[]>([]);
 const newProtectedPath = ref("");
 const newRateLimit = ref({ path: "", rate: 10, burst: 5, enabled: true });
+
+const protectedActionOptions = [
+  { value: "delete_deployment", label: "Delete", hint: "Block deleting this deployment" },
+  { value: "update_deployment", label: "Compose", hint: "Block editing the compose file" },
+  { value: "update_env", label: "Env", hint: "Block editing environment variables" },
+  { value: "delete_file", label: "Files", hint: "Block deleting files in the deployment directory" },
+  { value: "rebuild_deployment", label: "Rebuild", hint: "Block rebuilding (recreate containers from compose)" },
+  { value: "quick_action", label: "Actions", hint: "Block running quick actions" },
+  { value: "exec", label: "Exec", hint: "Block direct command execution in containers" },
+];
 
 const protectedPathPresets = [
   { pattern: "/.env", label: ".env" },
@@ -1545,6 +1723,7 @@ const tabs = [
   { id: "actions", label: "Quick Actions", icon: "pi pi-bolt" },
   { id: "backups", label: "Backups", icon: "pi pi-history" },
   { id: "security", label: "Security", icon: "pi pi-shield" },
+  { id: "settings", label: "Settings", icon: "pi pi-sliders-h" },
   { id: "config", label: "Configuration", icon: "pi pi-cog" },
 ];
 
@@ -1730,6 +1909,71 @@ const saveSecurityConfig = async () => {
   }
 };
 
+const syncProtectedModeFromDeployment = () => {
+  const current = deployment.value?.metadata?.protected_mode;
+  protectedMode.value = {
+    enabled: current?.enabled || false,
+    blocked_actions: [...(current?.blocked_actions || [])],
+    blocked_command_rules: [...(current?.blocked_command_rules || [])],
+    disable_terminal: current?.disable_terminal || false,
+  };
+};
+
+const saveProtectedMode = async () => {
+  savingProtectedMode.value = true;
+  try {
+    const response = await deploymentsApi.updateProtectedMode(route.params.name as string, protectedMode.value);
+    protectedMode.value = response.data.protected_mode;
+    if (deployment.value?.metadata) {
+      deployment.value.metadata.protected_mode = response.data.protected_mode;
+    }
+    notifications.success("Saved", "Protected mode updated");
+  } catch (e: any) {
+    notifications.error("Error", e.response?.data?.error || "Failed to save protected mode");
+    syncProtectedModeFromDeployment();
+  } finally {
+    savingProtectedMode.value = false;
+  }
+};
+
+const isProtectedActionBlocked = (action: string) => {
+  return (protectedMode.value.blocked_actions || []).includes(action);
+};
+
+const toggleProtectedAction = async (action: string) => {
+  const actions = protectedMode.value.blocked_actions || [];
+  if (actions.includes(action)) {
+    protectedMode.value.blocked_actions = actions.filter((item) => item !== action);
+  } else {
+    protectedMode.value.blocked_actions = [...actions, action];
+  }
+  await saveProtectedMode();
+};
+
+const addProtectedCommandRule = async () => {
+  const pattern = newCommandRule.value.pattern.trim();
+  if (!pattern) return;
+
+  protectedMode.value.blocked_command_rules = [
+    ...(protectedMode.value.blocked_command_rules || []),
+    {
+      id: `rule-${Date.now()}`,
+      match: newCommandRule.value.match,
+      pattern,
+      case_sensitive: newCommandRule.value.case_sensitive,
+    },
+  ];
+  newCommandRule.value = { match: "contains", pattern: "", case_sensitive: false };
+  await saveProtectedMode();
+};
+
+const removeProtectedCommandRule = async (index: number) => {
+  protectedMode.value.blocked_command_rules = (protectedMode.value.blocked_command_rules || []).filter(
+    (_, i) => i !== index,
+  );
+  await saveProtectedMode();
+};
+
 const isPathProtected = (pattern: string) => {
   return (securityConfig.value.protected_paths || []).some((p) => p.pattern === pattern);
 };
@@ -1804,6 +2048,7 @@ const fetchDeployment = async () => {
     const response = await deploymentsApi.get(route.params.name as string);
     const data = response.data as any;
     deployment.value = data.deployment || data;
+    syncProtectedModeFromDeployment();
 
     if (data.proxy_status) {
       proxyStatus.value = data.proxy_status;
@@ -4614,6 +4859,112 @@ onUnmounted(() => {
 .burst-badge {
   background: #f3f4f6;
   color: #6b7280;
+}
+
+.section-description {
+  margin: 0;
+  padding: 0.5rem 1.25rem 0;
+  font-size: 0.8125rem;
+  color: var(--color-gray-600);
+  line-height: 1.4;
+}
+
+.field-help {
+  display: block;
+  margin: 0.125rem 0 0.375rem;
+  font-size: 0.75rem;
+  color: var(--color-gray-500);
+  line-height: 1.35;
+}
+
+.action-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+}
+
+.command-rule-item {
+  align-items: center;
+  padding: 0.375rem 0.625rem;
+}
+
+.rule-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+  flex: 1;
+  row-gap: 0.125rem;
+}
+
+.rule-pattern {
+  font-family: "SF Mono", "Fira Code", monospace;
+  font-size: 0.8125rem;
+  background: var(--color-gray-100);
+  padding: 0.0625rem 0.375rem;
+  border-radius: var(--radius-sm);
+  word-break: break-all;
+}
+
+.rule-meta {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.rule-badge {
+  font-size: 0.625rem;
+  padding: 0.0625rem 0.375rem;
+  border-radius: var(--radius-sm);
+  background: var(--color-primary-50);
+  color: var(--color-primary-700);
+  text-transform: lowercase;
+  font-weight: var(--font-medium);
+  line-height: 1.4;
+}
+
+.rule-badge.subtle {
+  background: var(--color-gray-100);
+  color: var(--color-gray-600);
+}
+
+.rule-explanation {
+  flex-basis: 100%;
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--color-gray-500);
+  line-height: 1.3;
+}
+
+.command-rule-form-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.command-rule-form-row .form-input {
+  flex: 1;
+  min-width: 200px;
+}
+
+.rule-preview {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  margin: 0.375rem 0 0;
+  font-size: 0.75rem;
+  color: var(--color-gray-500);
+  line-height: 1.35;
+}
+
+.rule-preview .pi {
+  color: var(--color-primary-500);
+}
+
+.rule-preview-sentence {
+  color: var(--color-gray-700);
 }
 
 .add-form {

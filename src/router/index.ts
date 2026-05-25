@@ -137,6 +137,18 @@ const routes: RouteRecordRaw[] = [
         meta: { permission: "system:read" },
       },
       {
+        path: "system-terminal",
+        name: "system-terminal",
+        component: () => import("@/views/SystemTerminalView.vue"),
+        meta: { permission: "system:write" },
+      },
+      {
+        path: "system/files",
+        name: "system-files",
+        component: () => import("@/views/SystemFilesView.vue"),
+        meta: { permission: "system:files" },
+      },
+      {
         path: "cluster",
         name: "cluster",
         component: () => import("@/views/ClusterView.vue"),

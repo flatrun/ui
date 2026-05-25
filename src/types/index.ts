@@ -27,6 +27,7 @@ export interface ServiceMetadata {
   healthcheck: HealthCheckConfig;
   quick_actions?: QuickAction[];
   security?: DeploymentSecurityConfig;
+  protected_mode?: ProtectedModeConfig;
   credential_id?: string;
   service_credentials?: Record<string, string>;
   domains?: DomainConfig[];
@@ -66,6 +67,22 @@ export interface QuickAction {
   description?: string;
   icon?: string;
   service?: string;
+}
+
+export interface ProtectedModeConfig {
+  enabled: boolean;
+  blocked_actions?: string[];
+  blocked_command_rules?: ProtectedCommandRule[];
+  disable_terminal?: boolean;
+}
+
+export interface ProtectedCommandRule {
+  id?: string;
+  name?: string;
+  match: "contains" | "equals" | "prefix" | "suffix" | "matches";
+  pattern: string;
+  case_sensitive?: boolean;
+  description?: string;
 }
 
 export interface NetworkingConfig {
@@ -266,6 +283,9 @@ export interface UserDeploymentAccess {
   created_at: string;
 }
 
+export type DeploymentAccessLevel = "read" | "write" | "admin";
+export type DeploymentAccessMap = Record<string, DeploymentAccessLevel>;
+
 export interface APIKey {
   id: number;
   key_id: string;
@@ -275,9 +295,9 @@ export interface APIKey {
   key_prefix: string;
   role?: UserRole;
   permissions?: string[];
-  deployments?: string[];
-  expires_at?: string;
-  last_used_at?: string;
+  deployments?: DeploymentAccessMap;
+  expires_at?: string | null;
+  last_used_at?: string | null;
   last_used_ip?: string;
   is_active: boolean;
   created_at: string;
@@ -327,6 +347,7 @@ export type Permission =
   | "scheduler:delete"
   | "system:read"
   | "system:write"
+  | "system:files"
   | "dns:read"
   | "dns:write"
   | "registries:read"

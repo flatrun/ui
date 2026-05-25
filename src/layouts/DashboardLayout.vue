@@ -158,6 +158,22 @@
               Server Info
             </router-link>
             <router-link
+              v-if="authStore.hasPermission('system:write')"
+              to="/system-terminal"
+              class="nav-subitem"
+              active-class="active"
+            >
+              Terminal
+            </router-link>
+            <router-link
+              v-if="authStore.hasPermission('system:files')"
+              to="/system/files"
+              class="nav-subitem"
+              active-class="active"
+            >
+              Files
+            </router-link>
+            <router-link
               v-if="authStore.hasPermission('cluster:read')"
               to="/cluster"
               class="nav-subitem"
@@ -512,6 +528,8 @@ const currentPageTitle = computed(() => {
     services: "System Services",
     "cron-jobs": "Cron Jobs",
     "server-info": "Server Info",
+    "system-terminal": "System Terminal",
+    "system-files": "System Files",
     cluster: "Cluster",
     databases: "Database Servers",
     security: "Security & Monitoring",
@@ -539,7 +557,16 @@ const breadcrumbs = computed(() => {
     crumbs.push({ label: "Docker", path: "" });
     crumbs.push({ label: currentPageTitle.value, path: "" });
   } else if (
-    ["infrastructure", "system-ports", "services", "cron-jobs", "server-info", "cluster"].includes(routeName)
+    [
+      "infrastructure",
+      "system-ports",
+      "services",
+      "cron-jobs",
+      "server-info",
+      "system-terminal",
+      "system-files",
+      "cluster",
+    ].includes(routeName)
   ) {
     crumbs.push({ label: "System", path: "" });
     crumbs.push({ label: currentPageTitle.value, path: "" });

@@ -121,8 +121,15 @@ describe("ContainerTerminal", () => {
       }
     } as any;
 
-    // Mock localStorage
-    vi.spyOn(Storage.prototype, "getItem").mockReturnValue("test-token");
+    Object.defineProperty(window, "localStorage", {
+      value: {
+        getItem: vi.fn().mockReturnValue("test-token"),
+        setItem: vi.fn(),
+        removeItem: vi.fn(),
+        clear: vi.fn(),
+      },
+      configurable: true,
+    });
   });
 
   afterEach(() => {
@@ -221,6 +228,29 @@ describe("ContainerTerminal", () => {
       await wrapper.vm.$nextTick();
 
       expect(wrapper.emitted("connected")).toBeTruthy();
+    });
+
+    it("shows terminal disabled denial before auth success", async () => {
+      const wrapper = mountTerminal();
+      const button = wrapper.find(".terminal-overlay button");
+      await button.trigger("click");
+
+      mockWebSocket.onopen();
+      mockWebSocket.onmessage({
+        data: JSON.stringify({
+          type: "error",
+          code: "protected_mode",
+          message: "Terminal access is disabled for this deployment by protected mode settings",
+        }),
+      });
+      mockWebSocket.onclose();
+
+      await wrapper.vm.$nextTick();
+
+      expect(wrapper.text()).toContain("Terminal access is disabled for this deployment by protected mode settings");
+      expect(wrapper.emitted("error")?.[0]).toEqual([
+        "Terminal access is disabled for this deployment by protected mode settings",
+      ]);
     });
 
     it("sends resize message after auth success", async () => {

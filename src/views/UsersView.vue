@@ -82,149 +82,72 @@
     </div>
 
     <!-- Create/Edit Dialog -->
-    <div v-if="showCreateDialog || showEditDialog" class="modal-overlay" @click.self="closeDialogs">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h2>{{ showEditDialog ? "Edit User" : "Create User" }}</h2>
-          <button class="btn btn-icon" @click="closeDialogs">
-            <i class="pi pi-times" />
-          </button>
+    <TabbedFormModal
+      v-if="showCreateDialog || showEditDialog"
+      :title="showEditDialog ? 'Edit User' : 'Create User'"
+      :tabs="userTabs"
+      :active-tab="activeTab"
+      :submitting="saving"
+      :submit-label="showEditDialog ? 'Update' : 'Create'"
+      submitting-label="Saving..."
+      @update:active-tab="activeTab = $event as 'profile' | 'permissions' | 'deployments'"
+      @close="closeDialogs"
+      @submit="showEditDialog ? updateUser() : createUser()"
+    >
+      <template #profile>
+        <div class="form-group">
+          <label>Username</label>
+          <input v-model="formData.username" type="text" required :disabled="showEditDialog" />
         </div>
-        <div class="dialog-tabs">
-          <button
-            class="tab-btn"
-            :class="{ active: activeTab === 'profile' }"
-            type="button"
-            @click="activeTab = 'profile'"
-          >
-            <i class="pi pi-user" />
-            Profile
-          </button>
-          <button
-            class="tab-btn"
-            :class="{ active: activeTab === 'permissions' }"
-            type="button"
-            @click="activeTab = 'permissions'"
-          >
-            <i class="pi pi-shield" />
-            Permissions
-          </button>
-          <button
-            v-if="showEditDialog"
-            class="tab-btn"
-            :class="{ active: activeTab === 'deployments' }"
-            type="button"
-            @click="activeTab = 'deployments'"
-          >
-            <i class="pi pi-box" />
-            Deployments
-            <span v-if="userDeployments.length" class="tab-count">{{ userDeployments.length }}</span>
-          </button>
+        <div class="form-group">
+          <label>Email</label>
+          <input v-model="formData.email" type="email" />
         </div>
-        <form @submit.prevent="showEditDialog ? updateUser() : createUser()">
-          <!-- Profile Tab -->
-          <div v-show="activeTab === 'profile'" class="tab-panel">
-            <div class="form-group">
-              <label>Username</label>
-              <input v-model="formData.username" type="text" required :disabled="showEditDialog" />
-            </div>
-            <div class="form-group">
-              <label>Email</label>
-              <input v-model="formData.email" type="email" />
-            </div>
-            <div v-if="!showEditDialog" class="form-group">
-              <label>Password</label>
-              <input v-model="formData.password" type="password" required />
-            </div>
-            <div class="form-group">
-              <label>Role</label>
-              <select v-model="formData.role" required>
-                <option value="admin">Admin</option>
-                <option value="operator">Operator</option>
-                <option value="viewer">Viewer</option>
-              </select>
-            </div>
-            <div v-if="showEditDialog" class="form-group">
-              <label class="checkbox-label">
-                <input v-model="formData.is_active" type="checkbox" />
-                <span>Active</span>
-              </label>
-            </div>
-          </div>
+        <div v-if="!showEditDialog" class="form-group">
+          <label>Password</label>
+          <input v-model="formData.password" type="password" required />
+        </div>
+        <div class="form-group">
+          <label>Role</label>
+          <select v-model="formData.role" required>
+            <option value="admin">Admin</option>
+            <option value="operator">Operator</option>
+            <option value="viewer">Viewer</option>
+          </select>
+        </div>
+        <div v-if="showEditDialog" class="form-group">
+          <label class="checkbox-label">
+            <input v-model="formData.is_active" type="checkbox" />
+            <span>Active</span>
+          </label>
+        </div>
+      </template>
 
-          <!-- Permissions Tab -->
-          <div v-show="activeTab === 'permissions'" class="tab-panel">
-            <div class="form-group">
-              <label class="checkbox-label">
-                <input v-model="formData.useCustomPermissions" type="checkbox" @change="onCustomPermissionsToggle" />
-                <span>Customize permissions</span>
-              </label>
-              <p v-if="!formData.useCustomPermissions" class="tab-hint">
-                Using <span class="role-perm-badge" :class="formData.role">{{ formData.role }}</span> role defaults.
-                Enable the checkbox above to override.
-              </p>
-            </div>
-            <PermissionPicker v-if="formData.useCustomPermissions" v-model="formData.customPermissions" />
-            <PermissionPicker v-else :model-value="selectedRolePermissions" readonly />
-          </div>
+      <template #permissions>
+        <div class="form-group">
+          <label class="checkbox-label">
+            <input v-model="formData.useCustomPermissions" type="checkbox" @change="onCustomPermissionsToggle" />
+            <span>Customize permissions</span>
+          </label>
+          <p v-if="!formData.useCustomPermissions" class="tab-hint">
+            Using <span class="role-perm-badge" :class="formData.role">{{ formData.role }}</span> role defaults. Enable
+            the checkbox above to override.
+          </p>
+        </div>
+        <PermissionPicker v-if="formData.useCustomPermissions" v-model="formData.customPermissions" />
+        <PermissionPicker v-else :model-value="selectedRolePermissions" readonly />
+      </template>
 
-          <!-- Deployments Tab (edit only) -->
-          <div v-if="showEditDialog" v-show="activeTab === 'deployments'" class="tab-panel">
-            <p class="tab-hint">Control which deployments this user can access and at what level.</p>
-            <div class="add-deployment-form">
-              <select v-model="newDeployment.name">
-                <option value="">Select deployment...</option>
-                <option v-for="dep in availableDeployments" :key="dep" :value="dep">{{ dep }}</option>
-              </select>
-              <select v-model="newDeployment.access_level">
-                <option value="read">Read</option>
-                <option value="write">Write</option>
-                <option value="admin">Admin</option>
-              </select>
-              <button
-                type="button"
-                class="btn btn-primary btn-sm"
-                :disabled="!newDeployment.name"
-                @click="addDeploymentAccess"
-              >
-                Add
-              </button>
-            </div>
-            <div v-if="userDeployments.length" class="deployments-list">
-              <div v-for="dep in userDeployments" :key="dep.deployment_name" class="deployment-item">
-                <span class="deployment-name">{{ dep.deployment_name }}</span>
-                <select
-                  :value="dep.access_level"
-                  @change="updateDeploymentAccess(dep.deployment_name, ($event.target as HTMLSelectElement).value)"
-                >
-                  <option value="read">Read</option>
-                  <option value="write">Write</option>
-                  <option value="admin">Admin</option>
-                </select>
-                <button
-                  type="button"
-                  class="btn btn-icon btn-sm btn-danger"
-                  @click="removeDeploymentAccess(dep.deployment_name)"
-                >
-                  <i class="pi pi-times" />
-                </button>
-              </div>
-            </div>
-            <div v-else class="no-deployments">
-              <i class="pi pi-info-circle" />
-              <span>No deployment access assigned</span>
-            </div>
-          </div>
-
-          <div class="modal-actions">
-            <button type="button" class="btn" @click="closeDialogs">Cancel</button>
-            <button type="submit" class="btn btn-primary" :disabled="saving">
-              {{ saving ? "Saving..." : showEditDialog ? "Update" : "Create" }}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+      <template #deployments>
+        <DeploymentAccessField
+          v-model="userDeploymentsMap"
+          :available="allDeployments"
+          hint="Control which deployments this user can access and at what level. Changes take effect when you save."
+          empty-hint="No deployment access assigned"
+          default-level="read"
+        />
+      </template>
+    </TabbedFormModal>
 
     <!-- Delete Confirmation -->
     <div v-if="showDeleteDialog" class="modal-overlay" @click.self="closeDialogs">
@@ -248,13 +171,18 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from "vue";
-import type { User, UserRole, UserDeploymentAccess, Permission } from "@/types";
+import { ref, onMounted, computed, watch } from "vue";
+import type { User, UserRole, UserDeploymentAccess, Permission, DeploymentAccessMap } from "@/types";
 import { useUsersStore } from "@/stores/users";
 import { useAuthStore } from "@/stores/auth";
 import { deploymentsApi } from "@/services/api";
 import PermissionPicker from "@/components/PermissionPicker.vue";
+import TabbedFormModal, { type TabbedFormModalTab } from "@/components/TabbedFormModal.vue";
+import DeploymentAccessField from "@/components/DeploymentAccessField.vue";
 import { getRolePermissions } from "@/utils/permissions";
+import { useNotificationsStore } from "@/stores/notifications";
+
+const notifications = useNotificationsStore();
 
 const usersStore = useUsersStore();
 const authStore = useAuthStore();
@@ -284,8 +212,9 @@ const formData = ref({
 });
 
 const userDeployments = ref<UserDeploymentAccess[]>([]);
+const userDeploymentsMap = ref<DeploymentAccessMap>({});
+const userDeploymentsBaseline = ref<DeploymentAccessMap>({});
 const allDeployments = ref<string[]>([]);
-const newDeployment = ref({ name: "", access_level: "read" });
 
 const selectedRolePermissions = computed(() => getRolePermissions(formData.value.role));
 
@@ -295,9 +224,20 @@ const onCustomPermissionsToggle = () => {
   }
 };
 
-const availableDeployments = computed(() => {
-  const assigned = new Set(userDeployments.value.map((d) => d.deployment_name));
-  return allDeployments.value.filter((d) => !assigned.has(d));
+const userTabs = computed<TabbedFormModalTab[]>(() => [
+  { id: "profile", label: "Profile", icon: "pi pi-user" },
+  { id: "permissions", label: "Permissions", icon: "pi pi-shield" },
+  {
+    id: "deployments",
+    label: "Deployments",
+    icon: "pi pi-box",
+    visible: showEditDialog.value,
+    count: Object.keys(userDeploymentsMap.value).length || undefined,
+  },
+]);
+
+watch([showCreateDialog, showEditDialog], ([create, edit]) => {
+  if (create || edit) activeTab.value = "profile";
 });
 
 const loadUsers = async () => {
@@ -330,6 +270,12 @@ const editUser = async (user: User) => {
   } catch {
     userDeployments.value = [];
   }
+  const initial: DeploymentAccessMap = {};
+  for (const dep of userDeployments.value) {
+    initial[dep.deployment_name] = dep.access_level as DeploymentAccessMap[string];
+  }
+  userDeploymentsMap.value = { ...initial };
+  userDeploymentsBaseline.value = { ...initial };
   showEditDialog.value = true;
 };
 
@@ -348,9 +294,10 @@ const createUser = async () => {
       role: formData.value.role,
       permissions: formData.value.useCustomPermissions ? formData.value.customPermissions : undefined,
     });
+    notifications.success("User Created", `${formData.value.username} added.`);
     closeDialogs();
   } catch (e: any) {
-    alert(e.message);
+    notifications.error("Create Failed", e.message || "Could not create user");
   } finally {
     saving.value = false;
   }
@@ -373,9 +320,11 @@ const updateUser = async () => {
       is_active: formData.value.is_active,
       permissions,
     });
+    await applyDeploymentChanges(selectedUser.value.id);
+    notifications.success("User Updated", `${selectedUser.value.username} saved.`);
     closeDialogs();
   } catch (e: any) {
-    alert(e.message);
+    notifications.error("Update Failed", e.message || "Could not update user");
   } finally {
     saving.value = false;
   }
@@ -385,54 +334,32 @@ const deleteUser = async () => {
   if (!selectedUser.value) return;
   saving.value = true;
   try {
+    const name = selectedUser.value.username;
     await usersStore.deleteUser(selectedUser.value.id);
+    notifications.success("User Deleted", `${name} removed.`);
     closeDialogs();
   } catch (e: any) {
-    alert(e.message);
+    notifications.error("Delete Failed", e.message || "Could not delete user");
   } finally {
     saving.value = false;
   }
 };
 
-const addDeploymentAccess = async () => {
-  if (!selectedUser.value || !newDeployment.value.name) return;
-  try {
-    await usersStore.assignDeployment(
-      selectedUser.value.id,
-      newDeployment.value.name,
-      newDeployment.value.access_level,
-    );
-    userDeployments.value.push({
-      deployment_name: newDeployment.value.name,
-      access_level: newDeployment.value.access_level as "read" | "write" | "admin",
-      created_at: new Date().toISOString(),
-    });
-    newDeployment.value = { name: "", access_level: "read" };
-  } catch (e: any) {
-    alert(e.message);
-  }
-};
-
-const updateDeploymentAccess = async (deploymentName: string, accessLevel: string) => {
-  if (!selectedUser.value) return;
-  try {
-    await usersStore.updateDeploymentAccess(selectedUser.value.id, deploymentName, accessLevel);
-    const dep = userDeployments.value.find((d) => d.deployment_name === deploymentName);
-    if (dep) {
-      dep.access_level = accessLevel as "read" | "write" | "admin";
+const applyDeploymentChanges = async (userId: number) => {
+  const next = userDeploymentsMap.value;
+  const baseline = userDeploymentsBaseline.value;
+  for (const name of Object.keys(baseline)) {
+    if (!(name in next)) {
+      await usersStore.removeDeploymentAccess(userId, name);
     }
-  } catch (e: any) {
-    alert(e.message);
   }
-};
-
-const removeDeploymentAccess = async (deploymentName: string) => {
-  if (!selectedUser.value) return;
-  try {
-    await usersStore.removeDeploymentAccess(selectedUser.value.id, deploymentName);
-    userDeployments.value = userDeployments.value.filter((d) => d.deployment_name !== deploymentName);
-  } catch (e: any) {
-    alert(e.message);
+  for (const [name, level] of Object.entries(next)) {
+    const prior = baseline[name];
+    if (!prior) {
+      await usersStore.assignDeployment(userId, name, level);
+    } else if (prior !== level) {
+      await usersStore.updateDeploymentAccess(userId, name, level);
+    }
   }
 };
 
@@ -451,7 +378,8 @@ const closeDialogs = () => {
     customPermissions: [],
   };
   userDeployments.value = [];
-  newDeployment.value = { name: "", access_level: "read" };
+  userDeploymentsMap.value = {};
+  userDeploymentsBaseline.value = {};
   activeTab.value = "profile";
 };
 
@@ -496,7 +424,7 @@ onMounted(() => {
 }
 
 .error-state {
-  color: var(--danger);
+  color: var(--color-danger-600, #dc2626);
 }
 
 .users-table-container {
@@ -546,18 +474,18 @@ onMounted(() => {
 }
 
 .role-badge.admin {
-  background: rgba(var(--danger-rgb), 0.1);
-  color: var(--danger);
+  background: var(--color-danger-50, #fef2f2);
+  color: var(--color-danger-700, #b91c1c);
 }
 
 .role-badge.operator {
-  background: rgba(var(--warning-rgb), 0.1);
-  color: var(--warning);
+  background: var(--color-warning-50, #fffbeb);
+  color: var(--color-warning-700, #b45309);
 }
 
 .role-badge.viewer {
-  background: rgba(var(--info-rgb), 0.1);
-  color: var(--info);
+  background: var(--color-info-50, #eff6ff);
+  color: var(--color-info-700, #1d4ed8);
 }
 
 .status-badge {
@@ -569,12 +497,12 @@ onMounted(() => {
 }
 
 .status-badge.active {
-  background: rgba(var(--success-rgb), 0.1);
+  background: var(--color-success-50, #f0fdf4);
   color: var(--success);
 }
 
 .status-badge.inactive {
-  background: rgba(var(--text-secondary-rgb), 0.1);
+  background: var(--color-gray-100, #f3f4f6);
   color: var(--text-secondary);
 }
 
@@ -587,8 +515,8 @@ onMounted(() => {
 }
 
 .perm-indicator.custom {
-  background: rgba(var(--warning-rgb), 0.1);
-  color: var(--warning);
+  background: var(--color-warning-50, #fffbeb);
+  color: var(--color-warning-700, #b45309);
 }
 
 .perm-indicator.default {
@@ -761,18 +689,18 @@ onMounted(() => {
 }
 
 .role-perm-badge.admin {
-  background: rgba(var(--danger-rgb), 0.1);
-  color: var(--danger);
+  background: var(--color-danger-50, #fef2f2);
+  color: var(--color-danger-700, #b91c1c);
 }
 
 .role-perm-badge.operator {
-  background: rgba(var(--warning-rgb), 0.1);
-  color: var(--warning);
+  background: var(--color-warning-50, #fffbeb);
+  color: var(--color-warning-700, #b45309);
 }
 
 .role-perm-badge.viewer {
-  background: rgba(var(--info-rgb), 0.1);
-  color: var(--info);
+  background: var(--color-info-50, #eff6ff);
+  color: var(--color-info-700, #1d4ed8);
 }
 
 .modal-actions {
@@ -866,12 +794,12 @@ onMounted(() => {
 }
 
 .btn-danger {
-  background: var(--danger);
+  background: var(--color-danger-500, #ef4444);
   color: white;
 }
 
 .btn-danger:hover {
-  background: var(--danger-dark);
+  background: var(--color-danger-600, #dc2626);
 }
 
 .btn-icon {
