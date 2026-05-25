@@ -378,6 +378,7 @@ describe("SettingsView", () => {
         { id: "domain", label: "Domain", icon: "pi pi-globe" },
         { id: "infrastructure", label: "Infrastructure", icon: "pi pi-server" },
         { id: "security", label: "Security & Monitoring", icon: "pi pi-shield" },
+        { id: "terminal", label: "Terminal", icon: "pi pi-desktop" },
         { id: "healthchecks", label: "Health Checks", icon: "pi pi-heart" },
         { id: "credentials", label: "Credentials", icon: "pi pi-key" },
       ]);

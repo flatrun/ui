@@ -258,6 +258,7 @@ describe("DeploymentDetailView", () => {
         { id: "actions", label: "Quick Actions", icon: "pi pi-bolt" },
         { id: "backups", label: "Backups", icon: "pi pi-history" },
         { id: "security", label: "Security", icon: "pi pi-shield" },
+        { id: "settings", label: "Settings", icon: "pi pi-sliders-h" },
         { id: "config", label: "Configuration", icon: "pi pi-cog" },
       ]);
     });
