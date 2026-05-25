@@ -15,6 +15,7 @@ import type {
   ProtectedRoute,
   DeploymentSecurityConfig,
   DomainConfig,
+  ProtectedModeConfig,
 } from "@/types";
 
 export const apiClient = axios.create({
@@ -36,8 +37,12 @@ apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401 && !window.location.pathname.includes("/setup")) {
-      localStorage.removeItem("auth_token");
-      window.location.href = "/login";
+      const failedURL: string = error.config?.url || "";
+      const isSessionEndpoint = /\/auth\/|\/users\/me(\b|\/)/.test(failedURL);
+      if (isSessionEndpoint) {
+        localStorage.removeItem("auth_token");
+        window.location.href = "/login";
+      }
     }
     return Promise.reject(error);
   },
@@ -62,6 +67,7 @@ export interface ServiceMetadata {
     path: string;
     interval: string;
   };
+  protected_mode?: ProtectedModeConfig;
   credential_id?: string;
   service_credentials?: Record<string, string>;
 }
@@ -78,6 +84,11 @@ export const deploymentsApi = {
   update: (name: string, data: any) => apiClient.put(`/deployments/${name}`, data),
   updateMetadata: (name: string, metadata: Partial<ServiceMetadata>) =>
     apiClient.put(`/deployments/${name}/metadata`, metadata),
+  updateProtectedMode: (name: string, protectedMode: ProtectedModeConfig) =>
+    apiClient.put<{ message: string; name: string; protected_mode: ProtectedModeConfig }>(
+      `/deployments/${name}/protected-mode`,
+      protectedMode,
+    ),
   delete: (name: string, options?: { deleteSSL?: boolean; deleteDatabase?: boolean; deleteVhost?: boolean }) => {
     const params = new URLSearchParams();
     if (options?.deleteSSL !== undefined) params.set("delete_ssl", String(options.deleteSSL));
@@ -445,12 +456,55 @@ export const filesApi = {
     });
   },
   createDir: (deploymentName: string, path: string) => apiClient.post(`/deployments/${deploymentName}/mkdir${path}`),
+  createFile: (deploymentName: string, path: string) => apiClient.post(`/deployments/${deploymentName}/touch${path}`),
+  chmod: (deploymentName: string, path: string, mode: number) =>
+    apiClient.put(`/deployments/${deploymentName}/permissions${path}`, { mode }),
   delete: (deploymentName: string, path: string) => apiClient.delete(`/deployments/${deploymentName}/files${path}`),
   getContent: (deploymentName: string, path: string) =>
     apiClient.get<string>(`/deployments/${deploymentName}/files${path}`, {
       responseType: "text",
     }),
 };
+
+export interface FileBrowserApi {
+  list(path: string): Promise<{ data: { files: FileInfo[] } }>;
+  getInfo(): Promise<{ data: FilesInfo }>;
+  upload(path: string, file: File): Promise<any>;
+  download(path: string): Promise<{ data: Blob }>;
+  createDir(path: string): Promise<any>;
+  createFile(path: string): Promise<any>;
+  chmod(path: string, mode: number): Promise<any>;
+  delete(path: string): Promise<any>;
+  getContent(path: string): Promise<{ data: string }>;
+}
+
+export const createFileBrowserApi = (basePath: string): FileBrowserApi => ({
+  list: (path = "/") =>
+    apiClient.get<{ files: FileInfo[] }>(`${basePath}/files`, { params: { path } }) as Promise<{
+      data: { files: FileInfo[] };
+    }>,
+  getInfo: () => apiClient.get<FilesInfo>(`${basePath}/files-info`) as Promise<{ data: FilesInfo }>,
+  upload: (path: string, file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    return apiClient.post(`${basePath}/files${path}`, formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+  },
+  download: (path: string) =>
+    apiClient.get(`${basePath}/files${path}`, { responseType: "blob" }) as Promise<{ data: Blob }>,
+  createDir: (path: string) => apiClient.post(`${basePath}/mkdir${path}`),
+  createFile: (path: string) => apiClient.post(`${basePath}/touch${path}`),
+  chmod: (path: string, mode: number) => apiClient.put(`${basePath}/permissions${path}`, { mode }),
+  delete: (path: string) => apiClient.delete(`${basePath}/files${path}`),
+  getContent: (path: string) =>
+    apiClient.get<string>(`${basePath}/files${path}`, { responseType: "text" }) as Promise<{ data: string }>,
+});
+
+export const createDeploymentFileApi = (deploymentName: string): FileBrowserApi =>
+  createFileBrowserApi(`/deployments/${deploymentName}`);
+
+export const createSystemFileApi = (): FileBrowserApi => createFileBrowserApi(`/system`);
 
 export const portsApi = {
   list: () => apiClient.get<{ ports: any[] }>("/ports"),
@@ -1242,7 +1296,7 @@ export const clusterApi = {
   getAggregatedStats: () => apiClient.get("/cluster/stats"),
 };
 
-import type { User, APIKey, UserRole, UserDeploymentAccess } from "@/types";
+import type { User, APIKey, UserRole, UserDeploymentAccess, DeploymentAccessMap } from "@/types";
 
 export const usersApi = {
   list: () => apiClient.get<{ users: User[] }>("/users"),
@@ -1289,10 +1343,22 @@ export const apiKeysApi = {
     description?: string;
     role?: UserRole;
     permissions?: string[];
-    deployments?: string[];
+    deployments?: DeploymentAccessMap;
     expires_in?: number;
     user_id?: number;
   }) => apiClient.post<{ api_key: APIKey; message: string }>("/apikeys", data),
+
+  update: (
+    id: number,
+    data: {
+      name?: string;
+      description?: string;
+      role?: UserRole | "";
+      permissions?: string[];
+      deployments?: DeploymentAccessMap;
+      expires_in?: number;
+    },
+  ) => apiClient.put<{ api_key: APIKey }>(`/apikeys/${id}`, data),
 
   delete: (id: number) => apiClient.delete(`/apikeys/${id}`),
 

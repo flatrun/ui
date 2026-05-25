@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
-import type { User, APIKey, UserRole, UserDeploymentAccess } from "@/types";
+import type { User, APIKey, UserRole, UserDeploymentAccess, DeploymentAccessMap } from "@/types";
 import { usersApi, apiKeysApi } from "@/services/api";
 
 export const useUsersStore = defineStore("users", () => {
@@ -123,7 +123,7 @@ export const useUsersStore = defineStore("users", () => {
     description?: string;
     role?: UserRole;
     permissions?: string[];
-    deployments?: string[];
+    deployments?: DeploymentAccessMap;
     expires_in?: number;
     user_id?: number;
   }) => {
@@ -133,6 +133,29 @@ export const useUsersStore = defineStore("users", () => {
       return response.data;
     } catch (e: any) {
       throw new Error(e.response?.data?.error || "Failed to create API key");
+    }
+  };
+
+  const updateAPIKey = async (
+    id: number,
+    data: {
+      name?: string;
+      description?: string;
+      role?: UserRole | "";
+      permissions?: string[];
+      deployments?: DeploymentAccessMap;
+      expires_in?: number;
+    },
+  ) => {
+    try {
+      const response = await apiKeysApi.update(id, data);
+      const index = apiKeys.value.findIndex((k) => k.id === id);
+      if (index !== -1) {
+        apiKeys.value[index] = response.data.api_key;
+      }
+      return response.data.api_key;
+    } catch (e: any) {
+      throw new Error(e.response?.data?.error || "Failed to update API key");
     }
   };
 
@@ -173,6 +196,7 @@ export const useUsersStore = defineStore("users", () => {
     removeDeploymentAccess,
     fetchAPIKeys,
     createAPIKey,
+    updateAPIKey,
     deleteAPIKey,
     revokeAPIKey,
   };

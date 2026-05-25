@@ -47,6 +47,7 @@ let resizeObserver: ResizeObserver | null = null;
 let resizeTimeout: ReturnType<typeof setTimeout> | null = null;
 let lastRows = 0;
 let lastCols = 0;
+let explicitCloseMessage = "";
 
 const getWebSocketUrl = () => {
   const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
@@ -70,6 +71,7 @@ const connect = () => {
   connectionStatus.value = "connecting";
   statusMessage.value = "Connecting...";
   authenticated = false;
+  explicitCloseMessage = "";
 
   socket = new WebSocket(getWebSocketUrl());
   socket.binaryType = "arraybuffer";
@@ -123,10 +125,26 @@ const connect = () => {
           }
           return;
         }
+        if (parsed.type === "error") {
+          const message = parsed.message || "Terminal connection denied";
+          explicitCloseMessage = message;
+          connectionStatus.value = "error";
+          statusMessage.value = message;
+          emit("error", message);
+          socket?.close();
+          return;
+        }
       } catch {
         // Not JSON, might be an error message before auth
       }
       // If we get data before auth_success, show as error
+      const text = data.replace(/\x1b\[[0-9;]*m/g, "").trim();
+      if (text) {
+        explicitCloseMessage = text;
+        connectionStatus.value = "error";
+        statusMessage.value = text;
+        emit("error", text);
+      }
       if (terminal) {
         terminal.write(data);
       }
@@ -139,8 +157,8 @@ const connect = () => {
   };
 
   socket.onclose = () => {
-    connectionStatus.value = "disconnected";
-    statusMessage.value = "Connection closed. Click Connect to reconnect.";
+    connectionStatus.value = explicitCloseMessage ? "error" : "disconnected";
+    statusMessage.value = explicitCloseMessage || "Connection closed. Click Connect to reconnect.";
     authenticated = false;
     emit("disconnected");
   };

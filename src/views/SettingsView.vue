@@ -618,6 +618,122 @@
         </div>
       </div>
 
+      <div v-show="activeTab === 'terminal'" class="tab-content">
+        <div class="settings-card">
+          <div class="card-header">
+            <i class="pi pi-desktop" />
+            <h3>System Terminal Protection</h3>
+            <label class="toggle-switch">
+              <input v-model="systemTerminalProtectedMode.enabled" type="checkbox" :disabled="!canWriteSettings" />
+              <span class="toggle-slider" />
+            </label>
+          </div>
+          <p class="card-description">
+            When enabled, commands typed in the system terminal are checked against the rules below. Matching commands
+            are refused with a 423 Locked status. Use this to keep destructive commands out of the host shell.
+          </p>
+          <div class="card-body">
+            <div class="form-grid">
+              <div class="form-group full-width">
+                <div class="toggle-row">
+                  <div class="toggle-info">
+                    <label class="form-label">Disable System Terminal</label>
+                    <span class="form-hint">Block all system terminal sessions, regardless of command rules.</span>
+                  </div>
+                  <label class="toggle-switch">
+                    <input
+                      v-model="systemTerminalProtectedMode.disable_terminal"
+                      type="checkbox"
+                      :disabled="!canWriteSettings || !systemTerminalProtectedMode.enabled"
+                    />
+                    <span class="toggle-slider" />
+                  </label>
+                </div>
+              </div>
+
+              <div class="form-group full-width">
+                <label class="form-label">Blocked commands</label>
+                <span class="form-hint">
+                  Each rule refuses commands whose text matches the pattern. Rules only apply while protection is on.
+                </span>
+                <div v-if="!systemTerminalProtectedMode.blocked_command_rules?.length" class="empty-rules">
+                  No command rules yet. Add a pattern below (e.g. contains "rm -rf") to start blocking commands.
+                </div>
+                <div v-else class="rules-list">
+                  <div
+                    v-for="(rule, index) in systemTerminalProtectedMode.blocked_command_rules"
+                    :key="rule.id || index"
+                    class="rule-row"
+                  >
+                    <div class="rule-summary">
+                      <code class="rule-pattern">{{ rule.pattern }}</code>
+                      <div class="rule-meta">
+                        <span class="rule-badge">{{ rule.match }}</span>
+                        <span v-if="rule.case_sensitive" class="rule-badge subtle">case sensitive</span>
+                      </div>
+                      <p class="rule-explanation">{{ describeBlockedRule(rule) }}</p>
+                    </div>
+                    <button
+                      v-if="canWriteSettings"
+                      class="btn btn-icon btn-sm"
+                      title="Remove rule"
+                      @click="removeSystemTerminalRule(index)"
+                    >
+                      <i class="pi pi-times" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div v-if="canWriteSettings" class="form-group full-width">
+                <div class="terminal-rule-form">
+                  <select v-model="newSystemTerminalRule.match" class="form-select">
+                    <option value="contains">Contains</option>
+                    <option value="equals">Equals</option>
+                    <option value="prefix">Prefix</option>
+                    <option value="suffix">Suffix</option>
+                    <option value="matches">Regex</option>
+                  </select>
+                  <input
+                    v-model="newSystemTerminalRule.pattern"
+                    type="text"
+                    class="form-input"
+                    placeholder="Command pattern (e.g. rm -rf)"
+                    @keyup.enter="addSystemTerminalRule"
+                  />
+                  <label class="checkbox-label">
+                    <input v-model="newSystemTerminalRule.case_sensitive" type="checkbox" />
+                    <span>Case</span>
+                  </label>
+                  <button
+                    class="btn btn-secondary"
+                    :disabled="!newSystemTerminalRule.pattern.trim()"
+                    @click="addSystemTerminalRule"
+                  >
+                    <i class="pi pi-plus" />
+                    Add Rule
+                  </button>
+                </div>
+                <p class="rule-preview">
+                  <i class="pi pi-info-circle" />
+                  {{ matchTypeHints[newSystemTerminalRule.match] }}.
+                  <span v-if="newSystemTerminalRule.pattern.trim()" class="rule-preview-sentence">
+                    Preview: {{ describeBlockedRule(newSystemTerminalRule) }}.
+                  </span>
+                </p>
+              </div>
+            </div>
+          </div>
+          <div v-if="canWriteSettings" class="card-footer">
+            <button class="btn btn-primary" :disabled="savingSystemTerminal" @click="saveSystemTerminalSettings">
+              <i v-if="savingSystemTerminal" class="pi pi-spin pi-spinner" />
+              <i v-else class="pi pi-save" />
+              <span>Save Terminal Settings</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
       <!-- Health Checks Tab -->
       <div v-show="activeTab === 'healthchecks'" class="tab-content">
         <SecurityHealthCard :auto-fetch="true" />
@@ -798,10 +914,11 @@
 import { ref, reactive, computed, onMounted } from "vue";
 import { settingsApi, healthApi, templatesApi, credentialsApi, registriesApi } from "@/services/api";
 import type { DomainSettings } from "@/services/api";
-import type { RegistryCredential, RegistryType } from "@/types";
+import type { ProtectedCommandRule, ProtectedModeConfig, RegistryCredential, RegistryType } from "@/types";
 import { useNotificationsStore } from "@/stores/notifications";
 import { useAuthStore } from "@/stores/auth";
 import SecurityHealthCard from "@/components/SecurityHealthCard.vue";
+import { matchTypeHints, describeBlockedRule } from "@/utils/protectedMode";
 
 declare const __APP_VERSION__: string;
 
@@ -823,6 +940,7 @@ const tabs = [
   { id: "domain", label: "Domain", icon: "pi pi-globe" },
   { id: "infrastructure", label: "Infrastructure", icon: "pi pi-server" },
   { id: "security", label: "Security & Monitoring", icon: "pi pi-shield" },
+  { id: "terminal", label: "Terminal", icon: "pi pi-desktop" },
   { id: "healthchecks", label: "Health Checks", icon: "pi pi-heart" },
   { id: "credentials", label: "Credentials", icon: "pi pi-key" },
 ];
@@ -896,6 +1014,18 @@ const securitySettings = reactive({
 });
 
 const savingSecurity = ref(false);
+const savingSystemTerminal = ref(false);
+const systemTerminalProtectedMode = reactive<ProtectedModeConfig>({
+  enabled: false,
+  blocked_actions: [],
+  blocked_command_rules: [],
+  disable_terminal: false,
+});
+const newSystemTerminalRule = reactive<ProtectedCommandRule>({
+  match: "contains",
+  pattern: "",
+  case_sensitive: false,
+});
 
 const credentials = ref<RegistryCredential[]>([]);
 const loadingCredentials = ref(false);
@@ -1113,10 +1243,63 @@ const fetchSettings = async () => {
       securitySettings.unique_paths_threshold = data.security.unique_paths_threshold || 20;
       securitySettings.repeated_hits_threshold = data.security.repeated_hits_threshold || 30;
     }
+
+    if (data.system_terminal?.protected_mode) {
+      const protectedMode = data.system_terminal.protected_mode;
+      systemTerminalProtectedMode.enabled = protectedMode.enabled ?? false;
+      systemTerminalProtectedMode.disable_terminal = protectedMode.disable_terminal ?? false;
+      systemTerminalProtectedMode.blocked_actions = protectedMode.blocked_actions || [];
+      systemTerminalProtectedMode.blocked_command_rules = protectedMode.blocked_command_rules || [];
+    }
   } catch (e: any) {
     notifications.error("Error", "Failed to load settings");
   } finally {
     loading.value = false;
+  }
+};
+
+const addSystemTerminalRule = () => {
+  const pattern = newSystemTerminalRule.pattern.trim();
+  if (!pattern) return;
+
+  systemTerminalProtectedMode.blocked_command_rules = [
+    ...(systemTerminalProtectedMode.blocked_command_rules || []),
+    {
+      id: `rule-${Date.now()}`,
+      match: newSystemTerminalRule.match,
+      pattern,
+      case_sensitive: newSystemTerminalRule.case_sensitive,
+    },
+  ];
+  newSystemTerminalRule.match = "contains";
+  newSystemTerminalRule.pattern = "";
+  newSystemTerminalRule.case_sensitive = false;
+};
+
+const removeSystemTerminalRule = (index: number) => {
+  systemTerminalProtectedMode.blocked_command_rules = (systemTerminalProtectedMode.blocked_command_rules || []).filter(
+    (_, i) => i !== index,
+  );
+};
+
+const saveSystemTerminalSettings = async () => {
+  savingSystemTerminal.value = true;
+  try {
+    await settingsApi.update({
+      system_terminal: {
+        protected_mode: {
+          enabled: systemTerminalProtectedMode.enabled,
+          disable_terminal: systemTerminalProtectedMode.disable_terminal,
+          blocked_actions: systemTerminalProtectedMode.blocked_actions || [],
+          blocked_command_rules: systemTerminalProtectedMode.blocked_command_rules || [],
+        },
+      },
+    });
+    notifications.success("Settings Saved", "System terminal protection has been updated");
+  } catch (e: any) {
+    notifications.error("Error", e.response?.data?.error || "Failed to save terminal settings");
+  } finally {
+    savingSystemTerminal.value = false;
   }
 };
 
@@ -2168,5 +2351,119 @@ onMounted(() => {
 
 .content-grid.single-column {
   grid-template-columns: 1fr;
+}
+
+.card-description {
+  margin: 0;
+  padding: 0.5rem 1.25rem;
+  font-size: 0.8125rem;
+  color: var(--color-gray-600);
+  line-height: 1.4;
+  border-bottom: 1px solid var(--color-gray-100);
+}
+
+.empty-rules {
+  padding: 0.5rem 0.75rem;
+  margin: 0.5rem 0;
+  font-size: 0.8125rem;
+  color: var(--color-gray-500);
+  background: var(--color-gray-50);
+  border-radius: var(--radius-md);
+}
+
+.rules-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  margin: 0.5rem 0;
+}
+
+.rule-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.4375rem 0.625rem;
+  background: var(--color-gray-50);
+  border: 1px solid var(--color-gray-200);
+  border-radius: var(--radius-md);
+}
+
+.rule-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+  flex: 1;
+  row-gap: 0.125rem;
+}
+
+.rule-pattern {
+  font-family: "SF Mono", "Fira Code", monospace;
+  font-size: 0.8125rem;
+  padding: 0.0625rem 0.375rem;
+  background: var(--color-gray-100);
+  border-radius: var(--radius-sm);
+  word-break: break-all;
+}
+
+.rule-meta {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.rule-badge {
+  font-size: 0.625rem;
+  padding: 0.0625rem 0.375rem;
+  border-radius: var(--radius-sm);
+  background: var(--color-primary-50);
+  color: var(--color-primary-700);
+  text-transform: lowercase;
+  font-weight: 500;
+}
+
+.rule-badge.subtle {
+  background: var(--color-gray-100);
+  color: var(--color-gray-600);
+}
+
+.rule-explanation {
+  flex-basis: 100%;
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--color-gray-500);
+  line-height: 1.3;
+}
+
+.terminal-rule-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.terminal-rule-form .form-input {
+  flex: 1;
+  min-width: 200px;
+}
+
+.rule-preview {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.375rem;
+  margin: 0.375rem 0 0;
+  font-size: 0.75rem;
+  color: var(--color-gray-500);
+  line-height: 1.35;
+}
+
+.rule-preview .pi {
+  color: var(--color-primary-500);
+}
+
+.rule-preview-sentence {
+  color: var(--color-gray-700);
 }
 </style>

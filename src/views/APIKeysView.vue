@@ -6,7 +6,7 @@
         <button class="btn btn-icon" :disabled="loading" @click="loadAPIKeys">
           <i class="pi pi-refresh" :class="{ 'pi-spin': loading }" />
         </button>
-        <button v-if="canWrite" class="btn btn-primary" @click="showCreateDialog = true">
+        <button v-if="canWrite" class="btn btn-primary" @click="openCreateDialog">
           <i class="pi pi-plus" />
           <span>Create API Key</span>
         </button>
@@ -62,6 +62,9 @@
               <td>{{ formatDate(key.last_used_at) }}</td>
               <td>{{ formatExpiry(key.expires_at) }}</td>
               <td class="actions-cell">
+                <button v-if="canWrite" class="btn btn-icon btn-sm" title="Edit" @click="confirmEdit(key)">
+                  <i class="pi pi-pencil" />
+                </button>
                 <button
                   v-if="key.is_active && canWrite"
                   class="btn btn-icon btn-sm"
@@ -86,68 +89,142 @@
     </div>
 
     <!-- Create Dialog -->
-    <div v-if="showCreateDialog" class="modal-overlay" @click.self="closeDialogs">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h2>Create API Key</h2>
-          <button class="btn btn-icon" @click="closeDialogs">
-            <i class="pi pi-times" />
-          </button>
+    <TabbedFormModal
+      v-if="showCreateDialog"
+      :title="'Create API Key'"
+      :tabs="createTabs"
+      :active-tab="activeTab"
+      :submitting="saving"
+      submit-label="Create"
+      submitting-label="Creating..."
+      @update:active-tab="activeTab = $event as 'profile' | 'permissions' | 'deployments'"
+      @close="closeDialogs"
+      @submit="createAPIKey"
+    >
+      <template #profile>
+        <div class="form-group">
+          <label>Name</label>
+          <input v-model="formData.name" type="text" placeholder="e.g., CI/CD Pipeline" required />
         </div>
-        <form @submit.prevent="createAPIKey">
-          <div class="form-group">
-            <label>Name</label>
-            <input v-model="formData.name" type="text" placeholder="e.g., CI/CD Pipeline" required />
-          </div>
-          <div class="form-group">
-            <label>Description (optional)</label>
-            <input v-model="formData.description" type="text" placeholder="What is this key used for?" />
-          </div>
-          <div class="form-group">
-            <label>Role Override (optional)</label>
-            <select v-model="formData.role" @change="onRoleChange">
-              <option value="">Inherit from user</option>
-              <option v-if="authStore.isAdmin" value="admin">Admin</option>
-              <option value="operator">Operator</option>
-              <option value="viewer">Viewer</option>
-            </select>
-            <small>Leave empty to inherit the role from the user account</small>
-          </div>
-          <div class="form-group">
-            <label class="checkbox-label">
-              <input v-model="formData.useCustomPermissions" type="checkbox" @change="onCustomPermissionsToggle" />
-              <span>Customize permissions</span>
-            </label>
-            <small>Override the default permissions for the selected role</small>
-          </div>
-          <div v-if="formData.useCustomPermissions" class="form-group">
-            <label>Permissions</label>
-            <PermissionPicker v-model="formData.permissions" />
-          </div>
-          <div v-else-if="formData.role" class="form-group">
-            <label>Role permissions ({{ formData.role }})</label>
-            <PermissionPicker :model-value="roleDefaultPermissions" readonly />
-          </div>
-          <div class="form-group">
-            <label>Expiration</label>
-            <select v-model="formData.expires_in">
-              <option :value="0">Never</option>
-              <option :value="86400">1 day</option>
-              <option :value="604800">7 days</option>
-              <option :value="2592000">30 days</option>
-              <option :value="7776000">90 days</option>
-              <option :value="31536000">1 year</option>
-            </select>
-          </div>
-          <div class="modal-actions">
-            <button type="button" class="btn" @click="closeDialogs">Cancel</button>
-            <button type="submit" class="btn btn-primary" :disabled="saving">
-              {{ saving ? "Creating..." : "Create" }}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+        <div class="form-group">
+          <label>Description (optional)</label>
+          <input v-model="formData.description" type="text" placeholder="What is this key used for?" />
+        </div>
+        <div class="form-group">
+          <label>Role Override (optional)</label>
+          <select v-model="formData.role" @change="onRoleChange">
+            <option value="">Inherit from user</option>
+            <option v-if="authStore.isAdmin" value="admin">Admin</option>
+            <option value="operator">Operator</option>
+            <option value="viewer">Viewer</option>
+          </select>
+          <small>Leave empty to inherit the role from the user account.</small>
+        </div>
+        <div class="form-group">
+          <label>Expiration</label>
+          <select v-model="formData.expires_in">
+            <option :value="0">Never</option>
+            <option :value="86400">1 day</option>
+            <option :value="604800">7 days</option>
+            <option :value="2592000">30 days</option>
+            <option :value="7776000">90 days</option>
+            <option :value="31536000">1 year</option>
+          </select>
+        </div>
+      </template>
+
+      <template #permissions>
+        <div class="form-group">
+          <label class="checkbox-label">
+            <input v-model="formData.useCustomPermissions" type="checkbox" @change="onCustomPermissionsToggle" />
+            <span>Customize permissions</span>
+          </label>
+          <p v-if="!formData.useCustomPermissions" class="tab-hint">
+            Using
+            <span class="role-perm-badge" :class="formData.role || 'inherit'">{{ formData.role || "inherited" }}</span>
+            defaults. Enable the checkbox to override.
+          </p>
+        </div>
+        <PermissionPicker v-if="formData.useCustomPermissions" v-model="formData.permissions" />
+        <PermissionPicker v-else :model-value="roleDefaultPermissions" readonly />
+      </template>
+
+      <template #deployments>
+        <DeploymentAccessField
+          v-model="formData.deployments"
+          :available="availableDeployments"
+          hint="Leave empty to allow access to any deployment the user can reach. Listed deployments cap this key to those (and at most the chosen level). System-level permissions are not affected."
+          empty-hint="No deployment restrictions"
+          default-level="read"
+        />
+      </template>
+    </TabbedFormModal>
+
+    <!-- Edit Dialog -->
+    <TabbedFormModal
+      v-if="showEditDialog"
+      :title="'Edit API Key'"
+      :tabs="editTabs"
+      :active-tab="activeTab"
+      :submitting="saving"
+      submit-label="Save"
+      submitting-label="Saving..."
+      @update:active-tab="activeTab = $event as 'profile' | 'permissions' | 'deployments'"
+      @close="closeDialogs"
+      @submit="updateKey"
+    >
+      <template #profile>
+        <div class="form-group">
+          <label>Name</label>
+          <input v-model="editFormData.name" type="text" required />
+        </div>
+        <div class="form-group">
+          <label>Description (optional)</label>
+          <input v-model="editFormData.description" type="text" />
+        </div>
+        <div class="form-group">
+          <label>Role Override (optional)</label>
+          <select v-model="editFormData.role">
+            <option value="">Inherit from user</option>
+            <option v-if="authStore.isAdmin" value="admin">Admin</option>
+            <option value="operator">Operator</option>
+            <option value="viewer">Viewer</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Extend expiration (optional)</label>
+          <select v-model="editFormData.expires_in">
+            <option :value="0">Keep current</option>
+            <option :value="86400">1 day from now</option>
+            <option :value="604800">7 days from now</option>
+            <option :value="2592000">30 days from now</option>
+            <option :value="7776000">90 days from now</option>
+            <option :value="31536000">1 year from now</option>
+          </select>
+          <small>"Keep current" leaves expiration untouched; pick a duration to reset it.</small>
+        </div>
+      </template>
+
+      <template #permissions>
+        <div class="form-group">
+          <label class="checkbox-label">
+            <input v-model="editFormData.useCustomPermissions" type="checkbox" />
+            <span>Customize permissions</span>
+          </label>
+        </div>
+        <PermissionPicker v-if="editFormData.useCustomPermissions" v-model="editFormData.permissions" />
+      </template>
+
+      <template #deployments>
+        <DeploymentAccessField
+          v-model="editFormData.deployments"
+          :available="availableDeployments"
+          hint="Leave empty to allow access to any deployment. Listed deployments cap this key to those (and at most the chosen level). System-level permissions are not affected."
+          empty-hint="No deployment restrictions"
+          default-level="read"
+        />
+      </template>
+    </TabbedFormModal>
 
     <!-- New Key Dialog -->
     <div v-if="showNewKeyDialog" class="modal-overlay">
@@ -220,9 +297,15 @@ import { useUsersStore } from "@/stores/users";
 import { useAuthStore } from "@/stores/auth";
 import PermissionPicker from "@/components/PermissionPicker.vue";
 import { getRolePermissions } from "@/utils/permissions";
+import { deploymentsApi } from "@/services/api";
+import { useNotificationsStore } from "@/stores/notifications";
+import TabbedFormModal, { type TabbedFormModalTab } from "@/components/TabbedFormModal.vue";
+import DeploymentAccessField from "@/components/DeploymentAccessField.vue";
+import type { DeploymentAccessMap } from "@/types";
 
 const usersStore = useUsersStore();
 const authStore = useAuthStore();
+const notifications = useNotificationsStore();
 
 const apiKeys = computed(() => usersStore.apiKeys);
 const loading = computed(() => usersStore.loading);
@@ -239,14 +322,46 @@ const newKeyValue = ref("");
 const copied = ref(false);
 const saving = ref(false);
 
-const formData = ref({
+const availableDeployments = ref<string[]>([]);
+
+const showEditDialog = ref(false);
+const editingKeyId = ref<number | null>(null);
+const activeTab = ref<"profile" | "permissions" | "deployments">("profile");
+
+const createTabs = computed<TabbedFormModalTab[]>(() => [
+  { id: "profile", label: "Profile", icon: "pi pi-user" },
+  { id: "permissions", label: "Permissions", icon: "pi pi-shield" },
+  {
+    id: "deployments",
+    label: "Deployments",
+    icon: "pi pi-box",
+    count: Object.keys(formData.value.deployments).length || undefined,
+  },
+]);
+
+const editTabs = computed<TabbedFormModalTab[]>(() => [
+  { id: "profile", label: "Profile", icon: "pi pi-user" },
+  { id: "permissions", label: "Permissions", icon: "pi pi-shield" },
+  {
+    id: "deployments",
+    label: "Deployments",
+    icon: "pi pi-box",
+    count: Object.keys(editFormData.value.deployments).length || undefined,
+  },
+]);
+
+const blankForm = () => ({
   name: "",
   description: "",
   role: "" as UserRole | "",
   expires_in: 0,
   useCustomPermissions: false,
   permissions: [] as string[],
+  deployments: {} as DeploymentAccessMap,
 });
+
+const formData = ref(blankForm());
+const editFormData = ref(blankForm());
 
 const roleDefaultPermissions = computed(() => {
   if (!formData.value.role) return [];
@@ -278,21 +393,69 @@ const createAPIKey = async () => {
       description: formData.value.description || undefined,
       role: formData.value.role || undefined,
       permissions: formData.value.useCustomPermissions ? formData.value.permissions : undefined,
+      deployments: Object.keys(formData.value.deployments).length ? formData.value.deployments : undefined,
       expires_in: formData.value.expires_in || undefined,
     });
     newKeyValue.value = result.api_key.key || "";
     showCreateDialog.value = false;
     showNewKeyDialog.value = true;
-    formData.value = {
-      name: "",
-      description: "",
-      role: "",
-      expires_in: 0,
-      useCustomPermissions: false,
-      permissions: [],
-    };
+    formData.value = blankForm();
   } catch (e: any) {
-    alert(e.message);
+    notifications.error("Create Failed", e.message || "Could not create API key");
+  } finally {
+    saving.value = false;
+  }
+};
+
+const openCreateDialog = () => {
+  formData.value = blankForm();
+  activeTab.value = "profile";
+  showCreateDialog.value = true;
+};
+
+const confirmEdit = (key: APIKey) => {
+  selectedKey.value = key;
+  editingKeyId.value = key.id;
+  activeTab.value = "profile";
+  editFormData.value = {
+    name: key.name,
+    description: key.description || "",
+    role: (key.role as UserRole | "") || "",
+    expires_in: 0,
+    useCustomPermissions: Array.isArray(key.permissions) && key.permissions.length > 0,
+    permissions: Array.isArray(key.permissions) ? [...key.permissions] : [],
+    deployments:
+      key.deployments && typeof key.deployments === "object" ? { ...key.deployments } : ({} as DeploymentAccessMap),
+  };
+  showEditDialog.value = true;
+};
+
+const updateKey = async () => {
+  if (editingKeyId.value === null) return;
+  saving.value = true;
+  try {
+    const payload: {
+      name: string;
+      description: string;
+      role: UserRole | "";
+      permissions: string[];
+      deployments: DeploymentAccessMap;
+      expires_in?: number;
+    } = {
+      name: editFormData.value.name,
+      description: editFormData.value.description,
+      role: editFormData.value.role,
+      permissions: editFormData.value.useCustomPermissions ? editFormData.value.permissions : [],
+      deployments: editFormData.value.deployments,
+    };
+    if (editFormData.value.expires_in > 0) {
+      payload.expires_in = editFormData.value.expires_in;
+    }
+    await usersStore.updateAPIKey(editingKeyId.value, payload);
+    notifications.success("Updated", `API key "${editFormData.value.name}" updated.`);
+    closeDialogs();
+  } catch (e: any) {
+    notifications.error("Update Failed", e.message || "Could not update API key");
   } finally {
     saving.value = false;
   }
@@ -312,10 +475,12 @@ const revokeKey = async () => {
   if (!selectedKey.value) return;
   saving.value = true;
   try {
+    const name = selectedKey.value.name;
     await usersStore.revokeAPIKey(selectedKey.value.id);
+    notifications.success("Revoked", `API key "${name}" was revoked.`);
     closeDialogs();
   } catch (e: any) {
-    alert(e.message);
+    notifications.error("Revoke Failed", e.message || "Could not revoke API key");
   } finally {
     saving.value = false;
   }
@@ -325,10 +490,12 @@ const deleteKey = async () => {
   if (!selectedKey.value) return;
   saving.value = true;
   try {
+    const name = selectedKey.value.name;
     await usersStore.deleteAPIKey(selectedKey.value.id);
+    notifications.success("Deleted", `API key "${name}" was deleted.`);
     closeDialogs();
   } catch (e: any) {
-    alert(e.message);
+    notifications.error("Delete Failed", e.message || "Could not delete API key");
   } finally {
     saving.value = false;
   }
@@ -348,9 +515,11 @@ const copyKey = async () => {
 
 const closeDialogs = () => {
   showCreateDialog.value = false;
+  showEditDialog.value = false;
   showRevokeDialog.value = false;
   showDeleteDialog.value = false;
   selectedKey.value = null;
+  editingKeyId.value = null;
 };
 
 const closeNewKeyDialog = () => {
@@ -358,9 +527,15 @@ const closeNewKeyDialog = () => {
   newKeyValue.value = "";
 };
 
-const formatDate = (date?: string) => {
-  if (!date) return "Never";
-  return new Date(date).toLocaleDateString(undefined, {
+const isMeaningfulDate = (date?: string | null) => {
+  if (!date) return false;
+  const d = new Date(date);
+  return !Number.isNaN(d.getTime()) && d.getFullYear() > 1;
+};
+
+const formatDate = (date?: string | null) => {
+  if (!isMeaningfulDate(date)) return "Never";
+  return new Date(date as string).toLocaleDateString(undefined, {
     year: "numeric",
     month: "short",
     day: "numeric",
@@ -369,9 +544,9 @@ const formatDate = (date?: string) => {
   });
 };
 
-const formatExpiry = (date?: string) => {
-  if (!date) return "Never";
-  const d = new Date(date);
+const formatExpiry = (date?: string | null) => {
+  if (!isMeaningfulDate(date)) return "Never";
+  const d = new Date(date as string);
   if (d < new Date()) return "Expired";
   return d.toLocaleDateString(undefined, {
     year: "numeric",
@@ -380,8 +555,18 @@ const formatExpiry = (date?: string) => {
   });
 };
 
+const loadDeployments = async () => {
+  try {
+    const response = await deploymentsApi.list();
+    availableDeployments.value = response.data.deployments.map((d) => d.name).filter((n): n is string => !!n);
+  } catch {
+    availableDeployments.value = [];
+  }
+};
+
 onMounted(() => {
   loadAPIKeys();
+  loadDeployments();
 });
 </script>
 
@@ -551,13 +736,31 @@ code {
   background: var(--surface-card);
   border-radius: 8px;
   width: 100%;
-  max-width: 720px;
+  max-width: 960px;
   max-height: 90vh;
   overflow-y: auto;
 }
 
 .modal-content.modal-sm {
   max-width: 400px;
+}
+
+.form-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.form-col {
+  min-width: 0;
+}
+
+@media (min-width: 720px) {
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+  }
 }
 
 .modal-header {
@@ -690,12 +893,12 @@ code {
 }
 
 .btn-danger {
-  background: var(--danger);
+  background: var(--color-danger-500, #ef4444);
   color: white;
 }
 
 .btn-danger:hover {
-  background: var(--danger-dark);
+  background: var(--color-danger-600, #dc2626);
 }
 
 .btn-icon {

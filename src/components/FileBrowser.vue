@@ -18,6 +18,11 @@
           <i class="pi pi-eye" />
           Hidden
         </label>
+        <label v-if="!mountAvailable" class="view-toggle" :class="{ active: !hideSystemFolders }">
+          <input v-model="hideSystemFolders" type="checkbox" />
+          <i class="pi pi-shield" />
+          Hide system
+        </label>
         <div class="view-mode-toggle">
           <button
             class="view-mode-btn"
@@ -45,6 +50,10 @@
           <i class="pi pi-folder-plus" />
           New Folder
         </button>
+        <button class="btn btn-sm btn-secondary" @click="showNewFileModal = true">
+          <i class="pi pi-file-plus" />
+          New File
+        </button>
         <label class="btn btn-sm btn-primary upload-btn">
           <i class="pi pi-upload" />
           Upload
@@ -58,6 +67,10 @@
         <div class="progress-fill" :style="{ width: uploadProgress + '%' }" />
       </div>
       <span class="progress-text">Uploading {{ uploadFileName }}...</span>
+    </div>
+
+    <div v-else-if="busy && files.length > 0" class="busy-indicator" aria-hidden="true">
+      <div class="busy-bar" />
     </div>
 
     <div class="browser-content">
@@ -126,17 +139,30 @@
             <button v-if="!file.is_dir" class="action-btn" title="Download" @click="downloadFile(file)">
               <i class="pi pi-download" />
             </button>
-            <button
-              class="action-btn"
-              :class="{ 'is-mounted': fileMounts(file).length > 0 }"
-              :title="mountTooltip(file)"
-              @click="openMountModal(file)"
-            >
-              <i class="pi pi-link" />
-            </button>
-            <button class="action-btn delete" title="Delete" @click="confirmDelete(file)">
-              <i class="pi pi-trash" />
-            </button>
+            <div class="action-menu-wrap">
+              <button class="action-btn" title="More" @click.stop="toggleRowMenu(file.path)">
+                <i class="pi pi-ellipsis-v" />
+              </button>
+              <div v-if="rowMenuOpenFor === file.path" class="action-menu" @click.stop>
+                <button
+                  v-if="mountAvailable"
+                  class="menu-item"
+                  :class="{ 'is-mounted': fileMounts(file).length > 0 }"
+                  @click="onMenuAction('mount', file)"
+                >
+                  <i class="pi pi-link" />
+                  <span>{{ fileMounts(file).length > 0 ? "Edit mount" : "Add compose mount" }}</span>
+                </button>
+                <button class="menu-item" @click="onMenuAction('permissions', file)">
+                  <i class="pi pi-key" />
+                  <span>Permissions</span>
+                </button>
+                <button class="menu-item danger" @click="onMenuAction('delete', file)">
+                  <i class="pi pi-trash" />
+                  <span>Delete</span>
+                </button>
+              </div>
+            </div>
           </span>
         </div>
       </div>
@@ -178,17 +204,30 @@
             <button v-if="!file.is_dir" class="action-btn" title="Download" @click="downloadFile(file)">
               <i class="pi pi-download" />
             </button>
-            <button
-              class="action-btn"
-              :class="{ 'is-mounted': fileMounts(file).length > 0 }"
-              :title="mountTooltip(file)"
-              @click="openMountModal(file)"
-            >
-              <i class="pi pi-link" />
-            </button>
-            <button class="action-btn delete" title="Delete" @click="confirmDelete(file)">
-              <i class="pi pi-trash" />
-            </button>
+            <div class="action-menu-wrap">
+              <button class="action-btn" title="More" @click.stop="toggleRowMenu(file.path)">
+                <i class="pi pi-ellipsis-v" />
+              </button>
+              <div v-if="rowMenuOpenFor === file.path" class="action-menu" @click.stop>
+                <button
+                  v-if="mountAvailable"
+                  class="menu-item"
+                  :class="{ 'is-mounted': fileMounts(file).length > 0 }"
+                  @click="onMenuAction('mount', file)"
+                >
+                  <i class="pi pi-link" />
+                  <span>{{ fileMounts(file).length > 0 ? "Edit mount" : "Add compose mount" }}</span>
+                </button>
+                <button class="menu-item" @click="onMenuAction('permissions', file)">
+                  <i class="pi pi-key" />
+                  <span>Permissions</span>
+                </button>
+                <button class="menu-item danger" @click="onMenuAction('delete', file)">
+                  <i class="pi pi-trash" />
+                  <span>Delete</span>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -224,6 +263,36 @@
             <button class="btn btn-secondary" @click="showNewFolderModal = false">Cancel</button>
             <button class="btn btn-primary" :disabled="!newFolderName.trim() || creatingFolder" @click="createFolder">
               <i :class="creatingFolder ? 'pi pi-spin pi-spinner' : 'pi pi-check'" />
+              Create
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div v-if="showNewFileModal" class="modal-overlay" @click.self="showNewFileModal = false">
+        <div class="modal-container small">
+          <div class="modal-header">
+            <h3>
+              <i class="pi pi-file-plus" />
+              New File
+            </h3>
+          </div>
+          <div class="modal-body">
+            <div class="form-group">
+              <label>File Name</label>
+              <input
+                v-model="newFileName"
+                type="text"
+                class="form-input"
+                placeholder=".env"
+                @keyup.enter="createFile"
+              />
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" @click="showNewFileModal = false">Cancel</button>
+            <button class="btn btn-primary" :disabled="!newFileName.trim() || creatingFile" @click="createFile">
+              <i :class="creatingFile ? 'pi pi-spin pi-spinner' : 'pi pi-check'" />
               Create
             </button>
           </div>
@@ -302,6 +371,54 @@
         </div>
       </div>
 
+      <div v-if="showPermissionsModal" class="modal-overlay" @click.self="showPermissionsModal = false">
+        <div class="modal-container small">
+          <div class="modal-header">
+            <h3>
+              <i class="pi pi-key" />
+              Permissions
+            </h3>
+          </div>
+          <div class="modal-body">
+            <div class="mount-source">
+              <span>Path</span>
+              <code>{{ permissionsFile?.path }}</code>
+            </div>
+            <div class="permissions-grid">
+              <div class="permissions-grid-header">
+                <span></span>
+                <span>Read</span>
+                <span>Write</span>
+                <span>Execute</span>
+              </div>
+              <template v-for="who in ['owner', 'group', 'other'] as const" :key="who">
+                <span class="perm-row-label">{{ who }}</span>
+                <label class="perm-cell"
+                  ><input v-model="permissionsBits[who].r" type="checkbox" @change="updatePermissionsMode"
+                /></label>
+                <label class="perm-cell"
+                  ><input v-model="permissionsBits[who].w" type="checkbox" @change="updatePermissionsMode"
+                /></label>
+                <label class="perm-cell"
+                  ><input v-model="permissionsBits[who].x" type="checkbox" @change="updatePermissionsMode"
+                /></label>
+              </template>
+            </div>
+            <div class="permissions-summary">
+              <code>{{ permissionsModeOctal }}</code>
+              <span class="permissions-help">Symbolic permissions in octal form (e.g. 755)</span>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" @click="showPermissionsModal = false">Cancel</button>
+            <button class="btn btn-primary" :disabled="savingPermissions" @click="savePermissions">
+              <i class="pi pi-check" />
+              {{ savingPermissions ? "Saving..." : "Apply" }}
+            </button>
+          </div>
+        </div>
+      </div>
+
       <div v-if="showEditorModal" class="modal-overlay">
         <div class="modal-container editor-modal">
           <div class="modal-header">
@@ -354,19 +471,36 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from "vue";
+import { ref, reactive, computed, onMounted, onBeforeUnmount, watch } from "vue";
 import { Codemirror } from "vue-codemirror";
 import { yaml } from "@codemirror/lang-yaml";
 import { oneDark } from "@codemirror/theme-one-dark";
-import { filesApi, type FileInfo } from "@/services/api";
+import { createDeploymentFileApi, type FileBrowserApi, type FileInfo } from "@/services/api";
 import { useNotificationsStore } from "@/stores/notifications";
 import { toComposeRelativePath, type ComposeMount } from "@/utils/compose";
 
-const props = defineProps<{
-  deploymentName: string;
-  serviceNames?: string[];
-  mounts?: ComposeMount[];
-}>();
+const props = withDefaults(
+  defineProps<{
+    deploymentName?: string;
+    api?: FileBrowserApi;
+    serviceNames?: string[];
+    mounts?: ComposeMount[];
+    enableMount?: boolean;
+    initialPath?: string;
+  }>(),
+  {
+    enableMount: false,
+    initialPath: "/",
+  },
+);
+
+const fileApi = computed<FileBrowserApi>(() => {
+  if (props.api) return props.api;
+  if (props.deploymentName) return createDeploymentFileApi(props.deploymentName);
+  throw new Error("FileBrowser requires either an `api` prop or a `deploymentName`");
+});
+
+const mountAvailable = computed(() => props.enableMount && !!props.deploymentName);
 
 const emit = defineEmits<{
   mountCompose: [
@@ -383,10 +517,10 @@ const emit = defineEmits<{
 
 const notifications = useNotificationsStore();
 
-const currentPath = ref("/");
+const currentPath = ref(props.initialPath || "/");
 const files = ref<FileInfo[]>([]);
 const filesInfo = ref<{ total_size: number; file_count: number } | null>(null);
-const loading = ref(false);
+const loading = ref(true);
 const error = ref("");
 const selectedFiles = ref<string[]>([]);
 
@@ -397,6 +531,9 @@ const uploadFileName = ref("");
 const showNewFolderModal = ref(false);
 const newFolderName = ref("");
 const creatingFolder = ref(false);
+const showNewFileModal = ref(false);
+const newFileName = ref("");
+const creatingFile = ref(false);
 
 const showDeleteModal = ref(false);
 const fileToDelete = ref<FileInfo | null>(null);
@@ -408,7 +545,45 @@ const mountServiceName = ref("");
 const mountTargetPath = ref("");
 const mountReadOnly = ref(false);
 
-const showHiddenFiles = ref(true);
+const rowMenuOpenFor = ref<string | null>(null);
+
+const toggleRowMenu = (path: string) => {
+  rowMenuOpenFor.value = rowMenuOpenFor.value === path ? null : path;
+};
+
+const closeRowMenu = () => {
+  rowMenuOpenFor.value = null;
+};
+
+const onMenuAction = (action: "mount" | "permissions" | "delete", file: FileInfo) => {
+  rowMenuOpenFor.value = null;
+  if (action === "mount") openMountModal(file);
+  else if (action === "permissions") openPermissionsModal(file);
+  else if (action === "delete") confirmDelete(file);
+};
+
+const onDocumentClick = () => {
+  if (rowMenuOpenFor.value !== null) rowMenuOpenFor.value = null;
+};
+
+const showPermissionsModal = ref(false);
+const permissionsFile = ref<FileInfo | null>(null);
+const savingPermissions = ref(false);
+const permissionsBits = reactive({
+  owner: { r: false, w: false, x: false },
+  group: { r: false, w: false, x: false },
+  other: { r: false, w: false, x: false },
+});
+const permissionsModeNumber = ref(0);
+const permissionsModeOctal = computed(() => {
+  const n = permissionsModeNumber.value;
+  return "0" + ((n >> 6) & 7) + ((n >> 3) & 7) + (n & 7);
+});
+
+const showHiddenFiles = ref(false);
+const hideSystemFolders = ref(true);
+
+const SYSTEM_FOLDER_NAMES = new Set(["proc", "sys", "dev", "boot", "run", "lost+found", "var", "tmp", "snap"]);
 const viewMode = ref<"list" | "grid">("list");
 
 const showEditorModal = ref(false);
@@ -417,6 +592,18 @@ const fileContent = ref("");
 const originalContent = ref("");
 const loadingFileContent = ref(false);
 const savingFile = ref(false);
+
+const busy = computed(
+  () =>
+    loading.value ||
+    uploading.value ||
+    creatingFolder.value ||
+    creatingFile.value ||
+    deleting.value ||
+    savingPermissions.value ||
+    loadingFileContent.value ||
+    savingFile.value,
+);
 const viewOnly = ref(false);
 
 const editorExtensions = [yaml(), oneDark];
@@ -471,10 +658,13 @@ const fetchFiles = async () => {
   loading.value = true;
   error.value = "";
   try {
-    const response = await filesApi.list(props.deploymentName, currentPath.value);
+    const response = await fileApi.value.list(currentPath.value);
     let fileList = response.data.files || [];
     if (!showHiddenFiles.value) {
       fileList = fileList.filter((f) => !f.name.startsWith("."));
+    }
+    if (!mountAvailable.value && hideSystemFolders.value && currentPath.value === "/") {
+      fileList = fileList.filter((f) => !(f.is_dir && SYSTEM_FOLDER_NAMES.has(f.name)));
     }
     files.value = fileList;
   } catch (err: any) {
@@ -487,7 +677,7 @@ const fetchFiles = async () => {
 
 const fetchFilesInfo = async () => {
   try {
-    const response = await filesApi.getInfo(props.deploymentName);
+    const response = await fileApi.value.getInfo();
     filesInfo.value = response.data;
   } catch {
     filesInfo.value = null;
@@ -536,7 +726,7 @@ const uploadFile = async (file: File) => {
   try {
     const targetPath = currentPath.value === "/" ? `/${file.name}` : `${currentPath.value}/${file.name}`;
 
-    await filesApi.upload(props.deploymentName, targetPath, file);
+    await fileApi.value.upload(targetPath, file);
     uploadProgress.value = 100;
     notifications.success("Upload Complete", `${file.name} uploaded successfully`);
   } catch (err: any) {
@@ -550,7 +740,7 @@ const uploadFile = async (file: File) => {
 
 const downloadFile = async (file: FileInfo) => {
   try {
-    const response = await filesApi.download(props.deploymentName, file.path);
+    const response = await fileApi.value.download(file.path);
     const blob = new Blob([response.data]);
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -572,7 +762,7 @@ const createFolder = async () => {
     const targetPath =
       currentPath.value === "/" ? `/${newFolderName.value}` : `${currentPath.value}/${newFolderName.value}`;
 
-    await filesApi.createDir(props.deploymentName, targetPath);
+    await fileApi.value.createDir(targetPath);
     notifications.success("Folder Created", `${newFolderName.value} created successfully`);
     showNewFolderModal.value = false;
     newFolderName.value = "";
@@ -585,14 +775,104 @@ const createFolder = async () => {
   }
 };
 
+const createFile = async () => {
+  if (!newFileName.value.trim()) return;
+
+  creatingFile.value = true;
+  try {
+    const targetPath =
+      currentPath.value === "/" ? `/${newFileName.value}` : `${currentPath.value}/${newFileName.value}`;
+
+    await fileApi.value.createFile(targetPath);
+    notifications.success("File Created", `${newFileName.value} created successfully`);
+    showNewFileModal.value = false;
+    newFileName.value = "";
+    refreshFiles();
+  } catch (err: any) {
+    const msg = err.response?.data?.error || err.message || "Failed to create file";
+    notifications.error("Error", msg);
+  } finally {
+    creatingFile.value = false;
+  }
+};
+
 const confirmDelete = (file: FileInfo) => {
   fileToDelete.value = file;
   showDeleteModal.value = true;
 };
 
+const parsePermissionsMode = (permissions: string | undefined, isDir: boolean): number => {
+  if (!permissions) return isDir ? 0o755 : 0o644;
+  const symbolic = permissions.length === 10 ? permissions.slice(1) : permissions;
+  if (symbolic.length === 9) {
+    let n = 0;
+    if (symbolic[0] === "r") n |= 0o400;
+    if (symbolic[1] === "w") n |= 0o200;
+    if (symbolic[2] === "x") n |= 0o100;
+    if (symbolic[3] === "r") n |= 0o040;
+    if (symbolic[4] === "w") n |= 0o020;
+    if (symbolic[5] === "x") n |= 0o010;
+    if (symbolic[6] === "r") n |= 0o004;
+    if (symbolic[7] === "w") n |= 0o002;
+    if (symbolic[8] === "x") n |= 0o001;
+    return n;
+  }
+  const numeric = parseInt(permissions, 8);
+  if (!Number.isNaN(numeric)) return numeric & 0o777;
+  return isDir ? 0o755 : 0o644;
+};
+
+const setPermissionsBitsFromNumber = (n: number) => {
+  permissionsBits.owner.r = !!(n & 0o400);
+  permissionsBits.owner.w = !!(n & 0o200);
+  permissionsBits.owner.x = !!(n & 0o100);
+  permissionsBits.group.r = !!(n & 0o040);
+  permissionsBits.group.w = !!(n & 0o020);
+  permissionsBits.group.x = !!(n & 0o010);
+  permissionsBits.other.r = !!(n & 0o004);
+  permissionsBits.other.w = !!(n & 0o002);
+  permissionsBits.other.x = !!(n & 0o001);
+  permissionsModeNumber.value = n;
+};
+
+const updatePermissionsMode = () => {
+  let n = 0;
+  if (permissionsBits.owner.r) n |= 0o400;
+  if (permissionsBits.owner.w) n |= 0o200;
+  if (permissionsBits.owner.x) n |= 0o100;
+  if (permissionsBits.group.r) n |= 0o040;
+  if (permissionsBits.group.w) n |= 0o020;
+  if (permissionsBits.group.x) n |= 0o010;
+  if (permissionsBits.other.r) n |= 0o004;
+  if (permissionsBits.other.w) n |= 0o002;
+  if (permissionsBits.other.x) n |= 0o001;
+  permissionsModeNumber.value = n;
+};
+
+const openPermissionsModal = (file: FileInfo) => {
+  permissionsFile.value = file;
+  setPermissionsBitsFromNumber(parsePermissionsMode((file as any).permissions, file.is_dir));
+  showPermissionsModal.value = true;
+};
+
+const savePermissions = async () => {
+  if (!permissionsFile.value) return;
+  savingPermissions.value = true;
+  try {
+    await fileApi.value.chmod(permissionsFile.value.path, permissionsModeNumber.value);
+    notifications.success("Permissions Updated", `${permissionsFile.value.name} is now ${permissionsModeOctal.value}`);
+    showPermissionsModal.value = false;
+    refreshFiles();
+  } catch (err: any) {
+    notifications.error("Update Failed", err.response?.data?.error || err.message || "Could not change permissions");
+  } finally {
+    savingPermissions.value = false;
+  }
+};
+
 const openMountModal = (file: FileInfo) => {
   fileToMount.value = file;
-  mountServiceName.value = mountServiceOptions.value[0] || props.deploymentName;
+  mountServiceName.value = mountServiceOptions.value[0] || props.deploymentName || "";
   mountTargetPath.value = file.path;
   mountReadOnly.value = !file.is_dir;
   showMountModal.value = true;
@@ -618,7 +898,7 @@ const deleteFile = async () => {
 
   deleting.value = true;
   try {
-    await filesApi.delete(props.deploymentName, fileToDelete.value.path);
+    await fileApi.value.delete(fileToDelete.value.path);
     notifications.success("Deleted", `${fileToDelete.value.name} deleted successfully`);
     showDeleteModal.value = false;
     fileToDelete.value = null;
@@ -733,7 +1013,7 @@ const viewFile = async (file: FileInfo) => {
   originalContent.value = "";
 
   try {
-    const response = await filesApi.getContent(props.deploymentName, file.path);
+    const response = await fileApi.value.getContent(file.path);
     fileContent.value = response.data;
     originalContent.value = response.data;
   } catch (err: any) {
@@ -754,7 +1034,7 @@ const openFileEditor = async (file: FileInfo) => {
   originalContent.value = "";
 
   try {
-    const response = await filesApi.getContent(props.deploymentName, file.path);
+    const response = await fileApi.value.getContent(file.path);
     fileContent.value = response.data;
     originalContent.value = response.data;
   } catch (err: any) {
@@ -786,7 +1066,7 @@ const saveFile = async () => {
   try {
     const blob = new Blob([fileContent.value], { type: "text/plain" });
     const file = new File([blob], editingFile.value.name);
-    await filesApi.upload(props.deploymentName, editingFile.value.path, file);
+    await fileApi.value.upload(editingFile.value.path, file);
     originalContent.value = fileContent.value;
     notifications.success("Saved", `${editingFile.value.name} saved successfully`);
   } catch (err: any) {
@@ -801,12 +1081,21 @@ watch(currentPath, () => {
   fetchFiles();
 });
 
+watch(hideSystemFolders, () => {
+  refreshFiles();
+});
+
 watch(showHiddenFiles, () => {
   fetchFiles();
 });
 
 onMounted(() => {
   refreshFiles();
+  document.addEventListener("click", onDocumentClick);
+});
+
+onBeforeUnmount(() => {
+  document.removeEventListener("click", onDocumentClick);
 });
 </script>
 
@@ -926,6 +1215,28 @@ onMounted(() => {
   font-size: var(--text-sm);
   color: var(--color-primary-700);
   white-space: nowrap;
+}
+
+.busy-indicator {
+  height: 2px;
+  background: var(--color-gray-100);
+  overflow: hidden;
+}
+
+.busy-bar {
+  height: 100%;
+  width: 30%;
+  background: var(--color-primary-500);
+  animation: busy-slide 1s linear infinite;
+}
+
+@keyframes busy-slide {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(400%);
+  }
 }
 
 .browser-content {
@@ -1065,6 +1376,63 @@ onMounted(() => {
   color: var(--color-success-700);
 }
 
+.action-menu-wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.action-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: 10;
+  min-width: 180px;
+  background: var(--surface-card, white);
+  border: 1px solid var(--color-gray-200);
+  border-radius: var(--radius-md);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  padding: var(--space-1);
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+  color: var(--color-gray-700);
+  cursor: pointer;
+  text-align: left;
+}
+
+.menu-item:hover {
+  background: var(--color-gray-100);
+  color: var(--color-gray-900);
+}
+
+.menu-item.danger {
+  color: var(--color-danger-600);
+}
+
+.menu-item.danger:hover {
+  background: var(--color-danger-50);
+}
+
+.menu-item.is-mounted {
+  color: var(--color-success-700);
+}
+
+.menu-item .pi {
+  font-size: var(--text-sm);
+  width: 16px;
+}
+
 .action-btn.is-mounted:hover {
   background: var(--color-success-100);
 }
@@ -1159,6 +1527,62 @@ onMounted(() => {
   background: var(--color-gray-100);
   color: var(--color-gray-700);
   word-break: break-all;
+}
+
+.permissions-grid {
+  display: grid;
+  grid-template-columns: 80px repeat(3, 1fr);
+  gap: var(--space-2);
+  align-items: center;
+  margin: var(--space-3) 0 var(--space-2);
+}
+
+.permissions-grid-header {
+  display: contents;
+}
+
+.permissions-grid-header span {
+  font-size: var(--text-xs);
+  font-weight: var(--font-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-gray-500);
+  text-align: center;
+}
+
+.perm-row-label {
+  font-size: var(--text-sm);
+  color: var(--color-gray-700);
+  text-transform: capitalize;
+}
+
+.perm-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.permissions-summary {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--color-gray-200);
+}
+
+.permissions-summary code {
+  font-size: var(--text-base);
+  font-weight: var(--font-medium);
+  padding: var(--space-1) var(--space-2);
+  background: var(--color-gray-100);
+  color: var(--color-gray-900);
+  border-radius: var(--radius-sm);
+}
+
+.permissions-help {
+  font-size: var(--text-xs);
+  color: var(--color-gray-500);
 }
 
 .checkbox-label {
