@@ -36,10 +36,12 @@ apiClient.interceptors.request.use((config) => {
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401 && !window.location.pathname.includes("/setup")) {
+    if (error.response?.status === 401) {
       const failedURL: string = error.config?.url || "";
-      const isSessionEndpoint = /\/auth\/|\/users\/me(\b|\/)/.test(failedURL);
-      if (isSessionEndpoint) {
+      const isLoginAttempt = failedURL.includes("/auth/login");
+      const onAuthPage =
+        window.location.pathname.includes("/login") || window.location.pathname.includes("/setup");
+      if (!isLoginAttempt && !onAuthPage) {
         localStorage.removeItem("auth_token");
         window.location.href = "/login";
       }
