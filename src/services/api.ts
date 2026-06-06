@@ -41,8 +41,7 @@ apiClient.interceptors.response.use(
     if (error.response?.status === 401) {
       const failedURL: string = error.config?.url || "";
       const isLoginAttempt = failedURL.includes("/auth/login");
-      const onAuthPage =
-        window.location.pathname.includes("/login") || window.location.pathname.includes("/setup");
+      const onAuthPage = window.location.pathname.includes("/login") || window.location.pathname.includes("/setup");
       if (!isLoginAttempt && !onAuthPage) {
         localStorage.removeItem("auth_token");
         window.location.href = "/login";
