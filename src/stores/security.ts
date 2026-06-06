@@ -1,13 +1,14 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
 import { securityApi, type SecurityHealthCheck, type SecurityRefreshResponse } from "@/services/api";
-import type { SecurityEvent, SecurityStats, BlockedIP, ProtectedRoute } from "@/types";
+import type { SecurityEvent, SecurityStats, BlockedIP, ProtectedRoute, WhitelistEntry } from "@/types";
 
 export const useSecurityStore = defineStore("security", () => {
   const stats = ref<SecurityStats | null>(null);
   const events = ref<SecurityEvent[]>([]);
   const eventsTotal = ref(0);
   const blockedIPs = ref<BlockedIP[]>([]);
+  const whitelist = ref<WhitelistEntry[]>([]);
   const protectedRoutes = ref<ProtectedRoute[]>([]);
   const securityEnabled = ref(false);
   const realtimeCapture = ref(false);
@@ -76,6 +77,39 @@ export const useSecurityStore = defineStore("security", () => {
     try {
       await securityApi.unblockIP(ip);
       await fetchBlockedIPs();
+    } catch (e: any) {
+      error.value = e.response?.data?.error || e.message;
+      throw e;
+    }
+  }
+
+  async function fetchWhitelist() {
+    loading.value = true;
+    error.value = null;
+    try {
+      const response = await securityApi.getWhitelist();
+      whitelist.value = response.data.whitelist || [];
+    } catch (e: any) {
+      error.value = e.response?.data?.error || e.message;
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  async function addWhitelistEntry(entry: { value: string; type: WhitelistEntry["type"]; reason?: string }) {
+    try {
+      await securityApi.addWhitelistEntry(entry);
+      await fetchWhitelist();
+    } catch (e: any) {
+      error.value = e.response?.data?.error || e.message;
+      throw e;
+    }
+  }
+
+  async function removeWhitelistEntry(id: number) {
+    try {
+      await securityApi.removeWhitelistEntry(id);
+      await fetchWhitelist();
     } catch (e: any) {
       error.value = e.response?.data?.error || e.message;
       throw e;
@@ -188,6 +222,7 @@ export const useSecurityStore = defineStore("security", () => {
     events,
     eventsTotal,
     blockedIPs,
+    whitelist,
     protectedRoutes,
     securityEnabled,
     realtimeCapture,
@@ -199,6 +234,9 @@ export const useSecurityStore = defineStore("security", () => {
     fetchBlockedIPs,
     blockIP,
     unblockIP,
+    fetchWhitelist,
+    addWhitelistEntry,
+    removeWhitelistEntry,
     fetchProtectedRoutes,
     addProtectedRoute,
     updateProtectedRoute,

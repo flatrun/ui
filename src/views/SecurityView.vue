@@ -384,6 +384,48 @@
         </div>
       </div>
 
+      <!-- Whitelist Tab -->
+      <div v-show="activeTab === 'whitelist'" class="tab-content">
+        <div class="section-header">
+          <h3>Whitelisted Sources</h3>
+          <button v-if="canWrite" class="btn btn-primary btn-sm" @click="showAddWhitelistDialog = true">
+            <i class="pi pi-plus" />
+            Add Entry
+          </button>
+        </div>
+
+        <div class="blocked-list">
+          <div v-if="whitelist.length === 0" class="empty-state">
+            <i class="pi pi-check-circle" />
+            <p>No whitelist entries</p>
+            <span class="empty-hint">Whitelisted IPs, networks, and paths never generate events or blocks</span>
+          </div>
+          <div v-else class="blocked-items">
+            <div v-for="entry in whitelist" :key="entry.id" class="blocked-item">
+              <div class="blocked-info">
+                <code class="blocked-ip">{{ entry.value }}</code>
+                <span v-if="entry.reason" class="blocked-reason">{{ entry.reason }}</span>
+                <div class="blocked-meta">
+                  <span class="badge">{{ entry.type.toUpperCase() }}</span>
+                  <span v-if="entry.is_internal" class="badge auto">Internal</span>
+                  <span class="blocked-time">Added {{ formatTime(entry.created_at) }}</span>
+                </div>
+              </div>
+              <button
+                v-if="canWrite && !entry.is_internal"
+                class="btn btn-danger-ghost btn-sm"
+                :disabled="removingWhitelistId === entry.id"
+                @click="handleRemoveWhitelistEntry(entry)"
+              >
+                <i v-if="removingWhitelistId === entry.id" class="pi pi-spin pi-spinner" />
+                <i v-else class="pi pi-times" />
+                Remove
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Protected Routes Tab -->
       <div v-show="activeTab === 'routes'" class="tab-content">
         <div class="section-header">
@@ -521,6 +563,46 @@
             </div>
           </div>
 
+          <div v-if="thresholdsLoaded" class="settings-card">
+            <div class="setting-item">
+              <div class="setting-info">
+                <h4>Detection Thresholds</h4>
+                <p>
+                  Limits applied per source IP within the detection window. When a limit is exceeded, the IP is
+                  automatically blocked for the configured duration. Changes apply immediately, no restart needed.
+                </p>
+              </div>
+            </div>
+            <div class="thresholds-grid">
+              <div v-for="field in thresholdFields" :key="field.key" class="form-group">
+                <label class="form-label">{{ field.label }}</label>
+                <input
+                  v-if="field.type === 'number'"
+                  v-model.number="thresholds[field.key]"
+                  type="number"
+                  min="1"
+                  class="form-input"
+                  :disabled="!canEditConfig"
+                />
+                <input
+                  v-else
+                  v-model="thresholds[field.key]"
+                  type="text"
+                  class="form-input"
+                  :placeholder="field.hint"
+                  :disabled="!canEditConfig"
+                />
+                <span v-if="field.hint" class="form-hint">{{ field.hint }}</span>
+              </div>
+            </div>
+            <div v-if="canEditConfig" class="thresholds-actions">
+              <button class="btn btn-primary" :disabled="savingThresholds" @click="saveThresholds">
+                <i v-if="savingThresholds" class="pi pi-spin pi-spinner" />
+                Save Thresholds
+              </button>
+            </div>
+          </div>
+
           <div class="settings-card">
             <div class="setting-item">
               <div class="setting-info">
@@ -567,6 +649,49 @@
             <button class="btn btn-primary" :disabled="!blockForm.ip || blockingIP" @click="handleBlockIP">
               <i v-if="blockingIP" class="pi pi-spin pi-spinner" />
               Block IP
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
+
+    <!-- Add Whitelist Entry Dialog -->
+    <Teleport to="body">
+      <div v-if="showAddWhitelistDialog" class="modal-overlay" @click.self="showAddWhitelistDialog = false">
+        <div class="modal-dialog">
+          <div class="modal-header">
+            <h3>Add Whitelist Entry</h3>
+            <button class="btn btn-icon" @click="showAddWhitelistDialog = false">
+              <i class="pi pi-times" />
+            </button>
+          </div>
+          <div class="modal-body">
+            <div class="form-group">
+              <label class="form-label">Type</label>
+              <select v-model="whitelistForm.type" class="form-input">
+                <option value="ip">IP address</option>
+                <option value="cidr">Network (CIDR)</option>
+                <option value="path">Path prefix</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Value</label>
+              <input v-model="whitelistForm.value" type="text" class="form-input" :placeholder="whitelistPlaceholder" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Reason (optional)</label>
+              <input v-model="whitelistForm.reason" type="text" class="form-input" placeholder="Office network" />
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" @click="showAddWhitelistDialog = false">Cancel</button>
+            <button
+              class="btn btn-primary"
+              :disabled="!whitelistForm.value || addingWhitelistEntry"
+              @click="handleAddWhitelistEntry"
+            >
+              <i v-if="addingWhitelistEntry" class="pi pi-spin pi-spinner" />
+              Add Entry
             </button>
           </div>
         </div>
@@ -642,12 +767,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from "vue";
+import { ref, reactive, computed, onMounted } from "vue";
 import { storeToRefs } from "pinia";
 import { useSecurityStore } from "@/stores/security";
 import { useNotificationsStore } from "@/stores/notifications";
 import { useAuthStore } from "@/stores/auth";
-import type { ProtectedRoute } from "@/types";
+import { configApi } from "@/services/api";
+import type { ProtectedRoute, WhitelistEntry } from "@/types";
 import SecurityHealthCard from "@/components/SecurityHealthCard.vue";
 import TrafficDashboard from "@/components/TrafficDashboard.vue";
 
@@ -655,6 +781,7 @@ const securityStore = useSecurityStore();
 const notifications = useNotificationsStore();
 const authStore = useAuthStore();
 const canWrite = authStore.hasPermission("security:write");
+const canEditConfig = authStore.hasPermission("config:write");
 
 const loading = ref(false);
 const activeTab = ref("stats");
@@ -664,12 +791,13 @@ const tabs = [
   { id: "traffic", label: "Traffic & Performance", icon: "pi pi-chart-line" },
   { id: "events", label: "Security Events", icon: "pi pi-list" },
   { id: "blocked", label: "Blocked IPs", icon: "pi pi-ban" },
+  { id: "whitelist", label: "Whitelist", icon: "pi pi-check-circle" },
   { id: "routes", label: "Rate Limits", icon: "pi pi-lock" },
   { id: "health", label: "Health", icon: "pi pi-heart" },
   { id: "settings", label: "Settings", icon: "pi pi-cog" },
 ];
 
-const { stats, events, eventsTotal, blockedIPs, protectedRoutes, securityEnabled, realtimeCapture } =
+const { stats, events, eventsTotal, blockedIPs, whitelist, protectedRoutes, securityEnabled, realtimeCapture } =
   storeToRefs(securityStore);
 const togglingRealtimeCapture = ref(false);
 const refreshingScripts = ref(false);
@@ -686,6 +814,44 @@ const showAddBlockDialog = ref(false);
 const blockForm = reactive({ ip: "", reason: "", duration: 0 });
 const blockingIP = ref(false);
 const unblockingIP = ref<string | null>(null);
+
+const showAddWhitelistDialog = ref(false);
+const whitelistForm = reactive({ value: "", type: "ip" as WhitelistEntry["type"], reason: "" });
+const addingWhitelistEntry = ref(false);
+const removingWhitelistId = ref<number | null>(null);
+
+const whitelistPlaceholder = computed(() => {
+  switch (whitelistForm.type) {
+    case "cidr":
+      return "203.0.113.0/24";
+    case "path":
+      return "/api/health";
+    default:
+      return "203.0.113.7";
+  }
+});
+
+interface ThresholdField {
+  key: string;
+  label: string;
+  type: "number" | "duration";
+  hint?: string;
+}
+
+const thresholdFields: ThresholdField[] = [
+  { key: "detection_window", label: "Detection Window", type: "duration", hint: "e.g. 2m" },
+  { key: "rate_threshold", label: "Max Requests per Window", type: "number" },
+  { key: "auth_failure_threshold", label: "Auth Failures (401/403) Before Block", type: "number" },
+  { key: "not_found_threshold", label: "404 Responses Before Block", type: "number" },
+  { key: "unique_paths_threshold", label: "Unique Paths Before Block", type: "number" },
+  { key: "repeated_hits_threshold", label: "Hits on Same Path Before Block", type: "number" },
+  { key: "auto_block_duration", label: "Auto-Block Duration", type: "duration", hint: "e.g. 24h" },
+];
+
+const thresholds = reactive<Record<string, string | number>>({});
+const loadedThresholds = ref<Record<string, string | number>>({});
+const thresholdsLoaded = ref(false);
+const savingThresholds = ref(false);
 
 const showAddRouteDialog = ref(false);
 const showEditRouteDialog = ref(false);
@@ -719,6 +885,48 @@ const fetchProtectedRoutes = async () => {
   await securityStore.fetchProtectedRoutes();
 };
 
+const fetchWhitelist = async () => {
+  await securityStore.fetchWhitelist();
+};
+
+const loadThresholds = async () => {
+  try {
+    const response = await configApi.list();
+    const entries = response.data.config || [];
+    for (const field of thresholdFields) {
+      const entry = entries.find((e) => e.key === `security.${field.key}`);
+      if (entry && entry.value != null) {
+        thresholds[field.key] = entry.value as string | number;
+        loadedThresholds.value[field.key] = entry.value as string | number;
+      }
+    }
+    thresholdsLoaded.value = true;
+  } catch {
+    thresholdsLoaded.value = false;
+  }
+};
+
+const saveThresholds = async () => {
+  savingThresholds.value = true;
+  try {
+    const changed = thresholdFields.filter((f) => thresholds[f.key] !== loadedThresholds.value[f.key]);
+    for (const field of changed) {
+      await configApi.set(`security.${field.key}`, thresholds[field.key]);
+      loadedThresholds.value[field.key] = thresholds[field.key];
+    }
+    if (changed.length > 0) {
+      notifications.success("Thresholds Saved", `${changed.length} setting(s) updated and applied`);
+    } else {
+      notifications.info("No Changes", "Thresholds are unchanged");
+    }
+  } catch (e: any) {
+    notifications.error("Failed", e.response?.data?.error || "Failed to save thresholds");
+    await loadThresholds();
+  } finally {
+    savingThresholds.value = false;
+  }
+};
+
 const fetchRealtimeCaptureStatus = async () => {
   await securityStore.fetchRealtimeCaptureStatus();
 };
@@ -729,8 +937,10 @@ const refreshData = async () => {
     fetchStats(),
     fetchEvents(),
     fetchBlockedIPs(),
+    fetchWhitelist(),
     fetchProtectedRoutes(),
     fetchRealtimeCaptureStatus(),
+    loadThresholds(),
   ]);
   loading.value = false;
   notifications.success("Refreshed", "Security data updated");
@@ -873,6 +1083,39 @@ const handleUnblockIP = async (ip: string) => {
     notifications.error("Failed", e.response?.data?.error || "Failed to unblock IP");
   } finally {
     unblockingIP.value = null;
+  }
+};
+
+const handleAddWhitelistEntry = async () => {
+  if (!whitelistForm.value) return;
+  addingWhitelistEntry.value = true;
+  try {
+    await securityStore.addWhitelistEntry({
+      value: whitelistForm.value,
+      type: whitelistForm.type,
+      reason: whitelistForm.reason || undefined,
+    });
+    notifications.success("Entry Added", `${whitelistForm.value} has been whitelisted`);
+    showAddWhitelistDialog.value = false;
+    whitelistForm.value = "";
+    whitelistForm.type = "ip";
+    whitelistForm.reason = "";
+  } catch (e: any) {
+    notifications.error("Failed", e.response?.data?.error || "Failed to add whitelist entry");
+  } finally {
+    addingWhitelistEntry.value = false;
+  }
+};
+
+const handleRemoveWhitelistEntry = async (entry: WhitelistEntry) => {
+  removingWhitelistId.value = entry.id;
+  try {
+    await securityStore.removeWhitelistEntry(entry.id);
+    notifications.success("Entry Removed", `${entry.value} is no longer whitelisted`);
+  } catch (e: any) {
+    notifications.error("Failed", e.response?.data?.error || "Failed to remove whitelist entry");
+  } finally {
+    removingWhitelistId.value = null;
   }
 };
 
@@ -1315,13 +1558,31 @@ onMounted(() => {
   color: #9ca3af;
 }
 
-.badge.auto {
-  background: #dbeafe;
-  color: #1d4ed8;
+.badge {
+  background: #f3f4f6;
+  color: #4b5563;
   padding: 0.125rem 0.375rem;
   border-radius: var(--radius-sm);
   font-size: 0.625rem;
   font-weight: 600;
+}
+
+.badge.auto {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.thresholds-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.thresholds-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1rem;
 }
 
 .route-config {

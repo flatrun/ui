@@ -226,6 +226,24 @@ export interface ProtectedRoute {
   created_at: string;
 }
 
+export interface WhitelistEntry {
+  id: number;
+  value: string;
+  type: "ip" | "cidr" | "path";
+  reason?: string;
+  is_internal: boolean;
+  created_at: string;
+}
+
+export interface ConfigEntry {
+  key: string;
+  type: string;
+  value: unknown;
+  default?: unknown;
+  description?: string;
+  sensitive?: boolean;
+}
+
 export interface SecurityStats {
   total_events: number;
   last_24_hours: number;
@@ -327,6 +345,8 @@ export type Permission =
   | "apikeys:delete"
   | "settings:read"
   | "settings:write"
+  | "config:read"
+  | "config:write"
   | "audit:read"
   | "containers:read"
   | "containers:write"

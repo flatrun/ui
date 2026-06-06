@@ -13,6 +13,8 @@ import type {
   SecurityStats,
   BlockedIP,
   ProtectedRoute,
+  WhitelistEntry,
+  ConfigEntry,
   DeploymentSecurityConfig,
   DomainConfig,
   ProtectedModeConfig,
@@ -36,10 +38,11 @@ apiClient.interceptors.request.use((config) => {
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401 && !window.location.pathname.includes("/setup")) {
+    if (error.response?.status === 401) {
       const failedURL: string = error.config?.url || "";
-      const isSessionEndpoint = /\/auth\/|\/users\/me(\b|\/)/.test(failedURL);
-      if (isSessionEndpoint) {
+      const isLoginAttempt = failedURL.includes("/auth/login");
+      const onAuthPage = window.location.pathname.includes("/login") || window.location.pathname.includes("/setup");
+      if (!isLoginAttempt && !onAuthPage) {
         localStorage.removeItem("auth_token");
         window.location.href = "/login";
       }
@@ -235,6 +238,13 @@ export const settingsApi = {
   update: (data: any) => apiClient.put("/settings", data),
   updateSecurity: (data: any) => apiClient.put("/settings/security", data),
   generateSubdomain: () => apiClient.get<SubdomainResponse>("/subdomain/generate"),
+};
+
+export const configApi = {
+  list: () => apiClient.get<{ config: ConfigEntry[]; runtime: Record<string, boolean> }>("/config"),
+  get: (key: string) => apiClient.get<{ entry: ConfigEntry; runtime: boolean }>(`/config/${key}`),
+  set: (key: string, value: unknown) =>
+    apiClient.put<{ entry: ConfigEntry; applied: boolean }>(`/config/${key}`, { value }),
 };
 
 export const pluginsApi = {
@@ -747,6 +757,11 @@ export const securityApi = {
   getEventsByIP: (ip: string) => apiClient.get<{ events: SecurityEvent[]; ip: string }>(`/security/ips/${ip}/events`),
   cleanup: (days?: number) =>
     apiClient.post<{ events_deleted: number; blocks_deleted: number }>("/security/cleanup", { days }),
+
+  getWhitelist: () => apiClient.get<{ whitelist: WhitelistEntry[] }>("/security/whitelist"),
+  addWhitelistEntry: (entry: { value: string; type: WhitelistEntry["type"]; reason?: string }) =>
+    apiClient.post<{ id: number }>("/security/whitelist", entry),
+  removeWhitelistEntry: (id: number) => apiClient.delete<{ message: string }>(`/security/whitelist/${id}`),
 
   getBlockedIPs: () => apiClient.get<{ blocked_ips: BlockedIP[] }>("/security/blocked-ips"),
   blockIP: (ip: string, reason?: string, duration?: number) =>
