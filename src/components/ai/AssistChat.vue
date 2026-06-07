@@ -48,13 +48,20 @@
         </div>
 
         <div v-if="pending.length" class="approval-card">
-          <p class="approval-title"><CircleAlert :size="14" /> The assistant wants to run {{ pending.length }} lookup(s)</p>
+          <p class="approval-title"><CircleAlert :size="14" /> The assistant wants to run a read-only lookup</p>
           <div v-for="call in pending" :key="call.id" class="approval-item">
             <code>{{ toolDisplay(call) }}</code>
+            <div v-if="call.id in store.decisions" class="approval-decided" :class="{ allowed: store.decisions[call.id] }">
+              {{ store.decisions[call.id] ? "Allowed" : "Declined" }}
+            </div>
+            <div v-else class="approval-buttons">
+              <button class="btn btn-xs btn-secondary" :disabled="store.loading" @click="store.decide(call.id, false)">Decline</button>
+              <button class="btn btn-xs btn-primary" :disabled="store.loading" @click="store.decide(call.id, true)">Allow</button>
+            </div>
           </div>
-          <div class="approval-actions">
-            <button class="btn btn-sm btn-secondary" :disabled="store.loading" @click="store.declineAll">Decline</button>
-            <button class="btn btn-sm btn-primary" :disabled="store.loading" @click="store.approveAll">Allow &amp; continue</button>
+          <div v-if="pending.length > 1" class="approval-actions">
+            <button class="btn btn-xs btn-secondary" :disabled="store.loading" @click="store.declineAll">Decline all</button>
+            <button class="btn btn-xs btn-primary" :disabled="store.loading" @click="store.approveAll">Allow all</button>
           </div>
         </div>
 
@@ -124,8 +131,8 @@ const headerSubtitle = computed(() =>
 );
 const emptyPrompt = computed(() =>
   store.scope === "deployment"
-    ? `Ask anything about ${store.subject}, or ask it to investigate a problem.`
-    : "Ask about this instance, its deployments, networks, or anything that is going wrong.",
+    ? `What do you want to know about ${store.subject}, or what should I do?`
+    : "What do you want to know, or what do you want me to do?",
 );
 const inputPlaceholder = computed(() =>
   pending.value.length ? "Resolve the lookups above to continue..." : "Ask a question...",
@@ -359,12 +366,35 @@ watch(
   font-weight: 600;
   color: #92400e;
 }
+.approval-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.3rem 0;
+}
 .approval-item code {
-  display: block;
+  flex: 1;
   font-size: 0.74rem;
-  padding: 0.2rem 0;
   color: #78350f;
   overflow-wrap: anywhere;
+}
+.approval-buttons {
+  display: flex;
+  gap: 0.35rem;
+  flex-shrink: 0;
+}
+.approval-decided {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #92400e;
+  flex-shrink: 0;
+}
+.approval-decided.allowed {
+  color: #15803d;
+}
+.btn-xs {
+  padding: 0.2rem 0.55rem;
+  font-size: 0.72rem;
 }
 .approval-actions {
   display: flex;

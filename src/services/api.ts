@@ -363,10 +363,15 @@ export interface AISession {
 
 export const aiApi = {
   status: () => apiClient.get<AIStatus>("/ai/status"),
-  createSession: (body: { scope: "system" | "deployment"; deployment?: string; auto_run: boolean; message: string }) =>
-    apiClient.post<AISession>("/ai/sessions", body),
-  sessionMessage: (id: string, message: string) =>
-    apiClient.post<AISession>(`/ai/sessions/${id}/messages`, { message }),
+  createSession: (body: {
+    scope: "system" | "deployment";
+    deployment?: string;
+    auto_run: boolean;
+    message: string;
+    context?: string;
+  }) => apiClient.post<AISession>("/ai/sessions", body),
+  sessionMessage: (id: string, message: string, context?: string) =>
+    apiClient.post<AISession>(`/ai/sessions/${id}/messages`, { message, context }),
   approveSession: (id: string, approved: Record<string, boolean>) =>
     apiClient.post<AISession>(`/ai/sessions/${id}/approve`, { approved }),
   getSession: (id: string) => apiClient.get<AISession>(`/ai/sessions/${id}`),

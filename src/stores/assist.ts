@@ -22,7 +22,10 @@ export interface AssistContext {
   scope: "system" | "deployment";
   deployment?: string;
   subject: string;
+  // seedMessage is the short prompt shown in the transcript; seedContext
+  // is bulky material (logs, output) sent to the model but not shown.
   seedMessage?: string;
+  seedContext?: string;
   autoRun?: boolean;
 }
 
@@ -37,6 +40,9 @@ export const useAssistStore = defineStore("assist", () => {
   const error = ref("");
   const runningIndex = ref<number | null>(null);
   const suggestionOutputs = ref<Record<number, string>>({});
+  // Per-call decisions while an approval batch is open; once every
+  // pending call is decided the batch is submitted.
+  const decisions = ref<Record<string, boolean>>({});
 
   function reset() {
     session.value = null;
@@ -44,6 +50,7 @@ export const useAssistStore = defineStore("assist", () => {
     error.value = "";
     runningIndex.value = null;
     suggestionOutputs.value = {};
+    decisions.value = {};
   }
 
   async function ensureEnabled(): Promise<boolean> {
@@ -64,23 +71,24 @@ export const useAssistStore = defineStore("assist", () => {
     autoRun.value = ctx.autoRun ?? true;
     if (!(await ensureEnabled())) return;
     if (ctx.seedMessage) {
-      await send(ctx.seedMessage);
+      await send(ctx.seedMessage, ctx.seedContext);
     }
   }
 
-  async function send(message: string) {
+  async function send(message: string, context?: string) {
     if (loading.value) return;
     error.value = "";
     suggestionOutputs.value = {};
     loading.value = true;
     try {
       const response = session.value
-        ? await aiApi.sessionMessage(session.value.id, message)
+        ? await aiApi.sessionMessage(session.value.id, message, context)
         : await aiApi.createSession({
             scope: scope.value,
             deployment: deployment.value,
             auto_run: autoRun.value,
             message,
+            context,
           });
       session.value = response.data;
     } catch (err: any) {
@@ -93,6 +101,7 @@ export const useAssistStore = defineStore("assist", () => {
   async function resolveApprovals(approved: Record<string, boolean>) {
     if (!session.value || loading.value) return;
     loading.value = true;
+    decisions.value = {};
     try {
       const response = await aiApi.approveSession(session.value.id, approved);
       session.value = response.data;
@@ -100,6 +109,17 @@ export const useAssistStore = defineStore("assist", () => {
       error.value = err.response?.data?.error || err.message;
     } finally {
       loading.value = false;
+    }
+  }
+
+  // decide records one call's allow/deny; when every pending call has a
+  // decision the whole batch is submitted, so a single pending call
+  // resolves on one click.
+  function decide(id: string, allow: boolean) {
+    if (!session.value) return;
+    decisions.value = { ...decisions.value, [id]: allow };
+    if (session.value.pending.every((p) => p.id in decisions.value)) {
+      resolveApprovals({ ...decisions.value });
     }
   }
 
@@ -170,8 +190,10 @@ export const useAssistStore = defineStore("assist", () => {
     error,
     runningIndex,
     suggestionOutputs,
+    decisions,
     open,
     send,
+    decide,
     approveAll,
     declineAll,
     resolveApprovals,

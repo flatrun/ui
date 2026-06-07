@@ -9,6 +9,12 @@ vi.mock("dompurify", () => ({
   default: { sanitize: (html: string) => html.replace(/<script[\s\S]*?<\/script>/g, "") },
 }));
 
+vi.mock("@/services/api", () => ({
+  aiApi: { approveSession: vi.fn().mockResolvedValue({ data: { messages: [], pending: [], suggested_actions: [] } }) },
+  containersApi: { exec: vi.fn() },
+  deploymentsApi: { serviceAction: vi.fn(), getServices: vi.fn() },
+}));
+
 const mountChat = () =>
   mount(AssistChat, {
     global: { stubs: { Teleport: true, Transition: false, RouterLink: { template: "<a><slot /></a>" } } },
@@ -65,7 +71,29 @@ describe("AssistChat", () => {
     const card = wrapper.find(".approval-card");
     expect(card.exists()).toBe(true);
     expect(card.text()).toContain("exec in service: env");
+    expect(card.find(".approval-buttons").exists()).toBe(true);
     expect(card.text()).toContain("Allow");
+    expect(card.text()).toContain("Decline");
+  });
+
+  it("submits a single decision on one click", async () => {
+    const { aiApi } = await import("@/services/api");
+    const store = useAssistStore();
+    store.visible = true;
+    store.session = {
+      id: "ais_1",
+      scope: "system",
+      auto_run: false,
+      status: "awaiting_approval",
+      messages: [{ role: "user", content: "check" }],
+      pending: [{ id: "c1", name: "list_networks", arguments: "{}" }],
+      suggested_actions: [],
+    } as AISession;
+
+    const wrapper = mountChat();
+    const allow = wrapper.findAll(".approval-buttons button").find((b) => b.text() === "Allow");
+    await allow!.trigger("click");
+    expect(vi.mocked(aiApi.approveSession)).toHaveBeenCalledWith("ais_1", { c1: true });
   });
 
   it("disables input while awaiting approval", () => {

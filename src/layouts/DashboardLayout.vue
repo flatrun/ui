@@ -420,8 +420,8 @@
           </h1>
         </div>
         <button v-if="aiStore.status?.enabled" class="ai-ask-launcher" @click="openGlobalAssist">
-          <Sparkles :size="15" />
-          <span>Ask AI about this instance</span>
+          <Sparkles :size="17" />
+          <span>Run your instance with the assistant</span>
         </button>
         <div class="header-right">
           <div class="quick-stats">
@@ -1073,23 +1073,27 @@ onMounted(() => {
   transform: translateX(-50%);
   display: inline-flex;
   align-items: center;
-  gap: 0.45rem;
-  padding: 0.45rem 1rem;
+  justify-content: center;
+  gap: 0.55rem;
+  min-width: 280px;
+  padding: 0.65rem 1.5rem;
   border: 1px solid #dbeafe;
   border-radius: 999px;
   background: linear-gradient(180deg, #eff6ff, #f5f9ff);
   color: #2563eb;
-  font-size: 0.82rem;
+  font-size: 0.9rem;
   font-weight: 500;
   cursor: pointer;
   transition:
     box-shadow 0.15s ease,
-    border-color 0.15s ease;
+    border-color 0.15s ease,
+    transform 0.15s ease;
 }
 
 .ai-ask-launcher:hover {
   border-color: #bfdbfe;
-  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.15);
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.18);
+  transform: translateX(-50%) translateY(-1px);
 }
 
 @media (max-width: 900px) {

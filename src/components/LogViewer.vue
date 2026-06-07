@@ -106,18 +106,29 @@ defineEmits<{
 // parent can pass a richer context (deployment scope unlocks gathered
 // sources and runnable suggestions); without one the visible logs are
 // analyzed as host-level output.
+// The viewer already holds the logs on screen, so it hands them to the
+// assistant directly: the model analyzes what the user is looking at
+// instead of hunting for it with tools. The parent context only
+// supplies scope/deployment/subject.
 const openAssist = () => {
   const store = useAssistStore();
-  if (props.assistContext) {
-    store.open(props.assistContext);
+  const base = props.assistContext ?? { scope: "system" as const, subject: props.fileName.replace(/\.txt$/, "") };
+  if (base.seedMessage) {
+    store.open(base);
     return;
   }
-  const subject = props.fileName.replace(/\.txt$/, "");
-  store.open({
-    scope: "system",
-    subject,
-    seedMessage: `Here are logs from ${subject}. Tell me what they show and whether anything is wrong.\n\n\`\`\`\n${props.logs}\n\`\`\``,
-  });
+  if (props.logs) {
+    store.open({
+      ...base,
+      seedMessage: `Analyze the recent logs for ${base.subject}: summarize what they show, report any problems with potential solutions, and say so plainly if everything looks normal.`,
+      seedContext: `\`\`\`\n${props.logs}\n\`\`\``,
+    });
+  } else {
+    store.open({
+      ...base,
+      seedMessage: `Review the recent logs for ${base.subject}, summarize them and report any problems with potential solutions.`,
+    });
+  }
 };
 
 const terminalContainer = ref<HTMLElement | null>(null);

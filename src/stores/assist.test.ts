@@ -64,6 +64,7 @@ describe("assist store", () => {
       deployment: "myapp",
       auto_run: true,
       message: "diagnose",
+      context: undefined,
     });
     expect(store.session?.id).toBe("ais_1");
   });
@@ -78,7 +79,7 @@ describe("assist store", () => {
     await store.open({ scope: "system", subject: "x", seedMessage: "first" });
     await store.send("second");
 
-    expect(aiApi.sessionMessage).toHaveBeenCalledWith("ais_1", "second");
+    expect(aiApi.sessionMessage).toHaveBeenCalledWith("ais_1", "second", undefined);
   });
 
   it("approves all pending tools", async () => {

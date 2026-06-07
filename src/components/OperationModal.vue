@@ -59,9 +59,8 @@ const assistContext = computed<AssistContext>(() => ({
   subject: props.deploymentName,
   seedMessage: `The "${props.operation}" operation just ${
     props.isSuccess ? "finished" : "failed"
-  } with this output. Explain what happened${props.isSuccess ? "" : " and how to fix it"}:\n\n\`\`\`\n${
-    props.output || "(no output captured)"
-  }\n\`\`\``,
+  }. Explain what happened${props.isSuccess ? "" : " and how to fix it"}.`,
+  seedContext: `\`\`\`\n${props.output || "(no output captured)"}\n\`\`\``,
 }));
 
 const startTime = ref<number | null>(null);

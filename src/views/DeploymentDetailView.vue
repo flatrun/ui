@@ -2633,8 +2633,6 @@ const logsAssistContext = computed<AssistContext>(() => ({
   scope: "deployment",
   deployment: route.params.name as string,
   subject: route.params.name as string,
-  seedMessage:
-    "Review this deployment's recent logs (read them with your tools) and tell me whether anything is wrong.",
 }));
 
 const operationAssistContext = computed<AssistContext>(() => ({
@@ -2643,9 +2641,8 @@ const operationAssistContext = computed<AssistContext>(() => ({
   subject: route.params.name as string,
   seedMessage: `The "${operationTitle.value}" operation just ${
     operationError.value ? "failed" : "finished"
-  } with this output. Explain what happened${operationError.value ? " and how to fix it" : ""}:\n\n\`\`\`\n${
-    operationOutput.value || operationError.value || "(no output captured)"
-  }\n\`\`\``,
+  }. Explain what happened${operationError.value ? " and how to fix it" : ""}.`,
+  seedContext: `\`\`\`\n${operationOutput.value || operationError.value || "(no output captured)"}\n\`\`\``,
 }));
 
 const serviceActionBusy = ref("");
