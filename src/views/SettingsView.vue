@@ -976,6 +976,7 @@ import type { DomainSettings } from "@/services/api";
 import type { ProtectedCommandRule, ProtectedModeConfig, RegistryCredential, RegistryType } from "@/types";
 import { useNotificationsStore } from "@/stores/notifications";
 import { useAuthStore } from "@/stores/auth";
+import { useAIStore } from "@/stores/ai";
 import SecurityHealthCard from "@/components/SecurityHealthCard.vue";
 import { matchTypeHints, describeBlockedRule } from "@/utils/protectedMode";
 
@@ -1563,6 +1564,7 @@ const saveAISettings = async () => {
     }
     const response = await configApi.set("ai.enabled", aiSettings.enabled);
     aiSettings.api_key = "";
+    await useAIStore().fetchStatus(true);
     notifications.success("Saved", response.data.applied ? "AI settings applied immediately" : "AI settings saved");
   } catch (e: any) {
     notifications.error("Error", e.response?.data?.error || "Failed to save AI settings");

@@ -49,6 +49,10 @@ export const useAssistStore = defineStore("assist", () => {
   async function ensureEnabled(): Promise<boolean> {
     const aiStore = useAIStore();
     await aiStore.fetchStatus();
+    if (!aiStore.status?.enabled) {
+      // The cached status may predate the assistant being configured.
+      await aiStore.fetchStatus(true);
+    }
     if (aiStore.status?.enabled) return true;
     error.value = AI_DISABLED_MESSAGE;
     return false;
