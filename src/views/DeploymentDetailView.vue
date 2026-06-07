@@ -14,42 +14,51 @@
         </div>
       </div>
       <div class="header-actions">
-        <button
+        <SplitActionButton
           v-if="canWrite"
-          class="btn btn-success"
+          label="Start"
+          icon="pi pi-play"
+          btn-class="btn-success"
           :disabled="loading || deployment?.status === 'running'"
-          @click="handleOperation('start')"
-        >
-          <i class="pi pi-play" /> Start
-        </button>
-        <button
+          :services="serviceNames"
+          @action="(scope) => handleScopedAction('start', scope)"
+        />
+        <SplitActionButton
           v-if="canWrite"
-          class="btn btn-warning"
+          label="Stop"
+          icon="pi pi-stop"
+          btn-class="btn-warning"
           :disabled="loading || deployment?.status === 'stopped'"
-          @click="handleOperation('stop')"
-        >
-          <i class="pi pi-stop" /> Stop
-        </button>
-        <button
+          :services="serviceNames"
+          @action="(scope) => handleScopedAction('stop', scope)"
+        />
+        <SplitActionButton
           v-if="canWrite"
-          class="btn btn-info"
+          label="Restart"
+          icon="pi pi-refresh"
+          btn-class="btn-info"
           :disabled="loading || deployment?.status === 'stopped'"
-          @click="handleOperation('restart')"
-        >
-          <i class="pi pi-refresh" /> Restart
-        </button>
-        <button
+          :services="serviceNames"
+          @action="(scope) => handleScopedAction('restart', scope)"
+        />
+        <SplitActionButton
           v-if="canWrite"
-          class="btn btn-secondary"
+          label="Rebuild"
+          icon="pi pi-sync"
+          btn-class="btn-secondary"
           :disabled="loading"
-          @click="showRebuildModal = true"
-          title="Recreate containers with latest images"
-        >
-          <i class="pi pi-sync" /> Rebuild
-        </button>
-        <button v-if="canWrite" class="btn btn-secondary" :disabled="loading" @click="openPullImageModal">
-          <i class="pi pi-download" /> Pull Image
-        </button>
+          :services="serviceNames"
+          @action="(scope) => handleScopedAction('rebuild', scope)"
+        />
+        <SplitActionButton
+          v-if="canWrite"
+          label="Pull Image"
+          icon="pi pi-download"
+          btn-class="btn-secondary"
+          :disabled="loading"
+          :services="serviceNames"
+          @action="(scope) => handleScopedAction('pull', scope)"
+        />
         <button v-if="canDelete" class="btn btn-danger" :disabled="loading" @click="confirmDelete">
           <i class="pi pi-trash" /> Delete
         </button>
@@ -338,8 +347,39 @@
                       <button class="action-btn" title="Logs" @click="viewServiceLogs(service)">
                         <i class="pi pi-file-edit" />
                       </button>
-                      <button class="action-btn" title="Restart" @click="restartService(service)">
-                        <i class="pi pi-refresh" />
+                      <button
+                        v-if="service.status !== 'running'"
+                        class="action-btn"
+                        title="Start"
+                        :disabled="serviceActionBusy === service.name"
+                        @click="runServiceAction(service, 'start')"
+                      >
+                        <i class="pi pi-play" />
+                      </button>
+                      <button
+                        v-else
+                        class="action-btn"
+                        title="Stop"
+                        :disabled="serviceActionBusy === service.name"
+                        @click="runServiceAction(service, 'stop')"
+                      >
+                        <i class="pi pi-stop" />
+                      </button>
+                      <button
+                        class="action-btn"
+                        title="Restart"
+                        :disabled="serviceActionBusy === service.name"
+                        @click="runServiceAction(service, 'restart')"
+                      >
+                        <i :class="serviceActionBusy === service.name ? 'pi pi-spin pi-spinner' : 'pi pi-refresh'" />
+                      </button>
+                      <button
+                        class="action-btn"
+                        title="Rebuild"
+                        :disabled="serviceActionBusy === service.name"
+                        @click="runServiceAction(service, 'rebuild')"
+                      >
+                        <i class="pi pi-sync" />
                       </button>
                     </div>
                   </div>
@@ -866,28 +906,39 @@
           </div>
         </div>
 
-        <div v-if="activeTab === 'settings'" class="settings-tab">
-          <div class="security-section protected-mode-section">
-            <div class="section-header">
-              <div class="section-title">
-                <i class="pi pi-lock" />
-                <h3>Protected Mode</h3>
+        <div v-if="activeTab === 'config'" class="config-tab">
+          <SubTabs v-model="activeConfigTab" :tabs="configSubTabs">
+          <div v-if="activeConfigTab === 'settings'" class="settings-tab">
+          <div class="settings-list">
+            <div class="settings-row">
+              <div class="settings-row-header" @click="toggleSettingsSection('protected')">
+                <div class="row-title">
+                  <i class="pi pi-lock" />
+                  <div class="row-text">
+                    <h4>Protected Mode</h4>
+                    <p>Refuse the selected destructive actions while enabled</p>
+                  </div>
+                </div>
+                <div class="row-controls" @click.stop>
+                  <label class="toggle-switch">
+                    <input
+                      v-model="protectedMode.enabled"
+                      type="checkbox"
+                      :disabled="savingProtectedMode"
+                      @change="saveProtectedMode"
+                    />
+                    <span class="toggle-slider" />
+                  </label>
+                  <button class="chevron-btn" @click="toggleSettingsSection('protected')">
+                    <i class="pi" :class="openSettingsSection === 'protected' ? 'pi-chevron-up' : 'pi-chevron-down'" />
+                  </button>
+                </div>
               </div>
-              <label class="toggle-switch">
-                <input
-                  v-model="protectedMode.enabled"
-                  type="checkbox"
-                  :disabled="savingProtectedMode"
-                  @change="saveProtectedMode"
-                />
-                <span class="toggle-slider" />
-              </label>
-            </div>
-            <p class="section-description">
-              When enabled, the actions selected below are refused with a 423 Locked status. Use this on production
-              deployments to prevent accidental destructive operations.
-            </p>
-            <div class="section-body">
+              <div v-if="openSettingsSection === 'protected'" class="settings-row-body">
+              <p class="row-description">
+                When enabled, the actions selected below are refused with a 423 Locked status. Use this on production
+                deployments to prevent accidental destructive operations.
+              </p>
               <div class="protected-mode-grid">
                 <label class="delete-option compact">
                   <input
@@ -1009,29 +1060,45 @@
                   </p>
                 </div>
               </div>
+              </div>
+            </div>
+
+            <div class="settings-row">
+              <div class="settings-row-header" @click="toggleSettingsSection('plans')">
+                <div class="row-title">
+                  <i class="pi pi-eye" />
+                  <div class="row-text">
+                    <h4>Require Plan Review</h4>
+                    <p>Preview every change as a plan and apply it explicitly</p>
+                  </div>
+                </div>
+                <div class="row-controls" @click.stop>
+                  <label class="toggle-switch">
+                    <input
+                      v-model="requirePlan"
+                      type="checkbox"
+                      :disabled="savingRequirePlan"
+                      @change="saveRequirePlan"
+                    />
+                    <span class="toggle-slider" />
+                  </label>
+                  <button class="chevron-btn" @click="toggleSettingsSection('plans')">
+                    <i class="pi" :class="openSettingsSection === 'plans' ? 'pi-chevron-up' : 'pi-chevron-down'" />
+                  </button>
+                </div>
+              </div>
+              <div v-if="openSettingsSection === 'plans'" class="settings-row-body">
+                <p class="row-description">
+                  When enabled, changes to this deployment (environment, compose, domains, deletion, service actions)
+                  are refused unless they go through a reviewed plan: you see a preview of every file diff and affected
+                  container before applying. API callers and AI agents are held to the same rule.
+                </p>
+              </div>
             </div>
           </div>
         </div>
 
-        <div v-if="activeTab === 'config'" class="config-tab">
-          <div class="config-sub-tabs">
-            <button
-              class="config-sub-tab"
-              :class="{ active: activeConfigTab === 'compose' }"
-              @click="activeConfigTab = 'compose'"
-            >
-              <i class="pi pi-file" />
-              {{ composeFilename }}
-            </button>
-            <button
-              class="config-sub-tab"
-              :class="{ active: activeConfigTab === 'service' }"
-              @click="activeConfigTab = 'service'"
-            >
-              <i class="pi pi-cog" />
-              service.yml
-            </button>
-          </div>
+          <div v-if="activeConfigTab !== 'settings'" class="config-sections">
 
           <div v-if="activeConfigTab === 'compose'" class="config-section">
             <div class="config-header">
@@ -1088,6 +1155,8 @@
               />
             </div>
           </div>
+          </div>
+          </SubTabs>
         </div>
       </div>
     </template>
@@ -1640,11 +1709,15 @@ import DomainFormModal from "@/components/DomainFormModal.vue";
 import ContainerResourcesModal from "@/components/ContainerResourcesModal.vue";
 import { extractComposeMounts, extractComposeServiceNames } from "@/utils/compose";
 import { matchTypeHints, describeBlockedRule } from "@/utils/protectedMode";
+import { usePlanFlow } from "@/composables/usePlanFlow";
+import SplitActionButton from "@/components/base/SplitActionButton.vue";
+import SubTabs from "@/components/base/SubTabs.vue";
 
 const route = useRoute();
 const router = useRouter();
 const notifications = useNotificationsStore();
 const authStore = useAuthStore();
+const { runGuarded } = usePlanFlow();
 const canWrite = authStore.hasPermission("deployments:write");
 const canDelete = authStore.hasPermission("deployments:delete");
 
@@ -1724,7 +1797,6 @@ const tabs = [
   { id: "actions", label: "Quick Actions", icon: "pi pi-bolt" },
   { id: "backups", label: "Backups", icon: "pi pi-history" },
   { id: "security", label: "Security", icon: "pi pi-shield" },
-  { id: "settings", label: "Settings", icon: "pi pi-sliders-h" },
   { id: "config", label: "Configuration", icon: "pi pi-cog" },
 ];
 
@@ -1816,7 +1888,13 @@ const isEditingConfig = ref(false);
 const serviceConfig = ref("");
 const isEditingServiceConfig = ref(false);
 const configExtensions = [yaml(), oneDark];
-const activeConfigTab = ref<"compose" | "service">("compose");
+const activeConfigTab = ref<"compose" | "service" | "settings">("compose");
+
+const configSubTabs = computed(() => [
+  { id: "compose", label: composeFilename.value, icon: "pi pi-file" },
+  { id: "service", label: "service.yml", icon: "pi pi-cog" },
+  { id: "settings", label: "Settings", icon: "pi pi-sliders-h" },
+]);
 
 const showOperationModal = ref(false);
 const operationTitle = ref("");
@@ -1918,6 +1996,31 @@ const syncProtectedModeFromDeployment = () => {
     blocked_command_rules: [...(current?.blocked_command_rules || [])],
     disable_terminal: current?.disable_terminal || false,
   };
+  requirePlan.value = Boolean(deployment.value?.metadata?.require_plan);
+};
+
+const requirePlan = ref(false);
+const savingRequirePlan = ref(false);
+const openSettingsSection = ref<string | null>("protected");
+
+const toggleSettingsSection = (id: string) => {
+  openSettingsSection.value = openSettingsSection.value === id ? null : id;
+};
+
+const saveRequirePlan = async () => {
+  savingRequirePlan.value = true;
+  try {
+    await deploymentsApi.updateMetadata(route.params.name as string, { require_plan: requirePlan.value });
+    if (deployment.value?.metadata) {
+      deployment.value.metadata.require_plan = requirePlan.value;
+    }
+    notifications.success("Saved", requirePlan.value ? "Plan review is now required" : "Plan review is now optional");
+  } catch (e: any) {
+    notifications.error("Error", e.response?.data?.error || "Failed to save setting");
+    requirePlan.value = Boolean(deployment.value?.metadata?.require_plan);
+  } finally {
+    savingRequirePlan.value = false;
+  }
 };
 
 const saveProtectedMode = async () => {
@@ -2117,12 +2220,14 @@ const fetchDeployment = async () => {
 const handleSetupProxy = async () => {
   settingUpProxy.value = true;
   try {
-    await proxyApi.setup(route.params.name as string);
+    const result = await runGuarded(
+      () => proxyApi.setup(route.params.name as string),
+      () => proxyApi.setup(route.params.name as string, { plan: true }),
+      "Setup Failed",
+    );
+    if (result === false) return;
     notifications.success("Proxy Setup", "Virtual host has been configured");
     await fetchDeployment();
-  } catch (err: any) {
-    const msg = err.response?.data?.error || err.message;
-    notifications.error("Setup Failed", msg);
   } finally {
     settingUpProxy.value = false;
   }
@@ -2452,17 +2557,20 @@ const confirmDelete = () => {
 const deleteDeployment = async () => {
   deletingDeployment.value = true;
   try {
-    await deploymentsApi.delete(route.params.name as string, {
+    const options = {
       deleteSSL: deleteOptions.value.deleteSSL,
       deleteDatabase: deleteOptions.value.deleteDatabase,
       deleteVhost: deleteOptions.value.deleteVhost,
-    });
+    };
+    const result = await runGuarded(
+      () => deploymentsApi.delete(route.params.name as string, options),
+      () => deploymentsApi.delete(route.params.name as string, options, { plan: true }),
+      "Delete Failed",
+    );
+    if (result === false) return;
     showDeleteDeploymentModal.value = false;
     notifications.success("Deleted", `Deployment "${deployment.value?.name}" has been deleted`);
     router.push(backPath.value);
-  } catch (err: any) {
-    const msg = err.response?.data?.error || err.message;
-    notifications.error("Delete Failed", msg);
   } finally {
     deletingDeployment.value = false;
   }
@@ -2502,8 +2610,50 @@ const viewServiceLogs = (service: any) => {
   fetchLogs();
 };
 
-const restartService = async (service: any) => {
-  console.log("Restarting service:", service.name);
+const serviceNames = computed(() => services.value.map((s) => s.name));
+
+const handleScopedAction = (action: "start" | "stop" | "restart" | "rebuild" | "pull", scope: string) => {
+  if (scope === "deployment") {
+    if (action === "rebuild") {
+      showRebuildModal.value = true;
+    } else if (action === "pull") {
+      openPullImageModal();
+    } else {
+      handleOperation(action);
+    }
+    return;
+  }
+  runServiceAction({ name: scope }, action);
+};
+
+const serviceActionBusy = ref("");
+
+const serviceActionPastTense: Record<string, string> = {
+  start: "started",
+  stop: "stopped",
+  restart: "restarted",
+  rebuild: "rebuilt",
+  pull: "image pulled",
+};
+
+const runServiceAction = async (
+  service: { name: string },
+  action: "start" | "stop" | "restart" | "rebuild" | "pull",
+) => {
+  serviceActionBusy.value = service.name;
+  try {
+    const name = route.params.name as string;
+    const result = await runGuarded(
+      () => deploymentsApi.serviceAction(name, service.name, action),
+      () => deploymentsApi.serviceAction(name, service.name, action, { plan: true }),
+      "Service Action Failed",
+    );
+    if (result === false) return;
+    notifications.success("Service Updated", `${service.name} ${serviceActionPastTense[action]}`);
+    await fetchDeployment();
+  } finally {
+    serviceActionBusy.value = "";
+  }
 };
 
 const terminalRef = ref<InstanceType<typeof ContainerTerminal> | null>(null);
@@ -2540,12 +2690,12 @@ const saveEnvVarsToServer = async () => {
   savingEnvVars.value = true;
   try {
     const envData = envVars.value.map((e) => ({ key: e.key, value: e.value }));
-    await deploymentsApi.updateEnvVars(route.params.name as string, envData);
-    return true;
-  } catch (err: any) {
-    const msg = err.response?.data?.error || err.message;
-    notifications.error("Save Failed", msg);
-    return false;
+    const result = await runGuarded(
+      () => deploymentsApi.updateEnvVars(route.params.name as string, envData),
+      () => deploymentsApi.updateEnvVars(route.params.name as string, envData, { plan: true }),
+      "Save Failed",
+    );
+    return result !== false;
   } finally {
     savingEnvVars.value = false;
   }
@@ -2767,17 +2917,15 @@ const cancelServiceConfigEdit = () => {
 };
 
 const saveConfig = async () => {
-  try {
-    await deploymentsApi.update(route.params.name as string, {
-      compose_content: composeConfig.value,
-    });
-    originalConfig = composeConfig.value;
-    isEditingConfig.value = false;
-    notifications.success("Saved", "Configuration saved successfully");
-  } catch (err: any) {
-    const msg = err.response?.data?.error || err.message;
-    notifications.error("Save Failed", msg);
-  }
+  const result = await runGuarded(
+    () => deploymentsApi.update(route.params.name as string, { compose_content: composeConfig.value }),
+    () => deploymentsApi.update(route.params.name as string, { compose_content: composeConfig.value }, { plan: true }),
+    "Save Failed",
+  );
+  if (result === false) return;
+  originalConfig = composeConfig.value;
+  isEditingConfig.value = false;
+  notifications.success("Saved", "Configuration saved successfully");
 };
 
 const saveServiceConfig = async () => {
@@ -3640,43 +3788,6 @@ onUnmounted(() => {
 
 .config-tab {
   padding: var(--space-4);
-}
-
-.config-sub-tabs {
-  display: flex;
-  gap: var(--space-2);
-  margin-bottom: var(--space-4);
-  border-bottom: 1px solid var(--color-gray-200);
-  padding-bottom: var(--space-2);
-}
-
-.config-sub-tab {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-2) var(--space-4);
-  border: none;
-  background: transparent;
-  border-radius: var(--radius-sm);
-  font-size: var(--text-sm);
-  font-weight: var(--font-medium);
-  color: var(--color-gray-500);
-  cursor: pointer;
-  transition: all var(--transition-base);
-}
-
-.config-sub-tab:hover {
-  color: var(--color-gray-700);
-  background: var(--color-gray-100);
-}
-
-.config-sub-tab.active {
-  color: var(--color-primary-600);
-  background: var(--color-primary-50);
-}
-
-.config-sub-tab i {
-  font-size: var(--text-sm);
 }
 
 .config-section {
@@ -4612,6 +4723,81 @@ onUnmounted(() => {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1.25rem;
+}
+
+.settings-list {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  margin: 5px;
+}
+
+.settings-row + .settings-row {
+  border-top: 1px solid #f3f4f6;
+}
+
+.settings-row-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  cursor: pointer;
+}
+
+.settings-row-header:hover {
+  background: #fafafa;
+}
+
+.row-title {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.row-title i {
+  color: #3b82f6;
+  font-size: 1rem;
+  margin-top: 0.15rem;
+}
+
+.row-text h4 {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-primary, #1e293b);
+}
+
+.row-text p {
+  margin: 0.15rem 0 0;
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+.row-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.chevron-btn {
+  border: none;
+  background: none;
+  color: #9ca3af;
+  cursor: pointer;
+  padding: 0.25rem;
+}
+
+.settings-row-body {
+  padding: 0 1.25rem 1.25rem;
+}
+
+.row-description {
+  margin: 0 0 0.75rem;
+  font-size: 0.8125rem;
+  color: #6b7280;
+  line-height: 1.5;
 }
 
 .security-section {

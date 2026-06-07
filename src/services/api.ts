@@ -18,6 +18,8 @@ import type {
   DeploymentSecurityConfig,
   DomainConfig,
   ProtectedModeConfig,
+  Plan,
+  PlanStatus,
 } from "@/types";
 
 export const apiClient = axios.create({
@@ -71,6 +73,7 @@ export interface ServiceMetadata {
     interval: string;
   };
   protected_mode?: ProtectedModeConfig;
+  require_plan?: boolean;
   credential_id?: string;
   service_credentials?: Record<string, string>;
 }
@@ -80,11 +83,21 @@ export interface EnvVar {
   value: string;
 }
 
+export interface PlanOpts {
+  plan?: boolean;
+}
+
+const withPlanQuery = (url: string, opts?: PlanOpts) => {
+  if (!opts?.plan) return url;
+  return url + (url.includes("?") ? "&" : "?") + "plan=true";
+};
+
 export const deploymentsApi = {
   list: () => apiClient.get<{ deployments: Deployment[] }>("/deployments"),
   get: (name: string) => apiClient.get<Deployment>(`/deployments/${name}`),
   create: (data: any) => apiClient.post("/deployments", data),
-  update: (name: string, data: any) => apiClient.put(`/deployments/${name}`, data),
+  update: (name: string, data: any, opts?: PlanOpts) =>
+    apiClient.put(withPlanQuery(`/deployments/${name}`, opts), data),
   updateMetadata: (name: string, metadata: Partial<ServiceMetadata>) =>
     apiClient.put(`/deployments/${name}/metadata`, metadata),
   updateProtectedMode: (name: string, protectedMode: ProtectedModeConfig) =>
@@ -92,15 +105,28 @@ export const deploymentsApi = {
       `/deployments/${name}/protected-mode`,
       protectedMode,
     ),
-  delete: (name: string, options?: { deleteSSL?: boolean; deleteDatabase?: boolean; deleteVhost?: boolean }) => {
+  delete: (
+    name: string,
+    options?: { deleteSSL?: boolean; deleteDatabase?: boolean; deleteVhost?: boolean },
+    opts?: PlanOpts,
+  ) => {
     const params = new URLSearchParams();
     if (options?.deleteSSL !== undefined) params.set("delete_ssl", String(options.deleteSSL));
     if (options?.deleteDatabase !== undefined) params.set("delete_database", String(options.deleteDatabase));
     if (options?.deleteVhost !== undefined) params.set("delete_vhost", String(options.deleteVhost));
     const queryString = params.toString();
-    return apiClient.delete(`/deployments/${name}${queryString ? `?${queryString}` : ""}`);
+    return apiClient.delete(withPlanQuery(`/deployments/${name}${queryString ? `?${queryString}` : ""}`, opts));
   },
   getServices: (name: string) => apiClient.get<{ services: Service[] }>(`/deployments/${name}/services`),
+  serviceAction: (
+    name: string,
+    service: string,
+    action: "start" | "stop" | "restart" | "rebuild" | "pull",
+    opts?: PlanOpts,
+  ) =>
+    apiClient.post<{ message: string; name: string; service: string; output: string }>(
+      withPlanQuery(`/deployments/${name}/services/${service}/${action}`, opts),
+    ),
   start: (name: string) => apiClient.post(`/deployments/${name}/start`),
   stop: (name: string) => apiClient.post(`/deployments/${name}/stop`),
   restart: (name: string) => apiClient.post(`/deployments/${name}/restart`),
@@ -163,15 +189,33 @@ export const deploymentsApi = {
       };
     }>(`/deployments/${name}/stats`),
   getEnvVars: (name: string) => apiClient.get<{ env_vars: EnvVar[] }>(`/deployments/${name}/env`),
-  updateEnvVars: (name: string, envVars: EnvVar[]) => apiClient.put(`/deployments/${name}/env`, { env_vars: envVars }),
+  updateEnvVars: (name: string, envVars: EnvVar[], opts?: PlanOpts) =>
+    apiClient.put(withPlanQuery(`/deployments/${name}/env`, opts), { env_vars: envVars }),
   disableSSL: (name: string) => apiClient.post<{ message: string; name: string }>(`/deployments/${name}/ssl/disable`),
   listDomains: (name: string) => apiClient.get<{ domains: DomainConfig[] }>(`/deployments/${name}/domains`),
-  addDomain: (name: string, domain: Omit<DomainConfig, "id">) =>
-    apiClient.post<{ message: string; domain: DomainConfig }>(`/deployments/${name}/domains`, domain),
-  updateDomain: (name: string, domainId: string, domain: Partial<DomainConfig>) =>
-    apiClient.put<{ message: string; domain: DomainConfig }>(`/deployments/${name}/domains/${domainId}`, domain),
-  deleteDomain: (name: string, domainId: string) =>
-    apiClient.delete<{ message: string }>(`/deployments/${name}/domains/${domainId}`),
+  addDomain: (name: string, domain: Omit<DomainConfig, "id">, opts?: PlanOpts) =>
+    apiClient.post<{ message: string; domain: DomainConfig }>(
+      withPlanQuery(`/deployments/${name}/domains`, opts),
+      domain,
+    ),
+  updateDomain: (name: string, domainId: string, domain: Partial<DomainConfig>, opts?: PlanOpts) =>
+    apiClient.put<{ message: string; domain: DomainConfig }>(
+      withPlanQuery(`/deployments/${name}/domains/${domainId}`, opts),
+      domain,
+    ),
+  deleteDomain: (name: string, domainId: string, opts?: PlanOpts) =>
+    apiClient.delete<{ message: string }>(withPlanQuery(`/deployments/${name}/domains/${domainId}`, opts)),
+};
+
+export const plansApi = {
+  list: (params?: { deployment?: string; status?: PlanStatus; resource_type?: string }) =>
+    apiClient.get<{ plans: Plan[] }>("/plans", { params }),
+  get: (id: string, includeSensitive?: boolean) =>
+    apiClient.get<{ plan: Plan }>(`/plans/${id}`, {
+      params: includeSensitive ? { include_sensitive: true } : undefined,
+    }),
+  apply: (id: string) => apiClient.post<{ plan: Plan } & Record<string, unknown>>(`/plans/${id}/apply`),
+  discard: (id: string) => apiClient.delete<{ message: string; id: string }>(`/plans/${id}`),
 };
 
 export const networksApi = {
@@ -214,7 +258,8 @@ export const certificatesApi = {
 
 export const proxyApi = {
   getStatus: (name: string) => apiClient.get<{ status: ProxyStatus }>(`/proxy/status/${name}`),
-  setup: (name: string) => apiClient.post<{ message: string; result: ProxySetupResult }>(`/proxy/setup/${name}`),
+  setup: (name: string, opts?: PlanOpts) =>
+    apiClient.post<{ message: string; result: ProxySetupResult }>(withPlanQuery(`/proxy/setup/${name}`, opts)),
   teardown: (name: string) => apiClient.delete(`/proxy/${name}`),
   listVirtualHosts: () => apiClient.get<{ virtual_hosts: VirtualHost[] }>("/proxy/vhosts"),
 };
@@ -243,8 +288,28 @@ export const settingsApi = {
 export const configApi = {
   list: () => apiClient.get<{ config: ConfigEntry[]; runtime: Record<string, boolean> }>("/config"),
   get: (key: string) => apiClient.get<{ entry: ConfigEntry; runtime: boolean }>(`/config/${key}`),
-  set: (key: string, value: unknown) =>
-    apiClient.put<{ entry: ConfigEntry; applied: boolean }>(`/config/${key}`, { value }),
+  set: (key: string, value: unknown, opts?: PlanOpts) =>
+    apiClient.put<{ entry: ConfigEntry; applied: boolean }>(withPlanQuery(`/config/${key}`, opts), { value }),
+};
+
+export interface AIStatus {
+  enabled: boolean;
+  model?: string;
+  base_url_host?: string;
+}
+
+export interface AIAnalysis {
+  analysis: string;
+  model: string;
+  redactions: number;
+}
+
+export const aiApi = {
+  status: () => apiClient.get<AIStatus>("/ai/status"),
+  analyze: (
+    name: string,
+    body: { mode: "logs" | "operation"; tail?: number; operation?: string; operation_output?: string },
+  ) => apiClient.post<AIAnalysis>(`/deployments/${name}/ai/analyze`, body),
 };
 
 export const pluginsApi = {

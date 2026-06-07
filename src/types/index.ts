@@ -28,6 +28,7 @@ export interface ServiceMetadata {
   quick_actions?: QuickAction[];
   security?: DeploymentSecurityConfig;
   protected_mode?: ProtectedModeConfig;
+  require_plan?: boolean;
   credential_id?: string;
   service_credentials?: Record<string, string>;
   domains?: DomainConfig[];
@@ -275,6 +276,56 @@ export interface DeploymentRateLimit {
   rate: number;
   burst: number;
   enabled: boolean;
+}
+
+export type PlanStatus = "available" | "applying" | "applied" | "failed" | "obsolete" | "expired";
+
+export interface PlanChange {
+  type: "file" | "container" | "certificate" | "database" | "config";
+  id: string;
+  actions: string[];
+  reason: string;
+  before: string | null;
+  after: string | null;
+  sensitive: boolean;
+}
+
+export interface PlanSummary {
+  create: number;
+  update: number;
+  replace: number;
+  delete: number;
+  "no-op": number;
+}
+
+export interface PlanActor {
+  id: string;
+  name: string;
+  type: string;
+}
+
+export interface Plan {
+  format_version: number;
+  id: string;
+  action: string;
+  status: PlanStatus;
+  resource: { type: string; id: string };
+  created_at: string;
+  expires_at: string;
+  created_by: PlanActor;
+  applied_at?: string;
+  applied_by?: PlanActor;
+  apply_error?: string;
+  request: {
+    method: string;
+    path: string;
+    params?: Record<string, string>;
+    query?: Record<string, string>;
+    body?: unknown;
+  };
+  snapshot: { files: Record<string, string> };
+  changes: PlanChange[];
+  summary: PlanSummary;
 }
 
 export type UserRole = "admin" | "operator" | "viewer";

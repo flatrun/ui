@@ -159,11 +159,11 @@ describe("DeploymentDetailView", () => {
   });
 
   describe("Tab navigation", () => {
-    it("displays all ten tabs", async () => {
+    it("displays all nine tabs", async () => {
       const wrapper = mountView();
       await flushPromises();
       const tabs = wrapper.findAll(".tab-btn");
-      expect(tabs.length).toBe(10);
+      expect(tabs.length).toBe(9);
     });
 
     it("has Overview tab", async () => {
@@ -214,11 +214,11 @@ describe("DeploymentDetailView", () => {
       expect(wrapper.text()).toContain("Security");
     });
 
-    it("has Settings tab", async () => {
+    it("has no top-level Settings tab; settings live under Configuration", async () => {
       const wrapper = mountView();
       await flushPromises();
       const tabs = wrapper.findAll(".tab-btn");
-      expect(tabs.some((t) => t.text().trim() === "Settings")).toBe(true);
+      expect(tabs.some((t) => t.text().trim() === "Settings")).toBe(false);
     });
 
     it("has Configuration tab", async () => {
@@ -258,7 +258,6 @@ describe("DeploymentDetailView", () => {
         { id: "actions", label: "Quick Actions", icon: "pi pi-bolt" },
         { id: "backups", label: "Backups", icon: "pi pi-history" },
         { id: "security", label: "Security", icon: "pi pi-shield" },
-        { id: "settings", label: "Settings", icon: "pi pi-sliders-h" },
         { id: "config", label: "Configuration", icon: "pi pi-cog" },
       ]);
     });
