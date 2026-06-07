@@ -1,14 +1,16 @@
 <template>
-  <BaseModal
-    :visible="visible"
-    title="AI Assistant"
-    :subtitle="subject"
-    icon="pi pi-sparkles"
-    icon-color="primary"
-    size="xl"
-    :close-on-overlay="!loading"
-    @close="emit('close')"
-  >
+  <BaseModal :visible="visible" size="xl" :close-on-overlay="!loading" @close="emit('close')">
+    <template #header>
+      <div class="assist-header">
+        <div class="assist-header-icon">
+          <Sparkles :size="18" />
+        </div>
+        <div class="assist-header-text">
+          <h3>AI Assistant</h3>
+          <p>{{ subject }}</p>
+        </div>
+      </div>
+    </template>
     <div v-if="!settingsHint" class="intent-bar">
       <button
         v-for="item in intents"
@@ -28,7 +30,8 @@
     </div>
 
     <div v-else-if="error" class="assist-error" :class="{ informational: settingsHint }">
-      <i :class="settingsHint ? 'pi pi-sparkles' : 'pi pi-exclamation-triangle'" />
+      <Sparkles v-if="settingsHint" :size="16" />
+      <i v-else class="pi pi-exclamation-triangle" />
       <div class="error-body">
         <p>{{ error }}</p>
         <router-link v-if="settingsHint" to="/settings" class="btn btn-sm btn-primary" @click="emit('close')">
@@ -93,6 +96,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from "vue";
+import { Sparkles } from "lucide-vue-next";
 import { marked } from "marked";
 import DOMPurify from "dompurify";
 import BaseModal from "@/components/base/BaseModal.vue";
@@ -150,6 +154,36 @@ const renderedAnalysis = computed(() => {
 </script>
 
 <style scoped>
+.assist-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.assist-header-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: #eff6ff;
+  color: #2563eb;
+  flex-shrink: 0;
+}
+
+.assist-header-text h3 {
+  margin: 0;
+  font-size: 1rem;
+  color: #111827;
+}
+
+.assist-header-text p {
+  margin: 0.1rem 0 0;
+  font-size: 0.78rem;
+  color: #6b7280;
+}
+
 .intent-bar {
   display: flex;
   gap: 0.4rem;

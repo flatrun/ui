@@ -9,7 +9,8 @@
           :class="{ active: activeTab === tab.id }"
           @click="activeTab = tab.id"
         >
-          <i :class="tab.icon" />
+          <component :is="tabLucideIcons[tab.id]" v-if="tabLucideIcons[tab.id]" :size="14" />
+          <i v-else :class="tab.icon" />
           <span>{{ tab.label }}</span>
         </button>
       </div>
@@ -910,7 +911,7 @@
       <div v-show="activeTab === 'ai'" class="tab-content">
         <div class="settings-card">
           <div class="card-header">
-            <i class="pi pi-sparkles" />
+            <Sparkles :size="16" />
             <h3>AI Assistant</h3>
           </div>
           <div class="card-body">
@@ -970,7 +971,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from "vue";
+import { ref, reactive, computed, onMounted, markRaw, type Component } from "vue";
+import { Sparkles } from "lucide-vue-next";
 import { settingsApi, healthApi, templatesApi, credentialsApi, registriesApi, configApi } from "@/services/api";
 import type { DomainSettings } from "@/services/api";
 import type { ProtectedCommandRule, ProtectedModeConfig, RegistryCredential, RegistryType } from "@/types";
@@ -1003,8 +1005,12 @@ const tabs = [
   { id: "terminal", label: "Terminal", icon: "pi pi-desktop" },
   { id: "healthchecks", label: "Health Checks", icon: "pi pi-heart" },
   { id: "credentials", label: "Credentials", icon: "pi pi-key" },
-  { id: "ai", label: "AI Assistant", icon: "pi pi-sparkles" },
+  { id: "ai", label: "AI Assistant", icon: "" },
 ];
+
+const tabLucideIcons: Record<string, Component> = {
+  ai: markRaw(Sparkles),
+};
 
 const settings = reactive({
   deployments_path: "",

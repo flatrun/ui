@@ -38,7 +38,7 @@
           title="Analyze these logs with the AI assistant"
           @click="openAssist"
         >
-          <i class="pi pi-sparkles" />
+          <Sparkles :size="14" />
         </button>
         <button class="toolbar-btn" title="Search (Ctrl+F)" @click="toggleSearch">
           <i class="pi pi-search" />
@@ -72,6 +72,7 @@ import { FitAddon } from "@xterm/addon-fit";
 import { SearchAddon } from "@xterm/addon-search";
 import { WebLinksAddon } from "@xterm/addon-web-links";
 import "@xterm/xterm/css/xterm.css";
+import { Sparkles } from "lucide-vue-next";
 import { useAssistStore, type AssistContext } from "@/stores/assist";
 
 const props = withDefaults(

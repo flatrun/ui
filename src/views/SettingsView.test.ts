@@ -381,7 +381,7 @@ describe("SettingsView", () => {
         { id: "terminal", label: "Terminal", icon: "pi pi-desktop" },
         { id: "healthchecks", label: "Health Checks", icon: "pi pi-heart" },
         { id: "credentials", label: "Credentials", icon: "pi pi-key" },
-        { id: "ai", label: "AI Assistant", icon: "pi pi-sparkles" },
+        { id: "ai", label: "AI Assistant", icon: "" },
       ]);
     });
   });

@@ -1,10 +1,11 @@
 <template>
   <button class="btn btn-sm btn-secondary" :title="title" @click="open">
-    <i class="pi pi-sparkles" /> {{ label }}
+    <Sparkles :size="14" /> {{ label }}
   </button>
 </template>
 
 <script setup lang="ts">
+import { Sparkles } from "lucide-vue-next";
 import { useAssistStore, type AssistContext } from "@/stores/assist";
 
 const props = withDefaults(
