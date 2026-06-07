@@ -507,6 +507,7 @@
             :loading="logsLoading"
             :file-name="`${deployment?.name || 'deployment'}-logs.txt`"
             empty-message="No logs available"
+            :assist-context="logsAssistContext"
             @refresh="fetchLogs"
           >
             <template #filters>
@@ -1193,6 +1194,7 @@
                 :loading="operationRunning"
                 :file-name="`${deployment?.name || 'operation'}-output.txt`"
                 empty-message="Waiting for output..."
+                :assist-context="operationAssistContext"
               />
             </div>
           </div>
@@ -1690,6 +1692,7 @@ import {
 } from "@/services/api";
 import { useNotificationsStore } from "@/stores/notifications";
 import { useAuthStore } from "@/stores/auth";
+import type { AssistContext } from "@/stores/assist";
 import type {
   ProxyStatus,
   QuickAction,
@@ -2625,6 +2628,29 @@ const handleScopedAction = (action: "start" | "stop" | "restart" | "rebuild" | "
   }
   runServiceAction({ name: scope }, action);
 };
+
+const logsAssistContext = computed<AssistContext>(() => ({
+  scope: "deployment",
+  deployment: route.params.name as string,
+  subject: route.params.name as string,
+  intent: "diagnose",
+  sources: [{ type: "logs", tail: 300 }, { type: "compose" }],
+}));
+
+const operationAssistContext = computed<AssistContext>(() => ({
+  scope: "deployment",
+  deployment: route.params.name as string,
+  subject: route.params.name as string,
+  intent: operationError.value ? "diagnose" : "explain",
+  sources: [
+    {
+      type: "provided",
+      label: `Output of "${operationTitle.value}" operation`,
+      content: operationOutput.value || operationError.value || "(no output captured)",
+    },
+    { type: "compose" },
+  ],
+}));
 
 const serviceActionBusy = ref("");
 

@@ -2,6 +2,7 @@
   <div id="app">
     <ToastNotifications />
     <PlanFlowHost />
+    <AssistHost />
     <div v-if="!ready" class="app-loading">
       <Logo variant="icon" size="lg" />
     </div>
@@ -13,6 +14,7 @@
 import { ref, onMounted } from "vue";
 import ToastNotifications from "@/components/ToastNotifications.vue";
 import PlanFlowHost from "@/components/plan/PlanFlowHost.vue";
+import AssistHost from "@/components/ai/AssistHost.vue";
 import Logo from "@/components/base/Logo.vue";
 import { useSetupStore } from "@/stores/setup";
 import { useRouter } from "vue-router";

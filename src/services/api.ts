@@ -296,20 +296,46 @@ export interface AIStatus {
   enabled: boolean;
   model?: string;
   base_url_host?: string;
+  intents?: string[];
+}
+
+export type AssistIntent = "diagnose" | "improve" | "secure" | "explain";
+
+export interface AssistSource {
+  type: "logs" | "compose" | "provided";
+  label?: string;
+  content?: string;
+  tail?: number;
+}
+
+export interface AssistRequestBody {
+  intent: AssistIntent;
+  sources?: AssistSource[];
+  question?: string;
+}
+
+export interface AISuggestedAction {
+  kind: "exec" | "service_action";
+  service?: string;
+  action?: "start" | "stop" | "restart" | "rebuild" | "pull";
+  command?: string;
+  title: string;
+  reason?: string;
 }
 
 export interface AIAnalysis {
   analysis: string;
+  suggested_actions: AISuggestedAction[];
+  intent: string;
   model: string;
   redactions: number;
 }
 
 export const aiApi = {
   status: () => apiClient.get<AIStatus>("/ai/status"),
-  analyze: (
-    name: string,
-    body: { mode: "logs" | "operation"; tail?: number; operation?: string; operation_output?: string },
-  ) => apiClient.post<AIAnalysis>(`/deployments/${name}/ai/analyze`, body),
+  assistDeployment: (name: string, body: AssistRequestBody) =>
+    apiClient.post<AIAnalysis>(`/deployments/${name}/ai/analyze`, body),
+  assistSystem: (body: AssistRequestBody) => apiClient.post<AIAnalysis>("/ai/analyze", body),
 };
 
 export const pluginsApi = {
@@ -419,6 +445,8 @@ export const containersApi = {
   restart: (id: string) => apiClient.post(`/containers/${id}/restart`),
   remove: (id: string) => apiClient.delete(`/containers/${id}`),
   logs: (id: string) => apiClient.get(`/containers/${id}/logs`),
+  exec: (id: string, command: string, args: string[] = []) =>
+    apiClient.post<{ output: string }>(`/containers/${id}/exec`, { command, args }),
   getAllStats: () =>
     apiClient.get<{
       stats: Array<{

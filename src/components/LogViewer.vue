@@ -32,6 +32,14 @@
           <i class="pi pi-arrow-down" />
           Follow
         </label>
+        <button
+          v-if="logs"
+          class="toolbar-btn ai-btn"
+          title="Analyze these logs with the AI assistant"
+          @click="openAssist"
+        >
+          <i class="pi pi-sparkles" />
+        </button>
         <button class="toolbar-btn" title="Search (Ctrl+F)" @click="toggleSearch">
           <i class="pi pi-search" />
         </button>
@@ -64,6 +72,7 @@ import { FitAddon } from "@xterm/addon-fit";
 import { SearchAddon } from "@xterm/addon-search";
 import { WebLinksAddon } from "@xterm/addon-web-links";
 import "@xterm/xterm/css/xterm.css";
+import { useAssistStore, type AssistContext } from "@/stores/assist";
 
 const props = withDefaults(
   defineProps<{
@@ -74,6 +83,7 @@ const props = withDefaults(
     theme?: "dark" | "light";
     fontSize?: number;
     lineHeight?: number;
+    assistContext?: AssistContext | null;
   }>(),
   {
     logs: "",
@@ -83,12 +93,31 @@ const props = withDefaults(
     theme: "dark",
     fontSize: 13,
     lineHeight: 1.4,
+    assistContext: null,
   },
 );
 
 defineEmits<{
   refresh: [];
 }>();
+
+// Every surface that renders logs gets the AI action for free. A
+// parent can pass a richer context (deployment scope unlocks gathered
+// sources and runnable suggestions); without one the visible logs are
+// analyzed as host-level output.
+const openAssist = () => {
+  const store = useAssistStore();
+  if (props.assistContext) {
+    store.open(props.assistContext);
+    return;
+  }
+  store.open({
+    scope: "system",
+    subject: props.fileName.replace(/\.txt$/, ""),
+    intent: "diagnose",
+    sources: [{ type: "provided", label: "Logs", content: props.logs }],
+  });
+};
 
 const terminalContainer = ref<HTMLElement | null>(null);
 const autoScroll = ref(true);
