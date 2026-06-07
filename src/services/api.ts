@@ -331,11 +331,46 @@ export interface AIAnalysis {
   redactions: number;
 }
 
+export interface AIToolCall {
+  id: string;
+  name: string;
+  arguments: string;
+}
+
+export interface AIToolStep {
+  name: string;
+  arguments: string;
+  result?: string;
+}
+
+export interface AITurn {
+  role: "user" | "assistant";
+  content?: string;
+  tool_steps?: AIToolStep[];
+}
+
+export interface AISession {
+  id: string;
+  scope: "system" | "deployment";
+  deployment?: string;
+  auto_run: boolean;
+  status: "ready" | "awaiting_approval";
+  model?: string;
+  messages: AITurn[];
+  pending: AIToolCall[];
+  suggested_actions: AISuggestedAction[];
+}
+
 export const aiApi = {
   status: () => apiClient.get<AIStatus>("/ai/status"),
-  assistDeployment: (name: string, body: AssistRequestBody) =>
-    apiClient.post<AIAnalysis>(`/deployments/${name}/ai/analyze`, body),
-  assistSystem: (body: AssistRequestBody) => apiClient.post<AIAnalysis>("/ai/analyze", body),
+  createSession: (body: { scope: "system" | "deployment"; deployment?: string; auto_run: boolean; message: string }) =>
+    apiClient.post<AISession>("/ai/sessions", body),
+  sessionMessage: (id: string, message: string) =>
+    apiClient.post<AISession>(`/ai/sessions/${id}/messages`, { message }),
+  approveSession: (id: string, approved: Record<string, boolean>) =>
+    apiClient.post<AISession>(`/ai/sessions/${id}/approve`, { approved }),
+  getSession: (id: string) => apiClient.get<AISession>(`/ai/sessions/${id}`),
+  deleteSession: (id: string) => apiClient.delete<{ message: string; id: string }>(`/ai/sessions/${id}`),
 };
 
 export const pluginsApi = {

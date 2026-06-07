@@ -57,15 +57,11 @@ const assistContext = computed<AssistContext>(() => ({
   scope: "deployment",
   deployment: props.deploymentName,
   subject: props.deploymentName,
-  intent: props.isSuccess ? "explain" : "diagnose",
-  sources: [
-    {
-      type: "provided",
-      label: `Output of ${props.operation} (${props.isSuccess ? "succeeded" : "failed"})`,
-      content: props.output || "(no output captured)",
-    },
-    { type: "compose" },
-  ],
+  seedMessage: `The "${props.operation}" operation just ${
+    props.isSuccess ? "finished" : "failed"
+  } with this output. Explain what happened${props.isSuccess ? "" : " and how to fix it"}:\n\n\`\`\`\n${
+    props.output || "(no output captured)"
+  }\n\`\`\``,
 }));
 
 const startTime = ref<number | null>(null);

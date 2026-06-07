@@ -4,10 +4,8 @@ import {
   aiApi,
   containersApi,
   deploymentsApi,
-  type AIAnalysis,
+  type AISession,
   type AISuggestedAction,
-  type AssistIntent,
-  type AssistSource,
 } from "@/services/api";
 import { useAIStore } from "@/stores/ai";
 import { usePlanFlowStore } from "@/stores/planFlow";
@@ -15,33 +13,35 @@ import { usePlanFlowStore } from "@/stores/planFlow";
 export const AI_DISABLED_MESSAGE =
   "The AI assistant is not configured. An admin can connect any OpenAI-compatible provider under Settings, AI Assistant.";
 
-// AssistContext describes what the assistant is looking at. Any
-// surface in the app can open the assistant by supplying one; the
-// modal lets the user switch intent or ask follow-up questions against
-// the same context.
+// AssistContext opens the assistant against something. scope "system"
+// asks about the whole instance; "deployment" binds tools to one
+// deployment and unlocks one-click suggested actions. seedMessage, when
+// given, is sent as the first turn (used by log/operation entry points
+// that already hold the content the user is looking at).
 export interface AssistContext {
-  scope: "deployment" | "system";
+  scope: "system" | "deployment";
   deployment?: string;
   subject: string;
-  sources: AssistSource[];
-  intent?: AssistIntent;
-  question?: string;
+  seedMessage?: string;
+  autoRun?: boolean;
 }
 
 export const useAssistStore = defineStore("assist", () => {
   const visible = ref(false);
+  const subject = ref("");
+  const scope = ref<"system" | "deployment">("system");
+  const deployment = ref<string | undefined>(undefined);
+  const autoRun = ref(true);
+  const session = ref<AISession | null>(null);
   const loading = ref(false);
   const error = ref("");
-  const result = ref<AIAnalysis | null>(null);
-  const context = ref<AssistContext | null>(null);
-  const intent = ref<AssistIntent>("diagnose");
   const runningIndex = ref<number | null>(null);
   const suggestionOutputs = ref<Record<number, string>>({});
 
-  function resetRun() {
+  function reset() {
+    session.value = null;
     loading.value = false;
     error.value = "";
-    result.value = null;
     runningIndex.value = null;
     suggestionOutputs.value = {};
   }
@@ -49,28 +49,40 @@ export const useAssistStore = defineStore("assist", () => {
   async function ensureEnabled(): Promise<boolean> {
     const aiStore = useAIStore();
     await aiStore.fetchStatus();
-    if (!aiStore.status?.enabled) {
-      // The cached status may predate the assistant being configured.
-      await aiStore.fetchStatus(true);
-    }
+    if (!aiStore.status?.enabled) await aiStore.fetchStatus(true);
     if (aiStore.status?.enabled) return true;
     error.value = AI_DISABLED_MESSAGE;
     return false;
   }
 
-  async function execute() {
-    const ctx = context.value;
-    if (!ctx) return;
-    resetRun();
+  async function open(ctx: AssistContext) {
+    reset();
+    visible.value = true;
+    subject.value = ctx.subject;
+    scope.value = ctx.scope;
+    deployment.value = ctx.deployment;
+    autoRun.value = ctx.autoRun ?? true;
     if (!(await ensureEnabled())) return;
+    if (ctx.seedMessage) {
+      await send(ctx.seedMessage);
+    }
+  }
+
+  async function send(message: string) {
+    if (loading.value) return;
+    error.value = "";
+    suggestionOutputs.value = {};
     loading.value = true;
     try {
-      const body = { intent: intent.value, sources: ctx.sources, question: ctx.question };
-      const response =
-        ctx.scope === "deployment" && ctx.deployment
-          ? await aiApi.assistDeployment(ctx.deployment, body)
-          : await aiApi.assistSystem(body);
-      result.value = response.data;
+      const response = session.value
+        ? await aiApi.sessionMessage(session.value.id, message)
+        : await aiApi.createSession({
+            scope: scope.value,
+            deployment: deployment.value,
+            auto_run: autoRun.value,
+            message,
+          });
+      session.value = response.data;
     } catch (err: any) {
       error.value = err.response?.data?.error || err.message;
     } finally {
@@ -78,22 +90,35 @@ export const useAssistStore = defineStore("assist", () => {
     }
   }
 
-  async function open(ctx: AssistContext) {
-    context.value = ctx;
-    intent.value = ctx.intent || "diagnose";
-    visible.value = true;
-    await execute();
+  async function resolveApprovals(approved: Record<string, boolean>) {
+    if (!session.value || loading.value) return;
+    loading.value = true;
+    try {
+      const response = await aiApi.approveSession(session.value.id, approved);
+      session.value = response.data;
+    } catch (err: any) {
+      error.value = err.response?.data?.error || err.message;
+    } finally {
+      loading.value = false;
+    }
   }
 
-  async function rerun(newIntent: AssistIntent, question?: string) {
-    if (!context.value) return;
-    intent.value = newIntent;
-    context.value = { ...context.value, question };
-    await execute();
+  function approveAll() {
+    if (!session.value) return;
+    const map: Record<string, boolean> = {};
+    session.value.pending.forEach((p) => (map[p.id] = true));
+    resolveApprovals(map);
+  }
+
+  function declineAll() {
+    if (!session.value) return;
+    const map: Record<string, boolean> = {};
+    session.value.pending.forEach((p) => (map[p.id] = false));
+    resolveApprovals(map);
   }
 
   async function runSuggestion(suggestion: AISuggestedAction, index: number) {
-    const name = context.value?.deployment;
+    const name = deployment.value;
     if (!name) return;
     runningIndex.value = index;
     try {
@@ -131,21 +156,25 @@ export const useAssistStore = defineStore("assist", () => {
 
   function close() {
     visible.value = false;
-    context.value = null;
-    resetRun();
+    reset();
   }
 
   return {
     visible,
+    subject,
+    scope,
+    deployment,
+    autoRun,
+    session,
     loading,
     error,
-    result,
-    context,
-    intent,
     runningIndex,
     suggestionOutputs,
     open,
-    rerun,
+    send,
+    approveAll,
+    declineAll,
+    resolveApprovals,
     runSuggestion,
     close,
   };

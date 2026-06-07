@@ -112,11 +112,11 @@ const openAssist = () => {
     store.open(props.assistContext);
     return;
   }
+  const subject = props.fileName.replace(/\.txt$/, "");
   store.open({
     scope: "system",
-    subject: props.fileName.replace(/\.txt$/, ""),
-    intent: "diagnose",
-    sources: [{ type: "provided", label: "Logs", content: props.logs }],
+    subject,
+    seedMessage: `Here are logs from ${subject}. Tell me what they show and whether anything is wrong.\n\n\`\`\`\n${props.logs}\n\`\`\``,
   });
 };
 
