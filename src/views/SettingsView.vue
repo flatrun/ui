@@ -9,7 +9,8 @@
           :class="{ active: activeTab === tab.id }"
           @click="activeTab = tab.id"
         >
-          <i :class="tab.icon" />
+          <component :is="tabLucideIcons[tab.id]" v-if="tabLucideIcons[tab.id]" :size="14" />
+          <i v-else :class="tab.icon" />
           <span>{{ tab.label }}</span>
         </button>
       </div>
@@ -906,17 +907,78 @@
           </div>
         </Teleport>
       </div>
+
+      <div v-show="activeTab === 'ai'" class="tab-content">
+        <div class="settings-card">
+          <div class="card-header">
+            <Sparkles :size="16" />
+            <h3>AI Assistant</h3>
+          </div>
+          <div class="card-body">
+            <p class="section-description">
+              Connect any OpenAI-compatible endpoint: OpenAI, Ollama, vLLM, LM Studio or a gateway. The assistant
+              diagnoses deployment logs and failed operations and proposes fixes you approve explicitly. Secret values
+              are redacted before anything leaves this server.
+            </p>
+            <div class="form-group">
+              <label class="form-label checkbox-label">
+                <input v-model="aiSettings.enabled" type="checkbox" :disabled="!canWriteSettings" />
+                Enable AI assistant
+              </label>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Base URL</label>
+              <input
+                v-model="aiSettings.base_url"
+                type="text"
+                class="form-control"
+                placeholder="https://api.openai.com/v1"
+                :disabled="!canWriteSettings"
+              />
+              <small class="field-hint">Any server speaking the OpenAI chat completions format works.</small>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Model</label>
+              <input
+                v-model="aiSettings.model"
+                type="text"
+                class="form-control"
+                placeholder="e.g. gpt-4.1-mini or llama3"
+                :disabled="!canWriteSettings"
+              />
+            </div>
+            <div class="form-group">
+              <label class="form-label">API Key</label>
+              <input
+                v-model="aiSettings.api_key"
+                type="password"
+                class="form-control"
+                placeholder="Unchanged unless filled; empty is fine for local servers"
+                autocomplete="new-password"
+                :disabled="!canWriteSettings"
+              />
+              <small class="field-hint">Stored on the server and never shown again.</small>
+            </div>
+            <button class="btn btn-primary" :disabled="savingAI || !canWriteSettings" @click="saveAISettings">
+              <i v-if="savingAI" class="pi pi-spin pi-spinner" />
+              Save AI Settings
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from "vue";
-import { settingsApi, healthApi, templatesApi, credentialsApi, registriesApi } from "@/services/api";
+import { ref, reactive, computed, onMounted, markRaw, type Component } from "vue";
+import { Sparkles } from "lucide-vue-next";
+import { settingsApi, healthApi, templatesApi, credentialsApi, registriesApi, configApi } from "@/services/api";
 import type { DomainSettings } from "@/services/api";
 import type { ProtectedCommandRule, ProtectedModeConfig, RegistryCredential, RegistryType } from "@/types";
 import { useNotificationsStore } from "@/stores/notifications";
 import { useAuthStore } from "@/stores/auth";
+import { useAIStore } from "@/stores/ai";
 import SecurityHealthCard from "@/components/SecurityHealthCard.vue";
 import { matchTypeHints, describeBlockedRule } from "@/utils/protectedMode";
 
@@ -943,7 +1005,12 @@ const tabs = [
   { id: "terminal", label: "Terminal", icon: "pi pi-desktop" },
   { id: "healthchecks", label: "Health Checks", icon: "pi pi-heart" },
   { id: "credentials", label: "Credentials", icon: "pi pi-key" },
+  { id: "ai", label: "AI Assistant", icon: "" },
 ];
+
+const tabLucideIcons: Record<string, Component> = {
+  ai: markRaw(Sparkles),
+};
 
 const settings = reactive({
   deployments_path: "",
@@ -1475,11 +1542,49 @@ const fetchAgentVersion = async () => {
   }
 };
 
+const aiSettings = reactive({ enabled: false, base_url: "", model: "", api_key: "" });
+const savingAI = ref(false);
+
+const fetchAISettings = async () => {
+  try {
+    const [enabledRes, baseURLRes, modelRes] = await Promise.all([
+      configApi.get("ai.enabled"),
+      configApi.get("ai.base_url"),
+      configApi.get("ai.model"),
+    ]);
+    aiSettings.enabled = Boolean(enabledRes.data.entry.value);
+    aiSettings.base_url = String(baseURLRes.data.entry.value ?? "");
+    aiSettings.model = String(modelRes.data.entry.value ?? "");
+  } catch {
+    // Older agents without the config keys; the tab stays editable.
+  }
+};
+
+const saveAISettings = async () => {
+  savingAI.value = true;
+  try {
+    await configApi.set("ai.base_url", aiSettings.base_url);
+    await configApi.set("ai.model", aiSettings.model);
+    if (aiSettings.api_key) {
+      await configApi.set("ai.api_key", aiSettings.api_key);
+    }
+    const response = await configApi.set("ai.enabled", aiSettings.enabled);
+    aiSettings.api_key = "";
+    await useAIStore().fetchStatus(true);
+    notifications.success("Saved", response.data.applied ? "AI settings applied immediately" : "AI settings saved");
+  } catch (e: any) {
+    notifications.error("Error", e.response?.data?.error || "Failed to save AI settings");
+  } finally {
+    savingAI.value = false;
+  }
+};
+
 onMounted(() => {
   fetchSettings();
   fetchAgentVersion();
   fetchCredentials();
   fetchRegistryTypes();
+  fetchAISettings();
 });
 </script>
 

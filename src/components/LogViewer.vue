@@ -32,6 +32,14 @@
           <i class="pi pi-arrow-down" />
           Follow
         </label>
+        <button
+          v-if="logs"
+          class="toolbar-btn ai-btn"
+          title="Analyze these logs with the AI assistant"
+          @click="openAssist"
+        >
+          <Sparkles :size="14" />
+        </button>
         <button class="toolbar-btn" title="Search (Ctrl+F)" @click="toggleSearch">
           <i class="pi pi-search" />
         </button>
@@ -64,6 +72,8 @@ import { FitAddon } from "@xterm/addon-fit";
 import { SearchAddon } from "@xterm/addon-search";
 import { WebLinksAddon } from "@xterm/addon-web-links";
 import "@xterm/xterm/css/xterm.css";
+import { Sparkles } from "lucide-vue-next";
+import { useAssistStore, type AssistContext } from "@/stores/assist";
 
 const props = withDefaults(
   defineProps<{
@@ -74,6 +84,7 @@ const props = withDefaults(
     theme?: "dark" | "light";
     fontSize?: number;
     lineHeight?: number;
+    assistContext?: AssistContext | null;
   }>(),
   {
     logs: "",
@@ -83,12 +94,42 @@ const props = withDefaults(
     theme: "dark",
     fontSize: 13,
     lineHeight: 1.4,
+    assistContext: null,
   },
 );
 
 defineEmits<{
   refresh: [];
 }>();
+
+// Every surface that renders logs gets the AI action for free. A
+// parent can pass a richer context (deployment scope unlocks gathered
+// sources and runnable suggestions); without one the visible logs are
+// analyzed as host-level output.
+// The viewer already holds the logs on screen, so it hands them to the
+// assistant directly: the model analyzes what the user is looking at
+// instead of hunting for it with tools. The parent context only
+// supplies scope/deployment/subject.
+const openAssist = () => {
+  const store = useAssistStore();
+  const base = props.assistContext ?? { scope: "system" as const, subject: props.fileName.replace(/\.txt$/, "") };
+  if (base.seedMessage) {
+    store.open(base);
+    return;
+  }
+  if (props.logs) {
+    store.open({
+      ...base,
+      seedMessage: `Analyze the recent logs for ${base.subject}: summarize what they show, report any problems with potential solutions, and say so plainly if everything looks normal.`,
+      seedContext: `\`\`\`\n${props.logs}\n\`\`\``,
+    });
+  } else {
+    store.open({
+      ...base,
+      seedMessage: `Review the recent logs for ${base.subject}, summarize them and report any problems with potential solutions.`,
+    });
+  }
+};
 
 const terminalContainer = ref<HTMLElement | null>(null);
 const autoScroll = ref(true);

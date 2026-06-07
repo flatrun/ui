@@ -90,10 +90,12 @@ import { ref, computed, onMounted, watch } from "vue";
 import type { DomainConfig, Service, ProxyStatus, Certificate } from "@/types";
 import { deploymentsApi, certificatesApi } from "@/services/api";
 import { useNotificationsStore } from "@/stores/notifications";
+import { usePlanFlow } from "@/composables/usePlanFlow";
 import DomainFormModal from "./DomainFormModal.vue";
 import ConfirmModal from "./ConfirmModal.vue";
 
 const notifications = useNotificationsStore();
+const { runGuarded } = usePlanFlow();
 
 const props = defineProps<{
   deploymentName: string;
@@ -175,19 +177,25 @@ function closeModals() {
 async function handleSaveDomain(domain: DomainConfig) {
   saving.value = true;
   try {
-    if (editingDomain.value && editingDomain.value.id) {
-      await deploymentsApi.updateDomain(props.deploymentName, editingDomain.value.id, domain);
+    const isUpdate = Boolean(editingDomain.value && editingDomain.value.id);
+    const callDomainApi = (opts?: { plan?: boolean }) =>
+      isUpdate
+        ? deploymentsApi.updateDomain(props.deploymentName, editingDomain.value!.id, domain, opts)
+        : deploymentsApi.addDomain(props.deploymentName, domain, opts);
+    const result = await runGuarded(
+      () => callDomainApi(),
+      () => callDomainApi({ plan: true }),
+      "Save Failed",
+    );
+    if (result === false) return;
+    if (isUpdate) {
       notifications.success("Domain Updated", `${domain.domain} has been updated`);
     } else {
-      await deploymentsApi.addDomain(props.deploymentName, domain);
       notifications.success("Domain Added", `${domain.domain} has been added`);
     }
     await fetchDomains();
     closeModals();
     emit("updated");
-  } catch (err: any) {
-    const msg = err.response?.data?.error || err.message;
-    notifications.error("Save Failed", msg);
   } finally {
     saving.value = false;
   }
@@ -197,15 +205,17 @@ async function handleDeleteDomain() {
   if (!deletingDomain.value) return;
   deleting.value = true;
   try {
-    await deploymentsApi.deleteDomain(props.deploymentName, deletingDomain.value.id);
+    const result = await runGuarded(
+      () => deploymentsApi.deleteDomain(props.deploymentName, deletingDomain.value!.id),
+      () => deploymentsApi.deleteDomain(props.deploymentName, deletingDomain.value!.id, { plan: true }),
+      "Delete Failed",
+    );
+    if (result === false) return;
     notifications.success("Domain Deleted", `${deletingDomain.value.domain} has been removed`);
     await fetchDomains();
     showDeleteModal.value = false;
     deletingDomain.value = null;
     emit("updated");
-  } catch (err: any) {
-    const msg = err.response?.data?.error || err.message;
-    notifications.error("Delete Failed", msg);
   } finally {
     deleting.value = false;
   }

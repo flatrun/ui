@@ -26,6 +26,7 @@
         empty-message="Waiting for output..."
         :file-name="`${deploymentName}-${operation}.txt`"
         :max-height="300"
+        :assist-context="isRunning ? null : assistContext"
       />
     </div>
 
@@ -39,6 +40,7 @@
 import { ref, computed, watch } from "vue";
 import BaseModal from "./base/BaseModal.vue";
 import LogViewer from "./LogViewer.vue";
+import type { AssistContext } from "@/stores/assist";
 
 const props = defineProps<{
   visible: boolean;
@@ -50,6 +52,16 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits(["close"]);
+
+const assistContext = computed<AssistContext>(() => ({
+  scope: "deployment",
+  deployment: props.deploymentName,
+  subject: props.deploymentName,
+  seedMessage: `The "${props.operation}" operation just ${
+    props.isSuccess ? "finished" : "failed"
+  }. Explain what happened${props.isSuccess ? "" : " and how to fix it"}.`,
+  seedContext: `\`\`\`\n${props.output || "(no output captured)"}\n\`\`\``,
+}));
 
 const startTime = ref<number | null>(null);
 const elapsedTime = ref("0s");

@@ -419,6 +419,10 @@
             {{ currentPageTitle }}
           </h1>
         </div>
+        <button v-if="aiStore.status?.enabled" class="ai-ask-launcher" @click="openGlobalAssist">
+          <Sparkles :size="17" />
+          <span>Run your instance with the assistant</span>
+        </button>
         <div class="header-right">
           <div class="quick-stats">
             <div class="stat-item running">
@@ -455,8 +459,11 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import { Sparkles } from "lucide-vue-next";
 import { useStatsStore } from "@/stores/stats";
 import { useAuthStore } from "@/stores/auth";
+import { useAIStore } from "@/stores/ai";
+import { useAssistStore } from "@/stores/assist";
 import { clusterApi, type ClusterPeer } from "@/services/api";
 import Logo from "@/components/base/Logo.vue";
 
@@ -464,6 +471,12 @@ const route = useRoute();
 const router = useRouter();
 const statsStore = useStatsStore();
 const authStore = useAuthStore();
+const aiStore = useAIStore();
+const assistStore = useAssistStore();
+
+const openGlobalAssist = () => {
+  assistStore.open({ scope: "system", subject: "this instance" });
+};
 const uiVersion = __APP_VERSION__;
 const sidebarCollapsed = ref(false);
 const isRefreshing = ref(false);
@@ -632,6 +645,7 @@ onMounted(() => {
   statsStore.fetchAll();
   authStore.fetchCurrentUser();
   fetchClusterInfo();
+  aiStore.fetchStatus();
   setInterval(() => statsStore.fetchAll(), 15000);
 });
 </script>
@@ -1051,6 +1065,41 @@ onMounted(() => {
   position: sticky;
   top: 0;
   z-index: 50;
+}
+
+.ai-ask-launcher {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  min-width: 280px;
+  padding: 0.65rem 1.5rem;
+  border: 1px solid #dbeafe;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #eff6ff, #f5f9ff);
+  color: #2563eb;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    box-shadow 0.15s ease,
+    border-color 0.15s ease,
+    transform 0.15s ease;
+}
+
+.ai-ask-launcher:hover {
+  border-color: #bfdbfe;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.18);
+  transform: translateX(-50%) translateY(-1px);
+}
+
+@media (max-width: 900px) {
+  .ai-ask-launcher span {
+    display: none;
+  }
 }
 
 .breadcrumb {
