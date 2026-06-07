@@ -1,12 +1,6 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
-import {
-  aiApi,
-  containersApi,
-  deploymentsApi,
-  type AISession,
-  type AISuggestedAction,
-} from "@/services/api";
+import { aiApi, containersApi, deploymentsApi, type AISession, type AISuggestedAction } from "@/services/api";
 import { useAIStore } from "@/stores/ai";
 import { usePlanFlowStore } from "@/stores/planFlow";
 

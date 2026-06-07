@@ -51,17 +51,29 @@
           <p class="approval-title"><CircleAlert :size="14" /> The assistant wants to run a read-only lookup</p>
           <div v-for="call in pending" :key="call.id" class="approval-item">
             <code>{{ toolDisplay(call) }}</code>
-            <div v-if="call.id in store.decisions" class="approval-decided" :class="{ allowed: store.decisions[call.id] }">
+            <div
+              v-if="call.id in store.decisions"
+              class="approval-decided"
+              :class="{ allowed: store.decisions[call.id] }"
+            >
               {{ store.decisions[call.id] ? "Allowed" : "Declined" }}
             </div>
             <div v-else class="approval-buttons">
-              <button class="btn btn-xs btn-secondary" :disabled="store.loading" @click="store.decide(call.id, false)">Decline</button>
-              <button class="btn btn-xs btn-primary" :disabled="store.loading" @click="store.decide(call.id, true)">Allow</button>
+              <button class="btn btn-xs btn-secondary" :disabled="store.loading" @click="store.decide(call.id, false)">
+                Decline
+              </button>
+              <button class="btn btn-xs btn-primary" :disabled="store.loading" @click="store.decide(call.id, true)">
+                Allow
+              </button>
             </div>
           </div>
           <div v-if="pending.length > 1" class="approval-actions">
-            <button class="btn btn-xs btn-secondary" :disabled="store.loading" @click="store.declineAll">Decline all</button>
-            <button class="btn btn-xs btn-primary" :disabled="store.loading" @click="store.approveAll">Allow all</button>
+            <button class="btn btn-xs btn-secondary" :disabled="store.loading" @click="store.declineAll">
+              Decline all
+            </button>
+            <button class="btn btn-xs btn-primary" :disabled="store.loading" @click="store.approveAll">
+              Allow all
+            </button>
           </div>
         </div>
 
@@ -74,16 +86,18 @@
               <span v-else class="suggestion-command plain">{{ s.action }} {{ s.service }}</span>
               <span v-if="s.reason" class="suggestion-reason">{{ s.reason }}</span>
             </div>
-            <button class="btn btn-sm btn-primary" :disabled="store.runningIndex !== null" @click="store.runSuggestion(s, idx)">
+            <button
+              class="btn btn-sm btn-primary"
+              :disabled="store.runningIndex !== null"
+              @click="store.runSuggestion(s, idx)"
+            >
               <Play :size="12" /> Run
             </button>
             <pre v-if="store.suggestionOutputs[idx]" class="suggestion-output">{{ store.suggestionOutputs[idx] }}</pre>
           </div>
         </div>
 
-        <div v-if="store.loading" class="chat-thinking">
-          <i class="pi pi-spin pi-spinner" /> {{ thinkingLabel }}
-        </div>
+        <div v-if="store.loading" class="chat-thinking"><i class="pi pi-spin pi-spinner" /> {{ thinkingLabel }}</div>
         <div v-else-if="store.error" class="chat-error">{{ store.error }}</div>
       </div>
     </template>
@@ -152,8 +166,7 @@ const submit = () => {
   store.send(text);
 };
 
-const renderMarkdown = (content: string) =>
-  DOMPurify.sanitize(marked.parse(content, { async: false }) as string);
+const renderMarkdown = (content: string) => DOMPurify.sanitize(marked.parse(content, { async: false }) as string);
 
 const stepKey = (turn: number, step: number) => `${turn}:${step}`;
 const isStepOpen = (turn: number, step: number) => openSteps.value.has(stepKey(turn, step));

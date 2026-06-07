@@ -116,7 +116,8 @@ describe("AssistChat", () => {
   it("offers a settings link when AI is disabled", () => {
     const store = useAssistStore();
     store.visible = true;
-    store.error = "The AI assistant is not configured. An admin can connect any OpenAI-compatible provider under Settings, AI Assistant.";
+    store.error =
+      "The AI assistant is not configured. An admin can connect any OpenAI-compatible provider under Settings, AI Assistant.";
 
     const wrapper = mountChat();
     expect(wrapper.find(".chat-settings-hint").exists()).toBe(true);

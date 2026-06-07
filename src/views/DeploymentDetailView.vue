@@ -909,254 +909,256 @@
 
         <div v-if="activeTab === 'config'" class="config-tab">
           <SubTabs v-model="activeConfigTab" :tabs="configSubTabs">
-          <div v-if="activeConfigTab === 'settings'" class="settings-tab">
-          <div class="settings-list">
-            <div class="settings-row">
-              <div class="settings-row-header" @click="toggleSettingsSection('protected')">
-                <div class="row-title">
-                  <i class="pi pi-lock" />
-                  <div class="row-text">
-                    <h4>Protected Mode</h4>
-                    <p>Refuse the selected destructive actions while enabled</p>
-                  </div>
-                </div>
-                <div class="row-controls" @click.stop>
-                  <label class="toggle-switch">
-                    <input
-                      v-model="protectedMode.enabled"
-                      type="checkbox"
-                      :disabled="savingProtectedMode"
-                      @change="saveProtectedMode"
-                    />
-                    <span class="toggle-slider" />
-                  </label>
-                  <button class="chevron-btn" @click="toggleSettingsSection('protected')">
-                    <i class="pi" :class="openSettingsSection === 'protected' ? 'pi-chevron-up' : 'pi-chevron-down'" />
-                  </button>
-                </div>
-              </div>
-              <div v-if="openSettingsSection === 'protected'" class="settings-row-body">
-              <p class="row-description">
-                When enabled, the actions selected below are refused with a 423 Locked status. Use this on production
-                deployments to prevent accidental destructive operations.
-              </p>
-              <div class="protected-mode-grid">
-                <label class="delete-option compact">
-                  <input
-                    v-model="protectedMode.disable_terminal"
-                    type="checkbox"
-                    :disabled="!protectedMode.enabled || savingProtectedMode"
-                    @change="saveProtectedMode"
-                  />
-                  <span class="option-content">
-                    <span class="option-label">Disable terminal</span>
-                    <span class="option-hint">Block interactive shell sessions</span>
-                  </span>
-                </label>
-                <div class="blocked-actions">
-                  <span class="field-label">Blocked actions</span>
-                  <span class="field-help"
-                    >Click an action to toggle whether it is refused while protected mode is on.</span
-                  >
-                  <div class="action-chips">
-                    <button
-                      v-for="action in protectedActionOptions"
-                      :key="action.value"
-                      class="preset-btn"
-                      :class="{ active: isProtectedActionBlocked(action.value) }"
-                      :disabled="!protectedMode.enabled || savingProtectedMode"
-                      :title="action.hint"
-                      @click="toggleProtectedAction(action.value)"
-                    >
-                      <i :class="isProtectedActionBlocked(action.value) ? 'pi pi-check' : 'pi pi-plus'" />
-                      {{ action.label }}
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              <div class="command-rules">
-                <div class="rules-header">
-                  <span class="field-label">Blocked commands</span>
-                  <span class="enable-bar-status" :class="{ active: protectedMode.enabled }">
-                    {{ protectedMode.blocked_command_rules?.length || 0 }}
-                  </span>
-                </div>
-                <p class="field-help">
-                  Each rule refuses terminal commands and quick actions whose command string matches the pattern. Rules
-                  apply only while protected mode is on.
-                </p>
-                <div v-if="!(protectedMode.blocked_command_rules || []).length" class="empty-state horizontal">
-                  <i class="pi pi-code" />
-                  <div class="empty-text">
-                    <p>No command rules yet</p>
-                    <span>Add a pattern below (e.g. contains "rm -rf") to start blocking commands.</span>
-                  </div>
-                </div>
-                <div v-else class="items-list">
-                  <div
-                    v-for="(rule, index) in protectedMode.blocked_command_rules"
-                    :key="rule.id || index"
-                    class="list-item command-rule-item"
-                  >
-                    <div class="rule-summary">
-                      <code class="rule-pattern">{{ rule.pattern }}</code>
-                      <div class="rule-meta">
-                        <span class="rule-badge">{{ rule.match }}</span>
-                        <span v-if="rule.case_sensitive" class="rule-badge subtle">case sensitive</span>
+            <div v-if="activeConfigTab === 'settings'" class="settings-tab">
+              <div class="settings-list">
+                <div class="settings-row">
+                  <div class="settings-row-header" @click="toggleSettingsSection('protected')">
+                    <div class="row-title">
+                      <i class="pi pi-lock" />
+                      <div class="row-text">
+                        <h4>Protected Mode</h4>
+                        <p>Refuse the selected destructive actions while enabled</p>
                       </div>
-                      <p class="rule-explanation">{{ describeBlockedRule(rule) }}</p>
                     </div>
-                    <div class="item-actions">
-                      <button
-                        class="btn btn-icon btn-sm btn-ghost"
-                        :disabled="savingProtectedMode"
-                        title="Remove"
-                        @click="removeProtectedCommandRule(index)"
-                      >
-                        <i class="pi pi-times" />
+                    <div class="row-controls" @click.stop>
+                      <label class="toggle-switch">
+                        <input
+                          v-model="protectedMode.enabled"
+                          type="checkbox"
+                          :disabled="savingProtectedMode"
+                          @change="saveProtectedMode"
+                        />
+                        <span class="toggle-slider" />
+                      </label>
+                      <button class="chevron-btn" @click="toggleSettingsSection('protected')">
+                        <i
+                          class="pi"
+                          :class="openSettingsSection === 'protected' ? 'pi-chevron-up' : 'pi-chevron-down'"
+                        />
                       </button>
                     </div>
                   </div>
+                  <div v-if="openSettingsSection === 'protected'" class="settings-row-body">
+                    <p class="row-description">
+                      When enabled, the actions selected below are refused with a 423 Locked status. Use this on
+                      production deployments to prevent accidental destructive operations.
+                    </p>
+                    <div class="protected-mode-grid">
+                      <label class="delete-option compact">
+                        <input
+                          v-model="protectedMode.disable_terminal"
+                          type="checkbox"
+                          :disabled="!protectedMode.enabled || savingProtectedMode"
+                          @change="saveProtectedMode"
+                        />
+                        <span class="option-content">
+                          <span class="option-label">Disable terminal</span>
+                          <span class="option-hint">Block interactive shell sessions</span>
+                        </span>
+                      </label>
+                      <div class="blocked-actions">
+                        <span class="field-label">Blocked actions</span>
+                        <span class="field-help"
+                          >Click an action to toggle whether it is refused while protected mode is on.</span
+                        >
+                        <div class="action-chips">
+                          <button
+                            v-for="action in protectedActionOptions"
+                            :key="action.value"
+                            class="preset-btn"
+                            :class="{ active: isProtectedActionBlocked(action.value) }"
+                            :disabled="!protectedMode.enabled || savingProtectedMode"
+                            :title="action.hint"
+                            @click="toggleProtectedAction(action.value)"
+                          >
+                            <i :class="isProtectedActionBlocked(action.value) ? 'pi pi-check' : 'pi pi-plus'" />
+                            {{ action.label }}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="command-rules">
+                      <div class="rules-header">
+                        <span class="field-label">Blocked commands</span>
+                        <span class="enable-bar-status" :class="{ active: protectedMode.enabled }">
+                          {{ protectedMode.blocked_command_rules?.length || 0 }}
+                        </span>
+                      </div>
+                      <p class="field-help">
+                        Each rule refuses terminal commands and quick actions whose command string matches the pattern.
+                        Rules apply only while protected mode is on.
+                      </p>
+                      <div v-if="!(protectedMode.blocked_command_rules || []).length" class="empty-state horizontal">
+                        <i class="pi pi-code" />
+                        <div class="empty-text">
+                          <p>No command rules yet</p>
+                          <span>Add a pattern below (e.g. contains "rm -rf") to start blocking commands.</span>
+                        </div>
+                      </div>
+                      <div v-else class="items-list">
+                        <div
+                          v-for="(rule, index) in protectedMode.blocked_command_rules"
+                          :key="rule.id || index"
+                          class="list-item command-rule-item"
+                        >
+                          <div class="rule-summary">
+                            <code class="rule-pattern">{{ rule.pattern }}</code>
+                            <div class="rule-meta">
+                              <span class="rule-badge">{{ rule.match }}</span>
+                              <span v-if="rule.case_sensitive" class="rule-badge subtle">case sensitive</span>
+                            </div>
+                            <p class="rule-explanation">{{ describeBlockedRule(rule) }}</p>
+                          </div>
+                          <div class="item-actions">
+                            <button
+                              class="btn btn-icon btn-sm btn-ghost"
+                              :disabled="savingProtectedMode"
+                              title="Remove"
+                              @click="removeProtectedCommandRule(index)"
+                            >
+                              <i class="pi pi-times" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="add-form command-rule-form">
+                        <div class="command-rule-form-row">
+                          <select v-model="newCommandRule.match" class="form-select" :disabled="!protectedMode.enabled">
+                            <option value="contains">Contains</option>
+                            <option value="equals">Equals</option>
+                            <option value="prefix">Prefix</option>
+                            <option value="suffix">Suffix</option>
+                            <option value="matches">Regex</option>
+                          </select>
+                          <input
+                            v-model="newCommandRule.pattern"
+                            type="text"
+                            class="form-input"
+                            placeholder="Command pattern (e.g. rm -rf)"
+                            :disabled="!protectedMode.enabled"
+                            @keyup.enter="addProtectedCommandRule"
+                          />
+                          <label class="case-toggle">
+                            <input
+                              v-model="newCommandRule.case_sensitive"
+                              type="checkbox"
+                              :disabled="!protectedMode.enabled"
+                            />
+                            <span>Case</span>
+                          </label>
+                          <button
+                            class="btn btn-sm btn-primary"
+                            :disabled="!protectedMode.enabled || !newCommandRule.pattern"
+                            @click="addProtectedCommandRule"
+                          >
+                            <i class="pi pi-plus" /> Add
+                          </button>
+                        </div>
+                        <p class="rule-preview">
+                          <i class="pi pi-info-circle" />
+                          {{ matchTypeHints[newCommandRule.match] }}.
+                          <span v-if="newCommandRule.pattern" class="rule-preview-sentence">
+                            Preview: {{ describeBlockedRule(newCommandRule) }}.
+                          </span>
+                        </p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <div class="add-form command-rule-form">
-                  <div class="command-rule-form-row">
-                    <select v-model="newCommandRule.match" class="form-select" :disabled="!protectedMode.enabled">
-                      <option value="contains">Contains</option>
-                      <option value="equals">Equals</option>
-                      <option value="prefix">Prefix</option>
-                      <option value="suffix">Suffix</option>
-                      <option value="matches">Regex</option>
-                    </select>
-                    <input
-                      v-model="newCommandRule.pattern"
-                      type="text"
-                      class="form-input"
-                      placeholder="Command pattern (e.g. rm -rf)"
-                      :disabled="!protectedMode.enabled"
-                      @keyup.enter="addProtectedCommandRule"
-                    />
-                    <label class="case-toggle">
-                      <input
-                        v-model="newCommandRule.case_sensitive"
-                        type="checkbox"
-                        :disabled="!protectedMode.enabled"
-                      />
-                      <span>Case</span>
-                    </label>
-                    <button
-                      class="btn btn-sm btn-primary"
-                      :disabled="!protectedMode.enabled || !newCommandRule.pattern"
-                      @click="addProtectedCommandRule"
-                    >
-                      <i class="pi pi-plus" /> Add
+
+                <div class="settings-row">
+                  <div class="settings-row-header" @click="toggleSettingsSection('plans')">
+                    <div class="row-title">
+                      <i class="pi pi-eye" />
+                      <div class="row-text">
+                        <h4>Require Plan Review</h4>
+                        <p>Preview every change as a plan and apply it explicitly</p>
+                      </div>
+                    </div>
+                    <div class="row-controls" @click.stop>
+                      <label class="toggle-switch">
+                        <input
+                          v-model="requirePlan"
+                          type="checkbox"
+                          :disabled="savingRequirePlan"
+                          @change="saveRequirePlan"
+                        />
+                        <span class="toggle-slider" />
+                      </label>
+                      <button class="chevron-btn" @click="toggleSettingsSection('plans')">
+                        <i class="pi" :class="openSettingsSection === 'plans' ? 'pi-chevron-up' : 'pi-chevron-down'" />
+                      </button>
+                    </div>
+                  </div>
+                  <div v-if="openSettingsSection === 'plans'" class="settings-row-body">
+                    <p class="row-description">
+                      When enabled, changes to this deployment (environment, compose, domains, deletion, service
+                      actions) are refused unless they go through a reviewed plan: you see a preview of every file diff
+                      and affected container before applying. API callers and AI agents are held to the same rule.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div v-if="activeConfigTab !== 'settings'" class="config-sections">
+              <div v-if="activeConfigTab === 'compose'" class="config-section">
+                <div class="config-header">
+                  <h3>Docker Compose Configuration</h3>
+                  <div class="config-actions">
+                    <button class="btn btn-sm btn-secondary" @click="copyConfig"><i class="pi pi-copy" /> Copy</button>
+                    <button v-if="!isEditingConfig" class="btn btn-sm btn-primary" @click="startConfigEdit">
+                      <i class="pi pi-pencil" /> Edit
                     </button>
-                  </div>
-                  <p class="rule-preview">
-                    <i class="pi pi-info-circle" />
-                    {{ matchTypeHints[newCommandRule.match] }}.
-                    <span v-if="newCommandRule.pattern" class="rule-preview-sentence">
-                      Preview: {{ describeBlockedRule(newCommandRule) }}.
-                    </span>
-                  </p>
-                </div>
-              </div>
-              </div>
-            </div>
-
-            <div class="settings-row">
-              <div class="settings-row-header" @click="toggleSettingsSection('plans')">
-                <div class="row-title">
-                  <i class="pi pi-eye" />
-                  <div class="row-text">
-                    <h4>Require Plan Review</h4>
-                    <p>Preview every change as a plan and apply it explicitly</p>
+                    <template v-else>
+                      <button class="btn btn-sm btn-secondary" @click="cancelConfigEdit">Cancel</button>
+                      <button class="btn btn-sm btn-success" @click="saveConfig"><i class="pi pi-check" /> Save</button>
+                    </template>
                   </div>
                 </div>
-                <div class="row-controls" @click.stop>
-                  <label class="toggle-switch">
-                    <input
-                      v-model="requirePlan"
-                      type="checkbox"
-                      :disabled="savingRequirePlan"
-                      @change="saveRequirePlan"
-                    />
-                    <span class="toggle-slider" />
-                  </label>
-                  <button class="chevron-btn" @click="toggleSettingsSection('plans')">
-                    <i class="pi" :class="openSettingsSection === 'plans' ? 'pi-chevron-up' : 'pi-chevron-down'" />
-                  </button>
+                <div class="config-editor">
+                  <Codemirror
+                    v-model="composeConfig"
+                    :extensions="configExtensions"
+                    :disabled="!isEditingConfig"
+                    :style="{ height: '500px' }"
+                  />
                 </div>
               </div>
-              <div v-if="openSettingsSection === 'plans'" class="settings-row-body">
-                <p class="row-description">
-                  When enabled, changes to this deployment (environment, compose, domains, deletion, service actions)
-                  are refused unless they go through a reviewed plan: you see a preview of every file diff and affected
-                  container before applying. API callers and AI agents are held to the same rule.
-                </p>
+
+              <div v-if="activeConfigTab === 'service'" class="config-section">
+                <div class="config-header">
+                  <h3>Service Configuration</h3>
+                  <div class="config-actions">
+                    <button class="btn btn-sm btn-secondary" @click="copyServiceConfig">
+                      <i class="pi pi-copy" /> Copy
+                    </button>
+                    <button
+                      v-if="!isEditingServiceConfig"
+                      class="btn btn-sm btn-primary"
+                      @click="isEditingServiceConfig = true"
+                    >
+                      <i class="pi pi-pencil" /> Edit
+                    </button>
+                    <template v-else>
+                      <button class="btn btn-sm btn-secondary" @click="cancelServiceConfigEdit">Cancel</button>
+                      <button class="btn btn-sm btn-success" @click="saveServiceConfig">
+                        <i class="pi pi-check" /> Save
+                      </button>
+                    </template>
+                  </div>
+                </div>
+                <div class="config-editor">
+                  <Codemirror
+                    v-model="serviceConfig"
+                    :extensions="configExtensions"
+                    :disabled="!isEditingServiceConfig"
+                    :style="{ height: '500px' }"
+                  />
+                </div>
               </div>
             </div>
-          </div>
-        </div>
-
-          <div v-if="activeConfigTab !== 'settings'" class="config-sections">
-
-          <div v-if="activeConfigTab === 'compose'" class="config-section">
-            <div class="config-header">
-              <h3>Docker Compose Configuration</h3>
-              <div class="config-actions">
-                <button class="btn btn-sm btn-secondary" @click="copyConfig"><i class="pi pi-copy" /> Copy</button>
-                <button v-if="!isEditingConfig" class="btn btn-sm btn-primary" @click="startConfigEdit">
-                  <i class="pi pi-pencil" /> Edit
-                </button>
-                <template v-else>
-                  <button class="btn btn-sm btn-secondary" @click="cancelConfigEdit">Cancel</button>
-                  <button class="btn btn-sm btn-success" @click="saveConfig"><i class="pi pi-check" /> Save</button>
-                </template>
-              </div>
-            </div>
-            <div class="config-editor">
-              <Codemirror
-                v-model="composeConfig"
-                :extensions="configExtensions"
-                :disabled="!isEditingConfig"
-                :style="{ height: '500px' }"
-              />
-            </div>
-          </div>
-
-          <div v-if="activeConfigTab === 'service'" class="config-section">
-            <div class="config-header">
-              <h3>Service Configuration</h3>
-              <div class="config-actions">
-                <button class="btn btn-sm btn-secondary" @click="copyServiceConfig">
-                  <i class="pi pi-copy" /> Copy
-                </button>
-                <button
-                  v-if="!isEditingServiceConfig"
-                  class="btn btn-sm btn-primary"
-                  @click="isEditingServiceConfig = true"
-                >
-                  <i class="pi pi-pencil" /> Edit
-                </button>
-                <template v-else>
-                  <button class="btn btn-sm btn-secondary" @click="cancelServiceConfigEdit">Cancel</button>
-                  <button class="btn btn-sm btn-success" @click="saveServiceConfig">
-                    <i class="pi pi-check" /> Save
-                  </button>
-                </template>
-              </div>
-            </div>
-            <div class="config-editor">
-              <Codemirror
-                v-model="serviceConfig"
-                :extensions="configExtensions"
-                :disabled="!isEditingServiceConfig"
-                :style="{ height: '500px' }"
-              />
-            </div>
-          </div>
-          </div>
           </SubTabs>
         </div>
       </div>

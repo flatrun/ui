@@ -1,7 +1,5 @@
 <template>
-  <button class="btn btn-sm btn-secondary" :title="title" @click="open">
-    <Sparkles :size="14" /> {{ label }}
-  </button>
+  <button class="btn btn-sm btn-secondary" :title="title" @click="open"><Sparkles :size="14" /> {{ label }}</button>
 </template>
 
 <script setup lang="ts">

@@ -22,7 +22,11 @@ const session = (over: Partial<AISession> = {}): AISession => ({
   status: "ready",
   messages: [
     { role: "user", content: "what deployments do I have?" },
-    { role: "assistant", content: "You have one: myapp.", tool_steps: [{ name: "list_deployments", arguments: "{}", result: "- myapp" }] },
+    {
+      role: "assistant",
+      content: "You have one: myapp.",
+      tool_steps: [{ name: "list_deployments", arguments: "{}", result: "- myapp" }],
+    },
   ],
   pending: [],
   suggested_actions: [],

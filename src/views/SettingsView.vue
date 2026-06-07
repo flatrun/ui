@@ -917,8 +917,8 @@
           <div class="card-body">
             <p class="section-description">
               Connect any OpenAI-compatible endpoint: OpenAI, Ollama, vLLM, LM Studio or a gateway. The assistant
-              diagnoses deployment logs and failed operations and proposes fixes you approve explicitly. Secret
-              values are redacted before anything leaves this server.
+              diagnoses deployment logs and failed operations and proposes fixes you approve explicitly. Secret values
+              are redacted before anything leaves this server.
             </p>
             <div class="form-group">
               <label class="form-label checkbox-label">
