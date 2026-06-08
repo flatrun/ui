@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.3.0] - 2026-06-08
+
+### Added
+- AI assistant across the dashboard: conversational sessions with a global entry point, inline allow/decline on tool calls, suggested actions, and AI provider settings
+- Plan review flow: preview deployment mutations before applying them
+- Optional app template selection for image and compose deploys; image mode prefills container port and mounts while keeping the user's image
+- Security whitelist and detection threshold management from the dashboard
+- Settings toggle for showing hidden files in the file manager by default (default on); the file manager starts from it
+
+### Enhanced
+- System terminal runs on the interactive PTY stream, reusing the container terminal component: full-screen and terminal-control programs work and resizes propagate
+- Required template mounts are preselected but stay editable in every mode, and deselections stick
+
+### Fixed
+- Prompts composed by the product no longer appear in the assistant chat; only messages the user types are shown
+- Any unauthorized API response is treated as an expired session
+
 ## [0.2.0] - 2026-05-25
 
 ### Added
