@@ -277,6 +277,25 @@
                       </div>
                     </div>
 
+                    <div class="form-field">
+                      <label for="composeTemplatePreset">App Template (optional)</label>
+                      <select
+                        id="composeTemplatePreset"
+                        v-model="templatePreset"
+                        class="form-select"
+                        @change="onTemplatePresetChange"
+                      >
+                        <option value="">None</option>
+                        <option v-for="app in displayedQuickApps" :key="app.id" :value="app.id">
+                          {{ app.name }}
+                        </option>
+                      </select>
+                      <span class="field-hint">
+                        Your compose file stays as-is; the app's directories, default environment files and permissions
+                        are prepared on deploy
+                      </span>
+                    </div>
+
                     <div class="advanced-options-section">
                       <div class="advanced-options-header">
                         <i class="pi pi-sliders-h" />
@@ -341,6 +360,25 @@
                       </div>
                       <span v-if="errors.image" class="field-error">{{ errors.image }}</span>
                       <span v-else class="field-hint">Docker Hub, GHCR, or any registry</span>
+                    </div>
+
+                    <div class="form-field">
+                      <label for="imageTemplatePreset">App Template (optional)</label>
+                      <select
+                        id="imageTemplatePreset"
+                        v-model="templatePreset"
+                        class="form-select"
+                        @change="onTemplatePresetChange"
+                      >
+                        <option value="">None</option>
+                        <option v-for="app in displayedQuickApps" :key="app.id" :value="app.id">
+                          {{ app.name }}
+                        </option>
+                      </select>
+                      <span class="field-hint">
+                        Prepares the app's directories and environment file; bind mounts can be enabled in the next
+                        step
+                      </span>
                     </div>
 
                     <div class="private-registry-toggle">
@@ -1044,7 +1082,6 @@
                           <input
                             type="checkbox"
                             :checked="getMountSelection(mount.id)?.enabled"
-                            :disabled="mount.required"
                             @change="toggleMount(mount.id)"
                           />
                           <span class="mount-name">{{ mount.name }}</span>
@@ -1304,6 +1341,10 @@
                     <span class="review-label">Mode</span>
                     <span class="review-value">Custom Compose</span>
                   </div>
+                  <div v-if="deploymentMode !== 'easy' && templatePresetApp" class="review-item">
+                    <span class="review-label">App Template</span>
+                    <span class="review-value">{{ templatePresetApp.name }}</span>
+                  </div>
                   <div v-if="effectiveDomain" class="review-item full-width">
                     <span class="review-label">Domain</span>
                     <span class="review-value domain">
@@ -1448,7 +1489,33 @@ const existingDeployments = ref<string[]>([]);
 const extensions = shallowRef([yaml(), oneDark]);
 
 const deploymentMode = ref<"" | "easy" | "compose" | "image">("");
+const templatePreset = ref("");
 const showRegistryPassword = ref(false);
+
+const templatePresetApp = computed(() => quickApps.value.find((a) => a.id === templatePreset.value) || null);
+
+const effectiveTemplateId = computed(() => {
+  if (deploymentMode.value === "easy") {
+    return selectedQuickApp.value !== "custom" ? selectedQuickApp.value : "";
+  }
+  return templatePreset.value;
+});
+
+const onTemplatePresetChange = () => {
+  const app = templatePresetApp.value;
+  if (!app) {
+    form.mounts = [];
+    return;
+  }
+  if (deploymentMode.value === "image" && app.container_port) {
+    form.networking.ports = [{ containerPort: app.container_port, hostPort: "", expose: true }];
+  }
+  form.mounts = (app.mounts || []).map((m) => ({
+    id: m.id,
+    enabled: m.required,
+    type: m.type,
+  }));
+};
 const existingCredentials = ref<RegistryCredential[]>([]);
 const loadingCredentials = ref(false);
 
@@ -1674,8 +1741,10 @@ const selectedQuickAppName = computed(() => {
 });
 
 const selectedTemplateMounts = computed(() => {
-  if (selectedQuickApp.value === "custom" || !selectedQuickApp.value) return [];
-  const app = quickApps.value.find((a) => a.id === selectedQuickApp.value);
+  // Compose mode keeps the user's compose untouched, so mount toggles would have no effect.
+  if (deploymentMode.value === "compose") return [];
+  if (!effectiveTemplateId.value) return [];
+  const app = quickApps.value.find((a) => a.id === effectiveTemplateId.value);
   return app?.mounts || [];
 });
 
@@ -1861,8 +1930,6 @@ const selectQuickApp = async (app: QuickApp) => {
 const toggleMount = (mountId: string) => {
   const mount = form.mounts.find((m) => m.id === mountId);
   if (mount) {
-    const templateMount = selectedTemplateMounts.value.find((m) => m.id === mountId);
-    if (templateMount?.required) return;
     mount.enabled = !mount.enabled;
   }
 };
@@ -2210,14 +2277,13 @@ const nextStep = async () => {
   ) {
     generatingCompose.value = true;
     try {
-      const enabledMounts = form.mounts.filter((m) => m.enabled);
       const firstPort = form.networking.ports[0] || { containerPort: 80, hostPort: "" };
       const response = await templatesApi.generateCompose(selectedQuickApp.value, {
         name: form.name,
         container_port: firstPort.containerPort,
         map_ports: !!firstPort.hostPort,
         host_port: firstPort.hostPort || undefined,
-        mounts: enabledMounts.length > 0 ? enabledMounts : undefined,
+        mounts: form.mounts.length > 0 ? form.mounts : undefined,
       });
       form.composeContent = response.data.content;
     } catch (error: any) {
@@ -2230,7 +2296,31 @@ const nextStep = async () => {
   }
 
   if (currentStep.value === 2 && deploymentMode.value === "image") {
-    form.composeContent = buildComposeFromImage();
+    if (templatePreset.value) {
+      generatingCompose.value = true;
+      try {
+        const firstPort = form.networking.ports[0] || { containerPort: 80, hostPort: "" };
+        const response = await templatesApi.generateCompose(templatePreset.value, {
+          name: form.name,
+          image: form.image,
+          container_port: firstPort.containerPort,
+          map_ports: !!firstPort.hostPort,
+          host_port: firstPort.hostPort || undefined,
+          // The full selection list, so deselected required mounts are not
+          // re-applied as defaults by the agent.
+          mounts: form.mounts.length > 0 ? form.mounts : undefined,
+        });
+        form.composeContent = response.data.content;
+      } catch (error: any) {
+        const msg = error.response?.data?.error || error.message;
+        notifications.error("Failed to generate compose", msg);
+        generatingCompose.value = false;
+        return;
+      }
+      generatingCompose.value = false;
+    } else {
+      form.composeContent = buildComposeFromImage();
+    }
   }
 
   if (currentStep.value < steps.value.length) {
@@ -2292,6 +2382,7 @@ watch(
       errors.composeContent = "";
       selectedQuickApp.value = "";
       selectedTemplateContent.value = "";
+      templatePreset.value = "";
       deploymentMode.value = "";
       currentStep.value = 0;
       generatedSubdomain.value = "";
@@ -2310,6 +2401,7 @@ watch(deploymentMode, (newMode, oldMode) => {
   if (oldMode && newMode !== oldMode) {
     selectedQuickApp.value = "";
     selectedTemplateContent.value = "";
+    templatePreset.value = "";
     form.name = "";
     form.image = "";
     form.composeContent = "";
@@ -2403,7 +2495,7 @@ const handleCreate = async () => {
     const payload: Record<string, any> = {
       name: form.name,
       compose_content: form.composeContent,
-      template_id: selectedQuickApp.value !== "custom" ? selectedQuickApp.value : undefined,
+      template_id: effectiveTemplateId.value || undefined,
       env_vars: form.envVars.filter((e) => e.key),
       auto_start: form.autoStart,
       use_shared_database: form.database.useSharedDatabase && form.database.mode === "shared",
