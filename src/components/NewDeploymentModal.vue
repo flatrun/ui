@@ -376,8 +376,7 @@
                         </option>
                       </select>
                       <span class="field-hint">
-                        Prepares the app's directories and environment file; bind mounts can be enabled in the next
-                        step
+                        Prepares the app's directories and environment file; bind mounts can be enabled in the next step
                       </span>
                     </div>
 
