@@ -81,6 +81,27 @@
 
         <div class="settings-card">
           <div class="card-header">
+            <FolderClosed :size="16" />
+            <h3>File Manager</h3>
+          </div>
+          <div class="card-body">
+            <div class="form-group">
+              <label class="form-label checkbox-label">
+                <input
+                  v-model="filesSettings.show_hidden"
+                  type="checkbox"
+                  :disabled="savingFiles || !canWriteSettings"
+                  @change="saveFilesSettings"
+                />
+                Show hidden files by default
+              </label>
+              <small class="field-hint">Whether dotfiles are visible when the file manager opens.</small>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-card">
+          <div class="card-header">
             <i class="pi pi-cog" />
             <h3>Agent Configuration</h3>
             <span class="badge">Read-only</span>
@@ -972,7 +993,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted, markRaw, type Component } from "vue";
-import { Sparkles } from "lucide-vue-next";
+import { FolderClosed, Sparkles } from "lucide-vue-next";
 import { settingsApi, healthApi, templatesApi, credentialsApi, registriesApi, configApi } from "@/services/api";
 import type { DomainSettings } from "@/services/api";
 import type { ProtectedCommandRule, ProtectedModeConfig, RegistryCredential, RegistryType } from "@/types";
@@ -1542,6 +1563,34 @@ const fetchAgentVersion = async () => {
   }
 };
 
+const filesSettings = reactive({ show_hidden: true });
+const savingFiles = ref(false);
+
+const fetchFilesSettings = async () => {
+  try {
+    const response = await configApi.get("files.show_hidden");
+    const value = response.data.entry?.value;
+    if (typeof value === "boolean") {
+      filesSettings.show_hidden = value;
+    }
+  } catch {
+    // Older agents without the config key; keep the default.
+  }
+};
+
+const saveFilesSettings = async () => {
+  savingFiles.value = true;
+  try {
+    await configApi.set("files.show_hidden", filesSettings.show_hidden);
+    notifications.success("Saved", "File manager settings saved");
+  } catch (e: any) {
+    notifications.error("Error", e.response?.data?.error || "Failed to save file manager settings");
+    await fetchFilesSettings();
+  } finally {
+    savingFiles.value = false;
+  }
+};
+
 const aiSettings = reactive({ enabled: false, base_url: "", model: "", api_key: "" });
 const savingAI = ref(false);
 
@@ -1585,6 +1634,7 @@ onMounted(() => {
   fetchCredentials();
   fetchRegistryTypes();
   fetchAISettings();
+  fetchFilesSettings();
 });
 </script>
 

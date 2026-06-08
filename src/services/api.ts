@@ -369,6 +369,7 @@ export const aiApi = {
     auto_run: boolean;
     message: string;
     context?: string;
+    seed?: boolean;
   }) => apiClient.post<AISession>("/ai/sessions", body),
   sessionMessage: (id: string, message: string, context?: string) =>
     apiClient.post<AISession>(`/ai/sessions/${id}/messages`, { message, context }),
@@ -408,6 +409,7 @@ export interface MountSelection {
 
 export interface ComposeGenerateOptions {
   name: string;
+  image?: string;
   container_port?: number;
   map_ports?: boolean;
   host_port?: string;

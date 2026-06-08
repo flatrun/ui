@@ -16,8 +16,8 @@ export interface AssistContext {
   scope: "system" | "deployment";
   deployment?: string;
   subject: string;
-  // seedMessage is the short prompt shown in the transcript; seedContext
-  // is bulky material (logs, output) sent to the model but not shown.
+  // seedMessage and seedContext are sent to the model but kept out of
+  // the visible transcript; only messages the user types are shown.
   seedMessage?: string;
   seedContext?: string;
   autoRun?: boolean;
@@ -65,11 +65,11 @@ export const useAssistStore = defineStore("assist", () => {
     autoRun.value = ctx.autoRun ?? true;
     if (!(await ensureEnabled())) return;
     if (ctx.seedMessage) {
-      await send(ctx.seedMessage, ctx.seedContext);
+      await send(ctx.seedMessage, ctx.seedContext, true);
     }
   }
 
-  async function send(message: string, context?: string) {
+  async function send(message: string, context?: string, seed = false) {
     if (loading.value) return;
     error.value = "";
     suggestionOutputs.value = {};
@@ -83,6 +83,7 @@ export const useAssistStore = defineStore("assist", () => {
             auto_run: autoRun.value,
             message,
             context,
+            seed,
           });
       session.value = response.data;
     } catch (err: any) {

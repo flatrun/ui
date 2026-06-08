@@ -63,12 +63,15 @@ describe("assist store", () => {
     const store = useAssistStore();
     await store.open({ scope: "deployment", deployment: "myapp", subject: "myapp", seedMessage: "diagnose" });
 
+    // Seeded prompts are flagged so the agent keeps them out of the
+    // visible transcript; the model still receives them.
     expect(aiApi.createSession).toHaveBeenCalledWith({
       scope: "deployment",
       deployment: "myapp",
       auto_run: true,
       message: "diagnose",
       context: undefined,
+      seed: true,
     });
     expect(store.session?.id).toBe("ais_1");
   });

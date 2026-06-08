@@ -27,7 +27,11 @@ import { WebLinksAddon } from "@xterm/addon-web-links";
 import "@xterm/xterm/css/xterm.css";
 
 const props = defineProps<{
-  containerId: string;
+  containerId?: string;
+  // wsPath overrides the container exec endpoint, so any PTY stream
+  // speaking the same protocol (e.g. the system terminal) can reuse
+  // this component.
+  wsPath?: string;
 }>();
 
 const emit = defineEmits<{
@@ -52,13 +56,14 @@ let explicitCloseMessage = "";
 const getWebSocketUrl = () => {
   const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
   const apiUrl = import.meta.env.VITE_API_URL || "";
+  const path = props.wsPath || `/api/containers/${props.containerId}/exec`;
 
   if (apiUrl.startsWith("http")) {
     const url = new URL(apiUrl);
-    return `${protocol}//${url.host}/api/containers/${props.containerId}/exec`;
+    return `${protocol}//${url.host}${path}`;
   }
 
-  return `${protocol}//${window.location.host}/api/containers/${props.containerId}/exec`;
+  return `${protocol}//${window.location.host}${path}`;
 };
 
 let authenticated = false;
@@ -166,7 +171,7 @@ const connect = () => {
 
   socket.onerror = () => {
     connectionStatus.value = "error";
-    statusMessage.value = "Connection failed. Check if container is running.";
+    statusMessage.value = props.wsPath ? "Connection failed." : "Connection failed. Check if container is running.";
     authenticated = false;
     emit("error", "WebSocket connection failed");
   };
