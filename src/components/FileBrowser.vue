@@ -475,7 +475,7 @@ import { ref, reactive, computed, onMounted, onBeforeUnmount, watch } from "vue"
 import { Codemirror } from "vue-codemirror";
 import { yaml } from "@codemirror/lang-yaml";
 import { oneDark } from "@codemirror/theme-one-dark";
-import { createDeploymentFileApi, type FileBrowserApi, type FileInfo } from "@/services/api";
+import { configApi, createDeploymentFileApi, type FileBrowserApi, type FileInfo } from "@/services/api";
 import { useNotificationsStore } from "@/stores/notifications";
 import { toComposeRelativePath, type ComposeMount } from "@/utils/compose";
 
@@ -576,8 +576,20 @@ const permissionsModeOctal = computed(() => {
   return "0" + ((n >> 6) & 7) + ((n >> 3) & 7) + (n & 7);
 });
 
-const showHiddenFiles = ref(false);
+const showHiddenFiles = ref(true);
 const hideSystemFolders = ref(true);
+
+const loadShowHiddenSetting = async () => {
+  try {
+    const response = await configApi.get("files.show_hidden");
+    const value = response.data.entry?.value;
+    if (typeof value === "boolean") {
+      showHiddenFiles.value = value;
+    }
+  } catch {
+    // Keep the default when the setting cannot be loaded
+  }
+};
 
 const SYSTEM_FOLDER_NAMES = new Set(["proc", "sys", "dev", "boot", "run", "lost+found", "var", "tmp", "snap"]);
 const viewMode = ref<"list" | "grid">("list");
@@ -1078,7 +1090,8 @@ watch(showHiddenFiles, () => {
   fetchFiles();
 });
 
-onMounted(() => {
+onMounted(async () => {
+  await loadShowHiddenSetting();
   refreshFiles();
   document.addEventListener("click", onDocumentClick);
 });
