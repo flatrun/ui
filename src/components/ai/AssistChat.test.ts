@@ -110,7 +110,7 @@ describe("AssistChat", () => {
     } as AISession;
 
     const wrapper = mountChat();
-    expect(wrapper.find(".chat-input").attributes("disabled")).toBeDefined();
+    expect(wrapper.find(".composer-input").attributes("disabled")).toBeDefined();
   });
 
   it("offers a settings link when AI is disabled", () => {

@@ -1,16 +1,30 @@
 <template>
-  <BaseModal :visible="store.visible" size="xl" :close-on-overlay="!store.loading" @close="store.close">
+  <SlidePanel
+    :visible="store.visible && !store.embedded"
+    size="xl"
+    :close-on-overlay="!store.loading"
+    @close="store.close"
+  >
     <template #header>
       <div class="chat-header">
-        <div class="chat-header-icon"><Sparkles :size="18" /></div>
+        <div class="chat-header-icon"><Icon name="bot" :size="20" /></div>
         <div class="chat-header-text">
           <h3>AI Assistant</h3>
           <p>{{ headerSubtitle }}</p>
         </div>
-        <label class="autorun-toggle" :title="autoRunTitle">
-          <input v-model="store.autoRun" type="checkbox" :disabled="hasSession" />
-          <span>Auto-run lookups</span>
-        </label>
+        <div class="chat-header-actions">
+          <button class="chat-icon-btn" title="New chat" @click="newChat">
+            <Icon name="plus" :size="16" />
+          </button>
+          <button
+            class="chat-icon-btn"
+            :class="{ active: view === 'history' }"
+            :title="view === 'history' ? 'Back to chat' : 'Chat history'"
+            @click="toggleHistory"
+          >
+            <Icon name="history" :size="16" />
+          </button>
+        </div>
       </div>
     </template>
 
@@ -23,10 +37,43 @@
     </div>
 
     <template v-else>
-      <div ref="scrollEl" class="chat-body">
+      <div v-if="view === 'history'" class="history-view">
+        <div class="history-head">
+          <span>Past conversations</span>
+          <button class="btn btn-xs btn-secondary" @click="newChat"><Icon name="plus" :size="12" /> New chat</button>
+        </div>
+        <div v-if="!pastSessions.length" class="history-empty">
+          <Icon name="message-square" :size="28" />
+          <p>Your past conversations will appear here.</p>
+        </div>
+        <button v-for="s in pastSessions" v-else :key="s.id" class="history-item" @click="loadPast(s)">
+          <Icon name="message-square" :size="16" class="history-item-icon" />
+          <span class="history-item-title">{{ s.title }}</span>
+          <span class="history-item-meta">{{ s.when }}</span>
+        </button>
+        <p class="history-note">History is a preview; saved conversations arrive with persistence.</p>
+      </div>
+
+      <div v-else ref="scrollEl" class="chat-body">
         <div v-if="!turns.length && !store.loading" class="chat-empty">
-          <Sparkles :size="28" />
-          <p>{{ emptyPrompt }}</p>
+          <div class="chat-empty-icon"><Icon name="bot" :size="30" /></div>
+          <p class="chat-empty-prompt">{{ emptyPrompt }}</p>
+          <div class="sample-queries">
+            <button
+              v-for="(q, qi) in sampleQueries"
+              :key="qi"
+              class="sample-chip"
+              :disabled="inputDisabled"
+              @click="runSample(q)"
+            >
+              <Icon name="sparkles" :size="13" />
+              <span>{{ q }}</span>
+            </button>
+          </div>
+          <label class="autorun-toggle" :title="autoRunTitle">
+            <input v-model="store.autoRun" type="checkbox" :disabled="hasSession" />
+            <span>Auto-run read-only lookups</span>
+          </label>
         </div>
 
         <div v-for="(turn, i) in turns" :key="i" class="turn" :class="turn.role">
@@ -97,40 +144,66 @@
           </div>
         </div>
 
-        <div v-if="store.loading" class="chat-thinking"><i class="pi pi-spin pi-spinner" /> {{ thinkingLabel }}</div>
-        <div v-else-if="store.error" class="chat-error">{{ store.error }}</div>
+        <div v-if="store.loading" class="chat-thinking">
+          <Icon name="loader-circle" spin :size="14" /> {{ thinkingLabel }}
+        </div>
+        <div v-else-if="store.error" class="chat-error">
+          <Icon name="triangle-alert" :size="16" class="chat-error-icon" />
+          <div class="chat-error-body">
+            <p>{{ store.error }}</p>
+            <button class="btn btn-xs btn-secondary" @click="newChat">Start over</button>
+          </div>
+        </div>
       </div>
     </template>
 
-    <template v-if="!settingsHint" #footer>
-      <div class="chat-input-row">
-        <input
-          v-model="draft"
-          type="text"
-          class="chat-input"
-          :placeholder="inputPlaceholder"
-          :disabled="inputDisabled"
-          @keyup.enter="submit"
-        />
-        <button class="btn btn-primary" :disabled="inputDisabled || !draft.trim()" @click="submit">
-          <Send :size="14" />
-        </button>
+    <template v-if="!settingsHint && view === 'chat'" #footer>
+      <div class="composer">
+        <div v-if="attachments.length" class="composer-attachments">
+          <div v-for="(file, idx) in attachments" :key="idx" class="attachment-chip">
+            <Icon name="paperclip" :size="12" />
+            <span class="attachment-name">{{ file.name }}</span>
+            <button class="attachment-remove" title="Remove" @click="removeAttachment(idx)">
+              <Icon name="x" :size="12" />
+            </button>
+          </div>
+        </div>
+        <div class="composer-row">
+          <input ref="fileInput" type="file" multiple class="composer-file" @change="onFilesSelected" />
+          <button class="composer-attach" title="Attach files" :disabled="inputDisabled" @click="fileInput?.click()">
+            <Icon name="paperclip" :size="18" />
+          </button>
+          <input
+            v-model="draft"
+            type="text"
+            class="composer-input"
+            :placeholder="inputPlaceholder"
+            :disabled="inputDisabled"
+            @keyup.enter="submit"
+          />
+          <button class="composer-send" :disabled="inputDisabled || !draft.trim()" title="Send" @click="submit">
+            <Icon name="send" :size="18" />
+          </button>
+        </div>
       </div>
     </template>
-  </BaseModal>
+  </SlidePanel>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, watch, nextTick } from "vue";
-import { Sparkles, Search, ChevronDown, CircleAlert, Zap, Play, Send } from "lucide-vue-next";
+import { Sparkles, Search, ChevronDown, CircleAlert, Zap, Play } from "lucide-vue-next";
 import { marked } from "marked";
 import DOMPurify from "dompurify";
-import BaseModal from "@/components/base/BaseModal.vue";
+import SlidePanel from "@/components/base/SlidePanel.vue";
+import Icon from "@/components/base/Icon.vue";
 import { useAssistStore, AI_DISABLED_MESSAGE } from "@/stores/assist";
 import type { AIToolCall, AIToolStep } from "@/services/api";
 
 const store = useAssistStore();
 const draft = ref("");
+const attachments = ref<File[]>([]);
+const fileInput = ref<HTMLInputElement | null>(null);
 const scrollEl = ref<HTMLElement | null>(null);
 const openSteps = ref<Set<string>>(new Set());
 
@@ -163,7 +236,73 @@ const submit = () => {
   const text = draft.value.trim();
   if (!text || inputDisabled.value) return;
   draft.value = "";
+  // Attachments are UI-only for now; clear them on send until the assistant
+  // API accepts uploads.
+  attachments.value = [];
   store.send(text);
+};
+
+const onFilesSelected = (e: Event) => {
+  const input = e.target as HTMLInputElement;
+  if (!input.files) return;
+  attachments.value.push(...Array.from(input.files));
+  input.value = "";
+};
+
+const removeAttachment = (idx: number) => {
+  attachments.value.splice(idx, 1);
+};
+
+type ChatView = "chat" | "history";
+const view = ref<ChatView>("chat");
+
+const newChat = () => {
+  store.reset();
+  view.value = "chat";
+  draft.value = "";
+  attachments.value = [];
+};
+
+const toggleHistory = () => {
+  view.value = view.value === "history" ? "chat" : "history";
+};
+
+const sampleQueries = computed(() =>
+  store.scope === "deployment"
+    ? [
+        `Why is ${store.subject} unhealthy?`,
+        `Show the recent logs for ${store.subject}`,
+        `What changed in ${store.subject} recently?`,
+      ]
+    : [
+        "Which deployments are not running?",
+        "What is using the most memory right now?",
+        "Summarize recent security events",
+      ],
+);
+
+const runSample = (q: string) => {
+  if (inputDisabled.value) return;
+  store.send(q);
+};
+
+interface PastSession {
+  id: string;
+  title: string;
+  when: string;
+}
+
+// Placeholder list so the history flow is visible; real data arrives with the
+// chat-persistence API.
+const pastSessions = ref<PastSession[]>([
+  { id: "1", title: "Why is wordpress-blog unhealthy?", when: "2 hours ago" },
+  { id: "2", title: "Summarize recent security events", when: "Yesterday" },
+  { id: "3", title: "Which containers restarted recently?", when: "3 days ago" },
+]);
+
+const loadPast = (_session: PastSession) => {
+  // Loading a stored conversation needs the persistence API; return to chat.
+  view.value = "chat";
 };
 
 const renderMarkdown = (content: string) => DOMPurify.sanitize(marked.parse(content, { async: false }) as string);
@@ -216,11 +355,13 @@ watch(
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  background: #eff6ff;
-  color: #2563eb;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+  color: var(--accent-contrast);
+  box-shadow: 0 4px 12px var(--accent-subtle);
+  flex-shrink: 0;
 }
 .chat-header-text {
   flex: 1;
@@ -228,19 +369,19 @@ watch(
 .chat-header-text h3 {
   margin: 0;
   font-size: 1rem;
-  color: #111827;
+  color: var(--text);
 }
 .chat-header-text p {
   margin: 0.1rem 0 0;
   font-size: 0.78rem;
-  color: #6b7280;
+  color: var(--text-muted);
 }
 .autorun-toggle {
   display: flex;
   align-items: center;
   gap: 0.35rem;
   font-size: 0.75rem;
-  color: #6b7280;
+  color: var(--text-muted);
   cursor: pointer;
 }
 .autorun-toggle input:disabled {
@@ -251,10 +392,10 @@ watch(
   display: flex;
   gap: 0.6rem;
   padding: 1rem;
-  background: #eff6ff;
-  border: 1px solid #bfdbfe;
-  border-radius: 8px;
-  color: #1e40af;
+  background: var(--accent-subtle);
+  border: 1px solid var(--accent-subtle);
+  border-radius: var(--radius-lg);
+  color: var(--text);
 }
 .chat-settings-hint p {
   margin: 0 0 0.6rem;
@@ -262,26 +403,171 @@ watch(
 }
 
 .chat-body {
-  max-height: 60vh;
+  flex: 1;
   min-height: 320px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  padding: 0.25rem;
+  padding: 1rem;
+  background:
+    radial-gradient(120% 60% at 50% 0%, var(--accent-subtle) 0%, transparent 60%),
+    linear-gradient(180deg, var(--surface-sunken), var(--app-bg));
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 .chat-empty {
   margin: auto;
   text-align: center;
-  color: #9ca3af;
+  color: var(--text-muted);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 1.5rem 0.5rem;
+}
+.chat-empty-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+  color: var(--accent-contrast);
+  box-shadow: 0 6px 18px var(--accent-subtle);
+}
+.chat-empty-prompt {
+  max-width: 26rem;
+  font-size: 0.9rem;
+  color: var(--text);
+}
+.sample-queries {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  width: 100%;
+  max-width: 22rem;
+}
+.sample-chip {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  text-align: left;
+  padding: 0.5rem 0.7rem;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  color: var(--text);
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+.sample-chip:hover:not(:disabled) {
+  border-color: var(--accent);
+  background: var(--accent-subtle);
+}
+.sample-chip:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.sample-chip > span {
+  flex: 1;
+}
+
+.history-view {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.5rem;
+}
+.history-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  font-weight: var(--font-semibold);
+  color: var(--text-muted);
+  padding: 0.25rem 0.25rem 0.5rem;
+}
+.history-empty {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 0.5rem;
-}
-.chat-empty p {
-  max-width: 28rem;
+  padding: 2rem 1rem;
+  color: var(--text-subtle);
+  text-align: center;
   font-size: 0.85rem;
+}
+.history-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+  text-align: left;
+  padding: 0.6rem 0.7rem;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+.history-item:hover {
+  border-color: var(--accent);
+  background: var(--accent-subtle);
+}
+.history-item-icon {
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+.history-item-title {
+  flex: 1;
+  font-size: 0.85rem;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.history-item-meta {
+  font-size: 0.7rem;
+  color: var(--text-subtle);
+  flex-shrink: 0;
+}
+.history-note {
+  margin-top: 0.5rem;
+  font-size: 0.7rem;
+  color: var(--text-subtle);
+  text-align: center;
+}
+
+.chat-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+.chat-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid transparent;
+  background: none;
+  color: var(--text-muted);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+.chat-icon-btn:hover {
+  background: var(--surface-sunken);
+  color: var(--text);
+}
+.chat-icon-btn.active {
+  background: var(--accent-subtle);
+  color: var(--accent);
 }
 
 .turn {
@@ -298,16 +584,17 @@ watch(
   line-height: 1.55;
 }
 .bubble.user {
-  background: #2563eb;
-  color: white;
+  background: var(--accent);
+  color: var(--accent-contrast);
   border-bottom-right-radius: 4px;
 }
 .bubble.assistant {
-  background: #f8fafc;
-  border: 1px solid #eef2f7;
-  color: #1e293b;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  color: var(--text);
   border-bottom-left-radius: 4px;
   width: 100%;
+  box-shadow: var(--shadow-xs);
 }
 
 .tool-steps {
@@ -355,19 +642,37 @@ watch(
 }
 .markdown :deep(pre),
 .markdown :deep(code) {
-  background: #eef2f7;
+  background: var(--surface-inset);
   border-radius: 4px;
   font-size: 0.76rem;
+}
+.markdown :deep(code) {
+  padding: 0.05rem 0.3rem;
 }
 .markdown :deep(pre) {
   padding: 0.5rem 0.7rem;
   overflow-x: auto;
 }
+.markdown :deep(pre) code {
+  padding: 0;
+  background: none;
+}
+.markdown :deep(a) {
+  color: var(--accent);
+}
+.markdown :deep(ul),
+.markdown :deep(ol) {
+  padding-left: 1.1rem;
+  margin: 0.3rem 0;
+}
+.markdown :deep(p) {
+  margin: 0.3rem 0;
+}
 
 .approval-card {
-  border: 1px solid #fde68a;
-  background: #fffbeb;
-  border-radius: 8px;
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  background: rgba(245, 158, 11, 0.1);
+  border-radius: var(--radius-lg);
   padding: 0.75rem;
 }
 .approval-title {
@@ -453,7 +758,7 @@ watch(
 .suggestion-command {
   font-family: ui-monospace, monospace;
   font-size: 0.74rem;
-  background: #f3f4f6;
+  background: var(--surface-inset);
   padding: 0.12rem 0.4rem;
   border-radius: 4px;
   width: fit-content;
@@ -487,26 +792,149 @@ watch(
   align-items: center;
   gap: 0.4rem;
   font-size: 0.8rem;
-  color: #6b7280;
+  color: var(--text-muted);
 }
 .chat-error {
-  font-size: 0.8rem;
-  color: #b91c1c;
+  display: flex;
+  gap: 0.6rem;
+  padding: 0.75rem;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  border-radius: var(--radius-lg);
+  color: var(--c-red);
+}
+.chat-error-icon {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.chat-error-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  align-items: flex-start;
+}
+.chat-error-body p {
+  font-size: 0.82rem;
+  margin: 0;
 }
 
-.chat-input-row {
+.composer {
   display: flex;
+  flex-direction: column;
   gap: 0.5rem;
   width: 100%;
 }
-.chat-input {
-  flex: 1;
-  font-size: 0.85rem;
-  padding: 0.5rem 0.7rem;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
+
+.composer-attachments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
 }
-.chat-input:disabled {
-  background: #f9fafb;
+
+.attachment-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.5rem;
+  background: var(--surface-sunken);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  max-width: 220px;
+}
+
+.attachment-name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.attachment-remove {
+  display: inline-flex;
+  background: none;
+  border: none;
+  color: var(--text-subtle);
+  cursor: pointer;
+  padding: 0;
+}
+
+.attachment-remove:hover {
+  color: var(--c-red);
+}
+
+.composer-file {
+  display: none;
+}
+
+.composer-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 0.35rem 0.4rem 0.35rem 0.5rem;
+  transition:
+    border-color var(--transition-base),
+    box-shadow var(--transition-base);
+}
+
+.composer-row:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 var(--ring-width) var(--ring-color);
+}
+
+.composer-attach,
+.composer-send {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border: none;
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  flex-shrink: 0;
+  transition: all var(--transition-base);
+}
+
+.composer-attach {
+  background: none;
+  color: var(--text-muted);
+}
+
+.composer-attach:hover:not(:disabled) {
+  background: var(--surface-sunken);
+  color: var(--text);
+}
+
+.composer-send {
+  background: var(--accent);
+  color: var(--accent-contrast);
+}
+
+.composer-send:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+.composer-attach:disabled,
+.composer-send:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.composer-input {
+  flex: 1;
+  border: none;
+  background: none;
+  outline: none;
+  font-size: var(--text-md);
+  color: var(--text);
+  min-width: 0;
+}
+
+.composer-input::placeholder {
+  color: var(--text-subtle);
 }
 </style>

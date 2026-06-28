@@ -420,29 +420,42 @@
       </div>
 
       <div v-if="showEditorModal" class="modal-overlay">
-        <div class="modal-container editor-modal">
+        <div class="modal-container editor-modal" :class="{ 'with-assist': assistOpen }">
           <div class="modal-header">
             <h3>
               <i :class="viewOnly ? 'pi pi-eye' : 'pi pi-file-edit'" />
               {{ editingFile?.name }}
               <span v-if="viewOnly" class="view-only-badge">Read Only</span>
             </h3>
+            <button
+              v-if="editingFile"
+              class="assist-toggle"
+              :class="{ active: assistOpen }"
+              :title="assistOpen ? 'Hide assistant' : 'Ask the assistant'"
+              @click="toggleAssist"
+            >
+              <Icon name="bot" :size="15" />
+              <span>Ask the assistant</span>
+            </button>
             <button class="close-btn" @click="closeFileEditor">
               <i class="pi pi-times" />
             </button>
           </div>
-          <div class="modal-body editor-body">
-            <div v-if="loadingFileContent" class="loading-editor">
-              <i class="pi pi-spin pi-spinner" />
-              Loading file...
+          <div class="modal-body editor-split">
+            <div class="editor-pane">
+              <div v-if="loadingFileContent" class="loading-editor">
+                <i class="pi pi-spin pi-spinner" />
+                Loading file...
+              </div>
+              <Codemirror
+                v-else
+                v-model="fileContent"
+                :extensions="editorExtensions"
+                :style="{ height: '100%' }"
+                :disabled="viewOnly"
+              />
             </div>
-            <Codemirror
-              v-else
-              v-model="fileContent"
-              :extensions="editorExtensions"
-              :style="{ height: '100%' }"
-              :disabled="viewOnly"
-            />
+            <InlineAssist v-if="assistOpen" class="assist-pane" @close="closeAssist" />
           </div>
           <div class="modal-footer">
             <template v-if="viewOnly">
@@ -478,6 +491,9 @@ import { oneDark } from "@codemirror/theme-one-dark";
 import { configApi, createDeploymentFileApi, type FileBrowserApi, type FileInfo } from "@/services/api";
 import { useNotificationsStore } from "@/stores/notifications";
 import { toComposeRelativePath, type ComposeMount } from "@/utils/compose";
+import Icon from "@/components/base/Icon.vue";
+import InlineAssist from "@/components/ai/InlineAssist.vue";
+import { useAssistStore, type AssistContext } from "@/stores/assist";
 
 const props = withDefaults(
   defineProps<{
@@ -617,6 +633,28 @@ const viewOnly = ref(false);
 const editorExtensions = [yaml(), oneDark];
 
 const fileModified = computed(() => fileContent.value !== originalContent.value);
+
+const editorAssistContext = computed<AssistContext>(() => ({
+  scope: "system",
+  subject: editingFile.value?.path || editingFile.value?.name || "file",
+  seedContext: fileContent.value,
+}));
+
+const assistStore = useAssistStore();
+const assistOpen = ref(false);
+const toggleAssist = () => {
+  if (assistOpen.value) {
+    closeAssist();
+    return;
+  }
+  assistStore.embedded = true;
+  assistStore.open(editorAssistContext.value);
+  assistOpen.value = true;
+};
+const closeAssist = () => {
+  assistOpen.value = false;
+  assistStore.close();
+};
 
 const mountServiceOptions = computed(() => {
   const names = props.serviceNames?.filter(Boolean) || [];
@@ -1053,6 +1091,7 @@ const closeFileEditor = () => {
       return;
     }
   }
+  if (assistOpen.value) closeAssist();
   showEditorModal.value = false;
   editingFile.value = null;
   fileContent.value = "";
@@ -1114,8 +1153,8 @@ onBeforeUnmount(() => {
   justify-content: space-between;
   align-items: center;
   padding: var(--space-3) var(--space-4);
-  border-bottom: 1px solid var(--color-gray-200);
-  background: var(--color-gray-50);
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-sunken);
 }
 
 .breadcrumb {
@@ -1130,19 +1169,19 @@ onBeforeUnmount(() => {
   padding: var(--space-1) var(--space-2);
   border-radius: var(--radius-sm);
   cursor: pointer;
-  color: var(--color-gray-600);
+  color: var(--text-muted);
   font-size: var(--text-sm);
   transition: all var(--transition-base);
 }
 
 .breadcrumb-item:hover {
-  background: var(--color-gray-200);
-  color: var(--color-gray-900);
+  background: var(--border);
+  color: var(--text);
 }
 
 .breadcrumb-separator {
   font-size: var(--text-xs);
-  color: var(--color-gray-400);
+  color: var(--text-subtle);
 }
 
 .toolbar-left {
@@ -1156,7 +1195,7 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: var(--space-1);
   font-size: var(--text-sm);
-  color: var(--color-gray-500);
+  color: var(--text-muted);
   cursor: pointer;
   padding: var(--space-1) var(--space-2);
   border-radius: var(--radius-sm);
@@ -1165,8 +1204,8 @@ onBeforeUnmount(() => {
 }
 
 .view-toggle:hover {
-  background: var(--color-gray-100);
-  color: var(--color-gray-700);
+  background: var(--surface-inset);
+  color: var(--text);
 }
 
 .view-toggle.active {
@@ -1221,7 +1260,7 @@ onBeforeUnmount(() => {
 
 .busy-indicator {
   height: 2px;
-  background: var(--color-gray-100);
+  background: var(--surface-inset);
   overflow: hidden;
 }
 
@@ -1255,7 +1294,7 @@ onBeforeUnmount(() => {
   justify-content: center;
   padding: var(--space-12);
   text-align: center;
-  color: var(--color-gray-500);
+  color: var(--text-muted);
   gap: var(--space-3);
 }
 
@@ -1263,12 +1302,12 @@ onBeforeUnmount(() => {
 .error-state i,
 .empty-state i {
   font-size: 3rem;
-  color: var(--color-gray-300);
+  color: var(--border);
 }
 
 .empty-state h3 {
   margin: 0;
-  color: var(--color-gray-700);
+  color: var(--text);
 }
 
 .empty-state p {
@@ -1284,24 +1323,24 @@ onBeforeUnmount(() => {
   display: grid;
   grid-template-columns: 1fr 100px 180px 116px;
   padding: var(--space-2) var(--space-4);
-  background: var(--color-gray-50);
-  border-bottom: 1px solid var(--color-gray-200);
+  background: var(--surface-sunken);
+  border-bottom: 1px solid var(--border);
   font-size: var(--text-sm);
   font-weight: var(--font-semibold);
-  color: var(--color-gray-600);
+  color: var(--text-muted);
 }
 
 .file-item {
   display: grid;
   grid-template-columns: 1fr 100px 180px 116px;
   padding: var(--space-3) var(--space-4);
-  border-bottom: 1px solid var(--color-gray-100);
+  border-bottom: 1px solid var(--border-subtle);
   cursor: pointer;
   transition: background var(--transition-base);
 }
 
 .file-item:hover {
-  background: var(--color-gray-50);
+  background: var(--surface-sunken);
 }
 
 .file-item.selected {
@@ -1320,7 +1359,7 @@ onBeforeUnmount(() => {
 }
 
 .col-name i {
-  color: var(--color-gray-400);
+  color: var(--text-subtle);
   font-size: 1.1rem;
 }
 
@@ -1336,13 +1375,13 @@ onBeforeUnmount(() => {
 
 .child-count {
   font-size: var(--text-xs);
-  color: var(--color-gray-400);
+  color: var(--text-subtle);
   font-weight: var(--font-normal);
 }
 
 .col-size,
 .col-modified {
-  color: var(--color-gray-500);
+  color: var(--text-muted);
   font-size: var(--text-sm);
   display: flex;
   align-items: center;
@@ -1363,14 +1402,14 @@ onBeforeUnmount(() => {
   border: none;
   border-radius: var(--radius-sm);
   cursor: pointer;
-  background: var(--color-gray-100);
-  color: var(--color-gray-600);
+  background: var(--surface-inset);
+  color: var(--text-muted);
   transition: all var(--transition-base);
 }
 
 .action-btn:hover {
-  background: var(--color-gray-200);
-  color: var(--color-gray-900);
+  background: var(--border);
+  color: var(--text);
 }
 
 .action-btn.is-mounted {
@@ -1389,8 +1428,8 @@ onBeforeUnmount(() => {
   right: 0;
   z-index: 10;
   min-width: 180px;
-  background: var(--surface-card, white);
-  border: 1px solid var(--color-gray-200);
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   padding: var(--space-1);
@@ -1408,14 +1447,14 @@ onBeforeUnmount(() => {
   border: none;
   border-radius: var(--radius-sm);
   font-size: var(--text-sm);
-  color: var(--color-gray-700);
+  color: var(--text);
   cursor: pointer;
   text-align: left;
 }
 
 .menu-item:hover {
-  background: var(--color-gray-100);
-  color: var(--color-gray-900);
+  background: var(--surface-inset);
+  color: var(--text);
 }
 
 .menu-item.danger {
@@ -1452,10 +1491,10 @@ onBeforeUnmount(() => {
   display: flex;
   justify-content: space-between;
   padding: var(--space-2) var(--space-4);
-  border-top: 1px solid var(--color-gray-200);
-  background: var(--color-gray-50);
+  border-top: 1px solid var(--border);
+  background: var(--surface-sunken);
   font-size: var(--text-sm);
-  color: var(--color-gray-500);
+  color: var(--text-muted);
 }
 
 .modal-overlay {
@@ -1470,7 +1509,8 @@ onBeforeUnmount(() => {
 }
 
 .modal-container {
-  background: white;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-xl);
   max-width: 90vw;
@@ -1483,7 +1523,7 @@ onBeforeUnmount(() => {
 
 .modal-header {
   padding: var(--space-4);
-  border-bottom: 1px solid var(--color-gray-200);
+  border-bottom: 1px solid var(--border);
 }
 
 .modal-header h3 {
@@ -1520,14 +1560,14 @@ onBeforeUnmount(() => {
 .mount-source span {
   font-size: var(--text-sm);
   font-weight: var(--font-medium);
-  color: var(--color-gray-700);
+  color: var(--text);
 }
 
 .mount-source code {
   padding: var(--space-2);
   border-radius: var(--radius-sm);
-  background: var(--color-gray-100);
-  color: var(--color-gray-700);
+  background: var(--surface-inset);
+  color: var(--text);
   word-break: break-all;
 }
 
@@ -1548,13 +1588,13 @@ onBeforeUnmount(() => {
   font-weight: var(--font-medium);
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: var(--color-gray-500);
+  color: var(--text-muted);
   text-align: center;
 }
 
 .perm-row-label {
   font-size: var(--text-sm);
-  color: var(--color-gray-700);
+  color: var(--text);
   text-transform: capitalize;
 }
 
@@ -1570,21 +1610,21 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: var(--space-2);
   padding-top: var(--space-2);
-  border-top: 1px solid var(--color-gray-200);
+  border-top: 1px solid var(--border);
 }
 
 .permissions-summary code {
   font-size: var(--text-base);
   font-weight: var(--font-medium);
   padding: var(--space-1) var(--space-2);
-  background: var(--color-gray-100);
-  color: var(--color-gray-900);
+  background: var(--surface-inset);
+  color: var(--text);
   border-radius: var(--radius-sm);
 }
 
 .permissions-help {
   font-size: var(--text-xs);
-  color: var(--color-gray-500);
+  color: var(--text-muted);
 }
 
 .checkbox-label {
@@ -1592,13 +1632,13 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: var(--space-2);
   font-size: var(--text-sm);
-  color: var(--color-gray-700);
+  color: var(--text);
   cursor: pointer;
 }
 
 .modal-footer {
   padding: var(--space-4);
-  border-top: 1px solid var(--color-gray-200);
+  border-top: 1px solid var(--border);
   display: flex;
   justify-content: flex-end;
   gap: var(--space-2);
@@ -1612,14 +1652,14 @@ onBeforeUnmount(() => {
   display: block;
   font-size: var(--text-sm);
   font-weight: var(--font-medium);
-  color: var(--color-gray-700);
+  color: var(--text);
   margin-bottom: var(--space-1);
 }
 
 .form-input {
   width: 100%;
   padding: var(--space-2) var(--space-3);
-  border: 1px solid var(--color-gray-200);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   font-size: var(--text-md);
 }
@@ -1658,12 +1698,12 @@ onBeforeUnmount(() => {
 }
 
 .btn-secondary {
-  background: var(--color-gray-100);
-  color: var(--color-gray-700);
+  background: var(--surface-inset);
+  color: var(--text);
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background: var(--color-gray-200);
+  background: var(--border);
 }
 
 .btn-danger {
@@ -1682,7 +1722,7 @@ onBeforeUnmount(() => {
 
 .view-mode-toggle {
   display: flex;
-  border: 1px solid var(--color-gray-200);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   overflow: hidden;
   margin-left: var(--space-2);
@@ -1695,19 +1735,19 @@ onBeforeUnmount(() => {
   width: 32px;
   height: 28px;
   border: none;
-  background: white;
-  color: var(--color-gray-400);
+  background: var(--surface);
+  color: var(--text-subtle);
   cursor: pointer;
   transition: all var(--transition-base);
 }
 
 .view-mode-btn:first-child {
-  border-right: 1px solid var(--color-gray-200);
+  border-right: 1px solid var(--border);
 }
 
 .view-mode-btn:hover {
-  color: var(--color-gray-600);
-  background: var(--color-gray-50);
+  color: var(--text-muted);
+  background: var(--surface-sunken);
 }
 
 .view-mode-btn.active {
@@ -1727,7 +1767,7 @@ onBeforeUnmount(() => {
   flex-direction: column;
   align-items: center;
   padding: var(--space-3);
-  border: 1px solid var(--color-gray-200);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   cursor: pointer;
   transition: all var(--transition-base);
@@ -1735,8 +1775,8 @@ onBeforeUnmount(() => {
 }
 
 .grid-item:hover {
-  background: var(--color-gray-50);
-  border-color: var(--color-gray-300);
+  background: var(--surface-sunken);
+  border-color: var(--border);
 }
 
 .grid-item.selected {
@@ -1745,13 +1785,13 @@ onBeforeUnmount(() => {
 }
 
 .grid-item.is-dir {
-  background: var(--color-gray-50);
+  background: var(--surface-sunken);
 }
 
 .grid-item-icon {
   font-size: 2.5rem;
   margin-bottom: var(--space-2);
-  color: var(--color-gray-400);
+  color: var(--text-subtle);
 }
 
 .grid-item.is-dir .grid-item-icon {
@@ -1761,7 +1801,7 @@ onBeforeUnmount(() => {
 .grid-item-name {
   font-size: var(--text-sm);
   font-weight: var(--font-medium);
-  color: var(--color-gray-900);
+  color: var(--text);
   text-align: center;
   word-break: break-word;
   max-width: 100%;
@@ -1774,7 +1814,7 @@ onBeforeUnmount(() => {
 
 .grid-item-meta {
   font-size: var(--text-xs);
-  color: var(--color-gray-500);
+  color: var(--text-muted);
   margin-top: var(--space-1);
 }
 
@@ -1835,20 +1875,74 @@ onBeforeUnmount(() => {
   border: none;
   padding: var(--space-2);
   cursor: pointer;
-  color: var(--color-gray-500);
+  color: var(--text-muted);
   border-radius: var(--radius-sm);
   transition: all var(--transition-base);
 }
 
 .close-btn:hover {
-  background: var(--color-gray-100);
-  color: var(--color-gray-700);
+  background: var(--surface-inset);
+  color: var(--text);
 }
 
-.editor-body {
+.editor-split {
   flex: 1;
   overflow: hidden;
   padding: 0 !important;
+  display: flex;
+  min-height: 0;
+}
+
+.editor-pane {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.assist-pane {
+  width: 340px;
+  flex-shrink: 0;
+}
+
+.editor-modal.with-assist {
+  width: 94vw;
+  max-width: 1480px;
+}
+
+.assist-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.7rem;
+  margin-right: 0.5rem;
+  background: var(--surface-sunken);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text);
+  font-size: var(--text-sm);
+  cursor: pointer;
+  transition: all var(--transition-base);
+  flex-shrink: 0;
+}
+
+.assist-toggle:hover {
+  border-color: var(--accent);
+}
+
+.assist-toggle.active {
+  background: var(--accent-subtle);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+@media (max-width: 720px) {
+  .editor-split {
+    flex-direction: column;
+  }
+  .assist-pane {
+    width: 100%;
+    height: 45%;
+  }
 }
 
 .loading-editor {
@@ -1858,7 +1952,7 @@ onBeforeUnmount(() => {
   justify-content: center;
   height: 100%;
   gap: var(--space-2);
-  color: var(--color-gray-500);
+  color: var(--text-muted);
 }
 
 .loading-editor i {

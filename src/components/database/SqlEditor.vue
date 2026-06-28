@@ -24,6 +24,7 @@
           <Eraser :size="14" />
           Clear
         </button>
+        <AssistButton :context="assistContext" label="Ask the assistant" />
       </div>
       <div class="toolbar-right">
         <span class="shortcut-hint"> <kbd>Ctrl</kbd> + <kbd>Enter</kbd> to run </span>
@@ -38,6 +39,8 @@ import { Codemirror } from "vue-codemirror";
 import { sql, MySQL, PostgreSQL } from "@codemirror/lang-sql";
 import { EditorView } from "@codemirror/view";
 import { Play, Eraser } from "lucide-vue-next";
+import AssistButton from "@/components/ai/AssistButton.vue";
+import type { AssistContext } from "@/stores/assist";
 
 const props = defineProps<{
   modelValue?: string;
@@ -66,6 +69,12 @@ watch(query, (newVal) => {
   emit("update:modelValue", newVal);
 });
 
+const assistContext = computed<AssistContext>(() => ({
+  scope: "system",
+  subject: "SQL query",
+  seedContext: query.value,
+}));
+
 const dialect = computed(() => {
   return props.dbType === "postgresql" ? PostgreSQL : MySQL;
 });
@@ -93,11 +102,11 @@ const extensions = computed(() => {
         padding: "12px",
       },
       ".cm-gutters": {
-        backgroundColor: "var(--color-gray-50)",
-        borderRight: "1px solid var(--color-gray-200)",
+        backgroundColor: "var(--surface-sunken)",
+        borderRight: "1px solid var(--border)",
       },
       ".cm-activeLineGutter": {
-        backgroundColor: "var(--color-gray-100)",
+        backgroundColor: "var(--surface-inset)",
       },
       "&.cm-focused .cm-cursor": {
         borderLeftColor: "var(--color-primary-500)",
@@ -126,7 +135,8 @@ function clearEditor() {
 
 <style scoped>
 .sql-editor {
-  background: white;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
   overflow: hidden;
   box-shadow: var(--shadow-sm);
@@ -137,24 +147,24 @@ function clearEditor() {
   justify-content: space-between;
   align-items: center;
   padding: var(--space-3) var(--space-4);
-  background: var(--color-gray-50);
-  border-bottom: 1px solid var(--color-gray-200);
+  background: var(--surface-sunken);
+  border-bottom: 1px solid var(--border);
 }
 
 .editor-header h3 {
   margin: 0;
   font-size: var(--text-sm);
   font-weight: var(--font-semibold);
-  color: var(--color-gray-700);
+  color: var(--text);
 }
 
 .query-hint {
   font-size: var(--text-xs);
-  color: var(--color-gray-500);
+  color: var(--text-muted);
 }
 
 .editor-container {
-  border-bottom: 1px solid var(--color-gray-200);
+  border-bottom: 1px solid var(--border);
 }
 
 .editor-container :deep(.cm-editor) {
@@ -188,7 +198,7 @@ function clearEditor() {
 
 .shortcut-hint {
   font-size: var(--text-xs);
-  color: var(--color-gray-400);
+  color: var(--text-subtle);
 }
 
 .shortcut-hint kbd {
@@ -196,8 +206,8 @@ function clearEditor() {
   padding: 0.125rem 0.375rem;
   font-family: var(--font-mono);
   font-size: var(--text-xs);
-  background: var(--color-gray-100);
-  border: 1px solid var(--color-gray-200);
+  background: var(--surface-inset);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
 }
 
@@ -224,13 +234,13 @@ function clearEditor() {
 }
 
 .btn-secondary {
-  background: white;
-  border: 1px solid var(--color-gray-200);
-  color: var(--color-gray-700);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background: var(--color-gray-50);
+  background: var(--surface-sunken);
 }
 
 .btn:disabled {

@@ -1,9 +1,11 @@
 <template>
-  <button class="btn btn-sm btn-secondary" :title="title" @click="open"><Sparkles :size="14" /> {{ label }}</button>
+  <button class="btn btn-sm btn-secondary assist-button" :title="title" @click="open">
+    <Icon name="bot" :size="15" /> {{ label }}
+  </button>
 </template>
 
 <script setup lang="ts">
-import { Sparkles } from "lucide-vue-next";
+import Icon from "@/components/base/Icon.vue";
 import { useAssistStore, type AssistContext } from "@/stores/assist";
 
 const props = withDefaults(
@@ -13,8 +15,8 @@ const props = withDefaults(
     title?: string;
   }>(),
   {
-    label: "Ask AI",
-    title: "Analyze this with the AI assistant",
+    label: "Ask the assistant",
+    title: "Ask the assistant about this",
   },
 );
 
