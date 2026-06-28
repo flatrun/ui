@@ -439,23 +439,29 @@ const formatTime = (dateString: string) => {
 
 const fetchData = async () => {
   loading.value = true;
+
+  // Security stats are optional, so fetch them alongside the main data instead
+  // of blocking the dashboard render on them.
+  const securityPromise = securityApi
+    .getStats()
+    .then((res) => {
+      securityStats.value = res.data.stats;
+      securityEnabled.value = true;
+    })
+    .catch(() => {
+      securityEnabled.value = false;
+    });
+
   try {
     const [, deploymentsRes] = await Promise.all([statsStore.fetchAll(), deploymentsApi.list()]);
-
     deployments.value = deploymentsRes.data.deployments || [];
-
-    try {
-      const securityRes = await securityApi.getStats();
-      securityStats.value = securityRes.data.stats;
-      securityEnabled.value = true;
-    } catch {
-      securityEnabled.value = false;
-    }
   } catch (error) {
     console.error("Failed to fetch data:", error);
   } finally {
     loading.value = false;
   }
+
+  await securityPromise;
 };
 
 const refreshData = () => {

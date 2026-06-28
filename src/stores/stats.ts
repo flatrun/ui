@@ -53,7 +53,7 @@ export const useStatsStore = defineStore("stats", () => {
     loading.value = true;
 
     try {
-      const healthRes = await healthApi.check();
+      const [healthRes, statsRes] = await Promise.all([healthApi.check(), healthApi.stats()]);
       agentOnline.value = healthRes.data.status === "healthy";
       if (healthRes.data.version?.version) {
         agentVersion.value = healthRes.data.version.version;
@@ -62,8 +62,6 @@ export const useStatsStore = defineStore("stats", () => {
         agentCompatibilityMessage.value = compat.message;
         agentDevBuild.value = compat.dev || false;
       }
-
-      const statsRes = await healthApi.stats();
       if (statsRes.data) {
         const data = statsRes.data;
         if (data.deployments) {
