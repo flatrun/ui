@@ -173,15 +173,15 @@ function clearSearch() {
   flex-direction: column;
   width: 240px;
   min-width: 240px;
-  background: white;
-  border-right: 1px solid var(--color-gray-200);
+  background: var(--surface-raised);
+  border-right: 1px solid var(--border);
   height: 100%;
 }
 
 .sidebar-search {
   position: relative;
   padding: var(--space-3);
-  border-bottom: 1px solid var(--color-gray-200);
+  border-bottom: 1px solid var(--border);
 }
 
 .search-icon {
@@ -189,7 +189,7 @@ function clearSearch() {
   left: calc(var(--space-3) + var(--space-2));
   top: 50%;
   transform: translateY(-50%);
-  color: var(--color-gray-400);
+  color: var(--text-subtle);
   pointer-events: none;
 }
 
@@ -198,7 +198,7 @@ function clearSearch() {
   padding: var(--space-2) var(--space-3);
   padding-left: calc(var(--space-2) + 20px);
   padding-right: var(--space-6);
-  border: 1px solid var(--color-gray-200);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   font-size: var(--text-sm);
 }
@@ -216,7 +216,7 @@ function clearSearch() {
   transform: translateY(-50%);
   background: none;
   border: none;
-  color: var(--color-gray-400);
+  color: var(--text-subtle);
   cursor: pointer;
   padding: var(--space-1);
   display: flex;
@@ -225,7 +225,7 @@ function clearSearch() {
 }
 
 .clear-search:hover {
-  color: var(--color-gray-600);
+  color: var(--text-muted);
 }
 
 .sidebar-sections {
@@ -234,7 +234,7 @@ function clearSearch() {
 }
 
 .sidebar-section {
-  border-bottom: 1px solid var(--color-gray-100);
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .section-header {
@@ -243,17 +243,17 @@ function clearSearch() {
   gap: var(--space-2);
   width: 100%;
   padding: var(--space-3);
-  background: var(--color-gray-50);
+  background: var(--surface-sunken);
   border: none;
   cursor: pointer;
   font-size: var(--text-sm);
   font-weight: var(--font-medium);
-  color: var(--color-gray-700);
+  color: var(--text);
   text-align: left;
 }
 
 .section-header:hover {
-  background: var(--color-gray-100);
+  background: var(--surface-inset);
 }
 
 .section-title {
@@ -262,8 +262,8 @@ function clearSearch() {
 
 .section-count {
   font-size: var(--text-xs);
-  color: var(--color-gray-500);
-  background: var(--color-gray-200);
+  color: var(--text-muted);
+  background: var(--border);
   padding: 0 var(--space-2);
   border-radius: var(--radius-full);
 }
@@ -284,12 +284,12 @@ function clearSearch() {
   border: none;
   cursor: pointer;
   font-size: var(--text-sm);
-  color: var(--color-gray-700);
+  color: var(--text);
   text-align: left;
 }
 
 .sidebar-item:hover {
-  background: var(--color-gray-50);
+  background: var(--surface-sunken);
 }
 
 .sidebar-item.selected {
@@ -302,7 +302,7 @@ function clearSearch() {
 }
 
 .item-icon {
-  color: var(--color-gray-400);
+  color: var(--text-subtle);
   flex-shrink: 0;
 }
 
@@ -316,14 +316,14 @@ function clearSearch() {
 }
 
 .user-host {
-  color: var(--color-gray-400);
+  color: var(--text-subtle);
 }
 
 .item-action {
   opacity: 0;
   background: none;
   border: none;
-  color: var(--color-gray-400);
+  color: var(--text-subtle);
   cursor: pointer;
   padding: var(--space-1);
   border-radius: var(--radius-sm);
@@ -344,7 +344,7 @@ function clearSearch() {
 .empty-section {
   padding: var(--space-3) var(--space-6);
   font-size: var(--text-xs);
-  color: var(--color-gray-400);
+  color: var(--text-subtle);
   text-align: center;
 }
 
@@ -371,7 +371,7 @@ function clearSearch() {
   display: flex;
   gap: var(--space-2);
   padding: var(--space-3);
-  border-top: 1px solid var(--color-gray-200);
+  border-top: 1px solid var(--border);
 }
 
 .action-btn {
@@ -381,12 +381,12 @@ function clearSearch() {
   justify-content: center;
   gap: var(--space-1);
   padding: var(--space-2);
-  background: var(--color-gray-50);
-  border: 1px solid var(--color-gray-200);
+  background: var(--surface-sunken);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   font-size: var(--text-xs);
   font-weight: var(--font-medium);
-  color: var(--color-gray-700);
+  color: var(--text);
   cursor: pointer;
   transition: all var(--transition-base);
 }

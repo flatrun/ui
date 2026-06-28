@@ -282,12 +282,12 @@ const filteredApps = computed(() => {
   left: var(--space-3);
   top: 50%;
   transform: translateY(-50%);
-  color: var(--color-gray-400);
+  color: var(--text-subtle);
 }
 
 .search-input {
   padding: var(--space-2) var(--space-3) var(--space-2) 2.25rem;
-  border: 1px solid var(--color-gray-200);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   font-size: var(--text-md);
   width: 280px;
@@ -309,18 +309,18 @@ const filteredApps = computed(() => {
   align-items: center;
   gap: 0.375rem;
   padding: 0.375rem var(--space-3);
-  border: 1px solid var(--color-gray-200);
-  background: white;
+  border: 1px solid var(--border);
+  background: var(--surface-raised);
   border-radius: var(--radius-sm);
   font-size: var(--text-base);
-  color: var(--color-gray-500);
+  color: var(--text-muted);
   cursor: pointer;
   transition: all var(--transition-base);
 }
 
 .category-btn:hover {
-  border-color: var(--color-gray-300);
-  color: var(--color-gray-700);
+  border-color: var(--border);
+  color: var(--text);
 }
 
 .category-btn.active {
@@ -367,9 +367,9 @@ const filteredApps = computed(() => {
 }
 
 .app-card {
-  background: white;
+  background: var(--surface-raised);
   border-radius: var(--radius-md);
-  border: 1px solid var(--color-gray-200);
+  border: 1px solid var(--border);
   overflow: hidden;
   transition: all var(--transition-base);
   display: flex;
@@ -383,8 +383,8 @@ const filteredApps = computed(() => {
 
 .app-card-header {
   padding: var(--space-5);
-  background: var(--color-gray-50);
-  border-bottom: 1px solid var(--color-gray-100);
+  background: var(--surface-sunken);
+  border-bottom: 1px solid var(--border-subtle);
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
@@ -455,13 +455,13 @@ const filteredApps = computed(() => {
 .app-name {
   font-size: var(--text-xl);
   font-weight: var(--font-semibold);
-  color: var(--color-gray-900);
+  color: var(--text);
   margin: 0 0 var(--space-2) 0;
 }
 
 .app-description {
   font-size: var(--text-md);
-  color: var(--color-gray-500);
+  color: var(--text-muted);
   line-height: 1.5;
   margin: 0 0 var(--space-4) 0;
 }
@@ -478,7 +478,7 @@ const filteredApps = computed(() => {
   align-items: center;
   gap: 0.375rem;
   font-size: var(--text-sm);
-  color: var(--color-gray-500);
+  color: var(--text-muted);
 }
 
 .app-author i {
@@ -487,10 +487,10 @@ const filteredApps = computed(() => {
 
 .app-version {
   font-size: var(--text-xs);
-  background: var(--color-gray-100);
+  background: var(--surface-inset);
   padding: 0.125rem 0.5rem;
   border-radius: var(--radius-sm);
-  color: var(--color-gray-600);
+  color: var(--text-muted);
 }
 
 .app-tags {
@@ -510,7 +510,7 @@ const filteredApps = computed(() => {
 
 .app-card-footer {
   padding: var(--space-4) var(--space-5);
-  border-top: 1px solid var(--color-gray-100);
+  border-top: 1px solid var(--border-subtle);
   display: flex;
   gap: var(--space-2);
 }
@@ -546,12 +546,12 @@ const filteredApps = computed(() => {
 }
 
 .btn-secondary {
-  background: var(--color-gray-100);
-  color: var(--color-gray-700);
+  background: var(--surface-inset);
+  color: var(--text);
 }
 
 .btn-secondary:hover {
-  background: var(--color-gray-200);
+  background: var(--surface-inset);
 }
 
 .empty-state {
@@ -559,25 +559,26 @@ const filteredApps = computed(() => {
   flex-direction: column;
   align-items: center;
   padding: var(--space-12);
-  background: white;
+  background: var(--surface-raised);
   border-radius: var(--radius-md);
+  border: 1px solid var(--border);
   text-align: center;
   gap: var(--space-4);
 }
 
 .empty-state i {
   font-size: 3rem;
-  color: var(--color-gray-400);
+  color: var(--text-subtle);
 }
 
 .empty-state h3 {
   font-size: var(--text-3xl);
-  color: var(--color-gray-700);
+  color: var(--text);
   margin: 0;
 }
 
 .empty-state p {
-  color: var(--color-gray-500);
+  color: var(--text-muted);
   margin: 0;
 }
 </style>

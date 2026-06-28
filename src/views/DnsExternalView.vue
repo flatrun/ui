@@ -475,9 +475,9 @@ onMounted(() => {
 }
 
 .setup-card {
-  background: white;
+  background: var(--surface-raised);
   border-radius: var(--radius-sm);
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border);
   width: 100%;
   max-width: 600px;
   overflow: hidden;
@@ -486,7 +486,7 @@ onMounted(() => {
 .setup-header {
   padding: 2rem;
   text-align: center;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--border);
   background: linear-gradient(135deg, #f8fafc, #f1f5f9);
 }
 
@@ -499,12 +499,12 @@ onMounted(() => {
 .setup-header h2 {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #1f2937;
+  color: var(--text);
   margin: 0 0 0.5rem 0;
 }
 
 .setup-header p {
-  color: #6b7280;
+  color: var(--text-muted);
   margin: 0;
 }
 
@@ -525,9 +525,9 @@ onMounted(() => {
   align-items: center;
   gap: 0.5rem;
   padding: 1.25rem;
-  border: 2px solid #e5e7eb;
+  border: 2px solid var(--border);
   border-radius: var(--radius-sm);
-  background: white;
+  background: var(--surface-raised);
   cursor: pointer;
   transition: all 0.2s;
 }
@@ -544,7 +544,7 @@ onMounted(() => {
 
 .provider-btn i {
   font-size: 1.5rem;
-  color: #6b7280;
+  color: var(--text-muted);
 }
 
 .provider-btn.active i {
@@ -559,7 +559,7 @@ onMounted(() => {
 .credentials-form {
   margin-top: 1.5rem;
   padding-top: 1.5rem;
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid var(--border);
 }
 
 .credentials-form h3 {
@@ -571,14 +571,14 @@ onMounted(() => {
 
 /* DNS Manager */
 .dns-manager {
-  background: white;
+  background: var(--surface-raised);
   border-radius: var(--radius-sm);
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border);
 }
 
 .dns-header {
   padding: 1rem 1.5rem;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--border);
 }
 
 .header-info {
@@ -613,7 +613,7 @@ onMounted(() => {
 }
 
 .zone-arrow {
-  color: #9ca3af;
+  color: var(--text-subtle);
 }
 
 /* Cloudflare Proxy Badge */
@@ -622,8 +622,8 @@ onMounted(() => {
   border-radius: 9999px;
   font-size: 0.7rem;
   font-weight: 600;
-  background: #f3f4f6;
-  color: #6b7280;
+  background: var(--surface-inset);
+  color: var(--text-muted);
 }
 
 .proxied-badge.active {

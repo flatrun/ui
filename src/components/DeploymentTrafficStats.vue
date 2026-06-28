@@ -165,9 +165,9 @@ onMounted(() => {
 
 <style scoped>
 .deployment-traffic {
-  background: white;
+  background: var(--surface-raised);
   border-radius: var(--radius-sm);
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border);
   padding: 1rem;
 }
 
@@ -192,7 +192,7 @@ onMounted(() => {
   margin: 0;
   font-size: 0.875rem;
   font-weight: 600;
-  color: #1f2937;
+  color: var(--text);
 }
 
 .traffic-controls {
@@ -203,11 +203,11 @@ onMounted(() => {
 
 .time-select {
   padding: 0.375rem 0.5rem;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
   font-size: 0.75rem;
-  color: #374151;
-  background: white;
+  color: var(--text);
+  background: var(--surface);
   cursor: pointer;
 }
 
@@ -218,7 +218,7 @@ onMounted(() => {
   justify-content: center;
   gap: 0.5rem;
   padding: 2rem;
-  color: #9ca3af;
+  color: var(--text-subtle);
   font-size: 0.8125rem;
 }
 
@@ -242,7 +242,7 @@ onMounted(() => {
   display: block;
   font-size: 1.25rem;
   font-weight: 700;
-  color: #1f2937;
+  color: var(--text);
 }
 
 .stat-value.error {
@@ -251,7 +251,7 @@ onMounted(() => {
 
 .stat-label {
   font-size: 0.6875rem;
-  color: #6b7280;
+  color: var(--text-muted);
   text-transform: uppercase;
 }
 
@@ -260,7 +260,7 @@ onMounted(() => {
   height: 8px;
   border-radius: var(--radius-sm);
   overflow: hidden;
-  background: #f3f4f6;
+  background: var(--surface-inset);
 }
 
 .status-bar {
@@ -296,7 +296,7 @@ onMounted(() => {
   align-items: center;
   gap: 0.25rem;
   font-size: 0.6875rem;
-  color: #6b7280;
+  color: var(--text-muted);
 }
 
 .legend-dot {
@@ -329,7 +329,7 @@ onMounted(() => {
   margin: 0 0 0.5rem 0;
   font-size: 0.75rem;
   font-weight: 600;
-  color: #374151;
+  color: var(--text);
   text-transform: uppercase;
 }
 
@@ -344,14 +344,14 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   padding: 0.375rem 0.5rem;
-  background: #f9fafb;
+  background: var(--surface-sunken);
   border-radius: var(--radius-sm);
 }
 
 .path-name {
   font-size: 0.75rem;
   font-family: ui-monospace, monospace;
-  color: #374151;
+  color: var(--text);
   max-width: 200px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -367,7 +367,7 @@ onMounted(() => {
 .path-count,
 .path-time {
   font-size: 0.6875rem;
-  color: #6b7280;
+  color: var(--text-muted);
 }
 
 .path-errors {
@@ -395,12 +395,12 @@ onMounted(() => {
 
 .btn-icon {
   background: transparent;
-  color: #6b7280;
+  color: var(--text-muted);
 }
 
 .btn-icon:hover:not(:disabled) {
-  background: #f3f4f6;
-  color: #374151;
+  background: var(--surface-inset);
+  color: var(--text);
 }
 
 @media (max-width: 640px) {

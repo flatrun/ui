@@ -89,8 +89,9 @@ const visibleTabs = computed(() => props.tabs.filter((t) => t.visible !== false)
 }
 
 .modal-content {
-  background: var(--surface-card, white);
-  border-radius: 8px;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
   width: 100%;
   max-width: 640px;
   max-height: 90vh;
@@ -104,7 +105,7 @@ const visibleTabs = computed(() => props.tabs.filter((t) => t.visible !== false)
   justify-content: space-between;
   align-items: center;
   padding: 1rem 1.5rem;
-  border-bottom: 1px solid var(--surface-border, var(--color-gray-200));
+  border-bottom: 1px solid var(--border);
 }
 
 .modal-header h2 {
@@ -122,7 +123,7 @@ const visibleTabs = computed(() => props.tabs.filter((t) => t.visible !== false)
 
 .dialog-tabs {
   display: flex;
-  border-bottom: 1px solid var(--surface-border, var(--color-gray-200));
+  border-bottom: 1px solid var(--border);
   padding: 0 1.5rem;
   gap: 0.25rem;
   flex-shrink: 0;
@@ -136,7 +137,7 @@ const visibleTabs = computed(() => props.tabs.filter((t) => t.visible !== false)
   background: transparent;
   border: none;
   border-bottom: 2px solid transparent;
-  color: var(--color-gray-600);
+  color: var(--text-muted);
   font-size: 0.875rem;
   cursor: pointer;
   transition: all 0.15s;
@@ -144,7 +145,7 @@ const visibleTabs = computed(() => props.tabs.filter((t) => t.visible !== false)
 }
 
 .tab-btn:hover {
-  color: var(--color-gray-900);
+  color: var(--text);
 }
 
 .tab-btn.active {
@@ -156,8 +157,8 @@ const visibleTabs = computed(() => props.tabs.filter((t) => t.visible !== false)
   font-size: 0.6875rem;
   padding: 0.0625rem 0.375rem;
   border-radius: 999px;
-  background: var(--color-gray-100);
-  color: var(--color-gray-700);
+  background: var(--surface-inset);
+  color: var(--text);
   font-weight: 500;
 }
 
@@ -176,7 +177,7 @@ const visibleTabs = computed(() => props.tabs.filter((t) => t.visible !== false)
   justify-content: flex-end;
   gap: 0.5rem;
   padding: 1rem 1.5rem;
-  border-top: 1px solid var(--surface-border, var(--color-gray-200));
+  border-top: 1px solid var(--border);
   flex-shrink: 0;
 }
 
@@ -185,17 +186,17 @@ const visibleTabs = computed(() => props.tabs.filter((t) => t.visible !== false)
   align-items: center;
   gap: 0.375rem;
   padding: 0.5rem 0.875rem;
-  border: 1px solid var(--color-gray-300);
+  border: 1px solid var(--border);
   border-radius: 6px;
-  background: var(--surface-card, white);
-  color: var(--color-gray-700);
+  background: var(--surface-raised);
+  color: var(--text);
   cursor: pointer;
   font-size: 0.875rem;
   transition: all 0.15s;
 }
 
 .btn:hover {
-  background: var(--color-gray-50);
+  background: var(--surface-sunken);
 }
 
 .btn:disabled {
@@ -210,7 +211,7 @@ const visibleTabs = computed(() => props.tabs.filter((t) => t.visible !== false)
 }
 
 .btn-icon:hover {
-  background: var(--color-gray-100);
+  background: var(--surface-inset);
 }
 
 .btn-primary {

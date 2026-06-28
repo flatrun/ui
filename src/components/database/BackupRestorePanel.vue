@@ -98,7 +98,7 @@ defineProps<{
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--surface-raised);
   z-index: 10;
 }
 
@@ -126,12 +126,12 @@ defineProps<{
   margin: 0 0 var(--space-2) 0;
   font-size: var(--text-xl);
   font-weight: var(--font-semibold);
-  color: var(--color-gray-900);
+  color: var(--text);
 }
 
 .coming-soon-content p {
   margin: 0 0 var(--space-4) 0;
-  color: var(--color-gray-600);
+  color: var(--text-muted);
   max-width: 300px;
 }
 
@@ -155,8 +155,8 @@ defineProps<{
 }
 
 .panel-section {
-  background: white;
-  border: 1px solid var(--color-gray-200);
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
   margin-bottom: var(--space-4);
   overflow: hidden;
@@ -164,8 +164,8 @@ defineProps<{
 
 .section-header {
   padding: var(--space-3) var(--space-4);
-  background: var(--color-gray-50);
-  border-bottom: 1px solid var(--color-gray-200);
+  background: var(--surface-sunken);
+  border-bottom: 1px solid var(--border);
 }
 
 .section-header h3 {
@@ -175,7 +175,7 @@ defineProps<{
   margin: 0;
   font-size: var(--text-base);
   font-weight: var(--font-semibold);
-  color: var(--color-gray-700);
+  color: var(--text);
 }
 
 .section-content {
@@ -185,7 +185,7 @@ defineProps<{
 .section-desc {
   margin: 0 0 var(--space-4) 0;
   font-size: var(--text-sm);
-  color: var(--color-gray-600);
+  color: var(--text-muted);
 }
 
 .backup-options {
@@ -200,7 +200,7 @@ defineProps<{
   align-items: center;
   gap: var(--space-2);
   font-size: var(--text-sm);
-  color: var(--color-gray-700);
+  color: var(--text);
 }
 
 .option-label.disabled {
@@ -218,9 +218,9 @@ defineProps<{
   align-items: center;
   justify-content: center;
   padding: var(--space-8);
-  border: 2px dashed var(--color-gray-300);
+  border: 2px dashed var(--border);
   border-radius: var(--radius-md);
-  color: var(--color-gray-400);
+  color: var(--text-subtle);
 }
 
 .upload-area.disabled {
@@ -234,7 +234,7 @@ defineProps<{
 
 .upload-hint {
   font-size: var(--text-xs);
-  color: var(--color-gray-400);
+  color: var(--text-subtle);
 }
 
 .empty-history {
@@ -243,7 +243,7 @@ defineProps<{
   align-items: center;
   justify-content: center;
   padding: var(--space-6);
-  color: var(--color-gray-400);
+  color: var(--text-subtle);
 }
 
 .empty-history p {

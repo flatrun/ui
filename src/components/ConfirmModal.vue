@@ -94,7 +94,8 @@ const confirmButtonClass = computed(() => {
 }
 
 .confirm-modal {
-  background: white;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-xl);
   width: 420px;
@@ -143,7 +144,7 @@ const confirmButtonClass = computed(() => {
   margin: 0;
   font-size: var(--text-lg);
   font-weight: var(--font-semibold);
-  color: var(--color-gray-900);
+  color: var(--text);
 }
 
 .modal-body {
@@ -153,7 +154,7 @@ const confirmButtonClass = computed(() => {
 
 .modal-body p {
   margin: 0;
-  color: var(--color-gray-600);
+  color: var(--text-muted);
   line-height: 1.6;
 }
 
@@ -168,7 +169,7 @@ const confirmButtonClass = computed(() => {
 
 .modal-footer {
   padding: var(--space-4) var(--space-5);
-  border-top: 1px solid var(--color-gray-100);
+  border-top: 1px solid var(--border-subtle);
   display: flex;
   justify-content: flex-end;
   gap: var(--space-3);
@@ -188,12 +189,12 @@ const confirmButtonClass = computed(() => {
 }
 
 .btn-secondary {
-  background: var(--color-gray-100);
-  color: var(--color-gray-700);
+  background: var(--surface-inset);
+  color: var(--text);
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background: var(--color-gray-200);
+  background: var(--border);
 }
 
 .btn-primary {

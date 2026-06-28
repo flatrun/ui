@@ -55,7 +55,7 @@ const emit = defineEmits<{
   background: transparent;
   font-size: 0.8rem;
   font-weight: 500;
-  color: var(--color-gray-500, #6b7280);
+  color: var(--text-muted);
   cursor: pointer;
   margin-bottom: -1px;
   position: relative;
@@ -69,24 +69,24 @@ const emit = defineEmits<{
 }
 
 .sub-tab:hover {
-  color: var(--color-gray-700, #374151);
-  background: var(--color-gray-100, #f3f4f6);
+  color: var(--text);
+  background: var(--surface-inset);
 }
 
 .sub-tab.active {
   color: var(--color-primary-600, #2563eb);
-  background: white;
-  border-color: var(--color-gray-200, #e5e7eb);
+  background: var(--surface-raised);
+  border-color: var(--border);
   z-index: 1;
 }
 
 .sub-tab.active:hover {
-  background: white;
+  background: var(--surface-raised);
 }
 
 .sub-tabs-panel {
-  background: white;
-  border: 1px solid var(--color-gray-200, #e5e7eb);
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
   border-radius: var(--radius-md, 8px);
   padding: 1rem 1.25rem;
 }

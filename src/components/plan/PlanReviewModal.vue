@@ -154,8 +154,8 @@ const revealSensitive = async () => {
 }
 
 .chip-no-op {
-  background: var(--color-gray-100);
-  color: var(--color-gray-600);
+  background: var(--surface-inset);
+  color: var(--text-muted);
 }
 
 .changes-list {
@@ -167,7 +167,7 @@ const revealSensitive = async () => {
 .expiry-note {
   margin: var(--space-4) 0 0;
   font-size: var(--text-xs);
-  color: var(--color-gray-500);
+  color: var(--text-muted);
   display: flex;
   align-items: center;
   gap: var(--space-2);
@@ -199,12 +199,12 @@ const revealSensitive = async () => {
 }
 
 .btn-secondary {
-  background: var(--color-gray-100);
-  color: var(--color-gray-700);
+  background: var(--surface-inset);
+  color: var(--text);
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background: var(--color-gray-200);
+  background: var(--border);
 }
 
 .btn-primary {

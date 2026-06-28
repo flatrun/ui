@@ -366,22 +366,22 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: white;
+  background: var(--surface-raised);
   padding: 1.25rem;
   border-radius: var(--radius-sm);
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border);
 }
 
 .header-content h1 {
   font-size: 1.5rem;
   font-weight: 600;
-  color: #1f2937;
+  color: var(--text);
   margin: 0;
 }
 
 .subtitle {
   font-size: 0.875rem;
-  color: #6b7280;
+  color: var(--text-muted);
   margin: 0.25rem 0 0 0;
 }
 
@@ -389,15 +389,15 @@ onMounted(() => {
   padding: 0.625rem;
   background: transparent;
   border: none;
-  color: #6b7280;
+  color: var(--text-muted);
   border-radius: var(--radius-sm);
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .btn-icon:hover:not(:disabled) {
-  background: #f3f4f6;
-  color: #374151;
+  background: var(--surface-inset);
+  color: var(--text);
 }
 
 .btn-icon:disabled {
@@ -412,9 +412,9 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   padding: 4rem;
-  background: white;
+  background: var(--surface-raised);
   border-radius: var(--radius-sm);
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border);
   text-align: center;
   gap: 1rem;
 }
@@ -422,17 +422,17 @@ onMounted(() => {
 .loading-state i,
 .disabled-state i {
   font-size: 3rem;
-  color: #9ca3af;
+  color: var(--text-subtle);
 }
 
 .disabled-state h3 {
   font-size: 1.125rem;
-  color: #374151;
+  color: var(--text);
   margin: 0;
 }
 
 .disabled-state p {
-  color: #6b7280;
+  color: var(--text-muted);
   margin: 0;
 }
 
@@ -456,9 +456,9 @@ onMounted(() => {
 }
 
 .status-card {
-  background: white;
+  background: var(--surface-raised);
   border-radius: var(--radius-sm);
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border);
   padding: 1.25rem;
   display: flex;
   align-items: center;
@@ -499,18 +499,18 @@ onMounted(() => {
 .status-value {
   font-size: 1.125rem;
   font-weight: 600;
-  color: #1f2937;
+  color: var(--text);
 }
 
 .status-label {
   font-size: 0.75rem;
-  color: #9ca3af;
+  color: var(--text-subtle);
 }
 
 .section-card {
-  background: white;
+  background: var(--surface-raised);
   border-radius: var(--radius-sm);
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border);
   overflow: hidden;
 }
 
@@ -519,7 +519,7 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   padding: 1rem 1.25rem;
-  border-bottom: 1px solid #f3f4f6;
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .header-left {
@@ -536,7 +536,7 @@ onMounted(() => {
 .card-header h3 {
   font-size: 0.9375rem;
   font-weight: 600;
-  color: #1f2937;
+  color: var(--text);
   margin: 0;
 }
 
@@ -556,18 +556,18 @@ onMounted(() => {
 
 .empty-peers i {
   font-size: 2.5rem;
-  color: #d1d5db;
+  color: var(--border);
 }
 
 .empty-peers p {
-  color: #6b7280;
+  color: var(--text-muted);
   margin: 0;
   font-weight: 500;
 }
 
 .empty-peers .hint {
   font-size: 0.8125rem;
-  color: #9ca3af;
+  color: var(--text-subtle);
 }
 
 .data-table {
@@ -580,18 +580,18 @@ onMounted(() => {
   padding: 0.75rem 1.25rem;
   font-size: 0.75rem;
   font-weight: 600;
-  color: #6b7280;
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  background: #f9fafb;
-  border-bottom: 1px solid #e5e7eb;
+  background: var(--surface-sunken);
+  border-bottom: 1px solid var(--border);
 }
 
 .data-table td {
   padding: 0.75rem 1.25rem;
   font-size: 0.8125rem;
-  color: #374151;
-  border-bottom: 1px solid #f3f4f6;
+  color: var(--text);
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .data-table tr:last-child td {
@@ -605,7 +605,7 @@ onMounted(() => {
 }
 
 .peer-name i {
-  color: #6b7280;
+  color: var(--text-muted);
   font-size: 0.875rem;
 }
 
@@ -634,17 +634,17 @@ onMounted(() => {
 }
 
 .time-cell {
-  color: #9ca3af;
+  color: var(--text-subtle);
   font-size: 0.75rem;
 }
 
 code {
-  background: #f3f4f6;
+  background: var(--surface-inset);
   padding: 0.25rem 0.5rem;
   border-radius: var(--radius-sm);
   font-family: "SF Mono", "Fira Code", monospace;
   font-size: 0.8125rem;
-  color: #374151;
+  color: var(--text);
 }
 
 .btn {
@@ -675,13 +675,13 @@ code {
 }
 
 .btn-secondary {
-  background: white;
-  color: #374151;
-  border: 1px solid #d1d5db;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background: #f9fafb;
+  background: var(--surface-sunken);
 }
 
 .btn-danger {
@@ -709,7 +709,8 @@ code {
 }
 
 .modal-panel {
-  background: white;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
   width: 100%;
@@ -723,28 +724,28 @@ code {
   justify-content: space-between;
   align-items: center;
   padding: 1.25rem 1.5rem;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--border);
 }
 
 .modal-header h2 {
   font-size: 1.125rem;
   font-weight: 600;
-  color: #1f2937;
+  color: var(--text);
   margin: 0;
 }
 
 .close-btn {
   background: none;
   border: none;
-  color: #9ca3af;
+  color: var(--text-subtle);
   cursor: pointer;
   padding: 0.25rem;
   border-radius: var(--radius-sm);
 }
 
 .close-btn:hover {
-  color: #374151;
-  background: #f3f4f6;
+  color: var(--text);
+  background: var(--surface-inset);
 }
 
 .modal-body {
@@ -753,7 +754,7 @@ code {
 
 .modal-hint {
   font-size: 0.875rem;
-  color: #6b7280;
+  color: var(--text-muted);
   margin: 0 0 1rem 0;
 }
 
@@ -761,8 +762,8 @@ code {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  background: #f9fafb;
-  border: 1px solid #e5e7eb;
+  background: var(--surface-sunken);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   padding: 0.75rem;
 }
@@ -780,7 +781,7 @@ code {
   align-items: center;
   gap: 0.375rem;
   font-size: 0.75rem;
-  color: #9ca3af;
+  color: var(--text-subtle);
   margin-top: 0.75rem;
 }
 
@@ -792,17 +793,17 @@ code {
   display: block;
   font-size: 0.8125rem;
   font-weight: 500;
-  color: #374151;
+  color: var(--text);
   margin-bottom: 0.375rem;
 }
 
 .form-group input {
   width: 100%;
   padding: 0.5rem 0.75rem;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   font-size: 0.875rem;
-  color: #1f2937;
+  color: var(--text);
   box-sizing: border-box;
 }
 
@@ -841,7 +842,7 @@ code {
 
 .modal-footer {
   padding: 1rem 1.5rem;
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid var(--border);
   display: flex;
   justify-content: flex-end;
   gap: 0.5rem;

@@ -62,9 +62,9 @@ const formatCapability = (cap: string) => {
 
 <style scoped>
 .plugin-widget {
-  background: white;
+  background: var(--surface-raised);
   border-radius: var(--radius-sm);
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border);
   overflow: hidden;
   transition: all 0.3s ease;
 }
@@ -88,7 +88,7 @@ const formatCapability = (cap: string) => {
 
 .widget-header {
   padding: 1rem;
-  border-bottom: 1px solid #f3f4f6;
+  border-bottom: 1px solid var(--border-subtle);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -99,7 +99,7 @@ const formatCapability = (cap: string) => {
   align-items: center;
   gap: 0.5rem;
   font-weight: 600;
-  color: #1f2937;
+  color: var(--text);
 }
 
 .widget-title i {
@@ -108,8 +108,8 @@ const formatCapability = (cap: string) => {
 
 .widget-version {
   font-size: 0.75rem;
-  color: #9ca3af;
-  background: #f3f4f6;
+  color: var(--text-subtle);
+  background: var(--surface-inset);
   padding: 0.125rem 0.5rem;
   border-radius: var(--radius-sm);
 }
@@ -120,7 +120,7 @@ const formatCapability = (cap: string) => {
 
 .widget-description {
   font-size: 0.875rem;
-  color: #6b7280;
+  color: var(--text-muted);
   line-height: 1.5;
   margin-bottom: 0.75rem;
 }
@@ -142,7 +142,7 @@ const formatCapability = (cap: string) => {
 
 .widget-actions {
   padding: 0.75rem 1rem;
-  border-top: 1px solid #f3f4f6;
+  border-top: 1px solid var(--border-subtle);
   display: flex;
   gap: 0.5rem;
   flex-wrap: wrap;
@@ -153,18 +153,18 @@ const formatCapability = (cap: string) => {
   align-items: center;
   gap: 0.375rem;
   padding: 0.375rem 0.75rem;
-  background: #f3f4f6;
+  background: var(--surface-inset);
   border: none;
   border-radius: var(--radius-md);
   font-size: 0.75rem;
-  color: #4b5563;
+  color: var(--text-muted);
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .widget-action-btn:hover {
-  background: #e5e7eb;
-  color: #1f2937;
+  background: var(--border);
+  color: var(--text);
 }
 
 .widget-action-btn i {

@@ -527,7 +527,7 @@ onMounted(() => {
 
 .connection-name {
   font-weight: var(--font-semibold);
-  color: var(--color-gray-900);
+  color: var(--text);
 }
 
 .connection-source {
@@ -535,13 +535,13 @@ onMounted(() => {
   align-items: center;
   gap: var(--space-1);
   font-size: var(--text-xs);
-  color: var(--color-gray-500);
+  color: var(--text-muted);
 }
 
 .host-info {
   font-family: var(--font-mono);
   font-size: var(--text-sm);
-  background: var(--color-gray-100);
+  background: var(--surface-inset);
   padding: 0.125rem 0.5rem;
   border-radius: var(--radius-sm);
 }
@@ -610,7 +610,8 @@ onMounted(() => {
 }
 
 .modal-container {
-  background: white;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-xl);
   width: 500px;
@@ -622,7 +623,7 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   padding: var(--space-4);
-  border-bottom: 1px solid var(--color-gray-200);
+  border-bottom: 1px solid var(--border);
 }
 
 .modal-header h3 {
@@ -636,15 +637,15 @@ onMounted(() => {
 .close-btn {
   background: none;
   border: none;
-  color: var(--color-gray-400);
+  color: var(--text-subtle);
   cursor: pointer;
   padding: var(--space-1);
   border-radius: var(--radius-sm);
 }
 
 .close-btn:hover {
-  color: var(--color-gray-600);
-  background: var(--color-gray-100);
+  color: var(--text-muted);
+  background: var(--surface-inset);
 }
 
 .modal-body {
@@ -656,7 +657,7 @@ onMounted(() => {
   justify-content: flex-end;
   gap: var(--space-2);
   padding: var(--space-4);
-  border-top: 1px solid var(--color-gray-200);
+  border-top: 1px solid var(--border);
 }
 
 .form-group {
@@ -671,7 +672,7 @@ onMounted(() => {
   display: block;
   font-size: var(--text-sm);
   font-weight: var(--font-medium);
-  color: var(--color-gray-700);
+  color: var(--text);
   margin-bottom: var(--space-1);
 }
 
@@ -679,7 +680,7 @@ onMounted(() => {
 .form-select {
   width: 100%;
   padding: var(--space-2) var(--space-3);
-  border: 1px solid var(--color-gray-200);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   font-size: var(--text-sm);
 }
@@ -743,13 +744,13 @@ onMounted(() => {
 }
 
 .btn-secondary {
-  background: white;
-  border: 1px solid var(--color-gray-200);
-  color: var(--color-gray-700);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background: var(--color-gray-50);
+  background: var(--surface-sunken);
 }
 
 .btn:disabled {

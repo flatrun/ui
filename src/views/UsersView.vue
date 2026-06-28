@@ -549,7 +549,7 @@ onMounted(() => {
 
 .modal-content {
   background: var(--surface-card);
-  border-radius: 8px;
+  border-radius: var(--radius-xl);
   width: 100%;
   max-width: 720px;
   max-height: 90vh;

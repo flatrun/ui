@@ -531,14 +531,15 @@ onMounted(init);
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f8fafc;
+  background: var(--app-bg);
   padding: 2rem;
 }
 
 .setup-card {
   width: 100%;
   max-width: 520px;
-  background: white;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-lg);
   padding: 2.5rem;
@@ -555,7 +556,7 @@ onMounted(init);
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: var(--color-gray-200);
+  background: var(--border);
   transition: all 0.2s;
 }
 
@@ -575,12 +576,12 @@ onMounted(init);
 .card-header h2 {
   font-size: 1.5rem;
   font-weight: 600;
-  color: var(--color-gray-900);
+  color: var(--text);
   margin-bottom: 0.5rem;
 }
 
 .card-header p {
-  color: var(--color-gray-500);
+  color: var(--text-muted);
   font-size: var(--text-base);
   line-height: 1.5;
 }
@@ -597,11 +598,11 @@ onMounted(init);
 .center-state h2 {
   font-size: 1.5rem;
   font-weight: 600;
-  color: var(--color-gray-900);
+  color: var(--text);
 }
 
 .center-state p {
-  color: var(--color-gray-500);
+  color: var(--text-muted);
   line-height: 1.5;
 }
 
@@ -614,7 +615,7 @@ onMounted(init);
 .info-card {
   flex: 1;
   padding: 1rem;
-  background: var(--color-gray-50);
+  background: var(--surface-sunken);
   border-radius: var(--radius-sm);
   display: flex;
   flex-direction: column;
@@ -623,19 +624,19 @@ onMounted(init);
 
 .info-label {
   font-size: var(--text-sm);
-  color: var(--color-gray-500);
+  color: var(--text-muted);
 }
 
 .info-value {
   font-weight: 600;
-  color: var(--color-gray-900);
+  color: var(--text);
 }
 
 .info-skeleton {
   display: inline-block;
   width: 70%;
   height: 1.125rem;
-  background: linear-gradient(90deg, var(--color-gray-200) 25%, var(--color-gray-100) 50%, var(--color-gray-200) 75%);
+  background: linear-gradient(90deg, var(--border) 25%, var(--surface-inset) 50%, var(--border) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
   border-radius: 4px;
@@ -662,7 +663,7 @@ onMounted(init);
   align-items: flex-start;
   gap: 0.75rem;
   padding: 0.75rem;
-  background: var(--color-gray-50);
+  background: var(--surface-sunken);
   border-radius: var(--radius-sm);
 }
 
@@ -680,12 +681,12 @@ onMounted(init);
 .check-name {
   font-weight: 600;
   font-size: var(--text-sm);
-  color: var(--color-gray-900);
+  color: var(--text);
 }
 
 .check-message {
   font-size: var(--text-sm);
-  color: var(--color-gray-500);
+  color: var(--text-muted);
 }
 
 .form-group {
@@ -696,7 +697,7 @@ onMounted(init);
   display: block;
   font-size: var(--text-base);
   font-weight: 600;
-  color: var(--color-gray-700);
+  color: var(--text);
   margin-bottom: 0.375rem;
 }
 
@@ -709,14 +710,14 @@ onMounted(init);
 .input-wrapper > i:first-child {
   position: absolute;
   left: 0.875rem;
-  color: var(--color-gray-400);
+  color: var(--text-subtle);
   pointer-events: none;
 }
 
 .input-wrapper input {
   width: 100%;
   padding: 0.75rem 0.875rem 0.75rem 2.5rem;
-  border: 1px solid var(--color-gray-300);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   font-size: var(--text-md);
   transition: all 0.2s;
@@ -735,12 +736,12 @@ onMounted(init);
   border: none;
   cursor: pointer;
   padding: 0.25rem;
-  color: var(--color-gray-400);
+  color: var(--text-subtle);
   transition: color 0.2s;
 }
 
 .toggle-password:hover {
-  color: var(--color-gray-600);
+  color: var(--text-muted);
 }
 
 .checkbox-label {
@@ -787,7 +788,7 @@ onMounted(init);
   align-items: center;
   gap: 0.75rem;
   padding: 1rem;
-  border: 1px solid var(--color-gray-200);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   cursor: pointer;
   transition: all 0.2s;
@@ -814,12 +815,12 @@ onMounted(init);
 
 .method-content strong {
   font-size: var(--text-sm);
-  color: var(--color-gray-900);
+  color: var(--text);
 }
 
 .method-content span {
   font-size: var(--text-sm);
-  color: var(--color-gray-500);
+  color: var(--text-muted);
 }
 
 .auth-form {
@@ -847,7 +848,7 @@ onMounted(init);
 
 .credential-card {
   width: 100%;
-  background: var(--color-gray-50);
+  background: var(--surface-sunken);
   border-radius: var(--radius-sm);
   padding: 1rem;
   margin-bottom: 1rem;
@@ -862,13 +863,13 @@ onMounted(init);
 .credential-label {
   font-size: var(--text-sm);
   font-weight: 600;
-  color: var(--color-gray-500);
+  color: var(--text-muted);
   min-width: 80px;
 }
 
 .credential-value {
   font-weight: 600;
-  color: var(--color-gray-900);
+  color: var(--text);
 }
 
 .credential-value.api-key {
@@ -916,12 +917,12 @@ onMounted(init);
 }
 
 .btn-secondary {
-  background: var(--color-gray-100);
-  color: var(--color-gray-700);
+  background: var(--surface-inset);
+  color: var(--text);
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background: var(--color-gray-200);
+  background: var(--border);
 }
 
 .btn-full {

@@ -75,12 +75,12 @@ defineEmits<{
   justify-content: space-between;
   align-items: center;
   padding: var(--space-4);
-  background: white;
-  border-bottom: 1px solid var(--color-gray-200);
+  background: var(--surface-raised);
+  border-bottom: 1px solid var(--border);
 }
 
 .database-header.db-context {
-  background: var(--color-gray-50);
+  background: var(--surface-sunken);
   border-bottom: 2px solid var(--color-primary-200);
 }
 
@@ -110,7 +110,7 @@ defineEmits<{
 
 .server-details code {
   font-size: var(--text-sm);
-  color: var(--color-gray-500);
+  color: var(--text-muted);
 }
 
 .db-icon {
@@ -119,7 +119,7 @@ defineEmits<{
 
 .db-meta {
   font-size: var(--text-sm);
-  color: var(--color-gray-500);
+  color: var(--text-muted);
 }
 
 .btn {
@@ -136,13 +136,13 @@ defineEmits<{
 }
 
 .btn-secondary {
-  background: white;
-  border: 1px solid var(--color-gray-200);
-  color: var(--color-gray-700);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background: var(--color-gray-50);
+  background: var(--surface-sunken);
 }
 
 .btn-danger {

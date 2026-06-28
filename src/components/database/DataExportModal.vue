@@ -219,7 +219,8 @@ async function startExport() {
 }
 
 .modal-container {
-  background: white;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-xl);
   width: 500px;
@@ -235,7 +236,7 @@ async function startExport() {
   justify-content: space-between;
   align-items: center;
   padding: var(--space-4);
-  border-bottom: 1px solid var(--color-gray-200);
+  border-bottom: 1px solid var(--border);
 }
 
 .modal-header h3 {
@@ -249,15 +250,15 @@ async function startExport() {
 .close-btn {
   background: none;
   border: none;
-  color: var(--color-gray-400);
+  color: var(--text-subtle);
   cursor: pointer;
   padding: var(--space-1);
   border-radius: var(--radius-sm);
 }
 
 .close-btn:hover {
-  color: var(--color-gray-600);
-  background: var(--color-gray-100);
+  color: var(--text-muted);
+  background: var(--surface-inset);
 }
 
 .modal-body {
@@ -266,8 +267,8 @@ async function startExport() {
 }
 
 .export-info {
-  background: var(--color-gray-50);
-  border: 1px solid var(--color-gray-200);
+  background: var(--surface-sunken);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   padding: var(--space-3);
   margin-bottom: var(--space-4);
@@ -282,7 +283,7 @@ async function startExport() {
 
 .info-label {
   font-size: var(--text-sm);
-  color: var(--color-gray-600);
+  color: var(--text-muted);
 }
 
 .info-value {
@@ -291,7 +292,7 @@ async function startExport() {
 }
 
 code.info-value {
-  background: var(--color-gray-100);
+  background: var(--surface-inset);
   padding: 0.125rem 0.5rem;
   border-radius: var(--radius-sm);
   font-family: var(--font-mono);
@@ -309,7 +310,7 @@ code.info-value {
   display: block;
   font-size: var(--text-sm);
   font-weight: var(--font-medium);
-  color: var(--color-gray-700);
+  color: var(--text);
   margin-bottom: var(--space-2);
 }
 
@@ -324,14 +325,14 @@ code.info-value {
   align-items: center;
   gap: var(--space-3);
   padding: var(--space-3);
-  border: 1px solid var(--color-gray-200);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   cursor: pointer;
   transition: all var(--transition-base);
 }
 
 .format-option:hover {
-  border-color: var(--color-gray-300);
+  border-color: var(--border);
 }
 
 .format-option.selected {
@@ -344,7 +345,7 @@ code.info-value {
 }
 
 .format-option svg {
-  color: var(--color-gray-400);
+  color: var(--text-subtle);
 }
 
 .format-option.selected svg {
@@ -362,7 +363,7 @@ code.info-value {
 
 .format-desc {
   font-size: var(--text-xs);
-  color: var(--color-gray-500);
+  color: var(--text-muted);
 }
 
 .checkbox-label,
@@ -391,7 +392,7 @@ code.info-value {
   width: 100px;
   padding: var(--space-1) var(--space-2);
   margin-left: var(--space-2);
-  border: 1px solid var(--color-gray-200);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   font-size: var(--text-sm);
 }
@@ -405,7 +406,7 @@ code.info-value {
   justify-content: flex-end;
   gap: var(--space-2);
   padding: var(--space-4);
-  border-top: 1px solid var(--color-gray-200);
+  border-top: 1px solid var(--border);
 }
 
 .btn {
@@ -431,13 +432,13 @@ code.info-value {
 }
 
 .btn-secondary {
-  background: white;
-  border: 1px solid var(--color-gray-200);
-  color: var(--color-gray-700);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
 }
 
 .btn-secondary:hover {
-  background: var(--color-gray-50);
+  background: var(--surface-sunken);
 }
 
 .btn:disabled {

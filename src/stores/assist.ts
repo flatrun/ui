@@ -25,6 +25,10 @@ export interface AssistContext {
 
 export const useAssistStore = defineStore("assist", () => {
   const visible = ref(false);
+  // When true, the conversation is hosted inline (e.g. docked beside a file
+  // editor) rather than in the global slide-over bar, so the global bar stays
+  // hidden while the same session is shown in the embedded pane.
+  const embedded = ref(false);
   const subject = ref("");
   const scope = ref<"system" | "deployment">("system");
   const deployment = ref<string | undefined>(undefined);
@@ -171,10 +175,12 @@ export const useAssistStore = defineStore("assist", () => {
 
   function close() {
     visible.value = false;
+    embedded.value = false;
     reset();
   }
 
   return {
+    embedded,
     visible,
     subject,
     scope,
@@ -194,5 +200,6 @@ export const useAssistStore = defineStore("assist", () => {
     resolveApprovals,
     runSuggestion,
     close,
+    reset,
   };
 });

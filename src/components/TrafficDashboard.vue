@@ -1201,7 +1201,7 @@ onMounted(() => {
   align-items: center;
   gap: 0.5rem;
   padding: 2rem;
-  color: #6b7280;
+  color: var(--text-muted);
 }
 
 .empty-state i {
@@ -1221,8 +1221,8 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   padding: 0.375rem;
-  background: #fff;
-  border: 1px solid #e5e7eb;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
 }
 
@@ -1241,12 +1241,12 @@ onMounted(() => {
   border-radius: var(--radius-sm);
   font-size: 0.75rem;
   font-weight: 500;
-  color: #6b7280;
+  color: var(--text-muted);
   cursor: pointer;
 }
 
 .tab:hover {
-  background: #f3f4f6;
+  background: var(--surface-inset);
 }
 .tab.active {
   background: #3b82f6;
@@ -1271,15 +1271,15 @@ onMounted(() => {
 
 .select-compact {
   padding: 0.25rem 0.5rem;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   font-size: 0.75rem;
-  background: #fff;
+  background: var(--surface);
 }
 
 .input-compact {
   padding: 0.25rem 0.5rem;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   font-size: 0.75rem;
   min-width: 120px;
@@ -1289,12 +1289,12 @@ onMounted(() => {
   padding: 0.25rem;
   border: none;
   background: transparent;
-  color: #6b7280;
+  color: var(--text-muted);
   cursor: pointer;
   border-radius: var(--radius-sm);
 }
 .btn-icon:hover {
-  background: #f3f4f6;
+  background: var(--surface-inset);
 }
 
 /* Insights Bar */
@@ -1303,8 +1303,8 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   padding: 0.5rem 0.75rem;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
+  background: var(--app-bg);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   gap: 1rem;
 }
@@ -1390,8 +1390,8 @@ onMounted(() => {
 
 .stat-card {
   padding: 0.75rem;
-  background: #fff;
-  border: 1px solid #e5e7eb;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
 }
 
@@ -1409,7 +1409,7 @@ onMounted(() => {
 
 .stat-label {
   font-size: 0.6875rem;
-  color: #6b7280;
+  color: var(--text-muted);
   text-transform: uppercase;
 }
 
@@ -1433,7 +1433,7 @@ onMounted(() => {
 .stat-value {
   font-size: 1.25rem;
   font-weight: 700;
-  color: #1f2937;
+  color: var(--text);
 }
 .stat-value.warning {
   color: #b45309;
@@ -1444,7 +1444,7 @@ onMounted(() => {
 
 .stat-sub {
   font-size: 0.625rem;
-  color: #9ca3af;
+  color: var(--text-subtle);
 }
 
 .stat-sparkline {
@@ -1470,7 +1470,7 @@ onMounted(() => {
 
 .error-item {
   font-size: 0.625rem;
-  color: #6b7280;
+  color: var(--text-muted);
 }
 
 /* Two Column Layout */
@@ -1488,8 +1488,8 @@ onMounted(() => {
 
 /* Panel */
 .panel {
-  background: #fff;
-  border: 1px solid #e5e7eb;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   overflow: hidden;
 }
@@ -1504,7 +1504,7 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   padding: 0.5rem 0.75rem;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--border);
 }
 
 .warning-panel .panel-header {
@@ -1515,7 +1515,7 @@ onMounted(() => {
   margin: 0;
   font-size: 0.6875rem;
   font-weight: 600;
-  color: #374151;
+  color: var(--text);
   text-transform: uppercase;
   letter-spacing: 0.025em;
   display: flex;
@@ -1529,10 +1529,10 @@ onMounted(() => {
 
 .count {
   font-size: 0.625rem;
-  background: #e5e7eb;
+  background: var(--surface-inset);
   padding: 0.125rem 0.375rem;
   border-radius: 9999px;
-  color: #6b7280;
+  color: var(--text-muted);
 }
 
 /* Deployment List */
@@ -1546,12 +1546,12 @@ onMounted(() => {
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 0.75rem;
-  border-bottom: 1px solid #f3f4f6;
+  border-bottom: 1px solid var(--border-subtle);
   cursor: pointer;
 }
 
 .deployment-row:hover {
-  background: #f9fafb;
+  background: var(--surface-sunken);
 }
 .deployment-row:last-child {
   border-bottom: none;
@@ -1571,7 +1571,7 @@ onMounted(() => {
 .dep-name {
   font-size: 0.8125rem;
   font-weight: 500;
-  color: #1f2937;
+  color: var(--text);
   display: block;
   white-space: nowrap;
   overflow: hidden;
@@ -1581,7 +1581,7 @@ onMounted(() => {
 .dep-bar-mini {
   display: flex;
   height: 3px;
-  background: #e5e7eb;
+  background: var(--border);
   border-radius: 1px;
   margin-top: 0.25rem;
   overflow: hidden;
@@ -1604,7 +1604,7 @@ onMounted(() => {
 
 .dep-stat {
   font-size: 0.6875rem;
-  color: #6b7280;
+  color: var(--text-muted);
   white-space: nowrap;
 }
 
@@ -1616,7 +1616,7 @@ onMounted(() => {
 }
 
 .deployment-row i {
-  color: #d1d5db;
+  color: var(--border);
   font-size: 0.625rem;
 }
 
@@ -1695,16 +1695,16 @@ onMounted(() => {
 .btn-action {
   padding: 0.25rem 0.375rem;
   border: none;
-  background: #fff;
+  background: var(--surface-raised);
   border-radius: var(--radius-xs);
   cursor: pointer;
-  color: #6b7280;
+  color: var(--text-muted);
   font-size: 0.75rem;
 }
 
 .btn-action:hover {
-  background: #f3f4f6;
-  color: #374151;
+  background: var(--surface-inset);
+  color: var(--text);
 }
 
 .btn-action.danger {
@@ -1720,15 +1720,15 @@ onMounted(() => {
   padding: 0.125rem;
   border: none;
   background: transparent;
-  color: #9ca3af;
+  color: var(--text-subtle);
   cursor: pointer;
   border-radius: var(--radius-xs);
   font-size: 0.625rem;
 }
 
 .btn-icon-xs:hover {
-  background: #f3f4f6;
-  color: #374151;
+  background: var(--surface-inset);
+  color: var(--text);
 }
 
 /* IP List */
@@ -1745,7 +1745,7 @@ onMounted(() => {
 
 .ip-row code {
   font-size: 0.75rem;
-  color: #1f2937;
+  color: var(--text);
 }
 
 .ip-stats {
@@ -1755,7 +1755,7 @@ onMounted(() => {
 }
 
 .muted {
-  color: #9ca3af;
+  color: var(--text-subtle);
 }
 
 /* Distribution */
@@ -1767,8 +1767,8 @@ onMounted(() => {
 
 .distribution-card {
   padding: 0.75rem;
-  background: #fff;
-  border: 1px solid #e5e7eb;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
 }
 
@@ -1776,7 +1776,7 @@ onMounted(() => {
   margin: 0 0 0.5rem 0;
   font-size: 0.6875rem;
   font-weight: 600;
-  color: #6b7280;
+  color: var(--text-muted);
   text-transform: uppercase;
 }
 
@@ -1794,14 +1794,14 @@ onMounted(() => {
 
 .dist-label {
   font-size: 0.6875rem;
-  color: #374151;
+  color: var(--text);
   width: 50px;
 }
 
 .dist-bar {
   flex: 1;
   height: 6px;
-  background: #e5e7eb;
+  background: var(--border);
   border-radius: var(--radius-xs);
 }
 
@@ -1813,7 +1813,7 @@ onMounted(() => {
 
 .dist-value {
   font-size: 0.6875rem;
-  color: #6b7280;
+  color: var(--text-muted);
   width: 40px;
   text-align: right;
 }
@@ -1864,7 +1864,7 @@ onMounted(() => {
 .status-count {
   font-size: 0.875rem;
   font-weight: 700;
-  color: #1f2937;
+  color: var(--text);
 }
 
 /* Filters Bar */
@@ -1878,13 +1878,13 @@ onMounted(() => {
 .btn-text {
   background: none;
   border: none;
-  color: #6b7280;
+  color: var(--text-muted);
   font-size: 0.75rem;
   cursor: pointer;
   padding: 0.25rem;
 }
 .btn-text:hover {
-  color: #374151;
+  color: var(--text);
 }
 
 /* Data Table */
@@ -1895,8 +1895,8 @@ onMounted(() => {
 .data-table {
   width: 100%;
   border-collapse: collapse;
-  background: #fff;
-  border: 1px solid #e5e7eb;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
 }
 
@@ -1910,10 +1910,10 @@ onMounted(() => {
   padding: 0.5rem 0.75rem;
   font-size: 0.625rem;
   font-weight: 600;
-  color: #9ca3af;
+  color: var(--text-subtle);
   text-transform: uppercase;
-  background: #f9fafb;
-  border-bottom: 1px solid #e5e7eb;
+  background: var(--surface-sunken);
+  border-bottom: 1px solid var(--border);
   white-space: nowrap;
 }
 
@@ -1921,7 +1921,7 @@ onMounted(() => {
   cursor: pointer;
 }
 .data-table th.sortable:hover {
-  color: #374151;
+  color: var(--text);
 }
 .data-table th i {
   font-size: 0.5rem;
@@ -1931,19 +1931,19 @@ onMounted(() => {
 .data-table td {
   padding: 0.375rem 0.75rem;
   font-size: 0.75rem;
-  border-bottom: 1px solid #f3f4f6;
+  border-bottom: 1px solid var(--border-subtle);
   vertical-align: middle;
 }
 
 .data-table tbody tr:hover {
-  background: #f9fafb;
+  background: var(--surface-sunken);
 }
 .data-table tbody tr.error-row {
   background: #fef2f2;
 }
 
 .cell-time {
-  color: #9ca3af;
+  color: var(--text-subtle);
   white-space: nowrap;
   font-size: 0.6875rem;
 }
@@ -1965,7 +1965,7 @@ onMounted(() => {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  color: #6b7280;
+  color: var(--text-muted);
 }
 
 .cell-path {
@@ -1978,14 +1978,14 @@ onMounted(() => {
 }
 
 .cell-ip code {
-  background: #f3f4f6;
+  background: var(--surface-inset);
   padding: 0.125rem 0.25rem;
   border-radius: var(--radius-xs);
   font-size: 0.6875rem;
 }
 
 .cell-size {
-  color: #9ca3af;
+  color: var(--text-subtle);
   font-size: 0.6875rem;
   white-space: nowrap;
 }
@@ -1998,13 +1998,13 @@ onMounted(() => {
   padding: 0.25rem;
   border: none;
   background: transparent;
-  color: #9ca3af;
+  color: var(--text-subtle);
   cursor: pointer;
   border-radius: var(--radius-xs);
 }
 .btn-icon-sm:hover {
-  background: #f3f4f6;
-  color: #374151;
+  background: var(--surface-inset);
+  color: var(--text);
 }
 
 .btn-icon-sm.danger {
@@ -2073,17 +2073,17 @@ onMounted(() => {
 .tag {
   display: inline-block;
   padding: 0.125rem 0.375rem;
-  background: #f3f4f6;
+  background: var(--surface-inset);
   border-radius: var(--radius-xs);
   font-size: 0.625rem;
-  color: #6b7280;
+  color: var(--text-muted);
 }
 
 .empty-inline,
 .loading-inline {
   padding: 1.5rem;
   text-align: center;
-  color: #9ca3af;
+  color: var(--text-subtle);
   font-size: 0.75rem;
 }
 
@@ -2093,13 +2093,13 @@ onMounted(() => {
   justify-content: center;
   gap: 0.75rem;
   font-size: 0.75rem;
-  color: #6b7280;
+  color: var(--text-muted);
 }
 
 .btn-sm {
   padding: 0.25rem 0.5rem;
-  border: 1px solid #e5e7eb;
-  background: #fff;
+  border: 1px solid var(--border);
+  background: var(--surface-raised);
   border-radius: var(--radius-sm);
   font-size: 0.6875rem;
   cursor: pointer;
@@ -2109,7 +2109,7 @@ onMounted(() => {
   cursor: not-allowed;
 }
 .btn-sm:hover:not(:disabled) {
-  background: #f9fafb;
+  background: var(--surface-sunken);
 }
 
 /* Alerts Panel */
@@ -2150,11 +2150,11 @@ onMounted(() => {
 
 .alert-text strong {
   font-size: 0.75rem;
-  color: #1f2937;
+  color: var(--text);
 }
 .alert-text span {
   font-size: 0.6875rem;
-  color: #6b7280;
+  color: var(--text-muted);
 }
 
 /* Hourly Chart */
@@ -2184,7 +2184,7 @@ onMounted(() => {
   justify-content: space-between;
   padding: 0 0.75rem 0.5rem;
   font-size: 0.5625rem;
-  color: #9ca3af;
+  color: var(--text-subtle);
 }
 
 .empty-state-sm {
@@ -2193,7 +2193,7 @@ onMounted(() => {
   justify-content: center;
   gap: 0.5rem;
   padding: 1.5rem;
-  color: #6b7280;
+  color: var(--text-muted);
   font-size: 0.75rem;
 }
 

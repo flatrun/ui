@@ -145,7 +145,8 @@ function formatNumber(num: number): string {
   display: flex;
   flex-direction: column;
   height: 100%;
-  background: white;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
   overflow: hidden;
 }
@@ -155,8 +156,8 @@ function formatNumber(num: number): string {
   align-items: center;
   justify-content: space-between;
   padding: var(--space-3) var(--space-4);
-  border-bottom: 1px solid var(--color-gray-200);
-  background: var(--color-gray-50);
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-sunken);
 }
 
 .search-box {
@@ -170,7 +171,7 @@ function formatNumber(num: number): string {
   left: var(--space-3);
   top: 50%;
   transform: translateY(-50%);
-  color: var(--color-gray-400);
+  color: var(--text-subtle);
   pointer-events: none;
 }
 
@@ -178,7 +179,7 @@ function formatNumber(num: number): string {
   width: 100%;
   padding: var(--space-2) var(--space-3);
   padding-left: calc(var(--space-3) + 18px);
-  border: 1px solid var(--color-gray-200);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   font-size: var(--text-sm);
 }
@@ -191,7 +192,7 @@ function formatNumber(num: number): string {
 
 .table-count {
   font-size: var(--text-sm);
-  color: var(--color-gray-500);
+  color: var(--text-muted);
 }
 
 .loading-state,
@@ -201,7 +202,7 @@ function formatNumber(num: number): string {
   align-items: center;
   justify-content: center;
   padding: var(--space-12);
-  color: var(--color-gray-400);
+  color: var(--text-subtle);
   gap: var(--space-2);
 }
 
@@ -218,21 +219,21 @@ function formatNumber(num: number): string {
 .tables-table th {
   position: sticky;
   top: 0;
-  background: var(--color-gray-50);
+  background: var(--surface-sunken);
   padding: var(--space-2) var(--space-3);
   text-align: left;
   font-size: var(--text-xs);
   font-weight: var(--font-semibold);
-  color: var(--color-gray-600);
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  border-bottom: 1px solid var(--color-gray-200);
+  border-bottom: 1px solid var(--border);
   cursor: pointer;
   user-select: none;
 }
 
 .tables-table th:hover {
-  background: var(--color-gray-100);
+  background: var(--surface-inset);
 }
 
 .sort-icon {
@@ -263,7 +264,7 @@ function formatNumber(num: number): string {
 }
 
 .table-row:hover {
-  background: var(--color-gray-50);
+  background: var(--surface-sunken);
 }
 
 .table-row.selected {
@@ -272,7 +273,7 @@ function formatNumber(num: number): string {
 
 .table-row td {
   padding: var(--space-2) var(--space-3);
-  border-bottom: 1px solid var(--color-gray-100);
+  border-bottom: 1px solid var(--border-subtle);
   font-size: var(--text-sm);
 }
 
@@ -283,7 +284,7 @@ function formatNumber(num: number): string {
 }
 
 .table-icon {
-  color: var(--color-gray-400);
+  color: var(--text-subtle);
   flex-shrink: 0;
 }
 
@@ -298,20 +299,20 @@ function formatNumber(num: number): string {
 }
 
 .row-count {
-  color: var(--color-gray-600);
+  color: var(--text-muted);
 }
 
 .no-data {
-  color: var(--color-gray-300);
+  color: var(--border);
 }
 
 .engine-badge {
   display: inline-block;
   padding: 0.125rem 0.5rem;
-  background: var(--color-gray-100);
+  background: var(--surface-inset);
   border-radius: var(--radius-sm);
   font-size: var(--text-xs);
-  color: var(--color-gray-600);
+  color: var(--text-muted);
 }
 
 .td-actions {
@@ -332,9 +333,9 @@ function formatNumber(num: number): string {
   width: 28px;
   height: 28px;
   background: none;
-  border: 1px solid var(--color-gray-200);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  color: var(--color-gray-500);
+  color: var(--text-muted);
   cursor: pointer;
   transition: all var(--transition-base);
 }

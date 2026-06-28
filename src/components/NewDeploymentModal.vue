@@ -1197,6 +1197,7 @@
                     <span>docker-compose.yml</span>
                   </div>
                   <div class="compose-actions">
+                    <AssistButton :context="composeAssistContext" label="Ask the assistant" />
                     <button class="action-btn" title="Format" @click="formatCompose">
                       <i class="pi pi-align-left" />
                     </button>
@@ -1423,8 +1424,10 @@ import { Codemirror } from "vue-codemirror";
 import { yaml } from "@codemirror/lang-yaml";
 import { oneDark } from "@codemirror/theme-one-dark";
 import BaseModal from "@/components/base/BaseModal.vue";
+import AssistButton from "@/components/ai/AssistButton.vue";
 import { deploymentsApi, templatesApi, settingsApi, containersApi, composeApi, credentialsApi } from "@/services/api";
 import type { RegistryCredential } from "@/types";
+import type { AssistContext } from "@/stores/assist";
 import { extractComposeServiceNames } from "@/utils/compose";
 import { useNotificationsStore } from "@/stores/notifications";
 
@@ -1519,6 +1522,12 @@ const existingCredentials = ref<RegistryCredential[]>([]);
 const loadingCredentials = ref(false);
 
 const composeServiceNames = computed(() => extractComposeServiceNames(form.composeContent));
+
+const composeAssistContext = computed<AssistContext>(() => ({
+  scope: "system",
+  subject: "docker-compose.yml",
+  seedContext: form.composeContent,
+}));
 
 const setServiceCredential = (service: string, credentialId: string) => {
   if (!credentialId) {
@@ -2659,14 +2668,14 @@ const handleClose = () => {
 .modal-header-text h3 {
   font-size: var(--text-xl);
   font-weight: var(--font-semibold);
-  color: var(--color-gray-900);
+  color: var(--text);
   margin: 0;
   line-height: 1.3;
 }
 
 .modal-header-text p {
   font-size: var(--text-sm);
-  color: var(--color-gray-500);
+  color: var(--text-muted);
   margin: var(--space-1) 0 0;
 }
 
@@ -2683,7 +2692,7 @@ const handleClose = () => {
 
 .progress-track {
   height: 4px;
-  background: var(--color-gray-100);
+  background: var(--surface-inset);
   border-radius: var(--radius-full);
   margin-bottom: var(--space-4);
   overflow: hidden;
@@ -2712,14 +2721,14 @@ const handleClose = () => {
   width: 32px;
   height: 32px;
   border-radius: var(--radius-full);
-  border: 2px solid var(--color-gray-200);
-  background: white;
+  border: 2px solid var(--border);
+  background: var(--surface-raised);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: var(--text-sm);
   font-weight: var(--font-semibold);
-  color: var(--color-gray-400);
+  color: var(--text-subtle);
   transition: all 0.3s ease;
 }
 
@@ -2739,7 +2748,7 @@ const handleClose = () => {
 .step-label {
   font-size: var(--text-sm);
   font-weight: var(--font-medium);
-  color: var(--color-gray-400);
+  color: var(--text-subtle);
 }
 
 .step-item.active .step-label {
@@ -2774,8 +2783,8 @@ const handleClose = () => {
 
 /* Section Cards */
 .section-card {
-  background: white;
-  border: 1px solid var(--color-gray-200);
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
   overflow: hidden;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
@@ -2791,13 +2800,13 @@ const handleClose = () => {
   align-items: center;
   gap: var(--space-3);
   padding: var(--space-4);
-  background: var(--color-gray-50);
-  border-bottom: 1px solid var(--color-gray-200);
+  background: var(--surface-sunken);
+  border-bottom: 1px solid var(--border);
 }
 
 .section-header .section-subtitle {
   font-size: var(--text-sm);
-  color: var(--color-gray-500);
+  color: var(--text-muted);
   margin: var(--space-1) 0 0;
 }
 
@@ -2827,7 +2836,7 @@ const handleClose = () => {
 .section-header h4 {
   font-size: var(--text-md);
   font-weight: var(--font-semibold);
-  color: var(--color-gray-900);
+  color: var(--text);
   margin: 0;
 }
 
@@ -2868,7 +2877,7 @@ const handleClose = () => {
   display: block;
   font-size: var(--text-sm);
   font-weight: var(--font-medium);
-  color: var(--color-gray-700);
+  color: var(--text);
   margin-bottom: var(--space-2);
 }
 
@@ -2884,11 +2893,11 @@ const handleClose = () => {
 .form-field select {
   width: 100%;
   padding: var(--space-2) var(--space-3);
-  border: 1px solid var(--color-gray-200);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   font-size: var(--text-md);
-  color: var(--color-gray-900);
-  background: white;
+  color: var(--text);
+  background: var(--surface);
   transition: all 0.2s ease;
 }
 
@@ -2924,7 +2933,7 @@ const handleClose = () => {
 .field-hint {
   display: block;
   font-size: var(--text-xs);
-  color: var(--color-gray-500);
+  color: var(--text-muted);
   margin-top: var(--space-1);
 }
 
@@ -2945,7 +2954,7 @@ const handleClose = () => {
 }
 
 .domain-url .protocol {
-  color: var(--color-gray-400);
+  color: var(--text-subtle);
 }
 
 .domain-url .domain-text {
@@ -2955,9 +2964,9 @@ const handleClose = () => {
 }
 
 .refresh-domain-btn {
-  background: white;
-  border: 1px solid var(--color-gray-200);
-  color: var(--color-gray-500);
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
   padding: var(--space-1);
   border-radius: var(--radius-sm);
   cursor: pointer;
@@ -2976,7 +2985,7 @@ const handleClose = () => {
 
 .toggle-option.nested {
   padding-left: var(--space-8);
-  background: var(--color-gray-50);
+  background: var(--surface-sunken);
 }
 
 .toggle-option.port-mapping {
@@ -2999,12 +3008,12 @@ const handleClose = () => {
 
 .toggle-text {
   font-size: var(--text-sm);
-  color: var(--color-gray-700);
+  color: var(--text);
 }
 
 .custom-domain-field,
 .ssl-options {
-  border-top: 1px solid var(--color-gray-100);
+  border-top: 1px solid var(--border-subtle);
 }
 
 /* Templates */
@@ -3013,7 +3022,7 @@ const handleClose = () => {
   align-items: center;
   justify-content: center;
   padding: var(--space-8);
-  color: var(--color-gray-400);
+  color: var(--text-subtle);
 }
 
 .templates-list {
@@ -3028,16 +3037,16 @@ const handleClose = () => {
   align-items: center;
   gap: var(--space-3);
   padding: var(--space-3) var(--space-4);
-  background: white;
+  background: var(--surface-raised);
   border: none;
-  border-bottom: 1px solid var(--color-gray-50);
+  border-bottom: 1px solid var(--border-subtle);
   cursor: pointer;
   text-align: left;
   transition: all 0.2s ease;
 }
 
 .template-item:hover {
-  background: var(--color-gray-50);
+  background: var(--surface-sunken);
 }
 
 .template-item.selected {
@@ -3052,17 +3061,17 @@ const handleClose = () => {
   width: 36px;
   height: 36px;
   border-radius: var(--radius-sm);
-  background: var(--color-gray-100);
+  background: var(--surface-inset);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--color-gray-500);
+  color: var(--text-muted);
   flex-shrink: 0;
   overflow: hidden;
 }
 
 .template-icon.has-logo {
-  background: white;
+  background: var(--surface-raised);
   padding: 4px;
 }
 
@@ -3079,12 +3088,12 @@ const handleClose = () => {
 }
 
 .template-item.selected .template-icon.has-logo {
-  background: white;
+  background: var(--surface-raised);
   border: 2px solid var(--color-primary-500);
 }
 
 .template-item.custom .template-icon {
-  border: 2px dashed var(--color-gray-300);
+  border: 2px dashed var(--border);
   background: transparent;
 }
 
@@ -3102,13 +3111,13 @@ const handleClose = () => {
   display: block;
   font-size: var(--text-sm);
   font-weight: var(--font-medium);
-  color: var(--color-gray-900);
+  color: var(--text);
 }
 
 .template-desc {
   display: block;
   font-size: var(--text-xs);
-  color: var(--color-gray-500);
+  color: var(--text-muted);
   margin-top: 2px;
 }
 
@@ -3148,7 +3157,7 @@ const handleClose = () => {
   gap: var(--space-2);
   font-size: var(--text-sm);
   font-weight: var(--font-medium);
-  color: var(--color-gray-300);
+  color: var(--border);
 }
 
 .compose-actions {
@@ -3227,7 +3236,7 @@ const handleClose = () => {
   flex: 1;
   min-width: 0;
   padding: var(--space-2);
-  border: 1px solid var(--color-gray-200);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   font-size: var(--text-xs);
   font-family: var(--font-mono);
@@ -3237,7 +3246,7 @@ const handleClose = () => {
   flex: 1;
   min-width: 0;
   padding: var(--space-2);
-  border: 1px solid var(--color-gray-200);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   font-size: var(--text-xs);
 }
@@ -3245,7 +3254,7 @@ const handleClose = () => {
 .env-remove {
   background: none;
   border: none;
-  color: var(--color-gray-400);
+  color: var(--text-subtle);
   padding: var(--space-1);
   cursor: pointer;
 }
@@ -3260,11 +3269,11 @@ const handleClose = () => {
   justify-content: center;
   gap: var(--space-2);
   padding: var(--space-2);
-  background: white;
-  border: 1px dashed var(--color-gray-300);
+  background: var(--surface-raised);
+  border: 1px dashed var(--border);
   border-radius: var(--radius-sm);
   font-size: var(--text-xs);
-  color: var(--color-gray-600);
+  color: var(--text-muted);
   cursor: pointer;
   transition: all 0.2s ease;
 }
@@ -3292,21 +3301,21 @@ const handleClose = () => {
 .port-container {
   width: 70px;
   padding: var(--space-2);
-  border: 1px solid var(--color-gray-200);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   font-size: var(--text-sm);
   text-align: center;
 }
 
 .port-separator {
-  color: var(--color-gray-400);
+  color: var(--text-subtle);
   font-weight: var(--font-medium);
 }
 
 .port-host {
   width: 70px;
   padding: var(--space-2);
-  border: 1px solid var(--color-gray-200);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   font-size: var(--text-sm);
   text-align: center;
@@ -3316,7 +3325,7 @@ const handleClose = () => {
   padding: var(--space-1);
   background: none;
   border: none;
-  color: var(--color-gray-400);
+  color: var(--text-subtle);
   cursor: pointer;
   border-radius: var(--radius-sm);
 }
@@ -3337,11 +3346,11 @@ const handleClose = () => {
   justify-content: center;
   gap: var(--space-2);
   padding: var(--space-2);
-  background: white;
-  border: 1px dashed var(--color-gray-300);
+  background: var(--surface-raised);
+  border: 1px dashed var(--border);
   border-radius: var(--radius-sm);
   font-size: var(--text-xs);
-  color: var(--color-gray-600);
+  color: var(--text-muted);
   cursor: pointer;
   transition: all 0.2s ease;
 }
@@ -3381,8 +3390,8 @@ const handleClose = () => {
 }
 
 .review-card {
-  background: white;
-  border: 1px solid var(--color-gray-100);
+  background: var(--surface-raised);
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
   overflow: hidden;
 }
@@ -3393,7 +3402,7 @@ const handleClose = () => {
   gap: var(--space-4);
   padding: var(--space-5);
   background: linear-gradient(135deg, var(--color-success-50), var(--color-primary-50));
-  border-bottom: 1px solid var(--color-gray-100);
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .review-icon {
@@ -3411,13 +3420,13 @@ const handleClose = () => {
 .review-title h3 {
   font-size: var(--text-lg);
   font-weight: var(--font-semibold);
-  color: var(--color-gray-900);
+  color: var(--text);
   margin: 0;
 }
 
 .review-title p {
   font-size: var(--text-sm);
-  color: var(--color-gray-500);
+  color: var(--text-muted);
   margin: var(--space-1) 0 0;
 }
 
@@ -3441,7 +3450,7 @@ const handleClose = () => {
 .review-label {
   font-size: var(--text-xs);
   font-weight: var(--font-medium);
-  color: var(--color-gray-500);
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -3449,7 +3458,7 @@ const handleClose = () => {
 .review-value {
   font-size: var(--text-sm);
   font-weight: var(--font-medium);
-  color: var(--color-gray-900);
+  color: var(--text);
 }
 
 .review-value.domain {
@@ -3475,12 +3484,12 @@ const handleClose = () => {
 }
 
 .review-badge.neutral {
-  background: var(--color-gray-100);
-  color: var(--color-gray-600);
+  background: var(--surface-inset);
+  color: var(--text-muted);
 }
 
 .compose-summary {
-  border-top: 1px solid var(--color-gray-100);
+  border-top: 1px solid var(--border-subtle);
   padding: var(--space-4);
 }
 
@@ -3490,20 +3499,20 @@ const handleClose = () => {
   gap: var(--space-2);
   font-size: var(--text-sm);
   font-weight: var(--font-medium);
-  color: var(--color-gray-700);
+  color: var(--text);
   margin-bottom: var(--space-3);
 }
 
 .compose-lines {
   margin-left: auto;
   font-size: var(--text-xs);
-  color: var(--color-gray-500);
+  color: var(--text-muted);
   font-weight: var(--font-normal);
 }
 
 .compose-preview-code {
   background: var(--color-gray-900);
-  color: var(--color-gray-300);
+  color: var(--border);
   padding: var(--space-3);
   border-radius: var(--radius-sm);
   font-family: var(--font-mono);
@@ -3556,22 +3565,22 @@ const handleClose = () => {
 }
 
 .btn-secondary {
-  background: white;
-  color: var(--color-gray-700);
-  border: 1px solid var(--color-gray-200);
+  background: var(--surface-raised);
+  color: var(--text);
+  border: 1px solid var(--border);
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background: var(--color-gray-50);
+  background: var(--surface-sunken);
 }
 
 .btn-ghost {
   background: transparent;
-  color: var(--color-gray-600);
+  color: var(--text-muted);
 }
 
 .btn-ghost:hover {
-  background: var(--color-gray-100);
+  background: var(--surface-inset);
 }
 
 .btn-create {
@@ -3624,13 +3633,13 @@ const handleClose = () => {
 .mode-title {
   font-size: var(--text-2xl);
   font-weight: var(--font-semibold);
-  color: var(--color-gray-900);
+  color: var(--text);
   margin: 0 0 var(--space-2);
 }
 
 .mode-subtitle {
   font-size: var(--text-md);
-  color: var(--color-gray-500);
+  color: var(--text-muted);
   margin: 0 0 var(--space-8);
 }
 
@@ -3646,8 +3655,8 @@ const handleClose = () => {
   flex-direction: column;
   align-items: flex-start;
   padding: var(--space-6);
-  background: white;
-  border: 2px solid var(--color-gray-200);
+  background: var(--surface-raised);
+  border: 2px solid var(--border);
   border-radius: var(--radius-xl);
   cursor: pointer;
   text-align: left;
@@ -3673,8 +3682,8 @@ const handleClose = () => {
   justify-content: center;
   font-size: 1.25rem;
   margin-bottom: var(--space-4);
-  background: var(--color-gray-100);
-  color: var(--color-gray-600);
+  background: var(--surface-inset);
+  color: var(--text-muted);
 }
 
 .mode-card-icon.easy {
@@ -3698,13 +3707,13 @@ const handleClose = () => {
 .mode-card-content h4 {
   font-size: var(--text-lg);
   font-weight: var(--font-semibold);
-  color: var(--color-gray-900);
+  color: var(--text);
   margin: 0 0 var(--space-1);
 }
 
 .mode-card-content p {
   font-size: var(--text-sm);
-  color: var(--color-gray-500);
+  color: var(--text-muted);
   margin: 0 0 var(--space-3);
 }
 
@@ -3719,7 +3728,7 @@ const handleClose = () => {
   align-items: center;
   gap: var(--space-2);
   font-size: var(--text-sm);
-  color: var(--color-gray-600);
+  color: var(--text-muted);
   margin-bottom: var(--space-1);
 }
 
@@ -3733,8 +3742,8 @@ const handleClose = () => {
   top: var(--space-3);
   right: var(--space-3);
   padding: var(--space-1) var(--space-2);
-  background: var(--color-gray-100);
-  color: var(--color-gray-600);
+  background: var(--surface-inset);
+  color: var(--text-muted);
   font-size: var(--text-xs);
   font-weight: var(--font-medium);
   border-radius: var(--radius-sm);
@@ -3764,8 +3773,8 @@ const handleClose = () => {
   align-items: center;
   gap: var(--space-3);
   padding: var(--space-3);
-  background: white;
-  border: 1px solid var(--color-gray-200);
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   cursor: pointer;
   text-align: left;
@@ -3774,7 +3783,7 @@ const handleClose = () => {
 
 .db-option:hover {
   border-color: var(--color-primary-300);
-  background: var(--color-gray-50);
+  background: var(--surface-sunken);
 }
 
 .db-option.selected {
@@ -3794,8 +3803,8 @@ const handleClose = () => {
 }
 
 .db-option-icon.none {
-  background: linear-gradient(135deg, var(--color-gray-200), var(--color-gray-100));
-  color: var(--color-gray-500);
+  background: linear-gradient(135deg, var(--border), var(--surface-inset));
+  color: var(--text-muted);
 }
 
 .db-option-icon.mysql {
@@ -3832,13 +3841,13 @@ const handleClose = () => {
   display: block;
   font-size: var(--text-sm);
   font-weight: var(--font-medium);
-  color: var(--color-gray-900);
+  color: var(--text);
 }
 
 .db-option-desc {
   display: block;
   font-size: var(--text-xs);
-  color: var(--color-gray-500);
+  color: var(--text-muted);
   margin-top: 2px;
 }
 
@@ -3897,8 +3906,8 @@ const handleClose = () => {
   align-items: flex-start;
   gap: var(--space-3);
   padding: var(--space-4);
-  background: white;
-  border: 2px solid var(--color-gray-200);
+  background: var(--surface-raised);
+  border: 2px solid var(--border);
   border-radius: var(--radius-md);
   cursor: pointer;
   text-align: left;
@@ -3918,8 +3927,8 @@ const handleClose = () => {
   width: 36px;
   height: 36px;
   border-radius: var(--radius-sm);
-  background: var(--color-gray-100);
-  color: var(--color-gray-500);
+  background: var(--surface-inset);
+  color: var(--text-muted);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -3939,13 +3948,13 @@ const handleClose = () => {
   display: block;
   font-size: var(--text-sm);
   font-weight: var(--font-semibold);
-  color: var(--color-gray-900);
+  color: var(--text);
 }
 
 .mode-desc {
   display: block;
   font-size: var(--text-xs);
-  color: var(--color-gray-500);
+  color: var(--text-muted);
   margin-top: var(--space-1);
   line-height: 1.4;
 }
@@ -3981,7 +3990,7 @@ const handleClose = () => {
   margin-left: auto;
   background: none;
   border: none;
-  color: var(--color-gray-500);
+  color: var(--text-muted);
   cursor: pointer;
   padding: var(--space-1);
   border-radius: var(--radius-sm);
@@ -3989,7 +3998,7 @@ const handleClose = () => {
 }
 
 .section-header .refresh-btn:hover {
-  background: var(--color-gray-100);
+  background: var(--surface-inset);
   color: var(--color-primary-600);
 }
 
@@ -4004,13 +4013,13 @@ const handleClose = () => {
   align-items: center;
   gap: var(--space-2);
   padding: var(--space-6);
-  color: var(--color-gray-500);
+  color: var(--text-muted);
   text-align: center;
 }
 
 .no-containers i {
   font-size: 1.5rem;
-  color: var(--color-gray-400);
+  color: var(--text-subtle);
 }
 
 .switch-mode-btn {
@@ -4041,8 +4050,8 @@ const handleClose = () => {
   align-items: center;
   gap: var(--space-3);
   padding: var(--space-3);
-  background: white;
-  border: 1px solid var(--color-gray-200);
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   cursor: pointer;
   text-align: left;
@@ -4051,7 +4060,7 @@ const handleClose = () => {
 
 .container-option:hover {
   border-color: var(--color-primary-300);
-  background: var(--color-gray-50);
+  background: var(--surface-sunken);
 }
 
 .container-option.selected {
@@ -4063,8 +4072,8 @@ const handleClose = () => {
   width: 36px;
   height: 36px;
   border-radius: var(--radius-sm);
-  background: var(--color-gray-100);
-  color: var(--color-gray-500);
+  background: var(--surface-inset);
+  color: var(--text-muted);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -4085,20 +4094,20 @@ const handleClose = () => {
   display: block;
   font-size: var(--text-sm);
   font-weight: var(--font-medium);
-  color: var(--color-gray-900);
+  color: var(--text);
 }
 
 .container-details .container-image {
   display: block;
   font-size: var(--text-xs);
-  color: var(--color-gray-500);
+  color: var(--text-muted);
   font-family: var(--font-mono);
   margin-top: 2px;
 }
 
 /* Connection test */
 .connection-test {
-  background: var(--color-gray-50);
+  background: var(--surface-sunken);
 }
 
 .connection-test-content {
@@ -4120,7 +4129,7 @@ const handleClose = () => {
 }
 
 .connection-status .status.idle {
-  color: var(--color-gray-500);
+  color: var(--text-muted);
 }
 
 .connection-status .status.checking {
@@ -4162,7 +4171,7 @@ const handleClose = () => {
 
 /* Configuration Preview */
 .config-preview {
-  background: var(--color-gray-50);
+  background: var(--surface-sunken);
 }
 
 .preview-content {
@@ -4174,7 +4183,7 @@ const handleClose = () => {
   align-items: center;
   justify-content: space-between;
   padding: var(--space-2) 0;
-  border-bottom: 1px solid var(--color-gray-200);
+  border-bottom: 1px solid var(--border);
 }
 
 .preview-item:last-of-type {
@@ -4183,15 +4192,15 @@ const handleClose = () => {
 
 .preview-label {
   font-size: var(--text-sm);
-  color: var(--color-gray-500);
+  color: var(--text-muted);
 }
 
 .preview-value {
   font-size: var(--text-sm);
-  background: var(--color-gray-100);
+  background: var(--surface-inset);
   padding: 2px 8px;
   border-radius: var(--radius-sm);
-  color: var(--color-gray-700);
+  color: var(--text);
 }
 
 .preview-hint {
@@ -4200,9 +4209,9 @@ const handleClose = () => {
   gap: var(--space-2);
   margin-top: var(--space-3);
   padding-top: var(--space-3);
-  border-top: 1px dashed var(--color-gray-300);
+  border-top: 1px dashed var(--border);
   font-size: var(--text-xs);
-  color: var(--color-gray-500);
+  color: var(--text-muted);
 }
 
 .compose-preview {
@@ -4246,8 +4255,8 @@ const handleClose = () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--color-gray-100);
-  color: var(--color-gray-600);
+  background: var(--surface-inset);
+  color: var(--text-muted);
   border-radius: var(--radius-sm);
   flex-shrink: 0;
   font-size: var(--text-sm);
@@ -4257,13 +4266,13 @@ const handleClose = () => {
   display: block;
   font-size: var(--text-sm);
   font-weight: var(--font-semibold);
-  color: var(--color-gray-900);
+  color: var(--text);
   margin-bottom: 2px;
 }
 
 .compose-info-content .info-item p {
   font-size: var(--text-xs);
-  color: var(--color-gray-500);
+  color: var(--text-muted);
   margin: 0;
   line-height: 1.4;
 }
@@ -4290,7 +4299,7 @@ const handleClose = () => {
 
 /* Advanced Options Section */
 .advanced-options-section {
-  border-top: 1px solid var(--color-gray-200);
+  border-top: 1px solid var(--border);
   padding-top: var(--space-4);
   margin-top: var(--space-2);
 }
@@ -4301,12 +4310,12 @@ const handleClose = () => {
   gap: var(--space-2);
   font-size: var(--text-sm);
   font-weight: var(--font-semibold);
-  color: var(--color-gray-700);
+  color: var(--text);
   margin-bottom: var(--space-3);
 }
 
 .advanced-options-header i {
-  color: var(--color-gray-400);
+  color: var(--text-subtle);
 }
 
 .advanced-options-list {
@@ -4320,14 +4329,14 @@ const handleClose = () => {
   align-items: flex-start;
   gap: var(--space-3);
   padding: var(--space-3);
-  background: var(--color-gray-50);
+  background: var(--surface-sunken);
   border-radius: var(--radius-md);
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .advanced-option:hover {
-  background: var(--color-gray-100);
+  background: var(--surface-inset);
 }
 
 .advanced-option input[type="checkbox"] {
@@ -4346,17 +4355,17 @@ const handleClose = () => {
   gap: var(--space-2);
   font-size: var(--text-sm);
   font-weight: var(--font-medium);
-  color: var(--color-gray-900);
+  color: var(--text);
 }
 
 .advanced-option .option-label i {
-  color: var(--color-gray-500);
+  color: var(--text-muted);
   font-size: var(--text-xs);
 }
 
 .advanced-option .option-desc {
   font-size: var(--text-xs);
-  color: var(--color-gray-500);
+  color: var(--text-muted);
 }
 
 /* Domains Step */
@@ -4369,13 +4378,13 @@ const handleClose = () => {
 .domains-step-header .step-intro h3 {
   font-size: var(--text-lg);
   font-weight: var(--font-semibold);
-  color: var(--color-gray-900);
+  color: var(--text);
   margin: 0 0 var(--space-1) 0;
 }
 
 .domains-step-header .step-intro p {
   font-size: var(--text-sm);
-  color: var(--color-gray-500);
+  color: var(--text-muted);
   margin: 0;
 }
 
@@ -4386,8 +4395,8 @@ const handleClose = () => {
 }
 
 .domain-card {
-  background: white;
-  border: 1px solid var(--color-gray-200);
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   padding: var(--space-4);
 }
@@ -4407,8 +4416,8 @@ const handleClose = () => {
 .domain-badge {
   font-size: var(--text-xs);
   font-weight: var(--font-medium);
-  color: var(--color-gray-600);
-  background: var(--color-gray-100);
+  color: var(--text-muted);
+  background: var(--surface-inset);
   padding: var(--space-1) var(--space-2);
   border-radius: var(--radius-sm);
 }
@@ -4423,7 +4432,7 @@ const handleClose = () => {
   align-items: center;
   gap: var(--space-2);
   font-size: var(--text-sm);
-  color: var(--color-gray-700);
+  color: var(--text);
 }
 
 .domain-preview i {
@@ -4431,7 +4440,7 @@ const handleClose = () => {
 }
 
 .domain-hint {
-  color: var(--color-gray-400);
+  color: var(--text-subtle);
   font-size: var(--text-xs);
 }
 
@@ -4475,10 +4484,10 @@ const handleClose = () => {
   gap: var(--space-2);
   width: 100%;
   padding: var(--space-3);
-  background: white;
-  border: 2px dashed var(--color-gray-300);
+  background: var(--surface-raised);
+  border: 2px dashed var(--border);
   border-radius: var(--radius-lg);
-  color: var(--color-gray-600);
+  color: var(--text-muted);
   font-size: var(--text-sm);
   font-weight: var(--font-medium);
   cursor: pointer;
@@ -4508,18 +4517,18 @@ const handleClose = () => {
   content: "";
   flex: 1;
   height: 1px;
-  background: var(--color-gray-200);
+  background: var(--border);
 }
 
 .section-divider span {
   font-size: var(--text-sm);
   font-weight: var(--font-medium);
-  color: var(--color-gray-500);
+  color: var(--text-muted);
 }
 
 .additional-db-card {
-  background: var(--color-gray-50);
-  border: 1px solid var(--color-gray-200);
+  background: var(--surface-sunken);
+  border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   padding: var(--space-4);
   margin-bottom: var(--space-3);
@@ -4541,14 +4550,14 @@ const handleClose = () => {
 .db-alias-input label {
   font-size: var(--text-xs);
   font-weight: var(--font-medium);
-  color: var(--color-gray-600);
+  color: var(--text-muted);
 }
 
 .db-alias-input .alias-field {
   width: 150px;
   padding: var(--space-2);
   font-size: var(--text-sm);
-  border: 1px solid var(--color-gray-300);
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
 }
 
@@ -4567,9 +4576,9 @@ const handleClose = () => {
   padding: var(--space-2) var(--space-3);
   font-size: var(--text-xs);
   font-weight: var(--font-medium);
-  color: var(--color-gray-600);
-  background: white;
-  border: 1px solid var(--color-gray-300);
+  color: var(--text-muted);
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
   cursor: pointer;
   transition: all 0.2s ease;
@@ -4599,9 +4608,9 @@ const handleClose = () => {
   padding: var(--space-2) var(--space-3);
   font-size: var(--text-xs);
   font-weight: var(--font-medium);
-  color: var(--color-gray-600);
-  background: white;
-  border: 1px solid var(--color-gray-300);
+  color: var(--text-muted);
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
   cursor: pointer;
   transition: all 0.2s ease;
@@ -4623,20 +4632,20 @@ const handleClose = () => {
   flex-direction: column;
   gap: var(--space-2);
   padding: var(--space-3);
-  background: white;
+  background: var(--surface-raised);
   border-radius: var(--radius-md);
 }
 
 .db-env-preview {
   padding: var(--space-2);
-  background: var(--color-gray-100);
+  background: var(--surface-inset);
   border-radius: var(--radius-sm);
 }
 
 .db-env-preview .env-prefix {
   font-size: var(--text-xs);
   font-family: var(--font-mono);
-  color: var(--color-gray-600);
+  color: var(--text-muted);
 }
 
 .add-db-btn {
@@ -4646,10 +4655,10 @@ const handleClose = () => {
   gap: var(--space-2);
   width: 100%;
   padding: var(--space-3);
-  background: white;
-  border: 2px dashed var(--color-gray-300);
+  background: var(--surface-raised);
+  border: 2px dashed var(--border);
   border-radius: var(--radius-lg);
-  color: var(--color-gray-600);
+  color: var(--text-muted);
   font-size: var(--text-sm);
   font-weight: var(--font-medium);
   cursor: pointer;
@@ -4714,7 +4723,7 @@ const handleClose = () => {
   align-items: center;
   gap: var(--space-2);
   font-size: var(--text-sm);
-  color: var(--color-gray-600);
+  color: var(--text-muted);
 }
 
 .private-registry-toggle .toggle-label i {
@@ -4727,9 +4736,9 @@ const handleClose = () => {
   flex-direction: column;
   gap: var(--space-3);
   padding: var(--space-4);
-  background: var(--color-gray-50);
+  background: var(--surface-sunken);
   border-radius: var(--radius-sm);
-  border: 1px solid var(--color-gray-200);
+  border: 1px solid var(--border);
 }
 
 .registry-credentials .form-field {
@@ -4741,12 +4750,12 @@ const handleClose = () => {
 .registry-credentials .form-field label {
   font-size: var(--text-sm);
   font-weight: var(--font-medium);
-  color: var(--color-gray-700);
+  color: var(--text);
 }
 
 .registry-credentials .form-field input {
   padding: var(--space-2) var(--space-3);
-  border: 1px solid var(--color-gray-300);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   font-size: var(--text-sm);
 }
@@ -4762,7 +4771,7 @@ const handleClose = () => {
   flex-direction: column;
   gap: var(--space-2);
   padding-top: var(--space-2);
-  border-top: 1px solid var(--color-gray-200);
+  border-top: 1px solid var(--border);
 }
 
 .save-credential-option .toggle-option {
@@ -4774,7 +4783,7 @@ const handleClose = () => {
 
 .save-credential-option .toggle-label {
   font-size: var(--text-sm);
-  color: var(--color-gray-600);
+  color: var(--text-muted);
 }
 
 .credential-name-field {
@@ -4784,7 +4793,7 @@ const handleClose = () => {
 .credential-name-field input {
   width: 100%;
   padding: var(--space-2) var(--space-3);
-  border: 1px solid var(--color-gray-300);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   font-size: var(--text-sm);
 }
@@ -4800,7 +4809,7 @@ const handleClose = () => {
   gap: var(--space-4);
   margin-bottom: var(--space-3);
   padding-bottom: var(--space-3);
-  border-bottom: 1px solid var(--color-gray-200);
+  border-bottom: 1px solid var(--border);
 }
 
 .credential-source-toggle .toggle-option {
@@ -4812,7 +4821,7 @@ const handleClose = () => {
 
 .credential-source-toggle .toggle-label {
   font-size: var(--text-sm);
-  color: var(--color-gray-600);
+  color: var(--text-muted);
 }
 
 .existing-credential-select {
@@ -4822,10 +4831,10 @@ const handleClose = () => {
 .existing-credential-select .form-select {
   width: 100%;
   padding: var(--space-2) var(--space-3);
-  border: 1px solid var(--color-gray-300);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   font-size: var(--text-sm);
-  background: white;
+  background: var(--surface);
   cursor: pointer;
 }
 
@@ -4843,12 +4852,12 @@ const handleClose = () => {
   background: none;
   border: none;
   padding: var(--space-1);
-  color: var(--color-gray-400);
+  color: var(--text-subtle);
   cursor: pointer;
 }
 
 .input-icon-btn:hover {
-  color: var(--color-gray-600);
+  color: var(--text-muted);
 }
 
 /* Collapsible Sections */
@@ -4859,8 +4868,8 @@ const handleClose = () => {
 }
 
 .collapsible-section {
-  background: white;
-  border: 1px solid var(--color-gray-200);
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
   overflow: hidden;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
@@ -4872,14 +4881,14 @@ const handleClose = () => {
   align-items: center;
   justify-content: space-between;
   padding: var(--space-4);
-  background: linear-gradient(to right, var(--color-gray-50), white);
+  background: linear-gradient(to right, var(--surface-sunken), var(--surface-raised));
   border: none;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .section-toggle:hover {
-  background: linear-gradient(to right, var(--color-gray-100), var(--color-gray-50));
+  background: linear-gradient(to right, var(--surface-inset), var(--surface-sunken));
 }
 
 .section-toggle-left {
@@ -4891,20 +4900,20 @@ const handleClose = () => {
 .section-toggle-info h4 {
   font-size: var(--text-md);
   font-weight: var(--font-semibold);
-  color: var(--color-gray-900);
+  color: var(--text);
   margin: 0;
   text-align: left;
 }
 
 .section-toggle-info p {
   font-size: var(--text-sm);
-  color: var(--color-gray-500);
+  color: var(--text-muted);
   margin: 2px 0 0;
   text-align: left;
 }
 
 .toggle-icon {
-  color: var(--color-gray-400);
+  color: var(--text-subtle);
   transition: transform 0.2s ease;
 }
 
@@ -4923,9 +4932,9 @@ const handleClose = () => {
 }
 
 .section-content {
-  border-top: 1px solid var(--color-gray-200);
+  border-top: 1px solid var(--border);
   padding: var(--space-4);
-  background: white;
+  background: var(--surface-raised);
 }
 
 /* Collapse transition */
@@ -4952,14 +4961,14 @@ const handleClose = () => {
 
 .mount-card {
   padding: var(--space-4);
-  background: white;
-  border: 2px solid var(--color-gray-200);
+  background: var(--surface-raised);
+  border: 2px solid var(--border);
   border-radius: var(--radius-sm);
   transition: all 0.2s ease;
 }
 
 .mount-card:hover {
-  border-color: var(--color-gray-300);
+  border-color: var(--border);
 }
 
 .mount-card.enabled {
@@ -4993,7 +5002,7 @@ const handleClose = () => {
 .mount-name {
   font-size: var(--text-sm);
   font-weight: var(--font-semibold);
-  color: var(--color-gray-900);
+  color: var(--text);
 }
 
 .required-badge {
@@ -5008,7 +5017,7 @@ const handleClose = () => {
 
 .mount-description {
   font-size: var(--text-xs);
-  color: var(--color-gray-600);
+  color: var(--text-muted);
   margin: 0 0 var(--space-2);
   line-height: 1.4;
 }
@@ -5019,7 +5028,7 @@ const handleClose = () => {
   gap: var(--space-1);
   font-size: var(--text-xs);
   font-family: var(--font-mono);
-  color: var(--color-gray-500);
+  color: var(--text-muted);
   margin: 0 0 var(--space-3);
 }
 
@@ -5039,19 +5048,19 @@ const handleClose = () => {
   justify-content: center;
   gap: var(--space-1);
   padding: var(--space-2);
-  background: white;
-  border: 1px solid var(--color-gray-200);
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   font-size: var(--text-xs);
   font-weight: var(--font-medium);
-  color: var(--color-gray-600);
+  color: var(--text-muted);
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .mount-type-selector .type-btn:hover {
   border-color: var(--color-primary-300);
-  background: var(--color-gray-50);
+  background: var(--surface-sunken);
 }
 
 .mount-type-selector .type-btn.active {

@@ -245,7 +245,7 @@ defineExpose({ fetchDomains });
 
 .loading-state {
   padding: var(--space-2);
-  color: var(--color-gray-500);
+  color: var(--text-muted);
   font-size: var(--text-xs);
 }
 
@@ -255,7 +255,7 @@ defineExpose({ fetchDomains });
 
 .empty-state {
   padding: var(--space-2);
-  color: var(--color-gray-500);
+  color: var(--text-muted);
   font-size: var(--text-xs);
 }
 
@@ -267,7 +267,7 @@ defineExpose({ fetchDomains });
   display: flex;
   flex-direction: column;
   gap: 1px;
-  background: var(--color-gray-200);
+  background: var(--border);
   border-radius: var(--radius-sm);
   overflow: hidden;
 }
@@ -277,11 +277,11 @@ defineExpose({ fetchDomains });
   align-items: center;
   gap: var(--space-2);
   padding: var(--space-2);
-  background: var(--color-gray-50);
+  background: var(--surface-sunken);
 }
 
 .domain-row:hover {
-  background: white;
+  background: var(--surface-raised);
 }
 
 .domain-info {
@@ -312,7 +312,7 @@ defineExpose({ fetchDomains });
 
 .domain-target {
   font-size: var(--text-xs);
-  color: var(--color-gray-400);
+  color: var(--text-subtle);
   font-family: var(--font-mono);
   white-space: nowrap;
 }
@@ -363,7 +363,7 @@ defineExpose({ fetchDomains });
   height: 22px;
   border: none;
   background: transparent;
-  color: var(--color-gray-400);
+  color: var(--text-subtle);
   cursor: pointer;
   border-radius: 3px;
   display: flex;
@@ -373,8 +373,8 @@ defineExpose({ fetchDomains });
 }
 
 .action-btn:hover {
-  background: var(--color-gray-200);
-  color: var(--color-gray-600);
+  background: var(--border);
+  color: var(--text-muted);
 }
 
 .action-btn.danger:hover {
@@ -425,7 +425,7 @@ defineExpose({ fetchDomains });
 .add-link {
   background: none;
   border: none;
-  color: var(--color-gray-400);
+  color: var(--text-subtle);
   cursor: pointer;
   font-size: var(--text-xs);
   display: inline-flex;

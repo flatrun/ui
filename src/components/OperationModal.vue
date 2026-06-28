@@ -166,7 +166,7 @@ const handleClose = () => {
 .header-info h3 {
   font-size: var(--text-xl);
   font-weight: var(--font-semibold);
-  color: var(--color-gray-900);
+  color: var(--text);
   margin: 0;
 }
 
@@ -175,8 +175,8 @@ const handleClose = () => {
   align-items: center;
   gap: var(--space-4);
   padding: var(--space-5);
-  background: linear-gradient(135deg, var(--color-gray-50), white);
-  border: 1px solid var(--color-gray-100);
+  background: linear-gradient(135deg, var(--surface-sunken), var(--surface-raised));
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
   margin-bottom: var(--space-6);
 }
@@ -193,8 +193,8 @@ const handleClose = () => {
 }
 
 .status-indicator.pending {
-  background: var(--color-gray-100);
-  color: var(--color-gray-500);
+  background: var(--surface-inset);
+  color: var(--text-muted);
 }
 
 .status-indicator.running {
@@ -222,12 +222,12 @@ const handleClose = () => {
 .status-label {
   font-size: var(--text-lg);
   font-weight: var(--font-semibold);
-  color: var(--color-gray-900);
+  color: var(--text);
 }
 
 .status-time {
   font-size: var(--text-sm);
-  color: var(--color-gray-500);
+  color: var(--text-muted);
 }
 
 .output-section {
@@ -249,13 +249,13 @@ const handleClose = () => {
 }
 
 .btn-secondary {
-  background: white;
-  border: 1px solid var(--color-gray-200);
-  color: var(--color-gray-700);
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  color: var(--text);
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background: var(--color-gray-50);
+  background: var(--surface-sunken);
 }
 
 .btn-secondary:disabled {

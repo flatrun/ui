@@ -204,15 +204,16 @@ const handleAPIKeyLogin = async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f8fafc;
+  background: var(--app-bg);
   padding: 2rem;
 }
 
 .login-card {
   width: 100%;
   max-width: 420px;
-  background: white;
+  background: var(--surface-raised);
   border-radius: var(--radius-md);
+  border: 1px solid var(--border);
   box-shadow: var(--shadow-lg);
   padding: 2.5rem;
 }
@@ -224,12 +225,12 @@ const handleAPIKeyLogin = async () => {
 .card-header h2 {
   font-size: 1.5rem;
   font-weight: 600;
-  color: var(--color-gray-900);
+  color: var(--text);
   margin-bottom: 0.5rem;
 }
 
 .card-header p {
-  color: var(--color-gray-500);
+  color: var(--text-muted);
   font-size: var(--text-base);
 }
 
@@ -238,7 +239,7 @@ const handleAPIKeyLogin = async () => {
   gap: 0.5rem;
   margin-bottom: 1.5rem;
   padding: 0.25rem;
-  background: var(--color-gray-100);
+  background: var(--surface-inset);
   border-radius: var(--radius-sm);
 }
 
@@ -254,17 +255,17 @@ const handleAPIKeyLogin = async () => {
   border-radius: var(--radius-sm);
   font-size: var(--text-sm);
   font-weight: 500;
-  color: var(--color-gray-600);
+  color: var(--text-muted);
   cursor: pointer;
   transition: all var(--transition-base);
 }
 
 .login-mode-toggle button:hover {
-  color: var(--color-gray-900);
+  color: var(--text);
 }
 
 .login-mode-toggle button.active {
-  background: white;
+  background: var(--surface-raised);
   color: var(--color-primary-600);
   box-shadow: var(--shadow-sm);
 }
@@ -281,7 +282,7 @@ const handleAPIKeyLogin = async () => {
   display: block;
   font-size: var(--text-base);
   font-weight: var(--font-semibold);
-  color: var(--color-gray-700);
+  color: var(--text);
   margin-bottom: 0.5rem;
 }
 
@@ -294,14 +295,14 @@ const handleAPIKeyLogin = async () => {
 .input-wrapper > i:first-child {
   position: absolute;
   left: 0.875rem;
-  color: var(--color-gray-400);
+  color: var(--text-subtle);
   pointer-events: none;
 }
 
 .input-wrapper input {
   width: 100%;
   padding: 0.75rem 2.75rem 0.75rem 2.5rem;
-  border: 1px solid var(--color-gray-300);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   font-size: var(--text-md);
   transition: all var(--transition-base);
@@ -322,7 +323,7 @@ const handleAPIKeyLogin = async () => {
   right: 0.5rem;
   background: none;
   border: none;
-  color: var(--color-gray-400);
+  color: var(--text-subtle);
   cursor: pointer;
   padding: 0.375rem;
   border-radius: var(--radius-sm);
@@ -330,8 +331,8 @@ const handleAPIKeyLogin = async () => {
 }
 
 .toggle-visibility:hover {
-  color: var(--color-gray-600);
-  background: var(--color-gray-100);
+  color: var(--text-muted);
+  background: var(--surface-inset);
 }
 
 .error-text {
@@ -384,13 +385,13 @@ const handleAPIKeyLogin = async () => {
   justify-content: center;
   gap: 0.5rem;
   font-size: var(--text-sm);
-  color: var(--color-gray-500);
+  color: var(--text-muted);
   padding-top: 1rem;
-  border-top: 1px solid var(--color-gray-100);
+  border-top: 1px solid var(--border-subtle);
 }
 
 .help-text i {
-  color: var(--color-gray-400);
+  color: var(--text-subtle);
 }
 
 @media (max-width: 1024px) {

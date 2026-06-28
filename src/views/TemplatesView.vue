@@ -316,15 +316,15 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  background: white;
-  border: 1px solid #e5e7eb;
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   padding: 0.5rem 0.75rem;
   min-width: 240px;
 }
 
 .search-box i {
-  color: #9ca3af;
+  color: var(--text-subtle);
   font-size: 0.875rem;
 }
 
@@ -332,20 +332,20 @@ onUnmounted(() => {
   border: none;
   outline: none;
   font-size: 0.875rem;
-  color: #374151;
+  color: var(--text);
   width: 100%;
   background: transparent;
 }
 
 .search-input::placeholder {
-  color: #9ca3af;
+  color: var(--text-subtle);
 }
 
 .filter-tabs {
   display: flex;
   gap: 0.25rem;
-  background: white;
-  border: 1px solid #e5e7eb;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   padding: 0.25rem;
 }
@@ -357,15 +357,15 @@ onUnmounted(() => {
   border-radius: var(--radius-md);
   font-size: 0.8125rem;
   font-weight: 500;
-  color: #6b7280;
+  color: var(--text-muted);
   cursor: pointer;
   transition: all 0.2s;
   text-transform: capitalize;
 }
 
 .filter-tab:hover {
-  background: #f3f4f6;
-  color: #374151;
+  background: var(--surface-inset);
+  color: var(--text);
 }
 
 .filter-tab.active {
@@ -387,14 +387,14 @@ onUnmounted(() => {
 }
 
 .btn-secondary {
-  background: white;
-  color: #374151;
-  border: 1px solid #e5e7eb;
+  background: var(--surface-raised);
+  color: var(--text);
+  border: 1px solid var(--border);
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background: #f9fafb;
-  border-color: #d1d5db;
+  background: var(--surface-sunken);
+  border-color: var(--border);
 }
 
 .btn-secondary:disabled {
@@ -410,9 +410,9 @@ onUnmounted(() => {
   justify-content: center;
   padding: 4rem 2rem;
   text-align: center;
-  background: white;
+  background: var(--surface-raised);
   border-radius: var(--radius-sm);
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border);
 }
 
 .loading-state i {
@@ -424,7 +424,7 @@ onUnmounted(() => {
 .empty-icon {
   width: 64px;
   height: 64px;
-  background: #f3f4f6;
+  background: var(--surface-inset);
   border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
@@ -434,19 +434,19 @@ onUnmounted(() => {
 
 .empty-icon i {
   font-size: 1.5rem;
-  color: #9ca3af;
+  color: var(--text-subtle);
 }
 
 .empty-state h3 {
   font-size: 1rem;
   font-weight: 600;
-  color: #1f2937;
+  color: var(--text);
   margin: 0 0 0.5rem 0;
 }
 
 .empty-state p {
   font-size: 0.875rem;
-  color: #6b7280;
+  color: var(--text-muted);
   margin: 0;
 }
 
@@ -457,8 +457,8 @@ onUnmounted(() => {
 }
 
 .template-card {
-  background: white;
-  border: 1px solid #e5e7eb;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   overflow: hidden;
   cursor: pointer;
@@ -487,18 +487,18 @@ onUnmounted(() => {
 .template-logo {
   width: 48px;
   height: 48px;
-  background: #f3f4f6;
+  background: var(--surface-inset);
   border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1.25rem;
-  color: #6b7280;
+  color: var(--text-muted);
 }
 
 .template-logo.has-image {
-  background: white;
-  border: 1px solid #e5e7eb;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
 }
 
 .template-logo img {
@@ -512,8 +512,8 @@ onUnmounted(() => {
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.025em;
-  color: #6b7280;
-  background: #f3f4f6;
+  color: var(--text-muted);
+  background: var(--surface-inset);
   padding: 0.25rem 0.5rem;
   border-radius: var(--radius-sm);
 }
@@ -526,13 +526,13 @@ onUnmounted(() => {
 .template-name {
   font-size: 0.9375rem;
   font-weight: 600;
-  color: #1f2937;
+  color: var(--text);
   margin: 0 0 0.375rem 0;
 }
 
 .template-desc {
   font-size: 0.8125rem;
-  color: #6b7280;
+  color: var(--text-muted);
   margin: 0;
   line-height: 1.5;
   display: -webkit-box;
@@ -543,7 +543,7 @@ onUnmounted(() => {
 
 .template-footer {
   padding: 1rem;
-  border-top: 1px solid #f3f4f6;
+  border-top: 1px solid var(--border-subtle);
   margin-top: auto;
 }
 
@@ -554,12 +554,12 @@ onUnmounted(() => {
   justify-content: center;
   gap: 0.375rem;
   padding: 0.625rem;
-  background: #f3f4f6;
+  background: var(--surface-inset);
   border: none;
   border-radius: var(--radius-sm);
   font-size: 0.8125rem;
   font-weight: 500;
-  color: #374151;
+  color: var(--text);
   cursor: pointer;
   transition: all 0.2s;
 }
@@ -612,21 +612,21 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #6b7280;
+  color: var(--text-muted);
   transition: all 0.2s;
 }
 
 .menu-btn:hover {
-  background: #f3f4f6;
-  color: #374151;
+  background: var(--surface-inset);
+  color: var(--text);
 }
 
 .dropdown-menu {
   position: absolute;
   top: 100%;
   right: 0;
-  background: white;
-  border: 1px solid #e5e7eb;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   min-width: 140px;
@@ -643,18 +643,18 @@ onUnmounted(() => {
   align-items: center;
   gap: 0.5rem;
   font-size: 0.8125rem;
-  color: #374151;
+  color: var(--text);
   cursor: pointer;
   transition: background 0.15s;
 }
 
 .dropdown-menu button:hover {
-  background: #f3f4f6;
+  background: var(--surface-inset);
 }
 
 .dropdown-menu button i {
   font-size: 0.75rem;
-  color: #6b7280;
+  color: var(--text-muted);
 }
 
 .modal-overlay {
@@ -669,8 +669,9 @@ onUnmounted(() => {
 }
 
 .modal-content {
-  background: white;
-  border-radius: var(--radius-sm);
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
   max-width: 700px;
   width: 100%;
   max-height: 90vh;
@@ -683,7 +684,7 @@ onUnmounted(() => {
   justify-content: space-between;
   align-items: flex-start;
   padding: 1.25rem;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--border);
 }
 
 .modal-title-row {
@@ -695,18 +696,18 @@ onUnmounted(() => {
 .template-logo-lg {
   width: 56px;
   height: 56px;
-  background: #f3f4f6;
+  background: var(--surface-inset);
   border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1.5rem;
-  color: #6b7280;
+  color: var(--text-muted);
 }
 
 .template-logo-lg.has-image {
-  background: white;
-  border: 1px solid #e5e7eb;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
 }
 
 .template-logo-lg img {
@@ -718,7 +719,7 @@ onUnmounted(() => {
 .modal-title-row h2 {
   font-size: 1.25rem;
   font-weight: 600;
-  color: #1f2937;
+  color: var(--text);
   margin: 0 0 0.25rem 0;
 }
 
@@ -726,19 +727,19 @@ onUnmounted(() => {
   width: 32px;
   height: 32px;
   border: none;
-  background: #f3f4f6;
+  background: var(--surface-inset);
   border-radius: var(--radius-md);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #6b7280;
+  color: var(--text-muted);
   transition: all 0.2s;
 }
 
 .btn-icon:hover {
-  background: #e5e7eb;
-  color: #374151;
+  background: var(--border);
+  color: var(--text);
 }
 
 .details-modal .modal-body {
@@ -748,7 +749,7 @@ onUnmounted(() => {
 }
 
 .template-description {
-  color: #6b7280;
+  color: var(--text-muted);
   font-size: 0.875rem;
   margin: 0 0 1.25rem 0;
   line-height: 1.6;
@@ -758,7 +759,7 @@ onUnmounted(() => {
   display: flex;
   gap: 0.25rem;
   margin-bottom: 1rem;
-  background: #f3f4f6;
+  background: var(--surface-inset);
   padding: 0.25rem;
   border-radius: var(--radius-sm);
 }
@@ -771,18 +772,18 @@ onUnmounted(() => {
   border-radius: var(--radius-md);
   font-size: 0.8125rem;
   font-weight: 500;
-  color: #6b7280;
+  color: var(--text-muted);
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .tab-btn:hover {
-  color: #374151;
+  color: var(--text);
 }
 
 .tab-btn.active {
-  background: white;
-  color: #1f2937;
+  background: var(--surface-raised);
+  color: var(--text);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
@@ -808,7 +809,7 @@ onUnmounted(() => {
   justify-content: flex-end;
   gap: 0.75rem;
   padding: 1rem 1.25rem;
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid var(--border);
 }
 
 .btn-primary {

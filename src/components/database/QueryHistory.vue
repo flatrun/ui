@@ -188,7 +188,8 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   height: 100%;
-  background: white;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
   overflow: hidden;
 }
@@ -198,7 +199,7 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   padding: var(--space-4);
-  border-bottom: 1px solid var(--color-gray-200);
+  border-bottom: 1px solid var(--border);
 }
 
 .header-left {
@@ -215,7 +216,7 @@ onMounted(() => {
 
 .history-count {
   font-size: var(--text-sm);
-  color: var(--color-gray-500);
+  color: var(--text-muted);
 }
 
 .header-actions {
@@ -233,7 +234,7 @@ onMounted(() => {
   left: var(--space-3);
   top: 50%;
   transform: translateY(-50%);
-  color: var(--color-gray-400);
+  color: var(--text-subtle);
   pointer-events: none;
 }
 
@@ -241,7 +242,7 @@ onMounted(() => {
   width: 200px;
   padding: var(--space-2) var(--space-3);
   padding-left: calc(var(--space-3) + 18px);
-  border: 1px solid var(--color-gray-200);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   font-size: var(--text-sm);
 }
@@ -256,8 +257,8 @@ onMounted(() => {
   display: flex;
   gap: var(--space-1);
   padding: var(--space-2) var(--space-4);
-  background: var(--color-gray-50);
-  border-bottom: 1px solid var(--color-gray-200);
+  background: var(--surface-sunken);
+  border-bottom: 1px solid var(--border);
 }
 
 .tab-btn {
@@ -270,13 +271,13 @@ onMounted(() => {
   border-radius: var(--radius-sm);
   font-size: var(--text-sm);
   font-weight: var(--font-medium);
-  color: var(--color-gray-600);
+  color: var(--text-muted);
   cursor: pointer;
   transition: all var(--transition-base);
 }
 
 .tab-btn:hover {
-  background: var(--color-gray-100);
+  background: var(--surface-inset);
 }
 
 .tab-btn.active {
@@ -287,7 +288,7 @@ onMounted(() => {
 .tab-count {
   font-size: var(--text-xs);
   padding: 0 var(--space-2);
-  background: var(--color-gray-200);
+  background: var(--border);
   border-radius: var(--radius-full);
 }
 
@@ -302,7 +303,7 @@ onMounted(() => {
   justify-content: center;
   flex: 1;
   padding: var(--space-12);
-  color: var(--color-gray-400);
+  color: var(--text-subtle);
 }
 
 .empty-state p {
@@ -318,8 +319,8 @@ onMounted(() => {
 .history-item {
   padding: var(--space-3);
   margin-bottom: var(--space-2);
-  background: var(--color-gray-50);
-  border: 1px solid var(--color-gray-200);
+  background: var(--surface-sunken);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   cursor: pointer;
   transition: all var(--transition-base);
@@ -358,7 +359,7 @@ onMounted(() => {
 
 .item-time {
   font-size: var(--text-xs);
-  color: var(--color-gray-400);
+  color: var(--text-subtle);
 }
 
 .item-actions {
@@ -378,16 +379,16 @@ onMounted(() => {
   justify-content: center;
   width: 28px;
   height: 28px;
-  background: white;
-  border: 1px solid var(--color-gray-200);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  color: var(--color-gray-400);
+  color: var(--text-subtle);
   cursor: pointer;
   transition: all var(--transition-base);
 }
 
 .action-btn:hover {
-  color: var(--color-gray-600);
+  color: var(--text-muted);
 }
 
 .action-btn.active {
@@ -410,7 +411,7 @@ onMounted(() => {
   display: block;
   font-family: var(--font-mono);
   font-size: var(--text-xs);
-  color: var(--color-gray-700);
+  color: var(--text);
   line-height: 1.5;
   word-break: break-all;
 }
@@ -440,7 +441,7 @@ onMounted(() => {
 .item-duration {
   font-size: var(--text-xs);
   font-family: var(--font-mono);
-  color: var(--color-gray-400);
+  color: var(--text-subtle);
 }
 
 .modal-overlay {
@@ -454,7 +455,8 @@ onMounted(() => {
 }
 
 .modal-container {
-  background: white;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-xl);
   width: 400px;
@@ -470,7 +472,7 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   padding: var(--space-4);
-  border-bottom: 1px solid var(--color-gray-200);
+  border-bottom: 1px solid var(--border);
 }
 
 .modal-header.danger {
@@ -492,15 +494,15 @@ onMounted(() => {
 .close-btn {
   background: none;
   border: none;
-  color: var(--color-gray-400);
+  color: var(--text-subtle);
   cursor: pointer;
   padding: var(--space-1);
   border-radius: var(--radius-sm);
 }
 
 .close-btn:hover {
-  color: var(--color-gray-600);
-  background: var(--color-gray-100);
+  color: var(--text-muted);
+  background: var(--surface-inset);
 }
 
 .modal-body {
@@ -521,7 +523,7 @@ onMounted(() => {
   justify-content: flex-end;
   gap: var(--space-2);
   padding: var(--space-4);
-  border-top: 1px solid var(--color-gray-200);
+  border-top: 1px solid var(--border);
 }
 
 .btn {
@@ -538,13 +540,13 @@ onMounted(() => {
 }
 
 .btn-secondary {
-  background: white;
-  border: 1px solid var(--color-gray-200);
-  color: var(--color-gray-700);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
 }
 
 .btn-secondary:hover {
-  background: var(--color-gray-50);
+  background: var(--surface-sunken);
 }
 
 .btn-danger {
@@ -557,7 +559,7 @@ onMounted(() => {
 }
 
 .btn-danger-outline {
-  background: white;
+  background: var(--surface);
   border: 1px solid var(--color-danger-200);
   color: var(--color-danger-600);
 }

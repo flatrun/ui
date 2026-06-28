@@ -321,22 +321,22 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: white;
+  background: var(--surface-raised);
   padding: 1.25rem;
   border-radius: var(--radius-sm);
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border);
 }
 
 .header-content h1 {
   font-size: 1.5rem;
   font-weight: 600;
-  color: #1f2937;
+  color: var(--text);
   margin: 0;
 }
 
 .subtitle {
   font-size: 0.875rem;
-  color: #6b7280;
+  color: var(--text-muted);
   margin: 0.25rem 0 0 0;
 }
 
@@ -344,15 +344,15 @@ onMounted(() => {
   padding: 0.625rem;
   background: transparent;
   border: none;
-  color: #6b7280;
+  color: var(--text-muted);
   border-radius: var(--radius-sm);
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .btn-icon:hover:not(:disabled) {
-  background: #f3f4f6;
-  color: #374151;
+  background: var(--surface-inset);
+  color: var(--text);
 }
 
 .btn-icon:disabled {
@@ -367,8 +367,9 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   padding: 4rem;
-  background: white;
+  background: var(--surface-raised);
   border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
   text-align: center;
   gap: 1rem;
 }
@@ -376,17 +377,17 @@ onMounted(() => {
 .loading-state i,
 .empty-state i {
   font-size: 3rem;
-  color: #9ca3af;
+  color: var(--text-subtle);
 }
 
 .empty-state h3 {
   font-size: 1.125rem;
-  color: #374151;
+  color: var(--text);
   margin: 0;
 }
 
 .empty-state p {
-  color: #6b7280;
+  color: var(--text-muted);
   margin: 0;
 }
 
@@ -411,16 +412,16 @@ onMounted(() => {
 
 .detail-label {
   font-size: 0.8125rem;
-  color: #6b7280;
+  color: var(--text-muted);
 }
 
 .detail-item code {
-  background: #f3f4f6;
+  background: var(--surface-inset);
   padding: 0.25rem 0.5rem;
   border-radius: var(--radius-sm);
   font-family: "SF Mono", "Fira Code", monospace;
   font-size: 0.75rem;
-  color: #374151;
+  color: var(--text);
 }
 
 .health-badge {
@@ -492,11 +493,11 @@ onMounted(() => {
 
 .btn-secondary {
   background: #e5e7eb;
-  color: #374151;
+  color: var(--text);
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background: #d1d5db;
+  background: var(--border);
 }
 
 .btn:disabled {

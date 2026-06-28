@@ -444,9 +444,9 @@ onMounted(() => {
 }
 
 .btn-secondary {
-  background: #f3f4f6;
-  border: 1px solid #d1d5db;
-  color: #374151;
+  background: var(--surface-inset);
+  border: 1px solid var(--border);
+  color: var(--text);
 }
 
 .btn-secondary:hover {
@@ -464,14 +464,14 @@ onMounted(() => {
 
 .btn-icon {
   padding: 0.625rem;
-  background: white;
-  border: 1px solid #e5e7eb;
-  color: #6b7280;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
 }
 
 .btn-icon:hover:not(:disabled) {
-  background: #f9fafb;
-  color: #374151;
+  background: var(--surface-sunken);
+  color: var(--text);
 }
 
 .btn-icon:disabled {
@@ -483,15 +483,15 @@ onMounted(() => {
   padding: 0.375rem;
   background: none;
   border: none;
-  color: #9ca3af;
+  color: var(--text-subtle);
   cursor: pointer;
   border-radius: var(--radius-sm);
   transition: all 0.2s;
 }
 
 .btn-icon-sm:hover {
-  background: #f3f4f6;
-  color: #6b7280;
+  background: var(--surface-inset);
+  color: var(--text-muted);
 }
 
 .btn-icon-sm.danger:hover {
@@ -503,15 +503,15 @@ onMounted(() => {
   padding: 0.25rem;
   background: none;
   border: none;
-  color: #9ca3af;
+  color: var(--text-subtle);
   cursor: pointer;
   border-radius: var(--radius-sm);
   transition: all 0.2s;
 }
 
 .btn-icon-xs:hover {
-  background: #f3f4f6;
-  color: #6b7280;
+  background: var(--surface-inset);
+  color: var(--text-muted);
 }
 
 .btn-icon-xs.danger:hover {
@@ -543,7 +543,7 @@ onMounted(() => {
 
 .name-cell {
   font-weight: 600;
-  color: #1f2937;
+  color: var(--text);
 }
 
 .name-cell.system-network {
@@ -553,7 +553,7 @@ onMounted(() => {
 .id-cell {
   font-family: "SF Mono", "Fira Code", monospace;
   font-size: 0.75rem;
-  color: #9ca3af;
+  color: var(--text-subtle);
 }
 
 .networks-grid {
@@ -563,9 +563,9 @@ onMounted(() => {
 }
 
 .network-card {
-  background: white;
+  background: var(--surface-raised);
   border-radius: var(--radius-sm);
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border);
   overflow: hidden;
   transition: all 0.3s ease;
 }
@@ -576,13 +576,13 @@ onMounted(() => {
 }
 
 .network-card.system-network {
-  border-color: #d1d5db;
+  border-color: var(--border);
   opacity: 0.8;
 }
 
 .network-header {
   padding: 1.25rem;
-  border-bottom: 1px solid #f3f4f6;
+  border-bottom: 1px solid var(--border-subtle);
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
@@ -591,13 +591,13 @@ onMounted(() => {
 .network-info h4 {
   font-size: 1rem;
   font-weight: 600;
-  color: #1f2937;
+  color: var(--text);
   margin: 0 0 0.25rem 0;
 }
 
 .network-id {
   font-size: 0.75rem;
-  color: #9ca3af;
+  color: var(--text-subtle);
   font-family: "SF Mono", "Fira Code", monospace;
 }
 
@@ -621,19 +621,19 @@ onMounted(() => {
 .meta-label {
   font-size: 0.6875rem;
   font-weight: 600;
-  color: #6b7280;
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
 .meta-value {
   font-size: 0.8125rem;
-  color: #1f2937;
+  color: var(--text);
   font-weight: 500;
 }
 
 .containers-section {
-  background: #f9fafb;
+  background: var(--surface-sunken);
   border-radius: var(--radius-sm);
   padding: 1rem;
 }
@@ -648,14 +648,14 @@ onMounted(() => {
 .containers-title {
   font-size: 0.8125rem;
   font-weight: 600;
-  color: #374151;
+  color: var(--text);
   display: flex;
   align-items: center;
   gap: 0.5rem;
 }
 
 .containers-title i {
-  color: #6b7280;
+  color: var(--text-muted);
 }
 
 .containers-list {
@@ -669,9 +669,9 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   padding: 0.5rem;
-  background: white;
+  background: var(--surface-raised);
   border-radius: var(--radius-sm);
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border);
 }
 
 .container-info {
@@ -683,18 +683,18 @@ onMounted(() => {
 .container-name {
   font-size: 0.8125rem;
   font-weight: 500;
-  color: #1f2937;
+  color: var(--text);
 }
 
 .container-ip {
   font-size: 0.6875rem;
-  color: #6b7280;
+  color: var(--text-muted);
   font-family: "SF Mono", "Fira Code", monospace;
 }
 
 .no-containers {
   font-size: 0.8125rem;
-  color: #9ca3af;
+  color: var(--text-subtle);
   text-align: center;
   padding: 0.5rem;
 }
@@ -715,8 +715,9 @@ onMounted(() => {
 }
 
 .modal-container {
-  background: white;
-  border-radius: var(--radius-sm);
+  background: var(--surface-raised);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border);
   width: 100%;
   max-width: 500px;
   box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
@@ -728,7 +729,7 @@ onMounted(() => {
 
 .modal-header {
   padding: 1.25rem 1.5rem;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--border);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -740,7 +741,7 @@ onMounted(() => {
   gap: 0.5rem;
   font-size: 1.125rem;
   font-weight: 600;
-  color: #1f2937;
+  color: var(--text);
   margin: 0;
 }
 
@@ -751,7 +752,7 @@ onMounted(() => {
 .close-btn {
   background: none;
   border: none;
-  color: #9ca3af;
+  color: var(--text-subtle);
   cursor: pointer;
   padding: 0.5rem;
   border-radius: var(--radius-md);
@@ -759,8 +760,8 @@ onMounted(() => {
 }
 
 .close-btn:hover {
-  background: #f3f4f6;
-  color: #6b7280;
+  background: var(--surface-inset);
+  color: var(--text-muted);
 }
 
 .modal-body {
@@ -769,7 +770,7 @@ onMounted(() => {
 
 .modal-body p {
   margin: 0 0 0.5rem 0;
-  color: #374151;
+  color: var(--text);
 }
 
 .warning-text {
@@ -789,7 +790,7 @@ onMounted(() => {
   display: block;
   font-size: 0.875rem;
   font-weight: 600;
-  color: #374151;
+  color: var(--text);
   margin-bottom: 0.5rem;
 }
 
@@ -797,7 +798,7 @@ onMounted(() => {
 .form-group select {
   width: 100%;
   padding: 0.75rem;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   font-size: 0.875rem;
   transition: all 0.2s;
@@ -823,7 +824,7 @@ onMounted(() => {
 
 .modal-footer {
   padding: 1rem 1.5rem;
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid var(--border);
   display: flex;
   justify-content: flex-end;
   gap: 0.75rem;

@@ -7,21 +7,21 @@
 
       <div v-if="!sidebarCollapsed" class="environment-selector">
         <div class="env-current" @click="envDropdownOpen = !envDropdownOpen">
-          <i class="pi pi-server" />
+          <Icon name="server" :size="16" />
           <span>{{ currentServerName }}</span>
-          <i class="pi" :class="envDropdownOpen ? 'pi-chevron-up' : 'pi-chevron-down'" />
+          <Icon class="env-caret" :name="envDropdownOpen ? 'chevron-up' : 'chevron-down'" :size="14" />
         </div>
         <div v-if="envDropdownOpen" class="env-dropdown">
           <div class="env-option active" @click="envDropdownOpen = false">
-            <i class="pi pi-server" />
+            <Icon name="server" :size="16" />
             <div class="env-option-info">
               <span class="env-option-name">{{ currentServerName }}</span>
               <span class="env-option-hint">Current server</span>
             </div>
-            <i class="pi pi-check" />
+            <Icon name="check" :size="16" />
           </div>
           <div v-for="peer in clusterPeers" :key="peer.id" class="env-option" @click="envDropdownOpen = false">
-            <i class="pi pi-server" />
+            <Icon name="server" :size="16" />
             <div class="env-option-info">
               <span class="env-option-name">{{ peer.name }}</span>
               <span class="env-option-hint">{{ peer.status }}</span>
@@ -33,7 +33,7 @@
             class="env-option env-manage"
             @click="envDropdownOpen = false"
           >
-            <i class="pi pi-cog" />
+            <Icon name="settings" :size="16" />
             <span class="env-option-name">Manage Cluster</span>
           </router-link>
         </div>
@@ -41,18 +41,19 @@
 
       <nav class="nav-menu">
         <router-link to="/" class="nav-item" exact-active-class="active">
-          <i class="pi pi-th-large" />
+          <Icon name="layout-dashboard" :size="18" />
           <span v-if="!sidebarCollapsed">Dashboard</span>
         </router-link>
 
         <div v-if="authStore.hasPermission('deployments:read')" class="nav-group">
           <div class="nav-group-header" @click="toggleGroup('stacks')">
-            <i class="pi pi-layers" />
+            <Icon name="layers" :size="17" />
             <span v-if="!sidebarCollapsed">Stacks</span>
-            <i
+            <Icon
               v-if="!sidebarCollapsed"
-              class="pi chevron"
-              :class="expandedGroups.stacks ? 'pi-chevron-down' : 'pi-chevron-right'"
+              class="chevron"
+              :size="14"
+              :name="expandedGroups.stacks ? 'chevron-down' : 'chevron-right'"
             />
           </div>
           <div v-show="expandedGroups.stacks && !sidebarCollapsed" class="nav-group-items">
@@ -73,12 +74,13 @@
           class="nav-group"
         >
           <div class="nav-group-header" @click="toggleGroup('docker')">
-            <i class="pi pi-box" />
+            <Icon name="box" :size="17" />
             <span v-if="!sidebarCollapsed">Docker</span>
-            <i
+            <Icon
               v-if="!sidebarCollapsed"
-              class="pi chevron"
-              :class="expandedGroups.docker ? 'pi-chevron-down' : 'pi-chevron-right'"
+              class="chevron"
+              :size="14"
+              :name="expandedGroups.docker ? 'chevron-down' : 'chevron-right'"
             />
           </div>
           <div v-show="expandedGroups.docker && !sidebarCollapsed" class="nav-group-items">
@@ -140,12 +142,13 @@
           class="nav-group"
         >
           <div class="nav-group-header" @click="toggleGroup('system')">
-            <i class="pi pi-server" />
+            <Icon name="server" :size="16" />
             <span v-if="!sidebarCollapsed">System</span>
-            <i
+            <Icon
               v-if="!sidebarCollapsed"
-              class="pi chevron"
-              :class="expandedGroups.system ? 'pi-chevron-down' : 'pi-chevron-right'"
+              class="chevron"
+              :size="14"
+              :name="expandedGroups.system ? 'chevron-down' : 'chevron-right'"
             />
           </div>
           <div v-show="expandedGroups.system && !sidebarCollapsed" class="nav-group-items">
@@ -222,12 +225,13 @@
 
         <div v-if="authStore.hasPermission('databases:read')" class="nav-group">
           <div class="nav-group-header" @click="toggleGroup('databases')">
-            <i class="pi pi-database" />
+            <Icon name="database" :size="17" />
             <span v-if="!sidebarCollapsed">Databases</span>
-            <i
+            <Icon
               v-if="!sidebarCollapsed"
-              class="pi chevron"
-              :class="expandedGroups.databases ? 'pi-chevron-down' : 'pi-chevron-right'"
+              class="chevron"
+              :size="14"
+              :name="expandedGroups.databases ? 'chevron-down' : 'chevron-right'"
             />
           </div>
           <div v-show="expandedGroups.databases && !sidebarCollapsed" class="nav-group-items">
@@ -240,12 +244,13 @@
 
         <div v-if="authStore.hasPermission('dns:read')" class="nav-group">
           <div class="nav-group-header" @click="toggleGroup('dns')">
-            <i class="pi pi-globe" />
+            <Icon name="globe" :size="17" />
             <span v-if="!sidebarCollapsed">DNS</span>
-            <i
+            <Icon
               v-if="!sidebarCollapsed"
-              class="pi chevron"
-              :class="expandedGroups.dns ? 'pi-chevron-down' : 'pi-chevron-right'"
+              class="chevron"
+              :size="14"
+              :name="expandedGroups.dns ? 'chevron-down' : 'chevron-right'"
             />
           </div>
           <div v-show="expandedGroups.dns && !sidebarCollapsed" class="nav-group-items">
@@ -259,12 +264,13 @@
           class="nav-group"
         >
           <div class="nav-group-header" @click="toggleGroup('security')">
-            <i class="pi pi-shield" />
+            <Icon name="shield" :size="17" />
             <span v-if="!sidebarCollapsed">Security</span>
-            <i
+            <Icon
               v-if="!sidebarCollapsed"
-              class="pi chevron"
-              :class="expandedGroups.security ? 'pi-chevron-down' : 'pi-chevron-right'"
+              class="chevron"
+              :size="14"
+              :name="expandedGroups.security ? 'chevron-down' : 'chevron-right'"
             />
           </div>
           <div v-show="expandedGroups.security && !sidebarCollapsed" class="nav-group-items">
@@ -290,12 +296,13 @@
 
         <div v-if="authStore.hasPermission('templates:read')" class="nav-group">
           <div class="nav-group-header" @click="toggleGroup('extensions')">
-            <i class="pi pi-th-large" />
+            <Icon name="layout-grid" :size="17" />
             <span v-if="!sidebarCollapsed">Apps</span>
-            <i
+            <Icon
               v-if="!sidebarCollapsed"
-              class="pi chevron"
-              :class="expandedGroups.extensions ? 'pi-chevron-down' : 'pi-chevron-right'"
+              class="chevron"
+              :size="14"
+              :name="expandedGroups.extensions ? 'chevron-down' : 'chevron-right'"
             />
           </div>
           <div v-show="expandedGroups.extensions && !sidebarCollapsed" class="nav-group-items">
@@ -316,12 +323,13 @@
           class="nav-group"
         >
           <div class="nav-group-header" @click="toggleGroup('admin')">
-            <i class="pi pi-sliders-h" />
+            <Icon name="sliders-horizontal" :size="17" />
             <span v-if="!sidebarCollapsed">Administration</span>
-            <i
+            <Icon
               v-if="!sidebarCollapsed"
-              class="pi chevron"
-              :class="expandedGroups.admin ? 'pi-chevron-down' : 'pi-chevron-right'"
+              class="chevron"
+              :size="14"
+              :name="expandedGroups.admin ? 'chevron-down' : 'chevron-right'"
             />
           </div>
           <div v-show="expandedGroups.admin && !sidebarCollapsed" class="nav-group-items">
@@ -384,7 +392,7 @@
         </div>
         <div v-if="!sidebarCollapsed && authStore.currentUser" class="user-info">
           <div class="user-avatar">
-            <i class="pi pi-user" />
+            <Icon name="user" :size="16" />
           </div>
           <div class="user-details">
             <span class="user-name">{{ authStore.currentUser.username }}</span>
@@ -396,11 +404,11 @@
           <span v-if="!sidebarCollapsed" class="status-text">{{ agentOnline ? "Connected" : "Disconnected" }}</span>
         </div>
         <button v-if="!sidebarCollapsed" class="logout-btn" @click="handleLogout">
-          <i class="pi pi-sign-out" />
+          <Icon name="log-out" :size="16" />
           Sign Out
         </button>
         <button class="collapse-btn" @click="sidebarCollapsed = !sidebarCollapsed">
-          <i :class="sidebarCollapsed ? 'pi pi-angle-double-right' : 'pi pi-angle-double-left'" />
+          <Icon :name="sidebarCollapsed ? 'chevrons-right' : 'chevrons-left'" :size="16" />
         </button>
       </div>
     </aside>
@@ -412,40 +420,44 @@
             <span v-for="(crumb, idx) in breadcrumbs" :key="idx">
               <router-link v-if="crumb.path" :to="crumb.path">{{ crumb.label }}</router-link>
               <span v-else>{{ crumb.label }}</span>
-              <i v-if="idx < breadcrumbs.length - 1" class="pi pi-angle-right" />
+              <Icon v-if="idx < breadcrumbs.length - 1" name="chevron-right" :size="13" />
             </span>
           </div>
           <h1 class="page-title">
             {{ currentPageTitle }}
           </h1>
         </div>
-        <button v-if="aiStore.status?.enabled" class="ai-ask-launcher" @click="openGlobalAssist">
-          <Sparkles :size="17" />
-          <span>Run your instance with the assistant</span>
-        </button>
+        <GlobalSearch />
         <div class="header-right">
           <div class="quick-stats">
             <div class="stat-item running">
-              <i class="pi pi-play" />
+              <Icon name="play" :size="13" />
               <span>{{ stats.runningContainers }} Running</span>
             </div>
             <div class="stat-item stopped">
-              <i class="pi pi-stop" />
+              <Icon name="square" :size="13" />
               <span>{{ stats.stoppedContainers }} Stopped</span>
             </div>
           </div>
+          <button
+            class="header-btn"
+            :title="theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'"
+            @click="toggleTheme"
+          >
+            <Icon :name="theme === 'dark' ? 'sun' : 'moon'" :size="16" />
+          </button>
           <button class="header-btn" :disabled="isRefreshing" @click="refreshAll">
-            <i :class="isRefreshing ? 'pi pi-spinner pi-spin' : 'pi pi-refresh'" />
+            <Icon name="refresh-cw" :spin="isRefreshing" :size="16" />
           </button>
         </div>
       </header>
 
       <div v-if="!statsStore.agentCompatible && !statsStore.versionWarningDismissed" class="version-warning">
-        <i class="pi pi-exclamation-triangle" />
+        <Icon name="triangle-alert" :size="16" />
         <span>{{ statsStore.agentCompatibilityMessage }}</span>
         <span class="version-details">UI v{{ uiVersion }} / Agent v{{ statsStore.agentVersion }}</span>
         <button v-if="statsStore.agentDevBuild" class="dismiss-btn" @click="statsStore.versionWarningDismissed = true">
-          <i class="pi pi-times" />
+          <Icon name="x" :size="16" />
         </button>
       </div>
 
@@ -459,24 +471,23 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { Sparkles } from "lucide-vue-next";
 import { useStatsStore } from "@/stores/stats";
 import { useAuthStore } from "@/stores/auth";
 import { useAIStore } from "@/stores/ai";
-import { useAssistStore } from "@/stores/assist";
 import { clusterApi, type ClusterPeer } from "@/services/api";
 import Logo from "@/components/base/Logo.vue";
+import Icon from "@/components/base/Icon.vue";
+import GlobalSearch from "@/components/GlobalSearch.vue";
+import { useTheme } from "@/composables/useTheme";
+
+const { theme, toggleTheme } = useTheme();
 
 const route = useRoute();
 const router = useRouter();
 const statsStore = useStatsStore();
 const authStore = useAuthStore();
 const aiStore = useAIStore();
-const assistStore = useAssistStore();
 
-const openGlobalAssist = () => {
-  assistStore.open({ scope: "system", subject: "this instance" });
-};
 const uiVersion = __APP_VERSION__;
 const sidebarCollapsed = ref(false);
 const isRefreshing = ref(false);
@@ -658,8 +669,9 @@ onMounted(() => {
 
 .sidebar {
   width: 260px;
-  background: #0f172a;
-  color: white;
+  background: var(--sidebar-bg);
+  color: var(--sidebar-text-hover);
+  border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
   position: fixed;
@@ -719,7 +731,7 @@ onMounted(() => {
 
 .env-dropdown {
   margin-top: 0.375rem;
-  background: #1e293b;
+  background: var(--sidebar-surface);
   border-radius: var(--radius-sm);
   border: 1px solid rgba(255, 255, 255, 0.1);
   overflow: hidden;
@@ -732,7 +744,7 @@ onMounted(() => {
   padding: 0.5rem 0.625rem;
   cursor: pointer;
   transition: background 0.15s;
-  color: #94a3b8;
+  color: var(--sidebar-text);
   font-size: 0.8125rem;
   text-decoration: none;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
@@ -744,11 +756,11 @@ onMounted(() => {
 
 .env-option:hover {
   background: rgba(255, 255, 255, 0.08);
-  color: white;
+  color: var(--sidebar-text-hover);
 }
 
 .env-option.active {
-  color: #60a5fa;
+  color: var(--sidebar-text-active);
 }
 
 .env-option.active .pi-check {
@@ -788,7 +800,7 @@ onMounted(() => {
 }
 
 .env-manage:hover {
-  color: #94a3b8;
+  color: var(--sidebar-text);
 }
 
 .nav-menu {
@@ -801,7 +813,7 @@ onMounted(() => {
   align-items: center;
   gap: 0.75rem;
   padding: 0.75rem 1.25rem;
-  color: #94a3b8;
+  color: var(--sidebar-text);
   text-decoration: none;
   transition: all 0.2s;
   border-left: 3px solid transparent;
@@ -810,13 +822,13 @@ onMounted(() => {
 
 .nav-item:hover {
   background: rgba(255, 255, 255, 0.05);
-  color: white;
+  color: var(--sidebar-text-hover);
 }
 
 .nav-item.active {
   background: rgba(59, 130, 246, 0.15);
-  color: #60a5fa;
-  border-left-color: #3b82f6;
+  color: var(--sidebar-text-active);
+  border-left-color: var(--accent);
 }
 
 .nav-item i {
@@ -844,7 +856,7 @@ onMounted(() => {
 }
 
 .nav-group-header:hover {
-  color: #94a3b8;
+  color: var(--sidebar-text);
 }
 
 .nav-group-header i {
@@ -867,7 +879,7 @@ onMounted(() => {
   align-items: center;
   gap: 0.5rem;
   padding: 0.625rem 1.25rem 0.625rem 3.25rem;
-  color: #94a3b8;
+  color: var(--sidebar-text);
   text-decoration: none;
   font-size: 0.875rem;
   transition: all 0.2s;
@@ -876,13 +888,13 @@ onMounted(() => {
 
 .nav-subitem:hover {
   background: rgba(255, 255, 255, 0.05);
-  color: white;
+  color: var(--sidebar-text-hover);
 }
 
 .nav-subitem.active {
   background: rgba(59, 130, 246, 0.1);
-  color: #60a5fa;
-  border-left-color: #3b82f6;
+  color: var(--sidebar-text-active);
+  border-left-color: var(--accent);
 }
 
 .nav-count {
@@ -911,7 +923,7 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   font-size: 0.6875rem;
-  color: #94a3b8;
+  color: var(--sidebar-text);
   margin-bottom: 0.25rem;
 }
 
@@ -929,15 +941,15 @@ onMounted(() => {
 }
 
 .resource-fill.normal {
-  background: #22c55e;
+  background: var(--c-green);
 }
 
 .resource-fill.warning {
-  background: #f59e0b;
+  background: var(--c-amber);
 }
 
 .resource-fill.critical {
-  background: #ef4444;
+  background: var(--c-red);
 }
 
 .user-info {
@@ -953,7 +965,7 @@ onMounted(() => {
 .user-avatar {
   width: 32px;
   height: 32px;
-  background: #3b82f6;
+  background: var(--accent);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -962,7 +974,7 @@ onMounted(() => {
 
 .user-avatar i {
   font-size: 0.875rem;
-  color: white;
+  color: var(--sidebar-text-hover);
 }
 
 .user-details {
@@ -973,12 +985,12 @@ onMounted(() => {
 .user-name {
   font-size: 0.875rem;
   font-weight: 500;
-  color: white;
+  color: var(--sidebar-text-hover);
 }
 
 .user-role {
   font-size: 0.75rem;
-  color: #94a3b8;
+  color: var(--sidebar-text);
   text-transform: capitalize;
 }
 
@@ -987,7 +999,7 @@ onMounted(() => {
   align-items: center;
   gap: 0.5rem;
   font-size: 0.75rem;
-  color: #94a3b8;
+  color: var(--sidebar-text);
   margin-bottom: 0.5rem;
 }
 
@@ -995,12 +1007,12 @@ onMounted(() => {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #ef4444;
+  background: var(--c-red);
   flex-shrink: 0;
 }
 
 .status-dot.online {
-  background: #22c55e;
+  background: var(--c-green);
   box-shadow: 0 0 8px rgba(34, 197, 94, 0.5);
 }
 
@@ -1032,14 +1044,14 @@ onMounted(() => {
   background: rgba(255, 255, 255, 0.05);
   border: none;
   border-radius: var(--radius-sm);
-  color: #94a3b8;
+  color: var(--sidebar-text);
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .collapse-btn:hover {
   background: rgba(255, 255, 255, 0.1);
-  color: white;
+  color: var(--sidebar-text-hover);
 }
 
 .main-content {
@@ -1056,60 +1068,26 @@ onMounted(() => {
 }
 
 .top-header {
-  background: white;
+  background: var(--surface);
   padding: 1rem 1.5rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid var(--border);
+  box-shadow: var(--shadow-xs);
   position: sticky;
   top: 0;
   z-index: 50;
 }
 
-.ai-ask-launcher {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.55rem;
-  min-width: 280px;
-  padding: 0.65rem 1.5rem;
-  border: 1px solid #dbeafe;
-  border-radius: 999px;
-  background: linear-gradient(180deg, #eff6ff, #f5f9ff);
-  color: #2563eb;
-  font-size: 0.9rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition:
-    box-shadow 0.15s ease,
-    border-color 0.15s ease,
-    transform 0.15s ease;
-}
-
-.ai-ask-launcher:hover {
-  border-color: #bfdbfe;
-  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.18);
-  transform: translateX(-50%) translateY(-1px);
-}
-
-@media (max-width: 900px) {
-  .ai-ask-launcher span {
-    display: none;
-  }
-}
-
 .breadcrumb {
   font-size: 0.75rem;
-  color: #64748b;
+  color: var(--text-muted);
   margin-bottom: 0.25rem;
 }
 
 .breadcrumb a {
-  color: #3b82f6;
+  color: var(--accent);
   text-decoration: none;
 }
 
@@ -1125,7 +1103,7 @@ onMounted(() => {
 .page-title {
   font-size: 1.375rem;
   font-weight: 600;
-  color: #0f172a;
+  color: var(--text);
 }
 
 .header-right {
@@ -1150,13 +1128,13 @@ onMounted(() => {
 }
 
 .stat-item.running {
-  background: #dcfce7;
-  color: #166534;
+  background: rgba(34, 197, 94, 0.12);
+  color: var(--c-green);
 }
 
 .stat-item.stopped {
-  background: #fef3c7;
-  color: #92400e;
+  background: rgba(245, 158, 11, 0.14);
+  color: var(--c-amber);
 }
 
 .stat-item i {
@@ -1166,10 +1144,10 @@ onMounted(() => {
 .header-btn {
   width: 36px;
   height: 36px;
-  background: #f1f5f9;
-  border: none;
+  background: var(--surface-sunken);
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  color: #64748b;
+  color: var(--text-muted);
   cursor: pointer;
   transition: all 0.2s;
   display: flex;
@@ -1178,14 +1156,14 @@ onMounted(() => {
 }
 
 .header-btn:hover {
-  background: #e2e8f0;
-  color: #334155;
+  background: var(--surface-inset);
+  color: var(--text);
 }
 
 .content-area {
   flex: 1;
   padding: 1.5rem;
-  background: #f8fafc;
+  background: var(--app-bg);
 }
 
 .version-warning {

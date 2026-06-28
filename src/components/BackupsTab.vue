@@ -508,18 +508,18 @@ onUnmounted(() => {
 .empty-state {
   text-align: center;
   padding: var(--space-8);
-  color: var(--color-gray-500);
+  color: var(--text-muted);
 }
 
 .empty-state i {
   font-size: 3rem;
   margin-bottom: var(--space-3);
-  color: var(--color-gray-300);
+  color: var(--border);
 }
 
 .empty-state h4 {
   margin: 0 0 var(--space-2);
-  color: var(--color-gray-700);
+  color: var(--text);
 }
 
 .empty-state p {
@@ -537,9 +537,9 @@ onUnmounted(() => {
   justify-content: space-between;
   align-items: center;
   padding: var(--space-3) var(--space-4);
-  background: var(--color-gray-50);
+  background: var(--surface-sunken);
   border-radius: var(--radius-md);
-  border: 1px solid var(--color-gray-200);
+  border: 1px solid var(--border);
 }
 
 .backup-info {
@@ -553,14 +553,14 @@ onUnmounted(() => {
   align-items: center;
   gap: var(--space-2);
   font-weight: var(--font-medium);
-  color: var(--color-gray-900);
+  color: var(--text);
 }
 
 .backup-meta {
   display: flex;
   gap: var(--space-3);
   font-size: var(--text-sm);
-  color: var(--color-gray-500);
+  color: var(--text-muted);
 }
 
 .backup-status {
@@ -608,7 +608,7 @@ onUnmounted(() => {
 .scheduled-backups-section {
   margin-top: var(--space-6);
   padding-top: var(--space-4);
-  border-top: 1px solid var(--color-gray-200);
+  border-top: 1px solid var(--border);
 }
 
 .scheduled-backups-section h4 {
@@ -628,9 +628,9 @@ onUnmounted(() => {
   justify-content: space-between;
   align-items: center;
   padding: var(--space-3);
-  background: var(--color-gray-50);
+  background: var(--surface-sunken);
   border-radius: var(--radius-md);
-  border: 1px solid var(--color-gray-200);
+  border: 1px solid var(--border);
 }
 
 .task-info {
@@ -646,15 +646,15 @@ onUnmounted(() => {
 .task-schedule {
   font-family: monospace;
   font-size: var(--text-sm);
-  color: var(--color-gray-600);
-  background: var(--color-gray-100);
+  color: var(--text-muted);
+  background: var(--surface-inset);
   padding: 2px 6px;
   border-radius: var(--radius-sm);
 }
 
 .task-next {
   font-size: var(--text-sm);
-  color: var(--color-gray-500);
+  color: var(--text-muted);
 }
 
 .task-actions {
@@ -679,7 +679,8 @@ onUnmounted(() => {
 }
 
 .modal-container {
-  background: white;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-xl);
   width: 480px;
@@ -693,7 +694,7 @@ onUnmounted(() => {
   justify-content: space-between;
   align-items: center;
   padding: var(--space-4);
-  border-bottom: 1px solid var(--color-gray-200);
+  border-bottom: 1px solid var(--border);
 }
 
 .modal-header h3 {
@@ -709,12 +710,12 @@ onUnmounted(() => {
   border: none;
   padding: var(--space-2);
   cursor: pointer;
-  color: var(--color-gray-500);
+  color: var(--text-muted);
   border-radius: var(--radius-sm);
 }
 
 .close-btn:hover {
-  background: var(--color-gray-100);
+  background: var(--surface-inset);
 }
 
 .modal-body {
@@ -726,7 +727,7 @@ onUnmounted(() => {
   justify-content: flex-end;
   gap: var(--space-2);
   padding: var(--space-4);
-  border-top: 1px solid var(--color-gray-200);
+  border-top: 1px solid var(--border);
 }
 
 .form-group {
@@ -737,13 +738,13 @@ onUnmounted(() => {
   display: block;
   margin-bottom: var(--space-1);
   font-weight: var(--font-medium);
-  color: var(--color-gray-700);
+  color: var(--text);
 }
 
 .form-control {
   width: 100%;
   padding: var(--space-2) var(--space-3);
-  border: 1px solid var(--color-gray-300);
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
   font-size: var(--text-md);
 }
@@ -758,11 +759,11 @@ onUnmounted(() => {
   display: block;
   margin-top: var(--space-1);
   font-size: var(--text-sm);
-  color: var(--color-gray-500);
+  color: var(--text-muted);
 }
 
 .form-hint code {
-  background: var(--color-gray-100);
+  background: var(--surface-inset);
   padding: 1px 4px;
   border-radius: var(--radius-sm);
 }
@@ -810,12 +811,12 @@ onUnmounted(() => {
 }
 
 .btn-secondary {
-  background: var(--color-gray-100);
-  color: var(--color-gray-700);
+  background: var(--surface-inset);
+  color: var(--text);
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background: var(--color-gray-200);
+  background: var(--border);
 }
 
 .btn-danger {
@@ -853,7 +854,7 @@ onUnmounted(() => {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: var(--color-gray-300);
+  background-color: var(--border);
   transition: 0.3s;
   border-radius: 24px;
 }

@@ -124,7 +124,8 @@ function formatCell(value: any): string {
   display: flex;
   flex-direction: column;
   height: 100%;
-  background: white;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
   overflow: hidden;
 }
@@ -134,7 +135,7 @@ function formatCell(value: any): string {
   justify-content: space-between;
   align-items: center;
   padding: var(--space-3) var(--space-4);
-  border-bottom: 1px solid var(--color-gray-200);
+  border-bottom: 1px solid var(--border);
 }
 
 .header-left {
@@ -174,7 +175,7 @@ function formatCell(value: any): string {
   justify-content: center;
   flex: 1;
   padding: var(--space-12);
-  color: var(--color-gray-400);
+  color: var(--text-subtle);
   gap: var(--space-2);
 }
 
@@ -193,7 +194,7 @@ function formatCell(value: any): string {
 .data-table td {
   padding: var(--space-2) var(--space-3);
   text-align: left;
-  border-bottom: 1px solid var(--color-gray-100);
+  border-bottom: 1px solid var(--border-subtle);
   white-space: nowrap;
   max-width: 300px;
   overflow: hidden;
@@ -203,18 +204,18 @@ function formatCell(value: any): string {
 .data-table th {
   position: sticky;
   top: 0;
-  background: var(--color-gray-50);
+  background: var(--surface-sunken);
   font-weight: var(--font-semibold);
-  color: var(--color-gray-700);
+  color: var(--text);
   z-index: 1;
 }
 
 .data-table tr:hover {
-  background: var(--color-gray-50);
+  background: var(--surface-sunken);
 }
 
 .null-value {
-  color: var(--color-gray-400);
+  color: var(--text-subtle);
   font-style: italic;
 }
 
@@ -227,8 +228,8 @@ function formatCell(value: any): string {
   justify-content: space-between;
   align-items: center;
   padding: var(--space-3) var(--space-4);
-  border-top: 1px solid var(--color-gray-200);
-  background: var(--color-gray-50);
+  border-top: 1px solid var(--border);
+  background: var(--surface-sunken);
 }
 
 .row-info {
@@ -239,15 +240,15 @@ function formatCell(value: any): string {
 
 .row-count {
   font-size: var(--text-sm);
-  color: var(--color-gray-600);
+  color: var(--text-muted);
 }
 
 .execution-time {
   font-size: var(--text-xs);
   font-family: var(--font-mono);
-  color: var(--color-gray-400);
+  color: var(--text-subtle);
   padding: 0.125rem 0.5rem;
-  background: var(--color-gray-100);
+  background: var(--surface-inset);
   border-radius: var(--radius-sm);
 }
 
@@ -259,7 +260,7 @@ function formatCell(value: any): string {
 
 .page-info {
   font-size: var(--text-sm);
-  color: var(--color-gray-500);
+  color: var(--text-muted);
   padding: 0 var(--space-2);
 }
 
@@ -277,25 +278,25 @@ function formatCell(value: any): string {
 }
 
 .btn-secondary {
-  background: white;
-  border: 1px solid var(--color-gray-200);
-  color: var(--color-gray-700);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background: var(--color-gray-50);
+  background: var(--surface-sunken);
 }
 
 .btn-ghost {
   background: transparent;
   border: none;
-  color: var(--color-gray-500);
+  color: var(--text-muted);
   padding: var(--space-1);
 }
 
 .btn-ghost:hover {
-  background: var(--color-gray-100);
-  color: var(--color-gray-700);
+  background: var(--surface-inset);
+  color: var(--text);
 }
 
 .btn-sm {

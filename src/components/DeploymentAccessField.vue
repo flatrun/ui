@@ -113,7 +113,7 @@ const removeEntry = (name: string) => {
 .tab-hint {
   margin: 0;
   font-size: 0.8125rem;
-  color: var(--color-gray-600);
+  color: var(--text-muted);
   line-height: 1.4;
 }
 
@@ -127,10 +127,10 @@ const removeEntry = (name: string) => {
 .add-form .form-input {
   width: 100%;
   padding: 0.4375rem 0.625rem;
-  border: 1px solid var(--color-gray-300);
+  border: 1px solid var(--border);
   border-radius: 6px;
   font-size: 0.875rem;
-  background: var(--surface-card, white);
+  background: var(--surface);
 }
 
 .add-form select:nth-child(2) {
@@ -149,8 +149,8 @@ const removeEntry = (name: string) => {
   align-items: center;
   gap: 0.5rem;
   padding: 0.4375rem 0.625rem;
-  background: var(--color-gray-50);
-  border: 1px solid var(--color-gray-200);
+  background: var(--surface-sunken);
+  border: 1px solid var(--border);
   border-radius: 6px;
 }
 
@@ -160,15 +160,15 @@ const removeEntry = (name: string) => {
 
 .entry-row select {
   padding: 0.25rem 0.5rem;
-  border: 1px solid var(--color-gray-300);
+  border: 1px solid var(--border);
   border-radius: 4px;
   font-size: 0.8125rem;
-  background: var(--surface-card, white);
+  background: var(--surface);
 }
 
 .entry-name {
   font-size: 0.875rem;
-  color: var(--color-gray-800);
+  color: var(--text);
   word-break: break-all;
 }
 
@@ -179,8 +179,8 @@ const removeEntry = (name: string) => {
   text-transform: uppercase;
   letter-spacing: 0.04em;
   font-weight: 500;
-  background: var(--color-gray-200);
-  color: var(--color-gray-700);
+  background: var(--border);
+  color: var(--text);
 }
 
 .entry-level.read {
@@ -204,7 +204,7 @@ const removeEntry = (name: string) => {
   gap: 0.375rem;
   padding: 0.5rem 0;
   font-size: 0.8125rem;
-  color: var(--color-gray-500);
+  color: var(--text-muted);
 }
 
 .btn {
@@ -212,10 +212,10 @@ const removeEntry = (name: string) => {
   align-items: center;
   gap: 0.25rem;
   padding: 0.4375rem 0.75rem;
-  border: 1px solid var(--color-gray-300);
+  border: 1px solid var(--border);
   border-radius: 6px;
-  background: var(--surface-card, white);
-  color: var(--color-gray-700);
+  background: var(--surface);
+  color: var(--text);
   cursor: pointer;
   font-size: 0.8125rem;
 }
@@ -236,7 +236,7 @@ const removeEntry = (name: string) => {
 }
 
 .btn-icon:hover {
-  background: var(--color-gray-100);
+  background: var(--surface-inset);
 }
 
 .btn-primary {

@@ -160,7 +160,8 @@ onUnmounted(() => {
 .query-results {
   display: flex;
   flex-direction: column;
-  background: white;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
   overflow: hidden;
   box-shadow: var(--shadow-sm);
@@ -173,7 +174,7 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   padding: var(--space-8);
-  color: var(--color-gray-400);
+  color: var(--text-subtle);
   gap: var(--space-2);
 }
 
@@ -200,8 +201,8 @@ onUnmounted(() => {
   justify-content: space-between;
   align-items: center;
   padding: var(--space-3) var(--space-4);
-  background: var(--color-gray-50);
-  border-bottom: 1px solid var(--color-gray-200);
+  background: var(--surface-sunken);
+  border-bottom: 1px solid var(--border);
 }
 
 .results-info {
@@ -218,15 +219,15 @@ onUnmounted(() => {
 
 .row-count {
   font-size: var(--text-sm);
-  color: var(--color-gray-600);
+  color: var(--text-muted);
 }
 
 .execution-time {
   font-size: var(--text-xs);
   font-family: var(--font-mono);
-  color: var(--color-gray-400);
+  color: var(--text-subtle);
   padding: 0.125rem 0.5rem;
-  background: var(--color-gray-100);
+  background: var(--surface-inset);
   border-radius: var(--radius-sm);
 }
 
@@ -244,8 +245,8 @@ onUnmounted(() => {
   top: 100%;
   right: 0;
   margin-top: var(--space-1);
-  background: white;
-  border: 1px solid var(--color-gray-200);
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   box-shadow: var(--shadow-lg);
   min-width: 160px;
@@ -262,13 +263,13 @@ onUnmounted(() => {
   background: none;
   border: none;
   font-size: var(--text-sm);
-  color: var(--color-gray-700);
+  color: var(--text);
   cursor: pointer;
   text-align: left;
 }
 
 .menu-item:hover {
-  background: var(--color-gray-50);
+  background: var(--surface-sunken);
 }
 
 .results-grid {
@@ -286,7 +287,7 @@ onUnmounted(() => {
 .results-grid td {
   padding: var(--space-2) var(--space-3);
   text-align: left;
-  border-bottom: 1px solid var(--color-gray-100);
+  border-bottom: 1px solid var(--border-subtle);
   white-space: nowrap;
   max-width: 300px;
   overflow: hidden;
@@ -296,18 +297,18 @@ onUnmounted(() => {
 .results-grid th {
   position: sticky;
   top: 0;
-  background: var(--color-gray-50);
+  background: var(--surface-sunken);
   font-weight: var(--font-semibold);
-  color: var(--color-gray-700);
+  color: var(--text);
   z-index: 1;
 }
 
 .results-grid tr:hover {
-  background: var(--color-gray-50);
+  background: var(--surface-sunken);
 }
 
 .null-value {
-  color: var(--color-gray-400);
+  color: var(--text-subtle);
   font-style: italic;
 }
 
@@ -325,13 +326,13 @@ onUnmounted(() => {
 }
 
 .btn-secondary {
-  background: white;
-  border: 1px solid var(--color-gray-200);
-  color: var(--color-gray-700);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
 }
 
 .btn-secondary:hover {
-  background: var(--color-gray-50);
+  background: var(--surface-sunken);
 }
 
 .btn-sm {
