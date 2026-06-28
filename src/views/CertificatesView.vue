@@ -515,14 +515,14 @@ onMounted(() => {
 
 .btn-icon {
   padding: 0.625rem;
-  background: white;
-  border: 1px solid #e5e7eb;
-  color: #6b7280;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
 }
 
 .btn-icon:hover:not(:disabled) {
-  background: #f9fafb;
-  color: #374151;
+  background: var(--surface-sunken);
+  color: var(--text);
 }
 
 .btn-icon:disabled {
@@ -545,13 +545,13 @@ onMounted(() => {
 }
 
 .btn-secondary {
-  background: white;
-  border: 1px solid #e5e7eb;
-  color: #374151;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background: #f9fafb;
+  background: var(--surface-sunken);
 }
 
 .btn-secondary:disabled {
@@ -593,8 +593,9 @@ onMounted(() => {
 }
 
 .modal-container {
-  background: white;
-  border-radius: var(--radius-sm);
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
   width: 100%;
   max-width: 480px;
   box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
@@ -602,7 +603,7 @@ onMounted(() => {
 
 .modal-header {
   padding: 1.25rem 1.5rem;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--border);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -614,7 +615,7 @@ onMounted(() => {
   gap: 0.5rem;
   font-size: 1.125rem;
   font-weight: 600;
-  color: #111827;
+  color: var(--text);
   margin: 0;
 }
 
@@ -625,7 +626,7 @@ onMounted(() => {
 .close-btn {
   background: none;
   border: none;
-  color: #9ca3af;
+  color: var(--text-subtle);
   cursor: pointer;
   padding: 0.5rem;
   border-radius: var(--radius-sm);
@@ -633,8 +634,8 @@ onMounted(() => {
 }
 
 .close-btn:hover {
-  background: #f3f4f6;
-  color: #6b7280;
+  background: var(--surface-inset);
+  color: var(--text-muted);
 }
 
 .modal-body {
@@ -653,14 +654,14 @@ onMounted(() => {
   display: block;
   font-size: 0.875rem;
   font-weight: 600;
-  color: #374151;
+  color: var(--text);
   margin-bottom: 0.5rem;
 }
 
 .form-group input {
   width: 100%;
   padding: 0.75rem 1rem;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   font-size: 0.875rem;
   transition: all 0.2s;
@@ -673,20 +674,20 @@ onMounted(() => {
 }
 
 .form-group input:disabled {
-  background: #f9fafb;
-  color: #9ca3af;
+  background: var(--surface-sunken);
+  color: var(--text-subtle);
 }
 
 .hint {
   display: block;
   font-size: 0.75rem;
-  color: #6b7280;
+  color: var(--text-muted);
   margin-top: 0.375rem;
 }
 
 .modal-footer {
   padding: 1rem 1.5rem;
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid var(--border);
   display: flex;
   justify-content: flex-end;
   gap: 0.75rem;
@@ -697,7 +698,7 @@ onMounted(() => {
   align-items: center;
   gap: 0.5rem;
   font-weight: 600;
-  color: #1f2937;
+  color: var(--text);
 }
 
 .domain-cell i {
@@ -752,9 +753,9 @@ onMounted(() => {
 }
 
 .cert-card {
-  background: white;
+  background: var(--surface-raised);
   border-radius: var(--radius-sm);
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border);
   overflow: hidden;
   transition: all 0.3s ease;
 }
@@ -774,7 +775,7 @@ onMounted(() => {
 
 .cert-header {
   padding: 1.25rem;
-  border-bottom: 1px solid #f3f4f6;
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .cert-status {
@@ -787,7 +788,7 @@ onMounted(() => {
   gap: 0.5rem;
   font-size: 1rem;
   font-weight: 600;
-  color: #1f2937;
+  color: var(--text);
   word-break: break-all;
 }
 
@@ -814,20 +815,20 @@ onMounted(() => {
 .info-label {
   font-size: 0.75rem;
   font-weight: 600;
-  color: #6b7280;
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.025em;
 }
 
 .info-value {
   font-size: 0.875rem;
-  color: #1f2937;
+  color: var(--text);
   font-weight: 500;
 }
 
 .cert-footer {
   padding: 1rem 1.25rem;
-  background: #f9fafb;
+  background: var(--surface-sunken);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -839,7 +840,7 @@ onMounted(() => {
   align-items: center;
   gap: 0.5rem;
   font-size: 0.75rem;
-  color: #6b7280;
+  color: var(--text-muted);
   font-family: "SF Mono", "Fira Code", monospace;
   word-break: break-all;
   flex: 1;
@@ -860,9 +861,9 @@ onMounted(() => {
   align-items: center;
   gap: 1rem;
   padding: 1.25rem;
-  background: white;
+  background: var(--surface-raised);
   border-radius: var(--radius-sm);
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border);
 }
 
 .summary-icon {
@@ -898,12 +899,12 @@ onMounted(() => {
 .summary-count {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #1f2937;
+  color: var(--text);
 }
 
 .summary-label {
   font-size: 0.875rem;
-  color: #6b7280;
+  color: var(--text-muted);
 }
 
 .cert-card {
@@ -963,7 +964,7 @@ onMounted(() => {
   grid-template-columns: 1fr 1fr;
   gap: 1rem 1.5rem;
   padding-bottom: 1.25rem;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--border);
 }
 
 .details-grid .info-item {
@@ -1006,7 +1007,7 @@ onMounted(() => {
 .auto-renew-title {
   font-size: 0.9375rem;
   font-weight: 600;
-  color: #111827;
+  color: var(--text);
   margin-bottom: 0.25rem;
 }
 
@@ -1031,7 +1032,7 @@ onMounted(() => {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: #d1d5db;
+  background-color: var(--border);
   border-radius: 9999px;
   transition: 0.2s;
 }

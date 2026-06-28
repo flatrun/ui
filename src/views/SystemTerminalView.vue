@@ -52,22 +52,22 @@ const connected = ref(false);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: white;
+  background: var(--surface-raised);
   padding: 1.25rem;
   border-radius: var(--radius-sm);
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border);
 }
 
 .header-content h1 {
   font-size: 1.5rem;
   font-weight: 600;
-  color: #1f2937;
+  color: var(--text);
   margin: 0;
 }
 
 .subtitle {
   font-size: 0.875rem;
-  color: #6b7280;
+  color: var(--text-muted);
   margin: 0.25rem 0 0 0;
 }
 
@@ -89,7 +89,7 @@ const connected = ref(false);
   display: flex;
   gap: 0.5rem;
   align-items: center;
-  color: #6b7280;
+  color: var(--text-muted);
   font-size: 0.875rem;
 }
 </style>

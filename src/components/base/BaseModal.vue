@@ -20,7 +20,7 @@
               </slot>
             </div>
             <button v-if="showClose" class="close-btn" :disabled="closeDisabled" @click="emit('close')">
-              <i class="pi pi-times" />
+              <Icon name="x" :size="18" />
             </button>
           </div>
 
@@ -39,6 +39,7 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
+import Icon from "@/components/base/Icon.vue";
 
 const props = withDefaults(
   defineProps<{
@@ -99,7 +100,7 @@ const handleOverlayClick = () => {
 }
 
 .modal-container {
-  background: white;
+  background: var(--surface-raised);
   border-radius: var(--radius-xl);
   display: flex;
   flex-direction: column;
@@ -111,10 +112,6 @@ const handleOverlayClick = () => {
   width: 100%;
   max-height: 90vh;
   overflow: hidden;
-}
-
-.modal-container.no-radius {
-  border-radius: 0;
 }
 
 .modal-sm {
@@ -147,13 +144,13 @@ const handleOverlayClick = () => {
 }
 
 .modal-header {
-  padding: var(--space-5) var(--space-6);
-  border-bottom: 1px solid var(--color-gray-100);
+  padding: var(--space-3) var(--space-5);
+  border-bottom: 1px solid var(--border-subtle);
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   gap: var(--space-4);
-  background: linear-gradient(to bottom, var(--color-gray-50), white);
+  background: linear-gradient(to bottom, var(--surface-sunken), var(--surface-raised));
   flex-shrink: 0;
 }
 
@@ -191,8 +188,8 @@ const handleOverlayClick = () => {
 }
 
 .header-icon {
-  width: 44px;
-  height: 44px;
+  width: 36px;
+  height: 36px;
   border-radius: var(--radius-md);
   display: flex;
   align-items: center;
@@ -247,14 +244,14 @@ const handleOverlayClick = () => {
 .header-text h3 {
   font-size: var(--text-2xl);
   font-weight: var(--font-semibold);
-  color: var(--color-gray-900);
+  color: var(--text);
   margin: 0;
   line-height: 1.3;
 }
 
 .header-subtitle {
   font-size: var(--text-md);
-  color: var(--color-gray-500);
+  color: var(--text-muted);
   margin: var(--space-1) 0 0;
   line-height: 1.4;
 }
@@ -262,18 +259,19 @@ const handleOverlayClick = () => {
 .close-btn {
   background: none;
   border: none;
-  color: var(--color-gray-400);
+  color: var(--text-subtle);
   cursor: pointer;
   padding: var(--space-2);
   border-radius: var(--radius-md);
   transition: all var(--transition-base);
   flex-shrink: 0;
   margin: calc(var(--space-1) * -1);
+  display: flex;
 }
 
 .close-btn:hover:not(:disabled) {
-  background: var(--color-gray-100);
-  color: var(--color-gray-600);
+  background: var(--surface-sunken);
+  color: var(--text);
 }
 
 .close-btn:disabled {
@@ -285,6 +283,7 @@ const handleOverlayClick = () => {
   padding: var(--space-6);
   flex: 1;
   overflow-y: auto;
+  color: var(--text);
 }
 
 .modal-body.no-padding {
@@ -293,12 +292,12 @@ const handleOverlayClick = () => {
 
 .modal-footer {
   padding: var(--space-4) var(--space-6);
-  border-top: 1px solid var(--color-gray-100);
+  border-top: 1px solid var(--border-subtle);
   display: flex;
   justify-content: flex-end;
   align-items: center;
   gap: var(--space-3);
-  background: var(--color-gray-50);
+  background: var(--surface-sunken);
   flex-shrink: 0;
 }
 

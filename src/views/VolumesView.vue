@@ -469,10 +469,10 @@ onMounted(() => {
 .stats-bar {
   display: flex;
   gap: var(--space-6);
-  background: white;
+  background: var(--surface-raised);
   padding: var(--space-4) var(--space-6);
   border-radius: var(--radius-sm);
-  border: 1px solid var(--color-gray-200);
+  border: 1px solid var(--border);
 }
 
 .stat-item {
@@ -488,27 +488,27 @@ onMounted(() => {
 .stat-value {
   font-size: var(--text-2xl);
   font-weight: var(--font-semibold);
-  color: var(--color-gray-900);
+  color: var(--text);
 }
 
 .stat-label {
   font-size: var(--text-sm);
-  color: var(--color-gray-500);
+  color: var(--text-muted);
   text-transform: uppercase;
 }
 
 .volume-name-cell {
   font-weight: var(--font-medium);
-  color: var(--color-gray-900);
+  color: var(--text);
   word-break: break-all;
 }
 
 .driver-badge {
   font-size: var(--text-sm);
-  background: var(--color-gray-100);
+  background: var(--surface-inset);
   padding: 0.25rem 0.5rem;
   border-radius: var(--radius-sm);
-  color: var(--color-gray-600);
+  color: var(--text-muted);
 }
 
 .status-badge {
@@ -530,7 +530,7 @@ onMounted(() => {
 
 .mountpoint-code {
   font-size: var(--text-xs);
-  background: var(--color-gray-100);
+  background: var(--surface-inset);
   padding: 0.375rem 0.5rem;
   border-radius: var(--radius-sm);
   word-break: break-all;
@@ -550,9 +550,9 @@ onMounted(() => {
 }
 
 .volume-card {
-  background: white;
+  background: var(--surface-raised);
   border-radius: var(--radius-md);
-  border: 1px solid var(--color-gray-200);
+  border: 1px solid var(--border);
   overflow: hidden;
   transition: all var(--transition-base);
 }
@@ -572,8 +572,8 @@ onMounted(() => {
 
 .volume-card-header {
   padding: var(--space-4);
-  background: var(--color-gray-50);
-  border-bottom: 1px solid var(--color-gray-100);
+  background: var(--surface-sunken);
+  border-bottom: 1px solid var(--border-subtle);
   display: flex;
   align-items: center;
   gap: var(--space-3);
@@ -613,14 +613,14 @@ onMounted(() => {
 .volume-name {
   font-size: var(--text-lg);
   font-weight: var(--font-semibold);
-  color: var(--color-gray-900);
+  color: var(--text);
   margin: 0 0 0.125rem 0;
   word-break: break-all;
 }
 
 .volume-driver {
   font-size: var(--text-sm);
-  color: var(--color-gray-500);
+  color: var(--text-muted);
 }
 
 .volume-card-body {
@@ -642,19 +642,19 @@ onMounted(() => {
 
 .detail-label {
   font-size: var(--text-xs);
-  color: var(--color-gray-500);
+  color: var(--text-muted);
   text-transform: uppercase;
   font-weight: var(--font-semibold);
 }
 
 .detail-value {
   font-size: var(--text-base);
-  color: var(--color-gray-900);
+  color: var(--text);
 }
 
 .detail-value.path {
   font-size: var(--text-xs);
-  background: var(--color-gray-100);
+  background: var(--surface-inset);
   padding: 0.375rem 0.5rem;
   border-radius: var(--radius-sm);
   word-break: break-all;
@@ -669,7 +669,7 @@ onMounted(() => {
 .containers-title {
   display: block;
   font-size: var(--text-xs);
-  color: var(--color-gray-500);
+  color: var(--text-muted);
   text-transform: uppercase;
   font-weight: var(--font-semibold);
   margin-bottom: 0.375rem;
@@ -683,8 +683,8 @@ onMounted(() => {
 
 .label-tag {
   font-size: var(--text-xs);
-  background: var(--color-gray-100);
-  color: var(--color-gray-600);
+  background: var(--surface-inset);
+  color: var(--text-muted);
   padding: 0.125rem 0.5rem;
   border-radius: var(--radius-sm);
   font-family: var(--font-mono);
@@ -713,7 +713,7 @@ onMounted(() => {
 
 .volume-card-actions {
   padding: var(--space-3) var(--space-4);
-  border-top: 1px solid var(--color-gray-100);
+  border-top: 1px solid var(--border-subtle);
   display: flex;
   gap: 0.375rem;
 }
@@ -731,13 +731,13 @@ onMounted(() => {
 }
 
 .action-btn.inspect {
-  background: var(--color-gray-100);
-  color: var(--color-gray-600);
+  background: var(--surface-inset);
+  color: var(--text-muted);
 }
 
 .action-btn.inspect:hover {
-  background: var(--color-gray-200);
-  color: var(--color-gray-900);
+  background: var(--border);
+  color: var(--text);
 }
 
 .action-btn.delete {
@@ -787,13 +787,13 @@ onMounted(() => {
 }
 
 .btn-secondary {
-  background: white;
-  border: 1px solid var(--color-gray-200);
-  color: var(--color-gray-700);
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  color: var(--text);
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background: var(--color-gray-50);
+  background: var(--surface-sunken);
 }
 
 .btn-warning {
@@ -837,7 +837,7 @@ onMounted(() => {
 .form-group label {
   font-size: var(--text-md);
   font-weight: var(--font-medium);
-  color: var(--color-gray-700);
+  color: var(--text);
 }
 
 .labels-input {
@@ -882,30 +882,30 @@ onMounted(() => {
   align-items: center;
   gap: 0.375rem;
   padding: var(--space-2) var(--space-3);
-  background: var(--color-gray-100);
+  background: var(--surface-inset);
   border: none;
   border-radius: var(--radius-sm);
   font-size: var(--text-base);
-  color: var(--color-gray-600);
+  color: var(--text-muted);
   cursor: pointer;
   transition: all var(--transition-base);
   align-self: flex-start;
 }
 
 .add-label-btn:hover {
-  background: var(--color-gray-200);
+  background: var(--border);
 }
 
 .close-btn {
   background: none;
   border: none;
-  color: var(--color-gray-400);
+  color: var(--text-subtle);
   cursor: pointer;
   padding: 0.375rem;
   border-radius: var(--radius-sm);
 }
 
 .close-btn:hover {
-  background: var(--color-gray-200);
+  background: var(--border);
 }
 </style>

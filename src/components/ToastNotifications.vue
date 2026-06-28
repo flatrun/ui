@@ -58,11 +58,12 @@ const getIcon = (type: string) => {
   align-items: flex-start;
   gap: 0.75rem;
   padding: 1rem;
-  background: white;
+  background: var(--surface-raised);
   border-radius: var(--radius-sm);
   box-shadow:
     0 10px 40px rgba(0, 0, 0, 0.15),
     0 2px 10px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--border);
   border-left: 4px solid;
 }
 
@@ -114,14 +115,14 @@ const getIcon = (type: string) => {
 
 .toast-title {
   font-weight: 600;
-  color: #1f2937;
+  color: var(--text);
   font-size: 0.9375rem;
 }
 
 .toast-message {
   margin-top: 0.25rem;
   font-size: 0.875rem;
-  color: #6b7280;
+  color: var(--text-muted);
   line-height: 1.4;
 }
 
@@ -129,7 +130,7 @@ const getIcon = (type: string) => {
   flex-shrink: 0;
   background: none;
   border: none;
-  color: #9ca3af;
+  color: var(--text-subtle);
   cursor: pointer;
   padding: 0.25rem;
   border-radius: var(--radius-sm);
@@ -137,8 +138,8 @@ const getIcon = (type: string) => {
 }
 
 .toast-close:hover {
-  background: #f3f4f6;
-  color: #6b7280;
+  background: var(--surface-inset);
+  color: var(--text-muted);
 }
 
 .toast-enter-active,

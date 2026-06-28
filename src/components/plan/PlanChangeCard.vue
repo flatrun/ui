@@ -62,10 +62,10 @@ const hasDiff = computed(() => !isRedacted.value && (props.change.before !== nul
 
 <style scoped>
 .change-card {
-  border: 1px solid var(--color-gray-200);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   padding: var(--space-3);
-  background: white;
+  background: var(--surface-raised);
 }
 
 .change-header {
@@ -79,7 +79,7 @@ const hasDiff = computed(() => !isRedacted.value && (props.change.before !== nul
 }
 
 .change-icon {
-  color: var(--color-gray-500);
+  color: var(--text-muted);
   font-size: var(--text-sm);
 }
 
@@ -113,14 +113,14 @@ const hasDiff = computed(() => !isRedacted.value && (props.change.before !== nul
 }
 
 .badge-no-op {
-  background: var(--color-gray-100);
-  color: var(--color-gray-600);
+  background: var(--surface-inset);
+  color: var(--text-muted);
 }
 
 .change-id {
   font-family: var(--font-mono);
   font-size: var(--text-xs);
-  color: var(--color-gray-700);
+  color: var(--text);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -130,14 +130,14 @@ const hasDiff = computed(() => !isRedacted.value && (props.change.before !== nul
 
 .expand-icon {
   font-size: var(--text-xs);
-  color: var(--color-gray-400);
+  color: var(--text-subtle);
   flex-shrink: 0;
 }
 
 .change-reason {
   margin: var(--space-2) 0 0;
   font-size: var(--text-xs);
-  color: var(--color-gray-500);
+  color: var(--text-muted);
 }
 
 .redacted-notice {
@@ -146,11 +146,11 @@ const hasDiff = computed(() => !isRedacted.value && (props.change.before !== nul
   gap: var(--space-2);
   margin-top: var(--space-2);
   padding: var(--space-2) var(--space-3);
-  background: var(--color-gray-50);
-  border: 1px dashed var(--color-gray-300);
+  background: var(--surface-sunken);
+  border: 1px dashed var(--border);
   border-radius: var(--radius-sm);
   font-size: var(--text-xs);
-  color: var(--color-gray-600);
+  color: var(--text-muted);
 }
 
 .reveal-btn {

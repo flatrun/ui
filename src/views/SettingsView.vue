@@ -1649,10 +1649,10 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: white;
+  background: var(--surface-raised);
   padding: 0.5rem;
   border-radius: var(--radius-sm);
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border);
 }
 
 .tabs {
@@ -1670,13 +1670,13 @@ onMounted(() => {
   border-radius: var(--radius-sm);
   font-size: 0.875rem;
   font-weight: 500;
-  color: #6b7280;
+  color: var(--text-muted);
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .tab:hover {
-  background: #f3f4f6;
+  background: var(--surface-inset);
   color: #374151;
 }
 
@@ -1693,14 +1693,14 @@ onMounted(() => {
   padding: 0.625rem;
   background: transparent;
   border: none;
-  color: #6b7280;
+  color: var(--text-muted);
   border-radius: var(--radius-sm);
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .btn-icon:hover:not(:disabled) {
-  background: #f3f4f6;
+  background: var(--surface-inset);
   color: #374151;
 }
 
@@ -1715,15 +1715,16 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   padding: 4rem;
-  background: white;
+  background: var(--surface-raised);
   border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
   text-align: center;
   gap: 1rem;
 }
 
 .loading-state i {
   font-size: 3rem;
-  color: #9ca3af;
+  color: var(--text-subtle);
 }
 
 .settings-content {
@@ -1744,15 +1745,15 @@ onMounted(() => {
 }
 
 .settings-card {
-  background: white;
+  background: var(--surface-raised);
   border-radius: var(--radius-sm);
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border);
   overflow: hidden;
 }
 
 .card-header {
   padding: 1rem 1.25rem;
-  border-bottom: 1px solid #f3f4f6;
+  border-bottom: 1px solid var(--border-subtle);
   display: flex;
   align-items: center;
   gap: 0.625rem;
@@ -1766,7 +1767,7 @@ onMounted(() => {
 .card-header h3 {
   font-size: 0.9375rem;
   font-weight: 600;
-  color: #1f2937;
+  color: var(--text);
   margin: 0;
   flex: 1;
 }
@@ -1775,15 +1776,15 @@ onMounted(() => {
   font-size: 0.6875rem;
   font-weight: 500;
   padding: 0.25rem 0.5rem;
-  background: #f3f4f6;
-  color: #6b7280;
+  background: var(--surface-inset);
+  color: var(--text-muted);
   border-radius: var(--radius-sm);
   text-transform: uppercase;
   letter-spacing: 0.025em;
 }
 
 .card-header .chevron {
-  color: #9ca3af;
+  color: var(--text-subtle);
   transition: transform 0.2s;
 }
 
@@ -1792,7 +1793,7 @@ onMounted(() => {
 }
 
 .card-header.clickable:hover {
-  background: #f9fafb;
+  background: var(--surface-sunken);
 }
 
 .card-body {
@@ -1802,7 +1803,7 @@ onMounted(() => {
 .card-footer {
   padding-top: 1.25rem;
   margin-top: 1rem;
-  border-top: 1px solid #f3f4f6;
+  border-top: 1px solid var(--border-subtle);
   display: flex;
   justify-content: flex-end;
 }
@@ -1821,11 +1822,11 @@ onMounted(() => {
 
 .info-label {
   font-size: 0.8125rem;
-  color: #6b7280;
+  color: var(--text-muted);
 }
 
 .info-item code {
-  background: #f3f4f6;
+  background: var(--surface-inset);
   padding: 0.25rem 0.5rem;
   border-radius: var(--radius-sm);
   font-family: "SF Mono", "Fira Code", monospace;
@@ -1849,8 +1850,8 @@ onMounted(() => {
 }
 
 .status-badge.disabled {
-  background: #f3f4f6;
-  color: #6b7280;
+  background: var(--surface-inset);
+  color: var(--text-muted);
 }
 
 .actions-grid {
@@ -1864,8 +1865,8 @@ onMounted(() => {
   align-items: center;
   gap: 0.5rem;
   padding: 0.625rem 0.75rem;
-  background: #f9fafb;
-  border: 1px solid #e5e7eb;
+  background: var(--surface-sunken);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   font-size: 0.8125rem;
   font-weight: 500;
@@ -1875,8 +1876,8 @@ onMounted(() => {
 }
 
 .action-btn:hover:not(:disabled) {
-  background: #f3f4f6;
-  border-color: #d1d5db;
+  background: var(--surface-inset);
+  border-color: var(--border);
 }
 
 .action-btn:disabled {
@@ -1908,13 +1909,13 @@ onMounted(() => {
 .config-label {
   font-size: 0.75rem;
   font-weight: 500;
-  color: #6b7280;
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.025em;
 }
 
 .config-item code {
-  background: #f3f4f6;
+  background: var(--surface-inset);
   padding: 0.375rem 0.5rem;
   border-radius: var(--radius-md);
   font-family: "SF Mono", "Fira Code", monospace;
@@ -1929,7 +1930,7 @@ onMounted(() => {
 }
 
 .origins-list code {
-  background: #f3f4f6;
+  background: var(--surface-inset);
   padding: 0.25rem 0.5rem;
   border-radius: var(--radius-sm);
   font-family: "SF Mono", "Fira Code", monospace;
@@ -1970,7 +1971,7 @@ onMounted(() => {
 
 .config-preview {
   background: #1f2937;
-  color: #d1d5db;
+  color: var(--border);
   padding: 1rem;
   border-radius: var(--radius-sm);
   font-family: "SF Mono", "Fira Code", monospace;
@@ -2004,7 +2005,7 @@ onMounted(() => {
 
 .form-hint {
   font-size: 0.75rem;
-  color: #9ca3af;
+  color: var(--text-subtle);
 }
 
 .subsection-title {
@@ -2013,22 +2014,22 @@ onMounted(() => {
   color: #374151;
   margin: 1.25rem 0 0.25rem;
   padding-top: 1rem;
-  border-top: 1px solid #f3f4f6;
+  border-top: 1px solid var(--border-subtle);
 }
 
 .subsection-hint {
   font-size: 0.75rem;
-  color: #6b7280;
+  color: var(--text-muted);
   margin-bottom: 1rem;
 }
 
 .form-input {
   padding: 0.5rem 0.75rem;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   font-size: 0.875rem;
   color: #374151;
-  background: white;
+  background: var(--surface);
   transition:
     border-color 0.2s,
     box-shadow 0.2s;
@@ -2041,16 +2042,16 @@ onMounted(() => {
 }
 
 .form-input::placeholder {
-  color: #9ca3af;
+  color: var(--text-subtle);
 }
 
 .form-select {
   padding: 0.5rem 2rem 0.5rem 0.75rem;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   font-size: 0.875rem;
   color: #374151;
-  background: white
+  background: var(--surface)
     url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")
     right 0.5rem center/1.5em 1.5em no-repeat;
   appearance: none;
@@ -2100,7 +2101,7 @@ onMounted(() => {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: #d1d5db;
+  background-color: var(--border);
   transition: 0.3s;
   border-radius: 24px;
 }
@@ -2206,7 +2207,7 @@ onMounted(() => {
 
 /* Credentials Tab Styles */
 .section-description {
-  color: #6b7280;
+  color: var(--text-muted);
   font-size: 0.875rem;
   margin-bottom: 1.5rem;
   line-height: 1.5;
@@ -2216,7 +2217,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  color: #6b7280;
+  color: var(--text-muted);
   font-size: 0.875rem;
   padding: 1rem 0;
 }
@@ -2231,7 +2232,7 @@ onMounted(() => {
 
 .empty-state i {
   font-size: 2.5rem;
-  color: #d1d5db;
+  color: var(--border);
   margin-bottom: 1rem;
 }
 
@@ -2242,7 +2243,7 @@ onMounted(() => {
 }
 
 .empty-hint {
-  color: #9ca3af;
+  color: var(--text-subtle);
   font-size: 0.8125rem;
   max-width: 320px;
 }
@@ -2258,8 +2259,8 @@ onMounted(() => {
   align-items: center;
   justify-content: space-between;
   padding: 1rem;
-  background: #f9fafb;
-  border: 1px solid #e5e7eb;
+  background: var(--surface-sunken);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
 }
 
@@ -2271,7 +2272,7 @@ onMounted(() => {
 
 .credential-name {
   font-weight: 500;
-  color: #111827;
+  color: var(--text);
 }
 
 .credential-meta {
@@ -2279,7 +2280,7 @@ onMounted(() => {
   align-items: center;
   gap: 0.75rem;
   font-size: 0.8125rem;
-  color: #6b7280;
+  color: var(--text-muted);
 }
 
 .credential-username {
@@ -2339,8 +2340,8 @@ onMounted(() => {
 
 /* Add Credential Form */
 .add-credential-form {
-  background: #f9fafb;
-  border: 1px solid #e5e7eb;
+  background: var(--surface-sunken);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   padding: 1.25rem;
   margin-bottom: 1.5rem;
@@ -2350,7 +2351,7 @@ onMounted(() => {
   margin: 0 0 1rem 0;
   font-size: 0.9375rem;
   font-weight: 600;
-  color: #111827;
+  color: var(--text);
 }
 
 .credential-form-grid {
@@ -2370,7 +2371,7 @@ onMounted(() => {
 .form-control {
   width: 100%;
   padding: 0.5rem 0.75rem;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
   font-size: 0.875rem;
   transition:
@@ -2399,13 +2400,13 @@ onMounted(() => {
   right: 0.5rem;
   background: none;
   border: none;
-  color: #9ca3af;
+  color: var(--text-subtle);
   cursor: pointer;
   padding: 0.25rem;
 }
 
 .password-toggle-btn:hover {
-  color: #6b7280;
+  color: var(--text-muted);
 }
 
 .checkbox-label {
@@ -2427,7 +2428,7 @@ onMounted(() => {
   gap: 0.75rem;
   margin-top: 1.25rem;
   padding-top: 1rem;
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid var(--border);
 }
 
 /* Confirmation Modal */
@@ -2442,8 +2443,9 @@ onMounted(() => {
 }
 
 .confirm-modal {
-  background: white;
+  background: var(--surface-raised);
   border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
   padding: 1.5rem;
   max-width: 400px;
   width: 90%;
@@ -2473,12 +2475,12 @@ onMounted(() => {
   margin: 0 0 0.5rem 0;
   font-size: 1.125rem;
   font-weight: 600;
-  color: #111827;
+  color: var(--text);
 }
 
 .confirm-modal p {
   margin: 0 0 1.5rem 0;
-  color: #6b7280;
+  color: var(--text-muted);
   font-size: 0.875rem;
   line-height: 1.5;
 }
@@ -2512,17 +2514,17 @@ onMounted(() => {
   margin: 0;
   padding: 0.5rem 1.25rem;
   font-size: 0.8125rem;
-  color: var(--color-gray-600);
+  color: var(--text-muted);
   line-height: 1.4;
-  border-bottom: 1px solid var(--color-gray-100);
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .empty-rules {
   padding: 0.5rem 0.75rem;
   margin: 0.5rem 0;
   font-size: 0.8125rem;
-  color: var(--color-gray-500);
-  background: var(--color-gray-50);
+  color: var(--text-muted);
+  background: var(--surface-sunken);
   border-radius: var(--radius-md);
 }
 
@@ -2539,8 +2541,8 @@ onMounted(() => {
   justify-content: space-between;
   gap: 0.5rem;
   padding: 0.4375rem 0.625rem;
-  background: var(--color-gray-50);
-  border: 1px solid var(--color-gray-200);
+  background: var(--surface-sunken);
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
 }
 
@@ -2558,7 +2560,7 @@ onMounted(() => {
   font-family: "SF Mono", "Fira Code", monospace;
   font-size: 0.8125rem;
   padding: 0.0625rem 0.375rem;
-  background: var(--color-gray-100);
+  background: var(--surface-inset);
   border-radius: var(--radius-sm);
   word-break: break-all;
 }
@@ -2579,15 +2581,15 @@ onMounted(() => {
 }
 
 .rule-badge.subtle {
-  background: var(--color-gray-100);
-  color: var(--color-gray-600);
+  background: var(--surface-inset);
+  color: var(--text-muted);
 }
 
 .rule-explanation {
   flex-basis: 100%;
   margin: 0;
   font-size: 0.75rem;
-  color: var(--color-gray-500);
+  color: var(--text-muted);
   line-height: 1.3;
 }
 
@@ -2610,7 +2612,7 @@ onMounted(() => {
   gap: 0.375rem;
   margin: 0.375rem 0 0;
   font-size: 0.75rem;
-  color: var(--color-gray-500);
+  color: var(--text-muted);
   line-height: 1.35;
 }
 
@@ -2619,6 +2621,6 @@ onMounted(() => {
 }
 
 .rule-preview-sentence {
-  color: var(--color-gray-700);
+  color: var(--text);
 }
 </style>

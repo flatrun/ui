@@ -111,6 +111,70 @@
   --z-sticky: 100;
   --z-modal: 1000;
   --z-toast: 1100;
+
+  /* Semantic surface/text tokens (themeable: see [data-theme="dark"]) */
+  --app-bg: #f8fafc;
+  --surface: #ffffff;
+  --surface-raised: #ffffff;
+  --surface-sunken: var(--color-gray-50);
+  --surface-inset: var(--color-gray-100);
+  --text: #1e293b;
+  --text-muted: var(--color-gray-500);
+  --text-subtle: var(--color-gray-400);
+  --border: var(--color-gray-200);
+  --border-subtle: var(--color-gray-100);
+  --accent: var(--color-primary-500);
+  --accent-hover: var(--color-primary-600);
+  --accent-subtle: var(--color-primary-50);
+  --accent-contrast: #ffffff;
+
+  /* Shell (sidebar) tokens */
+  --sidebar-bg: #0f172a;
+  --sidebar-surface: #111c33;
+  --sidebar-text: #94a3b8;
+  --sidebar-text-hover: #e2e8f0;
+  --sidebar-text-active: #60a5fa;
+  --sidebar-border: rgba(255, 255, 255, 0.06);
+
+  /* Colorful accent set (used intentionally for stats/sections) */
+  --c-blue: #3b82f6;
+  --c-green: #22c55e;
+  --c-amber: #f59e0b;
+  --c-red: #ef4444;
+  --c-purple: #8b5cf6;
+  --c-teal: #14b8a6;
+}
+
+[data-theme="dark"] {
+  --app-bg: #0a0f1a;
+  --surface: #111827;
+  --surface-raised: #161f30;
+  --surface-sunken: #0d1320;
+  --surface-inset: #1c2536;
+  --text: #e5e9f0;
+  --text-muted: #97a3b6;
+  --text-subtle: #6b7688;
+  --border: #243044;
+  --border-subtle: #1a2335;
+  --accent: var(--color-primary-400);
+  --accent-hover: var(--color-primary-300);
+  --accent-subtle: rgba(96, 165, 250, 0.12);
+  --accent-contrast: #0a0f1a;
+
+  --sidebar-bg: #0a0f1a;
+  --sidebar-surface: #131c2e;
+  --sidebar-text: #97a3b6;
+  --sidebar-text-hover: #e5e9f0;
+  --sidebar-text-active: #60a5fa;
+  --sidebar-border: rgba(255, 255, 255, 0.06);
+
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 6px 16px rgba(0, 0, 0, 0.45);
+  --shadow-xl: 0 10px 25px rgba(0, 0, 0, 0.5);
+  --shadow-2xl: 0 25px 50px rgba(0, 0, 0, 0.6);
+  --ring-color: rgba(96, 165, 250, 0.25);
 }
 
 /* Component Base Styles */
@@ -133,22 +197,22 @@
 }
 
 .btn-primary {
-  background: var(--color-primary-500);
-  color: white;
+  background: var(--accent);
+  color: var(--accent-contrast);
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: var(--color-primary-600);
+  background: var(--accent-hover);
 }
 
 .btn-secondary {
-  background: white;
-  border: 1px solid var(--color-gray-200);
-  color: var(--color-gray-700);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background: var(--color-gray-50);
+  background: var(--surface-sunken);
 }
 
 .btn-danger {
@@ -162,11 +226,11 @@
 
 .btn-ghost {
   background: transparent;
-  color: var(--color-gray-500);
+  color: var(--text-muted);
 }
 
 .btn-ghost:hover {
-  color: var(--color-gray-700);
+  color: var(--text);
 }
 
 .btn:disabled {
@@ -177,23 +241,25 @@
 /* Form Elements */
 .form-input {
   padding: var(--space-2) var(--space-3);
-  border: 1px solid var(--color-gray-200);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   font-size: var(--text-md);
+  background: var(--surface);
+  color: var(--text);
   transition: all var(--transition-base);
 }
 
 .form-input:focus {
   outline: none;
-  border-color: var(--color-primary-500);
+  border-color: var(--accent);
   box-shadow: 0 0 0 var(--ring-width) var(--ring-color);
 }
 
 /* Card */
 .card {
-  background: white;
+  background: var(--surface-raised);
   border-radius: var(--radius-md);
-  border: 1px solid var(--color-gray-200);
+  border: 1px solid var(--border);
   overflow: hidden;
   transition: all var(--transition-base);
 }
@@ -269,7 +335,7 @@
 }
 
 .modal-container {
-  background: white;
+  background: var(--surface-raised);
   border-radius: var(--radius-xl);
   width: 100%;
   box-shadow:
@@ -283,11 +349,12 @@
 
 .modal-header {
   padding: var(--space-5) var(--space-6);
-  border-bottom: 1px solid var(--color-gray-100);
+  border-bottom: 1px solid var(--border-subtle);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: linear-gradient(to bottom, var(--color-gray-50), white);
+  background: var(--surface-raised);
+  color: var(--text);
 }
 
 .modal-body {
@@ -296,11 +363,11 @@
 
 .modal-footer {
   padding: var(--space-4) var(--space-6);
-  border-top: 1px solid var(--color-gray-100);
+  border-top: 1px solid var(--border-subtle);
   display: flex;
   justify-content: flex-end;
   gap: var(--space-3);
-  background: var(--color-gray-50);
+  background: var(--surface-sunken);
 }
 
 @keyframes modalOverlayIn {
@@ -330,30 +397,30 @@
 }
 
 .data-table th {
-  background: var(--color-gray-50);
+  background: var(--surface-sunken);
   padding: var(--space-3) var(--space-4);
   text-align: left;
   font-size: var(--text-sm);
   font-weight: var(--font-semibold);
-  color: var(--color-gray-500);
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  border-bottom: 1px solid var(--color-gray-200);
+  border-bottom: 1px solid var(--border);
 }
 
 .data-table td {
   padding: var(--space-3) var(--space-4);
-  border-bottom: 1px solid var(--color-gray-100);
+  border-bottom: 1px solid var(--border-subtle);
   font-size: var(--text-md);
-  color: var(--color-gray-700);
+  color: var(--text);
 }
 
 .data-table tr:hover {
-  background: var(--color-gray-50);
+  background: var(--surface-sunken);
 }
 
 .data-table tr.selected {
-  background: var(--color-primary-50);
+  background: var(--accent-subtle);
 }
 
 /* Empty/Loading States */
@@ -363,7 +430,7 @@
   flex-direction: column;
   align-items: center;
   padding: var(--space-12);
-  background: white;
+  background: var(--surface-raised);
   border-radius: var(--radius-md);
   text-align: center;
   gap: var(--space-4);
@@ -372,16 +439,16 @@
 .empty-state i,
 .loading-state i {
   font-size: 3rem;
-  color: var(--color-gray-400);
+  color: var(--text-subtle);
 }
 
 .empty-state h3 {
   font-size: var(--text-3xl);
-  color: var(--color-gray-700);
+  color: var(--text);
   margin: 0;
 }
 
 .empty-state p {
-  color: var(--color-gray-500);
+  color: var(--text-muted);
   margin: 0;
 }

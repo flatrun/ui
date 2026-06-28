@@ -520,10 +520,10 @@ onMounted(() => {
 .stats-bar {
   display: flex;
   gap: var(--space-6);
-  background: white;
+  background: var(--surface-raised);
   padding: var(--space-4) var(--space-6);
   border-radius: var(--radius-sm);
-  border: 1px solid var(--color-gray-200);
+  border: 1px solid var(--border);
 }
 
 .stat-item {
@@ -535,18 +535,18 @@ onMounted(() => {
 .stat-value {
   font-size: var(--text-2xl);
   font-weight: var(--font-semibold);
-  color: var(--color-gray-900);
+  color: var(--text);
 }
 
 .stat-label {
   font-size: var(--text-sm);
-  color: var(--color-gray-500);
+  color: var(--text-muted);
   text-transform: uppercase;
 }
 
 .repo-name {
   font-weight: var(--font-medium);
-  color: var(--color-gray-900);
+  color: var(--text);
 }
 
 .tag-badge {
@@ -560,16 +560,16 @@ onMounted(() => {
 
 .no-tag {
   font-size: var(--text-xs);
-  color: var(--color-gray-400);
+  color: var(--text-subtle);
   font-style: italic;
 }
 
 .image-id {
   font-size: var(--text-sm);
-  background: var(--color-gray-100);
+  background: var(--surface-inset);
   padding: 0.25rem 0.5rem;
   border-radius: var(--radius-sm);
-  color: var(--color-gray-600);
+  color: var(--text-muted);
 }
 
 .container-count {
@@ -594,14 +594,14 @@ onMounted(() => {
   border: none;
   border-radius: var(--radius-sm);
   cursor: pointer;
-  background: var(--color-gray-100);
-  color: var(--color-gray-600);
+  background: var(--surface-inset);
+  color: var(--text-muted);
   transition: all var(--transition-base);
 }
 
 .action-btn:hover:not(:disabled) {
-  background: var(--color-gray-200);
-  color: var(--color-gray-900);
+  background: var(--surface-inset);
+  color: var(--text);
 }
 
 .action-btn.delete {
@@ -625,9 +625,9 @@ onMounted(() => {
 }
 
 .image-card {
-  background: white;
+  background: var(--surface-raised);
   border-radius: var(--radius-md);
-  border: 1px solid var(--color-gray-200);
+  border: 1px solid var(--border);
   overflow: hidden;
   transition: all var(--transition-base);
 }
@@ -643,8 +643,8 @@ onMounted(() => {
 
 .image-card-header {
   padding: var(--space-4);
-  background: var(--color-gray-50);
-  border-bottom: 1px solid var(--color-gray-100);
+  background: var(--surface-sunken);
+  border-bottom: 1px solid var(--border-subtle);
   display: flex;
   align-items: center;
   gap: var(--space-3);
@@ -673,8 +673,8 @@ onMounted(() => {
   margin-left: auto;
   font-size: var(--text-base);
   font-weight: var(--font-semibold);
-  color: var(--color-gray-600);
-  background: white;
+  color: var(--text-muted);
+  background: var(--surface-raised);
   padding: 0.25rem 0.625rem;
   border-radius: var(--radius-sm);
 }
@@ -686,7 +686,7 @@ onMounted(() => {
 .image-name {
   font-size: var(--text-xl);
   font-weight: var(--font-semibold);
-  color: var(--color-gray-900);
+  color: var(--text);
   margin: 0 0 var(--space-2) 0;
 }
 
@@ -717,7 +717,7 @@ onMounted(() => {
   align-items: center;
   gap: 0.375rem;
   font-size: var(--text-sm);
-  color: var(--color-gray-500);
+  color: var(--text-muted);
 }
 
 .meta-item i {
@@ -726,7 +726,7 @@ onMounted(() => {
 
 .image-card-actions {
   padding: var(--space-3) var(--space-4);
-  border-top: 1px solid var(--color-gray-100);
+  border-top: 1px solid var(--border-subtle);
   display: flex;
   gap: 0.375rem;
 }
@@ -764,13 +764,13 @@ onMounted(() => {
 }
 
 .btn-secondary {
-  background: white;
-  border: 1px solid var(--color-gray-200);
-  color: var(--color-gray-700);
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  color: var(--text);
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background: var(--color-gray-50);
+  background: var(--surface-sunken);
 }
 
 .btn-danger {
@@ -796,7 +796,7 @@ onMounted(() => {
   gap: var(--space-2);
   cursor: pointer;
   font-size: var(--text-sm);
-  color: var(--color-gray-600);
+  color: var(--text-muted);
 }
 
 .checkbox-label input {
@@ -808,9 +808,9 @@ onMounted(() => {
   flex-direction: column;
   gap: var(--space-3);
   padding: var(--space-3);
-  background: var(--color-gray-50);
+  background: var(--surface-sunken);
   border-radius: var(--radius-sm);
-  border: 1px solid var(--color-gray-200);
+  border: 1px solid var(--border);
 }
 
 .password-input-wrapper {
@@ -828,13 +828,13 @@ onMounted(() => {
   right: var(--space-2);
   background: none;
   border: none;
-  color: var(--color-gray-400);
+  color: var(--text-subtle);
   cursor: pointer;
   padding: var(--space-1);
 }
 
 .toggle-password-btn:hover {
-  color: var(--color-gray-600);
+  color: var(--text-muted);
 }
 
 .collapse-enter-active,
@@ -867,25 +867,25 @@ onMounted(() => {
 .form-group label {
   font-size: var(--text-md);
   font-weight: var(--font-medium);
-  color: var(--color-gray-700);
+  color: var(--text);
 }
 
 .form-hint {
   font-size: var(--text-sm);
-  color: var(--color-gray-500);
+  color: var(--text-muted);
 }
 
 .close-btn {
   background: none;
   border: none;
-  color: var(--color-gray-400);
+  color: var(--text-subtle);
   cursor: pointer;
   padding: 0.375rem;
   border-radius: var(--radius-sm);
 }
 
 .close-btn:hover {
-  background: var(--color-gray-200);
+  background: var(--surface-inset);
 }
 
 .credential-source-toggle {
@@ -893,7 +893,7 @@ onMounted(() => {
   gap: var(--space-4);
   margin-bottom: var(--space-3);
   padding-bottom: var(--space-3);
-  border-bottom: 1px solid var(--color-gray-200);
+  border-bottom: 1px solid var(--border);
 }
 
 .toggle-option {
@@ -902,17 +902,17 @@ onMounted(() => {
   gap: var(--space-2);
   cursor: pointer;
   font-size: var(--text-sm);
-  color: var(--color-gray-600);
+  color: var(--text-muted);
 }
 
 .form-input select,
 select.form-input {
   width: 100%;
   padding: var(--space-2) var(--space-3);
-  border: 1px solid var(--color-gray-300);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   font-size: var(--text-sm);
-  background: white;
+  background: var(--surface);
   cursor: pointer;
 }
 

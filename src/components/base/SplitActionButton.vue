@@ -92,8 +92,8 @@ onBeforeUnmount(() => document.removeEventListener("click", onDocumentClick));
   top: calc(100% + 4px);
   right: 0;
   min-width: 200px;
-  background: white;
-  border: 1px solid var(--border-color, #e2e8f0);
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
   border-radius: var(--radius-md, 8px);
   box-shadow:
     0 4px 6px rgba(0, 0, 0, 0.05),
@@ -112,7 +112,7 @@ onBeforeUnmount(() => document.removeEventListener("click", onDocumentClick));
   background: none;
   border-radius: var(--radius-sm, 6px);
   font-size: 0.85rem;
-  color: var(--text-primary, #1e293b);
+  color: var(--text);
   cursor: pointer;
   text-align: left;
 }
@@ -123,12 +123,12 @@ onBeforeUnmount(() => document.removeEventListener("click", onDocumentClick));
 
 .menu-item i {
   font-size: 0.8rem;
-  color: var(--text-secondary, #64748b);
+  color: var(--text-muted);
 }
 
 .menu-divider {
   height: 1px;
-  background: var(--border-color, #e2e8f0);
+  background: var(--border);
   margin: 0.25rem 0;
 }
 

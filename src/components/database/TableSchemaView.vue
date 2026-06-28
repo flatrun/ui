@@ -165,7 +165,7 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   height: 100%;
-  background: var(--color-gray-50);
+  background: var(--surface-sunken);
   overflow-y: auto;
 }
 
@@ -174,8 +174,8 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   padding: var(--space-4);
-  background: white;
-  border-bottom: 1px solid var(--color-gray-200);
+  background: var(--surface-raised);
+  border-bottom: 1px solid var(--border);
 }
 
 .header-left {
@@ -197,7 +197,7 @@ onMounted(() => {
 
 .header-subtitle {
   font-size: var(--text-sm);
-  color: var(--color-gray-500);
+  color: var(--text-muted);
 }
 
 .header-actions {
@@ -214,7 +214,7 @@ onMounted(() => {
   justify-content: center;
   flex: 1;
   padding: var(--space-12);
-  color: var(--color-gray-400);
+  color: var(--text-subtle);
   gap: var(--space-2);
 }
 
@@ -224,19 +224,19 @@ onMounted(() => {
 
 .error-state h3 {
   margin: 0;
-  color: var(--color-gray-900);
+  color: var(--text);
 }
 
 .error-state p {
-  color: var(--color-gray-600);
+  color: var(--text-muted);
   max-width: 400px;
   text-align: center;
 }
 
 .schema-section {
   margin: var(--space-4);
-  background: white;
-  border: 1px solid var(--color-gray-200);
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
   overflow: hidden;
 }
@@ -249,15 +249,15 @@ onMounted(() => {
   padding: var(--space-3) var(--space-4);
   font-size: var(--text-sm);
   font-weight: var(--font-semibold);
-  color: var(--color-gray-700);
-  background: var(--color-gray-50);
-  border-bottom: 1px solid var(--color-gray-200);
+  color: var(--text);
+  background: var(--surface-sunken);
+  border-bottom: 1px solid var(--border);
 }
 
 .section-count {
   font-size: var(--text-xs);
-  color: var(--color-gray-500);
-  background: var(--color-gray-200);
+  color: var(--text-muted);
+  background: var(--border);
   padding: 0 var(--space-2);
   border-radius: var(--radius-full);
   margin-left: auto;
@@ -278,16 +278,16 @@ onMounted(() => {
   text-align: left;
   font-size: var(--text-xs);
   font-weight: var(--font-semibold);
-  color: var(--color-gray-600);
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  background: var(--color-gray-50);
-  border-bottom: 1px solid var(--color-gray-200);
+  background: var(--surface-sunken);
+  border-bottom: 1px solid var(--border);
 }
 
 .columns-table td {
   padding: var(--space-2) var(--space-3);
-  border-bottom: 1px solid var(--color-gray-100);
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .columns-table tr:last-child td {
@@ -328,7 +328,7 @@ onMounted(() => {
 }
 
 .null-value {
-  color: var(--color-gray-400);
+  color: var(--text-subtle);
   font-style: italic;
   font-size: var(--text-xs);
 }
@@ -352,13 +352,13 @@ onMounted(() => {
 }
 
 .key-badge.index {
-  background: var(--color-gray-100);
-  color: var(--color-gray-600);
+  background: var(--surface-inset);
+  color: var(--text-muted);
 }
 
 .extra-text {
   font-size: var(--text-xs);
-  color: var(--color-gray-500);
+  color: var(--text-muted);
 }
 
 .indexes-list {
@@ -370,7 +370,7 @@ onMounted(() => {
 
 .index-item {
   padding: var(--space-3);
-  background: var(--color-gray-50);
+  background: var(--surface-sunken);
   border-radius: var(--radius-sm);
 }
 
@@ -392,8 +392,8 @@ onMounted(() => {
   border-radius: var(--radius-sm);
   font-size: var(--text-xs);
   font-weight: var(--font-semibold);
-  background: var(--color-gray-200);
-  color: var(--color-gray-600);
+  background: var(--border);
+  color: var(--text-muted);
 }
 
 .index-badge.primary {
@@ -414,8 +414,8 @@ onMounted(() => {
 
 .index-column {
   padding: 0.125rem 0.5rem;
-  background: white;
-  border: 1px solid var(--color-gray-200);
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   font-size: var(--text-xs);
 }
@@ -443,13 +443,13 @@ onMounted(() => {
 }
 
 .btn-secondary {
-  background: white;
-  border: 1px solid var(--color-gray-200);
-  color: var(--color-gray-700);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background: var(--color-gray-50);
+  background: var(--surface-sunken);
 }
 
 .btn-sm {

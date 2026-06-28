@@ -227,9 +227,9 @@ onMounted(() => {
 
 <style scoped>
 .health-card {
-  background: white;
+  background: var(--surface-raised);
   border-radius: var(--radius-sm);
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border);
   padding: 1.25rem;
 }
 
@@ -255,7 +255,7 @@ onMounted(() => {
   margin: 0;
   font-size: 0.9375rem;
   font-weight: 600;
-  color: #1f2937;
+  color: var(--text);
 }
 
 .health-status {
@@ -284,8 +284,8 @@ onMounted(() => {
 }
 
 .health-status.disabled {
-  background: #f3f4f6;
-  color: #6b7280;
+  background: var(--surface-inset);
+  color: var(--text-muted);
 }
 
 .health-loading,
@@ -295,7 +295,7 @@ onMounted(() => {
   justify-content: center;
   gap: 0.75rem;
   padding: 2rem;
-  color: #9ca3af;
+  color: var(--text-subtle);
   font-size: 0.875rem;
 }
 
@@ -313,7 +313,7 @@ onMounted(() => {
 
 .check-category {
   padding: 1rem;
-  background: #f9fafb;
+  background: var(--surface-sunken);
   border-radius: var(--radius-sm);
 }
 
@@ -331,7 +331,7 @@ onMounted(() => {
 }
 
 .category-title i {
-  color: #6b7280;
+  color: var(--text-muted);
   font-size: 0.875rem;
 }
 
@@ -339,7 +339,7 @@ onMounted(() => {
   margin: 0;
   font-size: 0.8125rem;
   font-weight: 600;
-  color: #374151;
+  color: var(--text);
 }
 
 .critical-badge {
@@ -379,7 +379,7 @@ onMounted(() => {
   margin: 0 0 0.75rem 0;
   font-size: 0.8125rem;
   font-weight: 600;
-  color: #374151;
+  color: var(--text);
   text-transform: uppercase;
   letter-spacing: 0.025em;
 }
@@ -467,22 +467,22 @@ onMounted(() => {
 .health-details summary {
   cursor: pointer;
   font-size: 0.8125rem;
-  color: #6b7280;
+  color: var(--text-muted);
   user-select: none;
 }
 
 .health-details summary:hover {
-  color: #374151;
+  color: var(--text);
 }
 
 .health-details pre {
   margin: 0.75rem 0 0 0;
   padding: 1rem;
-  background: #f9fafb;
+  background: var(--surface-sunken);
   border-radius: var(--radius-md);
   font-size: 0.75rem;
   overflow-x: auto;
-  color: #374151;
+  color: var(--text);
 }
 
 .btn {
@@ -506,12 +506,12 @@ onMounted(() => {
 .btn-icon {
   padding: 0.375rem;
   background: transparent;
-  color: #6b7280;
+  color: var(--text-muted);
 }
 
 .btn-icon:hover:not(:disabled) {
-  background: #f3f4f6;
-  color: #374151;
+  background: var(--surface-inset);
+  color: var(--text);
 }
 
 @media (max-width: 768px) {

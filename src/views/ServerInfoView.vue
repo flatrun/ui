@@ -196,22 +196,22 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: white;
+  background: var(--surface-raised);
   padding: 1.25rem;
   border-radius: var(--radius-sm);
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border);
 }
 
 .header-content h1 {
   font-size: 1.5rem;
   font-weight: 600;
-  color: #1f2937;
+  color: var(--text);
   margin: 0;
 }
 
 .subtitle {
   font-size: 0.875rem;
-  color: #6b7280;
+  color: var(--text-muted);
   margin: 0.25rem 0 0 0;
 }
 
@@ -219,15 +219,15 @@ onMounted(() => {
   padding: 0.625rem;
   background: transparent;
   border: none;
-  color: #6b7280;
+  color: var(--text-muted);
   border-radius: var(--radius-sm);
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .btn-icon:hover:not(:disabled) {
-  background: #f3f4f6;
-  color: #374151;
+  background: var(--surface-inset);
+  color: var(--text);
 }
 
 .btn-icon:disabled {
@@ -241,15 +241,16 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   padding: 4rem;
-  background: white;
+  background: var(--surface-raised);
   border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
   text-align: center;
   gap: 1rem;
 }
 
 .loading-state i {
   font-size: 3rem;
-  color: #9ca3af;
+  color: var(--text-subtle);
 }
 
 .info-grid {
@@ -260,9 +261,9 @@ onMounted(() => {
 
 .info-card,
 .section-card {
-  background: white;
+  background: var(--surface-raised);
   border-radius: var(--radius-sm);
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border);
   overflow: hidden;
 }
 
@@ -271,7 +272,7 @@ onMounted(() => {
   align-items: center;
   gap: 0.625rem;
   padding: 1rem 1.25rem;
-  border-bottom: 1px solid #f3f4f6;
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .card-header i {
@@ -282,7 +283,7 @@ onMounted(() => {
 .card-header h3 {
   font-size: 0.9375rem;
   font-weight: 600;
-  color: #1f2937;
+  color: var(--text);
   margin: 0;
 }
 
@@ -319,21 +320,21 @@ onMounted(() => {
 
 .info-label {
   font-size: 0.8125rem;
-  color: #6b7280;
+  color: var(--text-muted);
 }
 
 .info-value {
   font-size: 0.8125rem;
-  color: #374151;
+  color: var(--text);
 }
 
 code {
-  background: #f3f4f6;
+  background: var(--surface-inset);
   padding: 0.25rem 0.5rem;
   border-radius: var(--radius-sm);
   font-family: "SF Mono", "Fira Code", monospace;
   font-size: 0.8125rem;
-  color: #374151;
+  color: var(--text);
 }
 
 code.ipv6 {
@@ -378,18 +379,18 @@ code.ipv6 {
   padding: 0.75rem 1.25rem;
   font-size: 0.75rem;
   font-weight: 600;
-  color: #6b7280;
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  background: #f9fafb;
-  border-bottom: 1px solid #e5e7eb;
+  background: var(--surface-sunken);
+  border-bottom: 1px solid var(--border);
 }
 
 .data-table td {
   padding: 0.75rem 1.25rem;
   font-size: 0.8125rem;
-  color: #374151;
-  border-bottom: 1px solid #f3f4f6;
+  color: var(--text);
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .data-table tr:last-child td {
@@ -413,7 +414,7 @@ code.ipv6 {
 }
 
 .muted {
-  color: #9ca3af;
+  color: var(--text-subtle);
   font-size: 0.8125rem;
 }
 

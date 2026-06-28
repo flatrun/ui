@@ -313,7 +313,7 @@ const filteredAllDatabases = computed(() => {
 .database-details {
   flex: 1;
   padding: var(--space-3);
-  background: var(--color-gray-50);
+  background: var(--surface-sunken);
   overflow-y: auto;
 }
 
@@ -323,7 +323,7 @@ const filteredAllDatabases = computed(() => {
   gap: var(--space-2);
   padding-bottom: var(--space-3);
   margin-bottom: var(--space-3);
-  border-bottom: 1px solid var(--color-gray-200);
+  border-bottom: 1px solid var(--border);
 }
 
 .item-icon {
@@ -362,14 +362,14 @@ const filteredAllDatabases = computed(() => {
   background: transparent;
   border: none;
   border-radius: var(--radius-sm);
-  color: var(--color-gray-400);
+  color: var(--text-subtle);
   cursor: pointer;
   transition: all var(--transition-base);
 }
 
 .icon-btn:hover {
-  background: var(--color-gray-200);
-  color: var(--color-gray-700);
+  background: var(--border);
+  color: var(--text);
 }
 
 .icon-btn.danger:hover {
@@ -384,7 +384,7 @@ const filteredAllDatabases = computed(() => {
 .section-title {
   font-size: var(--text-xs);
   font-weight: var(--font-semibold);
-  color: var(--color-gray-500);
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   margin-bottom: var(--space-2);
@@ -394,8 +394,8 @@ const filteredAllDatabases = computed(() => {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 1px;
-  background: var(--color-gray-200);
-  border: 1px solid var(--color-gray-200);
+  background: var(--border);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   overflow: hidden;
 }
@@ -405,25 +405,25 @@ const filteredAllDatabases = computed(() => {
   flex-direction: column;
   align-items: center;
   padding: var(--space-2);
-  background: white;
+  background: var(--surface-raised);
 }
 
 .cell-value {
   font-size: var(--text-lg);
   font-weight: var(--font-semibold);
-  color: var(--color-gray-900);
+  color: var(--text);
   line-height: 1;
 }
 
 .cell-label {
   font-size: var(--text-xs);
-  color: var(--color-gray-500);
+  color: var(--text-muted);
   margin-top: 2px;
 }
 
 .props-list {
-  background: white;
-  border: 1px solid var(--color-gray-200);
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
 }
 
@@ -436,16 +436,16 @@ const filteredAllDatabases = computed(() => {
 }
 
 .prop-row:not(:last-child) {
-  border-bottom: 1px solid var(--color-gray-100);
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .prop-label {
-  color: var(--color-gray-500);
+  color: var(--text-muted);
   font-size: var(--text-xs);
 }
 
 .prop-value {
-  color: var(--color-gray-900);
+  color: var(--text);
   font-size: var(--text-xs);
 }
 
@@ -483,7 +483,7 @@ const filteredAllDatabases = computed(() => {
   justify-content: space-between;
   align-items: center;
   padding-bottom: var(--space-3);
-  border-bottom: 1px solid var(--color-gray-200);
+  border-bottom: 1px solid var(--border);
   margin-bottom: var(--space-3);
 }
 
@@ -493,14 +493,14 @@ const filteredAllDatabases = computed(() => {
   gap: var(--space-2);
   font-size: var(--text-sm);
   font-weight: var(--font-semibold);
-  color: var(--color-gray-700);
+  color: var(--text);
 }
 
 .users-count {
   font-size: var(--text-xs);
   font-weight: var(--font-normal);
-  color: var(--color-gray-500);
-  background: var(--color-gray-100);
+  color: var(--text-muted);
+  background: var(--surface-inset);
   padding: 0 var(--space-2);
   border-radius: var(--radius-full);
 }
@@ -513,14 +513,14 @@ const filteredAllDatabases = computed(() => {
   height: 24px;
   background: none;
   border: none;
-  color: var(--color-gray-400);
+  color: var(--text-subtle);
   cursor: pointer;
   border-radius: var(--radius-sm);
 }
 
 .close-btn:hover {
-  background: var(--color-gray-100);
-  color: var(--color-gray-600);
+  background: var(--surface-inset);
+  color: var(--text-muted);
 }
 
 .users-search {
@@ -533,7 +533,7 @@ const filteredAllDatabases = computed(() => {
   left: var(--space-2);
   top: 50%;
   transform: translateY(-50%);
-  color: var(--color-gray-400);
+  color: var(--text-subtle);
   pointer-events: none;
 }
 
@@ -541,7 +541,7 @@ const filteredAllDatabases = computed(() => {
   width: 100%;
   padding: var(--space-2);
   padding-left: calc(var(--space-2) + 20px);
-  border: 1px solid var(--color-gray-200);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   font-size: var(--text-sm);
 }
@@ -554,8 +554,8 @@ const filteredAllDatabases = computed(() => {
 .users-table {
   flex: 1;
   overflow-y: auto;
-  background: white;
-  border: 1px solid var(--color-gray-200);
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
 }
 
@@ -569,14 +569,14 @@ const filteredAllDatabases = computed(() => {
 .users-table td {
   padding: var(--space-2) var(--space-3);
   text-align: left;
-  border-bottom: 1px solid var(--color-gray-100);
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .users-table th {
-  background: var(--color-gray-50);
+  background: var(--surface-sunken);
   font-size: var(--text-xs);
   font-weight: var(--font-semibold);
-  color: var(--color-gray-600);
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -587,7 +587,7 @@ const filteredAllDatabases = computed(() => {
 }
 
 .users-table tr:hover {
-  background: var(--color-gray-50);
+  background: var(--surface-sunken);
 }
 
 .users-table tr.clickable-row {
@@ -613,14 +613,14 @@ const filteredAllDatabases = computed(() => {
   height: 24px;
   background: none;
   border: none;
-  color: var(--color-gray-400);
+  color: var(--text-subtle);
   cursor: pointer;
   border-radius: var(--radius-sm);
 }
 
 .table-action:hover {
-  background: var(--color-gray-100);
-  color: var(--color-gray-600);
+  background: var(--surface-inset);
+  color: var(--text-muted);
 }
 
 .table-action.danger:hover {
@@ -631,7 +631,7 @@ const filteredAllDatabases = computed(() => {
 .no-results {
   padding: var(--space-6);
   text-align: center;
-  color: var(--color-gray-400);
+  color: var(--text-subtle);
   font-size: var(--text-sm);
 }
 

@@ -39,8 +39,8 @@ const partLines = (part: ChangeObject<string>) => {
   font-family: var(--font-mono);
   font-size: var(--text-xs);
   line-height: 1.5;
-  background: var(--color-gray-50);
-  border: 1px solid var(--color-gray-200);
+  background: var(--surface-sunken);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   max-height: 320px;
   overflow: auto;
@@ -66,7 +66,7 @@ const partLines = (part: ChangeObject<string>) => {
 .diff-marker {
   flex-shrink: 0;
   user-select: none;
-  color: var(--color-gray-400);
+  color: var(--text-subtle);
 }
 
 .diff-line.added .diff-marker {

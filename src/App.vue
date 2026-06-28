@@ -44,8 +44,11 @@ onMounted(async () => {
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, sans-serif;
-  background-color: #f8fafc;
-  color: #1e293b;
+  background-color: var(--app-bg);
+  color: var(--text);
+  transition:
+    background-color var(--transition-base),
+    color var(--transition-base);
 }
 
 .app-loading {
@@ -53,7 +56,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f8fafc;
+  background: var(--app-bg);
 }
 
 .app-loading .logo-img {

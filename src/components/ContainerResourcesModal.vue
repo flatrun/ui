@@ -253,7 +253,8 @@ watch(
 }
 
 .modal-panel {
-  background: white;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
   width: 100%;
@@ -267,22 +268,22 @@ watch(
   justify-content: space-between;
   align-items: flex-start;
   padding: 1.25rem 1.5rem;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--border);
 }
 
 .modal-title-group h2 {
   font-size: 1.125rem;
   font-weight: 600;
-  color: #1f2937;
+  color: var(--text);
   margin: 0;
 }
 
 .container-name {
   font-size: 0.75rem;
-  background: #f3f4f6;
+  background: var(--surface-inset);
   padding: 0.125rem 0.5rem;
   border-radius: var(--radius-sm);
-  color: #6b7280;
+  color: var(--text-muted);
   font-family: "SF Mono", "Fira Code", monospace;
   margin-top: 0.375rem;
   display: inline-block;
@@ -291,7 +292,7 @@ watch(
 .close-btn {
   background: none;
   border: none;
-  color: #9ca3af;
+  color: var(--text-subtle);
   cursor: pointer;
   padding: 0.25rem;
   border-radius: var(--radius-sm);
@@ -299,8 +300,8 @@ watch(
 }
 
 .close-btn:hover {
-  color: #374151;
-  background: #f3f4f6;
+  color: var(--text);
+  background: var(--surface-inset);
 }
 
 .modal-loading,
@@ -310,7 +311,7 @@ watch(
   align-items: center;
   gap: 0.75rem;
   padding: 3rem;
-  color: #9ca3af;
+  color: var(--text-subtle);
 }
 
 .modal-loading i,
@@ -329,7 +330,7 @@ watch(
 .update-resources h3 {
   font-size: 0.8125rem;
   font-weight: 600;
-  color: #6b7280;
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   margin: 0 0 0.75rem 0;
@@ -342,16 +343,16 @@ watch(
 }
 
 .resource-display {
-  background: #f9fafb;
+  background: var(--surface-sunken);
   padding: 0.75rem;
   border-radius: var(--radius-sm);
-  border: 1px solid #f3f4f6;
+  border: 1px solid var(--border-subtle);
 }
 
 .resource-label {
   display: block;
   font-size: 0.6875rem;
-  color: #9ca3af;
+  color: var(--text-subtle);
   text-transform: uppercase;
   letter-spacing: 0.025em;
   margin-bottom: 0.25rem;
@@ -360,12 +361,12 @@ watch(
 .resource-value {
   font-size: 0.875rem;
   font-weight: 600;
-  color: #1f2937;
+  color: var(--text);
 }
 
 .update-resources {
   padding-top: 1rem;
-  border-top: 1px solid #f3f4f6;
+  border-top: 1px solid var(--border-subtle);
 }
 
 .form-grid {
@@ -378,7 +379,7 @@ watch(
   display: block;
   font-size: 0.8125rem;
   font-weight: 500;
-  color: #374151;
+  color: var(--text);
   margin-bottom: 0.375rem;
 }
 
@@ -391,10 +392,10 @@ watch(
 .form-group input {
   width: 100%;
   padding: 0.5rem 0.75rem;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   font-size: 0.875rem;
-  color: #1f2937;
+  color: var(--text);
   transition: border-color 0.2s;
   box-sizing: border-box;
 }
@@ -407,12 +408,12 @@ watch(
 
 .input-hint {
   font-size: 0.6875rem;
-  color: #9ca3af;
+  color: var(--text-subtle);
 }
 
 .modal-footer {
   padding: 1rem 1.5rem;
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid var(--border);
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
@@ -463,13 +464,13 @@ watch(
 }
 
 .btn-secondary {
-  background: white;
-  color: #374151;
-  border: 1px solid #d1d5db;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
 }
 
 .btn-secondary:hover {
-  background: #f9fafb;
+  background: var(--surface-sunken);
 }
 
 @media (max-width: 640px) {

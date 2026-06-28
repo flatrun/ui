@@ -224,19 +224,19 @@ onMounted(() => {
 
 .port-number {
   font-weight: var(--font-semibold);
-  color: var(--color-gray-900);
+  color: var(--text);
   font-family: var(--font-mono);
   font-size: var(--text-md);
 }
 
 .port-number.container {
-  color: var(--color-gray-600);
+  color: var(--text-muted);
 }
 
 .port-protocol {
   font-size: var(--text-xs);
-  background: var(--color-gray-100);
-  color: var(--color-gray-600);
+  background: var(--surface-inset);
+  color: var(--text-muted);
   padding: 0.125rem 0.375rem;
   border-radius: var(--radius-sm);
   font-weight: var(--font-semibold);
@@ -250,7 +250,7 @@ onMounted(() => {
 
 .container-name {
   font-weight: var(--font-medium);
-  color: var(--color-gray-900);
+  color: var(--text);
   text-decoration: none;
 }
 
@@ -261,7 +261,7 @@ onMounted(() => {
 .container-status {
   font-size: var(--text-xs);
   text-transform: capitalize;
-  color: var(--color-gray-500);
+  color: var(--text-muted);
 }
 
 .container-status.running {
@@ -291,7 +291,7 @@ onMounted(() => {
 }
 
 .no-deployment {
-  color: var(--color-gray-400);
+  color: var(--text-subtle);
 }
 
 .action-buttons {
@@ -343,13 +343,13 @@ onMounted(() => {
 }
 
 .btn-secondary {
-  background: white;
-  border: 1px solid var(--color-gray-200);
-  color: var(--color-gray-700);
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  color: var(--text);
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background: var(--color-gray-50);
+  background: var(--surface-sunken);
 }
 
 .btn-secondary:disabled {

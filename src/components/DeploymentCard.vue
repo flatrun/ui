@@ -49,7 +49,8 @@ defineEmits<{
 
 <style scoped>
 .deployment-card {
-  background: white;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   overflow: hidden;
   display: flex;
@@ -67,41 +68,39 @@ defineEmits<{
 }
 
 .deployment-card.running {
-  box-shadow:
-    0 0 8px rgba(34, 197, 94, 0.25),
-    0 0 20px rgba(34, 197, 94, 0.1);
+  border-color: rgba(34, 197, 94, 0.4);
+  box-shadow: var(--shadow-sm);
 }
 
 .deployment-card.stopped {
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--shadow-xs);
 }
 
 .deployment-card.error {
-  box-shadow:
-    0 0 8px rgba(239, 68, 68, 0.2),
-    0 0 16px rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.4);
+  box-shadow: var(--shadow-sm);
 }
 
 .deployment-card.external {
-  background: linear-gradient(to bottom, var(--color-gray-50), white);
+  background: linear-gradient(to bottom, var(--surface-sunken), var(--surface-raised));
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .card-header {
   padding: var(--space-3) var(--space-4);
-  border-bottom: 1px solid var(--color-gray-100);
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .card-header.running {
-  background: linear-gradient(135deg, var(--color-success-50) 0%, var(--color-success-100) 100%);
+  background: rgba(34, 197, 94, 0.1);
 }
 
 .card-header.stopped {
-  background: linear-gradient(135deg, var(--color-gray-50) 0%, var(--color-gray-100) 100%);
+  background: linear-gradient(135deg, var(--surface-sunken) 0%, var(--surface-inset) 100%);
 }
 
 .card-header.error {
-  background: linear-gradient(135deg, var(--color-danger-50) 0%, var(--color-danger-100) 100%);
+  background: rgba(239, 68, 68, 0.1);
 }
 
 .card-header.external {
@@ -204,7 +203,7 @@ defineEmits<{
 .header-info h3 {
   font-size: var(--text-base);
   font-weight: 600;
-  color: var(--color-gray-900);
+  color: var(--text);
   margin: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -220,7 +219,7 @@ defineEmits<{
 
 .subtitle {
   font-size: var(--text-xs);
-  color: var(--color-gray-500);
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.025em;
 }
@@ -265,12 +264,12 @@ defineEmits<{
 }
 
 .status-badge.stopped {
-  background: var(--color-gray-100);
-  color: var(--color-gray-600);
+  background: var(--surface-inset);
+  color: var(--text-muted);
 }
 
 .status-badge.stopped .status-dot {
-  background: var(--color-gray-400);
+  background: var(--text-subtle);
 }
 
 .status-badge.error {
@@ -292,12 +291,12 @@ defineEmits<{
 }
 
 .status-badge.unknown {
-  background: var(--color-gray-100);
-  color: var(--color-gray-600);
+  background: var(--surface-inset);
+  color: var(--text-muted);
 }
 
 .status-badge.unknown .status-dot {
-  background: var(--color-gray-400);
+  background: var(--text-subtle);
 }
 
 @keyframes pulse {
@@ -312,7 +311,7 @@ defineEmits<{
 
 .card-body {
   padding: var(--space-3) var(--space-4);
-  background: white;
+  background: var(--surface-raised);
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -324,8 +323,8 @@ defineEmits<{
 
 .card-footer {
   padding: var(--space-2) var(--space-4);
-  background: var(--color-gray-50);
-  border-top: 1px solid var(--color-gray-100);
+  background: var(--surface-sunken);
+  border-top: 1px solid var(--border-subtle);
   display: flex;
   gap: var(--space-2);
 }

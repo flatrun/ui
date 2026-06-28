@@ -214,7 +214,8 @@ function handleSubmit() {
 }
 
 .domain-form-modal {
-  background: white;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-xl);
   width: 520px;
@@ -230,14 +231,14 @@ function handleSubmit() {
   align-items: center;
   justify-content: space-between;
   padding: var(--space-4) var(--space-5);
-  border-bottom: 1px solid var(--color-gray-100);
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .modal-header h3 {
   margin: 0;
   font-size: var(--text-lg);
   font-weight: var(--font-semibold);
-  color: var(--color-gray-900);
+  color: var(--text);
 }
 
 .close-btn {
@@ -245,7 +246,7 @@ function handleSubmit() {
   height: 32px;
   border: none;
   background: transparent;
-  color: var(--color-gray-500);
+  color: var(--text-muted);
   cursor: pointer;
   border-radius: var(--radius-sm);
   display: flex;
@@ -254,8 +255,8 @@ function handleSubmit() {
 }
 
 .close-btn:hover {
-  background: var(--color-gray-100);
-  color: var(--color-gray-700);
+  background: var(--surface-inset);
+  color: var(--text);
 }
 
 .modal-body {
@@ -273,7 +274,7 @@ function handleSubmit() {
   margin-bottom: var(--space-1);
   font-weight: var(--font-medium);
   font-size: var(--text-sm);
-  color: var(--color-gray-700);
+  color: var(--text);
 }
 
 .required {
@@ -284,7 +285,7 @@ function handleSubmit() {
 .form-select {
   width: 100%;
   padding: var(--space-2) var(--space-3);
-  border: 1px solid var(--color-gray-300);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   font-size: var(--text-md);
   transition: border-color var(--transition-base);
@@ -301,7 +302,7 @@ function handleSubmit() {
   display: block;
   margin-top: var(--space-1);
   font-size: var(--text-xs);
-  color: var(--color-gray-500);
+  color: var(--text-muted);
 }
 
 .form-row {
@@ -313,14 +314,14 @@ function handleSubmit() {
 .form-section {
   margin-top: var(--space-4);
   padding-top: var(--space-4);
-  border-top: 1px solid var(--color-gray-100);
+  border-top: 1px solid var(--border-subtle);
 }
 
 .form-section h4 {
   margin: 0 0 var(--space-3);
   font-size: var(--text-sm);
   font-weight: var(--font-semibold);
-  color: var(--color-gray-700);
+  color: var(--text);
 }
 
 .checkbox-group {
@@ -362,9 +363,9 @@ function handleSubmit() {
 .remove-btn {
   width: 36px;
   height: 36px;
-  border: 1px solid var(--color-gray-300);
-  background: white;
-  color: var(--color-gray-500);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-muted);
   cursor: pointer;
   border-radius: var(--radius-sm);
   display: flex;
@@ -381,7 +382,7 @@ function handleSubmit() {
 
 .modal-footer {
   padding: var(--space-4) var(--space-5);
-  border-top: 1px solid var(--color-gray-100);
+  border-top: 1px solid var(--border-subtle);
   display: flex;
   justify-content: flex-end;
   gap: var(--space-3);
@@ -406,12 +407,12 @@ function handleSubmit() {
 }
 
 .btn-secondary {
-  background: var(--color-gray-100);
-  color: var(--color-gray-700);
+  background: var(--surface-inset);
+  color: var(--text);
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background: var(--color-gray-200);
+  background: var(--border);
 }
 
 .btn-primary {

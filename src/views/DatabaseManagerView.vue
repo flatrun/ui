@@ -810,7 +810,7 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   height: 100%;
-  background: var(--color-gray-50);
+  background: var(--surface-sunken);
 }
 
 .loading-state,
@@ -821,7 +821,7 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   gap: var(--space-3);
-  color: var(--color-gray-500);
+  color: var(--text-muted);
 }
 
 .error-state {
@@ -830,11 +830,11 @@ onMounted(() => {
 
 .error-state h3 {
   margin: 0;
-  color: var(--color-gray-900);
+  color: var(--text);
 }
 
 .error-state p {
-  color: var(--color-gray-600);
+  color: var(--text-muted);
   max-width: 400px;
   text-align: center;
 }
@@ -850,8 +850,8 @@ onMounted(() => {
   display: flex;
   gap: var(--space-1);
   padding: var(--space-3) var(--space-6);
-  background: white;
-  border-bottom: 1px solid var(--color-gray-200);
+  background: var(--surface-raised);
+  border-bottom: 1px solid var(--border);
   overflow-x: auto;
 }
 
@@ -865,14 +865,14 @@ onMounted(() => {
   border-radius: var(--radius-sm);
   font-size: var(--text-sm);
   font-weight: var(--font-medium);
-  color: var(--color-gray-600);
+  color: var(--text-muted);
   cursor: pointer;
   transition: all var(--transition-base);
   white-space: nowrap;
 }
 
 .tab-btn:hover {
-  background: var(--color-gray-100);
+  background: var(--surface-inset);
 }
 
 .tab-btn.active {
@@ -881,7 +881,7 @@ onMounted(() => {
 }
 
 .tab-count {
-  background: var(--color-gray-200);
+  background: var(--border);
   padding: 0 var(--space-2);
   border-radius: var(--radius-full);
   font-size: var(--text-xs);
@@ -938,13 +938,13 @@ onMounted(() => {
 }
 
 .btn-secondary {
-  background: white;
-  border: 1px solid var(--color-gray-200);
-  color: var(--color-gray-700);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background: var(--color-gray-50);
+  background: var(--surface-sunken);
 }
 
 .btn-danger {
@@ -972,7 +972,8 @@ onMounted(() => {
 }
 
 .modal-container {
-  background: white;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-xl);
   width: 400px;
@@ -988,7 +989,7 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   padding: var(--space-4);
-  border-bottom: 1px solid var(--color-gray-200);
+  border-bottom: 1px solid var(--border);
 }
 
 .modal-header.danger {
@@ -1010,15 +1011,15 @@ onMounted(() => {
 .close-btn {
   background: none;
   border: none;
-  color: var(--color-gray-400);
+  color: var(--text-subtle);
   cursor: pointer;
   padding: var(--space-1);
   border-radius: var(--radius-sm);
 }
 
 .close-btn:hover {
-  color: var(--color-gray-600);
-  background: var(--color-gray-100);
+  color: var(--text-muted);
+  background: var(--surface-inset);
 }
 
 .modal-body {
@@ -1030,7 +1031,7 @@ onMounted(() => {
   justify-content: flex-end;
   gap: var(--space-2);
   padding: var(--space-4);
-  border-top: 1px solid var(--color-gray-200);
+  border-top: 1px solid var(--border);
 }
 
 .form-group {
@@ -1045,7 +1046,7 @@ onMounted(() => {
   display: block;
   font-size: var(--text-sm);
   font-weight: var(--font-medium);
-  color: var(--color-gray-700);
+  color: var(--text);
   margin-bottom: var(--space-1);
 }
 
@@ -1053,7 +1054,7 @@ onMounted(() => {
 .form-select {
   width: 100%;
   padding: var(--space-2) var(--space-3);
-  border: 1px solid var(--color-gray-200);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   font-size: var(--text-sm);
 }
@@ -1079,11 +1080,11 @@ onMounted(() => {
 
 .confirm-text {
   margin: 0 0 var(--space-2) 0;
-  color: var(--color-gray-700);
+  color: var(--text);
 }
 
 .confirm-text strong {
-  color: var(--color-gray-900);
+  color: var(--text);
   font-family: var(--font-mono);
 }
 

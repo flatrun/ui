@@ -58,8 +58,8 @@ const statusLabel = computed(() => {
 }
 
 .connection-status.disconnected {
-  background: var(--color-gray-100);
-  color: var(--color-gray-600);
+  background: var(--surface-inset);
+  color: var(--text-muted);
 }
 
 .connection-status.error {
