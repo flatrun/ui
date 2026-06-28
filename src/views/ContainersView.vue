@@ -77,15 +77,31 @@
             v-if="canWrite && item.state === 'running'"
             class="action-btn stop"
             title="Stop"
+            :disabled="actions.isBusy(`${item.id}:stop`)"
             @click.stop="stopContainer(item.id)"
           >
-            <Square :size="14" />
+            <Icon v-if="actions.isBusy(`${item.id}:stop`)" name="loader-circle" spin :size="14" />
+            <Square v-else :size="14" />
           </button>
-          <button v-else-if="canWrite" class="action-btn start" title="Start" @click.stop="startContainer(item.id)">
-            <Play :size="14" />
+          <button
+            v-else-if="canWrite"
+            class="action-btn start"
+            title="Start"
+            :disabled="actions.isBusy(`${item.id}:start`)"
+            @click.stop="startContainer(item.id)"
+          >
+            <Icon v-if="actions.isBusy(`${item.id}:start`)" name="loader-circle" spin :size="14" />
+            <Play v-else :size="14" />
           </button>
-          <button v-if="canWrite" class="action-btn restart" title="Restart" @click.stop="restartContainer(item.id)">
-            <RotateCw :size="14" />
+          <button
+            v-if="canWrite"
+            class="action-btn restart"
+            title="Restart"
+            :disabled="actions.isBusy(`${item.id}:restart`)"
+            @click.stop="restartContainer(item.id)"
+          >
+            <Icon v-if="actions.isBusy(`${item.id}:restart`)" name="loader-circle" spin :size="14" />
+            <RotateCw v-else :size="14" />
           </button>
           <button class="action-btn resources" title="Resources" @click.stop="showResources(item.id, item.name)">
             <Gauge :size="14" />
@@ -160,6 +176,8 @@ import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { containersApi } from "@/services/api";
 import { useAuthStore } from "@/stores/auth";
+import { useActionRunner } from "@/composables/useActionRunner";
+import Icon from "@/components/base/Icon.vue";
 import DataTable from "@/components/DataTable.vue";
 import LogsModal from "@/components/LogsModal.vue";
 import ConfirmModal from "@/components/ConfirmModal.vue";
@@ -168,6 +186,7 @@ import { RefreshCw, Play, Square, RotateCw, FileText, Trash2, Package, Link, Gau
 
 const router = useRouter();
 const authStore = useAuthStore();
+const actions = useActionRunner();
 const canWrite = authStore.hasPermission("containers:write");
 const canDelete = authStore.hasPermission("containers:delete");
 
@@ -287,20 +306,35 @@ const formatTime = (timestamp: string) => {
   return date.toLocaleDateString();
 };
 
-const startContainer = async (id: string) => {
-  await containersApi.start(id);
-  await fetchContainers();
-};
+const startContainer = (id: string) =>
+  actions.run(
+    `${id}:start`,
+    async () => {
+      await containersApi.start(id);
+      await fetchContainers();
+    },
+    { success: "Container started", error: "Failed to start container" },
+  );
 
-const stopContainer = async (id: string) => {
-  await containersApi.stop(id);
-  await fetchContainers();
-};
+const stopContainer = (id: string) =>
+  actions.run(
+    `${id}:stop`,
+    async () => {
+      await containersApi.stop(id);
+      await fetchContainers();
+    },
+    { success: "Container stopped", error: "Failed to stop container" },
+  );
 
-const restartContainer = async (id: string) => {
-  await containersApi.restart(id);
-  await fetchContainers();
-};
+const restartContainer = (id: string) =>
+  actions.run(
+    `${id}:restart`,
+    async () => {
+      await containersApi.restart(id);
+      await fetchContainers();
+    },
+    { success: "Container restarted", error: "Failed to restart container" },
+  );
 
 const deleteContainer = (id: string) => {
   containerToDelete.value = id;
@@ -382,7 +416,7 @@ onMounted(() => {
 .filter-group {
   display: flex;
   gap: 0.25rem;
-  background: var(--color-gray-100);
+  background: var(--surface-inset);
   padding: 0.25rem;
   border-radius: var(--radius-sm);
 }
@@ -396,14 +430,14 @@ onMounted(() => {
   background: transparent;
   border-radius: var(--radius-sm);
   font-size: var(--text-base);
-  color: var(--color-gray-500);
+  color: var(--text-muted);
   cursor: pointer;
   transition: all var(--transition-base);
 }
 
 .filter-btn.active {
-  background: white;
-  color: var(--color-gray-900);
+  background: var(--surface-raised);
+  color: var(--text);
   box-shadow: var(--shadow-xs);
 }
 
@@ -415,8 +449,8 @@ onMounted(() => {
 }
 
 .filter-count.all {
-  background: var(--color-gray-200);
-  color: var(--color-gray-700);
+  background: var(--border);
+  color: var(--text);
 }
 .filter-count.running {
   background: var(--color-success-50);
@@ -435,13 +469,13 @@ onMounted(() => {
 
 .container-name {
   font-weight: var(--font-medium);
-  color: var(--color-gray-900);
+  color: var(--text);
 }
 
 .container-id {
   font-size: var(--text-xs);
   font-family: var(--font-mono);
-  color: var(--color-gray-400);
+  color: var(--text-subtle);
 }
 
 .deployment-link {
@@ -464,15 +498,15 @@ onMounted(() => {
 }
 
 .no-deployment {
-  color: var(--color-gray-400);
+  color: var(--text-subtle);
 }
 
 .image-tag {
   font-size: var(--text-sm);
-  background: var(--color-gray-100);
+  background: var(--surface-inset);
   padding: 0.25rem 0.5rem;
   border-radius: var(--radius-sm);
-  color: var(--color-gray-600);
+  color: var(--text-muted);
 }
 
 .ports-list {
@@ -491,12 +525,12 @@ onMounted(() => {
 }
 
 .no-ports {
-  color: var(--color-gray-400);
+  color: var(--text-subtle);
 }
 
 .created-time {
   font-size: var(--text-base);
-  color: var(--color-gray-500);
+  color: var(--text-muted);
 }
 
 .action-buttons {
@@ -550,11 +584,11 @@ onMounted(() => {
 }
 
 .action-btn.logs {
-  background: var(--color-gray-100);
-  color: var(--color-gray-600);
+  background: var(--surface-inset);
+  color: var(--text-muted);
 }
 .action-btn.logs:hover {
-  background: var(--color-gray-200);
+  background: var(--border);
 }
 
 .action-btn.delete {
@@ -584,13 +618,13 @@ onMounted(() => {
 }
 
 .btn-secondary {
-  background: white;
-  border: 1px solid var(--color-gray-200);
-  color: var(--color-gray-700);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background: var(--color-gray-50);
+  background: var(--surface-sunken);
 }
 
 .btn-secondary:disabled {

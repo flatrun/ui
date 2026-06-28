@@ -64,25 +64,31 @@
             v-if="canWrite && item.active !== 'active'"
             class="action-btn start"
             title="Start Service"
+            :disabled="actions.isBusy(`${item.name}:start`)"
             @click.stop="controlService(item.name, 'start')"
           >
-            <Play :size="14" />
+            <Icon v-if="actions.isBusy(`${item.name}:start`)" name="loader-circle" spin :size="14" />
+            <Play v-else :size="14" />
           </button>
           <button
             v-if="canWrite && item.active === 'active'"
             class="action-btn stop"
             title="Stop Service"
+            :disabled="actions.isBusy(`${item.name}:stop`)"
             @click.stop="controlService(item.name, 'stop')"
           >
-            <Square :size="14" />
+            <Icon v-if="actions.isBusy(`${item.name}:stop`)" name="loader-circle" spin :size="14" />
+            <Square v-else :size="14" />
           </button>
           <button
             v-if="canWrite"
             class="action-btn restart"
             title="Restart Service"
+            :disabled="actions.isBusy(`${item.name}:restart`)"
             @click.stop="controlService(item.name, 'restart')"
           >
-            <RotateCw :size="14" />
+            <Icon v-if="actions.isBusy(`${item.name}:restart`)" name="loader-circle" spin :size="14" />
+            <RotateCw v-else :size="14" />
           </button>
         </div>
       </template>
@@ -95,7 +101,9 @@ import { ref, computed, onMounted } from "vue";
 import { systemServicesApi } from "@/services/api";
 import { useNotificationsStore } from "@/stores/notifications";
 import { useAuthStore } from "@/stores/auth";
+import { useActionRunner } from "@/composables/useActionRunner";
 import DataTable from "@/components/DataTable.vue";
+import Icon from "@/components/base/Icon.vue";
 import { RefreshCw, Cog, Play, Square, RotateCw } from "lucide-vue-next";
 
 interface SystemService {
@@ -109,6 +117,7 @@ interface SystemService {
 
 const authStore = useAuthStore();
 const canWrite = authStore.hasPermission("system:write");
+const actions = useActionRunner();
 const allServices = ref<SystemService[]>([]);
 const loading = ref(false);
 const activeFilter = ref("all");
@@ -147,21 +156,21 @@ const fetchServices = async () => {
   }
 };
 
-const controlService = async (name: string, action: "start" | "stop" | "restart") => {
-  try {
-    if (action === "start") {
-      await systemServicesApi.start(name);
-    } else if (action === "stop") {
-      await systemServicesApi.stop(name);
-    } else if (action === "restart") {
-      await systemServicesApi.restart(name);
-    }
-    notifications.success("Service Control", `Successfully ${action}ed ${name}`);
-    await fetchServices();
-  } catch (error: any) {
-    notifications.error(`Failed to ${action} service`, error.message);
-  }
-};
+const controlService = (name: string, action: "start" | "stop" | "restart") =>
+  actions.run(
+    `${name}:${action}`,
+    async () => {
+      if (action === "start") {
+        await systemServicesApi.start(name);
+      } else if (action === "stop") {
+        await systemServicesApi.stop(name);
+      } else if (action === "restart") {
+        await systemServicesApi.restart(name);
+      }
+      await fetchServices();
+    },
+    { success: `Successfully ${action}ed ${name}`, error: `Failed to ${action} service` },
+  );
 
 onMounted(() => {
   fetchServices();
@@ -183,9 +192,9 @@ onMounted(() => {
 
 .filter-btn {
   padding: var(--space-2) var(--space-3);
-  border: 1px solid var(--color-gray-200);
-  background: white;
-  color: var(--color-gray-600);
+  border: 1px solid var(--border);
+  background: var(--surface-raised);
+  color: var(--text-muted);
   font-size: var(--text-sm);
   font-weight: var(--font-medium);
   border-radius: var(--radius-sm);
@@ -194,7 +203,7 @@ onMounted(() => {
 }
 
 .filter-btn:hover {
-  background: var(--color-gray-50);
+  background: var(--surface-sunken);
 }
 
 .filter-btn.active {
@@ -213,7 +222,7 @@ onMounted(() => {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: var(--color-gray-400);
+  background: var(--text-subtle);
 }
 
 .status-dot.active {
@@ -221,7 +230,7 @@ onMounted(() => {
 }
 
 .status-dot.inactive {
-  background: var(--color-gray-400);
+  background: var(--text-subtle);
 }
 
 .status-dot.failed {
@@ -234,8 +243,8 @@ onMounted(() => {
   text-transform: capitalize;
   padding: 0.125rem 0.5rem;
   border-radius: var(--radius-full);
-  background: var(--color-gray-100);
-  color: var(--color-gray-600);
+  background: var(--surface-inset);
+  color: var(--text-muted);
 }
 
 .status-badge.active {
@@ -244,8 +253,8 @@ onMounted(() => {
 }
 
 .status-badge.inactive {
-  background: var(--color-gray-100);
-  color: var(--color-gray-600);
+  background: var(--surface-inset);
+  color: var(--text-muted);
 }
 
 .status-badge.failed {
@@ -261,19 +270,19 @@ onMounted(() => {
 
 .service-name {
   font-weight: var(--font-medium);
-  color: var(--color-gray-900);
+  color: var(--text);
   font-family: var(--font-mono);
   font-size: var(--text-sm);
 }
 
 .service-type {
   font-size: var(--text-xs);
-  color: var(--color-gray-500);
+  color: var(--text-muted);
 }
 
 .service-description {
   font-size: var(--text-sm);
-  color: var(--color-gray-600);
+  color: var(--text-muted);
   max-width: 400px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -286,8 +295,8 @@ onMounted(() => {
   text-transform: lowercase;
   padding: 0.25rem 0.5rem;
   border-radius: var(--radius-sm);
-  background: var(--color-gray-100);
-  color: var(--color-gray-600);
+  background: var(--surface-inset);
+  color: var(--text-muted);
 }
 
 .sub-state.running {
@@ -364,13 +373,13 @@ onMounted(() => {
 }
 
 .btn-secondary {
-  background: white;
-  border: 1px solid var(--color-gray-200);
-  color: var(--color-gray-700);
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  color: var(--text);
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background: var(--color-gray-50);
+  background: var(--surface-sunken);
 }
 
 .btn-secondary:disabled {

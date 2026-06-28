@@ -351,35 +351,39 @@
                         v-if="service.status !== 'running'"
                         class="action-btn"
                         title="Start"
-                        :disabled="serviceActionBusy === service.name"
+                        :disabled="actions.isBusy(`${service.name}:start`)"
                         @click="runServiceAction(service, 'start')"
                       >
-                        <i class="pi pi-play" />
+                        <Icon v-if="actions.isBusy(`${service.name}:start`)" name="loader-circle" spin :size="14" />
+                        <i v-else class="pi pi-play" />
                       </button>
                       <button
                         v-else
                         class="action-btn"
                         title="Stop"
-                        :disabled="serviceActionBusy === service.name"
+                        :disabled="actions.isBusy(`${service.name}:stop`)"
                         @click="runServiceAction(service, 'stop')"
                       >
-                        <i class="pi pi-stop" />
+                        <Icon v-if="actions.isBusy(`${service.name}:stop`)" name="loader-circle" spin :size="14" />
+                        <i v-else class="pi pi-stop" />
                       </button>
                       <button
                         class="action-btn"
                         title="Restart"
-                        :disabled="serviceActionBusy === service.name"
+                        :disabled="actions.isBusy(`${service.name}:restart`)"
                         @click="runServiceAction(service, 'restart')"
                       >
-                        <i :class="serviceActionBusy === service.name ? 'pi pi-spin pi-spinner' : 'pi pi-refresh'" />
+                        <Icon v-if="actions.isBusy(`${service.name}:restart`)" name="loader-circle" spin :size="14" />
+                        <i v-else class="pi pi-refresh" />
                       </button>
                       <button
                         class="action-btn"
                         title="Rebuild"
-                        :disabled="serviceActionBusy === service.name"
+                        :disabled="actions.isBusy(`${service.name}:rebuild`)"
                         @click="runServiceAction(service, 'rebuild')"
                       >
-                        <i class="pi pi-sync" />
+                        <Icon v-if="actions.isBusy(`${service.name}:rebuild`)" name="loader-circle" spin :size="14" />
+                        <i v-else class="pi pi-sync" />
                       </button>
                     </div>
                   </div>
@@ -1107,6 +1111,13 @@
                 <div class="config-header">
                   <h3>Docker Compose Configuration</h3>
                   <div class="config-actions">
+                    <button
+                      class="assist-toggle"
+                      :class="{ active: configAssistOpen }"
+                      @click="toggleConfigAssist(composeConfigAssistContext)"
+                    >
+                      <Icon name="bot" :size="15" /> Ask the assistant
+                    </button>
                     <button class="btn btn-sm btn-secondary" @click="copyConfig"><i class="pi pi-copy" /> Copy</button>
                     <button v-if="!isEditingConfig" class="btn btn-sm btn-primary" @click="startConfigEdit">
                       <i class="pi pi-pencil" /> Edit
@@ -1117,13 +1128,14 @@
                     </template>
                   </div>
                 </div>
-                <div class="config-editor">
+                <div class="config-editor" :class="{ 'with-assist': configAssistOpen }">
                   <Codemirror
                     v-model="composeConfig"
                     :extensions="configExtensions"
                     :disabled="!isEditingConfig"
                     :style="{ height: '500px' }"
                   />
+                  <InlineAssist v-if="configAssistOpen" class="config-assist-pane" @close="closeConfigAssist" />
                 </div>
               </div>
 
@@ -1131,6 +1143,13 @@
                 <div class="config-header">
                   <h3>Service Configuration</h3>
                   <div class="config-actions">
+                    <button
+                      class="assist-toggle"
+                      :class="{ active: configAssistOpen }"
+                      @click="toggleConfigAssist(serviceConfigAssistContext)"
+                    >
+                      <Icon name="bot" :size="15" /> Ask the assistant
+                    </button>
                     <button class="btn btn-sm btn-secondary" @click="copyServiceConfig">
                       <i class="pi pi-copy" /> Copy
                     </button>
@@ -1149,13 +1168,14 @@
                     </template>
                   </div>
                 </div>
-                <div class="config-editor">
+                <div class="config-editor" :class="{ 'with-assist': configAssistOpen }">
                   <Codemirror
                     v-model="serviceConfig"
                     :extensions="configExtensions"
                     :disabled="!isEditingServiceConfig"
                     :style="{ height: '500px' }"
                   />
+                  <InlineAssist v-if="configAssistOpen" class="config-assist-pane" @close="closeConfigAssist" />
                 </div>
               </div>
             </div>
@@ -1715,14 +1735,35 @@ import ContainerResourcesModal from "@/components/ContainerResourcesModal.vue";
 import { extractComposeMounts, extractComposeServiceNames } from "@/utils/compose";
 import { matchTypeHints, describeBlockedRule } from "@/utils/protectedMode";
 import { usePlanFlow } from "@/composables/usePlanFlow";
+import { useActionRunner } from "@/composables/useActionRunner";
 import SplitActionButton from "@/components/base/SplitActionButton.vue";
 import SubTabs from "@/components/base/SubTabs.vue";
+import InlineAssist from "@/components/ai/InlineAssist.vue";
+import { useAssistStore } from "@/stores/assist";
+import Icon from "@/components/base/Icon.vue";
 
 const route = useRoute();
 const router = useRouter();
 const notifications = useNotificationsStore();
 const authStore = useAuthStore();
 const { runGuarded } = usePlanFlow();
+const actions = useActionRunner();
+
+const assistStore = useAssistStore();
+const configAssistOpen = ref(false);
+const toggleConfigAssist = (ctx: AssistContext) => {
+  if (configAssistOpen.value) {
+    closeConfigAssist();
+    return;
+  }
+  assistStore.embedded = true;
+  assistStore.open(ctx);
+  configAssistOpen.value = true;
+};
+const closeConfigAssist = () => {
+  configAssistOpen.value = false;
+  assistStore.close();
+};
 const canWrite = authStore.hasPermission("deployments:write");
 const canDelete = authStore.hasPermission("deployments:delete");
 
@@ -2637,6 +2678,20 @@ const logsAssistContext = computed<AssistContext>(() => ({
   subject: route.params.name as string,
 }));
 
+const composeConfigAssistContext = computed<AssistContext>(() => ({
+  scope: "deployment",
+  deployment: route.params.name as string,
+  subject: "docker-compose.yml",
+  seedContext: composeConfig.value,
+}));
+
+const serviceConfigAssistContext = computed<AssistContext>(() => ({
+  scope: "deployment",
+  deployment: route.params.name as string,
+  subject: "service.yml",
+  seedContext: serviceConfig.value,
+}));
+
 const operationAssistContext = computed<AssistContext>(() => ({
   scope: "deployment",
   deployment: route.params.name as string,
@@ -2647,8 +2702,6 @@ const operationAssistContext = computed<AssistContext>(() => ({
   seedContext: `\`\`\`\n${operationOutput.value || operationError.value || "(no output captured)"}\n\`\`\``,
 }));
 
-const serviceActionBusy = ref("");
-
 const serviceActionPastTense: Record<string, string> = {
   start: "started",
   stop: "stopped",
@@ -2657,12 +2710,8 @@ const serviceActionPastTense: Record<string, string> = {
   pull: "image pulled",
 };
 
-const runServiceAction = async (
-  service: { name: string },
-  action: "start" | "stop" | "restart" | "rebuild" | "pull",
-) => {
-  serviceActionBusy.value = service.name;
-  try {
+const runServiceAction = (service: { name: string }, action: "start" | "stop" | "restart" | "rebuild" | "pull") =>
+  actions.run(`${service.name}:${action}`, async () => {
     const name = route.params.name as string;
     const result = await runGuarded(
       () => deploymentsApi.serviceAction(name, service.name, action),
@@ -2672,10 +2721,7 @@ const runServiceAction = async (
     if (result === false) return;
     notifications.success("Service Updated", `${service.name} ${serviceActionPastTense[action]}`);
     await fetchDeployment();
-  } finally {
-    serviceActionBusy.value = "";
-  }
-};
+  });
 
 const terminalRef = ref<InstanceType<typeof ContainerTerminal> | null>(null);
 
@@ -3031,17 +3077,17 @@ onUnmounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  background: white;
+  background: var(--surface-raised);
   padding: var(--space-4) var(--space-5);
   border-radius: var(--radius-md);
-  border: 1px solid var(--color-gray-200);
+  border: 1px solid var(--border);
 }
 
 .back-link {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
-  color: var(--color-gray-500);
+  color: var(--text-muted);
   text-decoration: none;
   font-size: var(--text-sm);
   margin-bottom: var(--space-2);
@@ -3060,7 +3106,7 @@ onUnmounted(() => {
 .deployment-title h1 {
   font-size: var(--text-2xl);
   font-weight: var(--font-semibold);
-  color: var(--color-gray-900);
+  color: var(--text);
   margin: 0;
 }
 
@@ -3151,11 +3197,11 @@ onUnmounted(() => {
 }
 
 .btn-secondary {
-  background: var(--color-gray-100);
-  color: var(--color-gray-700);
+  background: var(--surface-inset);
+  color: var(--text);
 }
 .btn-secondary:hover:not(:disabled) {
-  background: var(--color-gray-200);
+  background: var(--border);
 }
 
 .btn-success {
@@ -3201,8 +3247,9 @@ onUnmounted(() => {
   flex-direction: column;
   align-items: center;
   padding: var(--space-12);
-  background: white;
+  background: var(--surface-raised);
   border-radius: var(--radius-md);
+  border: 1px solid var(--border);
   text-align: center;
   gap: var(--space-4);
 }
@@ -3210,13 +3257,13 @@ onUnmounted(() => {
 .loading-state i,
 .error-state i {
   font-size: 3rem;
-  color: var(--color-gray-400);
+  color: var(--text-subtle);
 }
 
 .detail-tabs {
   display: flex;
   gap: var(--space-1);
-  background: var(--color-gray-100);
+  background: var(--surface-inset);
   padding: var(--space-1);
   border-radius: var(--radius-sm);
 }
@@ -3230,25 +3277,25 @@ onUnmounted(() => {
   background: transparent;
   border-radius: var(--radius-sm);
   font-size: var(--text-md);
-  color: var(--color-gray-500);
+  color: var(--text-muted);
   cursor: pointer;
   transition: all var(--transition-base);
 }
 
 .tab-btn:hover {
-  color: var(--color-gray-700);
+  color: var(--text);
 }
 
 .tab-btn.active {
-  background: white;
-  color: var(--color-gray-900);
+  background: var(--surface-raised);
+  color: var(--text);
   box-shadow: var(--shadow-xs);
 }
 
 .tab-content {
-  background: white;
+  background: var(--surface-raised);
   border-radius: var(--radius-md);
-  border: 1px solid var(--color-gray-200);
+  border: 1px solid var(--border);
   min-height: 500px;
 }
 
@@ -3264,7 +3311,7 @@ onUnmounted(() => {
 }
 
 .info-card {
-  border: 1px solid var(--color-gray-200);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   overflow: hidden;
 }
@@ -3278,8 +3325,8 @@ onUnmounted(() => {
   align-items: center;
   gap: var(--space-2);
   padding: var(--space-3) var(--space-4);
-  background: var(--color-gray-50);
-  border-bottom: 1px solid var(--color-gray-200);
+  background: var(--surface-sunken);
+  border-bottom: 1px solid var(--border);
 }
 
 .info-card .card-header i {
@@ -3289,7 +3336,7 @@ onUnmounted(() => {
 .info-card .card-header h3 {
   font-size: var(--text-md);
   font-weight: var(--font-semibold);
-  color: var(--color-gray-900);
+  color: var(--text);
   margin: 0;
 }
 
@@ -3302,7 +3349,7 @@ onUnmounted(() => {
   justify-content: space-between;
   align-items: center;
   padding: var(--space-2) 0;
-  border-bottom: 1px solid var(--color-gray-100);
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .info-row:last-child {
@@ -3311,18 +3358,18 @@ onUnmounted(() => {
 
 .info-row .label {
   font-size: var(--text-sm);
-  color: var(--color-gray-500);
+  color: var(--text-muted);
 }
 
 .info-row .value {
   font-size: var(--text-md);
-  color: var(--color-gray-900);
+  color: var(--text);
   font-weight: var(--font-medium);
 }
 
 .info-row .value.path {
   font-size: var(--text-sm);
-  background: var(--color-gray-100);
+  background: var(--surface-inset);
   padding: var(--space-1) var(--space-2);
   border-radius: var(--radius-sm);
 }
@@ -3401,7 +3448,7 @@ onUnmounted(() => {
 .empty-proxy {
   text-align: center;
   padding: var(--space-4);
-  color: var(--color-gray-400);
+  color: var(--text-subtle);
 }
 
 .empty-proxy i {
@@ -3412,12 +3459,12 @@ onUnmounted(() => {
 
 .empty-proxy p {
   margin: 0 0 var(--space-1) 0;
-  color: var(--color-gray-500);
+  color: var(--text-muted);
 }
 
 .empty-proxy .hint {
   font-size: var(--text-xs);
-  color: var(--color-gray-400);
+  color: var(--text-subtle);
 }
 
 .services-list {
@@ -3427,7 +3474,7 @@ onUnmounted(() => {
 }
 
 .service-item {
-  border: 1px solid var(--color-gray-200);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   padding: var(--space-3);
 }
@@ -3441,7 +3488,7 @@ onUnmounted(() => {
 
 .service-name {
   font-weight: var(--font-semibold);
-  color: var(--color-gray-900);
+  color: var(--text);
 }
 
 .service-status {
@@ -3459,10 +3506,10 @@ onUnmounted(() => {
 }
 
 .database-item {
-  border: 1px solid var(--color-gray-200);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   padding: var(--space-3);
-  background: var(--color-gray-50);
+  background: var(--surface-sunken);
 }
 
 .database-header {
@@ -3474,7 +3521,7 @@ onUnmounted(() => {
 
 .database-alias {
   font-weight: var(--font-semibold);
-  color: var(--color-gray-900);
+  color: var(--text);
 }
 
 .database-type {
@@ -3483,8 +3530,8 @@ onUnmounted(() => {
   border-radius: var(--radius-full);
   font-weight: var(--font-medium);
   text-transform: uppercase;
-  background: var(--color-gray-100);
-  color: var(--color-gray-700);
+  background: var(--surface-inset);
+  color: var(--text);
 }
 
 .database-type.mysql {
@@ -3526,18 +3573,18 @@ onUnmounted(() => {
 }
 
 .database-details .detail-label {
-  color: var(--color-gray-500);
+  color: var(--text-muted);
   min-width: 80px;
 }
 
 .database-details .detail-value {
-  color: var(--color-gray-700);
+  color: var(--text);
 }
 
 .database-details code.detail-value {
   font-family: var(--font-mono);
   font-size: var(--text-xs);
-  background: var(--color-gray-100);
+  background: var(--surface-inset);
   padding: var(--space-0-5) var(--space-1);
   border-radius: var(--radius-xs);
 }
@@ -3563,7 +3610,7 @@ onUnmounted(() => {
   align-items: center;
   gap: var(--space-1);
   font-size: var(--text-sm);
-  color: var(--color-gray-600);
+  color: var(--text-muted);
 }
 
 .service-actions {
@@ -3580,14 +3627,14 @@ onUnmounted(() => {
   border: none;
   border-radius: var(--radius-sm);
   cursor: pointer;
-  background: var(--color-gray-100);
-  color: var(--color-gray-600);
+  background: var(--surface-inset);
+  color: var(--text-muted);
   transition: all var(--transition-base);
 }
 
 .action-btn:hover {
-  background: var(--color-gray-200);
-  color: var(--color-gray-900);
+  background: var(--border);
+  color: var(--text);
 }
 
 .action-btn.delete {
@@ -3613,7 +3660,7 @@ onUnmounted(() => {
 
 .resource-label {
   font-size: var(--text-sm);
-  color: var(--color-gray-600);
+  color: var(--text-muted);
   font-weight: var(--font-medium);
 }
 
@@ -3626,7 +3673,7 @@ onUnmounted(() => {
 .resource-bar {
   flex: 1;
   height: 8px;
-  background: var(--color-gray-200);
+  background: var(--border);
   border-radius: var(--radius-full);
   overflow: hidden;
 }
@@ -3650,7 +3697,7 @@ onUnmounted(() => {
 .resource-value {
   font-size: var(--text-sm);
   font-weight: var(--font-semibold);
-  color: var(--color-gray-700);
+  color: var(--text);
   min-width: 45px;
 }
 
@@ -3669,10 +3716,10 @@ onUnmounted(() => {
 
 .form-select {
   padding: var(--space-2) var(--space-3);
-  border: 1px solid var(--color-gray-200);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   font-size: var(--text-md);
-  background: white;
+  background: var(--surface);
 }
 
 .terminal-tab {
@@ -3701,7 +3748,7 @@ onUnmounted(() => {
 
 .terminal-placeholder {
   text-align: center;
-  color: var(--color-gray-400);
+  color: var(--text-subtle);
 }
 
 .terminal-placeholder i {
@@ -3710,7 +3757,7 @@ onUnmounted(() => {
 }
 
 .terminal-placeholder h3 {
-  color: var(--color-gray-300);
+  color: var(--border);
   margin: 0 0 var(--space-2) 0;
 }
 
@@ -3732,14 +3779,14 @@ onUnmounted(() => {
 .env-header h3 {
   font-size: var(--text-lg);
   font-weight: var(--font-semibold);
-  color: var(--color-gray-900);
+  color: var(--text);
   margin: 0;
 }
 
 .empty-env {
   text-align: center;
   padding: var(--space-8);
-  color: var(--color-gray-500);
+  color: var(--text-muted);
 }
 
 .empty-env i {
@@ -3748,7 +3795,7 @@ onUnmounted(() => {
 }
 
 .env-table {
-  border: 1px solid var(--color-gray-200);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   overflow: hidden;
 }
@@ -3756,7 +3803,7 @@ onUnmounted(() => {
 .env-row {
   display: grid;
   grid-template-columns: 200px 1fr 100px;
-  border-bottom: 1px solid var(--color-gray-200);
+  border-bottom: 1px solid var(--border);
 }
 
 .env-row:last-child {
@@ -3764,10 +3811,10 @@ onUnmounted(() => {
 }
 
 .env-row.header {
-  background: var(--color-gray-50);
+  background: var(--surface-sunken);
   font-weight: var(--font-semibold);
   font-size: var(--text-sm);
-  color: var(--color-gray-600);
+  color: var(--text-muted);
 }
 
 .env-key,
@@ -3783,7 +3830,7 @@ onUnmounted(() => {
 }
 
 .env-value code {
-  background: var(--color-gray-100);
+  background: var(--surface-inset);
   padding: var(--space-1) var(--space-2);
   border-radius: var(--radius-sm);
   font-size: var(--text-sm);
@@ -3792,13 +3839,13 @@ onUnmounted(() => {
 .toggle-btn {
   background: none;
   border: none;
-  color: var(--color-gray-400);
+  color: var(--text-subtle);
   cursor: pointer;
   padding: var(--space-1);
 }
 
 .toggle-btn:hover {
-  color: var(--color-gray-600);
+  color: var(--text-muted);
 }
 
 .env-actions {
@@ -3829,7 +3876,7 @@ onUnmounted(() => {
 .config-header h3 {
   font-size: var(--text-lg);
   font-weight: var(--font-semibold);
-  color: var(--color-gray-900);
+  color: var(--text);
   margin: 0;
 }
 
@@ -3841,7 +3888,56 @@ onUnmounted(() => {
 .config-editor {
   border-radius: var(--radius-sm);
   overflow: hidden;
-  border: 1px solid var(--color-gray-200);
+  border: 1px solid var(--border);
+}
+
+.config-editor.with-assist {
+  display: flex;
+  gap: var(--space-3);
+  border: none;
+  border-radius: 0;
+  overflow: visible;
+}
+
+.config-editor.with-assist > :first-child {
+  flex: 1;
+  min-width: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.config-assist-pane {
+  width: 340px;
+  height: 500px;
+  flex-shrink: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.assist-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.7rem;
+  background: var(--surface-sunken);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text);
+  font-size: var(--text-sm);
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+.assist-toggle:hover {
+  border-color: var(--accent);
+}
+
+.assist-toggle.active {
+  background: var(--accent-subtle);
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 .config-editor :deep(.cm-editor) {
@@ -3862,7 +3958,7 @@ onUnmounted(() => {
   justify-content: space-between;
   align-items: center;
   padding: var(--space-4);
-  border-bottom: 1px solid var(--color-gray-200);
+  border-bottom: 1px solid var(--border);
 }
 
 .operation-modal .modal-header.success {
@@ -3930,7 +4026,7 @@ onUnmounted(() => {
 
 .operation-modal .modal-footer {
   padding: var(--space-3) var(--space-4);
-  border-top: 1px solid var(--color-gray-200);
+  border-top: 1px solid var(--border);
   display: flex;
   justify-content: flex-end;
 }
@@ -3955,14 +4051,14 @@ onUnmounted(() => {
   display: block;
   font-size: var(--text-sm);
   font-weight: var(--font-medium);
-  color: var(--color-gray-700);
+  color: var(--text);
   margin-bottom: var(--space-2);
 }
 
 .form-input {
   width: 100%;
   padding: var(--space-3);
-  border: 1px solid var(--color-gray-200);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   font-size: var(--text-sm);
   transition: all var(--transition-base);
@@ -3991,7 +4087,7 @@ onUnmounted(() => {
 .hint {
   display: block;
   font-size: var(--text-xs);
-  color: var(--color-gray-500);
+  color: var(--text-muted);
   margin-top: var(--space-1);
 }
 
@@ -4002,17 +4098,17 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   padding: 0;
-  background: var(--color-gray-100);
+  background: var(--surface-inset);
   border: none;
   border-radius: var(--radius-sm);
-  color: var(--color-gray-600);
+  color: var(--text-muted);
   cursor: pointer;
   transition: all var(--transition-base);
 }
 
 .btn-icon:hover {
-  background: var(--color-gray-200);
-  color: var(--color-gray-900);
+  background: var(--border);
+  color: var(--text);
 }
 
 .btn-icon.btn-icon-danger {
@@ -4043,7 +4139,7 @@ onUnmounted(() => {
   justify-content: space-between;
   align-items: center;
   padding: var(--space-4);
-  border-bottom: 1px solid var(--color-gray-200);
+  border-bottom: 1px solid var(--border);
 }
 
 .env-modal .modal-header h3 {
@@ -4060,7 +4156,7 @@ onUnmounted(() => {
 
 .env-modal .modal-footer {
   padding: var(--space-3) var(--space-4);
-  border-top: 1px solid var(--color-gray-200);
+  border-top: 1px solid var(--border);
   display: flex;
   justify-content: flex-end;
   gap: var(--space-2);
@@ -4075,7 +4171,7 @@ onUnmounted(() => {
   justify-content: space-between;
   align-items: center;
   padding: var(--space-4);
-  border-bottom: 1px solid var(--color-gray-200);
+  border-bottom: 1px solid var(--border);
 }
 
 .delete-modal .modal-header.danger {
@@ -4101,16 +4197,16 @@ onUnmounted(() => {
 
 .delete-warning {
   margin: 0 0 var(--space-4) 0;
-  color: var(--color-gray-700);
+  color: var(--text);
   line-height: 1.5;
 }
 
 .delete-warning strong {
-  color: var(--color-gray-900);
+  color: var(--text);
 }
 
 .delete-options {
-  background: var(--color-gray-50);
+  background: var(--surface-sunken);
   border-radius: var(--radius-sm);
   padding: var(--space-4);
   margin-bottom: var(--space-4);
@@ -4120,7 +4216,7 @@ onUnmounted(() => {
   margin: 0 0 var(--space-3) 0;
   font-size: var(--text-sm);
   font-weight: var(--font-semibold);
-  color: var(--color-gray-700);
+  color: var(--text);
 }
 
 .delete-option {
@@ -4129,7 +4225,7 @@ onUnmounted(() => {
   gap: var(--space-3);
   padding: var(--space-2) 0;
   cursor: pointer;
-  border-bottom: 1px solid var(--color-gray-200);
+  border-bottom: 1px solid var(--border);
 }
 
 .delete-option:last-child {
@@ -4151,14 +4247,14 @@ onUnmounted(() => {
 .option-label {
   display: block;
   font-weight: var(--font-medium);
-  color: var(--color-gray-900);
+  color: var(--text);
   font-size: var(--text-sm);
 }
 
 .option-hint {
   display: block;
   font-size: var(--text-xs);
-  color: var(--color-gray-500);
+  color: var(--text-muted);
   margin-top: var(--space-1);
 }
 
@@ -4177,7 +4273,7 @@ onUnmounted(() => {
 
 .delete-modal .modal-footer {
   padding: var(--space-3) var(--space-4);
-  border-top: 1px solid var(--color-gray-200);
+  border-top: 1px solid var(--border);
   display: flex;
   justify-content: flex-end;
   gap: var(--space-2);
@@ -4192,7 +4288,7 @@ onUnmounted(() => {
   justify-content: space-between;
   align-items: center;
   padding: var(--space-3) var(--space-4);
-  border-bottom: 1px solid var(--color-gray-200);
+  border-bottom: 1px solid var(--border);
 }
 
 .pull-modal .modal-header h3 {
@@ -4213,7 +4309,7 @@ onUnmounted(() => {
   justify-content: center;
   gap: var(--space-2);
   padding: var(--space-4);
-  color: var(--color-gray-600);
+  color: var(--text-muted);
 }
 
 .loading-images i {
@@ -4223,7 +4319,7 @@ onUnmounted(() => {
 .no-images {
   text-align: center;
   padding: var(--space-4);
-  color: var(--color-gray-600);
+  color: var(--text-muted);
 }
 
 .images-list {
@@ -4238,7 +4334,7 @@ onUnmounted(() => {
   align-items: center;
   gap: var(--space-2);
   padding: var(--space-2) var(--space-3);
-  background: var(--color-gray-50);
+  background: var(--surface-sunken);
   border-radius: var(--radius-sm);
   font-size: var(--text-sm);
 }
@@ -4252,7 +4348,7 @@ onUnmounted(() => {
   flex: 1;
   font-family: var(--font-mono);
   font-size: var(--text-xs);
-  color: var(--color-gray-600);
+  color: var(--text-muted);
 }
 
 .image-badge {
@@ -4273,8 +4369,8 @@ onUnmounted(() => {
 }
 
 .image-badge.build {
-  background: var(--color-gray-200);
-  color: var(--color-gray-700);
+  background: var(--border);
+  color: var(--text);
 }
 
 .warning-box {
@@ -4322,7 +4418,7 @@ onUnmounted(() => {
 
 .pull-modal .modal-footer {
   padding: var(--space-3) var(--space-4);
-  border-top: 1px solid var(--color-gray-200);
+  border-top: 1px solid var(--border);
   display: flex;
   justify-content: flex-end;
   gap: var(--space-2);
@@ -4337,7 +4433,7 @@ onUnmounted(() => {
   justify-content: space-between;
   align-items: center;
   padding: var(--space-3) var(--space-4);
-  border-bottom: 1px solid var(--color-gray-200);
+  border-bottom: 1px solid var(--border);
 }
 
 .rebuild-modal .modal-header h3 {
@@ -4365,7 +4461,7 @@ onUnmounted(() => {
 
 .rebuild-modal .modal-footer {
   padding: var(--space-3) var(--space-4);
-  border-top: 1px solid var(--color-gray-200);
+  border-top: 1px solid var(--border);
   display: flex;
   justify-content: flex-end;
   gap: var(--space-2);
@@ -4385,12 +4481,12 @@ onUnmounted(() => {
 .quick-actions-header .header-text h3 {
   font-size: var(--text-xl);
   font-weight: var(--font-semibold);
-  color: var(--color-gray-900);
+  color: var(--text);
   margin: 0;
 }
 
 .quick-actions-header .header-text .subtitle {
-  color: var(--color-gray-500);
+  color: var(--text-muted);
   margin-top: var(--space-1);
   font-size: var(--text-sm);
 }
@@ -4398,9 +4494,9 @@ onUnmounted(() => {
 .no-actions {
   text-align: center;
   padding: var(--space-8);
-  background: var(--color-gray-50);
+  background: var(--surface-sunken);
   border-radius: var(--radius-md);
-  color: var(--color-gray-500);
+  color: var(--text-muted);
 }
 
 .no-actions i {
@@ -4432,8 +4528,8 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   padding: var(--space-4);
-  background: white;
-  border: 1px solid var(--color-gray-200);
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
   transition: all var(--transition-base);
 }
@@ -4468,7 +4564,7 @@ onUnmounted(() => {
 .action-title h4 {
   font-size: var(--text-md);
   font-weight: var(--font-medium);
-  color: var(--color-gray-900);
+  color: var(--text);
   margin: 0;
 }
 
@@ -4489,14 +4585,14 @@ onUnmounted(() => {
   background: transparent;
   border: none;
   border-radius: var(--radius-sm);
-  color: var(--color-gray-400);
+  color: var(--text-subtle);
   cursor: pointer;
   transition: all var(--transition-base);
 }
 
 .action-meta-btn:hover {
-  background: var(--color-gray-100);
-  color: var(--color-gray-600);
+  background: var(--surface-inset);
+  color: var(--text-muted);
 }
 
 .action-meta-btn-danger:hover {
@@ -4532,7 +4628,7 @@ onUnmounted(() => {
 
 .action-info p {
   font-size: var(--text-sm);
-  color: var(--color-gray-500);
+  color: var(--text-muted);
   margin: 0 0 var(--space-2);
 }
 
@@ -4540,8 +4636,8 @@ onUnmounted(() => {
   display: block;
   font-family: var(--font-mono);
   font-size: var(--text-xs);
-  color: var(--color-gray-600);
-  background: var(--color-gray-100);
+  color: var(--text-muted);
+  background: var(--surface-inset);
   padding: var(--space-1) var(--space-2);
   border-radius: var(--radius-sm);
   overflow: hidden;
@@ -4570,7 +4666,7 @@ onUnmounted(() => {
   margin: 0;
   font-size: var(--text-sm);
   font-weight: var(--font-medium);
-  color: var(--color-gray-300);
+  color: var(--border);
 }
 
 .action-output .output-content {
@@ -4627,9 +4723,9 @@ onUnmounted(() => {
   align-items: center;
   gap: 0.875rem;
   padding: 1rem 1.25rem;
-  background: white;
+  background: var(--surface-raised);
   border-radius: var(--radius-sm);
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border);
 }
 
 .summary-card.summary-link {
@@ -4681,27 +4777,27 @@ onUnmounted(() => {
 .summary-value {
   font-size: 1.375rem;
   font-weight: 700;
-  color: #1f2937;
+  color: var(--text);
   line-height: 1.2;
 }
 
 .summary-label {
   font-size: 0.75rem;
-  color: #6b7280;
+  color: var(--text-muted);
 }
 
 .summary-hint {
   font-size: 0.6875rem;
-  color: #9ca3af;
+  color: var(--text-subtle);
 }
 
 .security-enable-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: white;
+  background: var(--surface-raised);
   border-radius: var(--radius-sm);
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border);
   padding: 0.75rem 1rem;
 }
 
@@ -4713,7 +4809,7 @@ onUnmounted(() => {
 
 .enable-bar-left > i {
   font-size: 1rem;
-  color: #9ca3af;
+  color: var(--text-subtle);
   transition: color 0.2s;
 }
 
@@ -4724,14 +4820,14 @@ onUnmounted(() => {
 .enable-bar-label {
   font-size: 0.875rem;
   font-weight: 600;
-  color: #1f2937;
+  color: var(--text);
 }
 
 .enable-bar-status {
   font-size: 0.75rem;
-  color: #9ca3af;
+  color: var(--text-subtle);
   padding: 0.125rem 0.5rem;
-  background: #f3f4f6;
+  background: var(--surface-inset);
   border-radius: var(--radius-sm);
 }
 
@@ -4747,15 +4843,15 @@ onUnmounted(() => {
 }
 
 .settings-list {
-  background: white;
-  border: 1px solid #e5e7eb;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
   overflow: hidden;
   margin: 5px;
 }
 
 .settings-row + .settings-row {
-  border-top: 1px solid #f3f4f6;
+  border-top: 1px solid var(--border-subtle);
 }
 
 .settings-row-header {
@@ -4787,13 +4883,13 @@ onUnmounted(() => {
   margin: 0;
   font-size: 0.9rem;
   font-weight: 600;
-  color: var(--text-primary, #1e293b);
+  color: var(--text);
 }
 
 .row-text p {
   margin: 0.15rem 0 0;
   font-size: 0.8rem;
-  color: #6b7280;
+  color: var(--text-muted);
 }
 
 .row-controls {
@@ -4805,7 +4901,7 @@ onUnmounted(() => {
 .chevron-btn {
   border: none;
   background: none;
-  color: #9ca3af;
+  color: var(--text-subtle);
   cursor: pointer;
   padding: 0.25rem;
 }
@@ -4817,14 +4913,14 @@ onUnmounted(() => {
 .row-description {
   margin: 0 0 0.75rem;
   font-size: 0.8125rem;
-  color: #6b7280;
+  color: var(--text-muted);
   line-height: 1.5;
 }
 
 .security-section {
-  background: white;
+  background: var(--surface-raised);
   border-radius: var(--radius-sm);
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border);
   overflow: hidden;
 }
 
@@ -4833,7 +4929,7 @@ onUnmounted(() => {
   justify-content: space-between;
   align-items: center;
   padding: 0.875rem 1.25rem;
-  border-bottom: 1px solid #f3f4f6;
+  border-bottom: 1px solid var(--border-subtle);
   background: #fafafa;
 }
 
@@ -4852,12 +4948,12 @@ onUnmounted(() => {
   margin: 0;
   font-size: 0.9375rem;
   font-weight: 600;
-  color: #1f2937;
+  color: var(--text);
 }
 
 .section-hint {
   font-size: 0.75rem;
-  color: #9ca3af;
+  color: var(--text-subtle);
 }
 
 .section-body {
@@ -4896,7 +4992,7 @@ onUnmounted(() => {
 .presets-label {
   font-size: 0.75rem;
   font-weight: 600;
-  color: #6b7280;
+  color: var(--text-muted);
   white-space: nowrap;
 }
 
@@ -4911,8 +5007,8 @@ onUnmounted(() => {
   align-items: center;
   gap: 0.25rem;
   padding: 0.25rem 0.5rem;
-  background: #f3f4f6;
-  border: 1px solid #e5e7eb;
+  background: var(--surface-inset);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   font-size: 0.75rem;
   color: #374151;
@@ -4921,7 +5017,7 @@ onUnmounted(() => {
 }
 
 .preset-btn:hover {
-  background: #e5e7eb;
+  background: var(--border);
 }
 
 .preset-btn.active {
@@ -4946,10 +5042,10 @@ onUnmounted(() => {
   justify-content: center;
   padding: 2rem 1rem;
   text-align: center;
-  color: #9ca3af;
-  background: #f9fafb;
+  color: var(--text-subtle);
+  background: var(--surface-sunken);
   border-radius: var(--radius-sm);
-  border: 1px dashed #e5e7eb;
+  border: 1px dashed var(--border);
 }
 
 .empty-state i {
@@ -4962,7 +5058,7 @@ onUnmounted(() => {
   margin: 0;
   font-size: 0.875rem;
   font-weight: 500;
-  color: #6b7280;
+  color: var(--text-muted);
 }
 
 .empty-state span {
@@ -4999,14 +5095,14 @@ onUnmounted(() => {
   justify-content: space-between;
   align-items: center;
   padding: 0.625rem 0.875rem;
-  background: #f9fafb;
+  background: var(--surface-sunken);
   border-radius: var(--radius-md);
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border);
   transition: all 0.2s;
 }
 
 .list-item:hover {
-  border-color: #d1d5db;
+  border-color: var(--border);
 }
 
 .list-item.disabled {
@@ -5033,7 +5129,7 @@ onUnmounted(() => {
 .btn-ghost {
   background: transparent;
   border: none;
-  color: #9ca3af;
+  color: var(--text-subtle);
 }
 
 .btn-ghost:hover {
@@ -5065,15 +5161,15 @@ onUnmounted(() => {
 }
 
 .burst-badge {
-  background: #f3f4f6;
-  color: #6b7280;
+  background: var(--surface-inset);
+  color: var(--text-muted);
 }
 
 .section-description {
   margin: 0;
   padding: 0.5rem 1.25rem 0;
   font-size: 0.8125rem;
-  color: var(--color-gray-600);
+  color: var(--text-muted);
   line-height: 1.4;
 }
 
@@ -5081,7 +5177,7 @@ onUnmounted(() => {
   display: block;
   margin: 0.125rem 0 0.375rem;
   font-size: 0.75rem;
-  color: var(--color-gray-500);
+  color: var(--text-muted);
   line-height: 1.35;
 }
 
@@ -5109,7 +5205,7 @@ onUnmounted(() => {
 .rule-pattern {
   font-family: "SF Mono", "Fira Code", monospace;
   font-size: 0.8125rem;
-  background: var(--color-gray-100);
+  background: var(--surface-inset);
   padding: 0.0625rem 0.375rem;
   border-radius: var(--radius-sm);
   word-break: break-all;
@@ -5132,15 +5228,15 @@ onUnmounted(() => {
 }
 
 .rule-badge.subtle {
-  background: var(--color-gray-100);
-  color: var(--color-gray-600);
+  background: var(--surface-inset);
+  color: var(--text-muted);
 }
 
 .rule-explanation {
   flex-basis: 100%;
   margin: 0;
   font-size: 0.75rem;
-  color: var(--color-gray-500);
+  color: var(--text-muted);
   line-height: 1.3;
 }
 
@@ -5163,7 +5259,7 @@ onUnmounted(() => {
   gap: 0.375rem;
   margin: 0.375rem 0 0;
   font-size: 0.75rem;
-  color: var(--color-gray-500);
+  color: var(--text-muted);
   line-height: 1.35;
 }
 
@@ -5172,7 +5268,7 @@ onUnmounted(() => {
 }
 
 .rule-preview-sentence {
-  color: var(--color-gray-700);
+  color: var(--text);
 }
 
 .add-form {
@@ -5201,8 +5297,8 @@ onUnmounted(() => {
 .input-group {
   display: flex;
   align-items: center;
-  background: white;
-  border: 1px solid #d1d5db;
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
   overflow: hidden;
 }
@@ -5216,7 +5312,7 @@ onUnmounted(() => {
 
 .input-suffix {
   font-size: 0.6875rem;
-  color: #9ca3af;
+  color: var(--text-subtle);
   padding-right: 0.5rem;
   white-space: nowrap;
 }
@@ -5243,7 +5339,7 @@ onUnmounted(() => {
   position: absolute;
   cursor: pointer;
   inset: 0;
-  background-color: #d1d5db;
+  background-color: var(--border);
   transition: 0.3s;
   border-radius: 20px;
 }
@@ -5284,7 +5380,7 @@ onUnmounted(() => {
 }
 
 .events-table {
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   overflow: hidden;
 }
@@ -5294,11 +5390,11 @@ onUnmounted(() => {
   grid-template-columns: 80px 1fr 140px 1fr 100px;
   gap: 0.75rem;
   padding: 0.625rem 1rem;
-  background: #f9fafb;
-  border-bottom: 1px solid #e5e7eb;
+  background: var(--surface-sunken);
+  border-bottom: 1px solid var(--border);
   font-size: 0.6875rem;
   font-weight: 600;
-  color: #6b7280;
+  color: var(--text-muted);
   text-transform: uppercase;
 }
 
@@ -5312,7 +5408,7 @@ onUnmounted(() => {
   grid-template-columns: 80px 1fr 140px 1fr 100px;
   gap: 0.75rem;
   padding: 0.625rem 1rem;
-  border-bottom: 1px solid #f3f4f6;
+  border-bottom: 1px solid var(--border-subtle);
   align-items: center;
   font-size: 0.8125rem;
 }
@@ -5322,7 +5418,7 @@ onUnmounted(() => {
 }
 
 .event-row:hover {
-  background: #f9fafb;
+  background: var(--surface-sunken);
 }
 
 .col-severity {
@@ -5338,7 +5434,7 @@ onUnmounted(() => {
 .col-path {
   font-family: "SF Mono", "Fira Code", monospace;
   font-size: 0.75rem;
-  color: #6b7280;
+  color: var(--text-muted);
   background: transparent;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -5347,7 +5443,7 @@ onUnmounted(() => {
 
 .col-time {
   font-size: 0.75rem;
-  color: #9ca3af;
+  color: var(--text-subtle);
   text-align: right;
 }
 
@@ -5376,7 +5472,7 @@ onUnmounted(() => {
 }
 
 .severity-badge.low {
-  background: #f3f4f6;
+  background: var(--surface-inset);
   color: #4b5563;
 }
 
