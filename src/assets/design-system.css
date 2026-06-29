@@ -175,6 +175,34 @@
   --shadow-xl: 0 10px 25px rgba(0, 0, 0, 0.5);
   --shadow-2xl: 0 25px 50px rgba(0, 0, 0, 0.6);
   --ring-color: rgba(96, 165, 250, 0.25);
+
+  /* Status tints adapted for dark surfaces: the -50/-100/-200 tints become
+     translucent fills and the -700 text shade lightens, so tinted panels read
+     correctly on dark. The saturated -500/-600 shades are left untouched for
+     solid fills, dots, and icons. */
+  --color-primary-50: rgba(59, 130, 246, 0.15);
+  --color-primary-100: rgba(59, 130, 246, 0.22);
+  --color-primary-700: #93c5fd;
+
+  --color-success-50: rgba(34, 197, 94, 0.15);
+  --color-success-100: rgba(34, 197, 94, 0.22);
+  --color-success-200: rgba(34, 197, 94, 0.3);
+  --color-success-700: #86efac;
+
+  --color-warning-50: rgba(245, 158, 11, 0.15);
+  --color-warning-100: rgba(245, 158, 11, 0.22);
+  --color-warning-200: rgba(245, 158, 11, 0.3);
+  --color-warning-700: #fcd34d;
+
+  --color-danger-50: rgba(239, 68, 68, 0.15);
+  --color-danger-100: rgba(239, 68, 68, 0.22);
+  --color-danger-200: rgba(239, 68, 68, 0.3);
+  --color-danger-700: #fca5a5;
+
+  --color-info-50: rgba(59, 130, 246, 0.15);
+  --color-info-100: rgba(59, 130, 246, 0.22);
+  --color-info-200: rgba(59, 130, 246, 0.3);
+  --color-info-700: #93c5fd;
 }
 
 /* Component Base Styles */
