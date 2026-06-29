@@ -69,11 +69,15 @@ vi.mock("@/services/api", () => ({
         ],
       },
     }),
-    start: vi.fn().mockResolvedValue({ data: { output: "Started" } }),
-    stop: vi.fn().mockResolvedValue({ data: { output: "Stopped" } }),
-    restart: vi.fn().mockResolvedValue({ data: { output: "Restarted" } }),
+    start: vi.fn().mockResolvedValue({ data: { job_id: "job-1", status: "pending" } }),
+    stop: vi.fn().mockResolvedValue({ data: { job_id: "job-1", status: "pending" } }),
+    restart: vi.fn().mockResolvedValue({ data: { job_id: "job-1", status: "pending" } }),
+    rebuild: vi.fn().mockResolvedValue({ data: { job_id: "job-1", status: "pending" } }),
+    getJob: vi.fn().mockResolvedValue({ data: { status: "succeeded", output: "Done", lines: [] } }),
+    getActiveJob: vi.fn().mockRejectedValue({ response: { status: 404 } }),
     logs: vi.fn().mockResolvedValue({ data: { logs: "Container logs..." } }),
   },
+  deploymentJobWsUrl: vi.fn().mockReturnValue("ws://localhost/api/deployments/x/jobs/job-1/stream"),
 }));
 
 const mockPush = vi.fn();
