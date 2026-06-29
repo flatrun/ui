@@ -306,6 +306,7 @@ import type { Deployment } from "@/types";
 import DataTable from "@/components/DataTable.vue";
 import DeploymentCard from "@/components/DeploymentCard.vue";
 import OperationModal from "@/components/OperationModal.vue";
+import { useDeploymentJob, type DeploymentOperation } from "@/composables/useDeploymentJob";
 import LogsModal from "@/components/LogsModal.vue";
 import NewDeploymentModal from "@/components/NewDeploymentModal.vue";
 import {
@@ -338,14 +339,16 @@ const deployments = ref<Deployment[]>([]);
 const loading = ref(true);
 const showNewDeploymentModal = ref(false);
 
-const operationModal = ref({
-  visible: false,
-  operation: "start" as "start" | "stop" | "restart",
-  deploymentName: "",
-  output: "",
-  isRunning: false,
-  isSuccess: null as boolean | null,
+const deploymentJob = useDeploymentJob((state) => {
+  const op = state.operation;
+  if (state.isSuccess) {
+    notifications.success(`${op} successful`, `${state.deploymentName} ${op} completed`);
+  } else {
+    notifications.error(`${op} failed`, `${state.deploymentName} ${op} failed`);
+  }
+  fetchDeployments();
 });
+const operationModal = deploymentJob.state;
 
 const logsModal = ref({
   visible: false,
@@ -379,44 +382,12 @@ const refreshDeployments = () => {
   notifications.info("Refreshing", "Fetching latest deployment status");
 };
 
-const handleOperation = async (op: "start" | "stop" | "restart", name: string) => {
-  operationModal.value = {
-    visible: true,
-    operation: op,
-    deploymentName: name,
-    output: "",
-    isRunning: true,
-    isSuccess: null,
-  };
-
-  try {
-    let response;
-    if (op === "start") {
-      response = await deploymentsApi.start(name);
-    } else if (op === "stop") {
-      response = await deploymentsApi.stop(name);
-    } else {
-      response = await deploymentsApi.restart(name);
-    }
-
-    operationModal.value.output = response?.data?.output || "Operation completed";
-    operationModal.value.isSuccess = true;
-    operationModal.value.isRunning = false;
-
-    notifications.success(`${op} successful`, `${name} ${op}ed successfully`);
-    await fetchDeployments();
-  } catch (e: any) {
-    const errorMsg = e.response?.data?.output || e.response?.data?.error || e.message;
-    operationModal.value.output = errorMsg;
-    operationModal.value.isSuccess = false;
-    operationModal.value.isRunning = false;
-
-    notifications.error(`${op} failed`, errorMsg);
-  }
+const handleOperation = (op: DeploymentOperation, name: string) => {
+  deploymentJob.run(op, name);
 };
 
 const closeOperationModal = () => {
-  operationModal.value.visible = false;
+  deploymentJob.close();
 };
 
 const viewLogs = async (name: string) => {
@@ -697,8 +668,11 @@ const formatRelativeTime = (dateStr: string) => {
   return formatDate(dateStr);
 };
 
-onMounted(() => {
-  fetchDeployments();
+onMounted(async () => {
+  await fetchDeployments();
+  for (const d of deployments.value) {
+    if (await deploymentJob.resume(d.name)) break;
+  }
 });
 </script>
 

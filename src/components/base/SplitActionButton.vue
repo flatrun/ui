@@ -118,7 +118,7 @@ onBeforeUnmount(() => document.removeEventListener("click", onDocumentClick));
 }
 
 .menu-item:hover {
-  background: var(--surface-hover, #f1f5f9);
+  background: var(--surface-inset);
 }
 
 .menu-item i {

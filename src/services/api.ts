@@ -92,6 +92,38 @@ const withPlanQuery = (url: string, opts?: PlanOpts) => {
   return url + (url.includes("?") ? "&" : "?") + "plan=true";
 };
 
+export type DeploymentActionStatus = "pending" | "running" | "succeeded" | "failed";
+
+export interface ActionJobResponse {
+  job_id: string;
+  deployment: string;
+  action: string;
+  status: DeploymentActionStatus;
+}
+
+export interface DeploymentJob {
+  id: string;
+  deployment: string;
+  action: string;
+  status: DeploymentActionStatus;
+  output: string;
+  lines: string[];
+  error?: string;
+  started_at: string;
+  finished_at?: string;
+}
+
+export const deploymentJobWsUrl = (name: string, jobId: string): string => {
+  const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+  const apiUrl = import.meta.env.VITE_API_URL || "";
+  const path = `/api/deployments/${name}/jobs/${jobId}/stream`;
+  if (apiUrl.startsWith("http")) {
+    const url = new URL(apiUrl);
+    return `${protocol}//${url.host}${path}`;
+  }
+  return `${protocol}//${window.location.host}${path}`;
+};
+
 export const deploymentsApi = {
   list: () => apiClient.get<{ deployments: Deployment[] }>("/deployments"),
   get: (name: string) => apiClient.get<Deployment>(`/deployments/${name}`),
@@ -127,10 +159,14 @@ export const deploymentsApi = {
     apiClient.post<{ message: string; name: string; service: string; output: string }>(
       withPlanQuery(`/deployments/${name}/services/${service}/${action}`, opts),
     ),
-  start: (name: string) => apiClient.post(`/deployments/${name}/start`),
-  stop: (name: string) => apiClient.post(`/deployments/${name}/stop`),
-  restart: (name: string) => apiClient.post(`/deployments/${name}/restart`),
-  rebuild: (name: string) => apiClient.post(`/deployments/${name}/rebuild`),
+  start: (name: string) => apiClient.post<ActionJobResponse>(`/deployments/${name}/start`),
+  stop: (name: string) => apiClient.post<ActionJobResponse>(`/deployments/${name}/stop`),
+  restart: (name: string) => apiClient.post<ActionJobResponse>(`/deployments/${name}/restart`),
+  rebuild: (name: string) => apiClient.post<ActionJobResponse>(`/deployments/${name}/rebuild`),
+  getJob: (name: string, jobId: string) => apiClient.get<DeploymentJob>(`/deployments/${name}/jobs/${jobId}`),
+  getActiveJob: (name: string) => apiClient.get<DeploymentJob>(`/deployments/${name}/jobs/active`),
+  serviceActionJob: (name: string, service: string, action: string) =>
+    apiClient.post<ActionJobResponse>(`/deployments/${name}/services/${service}/job`, { action }),
   pullImage: (name: string, onlyLatest: boolean = false) =>
     apiClient.post<{ message: string; name: string; output: string }>(`/deployments/${name}/pull`, {
       only_latest: onlyLatest,

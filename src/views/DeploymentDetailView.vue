@@ -322,7 +322,12 @@
               <div class="card-body">
                 <div v-if="services.length === 0" class="empty-services">No services configured</div>
                 <div v-else class="services-list">
-                  <div v-for="service in services" :key="service.name" class="service-item">
+                  <div
+                    v-for="service in services"
+                    :key="service.name"
+                    class="service-item"
+                    :class="{ 'service-item--active': serviceJobs.states[service.name]?.isRunning }"
+                  >
                     <div class="service-header">
                       <span class="service-name">{{ service.name }}</span>
                       <span class="service-status" :class="service.status">{{ service.status }}</span>
@@ -351,40 +356,72 @@
                         v-if="service.status !== 'running'"
                         class="action-btn"
                         title="Start"
-                        :disabled="actions.isBusy(`${service.name}:start`)"
-                        @click="runServiceAction(service, 'start')"
+                        :disabled="serviceJobs.states[service.name]?.isRunning"
+                        @click="serviceJobs.run(service.name, 'start')"
                       >
-                        <Icon v-if="actions.isBusy(`${service.name}:start`)" name="loader-circle" spin :size="14" />
+                        <Icon v-if="serviceJobs.states[service.name]?.isRunning" name="loader-circle" spin :size="14" />
                         <i v-else class="pi pi-play" />
                       </button>
                       <button
                         v-else
                         class="action-btn"
                         title="Stop"
-                        :disabled="actions.isBusy(`${service.name}:stop`)"
-                        @click="runServiceAction(service, 'stop')"
+                        :disabled="serviceJobs.states[service.name]?.isRunning"
+                        @click="serviceJobs.run(service.name, 'stop')"
                       >
-                        <Icon v-if="actions.isBusy(`${service.name}:stop`)" name="loader-circle" spin :size="14" />
+                        <Icon v-if="serviceJobs.states[service.name]?.isRunning" name="loader-circle" spin :size="14" />
                         <i v-else class="pi pi-stop" />
                       </button>
                       <button
                         class="action-btn"
                         title="Restart"
-                        :disabled="actions.isBusy(`${service.name}:restart`)"
-                        @click="runServiceAction(service, 'restart')"
+                        :disabled="serviceJobs.states[service.name]?.isRunning"
+                        @click="serviceJobs.run(service.name, 'restart')"
                       >
-                        <Icon v-if="actions.isBusy(`${service.name}:restart`)" name="loader-circle" spin :size="14" />
+                        <Icon v-if="serviceJobs.states[service.name]?.isRunning" name="loader-circle" spin :size="14" />
                         <i v-else class="pi pi-refresh" />
                       </button>
                       <button
                         class="action-btn"
                         title="Rebuild"
-                        :disabled="actions.isBusy(`${service.name}:rebuild`)"
-                        @click="runServiceAction(service, 'rebuild')"
+                        :disabled="serviceJobs.states[service.name]?.isRunning"
+                        @click="serviceJobs.run(service.name, 'rebuild')"
                       >
-                        <Icon v-if="actions.isBusy(`${service.name}:rebuild`)" name="loader-circle" spin :size="14" />
+                        <Icon v-if="serviceJobs.states[service.name]?.isRunning" name="loader-circle" spin :size="14" />
                         <i v-else class="pi pi-sync" />
                       </button>
+                    </div>
+
+                    <div
+                      v-if="serviceJobs.states[service.name]"
+                      class="service-progress"
+                      :class="{
+                        running: serviceJobs.states[service.name].isRunning,
+                        success: serviceJobs.states[service.name].isSuccess === true,
+                        error: serviceJobs.states[service.name].isSuccess === false,
+                      }"
+                    >
+                      <div class="service-progress-head">
+                        <Icon v-if="serviceJobs.states[service.name].isRunning" name="loader-circle" spin :size="16" />
+                        <Icon v-else-if="serviceJobs.states[service.name].isSuccess" name="circle-check" :size="16" />
+                        <Icon v-else name="circle-x" :size="16" />
+                        <span class="service-progress-label">
+                          {{ serviceJobLabel(serviceJobs.states[service.name]) }}
+                        </span>
+                        <button
+                          v-if="!serviceJobs.states[service.name].isRunning"
+                          class="service-progress-dismiss"
+                          @click="serviceJobs.dismiss(service.name)"
+                        >
+                          Dismiss
+                        </button>
+                      </div>
+                      <div v-if="serviceJobs.states[service.name].isRunning" class="service-progress-bar">
+                        <span />
+                      </div>
+                      <pre v-if="serviceJobs.states[service.name].output" class="service-progress-output">{{
+                        serviceJobs.states[service.name].output
+                      }}</pre>
                     </div>
                   </div>
                 </div>
@@ -1184,6 +1221,16 @@
       </div>
     </template>
 
+    <OperationModal
+      :visible="deploymentJob.state.visible"
+      :operation="deploymentJob.state.operation"
+      :deployment-name="deploymentJob.state.deploymentName"
+      :output="deploymentJob.state.output"
+      :is-running="deploymentJob.state.isRunning"
+      :is-success="deploymentJob.state.isSuccess"
+      @close="deploymentJob.close()"
+    />
+
     <Teleport to="body">
       <div v-if="showOperationModal" class="modal-overlay">
         <div class="operation-modal modal-container">
@@ -1391,12 +1438,27 @@
                 changes. A simple restart does not use newly pulled images.
               </span>
             </div>
+            <div v-if="services.length > 1" class="rebuild-services">
+              <span class="rebuild-services-label">Or rebuild a single service</span>
+              <div v-for="service in services" :key="service.name" class="rebuild-service-row">
+                <span class="rebuild-service-name">{{ service.name }}</span>
+                <button
+                  class="btn btn-secondary btn-sm"
+                  :disabled="serviceJobs.states[service.name]?.isRunning"
+                  @click="rebuildSingleService(service.name)"
+                >
+                  <Icon v-if="serviceJobs.states[service.name]?.isRunning" name="loader-circle" spin :size="14" />
+                  <i v-else class="pi pi-sync" />
+                  Rebuild
+                </button>
+              </div>
+            </div>
           </div>
           <div class="modal-footer">
             <button class="btn btn-secondary" @click="showRebuildModal = false">Cancel</button>
             <button class="btn btn-warning" @click="executeRebuild">
               <i class="pi pi-sync" />
-              Rebuild Containers
+              Rebuild All
             </button>
           </div>
         </div>
@@ -1735,19 +1797,20 @@ import ContainerResourcesModal from "@/components/ContainerResourcesModal.vue";
 import { extractComposeMounts, extractComposeServiceNames } from "@/utils/compose";
 import { matchTypeHints, describeBlockedRule } from "@/utils/protectedMode";
 import { usePlanFlow } from "@/composables/usePlanFlow";
-import { useActionRunner } from "@/composables/useActionRunner";
 import SplitActionButton from "@/components/base/SplitActionButton.vue";
 import SubTabs from "@/components/base/SubTabs.vue";
 import InlineAssist from "@/components/ai/InlineAssist.vue";
 import { useAssistStore } from "@/stores/assist";
 import Icon from "@/components/base/Icon.vue";
+import OperationModal from "@/components/OperationModal.vue";
+import { useDeploymentJob, type DeploymentOperation } from "@/composables/useDeploymentJob";
+import { useServiceJobs } from "@/composables/useServiceJobs";
 
 const route = useRoute();
 const router = useRouter();
 const notifications = useNotificationsStore();
 const authStore = useAuthStore();
 const { runGuarded } = usePlanFlow();
-const actions = useActionRunner();
 
 const assistStore = useAssistStore();
 const configAssistOpen = ref(false);
@@ -1948,6 +2011,21 @@ const operationRunning = ref(false);
 const operationSuccess = ref(false);
 const operationError = ref("");
 const operationOutput = ref("");
+
+const deploymentJob = useDeploymentJob((state) => {
+  const op = state.operation;
+  if (state.isSuccess) {
+    notifications.success(`${op} successful`, `${state.deploymentName} ${op} completed`);
+  } else {
+    notifications.error(`${op} failed`, `${state.deploymentName} ${op} failed`);
+  }
+  fetchDeployment();
+});
+
+const serviceJobs = useServiceJobs(
+  () => route.params.name as string,
+  () => fetchDeployment(),
+);
 
 const showDeleteDeploymentModal = ref(false);
 const deletingDeployment = ref(false);
@@ -2419,7 +2497,12 @@ const fetchStats = async () => {
 };
 
 const handleOperation = async (operation: string, onlyLatest: boolean = false) => {
-  operationTitle.value = `${operation.charAt(0).toUpperCase() + operation.slice(1)} Deployment`;
+  if (operation !== "pull") {
+    deploymentJob.run(operation as DeploymentOperation, route.params.name as string);
+    return;
+  }
+
+  operationTitle.value = "Pull Deployment";
   operationRunning.value = true;
   operationSuccess.value = false;
   operationError.value = "";
@@ -2427,19 +2510,7 @@ const handleOperation = async (operation: string, onlyLatest: boolean = false) =
   showOperationModal.value = true;
 
   try {
-    let response;
-    if (operation === "start") {
-      response = await deploymentsApi.start(route.params.name as string);
-    } else if (operation === "stop") {
-      response = await deploymentsApi.stop(route.params.name as string);
-    } else if (operation === "restart") {
-      response = await deploymentsApi.restart(route.params.name as string);
-    } else if (operation === "rebuild") {
-      response = await deploymentsApi.rebuild(route.params.name as string);
-    } else if (operation === "pull") {
-      response = await deploymentsApi.pullImage(route.params.name as string, onlyLatest);
-    }
-
+    const response = await deploymentsApi.pullImage(route.params.name as string, onlyLatest);
     operationOutput.value = response?.data?.output || "Operation completed";
     operationSuccess.value = true;
     await fetchDeployment();
@@ -2658,6 +2729,30 @@ const viewServiceLogs = (service: any) => {
 
 const serviceNames = computed(() => services.value.map((s) => s.name));
 
+const serviceActionVerb: Record<string, { running: string; done: string; failed: string }> = {
+  start: { running: "Starting", done: "started", failed: "start failed" },
+  stop: { running: "Stopping", done: "stopped", failed: "stop failed" },
+  restart: { running: "Restarting", done: "restarted", failed: "restart failed" },
+  rebuild: { running: "Rebuilding", done: "rebuilt", failed: "rebuild failed" },
+  pull: { running: "Pulling", done: "image pulled", failed: "pull failed" },
+};
+
+const serviceJobLabel = (st: { service: string; action: string; isRunning: boolean; isSuccess: boolean | null }) => {
+  const v = serviceActionVerb[st.action] || serviceActionVerb.restart;
+  if (st.isRunning) return `${v.running} ${st.service}…`;
+  return st.isSuccess ? `${st.service} ${v.done}` : `${st.service} ${v.failed}`;
+};
+
+const runServiceJob = (service: string, action: "start" | "stop" | "restart" | "rebuild" | "pull") => {
+  serviceJobs.run(service, action);
+  activeTab.value = "overview";
+};
+
+const rebuildSingleService = (service: string) => {
+  showRebuildModal.value = false;
+  runServiceJob(service, "rebuild");
+};
+
 const handleScopedAction = (action: "start" | "stop" | "restart" | "rebuild" | "pull", scope: string) => {
   if (scope === "deployment") {
     if (action === "rebuild") {
@@ -2669,7 +2764,7 @@ const handleScopedAction = (action: "start" | "stop" | "restart" | "rebuild" | "
     }
     return;
   }
-  runServiceAction({ name: scope }, action);
+  runServiceJob(scope, action);
 };
 
 const logsAssistContext = computed<AssistContext>(() => ({
@@ -2701,27 +2796,6 @@ const operationAssistContext = computed<AssistContext>(() => ({
   }. Explain what happened${operationError.value ? " and how to fix it" : ""}.`,
   seedContext: `\`\`\`\n${operationOutput.value || operationError.value || "(no output captured)"}\n\`\`\``,
 }));
-
-const serviceActionPastTense: Record<string, string> = {
-  start: "started",
-  stop: "stopped",
-  restart: "restarted",
-  rebuild: "rebuilt",
-  pull: "image pulled",
-};
-
-const runServiceAction = (service: { name: string }, action: "start" | "stop" | "restart" | "rebuild" | "pull") =>
-  actions.run(`${service.name}:${action}`, async () => {
-    const name = route.params.name as string;
-    const result = await runGuarded(
-      () => deploymentsApi.serviceAction(name, service.name, action),
-      () => deploymentsApi.serviceAction(name, service.name, action, { plan: true }),
-      "Service Action Failed",
-    );
-    if (result === false) return;
-    notifications.success("Service Updated", `${service.name} ${serviceActionPastTense[action]}`);
-    await fetchDeployment();
-  });
 
 const terminalRef = ref<InstanceType<typeof ContainerTerminal> | null>(null);
 
@@ -3041,6 +3115,7 @@ watch(activeTab, (newTab) => {
 
 onMounted(() => {
   fetchDeployment();
+  deploymentJob.resume(route.params.name as string);
   credentialsApi
     .list()
     .then((response) => {
@@ -3616,6 +3691,110 @@ onUnmounted(() => {
 .service-actions {
   display: flex;
   gap: var(--space-2);
+}
+
+.service-item--active {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+.service-progress {
+  margin-top: var(--space-3);
+  border: 1px solid var(--border);
+  border-left-width: 3px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.service-progress.running {
+  border-left-color: var(--color-info-600);
+}
+
+.service-progress.success {
+  border-left-color: var(--color-success-600);
+}
+
+.service-progress.error {
+  border-left-color: var(--color-danger-600);
+}
+
+.service-progress-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  font-size: var(--text-md);
+  font-weight: var(--font-semibold);
+}
+
+.service-progress.running .service-progress-head {
+  background: var(--color-info-50);
+  color: var(--color-info-700);
+}
+
+.service-progress.success .service-progress-head {
+  background: var(--color-success-50);
+  color: var(--color-success-700);
+}
+
+.service-progress.error .service-progress-head {
+  background: var(--color-danger-50);
+  color: var(--color-danger-700);
+}
+
+.service-progress-label {
+  flex: 1;
+}
+
+.service-progress-dismiss {
+  border: none;
+  background: transparent;
+  color: inherit;
+  opacity: 0.75;
+  cursor: pointer;
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+}
+
+.service-progress-dismiss:hover {
+  opacity: 1;
+}
+
+.service-progress-bar {
+  height: 3px;
+  background: var(--color-info-100);
+  overflow: hidden;
+}
+
+.service-progress-bar span {
+  display: block;
+  width: 40%;
+  height: 100%;
+  background: var(--color-info-600);
+  animation: serviceProgressSlide 1.1s ease-in-out infinite;
+}
+
+@keyframes serviceProgressSlide {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(350%);
+  }
+}
+
+.service-progress-output {
+  margin: 0;
+  max-height: 200px;
+  overflow: auto;
+  padding: var(--space-3);
+  font-family: var(--font-mono, monospace);
+  font-size: var(--text-xs);
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: var(--text-muted);
+  background: var(--surface-sunken);
 }
 
 .action-btn {
@@ -4426,6 +4605,41 @@ onUnmounted(() => {
 
 .rebuild-modal {
   max-width: 500px;
+}
+
+.rebuild-services {
+  margin-top: var(--space-4);
+  border-top: 1px solid var(--border-subtle);
+  padding-top: var(--space-3);
+}
+
+.rebuild-services-label {
+  display: block;
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  color: var(--text-muted);
+  margin-bottom: var(--space-2);
+}
+
+.rebuild-service-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-2) 0;
+}
+
+.rebuild-service-row + .rebuild-service-row {
+  border-top: 1px solid var(--border-subtle);
+}
+
+.rebuild-service-name {
+  font-size: var(--text-md);
+  color: var(--text);
+}
+
+.btn-sm {
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--text-sm);
 }
 
 .rebuild-modal .modal-header {

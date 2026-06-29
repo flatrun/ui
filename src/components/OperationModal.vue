@@ -4,20 +4,15 @@
       <div class="header-info">
         <span class="operation-badge" :class="operation">{{ operation }}</span>
         <h3>{{ title }}</h3>
-      </div>
-    </template>
-
-    <div class="status-section">
-      <div class="status-indicator" :class="statusClass">
-        <i :class="statusIcon" />
-      </div>
-      <div class="status-text">
-        <span class="status-label">{{ statusLabel }}</span>
-        <span v-if="startTime" class="status-time">
-          {{ elapsedTime }}
+        <span class="header-status" :class="statusClass">
+          <Icon v-if="isRunning" name="loader-circle" :size="16" spin />
+          <Icon v-else-if="isSuccess === true" name="check" :size="16" />
+          <Icon v-else-if="isSuccess === false" name="x" :size="16" />
+          <span class="header-status-label">{{ statusLabel }}</span>
+          <span v-if="startTime" class="header-elapsed">{{ elapsedTime }}</span>
         </span>
       </div>
-    </div>
+    </template>
 
     <div class="output-section">
       <LogViewer
@@ -40,11 +35,12 @@
 import { ref, computed, watch } from "vue";
 import BaseModal from "./base/BaseModal.vue";
 import LogViewer from "./LogViewer.vue";
+import Icon from "./base/Icon.vue";
 import type { AssistContext } from "@/stores/assist";
 
 const props = defineProps<{
   visible: boolean;
-  operation: "start" | "stop" | "restart";
+  operation: "start" | "stop" | "restart" | "rebuild";
   deploymentName: string;
   output: string;
   isRunning: boolean;
@@ -71,6 +67,7 @@ const title = computed(() => {
     start: "Starting",
     stop: "Stopping",
     restart: "Restarting",
+    rebuild: "Rebuilding",
   };
   return `${ops[props.operation]} ${props.deploymentName}`;
 });
@@ -82,16 +79,9 @@ const statusClass = computed(() => {
   return "pending";
 });
 
-const statusIcon = computed(() => {
-  if (props.isRunning) return "pi pi-spin pi-spinner";
-  if (props.isSuccess === true) return "pi pi-check";
-  if (props.isSuccess === false) return "pi pi-times";
-  return "pi pi-clock";
-});
-
 const statusLabel = computed(() => {
-  if (props.isRunning) return "In Progress...";
-  if (props.isSuccess === true) return "Completed Successfully";
+  if (props.isRunning) return "Running";
+  if (props.isSuccess === true) return "Done";
   if (props.isSuccess === false) return "Failed";
   return "Pending";
 });
@@ -139,6 +129,42 @@ const handleClose = () => {
   gap: var(--space-3);
 }
 
+.header-status {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-left: auto;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+}
+
+.header-status.running {
+  background: var(--color-info-50);
+  color: var(--color-info-700);
+}
+
+.header-status.success {
+  background: var(--color-success-50);
+  color: var(--color-success-700);
+}
+
+.header-status.error {
+  background: var(--color-danger-50);
+  color: var(--color-danger-700);
+}
+
+.header-status.pending {
+  background: var(--surface-inset);
+  color: var(--text-muted);
+}
+
+.header-elapsed {
+  font-variant-numeric: tabular-nums;
+  opacity: 0.75;
+}
+
 .operation-badge {
   padding: var(--space-1) var(--space-3);
   border-radius: var(--radius-full);
@@ -163,6 +189,11 @@ const handleClose = () => {
   color: var(--color-info-700);
 }
 
+.operation-badge.rebuild {
+  background: var(--color-warning-50);
+  color: var(--color-warning-700);
+}
+
 .header-info h3 {
   font-size: var(--text-xl);
   font-weight: var(--font-semibold);
@@ -170,68 +201,7 @@ const handleClose = () => {
   margin: 0;
 }
 
-.status-section {
-  display: flex;
-  align-items: center;
-  gap: var(--space-4);
-  padding: var(--space-5);
-  background: linear-gradient(135deg, var(--surface-sunken), var(--surface-raised));
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
-  margin-bottom: var(--space-6);
-}
-
-.status-indicator {
-  width: 56px;
-  height: 56px;
-  border-radius: var(--radius-xl);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.5rem;
-  transition: all 0.3s ease;
-}
-
-.status-indicator.pending {
-  background: var(--surface-inset);
-  color: var(--text-muted);
-}
-
-.status-indicator.running {
-  background: linear-gradient(135deg, var(--color-primary-50), var(--color-info-50));
-  color: var(--color-primary-600);
-  box-shadow: 0 0 0 4px var(--color-primary-50);
-}
-
-.status-indicator.success {
-  background: var(--color-success-50);
-  color: var(--color-success-600);
-}
-
-.status-indicator.error {
-  background: var(--color-danger-50);
-  color: var(--color-danger-600);
-}
-
-.status-text {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-}
-
-.status-label {
-  font-size: var(--text-lg);
-  font-weight: var(--font-semibold);
-  color: var(--text);
-}
-
-.status-time {
-  font-size: var(--text-sm);
-  color: var(--text-muted);
-}
-
 .output-section {
-  margin-top: var(--space-4);
   border-radius: var(--radius-sm);
   overflow: hidden;
 }
