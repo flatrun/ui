@@ -177,8 +177,7 @@ async function load() {
 
 onMounted(load);
 
-// A template is installed when a deployment created from it exists. Installing defaults the
-// deployment name to the template slug, so that is the match we check.
+// Matched by slug, since installing defaults the deployment name to the slug.
 function isInstalled(app: MarketplaceTemplate): boolean {
   return deploymentsStore.deployments.some((d) => d.name === app.slug);
 }

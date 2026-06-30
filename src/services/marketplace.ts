@@ -1,9 +1,5 @@
 import { apiClient } from "./api";
 
-// The marketplace restricts CORS to its own origin, so the browser cannot call it directly.
-// The agent proxies it under /marketplace (upstream configurable via FLATRUN_MARKETPLACE_API),
-// and the shared apiClient targets that same-origin path.
-
 export interface MarketplaceCategory {
   slug: string;
   name: string;
