@@ -1,10 +1,8 @@
-import axios from "axios";
+import { apiClient } from "./api";
 
-// The marketplace is a separate public service from the agent API. Browsing needs no auth.
-const marketplaceClient = axios.create({
-  baseURL: import.meta.env.VITE_MARKETPLACE_URL || "https://api.flatrun.dev/v1",
-  timeout: 15000,
-});
+// The marketplace restricts CORS to its own origin, so the browser cannot call it directly.
+// The agent proxies it under /marketplace (upstream configurable via FLATRUN_MARKETPLACE_API),
+// and the shared apiClient targets that same-origin path.
 
 export interface MarketplaceCategory {
   slug: string;
@@ -48,8 +46,8 @@ interface Paginated<T> {
 
 export const marketplaceApi = {
   templates: (params?: { category?: string; featured?: boolean; per_page?: number; page?: number }) =>
-    marketplaceClient.get<Paginated<MarketplaceTemplate>>("/templates", { params }),
-  search: (q: string) => marketplaceClient.get<Paginated<MarketplaceTemplate>>("/search", { params: { q } }),
-  categories: () => marketplaceClient.get<{ data: MarketplaceCategory[] }>("/categories"),
-  download: (slug: string) => marketplaceClient.get<AgentTemplatePayload>(`/templates/${slug}/download`),
+    apiClient.get<Paginated<MarketplaceTemplate>>("/marketplace/templates", { params }),
+  search: (q: string) => apiClient.get<Paginated<MarketplaceTemplate>>("/marketplace/search", { params: { q } }),
+  categories: () => apiClient.get<{ data: MarketplaceCategory[] }>("/marketplace/categories"),
+  download: (slug: string) => apiClient.get<AgentTemplatePayload>(`/marketplace/templates/${slug}/download`),
 };

@@ -5,7 +5,7 @@
         <h2>App Marketplace</h2>
         <p>Deploy curated apps and stacks to Flatrun in one click</p>
       </div>
-      <Icon name="layout-grid" :size="64" class="banner-decoration" />
+      <Icon name="layout-grid" :size="40" class="banner-decoration" />
     </div>
 
     <div class="view-header">
@@ -66,7 +66,10 @@
     <div v-else class="apps-grid">
       <div v-for="app in filteredApps" :key="app.slug" class="app-card">
         <div class="app-card-top">
-          <div class="app-logo" :style="{ background: tint(app), color: app.category?.color || 'var(--color-primary-600)' }">
+          <div
+            class="app-logo"
+            :style="{ background: tint(app), color: app.category?.color || 'var(--color-primary-600)' }"
+          >
             <img v-if="app.logo" :src="app.logo" :alt="app.name" @error="onLogoError(app.slug)" />
             <Icon v-else name="package" :size="22" />
           </div>
@@ -252,7 +255,7 @@ async function confirmInstall() {
 .marketplace-banner {
   background: linear-gradient(135deg, var(--color-primary-500) 0%, #8b5cf6 100%);
   border-radius: var(--radius-md);
-  padding: var(--space-5) var(--space-6);
+  padding: var(--space-3) var(--space-5);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -262,13 +265,13 @@ async function confirmInstall() {
 }
 
 .banner-content h2 {
-  font-size: var(--text-2xl);
+  font-size: var(--text-lg);
   font-weight: var(--font-bold);
-  margin: 0 0 var(--space-1) 0;
+  margin: 0;
 }
 
 .banner-content p {
-  font-size: var(--text-md);
+  font-size: var(--text-sm);
   opacity: 0.9;
   margin: 0;
 }
