@@ -12,6 +12,7 @@ export interface Plugin {
   category: string;
   enabled: boolean;
   capabilities?: string[];
+  config_schema?: Record<string, unknown>;
   widget?: {
     enabled: boolean;
     position: string;
