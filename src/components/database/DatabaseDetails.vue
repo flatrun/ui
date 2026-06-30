@@ -544,6 +544,12 @@ const filteredAllDatabases = computed(() => {
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   font-size: var(--text-sm);
+  background: var(--surface);
+  color: var(--text);
+}
+
+.users-search .search-input::placeholder {
+  color: var(--text-subtle);
 }
 
 .users-search .search-input:focus {

@@ -182,6 +182,12 @@ function formatNumber(num: number): string {
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   font-size: var(--text-sm);
+  background: var(--surface);
+  color: var(--text);
+}
+
+.search-input::placeholder {
+  color: var(--text-subtle);
 }
 
 .search-input:focus {
