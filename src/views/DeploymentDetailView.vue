@@ -330,6 +330,10 @@
                   >
                     <div class="service-header">
                       <span class="service-name">{{ service.name }}</span>
+                      <span v-if="service.is_primary" class="service-primary-badge" title="Primary service">
+                        <Icon name="star" :size="12" />
+                        Primary
+                      </span>
                       <span class="service-status" :class="service.status">{{ service.status }}</span>
                     </div>
                     <div class="service-details">
@@ -343,6 +347,16 @@
                       </span>
                     </div>
                     <div class="service-actions">
+                      <button
+                        v-if="services.length > 1"
+                        class="action-btn"
+                        :class="{ 'action-btn--primary': service.is_primary }"
+                        :title="service.is_primary ? 'Primary service (click to auto-detect)' : 'Make primary service'"
+                        :disabled="savingPrimaryService"
+                        @click="togglePrimaryService(service)"
+                      >
+                        <Icon :name="service.is_primary ? 'star' : 'star-off'" :size="14" />
+                      </button>
                       <button class="action-btn" title="Resources" @click="openServiceResources(service)">
                         <i class="pi pi-sliders-h" />
                       </button>
@@ -1438,6 +1452,20 @@
                 changes. A simple restart does not use newly pulled images.
               </span>
             </div>
+            <div class="rebuild-options">
+              <label class="rebuild-option">
+                <input v-model="rebuildOptions.force_recreate" type="checkbox" />
+                <span>Force recreate containers <small>(apply updated environment variables)</small></span>
+              </label>
+              <label class="rebuild-option">
+                <input v-model="rebuildOptions.no_cache" type="checkbox" />
+                <span>Rebuild without cache <small>(ignore the build cache)</small></span>
+              </label>
+              <label class="rebuild-option">
+                <input v-model="rebuildOptions.fresh_pull" type="checkbox" />
+                <span>Pull fresh images <small>(do not use locally cached images)</small></span>
+              </label>
+            </div>
             <div v-if="services.length > 1" class="rebuild-services">
               <span class="rebuild-services-label">Or rebuild a single service</span>
               <div v-for="service in services" :key="service.name" class="rebuild-service-row">
@@ -1773,6 +1801,7 @@ import {
   securityApi,
   credentialsApi,
   type EnvVar,
+  type ActionOptions,
 } from "@/services/api";
 import { useNotificationsStore } from "@/stores/notifications";
 import { useAuthStore } from "@/stores/auth";
@@ -2496,9 +2525,9 @@ const fetchStats = async () => {
   }
 };
 
-const handleOperation = async (operation: string, onlyLatest: boolean = false) => {
+const handleOperation = async (operation: string, onlyLatest: boolean = false, opts?: ActionOptions) => {
   if (operation !== "pull") {
-    deploymentJob.run(operation as DeploymentOperation, route.params.name as string);
+    deploymentJob.run(operation as DeploymentOperation, route.params.name as string, opts);
     return;
   }
 
@@ -2543,9 +2572,11 @@ const executePull = async (onlyLatest: boolean) => {
   await handleOperation("pull", onlyLatest);
 };
 
+const rebuildOptions = reactive<ActionOptions>({ force_recreate: true, no_cache: false, fresh_pull: false });
+
 const executeRebuild = async () => {
   showRebuildModal.value = false;
-  await handleOperation("rebuild");
+  await handleOperation("rebuild", false, { ...rebuildOptions });
 };
 
 const executeAction = async (action: { id: string; name: string }) => {
@@ -2932,6 +2963,23 @@ const openDomainSettings = () => {
     };
   }
   showDomainSettingsModal.value = true;
+};
+
+const savingPrimaryService = ref(false);
+const togglePrimaryService = (service: { name: string; is_primary?: boolean }) =>
+  setPrimaryService(service.is_primary ? "" : service.name);
+
+const setPrimaryService = async (value: string) => {
+  savingPrimaryService.value = true;
+  try {
+    await deploymentsApi.updateMetadata(route.params.name as string, { primary_service: value });
+    notifications.success("Saved", value ? `Primary service set to ${value}` : "Primary service reset to auto-detect");
+    await fetchDeployment();
+  } catch (err: any) {
+    notifications.error("Save Failed", err.response?.data?.error || err.message);
+  } finally {
+    savingPrimaryService.value = false;
+  }
 };
 
 const saveDomainSettings = async () => {
@@ -3571,6 +3619,22 @@ onUnmounted(() => {
   padding: var(--space-1) var(--space-2);
   border-radius: var(--radius-full);
   font-weight: var(--font-medium);
+}
+
+.service-primary-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--text-xs);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-full);
+  font-weight: var(--font-medium);
+  color: var(--primary);
+  background: var(--primary-soft, rgba(99, 102, 241, 0.12));
+}
+
+.action-btn--primary {
+  color: var(--primary);
 }
 
 /* Databases List */

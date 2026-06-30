@@ -50,7 +50,7 @@ describe("useDeploymentJob", () => {
     await run("start", "app");
     await flushPromises();
 
-    expect(start).toHaveBeenCalledWith("app");
+    expect(start).toHaveBeenCalledWith("app", undefined);
     expect(getJob).toHaveBeenCalledWith("app", "job-1");
     expect(state.isRunning).toBe(false);
     expect(state.isSuccess).toBe(true);

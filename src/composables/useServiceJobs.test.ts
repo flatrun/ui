@@ -46,7 +46,7 @@ describe("useServiceJobs", () => {
     await run("web", "rebuild");
     await flushPromises();
 
-    expect(serviceActionJob).toHaveBeenCalledWith("app", "web", "rebuild");
+    expect(serviceActionJob).toHaveBeenCalledWith("app", "web", "rebuild", undefined);
     expect(getJob).toHaveBeenCalledWith("app", "job-1");
     expect(states.web.action).toBe("rebuild");
     expect(states.web.isRunning).toBe(false);

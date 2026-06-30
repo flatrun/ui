@@ -16,12 +16,14 @@ export interface Service {
   health?: string;
   ports?: string[];
   networks?: string[];
+  is_primary?: boolean;
   created_at: string;
 }
 
 export interface ServiceMetadata {
   name: string;
   type: string;
+  primary_service?: string;
   networking: NetworkingConfig;
   ssl: SSLConfig;
   healthcheck: HealthCheckConfig;
