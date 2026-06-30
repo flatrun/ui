@@ -12,35 +12,33 @@
       default-view-mode="grid"
       empty-icon="pi pi-th-large"
       empty-title="No Apps Installed"
-      empty-text="Extend Flatrun's functionality by installing apps from the marketplace."
+      empty-text="Browse the marketplace to deploy apps, or drop an app folder into .flatrun/plugins/."
       loading-text="Loading apps..."
     >
       <template #actions>
-        <button class="btn btn-primary" @click="showInstallModal = true">
-          <i class="pi pi-plus" />
-          Install App
+        <button class="btn btn-primary" @click="router.push('/marketplace')">
+          <Icon name="store" :size="16" />
+          Browse Marketplace
         </button>
         <button class="btn btn-icon" :disabled="loading" @click="fetchPlugins">
-          <i class="pi pi-refresh" :class="{ 'pi-spin': loading }" />
+          <Icon name="refresh-cw" :size="16" :spin="loading" />
         </button>
       </template>
 
       <template #empty-action>
-        <button class="btn btn-primary" @click="showInstallModal = true">
-          <i class="pi pi-plus" />
-          Install App
+        <button class="btn btn-primary" @click="router.push('/marketplace')">
+          <Icon name="store" :size="16" />
+          Browse Marketplace
         </button>
       </template>
 
       <template #cell-display_name="{ item }">
         <div class="name-cell">
-          <div class="plugin-icon-sm">
-            <i :class="getPluginIcon(item.category)" />
+          <div class="plugin-logo plugin-logo--sm" :style="tintFor(item.category)">
+            <Icon :name="iconFor(item.category)" :size="16" />
           </div>
           <div>
-            <div class="plugin-name">
-              {{ item.display_name }}
-            </div>
+            <div class="plugin-name">{{ item.display_name }}</div>
             <div class="plugin-version">v{{ item.version }}</div>
           </div>
         </div>
@@ -52,100 +50,37 @@
         </span>
       </template>
 
-      <template #cell-capabilities="{ item }"> {{ item.capabilities?.length || 0 }} capabilities </template>
-
-      <template #cell-actions>
-        <div class="table-actions">
-          <button class="btn-icon-xs" title="Configure">
-            <i class="pi pi-cog" />
-          </button>
-          <button class="btn-icon-xs danger" title="Uninstall">
-            <i class="pi pi-trash" />
-          </button>
-        </div>
-      </template>
+      <template #cell-capabilities="{ item }"> {{ item.capabilities?.length || 0 }} </template>
 
       <template #grid="{ items }">
         <div class="plugins-grid">
-          <div v-for="plugin in items" :key="plugin.name" class="plugin-card">
-            <div class="plugin-header">
-              <div class="plugin-icon">
-                <i :class="getPluginIcon(plugin.category)" />
+          <div
+            v-for="plugin in items"
+            :key="plugin.name"
+            class="plugin-card"
+            role="button"
+            tabindex="0"
+            @click="openApp(plugin)"
+            @keydown.enter="openApp(plugin)"
+          >
+            <div class="plugin-card-top">
+              <div class="plugin-logo" :style="tintFor(plugin.category)">
+                <Icon :name="iconFor(plugin.category)" :size="20" />
               </div>
-              <div class="plugin-meta">
-                <h4>{{ plugin.display_name }}</h4>
-                <span class="plugin-version">v{{ plugin.version }}</span>
-              </div>
-              <div class="plugin-status">
-                <span class="status-badge" :class="plugin.enabled ? 'enabled' : 'disabled'">
-                  {{ plugin.enabled ? "Enabled" : "Disabled" }}
-                </span>
-              </div>
+              <span class="status-badge" :class="plugin.enabled ? 'enabled' : 'disabled'">
+                {{ plugin.enabled ? "Enabled" : "Disabled" }}
+              </span>
             </div>
 
-            <div class="plugin-body">
-              <p class="plugin-description">
-                {{ plugin.description }}
-              </p>
+            <h3 class="plugin-name">{{ plugin.display_name }}</h3>
+            <p class="plugin-description">{{ plugin.description }}</p>
 
-              <div class="plugin-info-grid">
-                <div class="info-item">
-                  <span class="info-label">Type</span>
-                  <span class="info-value">{{ plugin.type }}</span>
-                </div>
-                <div class="info-item">
-                  <span class="info-label">Category</span>
-                  <span class="info-value">{{ plugin.category }}</span>
-                </div>
-                <div class="info-item">
-                  <span class="info-label">Author</span>
-                  <span class="info-value">{{ plugin.author }}</span>
-                </div>
-              </div>
-
-              <div v-if="plugin.capabilities?.length" class="capabilities-section">
-                <span class="section-label">Capabilities</span>
-                <div class="capabilities-list">
-                  <span v-for="cap in plugin.capabilities" :key="cap" class="capability-tag">
-                    {{ formatCapability(cap) }}
-                  </span>
-                </div>
-              </div>
-
-              <div v-if="plugin.dashboard_extensions?.length" class="extensions-section">
-                <span class="section-label">Dashboard Extensions</span>
-                <div class="extensions-list">
-                  <div v-for="ext in plugin.dashboard_extensions" :key="ext.location" class="extension-item">
-                    <i class="pi pi-puzzle-piece" />
-                    <span>{{ ext.component }}</span>
-                    <span class="extension-location">@ {{ ext.location }}</span>
-                  </div>
-                </div>
-              </div>
-
-              <div v-if="plugin.api?.length" class="api-section">
-                <span class="section-label">API Endpoints ({{ plugin.api.length }})</span>
-                <div class="api-list">
-                  <div v-for="endpoint in plugin.api.slice(0, 3)" :key="endpoint.path" class="api-item">
-                    <span class="api-method" :class="endpoint.method.toLowerCase()">
-                      {{ endpoint.method }}
-                    </span>
-                    <code>{{ endpoint.path }}</code>
-                  </div>
-                  <div v-if="plugin.api.length > 3" class="api-more">+{{ plugin.api.length - 3 }} more endpoints</div>
-                </div>
-              </div>
-            </div>
-
-            <div class="plugin-footer">
-              <button class="btn btn-sm btn-secondary">
-                <i class="pi pi-cog" />
-                Configure
-              </button>
-              <button class="btn btn-sm btn-danger">
-                <i class="pi pi-trash" />
-                Uninstall
-              </button>
+            <div class="plugin-chips">
+              <span v-if="plugin.category" class="chip">{{ formatLabel(plugin.category) }}</span>
+              <span v-if="plugin.capabilities?.length" class="chip chip--muted">
+                {{ plugin.capabilities.length }} {{ plugin.capabilities.length === 1 ? "capability" : "capabilities" }}
+              </span>
+              <span class="plugin-version-chip">v{{ plugin.version }}</span>
             </div>
           </div>
         </div>
@@ -153,28 +88,53 @@
     </DataTable>
 
     <Teleport to="body">
-      <div v-if="showInstallModal" class="modal-overlay" @click.self="showInstallModal = false">
-        <div class="modal-container">
-          <div class="modal-header">
-            <h3>
-              <i class="pi pi-download" />
-              Install App
-            </h3>
-            <button class="close-btn" @click="showInstallModal = false">
-              <i class="pi pi-times" />
-            </button>
+      <div v-if="selectedApp" class="drawer-overlay" @click.self="closeApp">
+        <aside class="app-drawer">
+          <header class="drawer-header">
+            <div class="drawer-logo" :style="tintFor(selectedApp.category)">
+              <Icon :name="iconFor(selectedApp.category)" :size="24" />
+            </div>
+            <div class="drawer-title">
+              <h3>{{ selectedApp.display_name }}</h3>
+              <span class="drawer-sub">v{{ selectedApp.version }} · {{ formatLabel(selectedApp.type || "app") }}</span>
+            </div>
+            <button class="icon-btn" @click="closeApp"><Icon name="x" :size="18" /></button>
+          </header>
+
+          <div class="drawer-body">
+            <p class="drawer-description">{{ selectedApp.description }}</p>
+
+            <section class="drawer-section">
+              <h4>Capabilities</h4>
+              <div v-if="selectedApp.capabilities?.length" class="cap-list">
+                <span v-for="cap in selectedApp.capabilities" :key="cap" class="chip">{{ formatLabel(cap) }}</span>
+              </div>
+              <p v-else class="muted">This app declares no capabilities.</p>
+            </section>
+
+            <section v-if="selectedApp.api?.length" class="drawer-section">
+              <h4>Endpoints</h4>
+              <div class="api-list">
+                <div v-for="ep in selectedApp.api" :key="ep.method + ep.path" class="api-row">
+                  <span class="api-method" :class="ep.method.toLowerCase()">{{ ep.method }}</span>
+                  <code>{{ ep.path }}</code>
+                </div>
+              </div>
+            </section>
+
+            <section class="drawer-section">
+              <h4>Settings</h4>
+              <div v-if="configFields(selectedApp).length" class="settings-list">
+                <div v-for="f in configFields(selectedApp)" :key="f.key" class="setting-row">
+                  <div class="setting-key">{{ f.label }}</div>
+                  <div class="setting-type">{{ f.type }}</div>
+                </div>
+                <p class="muted setting-hint">Editing settings is coming with the app config flow.</p>
+              </div>
+              <p v-else class="muted">This app has no configurable settings.</p>
+            </section>
           </div>
-          <div class="modal-body">
-            <p>App installation from marketplace coming soon.</p>
-            <p class="hint">
-              For now, manually place app folders in
-              <code>.flatrun/plugins/</code>
-            </p>
-          </div>
-          <div class="modal-footer">
-            <button class="btn btn-secondary" @click="showInstallModal = false">Close</button>
-          </div>
-        </div>
+        </aside>
       </div>
     </Teleport>
   </div>
@@ -182,101 +142,102 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
-import { usePluginsStore } from "@/stores/plugins";
+import { useRouter } from "vue-router";
+import { usePluginsStore, type Plugin } from "@/stores/plugins";
 import { storeToRefs } from "pinia";
 import DataTable from "@/components/DataTable.vue";
+import Icon from "@/components/base/Icon.vue";
 
+const router = useRouter();
 const pluginsStore = usePluginsStore();
 const { plugins, loading } = storeToRefs(pluginsStore);
 const { fetchPlugins } = pluginsStore;
 
-const showInstallModal = ref(false);
+const selectedApp = ref<Plugin | null>(null);
+const openApp = (plugin: Plugin) => (selectedApp.value = plugin);
+const closeApp = () => (selectedApp.value = null);
+
+// Flatten a plugin's declared config_schema into label/type rows for display.
+const configFields = (plugin: Plugin) => {
+  const schema = plugin.config_schema;
+  if (!schema || typeof schema !== "object") return [];
+  return Object.entries(schema).map(([key, def]) => ({
+    key,
+    label: formatLabel(key),
+    type: (def && typeof def === "object" && "type" in def ? String((def as any).type) : typeof def) || "string",
+  }));
+};
 
 const columns = [
   { key: "display_name", label: "Name", sortable: true },
   { key: "enabled", label: "Status", sortable: true },
   { key: "type", label: "Type", sortable: true },
   { key: "category", label: "Category", sortable: true },
-  { key: "author", label: "Author", sortable: true },
   { key: "capabilities", label: "Capabilities" },
-  { key: "actions", label: "Actions", width: "100px" },
 ];
 
-const getPluginIcon = (category: string) => {
-  const icons: Record<string, string> = {
-    infrastructure: "pi pi-server",
-    monitoring: "pi pi-chart-line",
-    security: "pi pi-shield",
-    database: "pi pi-database",
-    web: "pi pi-globe",
-  };
-  return icons[category] || "pi pi-puzzle-piece";
+const categoryIcons: Record<string, string> = {
+  infrastructure: "server",
+  monitoring: "activity",
+  security: "shield",
+  networking: "network",
+  database: "database",
+  web: "globe",
 };
 
-const formatCapability = (cap: string) => {
-  return cap.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
+const categoryColors: Record<string, string> = {
+  infrastructure: "#6366f1",
+  monitoring: "#0ea5e9",
+  security: "#f59e0b",
+  networking: "#8b5cf6",
+  database: "#10b981",
+  web: "#3b82f6",
 };
 
-onMounted(() => {
-  fetchPlugins();
-});
+const iconFor = (category: string) => categoryIcons[category] || "puzzle";
+
+const tintFor = (category: string) => {
+  const c = categoryColors[category] || "var(--color-primary-600)";
+  const isHex = c.startsWith("#");
+  return { background: isHex ? `${c}1a` : "var(--surface-sunken)", color: c };
+};
+
+const formatLabel = (s: string) => s.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
+
+onMounted(fetchPlugins);
 </script>
 
 <style scoped>
 .plugins-view {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: var(--space-5);
 }
 
 .btn {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.625rem 1.25rem;
+  gap: 0.375rem;
+  padding: var(--space-2) var(--space-3);
   border-radius: var(--radius-sm);
-  font-weight: 500;
-  font-size: 0.875rem;
+  font-weight: var(--font-medium);
+  font-size: var(--text-sm);
   cursor: pointer;
-  transition: all 0.2s;
-  border: none;
-}
-
-.btn-sm {
-  padding: 0.5rem 1rem;
-  font-size: 0.8125rem;
+  transition: all var(--transition-base);
+  border: 1px solid transparent;
 }
 
 .btn-primary {
-  background: #3b82f6;
+  background: var(--color-primary-500);
   color: white;
 }
 
 .btn-primary:hover {
-  background: #2563eb;
-}
-
-.btn-secondary {
-  background: var(--surface-inset);
-  border: 1px solid var(--border);
-  color: var(--text);
-}
-
-.btn-secondary:hover {
-  background: #e5e7eb;
-}
-
-.btn-danger {
-  background: #fee2e2;
-  color: #dc2626;
-}
-
-.btn-danger:hover {
-  background: #fecaca;
+  background: var(--color-primary-600);
 }
 
 .btn-icon {
-  padding: 0.625rem;
+  padding: var(--space-2);
   background: var(--surface-raised);
   border: 1px solid var(--border);
   color: var(--text-muted);
@@ -291,72 +252,47 @@ onMounted(() => {
   cursor: not-allowed;
 }
 
-.btn-icon-xs {
-  padding: 0.25rem;
-  background: none;
-  border: none;
-  color: var(--text-subtle);
-  cursor: pointer;
-  border-radius: var(--radius-sm);
-  transition: all 0.2s;
-}
-
-.btn-icon-xs:hover {
-  background: var(--surface-inset);
-  color: var(--text-muted);
-}
-
-.btn-icon-xs.danger:hover {
-  background: #fee2e2;
-  color: #dc2626;
-}
-
-.table-actions {
-  display: flex;
-  gap: 0.5rem;
-}
-
 .name-cell {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: var(--space-2);
 }
 
-.plugin-icon-sm {
-  width: 32px;
-  height: 32px;
-  background: #eff6ff;
+.plugin-logo {
+  width: 40px;
+  height: 40px;
   border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
-.plugin-icon-sm i {
-  font-size: 0.875rem;
-  color: #3b82f6;
+.plugin-logo--sm {
+  width: 32px;
+  height: 32px;
 }
 
 .plugin-name {
-  font-weight: 600;
+  font-weight: var(--font-semibold);
   color: var(--text);
 }
 
 .plugin-version {
-  font-size: 0.75rem;
+  font-size: var(--text-xs);
   color: var(--text-muted);
 }
 
 .status-badge {
-  font-size: 0.6875rem;
-  padding: 0.25rem 0.5rem;
-  border-radius: 9999px;
-  font-weight: 600;
+  font-size: var(--text-xs);
+  padding: 0.125rem 0.5rem;
+  border-radius: var(--radius-full);
+  font-weight: var(--font-semibold);
 }
 
 .status-badge.enabled {
-  background: #dcfce7;
-  color: #166534;
+  background: var(--color-success-50);
+  color: var(--color-success-700);
 }
 
 .status-badge.disabled {
@@ -366,291 +302,249 @@ onMounted(() => {
 
 .plugins-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(248px, 1fr));
+  gap: var(--space-4);
 }
 
 .plugin-card {
   background: var(--surface-raised);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   border: 1px solid var(--border);
-  overflow: hidden;
-  transition: all 0.3s ease;
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  transition: all var(--transition-base);
+  cursor: pointer;
 }
 
 .plugin-card:hover {
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-md);
+  border-color: var(--color-primary-300, var(--border));
 }
 
-.plugin-header {
-  padding: 1.25rem;
-  border-bottom: 1px solid var(--border-subtle);
+.plugin-card-top {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  justify-content: space-between;
 }
 
-.plugin-icon {
-  width: 48px;
-  height: 48px;
-  background: #eff6ff;
+.plugin-card .plugin-name {
+  font-size: var(--text-md);
+  margin: var(--space-1) 0 0 0;
+}
+
+.plugin-description {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  line-height: 1.45;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: 2.1em;
+}
+
+.plugin-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.375rem;
+  margin-top: auto;
+  padding-top: var(--space-1);
+}
+
+.chip {
+  font-size: var(--text-xs);
+  padding: 0.125rem 0.5rem;
+  border-radius: var(--radius-full);
+  font-weight: var(--font-medium);
+  background: var(--color-info-50, #eff6ff);
+  color: var(--color-primary-700, #1d4ed8);
+}
+
+.chip--muted {
+  background: var(--surface-inset);
+  color: var(--text-muted);
+}
+
+.plugin-version-chip {
+  margin-left: auto;
+  font-size: var(--text-xs);
+  background: var(--surface-inset);
+  padding: 0.125rem 0.5rem;
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+}
+
+@media (max-width: 640px) {
+  .plugins-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.drawer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  justify-content: flex-end;
+  z-index: 1000;
+}
+
+.app-drawer {
+  width: 100%;
+  max-width: 420px;
+  height: 100%;
+  background: var(--surface-raised);
+  border-left: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow-lg);
+}
+
+.drawer-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.drawer-logo {
+  width: 44px;
+  height: 44px;
   border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
-.plugin-icon i {
-  font-size: 1.25rem;
-  color: #3b82f6;
-}
-
-.plugin-meta {
+.drawer-title {
   flex: 1;
+  min-width: 0;
 }
 
-.plugin-meta h4 {
-  margin: 0 0 0.25rem 0;
-  font-size: 1rem;
+.drawer-title h3 {
+  margin: 0;
+  font-size: var(--text-lg);
   color: var(--text);
 }
 
-.plugin-body {
-  padding: 1.25rem;
-}
-
-.plugin-description {
-  font-size: 0.875rem;
+.drawer-sub {
+  font-size: var(--text-xs);
   color: var(--text-muted);
-  line-height: 1.5;
-  margin: 0 0 1rem 0;
-}
-
-.plugin-info-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0.75rem;
-  margin-bottom: 1rem;
-}
-
-.info-item {
-  display: flex;
-  flex-direction: column;
-  gap: 0.125rem;
-}
-
-.info-label {
-  font-size: 0.6875rem;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  font-weight: 600;
-}
-
-.info-value {
-  font-size: 0.8125rem;
-  color: var(--text);
-  font-weight: 500;
   text-transform: capitalize;
 }
 
-.section-label {
-  display: block;
-  font-size: 0.6875rem;
+.icon-btn {
+  background: none;
+  border: none;
   color: var(--text-muted);
-  text-transform: uppercase;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
+  cursor: pointer;
+  display: inline-flex;
 }
 
-.capabilities-section,
-.extensions-section,
-.api-section {
-  margin-bottom: 1rem;
-}
-
-.capabilities-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.375rem;
-}
-
-.capability-tag {
-  font-size: 0.6875rem;
-  padding: 0.125rem 0.5rem;
-  background: #dbeafe;
-  color: #1e40af;
-  border-radius: 9999px;
-  font-weight: 500;
-}
-
-.extensions-list {
+.drawer-body {
+  padding: var(--space-5);
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 0.375rem;
+  gap: var(--space-5);
 }
 
-.extension-item {
+.drawer-description {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+}
+
+.drawer-section h4 {
+  margin: 0 0 var(--space-2) 0;
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.cap-list,
+.settings-list {
   display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.8125rem;
-  color: var(--text);
+  flex-direction: column;
+  gap: var(--space-2);
 }
 
-.extension-item i {
-  color: var(--text-subtle);
-  font-size: 0.75rem;
-}
-
-.extension-location {
-  font-size: 0.6875rem;
-  color: var(--text-subtle);
+.cap-list {
+  flex-direction: row;
+  flex-wrap: wrap;
 }
 
 .api-list {
   display: flex;
   flex-direction: column;
-  gap: 0.375rem;
+  gap: var(--space-1);
 }
 
-.api-item {
+.api-row {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  font-size: 0.75rem;
+  gap: var(--space-2);
+  font-size: var(--text-xs);
 }
 
 .api-method {
-  padding: 0.125rem 0.375rem;
+  font-weight: var(--font-semibold);
+  padding: 0.05rem 0.4rem;
   border-radius: var(--radius-sm);
-  font-weight: 600;
-  font-size: 0.625rem;
+  font-size: var(--text-xs);
 }
 
 .api-method.get {
-  background: #dcfce7;
-  color: #166534;
+  background: var(--color-success-50);
+  color: var(--color-success-700);
 }
 
-.api-method.post {
-  background: #dbeafe;
-  color: #1e40af;
-}
-
+.api-method.post,
 .api-method.put {
-  background: #fef3c7;
-  color: #92400e;
+  background: var(--color-info-50, #eff6ff);
+  color: var(--color-primary-700, #1d4ed8);
 }
 
 .api-method.delete {
-  background: #fee2e2;
-  color: #991b1b;
+  background: var(--color-danger-50, #fef2f2);
+  color: var(--color-danger-600, #dc2626);
 }
 
-.api-item code {
-  font-family: "SF Mono", monospace;
-  color: var(--text-muted);
-}
-
-.api-more {
-  font-size: 0.6875rem;
-  color: var(--text-subtle);
-}
-
-.plugin-footer {
-  padding: 1rem 1.25rem;
-  border-top: 1px solid var(--border-subtle);
-  display: flex;
-  gap: 0.5rem;
-}
-
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(4px);
+.setting-row {
   display: flex;
   align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  padding: 2rem;
-}
-
-.modal-container {
-  background: var(--surface-raised);
-  border-radius: var(--radius-xl);
-  border: 1px solid var(--border);
-  width: 100%;
-  max-width: 500px;
-  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
-}
-
-.modal-header {
-  padding: 1.25rem 1.5rem;
-  border-bottom: 1px solid var(--border);
-  display: flex;
   justify-content: space-between;
-  align-items: center;
-}
-
-.modal-header h3 {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: var(--text);
-  margin: 0;
-}
-
-.modal-header h3 i {
-  color: #3b82f6;
-}
-
-.close-btn {
-  background: none;
-  border: none;
-  color: var(--text-subtle);
-  cursor: pointer;
-  padding: 0.5rem;
-  border-radius: var(--radius-md);
-}
-
-.close-btn:hover {
-  background: var(--surface-inset);
-}
-
-.modal-body {
-  padding: 1.5rem;
-}
-
-.modal-body p {
-  margin: 0 0 0.5rem 0;
-  color: var(--text);
-}
-
-.hint {
-  font-size: 0.875rem;
-  color: var(--text-muted);
-}
-
-.hint code {
-  background: var(--surface-inset);
-  padding: 0.125rem 0.375rem;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-sm);
+}
+
+.setting-key {
+  font-size: var(--text-sm);
+  color: var(--text);
+}
+
+.setting-type {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
   font-family: monospace;
 }
 
-.modal-footer {
-  padding: 1rem 1.5rem;
-  border-top: 1px solid var(--border);
-  display: flex;
-  justify-content: flex-end;
+.setting-hint {
+  margin: var(--space-1) 0 0 0;
 }
 
-@media (max-width: 768px) {
-  .plugins-grid {
-    grid-template-columns: 1fr;
-  }
+.muted {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  margin: 0;
 }
 </style>

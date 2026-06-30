@@ -1,5 +1,5 @@
 import { reactive, onScopeDispose } from "vue";
-import { deploymentsApi, deploymentJobWsUrl, type DeploymentActionStatus } from "@/services/api";
+import { deploymentsApi, deploymentJobWsUrl, type DeploymentActionStatus, type ActionOptions } from "@/services/api";
 
 export type ServiceAction = "start" | "stop" | "restart" | "rebuild" | "pull";
 
@@ -61,7 +61,7 @@ export function useServiceJobs(getDeployment: () => string, onSettled?: (s: Serv
     onSettled?.(s);
   }
 
-  async function run(service: string, action: ServiceAction) {
+  async function run(service: string, action: ServiceAction, opts?: ActionOptions) {
     const name = getDeployment();
     teardown(service);
     controllers[service] = { socket: null, timer: null, settled: false };
@@ -72,7 +72,7 @@ export function useServiceJobs(getDeployment: () => string, onSettled?: (s: Serv
     s.isSuccess = null;
 
     try {
-      const res = await deploymentsApi.serviceActionJob(name, service, action);
+      const res = await deploymentsApi.serviceActionJob(name, service, action, opts);
       openStream(service, res.data.job_id);
     } catch (e: any) {
       const activeId = e?.response?.data?.active_job_id;

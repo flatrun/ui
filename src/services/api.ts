@@ -56,6 +56,7 @@ apiClient.interceptors.response.use(
 export interface ServiceMetadata {
   name: string;
   type: string;
+  primary_service?: string;
   networking: {
     expose: boolean;
     domain: string;
@@ -93,6 +94,14 @@ const withPlanQuery = (url: string, opts?: PlanOpts) => {
 };
 
 export type DeploymentActionStatus = "pending" | "running" | "succeeded" | "failed";
+
+// ActionOptions are effective-apply flags so updated env vars and images take effect
+// instead of a plain start/restart reusing cached config and images.
+export interface ActionOptions {
+  force_recreate?: boolean;
+  no_cache?: boolean;
+  fresh_pull?: boolean;
+}
 
 export interface ActionJobResponse {
   job_id: string;
@@ -159,14 +168,16 @@ export const deploymentsApi = {
     apiClient.post<{ message: string; name: string; service: string; output: string }>(
       withPlanQuery(`/deployments/${name}/services/${service}/${action}`, opts),
     ),
-  start: (name: string) => apiClient.post<ActionJobResponse>(`/deployments/${name}/start`),
-  stop: (name: string) => apiClient.post<ActionJobResponse>(`/deployments/${name}/stop`),
-  restart: (name: string) => apiClient.post<ActionJobResponse>(`/deployments/${name}/restart`),
-  rebuild: (name: string) => apiClient.post<ActionJobResponse>(`/deployments/${name}/rebuild`),
+  start: (name: string, opts?: ActionOptions) => apiClient.post<ActionJobResponse>(`/deployments/${name}/start`, opts),
+  stop: (name: string, opts?: ActionOptions) => apiClient.post<ActionJobResponse>(`/deployments/${name}/stop`, opts),
+  restart: (name: string, opts?: ActionOptions) =>
+    apiClient.post<ActionJobResponse>(`/deployments/${name}/restart`, opts),
+  rebuild: (name: string, opts?: ActionOptions) =>
+    apiClient.post<ActionJobResponse>(`/deployments/${name}/rebuild`, opts),
   getJob: (name: string, jobId: string) => apiClient.get<DeploymentJob>(`/deployments/${name}/jobs/${jobId}`),
   getActiveJob: (name: string) => apiClient.get<DeploymentJob>(`/deployments/${name}/jobs/active`),
-  serviceActionJob: (name: string, service: string, action: string) =>
-    apiClient.post<ActionJobResponse>(`/deployments/${name}/services/${service}/job`, { action }),
+  serviceActionJob: (name: string, service: string, action: string, opts?: ActionOptions) =>
+    apiClient.post<ActionJobResponse>(`/deployments/${name}/services/${service}/job`, { action, ...opts }),
   pullImage: (name: string, onlyLatest: boolean = false) =>
     apiClient.post<{ message: string; name: string; output: string }>(`/deployments/${name}/pull`, {
       only_latest: onlyLatest,

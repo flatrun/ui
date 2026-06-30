@@ -1,5 +1,5 @@
 import { reactive, onScopeDispose } from "vue";
-import { deploymentsApi, deploymentJobWsUrl, type DeploymentActionStatus } from "@/services/api";
+import { deploymentsApi, deploymentJobWsUrl, type DeploymentActionStatus, type ActionOptions } from "@/services/api";
 
 export type DeploymentOperation = "start" | "stop" | "restart" | "rebuild";
 
@@ -99,23 +99,23 @@ export function useDeploymentJob(onSettled?: (state: DeploymentJobState) => void
     onSettled?.(state);
   }
 
-  async function enqueue(operation: DeploymentOperation, name: string) {
+  async function enqueue(operation: DeploymentOperation, name: string, opts?: ActionOptions) {
     switch (operation) {
       case "start":
-        return deploymentsApi.start(name);
+        return deploymentsApi.start(name, opts);
       case "stop":
-        return deploymentsApi.stop(name);
+        return deploymentsApi.stop(name, opts);
       case "restart":
-        return deploymentsApi.restart(name);
+        return deploymentsApi.restart(name, opts);
       case "rebuild":
-        return deploymentsApi.rebuild(name);
+        return deploymentsApi.rebuild(name, opts);
     }
   }
 
-  async function run(operation: DeploymentOperation, name: string) {
+  async function run(operation: DeploymentOperation, name: string, opts?: ActionOptions) {
     begin(operation, name);
     try {
-      const res = await enqueue(operation, name);
+      const res = await enqueue(operation, name, opts);
       attach(res.data.job_id);
     } catch (e: any) {
       const activeId = e?.response?.data?.active_job_id;
