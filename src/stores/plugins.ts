@@ -2,6 +2,16 @@ import { defineStore } from "pinia";
 import { ref } from "vue";
 import { pluginsApi } from "@/services/api";
 
+export type PluginSlot = "deployment.detail" | "settings" | "overview";
+
+export interface UIExtension {
+  slot: PluginSlot;
+  kind: "metrics-panel" | "form" | "timeline";
+  title?: string;
+  icon?: string;
+  endpoint?: string;
+}
+
 export interface Plugin {
   name: string;
   version: string;
@@ -13,6 +23,7 @@ export interface Plugin {
   enabled: boolean;
   capabilities?: string[];
   config_schema?: Record<string, unknown>;
+  ui_extensions?: UIExtension[];
   widget?: {
     enabled: boolean;
     position: string;
@@ -66,6 +77,12 @@ export const usePluginsStore = defineStore("plugins", () => {
     return plugins.value.filter((p) => p.widget?.enabled);
   };
 
+  // Plugins contributing UI to a slot, paired with the matching extension(s).
+  const getPluginsForSlot = (slot: PluginSlot) =>
+    plugins.value.flatMap((p) =>
+      (p.ui_extensions || []).filter((e) => e.slot === slot).map((extension) => ({ plugin: p, extension })),
+    );
+
   return {
     plugins,
     loading,
@@ -74,5 +91,6 @@ export const usePluginsStore = defineStore("plugins", () => {
     getPluginsByLocation,
     getPluginsByCapability,
     getWidgetPlugins,
+    getPluginsForSlot,
   };
 });

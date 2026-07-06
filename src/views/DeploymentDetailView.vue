@@ -89,6 +89,16 @@
           <i :class="tab.icon" />
           {{ tab.label }}
         </button>
+        <button
+          v-for="pt in pluginTabs"
+          :key="pt.id"
+          class="tab-btn"
+          :class="{ active: activeTab === pt.id }"
+          @click="activeTab = pt.id"
+        >
+          <Icon :name="pt.icon || 'puzzle'" :size="15" />
+          {{ pt.label }}
+        </button>
       </div>
 
       <div class="tab-content">
@@ -729,6 +739,15 @@
         </div>
 
         <BackupsTab v-if="activeTab === 'backups'" :deployment-name="route.params.name as string" />
+
+        <div v-for="pt in pluginTabs" :key="pt.id" v-show="activeTab === pt.id" class="plugin-tab">
+          <PluginSlot
+            v-if="activeTab === pt.id"
+            slot-name="deployment.detail"
+            :plugin-name="pt.plugin"
+            :context="{ deployment: route.params.name as string }"
+          />
+        </div>
 
         <div v-if="activeTab === 'security'" class="security-tab">
           <div class="security-enable-bar">
@@ -1820,6 +1839,8 @@ import LogViewer from "@/components/LogViewer.vue";
 import ConfirmModal from "@/components/ConfirmModal.vue";
 import ContainerTerminal from "@/components/ContainerTerminal.vue";
 import BackupsTab from "@/components/BackupsTab.vue";
+import PluginSlot from "@/components/plugins/PluginSlot.vue";
+import { usePluginsStore } from "@/stores/plugins";
 import DomainsManager from "@/components/DomainsManager.vue";
 import DomainFormModal from "@/components/DomainFormModal.vue";
 import ContainerResourcesModal from "@/components/ContainerResourcesModal.vue";
@@ -1870,7 +1891,7 @@ const backLabel = computed(() => {
 const deployment = ref<any>(null);
 const loading = ref(false);
 const error = ref("");
-const activeTab = ref("overview");
+const activeTab = ref((route.query.tab as string) || "overview");
 const proxyStatus = ref<ProxyStatus | null>(null);
 const settingUpProxy = ref(false);
 const requestingCert = ref(false);
@@ -1937,6 +1958,16 @@ const tabs = [
   { id: "security", label: "Security", icon: "pi pi-shield" },
   { id: "config", label: "Configuration", icon: "pi pi-cog" },
 ];
+
+const pluginsStore = usePluginsStore();
+const pluginTabs = computed(() =>
+  (pluginsStore.getPluginsForSlot("deployment.detail") || []).map((e) => ({
+    id: `plugin:${e.plugin.name}`,
+    label: e.extension.title || e.plugin.display_name,
+    icon: e.extension.icon,
+    plugin: e.plugin.name,
+  })),
+);
 
 const services = ref<any[]>([]);
 const resourceUsage = ref({
@@ -3163,6 +3194,13 @@ watch(activeTab, (newTab) => {
 
 onMounted(() => {
   fetchDeployment();
+  Promise.resolve(pluginsStore.fetchPlugins()).then(() => {
+    // A deep-link may point at a plugin tab that is not available (plugin not installed);
+    // fall back to Overview rather than showing an empty tab.
+    if (activeTab.value.startsWith("plugin:") && !pluginTabs.value.some((t) => t.id === activeTab.value)) {
+      activeTab.value = "overview";
+    }
+  });
   deploymentJob.resume(route.params.name as string);
   credentialsApi
     .list()
@@ -3420,6 +3458,10 @@ onUnmounted(() => {
   border-radius: var(--radius-md);
   border: 1px solid var(--border);
   min-height: 500px;
+}
+
+.plugin-tab {
+  padding: var(--space-5);
 }
 
 .overview-tab {
@@ -5110,8 +5152,8 @@ onUnmounted(() => {
 }
 
 .enable-bar-status.active {
-  color: #059669;
-  background: #d1fae5;
+  color: var(--color-success-700);
+  background: var(--color-success-50);
 }
 
 .security-grid {
@@ -5142,7 +5184,7 @@ onUnmounted(() => {
 }
 
 .settings-row-header:hover {
-  background: #fafafa;
+  background: var(--surface-sunken);
 }
 
 .row-title {
@@ -5208,7 +5250,7 @@ onUnmounted(() => {
   align-items: center;
   padding: 0.875rem 1.25rem;
   border-bottom: 1px solid var(--border-subtle);
-  background: #fafafa;
+  background: var(--surface-sunken);
 }
 
 .section-title {
@@ -5289,7 +5331,7 @@ onUnmounted(() => {
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   font-size: 0.75rem;
-  color: #374151;
+  color: var(--text);
   cursor: pointer;
   transition: all 0.15s;
 }
@@ -5299,9 +5341,9 @@ onUnmounted(() => {
 }
 
 .preset-btn.active {
-  background: #dbeafe;
-  border-color: #93c5fd;
-  color: #1d4ed8;
+  background: var(--color-info-50, #eff6ff);
+  border-color: var(--color-primary-300, #93c5fd);
+  color: var(--color-primary-700, #1d4ed8);
 }
 
 .preset-btn i {
@@ -5395,7 +5437,7 @@ onUnmounted(() => {
   font-family: "SF Mono", "Fira Code", monospace;
   font-size: 0.8125rem;
   background: transparent;
-  color: #374151;
+  color: var(--text);
 }
 
 .item-actions {
@@ -5434,8 +5476,8 @@ onUnmounted(() => {
 }
 
 .rate-badge {
-  background: #dbeafe;
-  color: #1d4ed8;
+  background: var(--color-info-50, #eff6ff);
+  color: var(--color-primary-700, #1d4ed8);
 }
 
 .burst-badge {
@@ -5705,7 +5747,7 @@ onUnmounted(() => {
 }
 
 .col-type {
-  color: #374151;
+  color: var(--text);
 }
 
 .col-ip,
@@ -5735,23 +5777,23 @@ onUnmounted(() => {
 }
 
 .severity-badge.critical {
-  background: #fee2e2;
-  color: #991b1b;
+  background: var(--color-danger-50, #fef2f2);
+  color: var(--color-danger-700, #b91c1c);
 }
 
 .severity-badge.high {
-  background: #ffedd5;
-  color: #9a3412;
+  background: var(--color-warning-50);
+  color: var(--color-warning-700);
 }
 
 .severity-badge.medium {
-  background: #fef3c7;
-  color: #92400e;
+  background: var(--color-warning-50);
+  color: var(--color-warning-600);
 }
 
 .severity-badge.low {
   background: var(--surface-inset);
-  color: #4b5563;
+  color: var(--text-muted);
 }
 
 @media (max-width: 1024px) {
