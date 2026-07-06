@@ -39,6 +39,7 @@
     "marked": "^18.0.5",
     "pinia": "^2.1.7",
     "primeicons": "^6.0.1",
+    "uplot": "^1.6.32",
     "vue": "^3.4.21",
     "vue-codemirror": "^6.1.1",
     "vue-router": "^4.3.0"

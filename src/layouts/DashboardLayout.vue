@@ -260,12 +260,16 @@
         </div>
 
         <div
-          v-if="authStore.hasPermission('security:read') || authStore.hasPermission('certificates:read')"
+          v-if="
+            authStore.hasPermission('deployments:read') ||
+            authStore.hasPermission('security:read') ||
+            authStore.hasPermission('certificates:read')
+          "
           class="nav-group"
         >
           <div class="nav-group-header" @click="toggleGroup('security')">
-            <Icon name="shield" :size="17" />
-            <span v-if="!sidebarCollapsed">Security</span>
+            <Icon name="activity" :size="17" />
+            <span v-if="!sidebarCollapsed">Monitoring & Security</span>
             <Icon
               v-if="!sidebarCollapsed"
               class="chevron"
@@ -275,12 +279,20 @@
           </div>
           <div v-show="expandedGroups.security && !sidebarCollapsed" class="nav-group-items">
             <router-link
+              v-if="authStore.hasPermission('deployments:read')"
+              to="/observability"
+              class="nav-subitem"
+              active-class="active"
+            >
+              Observability
+            </router-link>
+            <router-link
               v-if="authStore.hasPermission('security:read')"
               to="/security"
               class="nav-subitem"
               active-class="active"
             >
-              Security & Monitoring
+              Security
             </router-link>
             <router-link
               v-if="authStore.hasPermission('certificates:read')"
@@ -540,6 +552,7 @@ const getUsageClass = (percentage: number) => {
 const currentPageTitle = computed(() => {
   const titles: Record<string, string> = {
     home: "Dashboard",
+    observability: "Observability",
     deployments: "Deployments",
     "deployment-detail": "Deployment Details",
     containers: "Containers",

@@ -332,6 +332,19 @@ export const settingsApi = {
   generateSubdomain: () => apiClient.get<SubdomainResponse>("/subdomain/generate"),
 };
 
+export interface NotificationTarget {
+  id: string;
+  name: string;
+  url: string;
+  enabled: boolean;
+}
+
+export const notificationsApi = {
+  getTargets: () => apiClient.get<{ targets: NotificationTarget[] }>("/notifications/targets"),
+  updateTargets: (targets: NotificationTarget[]) => apiClient.put("/notifications/targets", { targets }),
+  test: (url: string) => apiClient.post("/notifications/test", { url }),
+};
+
 export const configApi = {
   list: () => apiClient.get<{ config: ConfigEntry[]; runtime: Record<string, boolean> }>("/config"),
   get: (key: string) => apiClient.get<{ entry: ConfigEntry; runtime: boolean }>(`/config/${key}`),
