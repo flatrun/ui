@@ -182,6 +182,7 @@ import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { useNotificationsStore } from "@/stores/notifications";
 import { containersApi, databasesApi, type DatabaseConnectionConfig } from "@/services/api";
+import { randomUUID } from "@/utils/uuid";
 import DataTable from "@/components/DataTable.vue";
 import ConfirmModal from "@/components/ConfirmModal.vue";
 import ConnectionStatus from "@/components/database/ConnectionStatus.vue";
@@ -433,7 +434,7 @@ const saveConnection = async () => {
     await new Promise((r) => setTimeout(r, 500));
 
     const newConnection: DatabaseConnection = {
-      id: editingConnection.value?.id || crypto.randomUUID(),
+      id: editingConnection.value?.id || randomUUID(),
       name: connectionForm.value.name,
       type: connectionForm.value.type,
       host: connectionForm.value.host,

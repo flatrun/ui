@@ -117,6 +117,7 @@
 import { ref, reactive, computed, onMounted } from "vue";
 import Icon from "@/components/base/Icon.vue";
 import { notificationsApi, type NotificationTarget } from "@/services/api";
+import { randomUUID } from "@/utils/uuid";
 import { useAuthStore } from "@/stores/auth";
 import { useNotificationsStore } from "@/stores/notifications";
 
@@ -182,7 +183,7 @@ async function load() {
 function add() {
   const url = buildUrl();
   if (!url) return;
-  targets.value.push({ id: crypto.randomUUID(), name: form.name, url, enabled: true });
+  targets.value.push({ id: randomUUID(), name: form.name, url, enabled: true });
   form.name = "";
   form.email = { host: "", port: "587", username: "", password: "", from: "", to: "" };
   form.webhook = "";
