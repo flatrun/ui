@@ -775,6 +775,10 @@
         <NotificationsSettings />
       </div>
 
+      <div v-show="activeTab === 'storage'" class="tab-content">
+        <StorageBackupsSettings />
+      </div>
+
       <div v-for="pt in pluginSettingsTabs" v-show="activeTab === pt.id" :key="pt.id" class="tab-content">
         <div class="settings-card">
           <div class="card-body">
@@ -1015,7 +1019,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted, markRaw, type Component } from "vue";
-import { Bell, FolderClosed, Sparkles } from "lucide-vue-next";
+import { Bell, FolderClosed, HardDrive, Sparkles } from "lucide-vue-next";
 import { settingsApi, healthApi, templatesApi, credentialsApi, registriesApi, configApi } from "@/services/api";
 import type { DomainSettings } from "@/services/api";
 import type { ProtectedCommandRule, ProtectedModeConfig, RegistryCredential, RegistryType } from "@/types";
@@ -1024,6 +1028,7 @@ import { useAuthStore } from "@/stores/auth";
 import { useAIStore } from "@/stores/ai";
 import SecurityHealthCard from "@/components/SecurityHealthCard.vue";
 import NotificationsSettings from "@/components/NotificationsSettings.vue";
+import StorageBackupsSettings from "@/components/StorageBackupsSettings.vue";
 import Icon from "@/components/base/Icon.vue";
 import PluginSlot from "@/components/plugins/PluginSlot.vue";
 import { usePluginsStore } from "@/stores/plugins";
@@ -1053,12 +1058,14 @@ const tabs = [
   { id: "healthchecks", label: "Health Checks", icon: "pi pi-heart" },
   { id: "notifications", label: "Notifications", icon: "" },
   { id: "credentials", label: "Credentials", icon: "pi pi-key" },
+  { id: "storage", label: "Storage & Backups", icon: "" },
   { id: "ai", label: "AI Assistant", icon: "" },
 ];
 
 const tabLucideIcons: Record<string, Component> = {
   ai: markRaw(Sparkles),
   notifications: markRaw(Bell),
+  storage: markRaw(HardDrive),
 };
 
 const pluginsStore = usePluginsStore();
