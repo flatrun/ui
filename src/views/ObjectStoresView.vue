@@ -15,14 +15,6 @@
     </div>
 
     <div v-if="tab === 'overview'" class="tab-panel">
-      <BaseCard title="Local object store" icon="hard-drive">
-        <p class="body">
-          Run FlatRun as its own S3-compatible endpoint so deployments can store and serve objects locally, then browse
-          and replicate them. This is on the roadmap; for now, connect external stores below.
-        </p>
-        <span class="roadmap-tag">Coming soon</span>
-      </BaseCard>
-
       <section class="stores-section">
         <div class="section-head">
           <h2>Connected stores</h2>
@@ -184,22 +176,6 @@ onMounted(load);
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
-}
-
-.body {
-  margin: 0 0 var(--space-3);
-  color: var(--text-muted);
-  font-size: var(--text-sm);
-}
-
-.roadmap-tag {
-  display: inline-flex;
-  padding: 0.15rem 0.5rem;
-  border-radius: var(--radius-full);
-  background: var(--color-info-50);
-  color: var(--color-info-700);
-  font-size: var(--text-xs);
-  font-weight: var(--font-semibold);
 }
 
 .section-head {
