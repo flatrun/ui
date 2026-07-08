@@ -26,9 +26,14 @@
       <section class="stores-section">
         <div class="section-head">
           <h2>Connected stores</h2>
-          <BaseButton v-if="canManage" variant="secondary" size="sm" icon="settings" @click="tab = 'settings'">
-            Manage
-          </BaseButton>
+          <div class="head-actions">
+            <BaseButton v-if="canManage" variant="secondary" size="sm" icon="plus" @click="deployStore">
+              Deploy a local store
+            </BaseButton>
+            <BaseButton v-if="canManage" variant="secondary" size="sm" icon="settings" @click="tab = 'settings'">
+              Manage
+            </BaseButton>
+          </div>
         </div>
 
         <div v-if="loading" class="muted"><Icon name="loader-circle" spin :size="18" /></div>
@@ -36,9 +41,14 @@
         <div v-else-if="!destinations.length" class="empty">
           <Icon name="container" :size="28" />
           <p>No object stores connected yet.</p>
-          <BaseButton v-if="canManage" variant="primary" size="sm" icon="plus" @click="tab = 'settings'">
-            Add a store
-          </BaseButton>
+          <div class="head-actions">
+            <BaseButton v-if="canManage" variant="secondary" size="sm" icon="plus" @click="deployStore">
+              Deploy a local store
+            </BaseButton>
+            <BaseButton v-if="canManage" variant="primary" size="sm" icon="link" @click="tab = 'settings'">
+              Connect external
+            </BaseButton>
+          </div>
         </div>
 
         <div v-else class="store-grid">
@@ -46,6 +56,9 @@
             <div class="store-top">
               <Icon name="container" :size="16" />
               <span class="store-name">{{ d.name }}</span>
+              <span class="store-kind" :class="storeKind(d)">
+                {{ storeKind(d) === "managed" ? "Managed" : "External" }}
+              </span>
               <span class="store-state" :class="d.enabled === false ? 'off' : 'on'">
                 {{ d.enabled === false ? "Disabled" : "Active" }}
               </span>
@@ -69,6 +82,7 @@
 
 <script setup lang="ts">
 import { ref, watch, onMounted } from "vue";
+import { useRouter } from "vue-router";
 import Icon from "@/components/base/Icon.vue";
 import BaseCard from "@/components/base/BaseCard.vue";
 import BaseButton from "@/components/base/BaseButton.vue";
@@ -76,8 +90,17 @@ import StorageBackupsSettings from "@/components/StorageBackupsSettings.vue";
 import { backupDestinationsApi, type BackupDestination } from "@/services/api";
 import { useAuthStore } from "@/stores/auth";
 
+const router = useRouter();
 const auth = useAuthStore();
 const canManage = auth.hasPermission("backups:write") || auth.hasPermission("config:write");
+
+function storeKind(d: BackupDestination): string {
+  return d.kind || "external";
+}
+
+function deployStore() {
+  router.push("/templates");
+}
 
 const tabs = [
   { id: "overview", label: "Overview", icon: "layout-grid" },
@@ -219,6 +242,28 @@ onMounted(load);
 
 .store-name {
   font-weight: var(--font-semibold);
+}
+
+.store-kind {
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  padding: 0.05rem 0.4rem;
+  border-radius: var(--radius-full);
+}
+
+.store-kind.external {
+  background: var(--surface-inset);
+  color: var(--text-muted);
+}
+
+.store-kind.managed {
+  background: var(--color-info-50);
+  color: var(--color-info-700);
+}
+
+.head-actions {
+  display: flex;
+  gap: var(--space-2);
 }
 
 .store-state {

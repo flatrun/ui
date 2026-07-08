@@ -48,6 +48,7 @@
           <input v-model="d.enabled" type="checkbox" :disabled="!canWriteDests" title="Enabled" />
           <div class="item-summary">
             <span class="i-name">{{ d.name || "Untitled" }}</span>
+            <span class="i-kind" :class="storeKind(d)">{{ storeKind(d) === "managed" ? "Managed" : "External" }}</span>
             <span class="i-tag">{{ d.bucket }}</span>
             <span class="i-muted">{{ credName(d.credential_id) }}</span>
           </div>
@@ -91,6 +92,33 @@
     <!-- Add destination modal -->
     <BaseModal :visible="showDestModal" title="Add backup destination" size="lg" @close="showDestModal = false">
       <div class="form-stack">
+        <BaseField label="Kind">
+          <div class="kind-toggle">
+            <button
+              type="button"
+              class="kind-opt"
+              :class="{ active: destForm.kind === 'external' }"
+              @click="destForm.kind = 'external'"
+            >
+              External
+            </button>
+            <button
+              type="button"
+              class="kind-opt"
+              :class="{ active: destForm.kind === 'managed' }"
+              @click="destForm.kind = 'managed'"
+            >
+              Managed
+            </button>
+          </div>
+        </BaseField>
+        <BaseField
+          v-if="destForm.kind === 'managed'"
+          label="Deployment"
+          hint="The object-store deployment FlatRun runs (e.g. a MinIO you deployed)."
+        >
+          <BaseInput v-model="destForm.deployment" placeholder="my-minio" />
+        </BaseField>
         <div class="grid2">
           <BaseField label="Name"><BaseInput v-model="destForm.name" placeholder="s3-prod" /></BaseField>
           <BaseField label="Credential">
@@ -167,6 +195,8 @@ const showDestModal = ref(false);
 const credForm = reactive({ name: "", access_key_id: "", secret_access_key: "" });
 const destForm = reactive({
   name: "",
+  kind: "external",
+  deployment: "",
   endpoint: "",
   region: "",
   bucket: "",
@@ -174,6 +204,10 @@ const destForm = reactive({
   credential_id: "",
   use_path_style: false,
 });
+
+function storeKind(d: BackupDestination): string {
+  return d.kind || "external";
+}
 
 const canSubmitCred = computed(
   () => credForm.name.trim() && credForm.access_key_id.trim() && credForm.secret_access_key.trim(),
@@ -193,6 +227,8 @@ function openCredModal() {
 
 function openDestModal() {
   destForm.name = "";
+  destForm.kind = "external";
+  destForm.deployment = "";
   destForm.endpoint = "";
   destForm.region = "";
   destForm.bucket = "";
@@ -259,6 +295,8 @@ function addDestination() {
   dests.value.push({
     name: destForm.name.trim(),
     type: "s3",
+    kind: destForm.kind,
+    deployment: destForm.kind === "managed" ? destForm.deployment.trim() : "",
     endpoint: destForm.endpoint.trim(),
     region: destForm.region.trim(),
     bucket: destForm.bucket.trim(),
@@ -367,6 +405,47 @@ onMounted(() => {
 .i-muted {
   font-size: var(--text-xs);
   color: var(--text-muted);
+}
+
+.i-kind {
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  padding: 0.05rem 0.4rem;
+  border-radius: var(--radius-full);
+}
+
+.i-kind.external {
+  background: var(--surface-inset);
+  color: var(--text-muted);
+}
+
+.i-kind.managed {
+  background: var(--color-info-50);
+  color: var(--color-info-700);
+}
+
+.kind-toggle {
+  display: inline-flex;
+  gap: 2px;
+  padding: 2px;
+  background: var(--surface-inset);
+  border-radius: var(--radius-sm);
+}
+
+.kind-opt {
+  padding: 0.3rem 0.8rem;
+  border: none;
+  background: transparent;
+  border-radius: calc(var(--radius-sm) - 2px);
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.kind-opt.active {
+  background: var(--surface-raised);
+  color: var(--accent);
+  box-shadow: var(--shadow-sm);
 }
 
 .form-stack {

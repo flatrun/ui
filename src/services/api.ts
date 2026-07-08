@@ -945,6 +945,8 @@ export interface StorageCredential {
 export interface BackupDestination {
   name: string;
   type: string;
+  kind?: string;
+  deployment?: string;
   endpoint: string;
   region: string;
   bucket: string;
