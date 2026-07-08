@@ -619,18 +619,18 @@ onMounted(() => {
 
 .peer-status.active,
 .peer-status.peered {
-  background: #dcfce7;
-  color: #166534;
+  background: var(--color-success-50);
+  color: var(--color-success-700);
 }
 
 .peer-status.unreachable {
-  background: #fee2e2;
-  color: #991b1b;
+  background: var(--color-danger-50);
+  color: var(--color-danger-700);
 }
 
 .peer-status.pending {
-  background: #fef3c7;
-  color: #92400e;
+  background: var(--color-warning-50);
+  color: var(--color-warning-700);
 }
 
 .time-cell {
@@ -685,12 +685,12 @@ code {
 }
 
 .btn-danger {
-  background: #fee2e2;
-  color: #dc2626;
+  background: var(--color-danger-50);
+  color: var(--color-danger-700);
 }
 
 .btn-danger:hover:not(:disabled) {
-  background: #fecaca;
+  background: var(--color-danger-100);
 }
 
 .btn:disabled {
@@ -818,8 +818,8 @@ code {
   align-items: center;
   gap: 0.375rem;
   font-size: 0.8125rem;
-  color: #dc2626;
-  background: #fef2f2;
+  color: var(--color-danger-700);
+  background: var(--color-danger-50);
   padding: 0.5rem 0.75rem;
   border-radius: var(--radius-sm);
 }
@@ -829,8 +829,8 @@ code {
   align-items: center;
   gap: 0.375rem;
   font-size: 0.8125rem;
-  color: #92400e;
-  background: #fef3c7;
+  color: var(--color-warning-700);
+  background: var(--color-warning-50);
   padding: 0.625rem 0.75rem;
   border-radius: var(--radius-sm);
   margin-top: 0.75rem;

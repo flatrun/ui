@@ -775,10 +775,6 @@
         <NotificationsSettings />
       </div>
 
-      <div v-show="activeTab === 'storage'" class="tab-content">
-        <StorageBackupsSettings />
-      </div>
-
       <div v-for="pt in pluginSettingsTabs" v-show="activeTab === pt.id" :key="pt.id" class="tab-content">
         <div class="settings-card">
           <div class="card-body">
@@ -1019,7 +1015,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted, markRaw, type Component } from "vue";
-import { Bell, FolderClosed, HardDrive, Sparkles } from "lucide-vue-next";
+import { Bell, FolderClosed, Sparkles } from "lucide-vue-next";
 import { settingsApi, healthApi, templatesApi, credentialsApi, registriesApi, configApi } from "@/services/api";
 import type { DomainSettings } from "@/services/api";
 import type { ProtectedCommandRule, ProtectedModeConfig, RegistryCredential, RegistryType } from "@/types";
@@ -1028,7 +1024,6 @@ import { useAuthStore } from "@/stores/auth";
 import { useAIStore } from "@/stores/ai";
 import SecurityHealthCard from "@/components/SecurityHealthCard.vue";
 import NotificationsSettings from "@/components/NotificationsSettings.vue";
-import StorageBackupsSettings from "@/components/StorageBackupsSettings.vue";
 import Icon from "@/components/base/Icon.vue";
 import PluginSlot from "@/components/plugins/PluginSlot.vue";
 import { usePluginsStore } from "@/stores/plugins";
@@ -1058,14 +1053,12 @@ const tabs = [
   { id: "healthchecks", label: "Health Checks", icon: "pi pi-heart" },
   { id: "notifications", label: "Notifications", icon: "" },
   { id: "credentials", label: "Credentials", icon: "pi pi-key" },
-  { id: "storage", label: "Storage & Backups", icon: "" },
   { id: "ai", label: "AI Assistant", icon: "" },
 ];
 
 const tabLucideIcons: Record<string, Component> = {
   ai: markRaw(Sparkles),
   notifications: markRaw(Bell),
-  storage: markRaw(HardDrive),
 };
 
 const pluginsStore = usePluginsStore();
@@ -1723,11 +1716,11 @@ onMounted(() => {
 
 .tab:hover {
   background: var(--surface-inset);
-  color: #374151;
+  color: var(--text);
 }
 
 .tab.active {
-  background: #3b82f6;
+  background: var(--accent);
   color: white;
 }
 
@@ -1747,7 +1740,7 @@ onMounted(() => {
 
 .btn-icon:hover:not(:disabled) {
   background: var(--surface-inset);
-  color: #374151;
+  color: var(--text);
 }
 
 .btn-icon:disabled {
@@ -1807,7 +1800,7 @@ onMounted(() => {
 
 .card-header i:first-child {
   font-size: 1.125rem;
-  color: #3b82f6;
+  color: var(--accent);
 }
 
 .card-header h3 {
@@ -1877,7 +1870,7 @@ onMounted(() => {
   border-radius: var(--radius-sm);
   font-family: "SF Mono", "Fira Code", monospace;
   font-size: 0.75rem;
-  color: #374151;
+  color: var(--text);
 }
 
 .status-badge {
@@ -1916,7 +1909,7 @@ onMounted(() => {
   border-radius: var(--radius-sm);
   font-size: 0.8125rem;
   font-weight: 500;
-  color: #374151;
+  color: var(--text);
   cursor: pointer;
   transition: all 0.2s;
 }
@@ -1933,7 +1926,7 @@ onMounted(() => {
 
 .action-btn i {
   font-size: 0.875rem;
-  color: #3b82f6;
+  color: var(--accent);
 }
 
 .config-grid {
@@ -1966,7 +1959,7 @@ onMounted(() => {
   border-radius: var(--radius-md);
   font-family: "SF Mono", "Fira Code", monospace;
   font-size: 0.8125rem;
-  color: #374151;
+  color: var(--text);
 }
 
 .origins-list {
@@ -1981,7 +1974,7 @@ onMounted(() => {
   border-radius: var(--radius-sm);
   font-family: "SF Mono", "Fira Code", monospace;
   font-size: 0.75rem;
-  color: #374151;
+  color: var(--text);
 }
 
 .config-note {
@@ -1989,13 +1982,13 @@ onMounted(() => {
   align-items: flex-start;
   gap: 0.625rem;
   padding: 0.875rem;
-  background: #eff6ff;
+  background: var(--color-info-50);
   border-radius: var(--radius-sm);
   margin-bottom: 1rem;
 }
 
 .config-note i {
-  color: #3b82f6;
+  color: var(--accent);
   margin-top: 0.125rem;
   flex-shrink: 0;
 }
@@ -2046,7 +2039,7 @@ onMounted(() => {
 .form-label {
   font-size: 0.8125rem;
   font-weight: 600;
-  color: #374151;
+  color: var(--text);
 }
 
 .form-hint {
@@ -2057,7 +2050,7 @@ onMounted(() => {
 .subsection-title {
   font-size: 0.875rem;
   font-weight: 600;
-  color: #374151;
+  color: var(--text);
   margin: 1.25rem 0 0.25rem;
   padding-top: 1rem;
   border-top: 1px solid var(--border-subtle);
@@ -2074,7 +2067,7 @@ onMounted(() => {
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   font-size: 0.875rem;
-  color: #374151;
+  color: var(--text);
   background: var(--surface);
   transition:
     border-color 0.2s,
@@ -2083,8 +2076,8 @@ onMounted(() => {
 
 .form-input:focus {
   outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 var(--ring-width) var(--ring-color);
 }
 
 .form-input::placeholder {
@@ -2096,9 +2089,9 @@ onMounted(() => {
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   font-size: 0.875rem;
-  color: #374151;
+  color: var(--text);
   background: var(--surface)
-    url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")
+    url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")
     right 0.5rem center/1.5em 1.5em no-repeat;
   appearance: none;
   cursor: pointer;
@@ -2109,8 +2102,8 @@ onMounted(() => {
 
 .form-select:focus {
   outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 var(--ring-width) var(--ring-color);
 }
 
 .toggle-row {
@@ -2166,7 +2159,7 @@ onMounted(() => {
 }
 
 .toggle-switch input:checked + .toggle-slider {
-  background-color: #3b82f6;
+  background-color: var(--accent);
 }
 
 .toggle-switch input:checked + .toggle-slider::before {
@@ -2174,7 +2167,7 @@ onMounted(() => {
 }
 
 .toggle-switch input:focus + .toggle-slider {
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  box-shadow: 0 0 0 var(--ring-width) var(--ring-color);
 }
 
 .save-footer {
@@ -2197,7 +2190,7 @@ onMounted(() => {
 }
 
 .btn-primary {
-  background: #3b82f6;
+  background: var(--accent);
   color: white;
 }
 
@@ -2283,7 +2276,7 @@ onMounted(() => {
 }
 
 .empty-state p {
-  color: #374151;
+  color: var(--text);
   font-weight: 500;
   margin: 0 0 0.5rem 0;
 }
@@ -2364,7 +2357,7 @@ onMounted(() => {
 }
 
 .btn-danger-ghost:hover:not(:disabled) {
-  background: #fef2f2;
+  background: var(--color-danger-50);
   border-color: #fecaca;
 }
 
@@ -2427,8 +2420,8 @@ onMounted(() => {
 
 .form-control:focus {
   outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 var(--ring-width) var(--ring-color);
 }
 
 .password-input-wrapper {
@@ -2460,7 +2453,7 @@ onMounted(() => {
   align-items: center;
   gap: 0.5rem;
   font-size: 0.875rem;
-  color: #374151;
+  color: var(--text);
   cursor: pointer;
 }
 
@@ -2509,7 +2502,7 @@ onMounted(() => {
 }
 
 .confirm-icon.danger {
-  background: #fef2f2;
+  background: var(--color-danger-50);
   color: #ef4444;
 }
 

@@ -296,13 +296,13 @@ onMounted(() => {
 }
 
 .health-pill.healthy {
-  background: #dcfce7;
-  color: #166534;
+  background: var(--color-success-50);
+  color: var(--color-success-700);
 }
 
 .health-pill.unhealthy {
-  background: #fee2e2;
-  color: #991b1b;
+  background: var(--color-danger-50);
+  color: var(--color-danger-700);
 }
 
 .card-body {
@@ -354,19 +354,19 @@ code.ipv6 {
 }
 
 .status-badge.ok {
-  color: #16a34a;
+  color: var(--color-success-700);
 }
 
 .status-badge.ok i {
-  color: #16a34a;
+  color: var(--color-success-700);
 }
 
 .status-badge.fail {
-  color: #dc2626;
+  color: var(--color-danger-700);
 }
 
 .status-badge.fail i {
-  color: #dc2626;
+  color: var(--color-danger-700);
 }
 
 .data-table {
@@ -410,7 +410,7 @@ code.ipv6 {
 
 .error-text {
   font-size: 0.8125rem;
-  color: #dc2626;
+  color: var(--color-danger-700);
 }
 
 .muted {

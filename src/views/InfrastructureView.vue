@@ -432,18 +432,18 @@ onMounted(() => {
 }
 
 .health-healthy {
-  background: #dcfce7;
-  color: #166534;
+  background: var(--color-success-50);
+  color: var(--color-success-700);
 }
 
 .health-unhealthy {
-  background: #fee2e2;
-  color: #991b1b;
+  background: var(--color-danger-50);
+  color: var(--color-danger-700);
 }
 
 .health-starting {
-  background: #fef3c7;
-  color: #92400e;
+  background: var(--color-warning-50);
+  color: var(--color-warning-700);
 }
 
 .btn {
@@ -492,7 +492,7 @@ onMounted(() => {
 }
 
 .btn-secondary {
-  background: #e5e7eb;
+  background: var(--surface-inset);
   color: var(--text);
 }
 

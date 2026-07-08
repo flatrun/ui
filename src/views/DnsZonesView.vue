@@ -738,12 +738,12 @@ onMounted(() => {
   padding: 2rem;
   text-align: center;
   border-bottom: 1px solid var(--border);
-  background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+  background: linear-gradient(135deg, var(--surface-sunken), var(--surface-inset));
 }
 
 .setup-header i {
   font-size: 3rem;
-  color: #6366f1;
+  color: var(--accent);
   margin-bottom: 1rem;
 }
 
@@ -831,10 +831,10 @@ onMounted(() => {
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1rem;
-  background: #dcfce7;
+  background: var(--color-success-50);
   border-radius: var(--radius-sm);
   font-weight: 600;
-  color: #166534;
+  color: var(--color-success-700);
 }
 
 .status-dot {
@@ -902,7 +902,7 @@ onMounted(() => {
 }
 
 .badge-success {
-  color: #166534;
+  color: var(--color-success-700);
 }
 
 /* Content line for multi-value records */
@@ -925,7 +925,7 @@ onMounted(() => {
 .settings-section h4 {
   font-size: 0.875rem;
   font-weight: 600;
-  color: #374151;
+  color: var(--text);
   margin: 0 0 0.75rem 0;
 }
 
@@ -960,8 +960,8 @@ onMounted(() => {
 }
 
 .status-badge.online {
-  background: #dcfce7;
-  color: #166534;
+  background: var(--color-success-50);
+  color: var(--color-success-700);
 }
 
 .action-buttons {

@@ -450,7 +450,7 @@ onMounted(() => {
 }
 
 .btn-secondary:hover {
-  background: #e5e7eb;
+  background: var(--surface-inset);
 }
 
 .btn-danger {
@@ -495,8 +495,8 @@ onMounted(() => {
 }
 
 .btn-icon-sm.danger:hover {
-  background: #fee2e2;
-  color: #dc2626;
+  background: var(--color-danger-50);
+  color: var(--color-danger-700);
 }
 
 .btn-icon-xs {
@@ -515,8 +515,8 @@ onMounted(() => {
 }
 
 .btn-icon-xs.danger:hover {
-  background: #fee2e2;
-  color: #dc2626;
+  background: var(--color-danger-50);
+  color: var(--color-danger-700);
 }
 
 .btn-text {
@@ -774,7 +774,7 @@ onMounted(() => {
 }
 
 .warning-text {
-  color: #dc2626;
+  color: var(--color-danger-700);
   font-size: 0.875rem;
 }
 

@@ -97,10 +97,10 @@ describe("SettingsView", () => {
   });
 
   describe("Tab navigation", () => {
-    it("displays all ten tabs", () => {
+    it("displays all nine tabs", () => {
       const wrapper = mountView();
       const tabs = wrapper.findAll(".tab");
-      expect(tabs.length).toBe(10);
+      expect(tabs.length).toBe(9);
     });
 
     it("has General tab", () => {
@@ -382,7 +382,6 @@ describe("SettingsView", () => {
         { id: "healthchecks", label: "Health Checks", icon: "pi pi-heart" },
         { id: "notifications", label: "Notifications", icon: "" },
         { id: "credentials", label: "Credentials", icon: "pi pi-key" },
-        { id: "storage", label: "Storage & Backups", icon: "" },
         { id: "ai", label: "AI Assistant", icon: "" },
       ]);
     });

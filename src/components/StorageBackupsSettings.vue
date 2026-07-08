@@ -1,144 +1,142 @@
 <template>
   <div class="storage-settings">
     <!-- S3 credentials -->
-    <div class="settings-card">
-      <div class="card-header">
-        <h3><Icon name="key-round" :size="16" /> Object storage credentials</h3>
-      </div>
-      <div class="card-body">
-        <p class="hint">
-          Access keys for S3-compatible storage (AWS S3, Cloudflare R2, Backblaze B2, MinIO). Secrets are stored on the
-          agent and never shown again after saving.
-        </p>
+    <BaseCard title="Object storage credentials" icon="key-round">
+      <template #actions>
+        <BaseButton v-if="canWriteCreds" variant="secondary" size="sm" icon="plus" @click="openCredModal">
+          Add
+        </BaseButton>
+      </template>
 
-        <div v-if="loadingCreds" class="muted"><Icon name="loader-circle" spin :size="18" /></div>
+      <p class="hint">
+        Access keys for S3-compatible storage (AWS S3, Cloudflare R2, Backblaze B2, MinIO). Secrets are stored on the
+        agent and never shown again after saving.
+      </p>
 
-        <div v-else class="row-list">
-          <div v-for="c in creds" :key="c.id" class="item-row">
-            <div class="item-summary">
-              <span class="i-name">{{ c.name }}</span>
-              <span class="i-tag">{{ c.data.access_key_id || "s3" }}</span>
-            </div>
-            <button v-if="canDeleteCreds" class="btn btn-ghost danger" title="Delete" @click="deleteCredential(c)">
-              <Icon name="trash-2" :size="14" />
-            </button>
+      <div v-if="loadingCreds" class="muted"><Icon name="loader-circle" spin :size="18" /></div>
+
+      <div v-else class="row-list">
+        <div v-for="c in creds" :key="c.id" class="item-row">
+          <Icon name="key-round" :size="15" class="row-icon" />
+          <div class="item-summary">
+            <span class="i-name">{{ c.name }}</span>
+            <span class="i-tag">{{ c.data.access_key_id || "s3" }}</span>
           </div>
-          <p v-if="!creds.length" class="muted">No credentials yet.</p>
+          <BaseButton v-if="canDeleteCreds" variant="ghost" icon="trash-2" @click="deleteCredential(c)" />
         </div>
-
-        <div v-if="canWriteCreds" class="add-panel">
-          <div class="add-title">Add credential</div>
-          <div class="field">
-            <label>Name</label>
-            <input v-model="credForm.name" placeholder="e.g. prod-r2" />
-          </div>
-          <div class="grid2">
-            <div class="field">
-              <label>Access key ID</label>
-              <input v-model="credForm.access_key_id" placeholder="AKIA…" />
-            </div>
-            <div class="field">
-              <label>Secret access key</label>
-              <input v-model="credForm.secret_access_key" type="password" placeholder="••••••••" />
-            </div>
-          </div>
-          <div class="add-actions">
-            <button class="btn btn-secondary" :disabled="!canSubmitCred || savingCred" @click="addCredential">
-              <Icon v-if="savingCred" name="loader-circle" spin :size="14" />
-              <Icon v-else name="plus" :size="14" />
-              Add
-            </button>
-          </div>
-        </div>
+        <p v-if="!creds.length" class="muted">No credentials yet.</p>
       </div>
-    </div>
+    </BaseCard>
 
     <!-- Backup destinations -->
-    <div class="settings-card">
-      <div class="card-header">
-        <h3><Icon name="cloud-upload" :size="16" /> Remote backup destinations</h3>
-      </div>
-      <div class="card-body">
-        <p class="hint">
-          Backups are always written locally first, then mirrored to each enabled destination. A destination references
-          one of the credentials above.
-        </p>
+    <BaseCard title="Remote backup destinations" icon="cloud-upload">
+      <template #actions>
+        <BaseButton v-if="canWriteDests" variant="secondary" size="sm" icon="plus" @click="openDestModal"
+          >Add</BaseButton
+        >
+      </template>
 
-        <div v-if="loadingDests" class="muted"><Icon name="loader-circle" spin :size="18" /></div>
+      <p class="hint">
+        Backups are always written locally first, then mirrored to each enabled destination. A destination references
+        one of the credentials above.
+      </p>
 
-        <div v-else class="row-list">
-          <div v-for="(d, i) in dests" :key="i" class="item-row">
-            <input v-model="d.enabled" type="checkbox" :disabled="!canWriteDests" title="Enabled" />
-            <div class="item-summary">
-              <span class="i-name">{{ d.name || "Untitled" }}</span>
-              <span class="i-tag">{{ d.bucket }}</span>
-              <span class="i-muted">{{ credName(d.credential_id) }}</span>
-            </div>
-            <button class="btn btn-ghost" :disabled="testing === i" @click="testDestination(d, i)">
-              <Icon v-if="testing === i" name="loader-circle" spin :size="14" />
-              <Icon v-else name="plug" :size="14" />
-              Test
-            </button>
-            <button v-if="canWriteDests" class="btn btn-ghost danger" title="Remove" @click="removeDestination(i)">
-              <Icon name="trash-2" :size="14" />
-            </button>
+      <div v-if="loadingDests" class="muted"><Icon name="loader-circle" spin :size="18" /></div>
+
+      <div v-else class="row-list">
+        <div v-for="(d, i) in dests" :key="i" class="item-row">
+          <input v-model="d.enabled" type="checkbox" :disabled="!canWriteDests" title="Enabled" />
+          <div class="item-summary">
+            <span class="i-name">{{ d.name || "Untitled" }}</span>
+            <span class="i-tag">{{ d.bucket }}</span>
+            <span class="i-muted">{{ credName(d.credential_id) }}</span>
           </div>
-          <p v-if="!dests.length" class="muted">No destinations. Backups stay local only.</p>
+          <BaseButton variant="ghost" icon="plug" :loading="testing === i" @click="testDestination(d, i)"
+            >Test</BaseButton
+          >
+          <BaseButton v-if="canWriteDests" variant="ghost" icon="trash-2" @click="removeDestination(i)" />
         </div>
-
-        <div v-if="canWriteDests" class="add-panel">
-          <div class="add-title">Add destination</div>
-          <div class="grid2">
-            <div class="field"><label>Name</label><input v-model="destForm.name" placeholder="s3-prod" /></div>
-            <div class="field">
-              <label>Credential</label>
-              <select v-model="destForm.credential_id">
-                <option value="" disabled>Select a credential</option>
-                <option v-for="c in creds" :key="c.id" :value="c.id">{{ c.name }}</option>
-              </select>
-            </div>
-          </div>
-          <div class="grid2">
-            <div class="field">
-              <label>Endpoint</label
-              ><input v-model="destForm.endpoint" placeholder="https://s3.us-east-1.amazonaws.com" />
-            </div>
-            <div class="field"><label>Region</label><input v-model="destForm.region" placeholder="us-east-1" /></div>
-          </div>
-          <div class="grid2">
-            <div class="field">
-              <label>Bucket</label><input v-model="destForm.bucket" placeholder="flatrun-backups" />
-            </div>
-            <div class="field">
-              <label>Prefix (optional)</label><input v-model="destForm.prefix" placeholder="agent-01" />
-            </div>
-          </div>
-          <label class="checkbox-line">
-            <input v-model="destForm.use_path_style" type="checkbox" />
-            Use path-style addressing (required by MinIO and some providers)
-          </label>
-          <div class="add-actions">
-            <button class="btn btn-secondary" :disabled="!canSubmitDest" @click="addDestination">
-              <Icon name="plus" :size="14" /> Add
-            </button>
-          </div>
-        </div>
+        <p v-if="!dests.length" class="muted">No destinations. Backups stay local only.</p>
       </div>
 
-      <div v-if="canWriteDests" class="save-footer">
+      <div v-if="canWriteDests && dests.length" class="save-footer">
         <span v-if="savedNote" class="saved-note"><Icon name="check" :size="14" /> Saved</span>
-        <button class="btn btn-primary" :disabled="savingDests" @click="saveDestinations">
-          <Icon v-if="savingDests" name="loader-circle" spin :size="14" />
-          Save destinations
-        </button>
+        <BaseButton variant="primary" :loading="savingDests" @click="saveDestinations">Save destinations</BaseButton>
       </div>
-    </div>
+    </BaseCard>
+
+    <!-- Add credential modal -->
+    <BaseModal :visible="showCredModal" title="Add object storage credential" @close="showCredModal = false">
+      <div class="form-stack">
+        <BaseField label="Name"><BaseInput v-model="credForm.name" placeholder="e.g. prod-r2" /></BaseField>
+        <BaseField label="Access key ID"><BaseInput v-model="credForm.access_key_id" placeholder="AKIA…" /></BaseField>
+        <BaseField label="Secret access key">
+          <BaseInput v-model="credForm.secret_access_key" type="password" placeholder="••••••••" />
+        </BaseField>
+      </div>
+      <template #footer>
+        <BaseButton variant="ghost" @click="showCredModal = false">Cancel</BaseButton>
+        <BaseButton
+          variant="primary"
+          icon="plus"
+          :loading="savingCred"
+          :disabled="!canSubmitCred"
+          @click="addCredential"
+        >
+          Add credential
+        </BaseButton>
+      </template>
+    </BaseModal>
+
+    <!-- Add destination modal -->
+    <BaseModal :visible="showDestModal" title="Add backup destination" size="lg" @close="showDestModal = false">
+      <div class="form-stack">
+        <div class="grid2">
+          <BaseField label="Name"><BaseInput v-model="destForm.name" placeholder="s3-prod" /></BaseField>
+          <BaseField label="Credential">
+            <BaseSelect v-model="destForm.credential_id">
+              <option value="" disabled>Select a credential</option>
+              <option v-for="c in creds" :key="c.id" :value="c.id">{{ c.name }}</option>
+            </BaseSelect>
+          </BaseField>
+        </div>
+        <div class="grid2">
+          <BaseField label="Endpoint">
+            <BaseInput v-model="destForm.endpoint" placeholder="https://s3.us-east-1.amazonaws.com" />
+          </BaseField>
+          <BaseField label="Region"><BaseInput v-model="destForm.region" placeholder="us-east-1" /></BaseField>
+        </div>
+        <div class="grid2">
+          <BaseField label="Bucket"><BaseInput v-model="destForm.bucket" placeholder="flatrun-backups" /></BaseField>
+          <BaseField label="Prefix (optional)"
+            ><BaseInput v-model="destForm.prefix" placeholder="agent-01"
+          /></BaseField>
+        </div>
+        <label class="checkbox-line">
+          <input v-model="destForm.use_path_style" type="checkbox" />
+          Use path-style addressing (required by MinIO and some providers)
+        </label>
+        <p v-if="!creds.length" class="muted">Add a credential first, then create a destination that uses it.</p>
+      </div>
+      <template #footer>
+        <BaseButton variant="ghost" @click="showDestModal = false">Cancel</BaseButton>
+        <BaseButton variant="primary" icon="plus" :disabled="!canSubmitDest" @click="addDestination">
+          Add destination
+        </BaseButton>
+      </template>
+    </BaseModal>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from "vue";
 import Icon from "@/components/base/Icon.vue";
+import BaseCard from "@/components/base/BaseCard.vue";
+import BaseModal from "@/components/base/BaseModal.vue";
+import BaseField from "@/components/base/BaseField.vue";
+import BaseInput from "@/components/base/BaseInput.vue";
+import BaseSelect from "@/components/base/BaseSelect.vue";
+import BaseButton from "@/components/base/BaseButton.vue";
 import {
   storageCredentialsApi,
   backupDestinationsApi,
@@ -163,6 +161,8 @@ const savingCred = ref(false);
 const savingDests = ref(false);
 const savedNote = ref(false);
 const testing = ref<number | null>(null);
+const showCredModal = ref(false);
+const showDestModal = ref(false);
 
 const credForm = reactive({ name: "", access_key_id: "", secret_access_key: "" });
 const destForm = reactive({
@@ -182,6 +182,24 @@ const canSubmitDest = computed(() => destForm.name.trim() && destForm.bucket.tri
 
 function credName(id: string): string {
   return creds.value.find((c) => c.id === id)?.name || "missing credential";
+}
+
+function openCredModal() {
+  credForm.name = "";
+  credForm.access_key_id = "";
+  credForm.secret_access_key = "";
+  showCredModal.value = true;
+}
+
+function openDestModal() {
+  destForm.name = "";
+  destForm.endpoint = "";
+  destForm.region = "";
+  destForm.bucket = "";
+  destForm.prefix = "";
+  destForm.credential_id = "";
+  destForm.use_path_style = false;
+  showDestModal.value = true;
 }
 
 async function loadCreds() {
@@ -218,9 +236,7 @@ async function addCredential() {
       kind: "s3",
       data: { access_key_id: credForm.access_key_id.trim(), secret_access_key: credForm.secret_access_key },
     });
-    credForm.name = "";
-    credForm.access_key_id = "";
-    credForm.secret_access_key = "";
+    showCredModal.value = false;
     await loadCreds();
   } catch (e: any) {
     notifications.error("Could not add credential", e.response?.data?.error || e.message);
@@ -251,13 +267,7 @@ function addDestination() {
     use_path_style: destForm.use_path_style,
     enabled: true,
   });
-  destForm.name = "";
-  destForm.endpoint = "";
-  destForm.region = "";
-  destForm.bucket = "";
-  destForm.prefix = "";
-  destForm.credential_id = "";
-  destForm.use_path_style = false;
+  showDestModal.value = false;
 }
 
 function removeDestination(i: number) {
@@ -317,7 +327,6 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
-  margin-bottom: var(--space-4);
 }
 
 .item-row {
@@ -327,6 +336,10 @@ onMounted(() => {
   padding: var(--space-2) var(--space-3);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-sm);
+}
+
+.row-icon {
+  color: var(--text-muted);
 }
 
 .item-summary {
@@ -356,47 +369,16 @@ onMounted(() => {
   color: var(--text-muted);
 }
 
-.add-panel {
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  padding: var(--space-4);
-  background: var(--surface-sunken);
+.form-stack {
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
-}
-
-.add-title {
-  font-size: var(--text-sm);
-  font-weight: var(--font-medium);
-  color: var(--text);
 }
 
 .grid2 {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: var(--space-3);
-}
-
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.field label {
-  font-size: var(--text-xs);
-  color: var(--text-muted);
-}
-
-.field input,
-.field select {
-  padding: var(--space-2) var(--space-3);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  background: var(--surface);
-  color: var(--text);
-  font-size: var(--text-sm);
 }
 
 .checkbox-line {
@@ -407,58 +389,14 @@ onMounted(() => {
   color: var(--text-muted);
 }
 
-.add-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: var(--space-2);
-}
-
-.btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.375rem;
-  padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius-sm);
-  font-size: var(--text-sm);
-  font-weight: var(--font-medium);
-  cursor: pointer;
-  border: 1px solid transparent;
-}
-
-.btn-primary {
-  background: var(--color-primary-500);
-  color: white;
-}
-
-.btn-primary:disabled {
-  opacity: 0.6;
-}
-
-.btn-secondary {
-  background: var(--surface-inset);
-  color: var(--text);
-}
-
-.btn-secondary:disabled {
-  opacity: 0.6;
-}
-
-.btn-ghost {
-  background: none;
-  border: 1px solid var(--border);
-  color: var(--text-muted);
-}
-
-.btn-ghost.danger:hover {
-  color: var(--color-danger-600, #dc2626);
-}
-
 .save-footer {
   display: flex;
   align-items: center;
   justify-content: flex-end;
   gap: var(--space-3);
   padding-top: var(--space-3);
+  margin-top: var(--space-3);
+  border-top: 1px solid var(--border-subtle);
 }
 
 .saved-note {

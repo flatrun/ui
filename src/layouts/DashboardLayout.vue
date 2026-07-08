@@ -58,6 +58,7 @@
           </div>
           <div v-show="expandedGroups.stacks && !sidebarCollapsed" class="nav-group-items">
             <router-link to="/deployments" class="nav-subitem" active-class="active">
+              <Icon name="layers" :size="15" />
               Deployments
               <span class="nav-count">{{ stats.deployments }}</span>
             </router-link>
@@ -90,6 +91,7 @@
               class="nav-subitem"
               active-class="active"
             >
+              <Icon name="box" :size="15" />
               Containers
               <span class="nav-count">{{ stats.containers }}</span>
             </router-link>
@@ -99,6 +101,7 @@
               class="nav-subitem"
               active-class="active"
             >
+              <Icon name="disc" :size="15" />
               Images
               <span class="nav-count">{{ stats.images }}</span>
             </router-link>
@@ -108,6 +111,7 @@
               class="nav-subitem"
               active-class="active"
             >
+              <Icon name="hard-drive" :size="15" />
               Volumes
               <span class="nav-count">{{ stats.volumes }}</span>
             </router-link>
@@ -117,6 +121,7 @@
               class="nav-subitem"
               active-class="active"
             >
+              <Icon name="network" :size="15" />
               Networks
               <span class="nav-count">{{ stats.networks }}</span>
             </router-link>
@@ -126,8 +131,120 @@
               class="nav-subitem"
               active-class="active"
             >
+              <Icon name="cable" :size="15" />
               Port Mappings
               <span class="nav-count">{{ stats.dockerPorts }}</span>
+            </router-link>
+          </div>
+        </div>
+
+        <div
+          v-if="authStore.hasPermission('databases:read') || authStore.hasPermission('backups:read')"
+          class="nav-group"
+        >
+          <div class="nav-group-header" @click="toggleGroup('storage')">
+            <Icon name="hard-drive" :size="17" />
+            <span v-if="!sidebarCollapsed">Storage</span>
+            <Icon
+              v-if="!sidebarCollapsed"
+              class="chevron"
+              :size="14"
+              :name="expandedGroups.storage ? 'chevron-down' : 'chevron-right'"
+            />
+          </div>
+          <div v-show="expandedGroups.storage && !sidebarCollapsed" class="nav-group-items">
+            <router-link
+              v-if="authStore.hasPermission('databases:read')"
+              to="/databases"
+              class="nav-subitem"
+              active-class="active"
+            >
+              <Icon name="database" :size="15" />
+              Databases
+              <span class="nav-count">{{ stats.databases }}</span>
+            </router-link>
+            <router-link
+              v-if="authStore.hasPermission('backups:read')"
+              to="/storage/object-stores"
+              class="nav-subitem"
+              active-class="active"
+            >
+              <Icon name="container" :size="15" />
+              Object Stores
+            </router-link>
+          </div>
+        </div>
+
+        <div
+          v-if="
+            authStore.hasPermission('deployments:read') ||
+            authStore.hasPermission('security:read') ||
+            authStore.hasPermission('certificates:read')
+          "
+          class="nav-group"
+        >
+          <div class="nav-group-header" @click="toggleGroup('security')">
+            <Icon name="activity" :size="17" />
+            <span v-if="!sidebarCollapsed">Monitoring & Security</span>
+            <Icon
+              v-if="!sidebarCollapsed"
+              class="chevron"
+              :size="14"
+              :name="expandedGroups.security ? 'chevron-down' : 'chevron-right'"
+            />
+          </div>
+          <div v-show="expandedGroups.security && !sidebarCollapsed" class="nav-group-items">
+            <router-link
+              v-if="authStore.hasPermission('deployments:read')"
+              to="/observability"
+              class="nav-subitem"
+              active-class="active"
+            >
+              <Icon name="activity" :size="15" />
+              Observability
+            </router-link>
+            <router-link
+              v-if="authStore.hasPermission('security:read')"
+              to="/security"
+              class="nav-subitem"
+              active-class="active"
+            >
+              <Icon name="shield" :size="15" />
+              Security
+            </router-link>
+            <router-link
+              v-if="authStore.hasPermission('certificates:read')"
+              to="/certificates"
+              class="nav-subitem"
+              active-class="active"
+            >
+              <Icon name="award" :size="15" />
+              Certificates
+              <span class="nav-count">{{ stats.certificates }}</span>
+            </router-link>
+          </div>
+        </div>
+
+        <div v-if="authStore.hasPermission('templates:read')" class="nav-group">
+          <div class="nav-group-header" @click="toggleGroup('extensions')">
+            <Icon name="layout-grid" :size="17" />
+            <span v-if="!sidebarCollapsed">Apps</span>
+            <Icon
+              v-if="!sidebarCollapsed"
+              class="chevron"
+              :size="14"
+              :name="expandedGroups.extensions ? 'chevron-down' : 'chevron-right'"
+            />
+          </div>
+          <div v-show="expandedGroups.extensions && !sidebarCollapsed" class="nav-group-items">
+            <router-link to="/apps" class="nav-subitem" active-class="active">
+              <Icon name="layout-grid" :size="15" />
+              Installed Apps
+              <span class="nav-count">{{ stats.apps }}</span>
+            </router-link>
+            <router-link to="/marketplace" class="nav-subitem" active-class="active">
+              <Icon name="store" :size="15" />
+              Marketplace
             </router-link>
           </div>
         </div>
@@ -158,6 +275,7 @@
               class="nav-subitem"
               active-class="active"
             >
+              <Icon name="server" :size="15" />
               Server Info
             </router-link>
             <router-link
@@ -166,6 +284,7 @@
               class="nav-subitem"
               active-class="active"
             >
+              <Icon name="terminal" :size="15" />
               Terminal
             </router-link>
             <router-link
@@ -174,6 +293,7 @@
               class="nav-subitem"
               active-class="active"
             >
+              <Icon name="folder" :size="15" />
               Files
             </router-link>
             <router-link
@@ -182,6 +302,7 @@
               class="nav-subitem"
               active-class="active"
             >
+              <Icon name="boxes" :size="15" />
               Cluster
               <span v-if="clusterPeers.length" class="nav-count">{{ clusterPeers.length + 1 }}</span>
             </router-link>
@@ -191,6 +312,7 @@
               class="nav-subitem"
               active-class="active"
             >
+              <Icon name="cpu" :size="15" />
               Infrastructure
               <span class="nav-count">{{ stats.infrastructure }}</span>
             </router-link>
@@ -200,6 +322,7 @@
               class="nav-subitem"
               active-class="active"
             >
+              <Icon name="plug" :size="15" />
               Ports
               <span class="nav-count">{{ stats.ports }}</span>
             </router-link>
@@ -209,6 +332,7 @@
               class="nav-subitem"
               active-class="active"
             >
+              <Icon name="cog" :size="15" />
               Services
               <span class="nav-count">{{ stats.services }}</span>
             </router-link>
@@ -218,26 +342,8 @@
               class="nav-subitem"
               active-class="active"
             >
+              <Icon name="clock" :size="15" />
               Cron Jobs
-            </router-link>
-          </div>
-        </div>
-
-        <div v-if="authStore.hasPermission('databases:read')" class="nav-group">
-          <div class="nav-group-header" @click="toggleGroup('databases')">
-            <Icon name="database" :size="17" />
-            <span v-if="!sidebarCollapsed">Databases</span>
-            <Icon
-              v-if="!sidebarCollapsed"
-              class="chevron"
-              :size="14"
-              :name="expandedGroups.databases ? 'chevron-down' : 'chevron-right'"
-            />
-          </div>
-          <div v-show="expandedGroups.databases && !sidebarCollapsed" class="nav-group-items">
-            <router-link to="/databases" class="nav-subitem" active-class="active">
-              Servers
-              <span class="nav-count">{{ stats.databases }}</span>
             </router-link>
           </div>
         </div>
@@ -254,75 +360,14 @@
             />
           </div>
           <div v-show="expandedGroups.dns && !sidebarCollapsed" class="nav-group-items">
-            <router-link to="/dns/zones" class="nav-subitem" active-class="active"> Zones </router-link>
-            <router-link to="/dns/external" class="nav-subitem" active-class="active"> External Providers </router-link>
-          </div>
-        </div>
-
-        <div
-          v-if="
-            authStore.hasPermission('deployments:read') ||
-            authStore.hasPermission('security:read') ||
-            authStore.hasPermission('certificates:read')
-          "
-          class="nav-group"
-        >
-          <div class="nav-group-header" @click="toggleGroup('security')">
-            <Icon name="activity" :size="17" />
-            <span v-if="!sidebarCollapsed">Monitoring & Security</span>
-            <Icon
-              v-if="!sidebarCollapsed"
-              class="chevron"
-              :size="14"
-              :name="expandedGroups.security ? 'chevron-down' : 'chevron-right'"
-            />
-          </div>
-          <div v-show="expandedGroups.security && !sidebarCollapsed" class="nav-group-items">
-            <router-link
-              v-if="authStore.hasPermission('deployments:read')"
-              to="/observability"
-              class="nav-subitem"
-              active-class="active"
-            >
-              Observability
+            <router-link to="/dns/zones" class="nav-subitem" active-class="active">
+              <Icon name="globe" :size="15" />
+              Zones
             </router-link>
-            <router-link
-              v-if="authStore.hasPermission('security:read')"
-              to="/security"
-              class="nav-subitem"
-              active-class="active"
-            >
-              Security
+            <router-link to="/dns/external" class="nav-subitem" active-class="active">
+              <Icon name="cloud" :size="15" />
+              External Providers
             </router-link>
-            <router-link
-              v-if="authStore.hasPermission('certificates:read')"
-              to="/certificates"
-              class="nav-subitem"
-              active-class="active"
-            >
-              Certificates
-              <span class="nav-count">{{ stats.certificates }}</span>
-            </router-link>
-          </div>
-        </div>
-
-        <div v-if="authStore.hasPermission('templates:read')" class="nav-group">
-          <div class="nav-group-header" @click="toggleGroup('extensions')">
-            <Icon name="layout-grid" :size="17" />
-            <span v-if="!sidebarCollapsed">Apps</span>
-            <Icon
-              v-if="!sidebarCollapsed"
-              class="chevron"
-              :size="14"
-              :name="expandedGroups.extensions ? 'chevron-down' : 'chevron-right'"
-            />
-          </div>
-          <div v-show="expandedGroups.extensions && !sidebarCollapsed" class="nav-group-items">
-            <router-link to="/apps" class="nav-subitem" active-class="active">
-              Installed Apps
-              <span class="nav-count">{{ stats.apps }}</span>
-            </router-link>
-            <router-link to="/marketplace" class="nav-subitem" active-class="active"> Marketplace </router-link>
           </div>
         </div>
 
@@ -351,6 +396,7 @@
               class="nav-subitem"
               active-class="active"
             >
+              <Icon name="settings" :size="15" />
               Settings
             </router-link>
             <router-link
@@ -359,6 +405,7 @@
               class="nav-subitem"
               active-class="active"
             >
+              <Icon name="users" :size="15" />
               Users
             </router-link>
             <router-link
@@ -367,6 +414,7 @@
               class="nav-subitem"
               active-class="active"
             >
+              <Icon name="key-round" :size="15" />
               API Keys
             </router-link>
           </div>
@@ -511,7 +559,7 @@ const expandedGroups = reactive({
   stacks: true,
   docker: true,
   system: false,
-  databases: false,
+  storage: false,
   dns: false,
   security: false,
   extensions: false,
@@ -891,7 +939,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.625rem 1.25rem 0.625rem 3.25rem;
+  padding: 0.625rem 1.25rem 0.625rem 2.5rem;
   color: var(--sidebar-text);
   text-decoration: none;
   font-size: 0.875rem;
