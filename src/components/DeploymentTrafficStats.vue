@@ -246,7 +246,7 @@ onMounted(() => {
 }
 
 .stat-value.error {
-  color: #dc2626;
+  color: var(--color-danger-700);
 }
 
 .stat-label {
@@ -372,7 +372,7 @@ onMounted(() => {
 
 .path-errors {
   font-size: 0.6875rem;
-  color: #dc2626;
+  color: var(--color-danger-700);
   font-weight: 500;
 }
 

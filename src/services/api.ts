@@ -931,6 +931,49 @@ export const credentialsApi = {
   test: (id: string) => apiClient.post<{ message: string; success: boolean }>(`/credentials/${id}/test`),
 };
 
+export type CredentialKind = "s3";
+
+export interface StorageCredential {
+  readonly id: string;
+  readonly name: string;
+  readonly kind: CredentialKind;
+  readonly data: Record<string, string>;
+  readonly created_at: string;
+  readonly updated_at: string;
+}
+
+export interface BackupDestination {
+  name: string;
+  type: string;
+  kind?: string;
+  deployment?: string;
+  endpoint: string;
+  region: string;
+  bucket: string;
+  prefix: string;
+  credential_id: string;
+  use_path_style: boolean;
+  enabled?: boolean | null;
+}
+
+export const storageCredentialsApi = {
+  list: (kind?: CredentialKind) =>
+    apiClient.get<{ credentials: StorageCredential[] }>("/storage-credentials", {
+      params: kind ? { kind } : undefined,
+    }),
+  create: (data: { name: string; kind: CredentialKind; data: Record<string, string> }) =>
+    apiClient.post<{ message: string; credential: StorageCredential }>("/storage-credentials", data),
+  update: (id: string, data: { name?: string; data?: Record<string, string> }) =>
+    apiClient.put<{ message: string; credential: StorageCredential }>(`/storage-credentials/${id}`, data),
+  delete: (id: string) => apiClient.delete(`/storage-credentials/${id}`),
+};
+
+export const backupDestinationsApi = {
+  list: () => apiClient.get<{ destinations: BackupDestination[] }>("/backup-destinations"),
+  test: (data: BackupDestination) =>
+    apiClient.post<{ success: boolean; message?: string; error?: string }>("/backup-destinations/test", data),
+};
+
 export interface SecurityEventFilter {
   event_type?: string;
   severity?: string;
@@ -1139,6 +1182,7 @@ export interface Backup {
   readonly created_at: string;
   readonly completed_at?: string;
   readonly expires_at?: string;
+  readonly locations?: readonly string[];
 }
 
 export interface BackupSpec {

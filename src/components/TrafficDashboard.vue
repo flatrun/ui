@@ -1326,15 +1326,15 @@ onMounted(() => {
 }
 
 .insight-chip.info {
-  background: #dbeafe;
-  color: #1d4ed8;
+  background: var(--color-info-50);
+  color: var(--color-info-700);
 }
 .insight-chip.warning {
-  background: #fef3c7;
-  color: #b45309;
+  background: var(--color-warning-50);
+  color: var(--color-warning-700);
 }
 .insight-chip.success {
-  background: #d1fae5;
+  background: var(--color-success-50);
   color: #059669;
 }
 .insight-chip.anomaly {
@@ -1363,12 +1363,12 @@ onMounted(() => {
 }
 
 .recommendation-btn.warning {
-  background: #fef3c7;
-  color: #b45309;
+  background: var(--color-warning-50);
+  color: var(--color-warning-700);
 }
 .recommendation-btn.critical {
-  background: #fee2e2;
-  color: #dc2626;
+  background: var(--color-danger-50);
+  color: var(--color-danger-700);
 }
 .recommendation-btn:hover {
   filter: brightness(0.95);
@@ -1397,7 +1397,7 @@ onMounted(() => {
 
 .stat-card.error {
   border-color: #fca5a5;
-  background: #fef2f2;
+  background: var(--color-danger-50);
 }
 
 .stat-header {
@@ -1424,7 +1424,7 @@ onMounted(() => {
   color: #059669;
 }
 .trend.down {
-  color: #dc2626;
+  color: var(--color-danger-700);
 }
 .trend i {
   font-size: 0.5rem;
@@ -1436,10 +1436,10 @@ onMounted(() => {
   color: var(--text);
 }
 .stat-value.warning {
-  color: #b45309;
+  color: var(--color-warning-700);
 }
 .stat-card.error .stat-value {
-  color: #dc2626;
+  color: var(--color-danger-700);
 }
 
 .stat-sub {
@@ -1496,7 +1496,7 @@ onMounted(() => {
 
 .warning-panel {
   border-color: #fcd34d;
-  background: #fffbeb;
+  background: var(--color-warning-50);
 }
 
 .panel-header {
@@ -1609,10 +1609,10 @@ onMounted(() => {
 }
 
 .dep-stat.slow {
-  color: #b45309;
+  color: var(--color-warning-700);
 }
 .dep-stat.high {
-  color: #dc2626;
+  color: var(--color-danger-700);
 }
 
 .deployment-row i {
@@ -1635,7 +1635,7 @@ onMounted(() => {
 }
 
 .unknown-row:hover {
-  background: #fef3c7;
+  background: var(--color-warning-50);
 }
 
 .unknown-row:last-child {
@@ -1644,12 +1644,12 @@ onMounted(() => {
 
 .unknown-row code {
   font-size: 0.75rem;
-  color: #92400e;
+  color: var(--color-warning-700);
 }
 
 .unknown-row span {
   font-size: 0.6875rem;
-  color: #b45309;
+  color: var(--color-warning-700);
 }
 
 /* Suspicious IPs */
@@ -1678,13 +1678,13 @@ onMounted(() => {
 
 .suspicious-info code {
   font-size: 0.75rem;
-  color: #92400e;
+  color: var(--color-warning-700);
   font-weight: 500;
 }
 
 .suspicious-stat {
   font-size: 0.625rem;
-  color: #b45309;
+  color: var(--color-warning-700);
 }
 
 .suspicious-actions {
@@ -1708,12 +1708,12 @@ onMounted(() => {
 }
 
 .btn-action.danger {
-  color: #dc2626;
+  color: var(--color-danger-700);
 }
 
 .btn-action.danger:hover {
-  background: #fee2e2;
-  color: #991b1b;
+  background: var(--color-danger-50);
+  color: var(--color-danger-700);
 }
 
 .btn-icon-xs {
@@ -1831,16 +1831,16 @@ onMounted(() => {
 }
 
 .status-item.success {
-  background: #d1fae5;
+  background: var(--color-success-50);
 }
 .status-item.redirect {
-  background: #dbeafe;
+  background: var(--color-info-50);
 }
 .status-item.client-error {
-  background: #fef3c7;
+  background: var(--color-warning-50);
 }
 .status-item.server-error {
-  background: #fee2e2;
+  background: var(--color-danger-50);
 }
 
 .status-code {
@@ -1852,13 +1852,13 @@ onMounted(() => {
   color: #059669;
 }
 .status-item.redirect .status-code {
-  color: #1d4ed8;
+  color: var(--color-info-700);
 }
 .status-item.client-error .status-code {
-  color: #b45309;
+  color: var(--color-warning-700);
 }
 .status-item.server-error .status-code {
-  color: #dc2626;
+  color: var(--color-danger-700);
 }
 
 .status-count {
@@ -1939,7 +1939,7 @@ onMounted(() => {
   background: var(--surface-sunken);
 }
 .data-table tbody tr.error-row {
-  background: #fef2f2;
+  background: var(--color-danger-50);
 }
 
 .cell-time {
@@ -1951,13 +1951,13 @@ onMounted(() => {
   color: #059669;
 }
 .cell-time.moderate {
-  color: #b45309;
+  color: var(--color-warning-700);
 }
 .cell-time.slow {
   color: #ea580c;
 }
 .cell-time.critical {
-  color: #dc2626;
+  color: var(--color-danger-700);
 }
 
 .cell-domain {
@@ -2008,12 +2008,12 @@ onMounted(() => {
 }
 
 .btn-icon-sm.danger {
-  color: #dc2626;
+  color: var(--color-danger-700);
 }
 
 .btn-icon-sm.danger:hover {
-  background: #fee2e2;
-  color: #991b1b;
+  background: var(--color-danger-50);
+  color: var(--color-danger-700);
 }
 
 .method-tag {
@@ -2025,20 +2025,20 @@ onMounted(() => {
 }
 
 .method-tag.get {
-  background: #dbeafe;
-  color: #1d4ed8;
+  background: var(--color-info-50);
+  color: var(--color-info-700);
 }
 .method-tag.post {
-  background: #d1fae5;
+  background: var(--color-success-50);
   color: #059669;
 }
 .method-tag.put {
-  background: #fef3c7;
-  color: #b45309;
+  background: var(--color-warning-50);
+  color: var(--color-warning-700);
 }
 .method-tag.delete {
-  background: #fee2e2;
-  color: #dc2626;
+  background: var(--color-danger-50);
+  color: var(--color-danger-700);
 }
 .method-tag.patch {
   background: #ede9fe;
@@ -2054,20 +2054,20 @@ onMounted(() => {
 }
 
 .status-tag.s2xx {
-  background: #d1fae5;
+  background: var(--color-success-50);
   color: #059669;
 }
 .status-tag.s3xx {
-  background: #dbeafe;
-  color: #1d4ed8;
+  background: var(--color-info-50);
+  color: var(--color-info-700);
 }
 .status-tag.s4xx {
-  background: #fef3c7;
-  color: #b45309;
+  background: var(--color-warning-50);
+  color: var(--color-warning-700);
 }
 .status-tag.s5xx {
-  background: #fee2e2;
-  color: #dc2626;
+  background: var(--color-danger-50);
+  color: var(--color-danger-700);
 }
 
 .tag {
@@ -2125,20 +2125,20 @@ onMounted(() => {
   gap: 0.5rem;
   padding: 0.5rem 0.75rem;
   border-radius: var(--radius-sm);
-  background: #fef2f2;
+  background: var(--color-danger-50);
 }
 
 .alert-row.warning {
-  background: #fffbeb;
+  background: var(--color-warning-50);
 }
 .alert-row.critical {
-  background: #fef2f2;
+  background: var(--color-danger-50);
 }
 .alert-row.warning i {
   color: #d97706;
 }
 .alert-row.critical i {
-  color: #dc2626;
+  color: var(--color-danger-700);
 }
 
 .alert-text {
@@ -2225,7 +2225,7 @@ onMounted(() => {
   display: flex;
   gap: 0.75rem;
   padding: 0.75rem;
-  background: #f0f9ff;
+  background: var(--color-info-50);
   border: 1px solid #bae6fd;
   border-radius: var(--radius-sm);
   margin-top: 0.5rem;

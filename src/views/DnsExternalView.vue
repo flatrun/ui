@@ -487,12 +487,12 @@ onMounted(() => {
   padding: 2rem;
   text-align: center;
   border-bottom: 1px solid var(--border);
-  background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+  background: linear-gradient(135deg, var(--surface-sunken), var(--surface-inset));
 }
 
 .setup-header i {
   font-size: 3rem;
-  color: #6366f1;
+  color: var(--accent);
   margin-bottom: 1rem;
 }
 
@@ -533,13 +533,13 @@ onMounted(() => {
 }
 
 .provider-btn:hover {
-  border-color: #6366f1;
-  background: #f5f3ff;
+  border-color: var(--accent);
+  background: var(--accent-subtle);
 }
 
 .provider-btn.active {
-  border-color: #6366f1;
-  background: #eef2ff;
+  border-color: var(--accent);
+  background: var(--accent-subtle);
 }
 
 .provider-btn i {
@@ -548,12 +548,12 @@ onMounted(() => {
 }
 
 .provider-btn.active i {
-  color: #6366f1;
+  color: var(--accent);
 }
 
 .provider-btn span {
   font-weight: 500;
-  color: #374151;
+  color: var(--text);
 }
 
 .credentials-form {
@@ -565,7 +565,7 @@ onMounted(() => {
 .credentials-form h3 {
   font-size: 1rem;
   font-weight: 600;
-  color: #374151;
+  color: var(--text);
   margin: 0 0 1rem 0;
 }
 
@@ -592,10 +592,10 @@ onMounted(() => {
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1rem;
-  background: #eef2ff;
+  background: var(--accent-subtle);
   border-radius: var(--radius-sm);
   font-weight: 600;
-  color: #4f46e5;
+  color: var(--accent-hover);
 }
 
 .zones-section,
@@ -627,8 +627,8 @@ onMounted(() => {
 }
 
 .proxied-badge.active {
-  background: #fef3c7;
-  color: #d97706;
+  background: var(--color-warning-50);
+  color: var(--color-warning-700);
 }
 
 /* Modal overrides */

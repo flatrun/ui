@@ -424,8 +424,8 @@ watch(
   align-items: center;
   gap: 0.375rem;
   font-size: 0.8125rem;
-  color: #dc2626;
-  background: #fef2f2;
+  color: var(--color-danger-700);
+  background: var(--color-danger-50);
   padding: 0.5rem 0.75rem;
   border-radius: var(--radius-sm);
 }

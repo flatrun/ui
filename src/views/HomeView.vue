@@ -536,7 +536,7 @@ onMounted(() => {
 
 .btn-secondary {
   background: var(--surface-raised);
-  color: #374151;
+  color: var(--text);
   border: 1px solid var(--border);
 }
 
@@ -807,8 +807,8 @@ onMounted(() => {
 }
 
 .status-badge.running {
-  background: #dcfce7;
-  color: #166534;
+  background: var(--color-success-50);
+  color: var(--color-success-700);
 }
 
 .status-badge.stopped {
@@ -817,8 +817,8 @@ onMounted(() => {
 }
 
 .status-badge.error {
-  background: #fee2e2;
-  color: #991b1b;
+  background: var(--color-danger-50);
+  color: var(--color-danger-700);
 }
 
 .time-cell {
@@ -933,18 +933,18 @@ onMounted(() => {
 }
 
 .health-indicator.healthy {
-  background: #dcfce7;
-  color: #166534;
+  background: var(--color-success-50);
+  color: var(--color-success-700);
 }
 
 .health-indicator.warning {
-  background: #fef3c7;
-  color: #92400e;
+  background: var(--color-warning-50);
+  color: var(--color-warning-700);
 }
 
 .health-indicator.critical {
-  background: #fee2e2;
-  color: #991b1b;
+  background: var(--color-danger-50);
+  color: var(--color-danger-700);
 }
 
 .resource-item {
@@ -1073,7 +1073,7 @@ onMounted(() => {
   background: var(--surface-inset);
   padding: 0.125rem 0.375rem;
   border-radius: var(--radius-sm);
-  color: #374151;
+  color: var(--text);
   font-family: "SF Mono", "Fira Code", monospace;
 }
 

@@ -561,8 +561,8 @@ onMounted(() => {
 
 .btn-danger-sm {
   padding: 0.375rem;
-  background: #fee2e2;
-  color: #dc2626;
+  background: var(--color-danger-50);
+  color: var(--color-danger-700);
   border: none;
   border-radius: var(--radius-md);
   cursor: pointer;
@@ -570,7 +570,7 @@ onMounted(() => {
 }
 
 .btn-danger-sm:hover:not(:disabled) {
-  background: #fecaca;
+  background: var(--color-danger-50);
 }
 
 .btn-danger-sm:disabled {
@@ -717,22 +717,22 @@ onMounted(() => {
 }
 
 .status-badge.valid {
-  background: #dcfce7;
-  color: #166534;
+  background: var(--color-success-50);
+  color: var(--color-success-700);
 }
 
 .status-badge.expiring {
-  background: #fef3c7;
-  color: #92400e;
+  background: var(--color-warning-50);
+  color: var(--color-warning-700);
 }
 
 .status-badge.expired {
-  background: #fee2e2;
-  color: #991b1b;
+  background: var(--color-danger-50);
+  color: var(--color-danger-700);
 }
 
 .days-left.good {
-  color: #16a34a;
+  color: var(--color-success-700);
   font-weight: 500;
 }
 
@@ -742,7 +742,7 @@ onMounted(() => {
 }
 
 .days-left.critical {
-  color: #dc2626;
+  color: var(--color-danger-700);
   font-weight: 500;
 }
 
@@ -877,18 +877,18 @@ onMounted(() => {
 }
 
 .summary-icon.valid {
-  background: #dcfce7;
-  color: #16a34a;
+  background: var(--color-success-50);
+  color: var(--color-success-700);
 }
 
 .summary-icon.expiring {
-  background: #fef3c7;
+  background: var(--color-warning-50);
   color: #d97706;
 }
 
 .summary-icon.expired {
-  background: #fee2e2;
-  color: #dc2626;
+  background: var(--color-danger-50);
+  color: var(--color-danger-700);
 }
 
 .summary-info {

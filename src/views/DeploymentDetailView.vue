@@ -4005,6 +4005,7 @@ onUnmounted(() => {
   border-radius: var(--radius-sm);
   font-size: var(--text-md);
   background: var(--surface);
+  color: var(--text);
 }
 
 .terminal-tab {
@@ -4346,6 +4347,8 @@ onUnmounted(() => {
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   font-size: var(--text-sm);
+  background: var(--surface);
+  color: var(--text);
   transition: all var(--transition-base);
 }
 

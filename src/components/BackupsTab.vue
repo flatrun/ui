@@ -36,6 +36,16 @@
             <span class="backup-size">{{ formatBytes(backup.size) }}</span>
             <span class="backup-date">{{ formatDate(backup.created_at) }}</span>
             <span class="backup-status" :class="backup.status">{{ backup.status }}</span>
+            <span
+              v-for="loc in backup.locations"
+              :key="loc"
+              class="backup-location"
+              :class="loc === 'local' ? 'local' : 'remote'"
+              :title="loc === 'local' ? 'Stored on this host' : 'Mirrored to ' + loc"
+            >
+              <i :class="loc === 'local' ? 'pi pi-desktop' : 'pi pi-cloud'" />
+              {{ loc }}
+            </span>
           </div>
           <div v-if="backup.components?.length" class="backup-components">
             <span v-for="comp in backup.components" :key="comp" class="component-badge">
@@ -584,6 +594,25 @@ onUnmounted(() => {
 .backup-status.failed {
   background: var(--color-danger-100);
   color: var(--color-danger-700);
+}
+
+.backup-location {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  font-size: var(--text-xs);
+}
+
+.backup-location.local {
+  background: var(--surface-inset);
+  color: var(--text-muted);
+}
+
+.backup-location.remote {
+  background: var(--color-primary-100);
+  color: var(--color-primary-700);
 }
 
 .backup-components {

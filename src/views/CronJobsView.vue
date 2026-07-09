@@ -885,7 +885,7 @@ onMounted(() => {
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   background: var(--surface-raised);
-  color: #374151;
+  color: var(--text);
   font-size: 0.875rem;
   cursor: pointer;
   transition: all 0.2s;
@@ -945,7 +945,7 @@ onMounted(() => {
 
 .btn-icon:hover:not(:disabled) {
   background: var(--surface-sunken);
-  color: #374151;
+  color: var(--text);
 }
 
 .btn-primary {
@@ -965,7 +965,7 @@ onMounted(() => {
 .btn-secondary {
   background: var(--surface-raised);
   border: 1px solid var(--border);
-  color: #374151;
+  color: var(--text);
 }
 
 .btn-secondary:hover:not(:disabled) {
@@ -978,12 +978,12 @@ onMounted(() => {
 }
 
 .btn-danger {
-  background: #fee2e2;
-  color: #dc2626;
+  background: var(--color-danger-50);
+  color: var(--color-danger-700);
 }
 
 .btn-danger:hover:not(:disabled) {
-  background: #fecaca;
+  background: var(--color-danger-50);
 }
 
 .loading-state,
@@ -1060,13 +1060,13 @@ onMounted(() => {
 }
 
 .task-type.command {
-  background: #dbeafe;
-  color: #1d4ed8;
+  background: var(--color-info-50);
+  color: var(--color-info-700);
 }
 
 .task-type.backup {
-  background: #dcfce7;
-  color: #166534;
+  background: var(--color-success-50);
+  color: var(--color-success-700);
 }
 
 .switch {
@@ -1139,7 +1139,7 @@ input:checked + .slider:before {
   align-items: center;
   gap: 0.5rem;
   font-size: 0.875rem;
-  color: #374151;
+  color: var(--text);
   margin-bottom: 1rem;
 }
 
@@ -1199,7 +1199,7 @@ input:checked + .slider:before {
 }
 
 .timing-value {
-  color: #374151;
+  color: var(--text);
   margin-left: 0.25rem;
 }
 
@@ -1357,7 +1357,7 @@ input:checked + .slider:before {
   display: block;
   font-size: 0.875rem;
   font-weight: 600;
-  color: #374151;
+  color: var(--text);
   margin-bottom: 0.5rem;
 }
 
@@ -1439,18 +1439,18 @@ input:checked + .slider:before {
 }
 
 .exec-status-badge.completed {
-  background: #dcfce7;
-  color: #166534;
+  background: var(--color-success-50);
+  color: var(--color-success-700);
 }
 
 .exec-status-badge.failed {
-  background: #fee2e2;
-  color: #991b1b;
+  background: var(--color-danger-50);
+  color: var(--color-danger-700);
 }
 
 .exec-status-badge.running {
-  background: #dbeafe;
-  color: #1d4ed8;
+  background: var(--color-info-50);
+  color: var(--color-info-700);
 }
 
 .output-block,
@@ -1464,7 +1464,7 @@ input:checked + .slider:before {
   font-size: 0.875rem;
   font-weight: 600;
   margin: 0 0 0.5rem;
-  color: #374151;
+  color: var(--text);
 }
 
 .output-block pre,
