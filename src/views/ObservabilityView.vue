@@ -92,6 +92,8 @@
       </div>
 
       <!-- Recovery timeline -->
+      <AlertRulesPanel class="alerts-panel" :deployments="deploymentNames" />
+
       <section v-if="recoveries.length" class="panel">
         <h3><Icon name="rotate-ccw" :size="16" /> Recent auto-recoveries</h3>
         <div v-for="(r, i) in recoveries.slice().reverse()" :key="i" class="recovery-row">
@@ -108,6 +110,7 @@
 import { ref, computed, onMounted, onUnmounted } from "vue";
 import Icon from "@/components/base/Icon.vue";
 import TimeSeriesChart from "@/components/charts/TimeSeriesChart.vue";
+import AlertRulesPanel from "@/components/AlertRulesPanel.vue";
 import TimeRangePicker from "@/components/base/TimeRangePicker.vue";
 import {
   observabilityApi,
@@ -124,6 +127,7 @@ import { useDeploymentsStore } from "@/stores/deployments";
 const deploymentsStore = useDeploymentsStore();
 const managed = computed(() => new Set(deploymentsStore.deployments.map((d) => d.name)));
 const isManaged = (name: string) => managed.value.has(name);
+const deploymentNames = computed(() => deploymentsStore.deployments.map((d) => d.name).sort());
 const deploymentLabel = (name: string) => (name ? (isManaged(name) ? name : `${name} (external)`) : "unassigned");
 
 const containerCount = ref(0);
