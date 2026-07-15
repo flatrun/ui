@@ -1,5 +1,5 @@
 <template>
-  <div class="container-files-tab">
+  <div class="container-files-panel">
     <div class="cf-header">
       <div class="cf-heading">
         <h3>Container Files</h3>
@@ -55,53 +55,55 @@
       <p>This directory is empty.</p>
     </div>
 
-    <table v-else class="cf-table">
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th class="cf-num">Size</th>
-          <th>Modified</th>
-          <th class="cf-actions-col">Host</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-if="path !== '/'" class="cf-row">
-          <td colspan="4">
-            <button class="cf-name cf-up" @click="browse(parentPath)">
-              <Icon name="corner-left-up" :size="15" />
-              ..
-            </button>
-          </td>
-        </tr>
-        <tr v-for="file in files" :key="file.path" class="cf-row">
-          <td>
-            <button v-if="file.is_dir" class="cf-name" @click="browse(file.path)">
-              <Icon name="folder" :size="15" class="cf-icon-dir" />
-              {{ file.name }}
-            </button>
-            <span v-else class="cf-name cf-name-static">
-              <Icon :name="file.is_symlink ? 'link' : 'file'" :size="15" />
-              {{ file.name }}
-              <span v-if="file.link_target" class="cf-link-target">to {{ file.link_target }}</span>
-            </span>
-          </td>
-          <td class="cf-num">{{ file.is_dir ? "" : formatBytes(file.size) }}</td>
-          <td class="cf-modified">{{ file.modified_raw }}</td>
-          <td class="cf-actions-col">
-            <button
-              class="btn btn-sm btn-secondary"
-              :disabled="busy || file.is_symlink"
-              :title="
-                file.is_symlink ? 'A symlink points elsewhere; bring its target out instead' : 'Copy onto the host'
-              "
-              @click="confirm(file.path)"
-            >
-              <Icon name="download" :size="14" />
-            </button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+    <div v-else class="cf-listing">
+      <table class="cf-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th class="cf-num">Size</th>
+            <th>Modified</th>
+            <th class="cf-actions-col">Host</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-if="path !== '/'" class="cf-row">
+            <td colspan="4">
+              <button class="cf-name cf-up" @click="browse(parentPath)">
+                <Icon name="corner-left-up" :size="15" />
+                ..
+              </button>
+            </td>
+          </tr>
+          <tr v-for="file in files" :key="file.path" class="cf-row">
+            <td>
+              <button v-if="file.is_dir" class="cf-name" @click="browse(file.path)">
+                <Icon name="folder" :size="15" class="cf-icon-dir" />
+                {{ file.name }}
+              </button>
+              <span v-else class="cf-name cf-name-static">
+                <Icon :name="file.is_symlink ? 'link' : 'file'" :size="15" />
+                {{ file.name }}
+                <span v-if="file.link_target" class="cf-link-target">to {{ file.link_target }}</span>
+              </span>
+            </td>
+            <td class="cf-num">{{ file.is_dir ? "" : formatBytes(file.size) }}</td>
+            <td class="cf-modified">{{ file.modified_raw }}</td>
+            <td class="cf-actions-col">
+              <button
+                class="btn btn-sm btn-secondary"
+                :disabled="busy || file.is_symlink"
+                :title="
+                  file.is_symlink ? 'A symlink points elsewhere; bring its target out instead' : 'Copy onto the host'
+                "
+                @click="confirm(file.path)"
+              >
+                <Icon name="download" :size="14" />
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
 
     <ConfirmModal
       :visible="!!pending"
@@ -212,75 +214,92 @@ onMounted(() => browse("/"));
 </script>
 
 <style scoped>
-.container-files-tab {
+/* The panel fills the file pane and scrolls its own listing, so the tab's
+   height stays put no matter how long a directory is. */
+.container-files-panel {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: var(--space-3);
+  height: 100%;
+  min-height: 0;
+  padding: var(--space-4);
 }
 
 .cf-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 1rem;
+  gap: var(--space-4);
   flex-wrap: wrap;
+  flex-shrink: 0;
 }
 
 .cf-heading h3 {
-  margin: 0 0 0.25rem;
+  margin: 0 0 var(--space-1);
+  font-size: var(--text-md);
 }
 
 .cf-subtitle {
   margin: 0;
-  max-width: 60ch;
-  color: var(--text-secondary);
-  font-size: 0.85rem;
+  max-width: 62ch;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
 }
 
 .cf-controls {
   display: flex;
-  gap: 0.5rem;
+  gap: var(--space-2);
   align-items: center;
 }
 
 .cf-breadcrumb {
   display: flex;
   align-items: center;
-  gap: 0.25rem;
+  gap: var(--space-1);
   flex-wrap: wrap;
-  padding: 0.5rem 0.75rem;
-  background: var(--surface-2, rgba(127, 127, 127, 0.08));
-  border-radius: 8px;
+  padding: var(--space-2) var(--space-3);
+  background: var(--surface-inset);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
 }
 
 .cf-crumb {
   display: inline-flex;
   align-items: center;
-  gap: 0.3rem;
+  gap: var(--space-1);
   border: 0;
   background: none;
-  color: var(--text-primary);
+  color: var(--text);
   cursor: pointer;
-  padding: 0.15rem 0.35rem;
-  border-radius: 6px;
-  font-size: 0.85rem;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-xs);
+  font-size: var(--text-sm);
 }
 
 .cf-crumb:hover:not(:disabled) {
-  background: var(--surface-3, rgba(127, 127, 127, 0.16));
+  background: var(--surface-raised);
 }
 
 .cf-crumb:disabled {
   cursor: default;
-  color: var(--text-secondary);
+  color: var(--text-muted);
 }
 
 .cf-crumb-sep {
-  color: var(--text-secondary);
+  color: var(--text-subtle);
 }
 
 .cf-bring-current {
   margin-left: auto;
+}
+
+.cf-listing {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
 }
 
 .cf-table {
@@ -289,36 +308,46 @@ onMounted(() => browse("/"));
 }
 
 .cf-table th {
+  position: sticky;
+  top: 0;
+  background: var(--surface-raised);
   text-align: left;
-  font-size: 0.75rem;
+  font-size: var(--text-xs);
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: var(--text-secondary);
-  padding: 0.5rem;
-  border-bottom: 1px solid var(--border-color, rgba(127, 127, 127, 0.2));
+  color: var(--text-muted);
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--border);
 }
 
 .cf-row td {
-  padding: 0.4rem 0.5rem;
-  border-bottom: 1px solid var(--border-color, rgba(127, 127, 127, 0.12));
-  font-size: 0.85rem;
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--border-subtle);
+  font-size: var(--text-sm);
+}
+
+.cf-row:last-child td {
+  border-bottom: 0;
+}
+
+.cf-row:hover td {
+  background: var(--surface-raised);
 }
 
 .cf-name {
   display: inline-flex;
   align-items: center;
-  gap: 0.45rem;
+  gap: var(--space-2);
   border: 0;
   background: none;
-  color: var(--text-primary);
+  color: var(--text);
   cursor: pointer;
-  font-size: 0.85rem;
+  font-size: var(--text-sm);
   padding: 0;
 }
 
 .cf-name-static {
   cursor: default;
-  color: var(--text-secondary);
 }
 
 .cf-name:hover:not(.cf-name-static) {
@@ -326,47 +355,49 @@ onMounted(() => browse("/"));
 }
 
 .cf-icon-dir {
-  color: var(--primary-color, #6366f1);
+  color: var(--accent);
 }
 
 .cf-link-target {
-  color: var(--text-secondary);
-  font-size: 0.75rem;
+  color: var(--text-subtle);
+  font-size: var(--text-xs);
 }
 
 .cf-num {
   text-align: right;
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
 }
 
-.cf-modified,
-.cf-actions-col {
-  color: var(--text-secondary);
+.cf-modified {
+  color: var(--text-muted);
   white-space: nowrap;
 }
 
 .cf-actions-col {
   text-align: right;
+  white-space: nowrap;
 }
 
 .cf-error {
   display: flex;
-  gap: 0.6rem;
-  padding: 0.75rem 1rem;
-  border-radius: 8px;
-  background: var(--danger-bg, rgba(239, 68, 68, 0.08));
-  color: var(--danger-color, #ef4444);
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-sm);
+  background: var(--color-danger-50);
+  border: 1px solid var(--color-danger-200);
+  color: var(--color-danger-700);
 }
 
 .cf-error-msg {
   margin: 0;
-  font-size: 0.85rem;
+  font-size: var(--text-sm);
 }
 
 .cf-error-hint {
-  margin: 0.25rem 0 0;
-  font-size: 0.8rem;
-  color: var(--text-secondary);
+  margin: var(--space-1) 0 0;
+  font-size: var(--text-xs);
+  color: var(--color-danger-600);
 }
 </style>

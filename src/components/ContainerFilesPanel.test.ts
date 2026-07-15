@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { mount, flushPromises } from "@vue/test-utils";
 import { createTestingPinia } from "@pinia/testing";
-import ContainerFilesTab from "./ContainerFilesTab.vue";
+import ContainerFilesPanel from "./ContainerFilesPanel.vue";
 import { containerFilesApi } from "@/services/api";
 
 vi.mock("@/services/api", () => ({
@@ -33,7 +33,7 @@ const listing = {
 };
 
 const mountTab = () =>
-  mount(ContainerFilesTab, {
+  mount(ContainerFilesPanel, {
     props: { deploymentName: "test-app", serviceNames: ["app", "db"] },
     global: {
       plugins: [createTestingPinia({ createSpy: vi.fn })],
@@ -41,7 +41,7 @@ const mountTab = () =>
     },
   });
 
-describe("ContainerFilesTab", () => {
+describe("ContainerFilesPanel", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(containerFilesApi.list).mockResolvedValue(listing as any);

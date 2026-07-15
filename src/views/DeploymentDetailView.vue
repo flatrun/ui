@@ -86,8 +86,7 @@
           :class="{ active: activeTab === tab.id }"
           @click="activeTab = tab.id"
         >
-          <Icon v-if="tab.icon.startsWith('lucide:')" :name="tab.icon" :size="15" />
-          <i v-else :class="tab.icon" />
+          <i :class="tab.icon" />
           {{ tab.label }}
         </button>
         <button
@@ -558,17 +557,33 @@
         </div>
 
         <div v-if="activeTab === 'files'" class="files-tab">
+          <div class="files-source" role="tablist" aria-label="File source">
+            <button
+              v-for="source in fileSources"
+              :key="source.id"
+              class="files-source-btn"
+              :class="{ active: filesSource === source.id }"
+              role="tab"
+              :aria-selected="filesSource === source.id"
+              @click="filesSource = source.id"
+            >
+              <Icon :name="source.icon" :size="14" />
+              {{ source.label }}
+            </button>
+          </div>
+
           <FileBrowser
+            v-if="filesSource === 'host'"
+            class="files-pane"
             :deployment-name="route.params.name as string"
             :service-names="composeServiceNames"
             :mounts="composeMounts"
             :enable-mount="true"
             @mount-compose="handleComposeMount"
           />
-        </div>
-
-        <div v-if="activeTab === 'container-files'" class="container-files-tab-wrap">
-          <ContainerFilesTab
+          <ContainerFilesPanel
+            v-else
+            class="files-pane"
             :deployment-name="route.params.name as string"
             :service-names="composeServiceNames"
             @materialized="handleMaterialized"
@@ -1844,7 +1859,7 @@ import type {
   ProtectedModeConfig,
 } from "@/types";
 import FileBrowser from "@/components/FileBrowser.vue";
-import ContainerFilesTab from "@/components/ContainerFilesTab.vue";
+import ContainerFilesPanel from "@/components/ContainerFilesPanel.vue";
 import LogViewer from "@/components/LogViewer.vue";
 import ConfirmModal from "@/components/ConfirmModal.vue";
 import ContainerTerminal from "@/components/ContainerTerminal.vue";
@@ -1960,7 +1975,6 @@ const protectedPathPresets = [
 const tabs = [
   { id: "overview", label: "Overview", icon: "pi pi-info-circle" },
   { id: "files", label: "Files", icon: "pi pi-folder" },
-  { id: "container-files", label: "Container Files", icon: "lucide:box" },
   { id: "logs", label: "Logs", icon: "pi pi-file-edit" },
   { id: "terminal", label: "Terminal", icon: "pi pi-desktop" },
   { id: "environment", label: "Environment", icon: "pi pi-list" },
@@ -3086,12 +3100,18 @@ const saveCredential = async () => {
   }
 };
 
+const fileSources = [
+  { id: "host", label: "Host", icon: "hard-drive" },
+  { id: "container", label: "Container", icon: "box" },
+];
+const filesSource = ref("host");
+
 // A path brought out of the container is an ordinary file on the host now, so
-// send the user to the browser that edits it, and refresh the compose view that
-// just gained the mount.
+// switch to the browser that edits it, and refresh the compose view that just
+// gained the mount.
 const handleMaterialized = async () => {
   await fetchDeployment();
-  activeTab.value = "files";
+  filesSource.value = "host";
 };
 
 const handleComposeMount = async (mount: {
@@ -4338,6 +4358,46 @@ onUnmounted(() => {
 
 .files-tab {
   height: 600px;
+  display: flex;
+  flex-direction: column;
+}
+
+.files-source {
+  display: flex;
+  gap: var(--space-1);
+  padding: var(--space-3) var(--space-4) 0;
+  flex-shrink: 0;
+}
+
+.files-source-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  cursor: pointer;
+}
+
+.files-source-btn:hover {
+  color: var(--text);
+  border-color: var(--border-subtle);
+}
+
+.files-source-btn.active {
+  background: var(--accent-subtle);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* The browsers size themselves to their container, so the pane takes what the
+   source switcher leaves. */
+.files-pane {
+  flex: 1;
+  min-height: 0;
 }
 
 .domain-settings-modal {
