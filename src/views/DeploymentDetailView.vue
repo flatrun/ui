@@ -557,12 +557,37 @@
         </div>
 
         <div v-if="activeTab === 'files'" class="files-tab">
+          <div class="files-source" role="tablist" aria-label="File source">
+            <button
+              v-for="source in fileSources"
+              :key="source.id"
+              class="files-source-btn"
+              :class="{ active: filesSource === source.id }"
+              role="tab"
+              :aria-selected="filesSource === source.id"
+              @click="filesSource = source.id"
+            >
+              <Icon :name="source.icon" :size="14" />
+              {{ source.label }}
+            </button>
+          </div>
+
           <FileBrowser
+            v-if="filesSource === 'host'"
+            class="files-pane"
             :deployment-name="route.params.name as string"
             :service-names="composeServiceNames"
             :mounts="composeMounts"
             :enable-mount="true"
             @mount-compose="handleComposeMount"
+            @unmounted="fetchDeployment"
+          />
+          <ContainerFilesPanel
+            v-else
+            class="files-pane"
+            :deployment-name="route.params.name as string"
+            :service-names="composeServiceNames"
+            @materialized="handleMaterialized"
           />
         </div>
 
@@ -1835,6 +1860,7 @@ import type {
   ProtectedModeConfig,
 } from "@/types";
 import FileBrowser from "@/components/FileBrowser.vue";
+import ContainerFilesPanel from "@/components/ContainerFilesPanel.vue";
 import LogViewer from "@/components/LogViewer.vue";
 import ConfirmModal from "@/components/ConfirmModal.vue";
 import ContainerTerminal from "@/components/ContainerTerminal.vue";
@@ -3073,6 +3099,20 @@ const saveCredential = async () => {
   } finally {
     savingCredential.value = false;
   }
+};
+
+const fileSources = [
+  { id: "host", label: "Host", icon: "hard-drive" },
+  { id: "container", label: "Container", icon: "box" },
+];
+const filesSource = ref("host");
+
+// A path brought out of the container is an ordinary file on the host now, so
+// switch to the browser that edits it, and refresh the compose view that just
+// gained the mount.
+const handleMaterialized = async () => {
+  await fetchDeployment();
+  filesSource.value = "host";
 };
 
 const handleComposeMount = async (mount: {
@@ -4319,6 +4359,50 @@ onUnmounted(() => {
 
 .files-tab {
   height: 600px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Matches the file browser's own toolbar padding, so the switcher and the
+   toolbar beneath it read as one stack rather than two misaligned bars. The
+   browser's toolbar draws the rule; a second one here would double it. */
+.files-source {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-3) var(--space-4);
+  flex-shrink: 0;
+}
+
+.files-source-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  cursor: pointer;
+}
+
+.files-source-btn:hover {
+  color: var(--text);
+  border-color: var(--border-subtle);
+}
+
+.files-source-btn.active {
+  background: var(--accent-subtle);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* The browsers size themselves to their container, so the pane takes what the
+   source switcher leaves. */
+.files-pane {
+  flex: 1;
+  min-height: 0;
 }
 
 .domain-settings-modal {
