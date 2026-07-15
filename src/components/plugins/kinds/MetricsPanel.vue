@@ -1,49 +1,55 @@
 <template>
   <div class="metrics-panel">
-    <div class="panel-toolbar">
-      <div class="health-strip">
-        <span
-          v-for="h in healthList"
-          :key="h.container"
-          class="hchip"
-          :class="`hchip--${h.status}`"
-          :title="`${h.container}: ${h.status}`"
-        >
-          <span class="hdot" />
-          {{ h.container }}
-        </span>
-      </div>
-      <TimeRangePicker :model-value="since" :ranges="ranges" @update:model-value="setRange" />
-    </div>
+    <SubTabs v-model="view" :tabs="views">
+      <template v-if="view === 'containers'">
+        <div class="panel-toolbar">
+          <div class="health-strip">
+            <span
+              v-for="h in healthList"
+              :key="h.container"
+              class="hchip"
+              :class="`hchip--${h.status}`"
+              :title="`${h.container}: ${h.status}`"
+            >
+              <span class="hdot" />
+              {{ h.container }}
+            </span>
+          </div>
+          <TimeRangePicker :model-value="since" :ranges="ranges" @update:model-value="setRange" />
+        </div>
 
-    <div v-if="recoveries.length" class="recovery-banner">
-      <Icon name="rotate-ccw" :size="15" />
-      <span>Auto-restarted {{ recoveries.length }} time{{ recoveries.length > 1 ? "s" : "" }} recently.</span>
-    </div>
+        <div v-if="recoveries.length" class="recovery-banner">
+          <Icon name="rotate-ccw" :size="15" />
+          <span>Auto-restarted {{ recoveries.length }} time{{ recoveries.length > 1 ? "s" : "" }} recently.</span>
+        </div>
 
-    <div v-if="error" class="panel-empty">
-      <Icon name="plug-zap" :size="26" />
-      <p>Metrics unavailable. Is the Observability app running?</p>
-    </div>
-    <div v-else-if="!hasData" class="panel-empty">
-      <Icon name="activity" :size="26" />
-      <p>No metrics for this deployment yet.</p>
-    </div>
+        <div v-if="error" class="panel-empty">
+          <Icon name="plug-zap" :size="26" />
+          <p>Metrics unavailable. Is the Observability app running?</p>
+        </div>
+        <div v-else-if="!hasData" class="panel-empty">
+          <Icon name="activity" :size="26" />
+          <p>No metrics for this deployment yet.</p>
+        </div>
 
-    <div v-else class="chart-grid">
-      <div v-for="panel in panels" :key="panel.metric" class="chart-card">
-        <div class="chart-title">{{ panel.title }}</div>
-        <TimeSeriesChart
-          v-if="metrics[panel.metric]"
-          :containers="metrics[panel.metric].containers"
-          :timestamps="metrics[panel.metric].timestamps"
-          :values="metrics[panel.metric].values"
-          :unit="panel.unit"
-          :area="panel.area"
-        />
-        <div v-else class="chart-blank">No data</div>
-      </div>
-    </div>
+        <div v-else class="chart-grid">
+          <div v-for="panel in panels" :key="panel.metric" class="chart-card">
+            <div class="chart-title">{{ panel.title }}</div>
+            <TimeSeriesChart
+              v-if="metrics[panel.metric]"
+              :containers="metrics[panel.metric].containers"
+              :timestamps="metrics[panel.metric].timestamps"
+              :values="metrics[panel.metric].values"
+              :unit="panel.unit"
+              :area="panel.area"
+            />
+            <div v-else class="chart-blank">No data</div>
+          </div>
+        </div>
+      </template>
+
+      <ServingPanel v-else :deployment-name="deployment" />
+    </SubTabs>
   </div>
 </template>
 
@@ -52,6 +58,8 @@ import { ref, computed, onMounted, onUnmounted } from "vue";
 import Icon from "@/components/base/Icon.vue";
 import TimeSeriesChart from "@/components/charts/TimeSeriesChart.vue";
 import TimeRangePicker from "@/components/base/TimeRangePicker.vue";
+import SubTabs from "@/components/base/SubTabs.vue";
+import ServingPanel from "@/components/ServingPanel.vue";
 import { pluginApi } from "@/services/pluginApi";
 
 const props = defineProps<{
@@ -68,6 +76,14 @@ interface MetricSeries {
 
 const api = pluginApi(props.pluginName);
 const deployment = String(props.context?.deployment ?? "");
+
+// Containers say what the deployment is doing; serving says whether anyone is getting
+// anything out of it. Both belong under metrics and health.
+const views = [
+  { id: "containers", label: "Containers" },
+  { id: "serving", label: "Serving" },
+];
+const view = ref("containers");
 
 const ranges = ["15m", "1h", "6h", "24h"];
 const since = ref("15m");
