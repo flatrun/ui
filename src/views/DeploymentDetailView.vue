@@ -4362,10 +4362,14 @@ onUnmounted(() => {
   flex-direction: column;
 }
 
+/* Matches the file browser's own toolbar padding, so the switcher and the
+   toolbar beneath it read as one stack rather than two misaligned bars. The
+   browser's toolbar draws the rule; a second one here would double it. */
 .files-source {
   display: flex;
+  align-items: center;
   gap: var(--space-1);
-  padding: var(--space-3) var(--space-4) 0;
+  padding: var(--space-3) var(--space-4);
   flex-shrink: 0;
 }
 
