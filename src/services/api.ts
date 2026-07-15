@@ -643,6 +643,32 @@ export interface FilesInfo {
   file_count: number;
 }
 
+export interface ContainerFile {
+  name: string;
+  path: string;
+  size: number;
+  mode: string;
+  is_dir: boolean;
+  is_symlink: boolean;
+  link_target?: string;
+  modified_raw?: string;
+}
+
+export const containerFilesApi = {
+  list: (deploymentName: string, service: string, path: string = "/") =>
+    apiClient.get<{ path: string; service: string; files: ContainerFile[] }>(
+      `/deployments/${deploymentName}/container-files/${service}`,
+      { params: { path } },
+    ),
+  // Copies a container path onto the host and mounts it back, so it becomes an
+  // ordinary file the deployment's own file browser can edit.
+  materialize: (deploymentName: string, service: string, data: { container_path: string; host_path?: string }) =>
+    apiClient.post<{ deployment: string; service: string; container_path: string; host_path: string }>(
+      `/deployments/${deploymentName}/container-files/${service}/materialize`,
+      data,
+    ),
+};
+
 export const filesApi = {
   list: (deploymentName: string, path: string = "/") =>
     apiClient.get<{ files: FileInfo[] }>(`/deployments/${deploymentName}/files`, {

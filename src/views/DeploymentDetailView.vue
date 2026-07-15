@@ -86,7 +86,8 @@
           :class="{ active: activeTab === tab.id }"
           @click="activeTab = tab.id"
         >
-          <i :class="tab.icon" />
+          <Icon v-if="tab.icon.startsWith('lucide:')" :name="tab.icon" :size="15" />
+          <i v-else :class="tab.icon" />
           {{ tab.label }}
         </button>
         <button
@@ -563,6 +564,14 @@
             :mounts="composeMounts"
             :enable-mount="true"
             @mount-compose="handleComposeMount"
+          />
+        </div>
+
+        <div v-if="activeTab === 'container-files'" class="container-files-tab-wrap">
+          <ContainerFilesTab
+            :deployment-name="route.params.name as string"
+            :service-names="composeServiceNames"
+            @materialized="handleMaterialized"
           />
         </div>
 
@@ -1835,6 +1844,7 @@ import type {
   ProtectedModeConfig,
 } from "@/types";
 import FileBrowser from "@/components/FileBrowser.vue";
+import ContainerFilesTab from "@/components/ContainerFilesTab.vue";
 import LogViewer from "@/components/LogViewer.vue";
 import ConfirmModal from "@/components/ConfirmModal.vue";
 import ContainerTerminal from "@/components/ContainerTerminal.vue";
@@ -1950,6 +1960,7 @@ const protectedPathPresets = [
 const tabs = [
   { id: "overview", label: "Overview", icon: "pi pi-info-circle" },
   { id: "files", label: "Files", icon: "pi pi-folder" },
+  { id: "container-files", label: "Container Files", icon: "lucide:box" },
   { id: "logs", label: "Logs", icon: "pi pi-file-edit" },
   { id: "terminal", label: "Terminal", icon: "pi pi-desktop" },
   { id: "environment", label: "Environment", icon: "pi pi-list" },
@@ -3073,6 +3084,14 @@ const saveCredential = async () => {
   } finally {
     savingCredential.value = false;
   }
+};
+
+// A path brought out of the container is an ordinary file on the host now, so
+// send the user to the browser that edits it, and refresh the compose view that
+// just gained the mount.
+const handleMaterialized = async () => {
+  await fetchDeployment();
+  activeTab.value = "files";
 };
 
 const handleComposeMount = async (mount: {
