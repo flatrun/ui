@@ -5,9 +5,15 @@
         <h2>Observability</h2>
         <p class="subtitle">Health and resources across all deployments.</p>
       </div>
-      <button class="btn btn-icon" :disabled="loading" @click="load">
-        <Icon name="refresh-cw" :size="16" :spin="loading" />
-      </button>
+      <div class="header-actions">
+        <router-link to="/observability/alerts" class="btn btn-sm btn-secondary">
+          <Icon name="bell" :size="14" />
+          Alerts
+        </router-link>
+        <button class="btn btn-icon" :disabled="loading" @click="load">
+          <Icon name="refresh-cw" :size="16" :spin="loading" />
+        </button>
+      </div>
     </div>
 
     <div v-if="loading && !containerCount" class="state-panel">
@@ -92,8 +98,6 @@
       </div>
 
       <!-- Recovery timeline -->
-      <AlertRulesPanel class="alerts-panel" :deployments="deploymentNames" />
-
       <section v-if="recoveries.length" class="panel">
         <h3><Icon name="rotate-ccw" :size="16" /> Recent auto-recoveries</h3>
         <div v-for="(r, i) in recoveries.slice().reverse()" :key="i" class="recovery-row">
@@ -110,7 +114,6 @@
 import { ref, computed, onMounted, onUnmounted } from "vue";
 import Icon from "@/components/base/Icon.vue";
 import TimeSeriesChart from "@/components/charts/TimeSeriesChart.vue";
-import AlertRulesPanel from "@/components/AlertRulesPanel.vue";
 import TimeRangePicker from "@/components/base/TimeRangePicker.vue";
 import {
   observabilityApi,
@@ -127,7 +130,6 @@ import { useDeploymentsStore } from "@/stores/deployments";
 const deploymentsStore = useDeploymentsStore();
 const managed = computed(() => new Set(deploymentsStore.deployments.map((d) => d.name)));
 const isManaged = (name: string) => managed.value.has(name);
-const deploymentNames = computed(() => deploymentsStore.deployments.map((d) => d.name).sort());
 const deploymentLabel = (name: string) => (name ? (isManaged(name) ? name : `${name} (external)`) : "unassigned");
 
 const containerCount = ref(0);
@@ -308,6 +310,12 @@ onUnmounted(() => {
 
 .summary-card.warn .summary-num {
   color: var(--color-warning-600);
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
 }
 
 .panel {

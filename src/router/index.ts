@@ -119,6 +119,12 @@ const routes: RouteRecordRaw[] = [
         meta: { permission: "deployments:read" },
       },
       {
+        path: "observability/alerts",
+        name: "alerts",
+        component: () => import("@/views/AlertsView.vue"),
+        meta: { permission: "deployments:read" },
+      },
+      {
         path: "templates",
         name: "templates",
         component: () => import("@/views/TemplatesView.vue"),
