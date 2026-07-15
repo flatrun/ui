@@ -3439,13 +3439,25 @@ onUnmounted(() => {
   grid-column: 1 / -1;
 }
 
+/* Every card header is the same height because only its icon and title decide that height.
+   An action sits over the header rather than in it: a button is taller than a line of text,
+   so a card with one would otherwise stand taller than the cards beside it. */
 .info-card .card-header {
+  position: relative;
   display: flex;
   align-items: center;
   gap: var(--space-2);
   padding: var(--space-3) var(--space-4);
+  padding-right: calc(var(--space-4) + 2rem);
   background: var(--surface-sunken);
   border-bottom: 1px solid var(--border);
+}
+
+.info-card .card-header > .btn {
+  position: absolute;
+  right: var(--space-3);
+  top: 50%;
+  transform: translateY(-50%);
 }
 
 .info-card .card-header i {

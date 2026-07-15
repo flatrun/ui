@@ -1,29 +1,26 @@
 <template>
-  <BaseCard class="dhs" title="Metrics & Health" icon="activity">
-    <template #actions>
-      <button class="dhs-link" @click="emit('open')">
-        View details
-        <Icon name="arrow-right" :size="14" />
-      </button>
-    </template>
+  <!-- One row. Someone opening a deployment is asking one question, so the answer sits on the
+       line their eye lands on, and the figures sit beside it rather than under it. -->
+  <div class="dhs" :class="`dhs--${verdict.tone}`">
+    <Icon class="dhs-glyph" :name="verdict.icon" :size="22" />
 
-    <!-- The verdict first. Someone opening a deployment is asking one question, and a grid
-         of numbers makes them answer it themselves. -->
-    <div class="dhs-verdict" :class="`dhs-verdict--${verdict.tone}`">
-      <span class="dhs-dot" />
-      <div>
-        <p class="dhs-headline">{{ verdict.headline }}</p>
-        <p class="dhs-detail">{{ verdict.detail }}</p>
-      </div>
-    </div>
+    <p class="dhs-verdict">
+      <span class="dhs-headline">{{ verdict.headline }}</span>
+      <span class="dhs-detail">{{ verdict.detail }}</span>
+    </p>
 
     <dl class="dhs-stats">
-      <div v-for="stat in stats" :key="stat.label" class="dhs-stat">
-        <dt>{{ stat.label }}</dt>
-        <dd :class="{ 'dhs-stat--bad': stat.bad }">{{ stat.value }}</dd>
+      <div v-for="stat in stats" :key="stat.label" class="dhs-stat" :class="{ 'dhs-stat--bad': stat.bad }">
+        <dt :title="stat.label"><Icon :name="stat.icon" :size="15" /></dt>
+        <dd>{{ stat.value }}</dd>
       </div>
     </dl>
-  </BaseCard>
+
+    <button class="dhs-link" @click="emit('open')">
+      Details
+      <Icon name="solar:alt-arrow-right-linear" :size="14" />
+    </button>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -32,7 +29,6 @@ import { observabilityApi, METRIC } from "@/services/observability";
 import type { ContainerHealth, DeploymentMetrics } from "@/services/observability";
 import { servingApi } from "@/services/api";
 import type { REDPoint } from "@/services/api";
-import BaseCard from "@/components/base/BaseCard.vue";
 import Icon from "@/components/base/Icon.vue";
 
 const props = defineProps<{ deploymentName: string; status?: string }>();
@@ -65,44 +61,89 @@ const memoryPercent = computed(() => {
 // slow, slow beats idle.
 const verdict = computed(() => {
   if (props.status && props.status !== "running") {
-    return { tone: "idle", headline: "Not running", detail: "Start the deployment to see how it behaves." };
+    return {
+      tone: "idle",
+      icon: "solar:stop-circle-bold",
+      headline: "Not running",
+      detail: "Start it to see how it behaves.",
+    };
   }
   if (unhealthy.value.length) {
-    const names = unhealthy.value.map((h) => h.container).join(", ");
-    return { tone: "bad", headline: "Needs attention", detail: `${names} is failing its health check.` };
+    return {
+      tone: "bad",
+      icon: "solar:danger-triangle-bold",
+      headline: "Needs attention",
+      detail: `${unhealthy.value.map((h) => h.container).join(", ")} is failing its health check.`,
+    };
   }
   if (totals.value.errorRate > 5) {
     return {
       tone: "bad",
+      icon: "solar:danger-triangle-bold",
       headline: "Serving errors",
       detail: `${totals.value.errorRate.toFixed(1)}% of requests failed in the last hour.`,
     };
   }
   if (starting.value.length) {
-    const names = starting.value.map((h) => h.container).join(", ");
-    return { tone: "warn", headline: "Starting up", detail: `${names} has not passed its health check yet.` };
+    return {
+      tone: "warn",
+      icon: "solar:clock-circle-bold",
+      headline: "Starting up",
+      detail: `${starting.value.map((h) => h.container).join(", ")} has not passed its health check yet.`,
+    };
   }
   if (!totals.value.requests) {
-    return { tone: "ok", headline: "Healthy", detail: "No requests reached it in the last hour." };
+    return {
+      tone: "ok",
+      icon: "solar:check-circle-bold",
+      headline: "Healthy",
+      detail: "No requests in the last hour.",
+    };
   }
   return {
     tone: "ok",
+    icon: "solar:check-circle-bold",
     headline: "Healthy",
     detail: `${totals.value.requests.toLocaleString()} requests in the last hour, 95% under ${formatMs(totals.value.p95)}.`,
   };
 });
 
 const stats = computed(() => [
-  { label: "CPU", value: `${sum(METRIC.cpu).toFixed(1)}%`, bad: sum(METRIC.cpu) > 80 },
-  { label: "Memory", value: `${memoryPercent.value.toFixed(0)}%`, bad: memoryPercent.value > 90 },
-  { label: "Requests", value: totals.value.requests.toLocaleString(), bad: false },
-  { label: "Errors", value: `${totals.value.errorRate.toFixed(1)}%`, bad: totals.value.errorRate > 1 },
-  { label: "Latency p95", value: formatMs(totals.value.p95), bad: totals.value.p95 > 1000 },
+  { label: "CPU", icon: "solar:cpu-bold-duotone", value: `${sum(METRIC.cpu).toFixed(1)}%`, bad: sum(METRIC.cpu) > 80 },
+  {
+    label: "Memory",
+    icon: "solar:ssd-square-bold-duotone",
+    value: `${memoryPercent.value.toFixed(0)}%`,
+    bad: memoryPercent.value > 90,
+  },
+  {
+    label: "Requests, last hour",
+    icon: "solar:global-bold-duotone",
+    value: compact(totals.value.requests),
+    bad: false,
+  },
+  {
+    label: "Failed requests",
+    icon: "solar:danger-circle-bold-duotone",
+    value: `${totals.value.errorRate.toFixed(1)}%`,
+    bad: totals.value.errorRate > 1,
+  },
+  {
+    label: "95% of requests finish under",
+    icon: "solar:stopwatch-bold-duotone",
+    value: formatMs(totals.value.p95),
+    bad: totals.value.p95 > 1000,
+  },
 ]);
 
 function formatMs(v: number): string {
   if (!v) return "-";
   return v >= 1000 ? `${(v / 1000).toFixed(2)}s` : `${Math.round(v)}ms`;
+}
+
+function compact(v: number): string {
+  if (v >= 1000) return `${(v / 1000).toFixed(1)}k`;
+  return String(v);
 }
 
 const refresh = async () => {
@@ -136,6 +177,120 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+.dhs {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3) var(--space-2) var(--space-5);
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+/* A status is read from the left edge before anything else is. It sits inside the card as
+   its own mark rather than running the full height as a border would. */
+.dhs::before {
+  content: "";
+  position: absolute;
+  left: var(--space-2);
+  top: var(--space-2);
+  bottom: var(--space-2);
+  width: 3px;
+  border-radius: var(--radius-full);
+  background: var(--text-subtle);
+}
+
+.dhs--ok::before {
+  background: var(--color-success-500);
+}
+
+.dhs--warn::before {
+  background: var(--color-warning-500);
+}
+
+.dhs--bad::before {
+  background: var(--color-danger-500);
+}
+
+.dhs-glyph {
+  color: var(--text-subtle);
+  flex-shrink: 0;
+}
+
+.dhs--ok .dhs-glyph {
+  color: var(--color-success-500);
+}
+
+.dhs--warn .dhs-glyph {
+  color: var(--color-warning-500);
+}
+
+.dhs--bad .dhs-glyph {
+  color: var(--color-danger-500);
+}
+
+.dhs-verdict {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  margin: 0;
+  min-width: 0;
+  flex: 1;
+}
+
+.dhs-headline {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.dhs--bad .dhs-headline {
+  color: var(--color-danger-600);
+}
+
+/* The detail is the first thing worth losing when the row runs out of room. */
+.dhs-detail {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dhs-stats {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  margin: 0;
+  flex-shrink: 0;
+}
+
+.dhs-stat {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--text-muted);
+}
+
+.dhs-stat dt {
+  display: flex;
+  cursor: help;
+}
+
+.dhs-stat dd {
+  margin: 0;
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+
+.dhs-stat--bad,
+.dhs-stat--bad dd {
+  color: var(--color-danger-500);
+}
+
 .dhs-link {
   display: inline-flex;
   align-items: center;
@@ -146,79 +301,23 @@ onUnmounted(() => {
   font-size: var(--text-sm);
   cursor: pointer;
   padding: 0;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .dhs-link:hover {
   text-decoration: underline;
 }
 
-.dhs-verdict {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--space-3);
-}
+/* Narrow screens cannot hold one line, so it becomes two rather than scrolling sideways. */
+@media (max-width: 900px) {
+  .dhs {
+    flex-wrap: wrap;
+  }
 
-.dhs-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: var(--radius-full);
-  margin-top: 6px;
-  flex-shrink: 0;
-  background: var(--text-subtle);
-}
-
-.dhs-verdict--ok .dhs-dot {
-  background: var(--color-success-500);
-}
-
-.dhs-verdict--warn .dhs-dot {
-  background: var(--color-warning-500);
-}
-
-.dhs-verdict--bad .dhs-dot {
-  background: var(--color-danger-500);
-}
-
-.dhs-headline {
-  margin: 0;
-  font-size: var(--text-lg);
-  color: var(--text);
-}
-
-.dhs-verdict--bad .dhs-headline {
-  color: var(--color-danger-600);
-}
-
-.dhs-detail {
-  margin: var(--space-1) 0 0;
-  color: var(--text-muted);
-  font-size: var(--text-sm);
-}
-
-.dhs-stats {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
-  gap: var(--space-3);
-  margin: var(--space-4) 0 0;
-  padding-top: var(--space-4);
-  border-top: 1px solid var(--border-subtle);
-}
-
-.dhs-stat dt {
-  font-size: var(--text-xs);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--text-muted);
-}
-
-.dhs-stat dd {
-  margin: var(--space-1) 0 0;
-  font-size: var(--text-lg);
-  font-variant-numeric: tabular-nums;
-  color: var(--text);
-}
-
-.dhs-stat--bad {
-  color: var(--color-danger-500);
+  .dhs-verdict {
+    flex-basis: 100%;
+    order: -1;
+  }
 }
 </style>
