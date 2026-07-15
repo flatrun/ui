@@ -95,7 +95,22 @@ vi.mock("@/services/api", () => ({
     list: vi.fn().mockResolvedValue({ data: { credentials: [] } }),
     get: vi.fn().mockResolvedValue({ data: { credential: null } }),
   },
+  servingApi: {
+    series: vi.fn().mockResolvedValue({ data: { deployment: "test-app", since: "1h", points: [] } }),
+  },
+  deploymentLogsWsUrl: vi.fn(() => "ws://localhost/api/deployments/test-app/logs/stream"),
 }));
+
+vi.mock("@/services/observability", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/services/observability")>();
+  return {
+    ...actual,
+    observabilityApi: {
+      health: vi.fn().mockResolvedValue({ data: [] }),
+      latest: vi.fn().mockResolvedValue({ data: [] }),
+    },
+  };
+});
 
 vi.mock("@/composables/useNotifications", () => ({
   useNotifications: () => ({

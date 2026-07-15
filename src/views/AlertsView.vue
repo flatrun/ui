@@ -53,9 +53,18 @@ const firing = ref<AlertEvent[]>([]);
 const events = ref<AlertEvent[]>([]);
 let timer: ReturnType<typeof setInterval> | null = null;
 
-// Most recent first, and only so many: this is a glance at what has been happening, not an
-// audit log.
-const history = computed(() => events.value.slice().reverse().slice(0, 20));
+const eventKey = (e: AlertEvent) => `${e.rule_id}\u0000${e.container}\u0000${e.at}`;
+
+// What is firing is shown above, so it is not repeated here. Recent is what has happened
+// since, most recent first, and only so many: it is a glance, not an audit log.
+const firingKeys = computed(() => new Set(firing.value.map(eventKey)));
+const history = computed(() =>
+  events.value
+    .slice()
+    .reverse()
+    .filter((e) => !firingKeys.value.has(eventKey(e)))
+    .slice(0, 20),
+);
 
 const relTime = (iso: string) => {
   const seconds = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
