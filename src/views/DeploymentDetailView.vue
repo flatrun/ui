@@ -580,6 +580,7 @@
             :mounts="composeMounts"
             :enable-mount="true"
             @mount-compose="handleComposeMount"
+            @unmounted="fetchDeployment"
           />
           <ContainerFilesPanel
             v-else

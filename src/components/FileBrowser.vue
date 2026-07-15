@@ -114,6 +114,10 @@
           <span class="col-name">
             <i :class="getFileIcon(file)" />
             <span class="file-name">{{ file.name }}</span>
+            <span v-if="fileMounts(file).length > 0" class="mount-tag" :title="mountSummary(file)">
+              <i class="pi pi-link" />
+              Mounted
+            </span>
             <span v-if="file.is_dir && file.child_count !== undefined" class="child-count">
               {{ file.child_count }} items
             </span>
@@ -153,6 +157,14 @@
                   <i class="pi pi-link" />
                   <span>{{ fileMounts(file).length > 0 ? "Edit mount" : "Add compose mount" }}</span>
                 </button>
+                <button
+                  v-if="mountAvailable && fileMounts(file).length > 0"
+                  class="menu-item"
+                  @click="onMenuAction('unmount', file)"
+                >
+                  <i class="pi pi-times-circle" />
+                  <span>Unmount</span>
+                </button>
                 <button class="menu-item" @click="onMenuAction('permissions', file)">
                   <i class="pi pi-key" />
                   <span>Permissions</span>
@@ -180,6 +192,10 @@
             <i :class="getFileIcon(file)" />
           </div>
           <div class="grid-item-name">{{ file.name }}</div>
+          <div v-if="fileMounts(file).length > 0" class="mount-tag" :title="mountSummary(file)">
+            <i class="pi pi-link" />
+            Mounted
+          </div>
           <div class="grid-item-meta">
             {{
               file.is_dir
@@ -217,6 +233,14 @@
                 >
                   <i class="pi pi-link" />
                   <span>{{ fileMounts(file).length > 0 ? "Edit mount" : "Add compose mount" }}</span>
+                </button>
+                <button
+                  v-if="mountAvailable && fileMounts(file).length > 0"
+                  class="menu-item"
+                  @click="onMenuAction('unmount', file)"
+                >
+                  <i class="pi pi-times-circle" />
+                  <span>Unmount</span>
                 </button>
                 <button class="menu-item" @click="onMenuAction('permissions', file)">
                   <i class="pi pi-key" />
@@ -314,12 +338,61 @@
               >?
             </p>
             <p v-if="fileToDelete?.is_dir" class="warning-text">This will delete all contents inside the folder.</p>
+            <p v-if="fileToDelete && fileMounts(fileToDelete).length > 0" class="warning-text">
+              This is what
+              {{
+                fileMounts(fileToDelete)
+                  .map((m) => `${m.service} reads at ${m.target}`)
+                  .join(", ")
+              }}, so deleting it here takes it from the running container too. Unmount it first to keep the container on
+              its image's own content.
+            </p>
           </div>
           <div class="modal-footer">
             <button class="btn btn-secondary" @click="showDeleteModal = false">Cancel</button>
             <button class="btn btn-danger" :disabled="deleting" @click="deleteFile">
               <i :class="deleting ? 'pi pi-spin pi-spinner' : 'pi pi-trash'" />
               Delete
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div v-if="showUnmountModal" class="modal-overlay" @click.self="showUnmountModal = false">
+        <div class="modal-container small">
+          <div class="modal-header">
+            <h3>
+              <i class="pi pi-times-circle" />
+              Unmount
+            </h3>
+          </div>
+          <div class="modal-body">
+            <p>
+              Stop
+              {{
+                fileToUnmount
+                  ? fileMounts(fileToUnmount)
+                      .map((m) => `${m.service} reading ${m.target}`)
+                      .join(" and ")
+                  : ""
+              }}
+              from <strong>{{ fileToUnmount?.name }}</strong
+              >?
+            </p>
+            <p class="warning-text">
+              The service restarts and goes back to whatever its image holds there, so anything only in this copy stops
+              being used.
+            </p>
+            <p>
+              <strong>{{ fileToUnmount?.name }}</strong> stays on the host. Deleting it afterwards will not touch the
+              container.
+            </p>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" @click="showUnmountModal = false">Cancel</button>
+            <button class="btn btn-primary" :disabled="unmounting" @click="unmountFile">
+              <i :class="unmounting ? 'pi pi-spin pi-spinner' : 'pi pi-times-circle'" />
+              Unmount
             </button>
           </div>
         </div>
@@ -488,7 +561,7 @@ import { ref, reactive, computed, onMounted, onBeforeUnmount, watch } from "vue"
 import { Codemirror } from "vue-codemirror";
 import { yaml } from "@codemirror/lang-yaml";
 import { oneDark } from "@codemirror/theme-one-dark";
-import { configApi, createDeploymentFileApi, type FileBrowserApi, type FileInfo } from "@/services/api";
+import { configApi, createDeploymentFileApi, deploymentsApi, type FileBrowserApi, type FileInfo } from "@/services/api";
 import { useNotificationsStore } from "@/stores/notifications";
 import { toComposeRelativePath, type ComposeMount } from "@/utils/compose";
 import Icon from "@/components/base/Icon.vue";
@@ -529,6 +602,7 @@ const emit = defineEmits<{
       name: string;
     },
   ];
+  unmounted: [];
 }>();
 
 const notifications = useNotificationsStore();
@@ -561,17 +635,53 @@ const mountServiceName = ref("");
 const mountTargetPath = ref("");
 const mountReadOnly = ref(false);
 
+const showUnmountModal = ref(false);
+const fileToUnmount = ref<FileInfo | null>(null);
+const unmounting = ref(false);
+
 const rowMenuOpenFor = ref<string | null>(null);
 
 const toggleRowMenu = (path: string) => {
   rowMenuOpenFor.value = rowMenuOpenFor.value === path ? null : path;
 };
 
-const onMenuAction = (action: "mount" | "permissions" | "delete", file: FileInfo) => {
+const onMenuAction = (action: "mount" | "unmount" | "permissions" | "delete", file: FileInfo) => {
   rowMenuOpenFor.value = null;
   if (action === "mount") openMountModal(file);
+  else if (action === "unmount") confirmUnmount(file);
   else if (action === "permissions") openPermissionsModal(file);
   else if (action === "delete") confirmDelete(file);
+};
+
+const confirmUnmount = (file: FileInfo) => {
+  fileToUnmount.value = file;
+  showUnmountModal.value = true;
+};
+
+const unmountFile = async () => {
+  const file = fileToUnmount.value;
+  const mounts = file ? fileMounts(file) : [];
+  if (!file || !mounts.length || !props.deploymentName) return;
+
+  unmounting.value = true;
+  try {
+    // A path can be mounted into more than one service, and it stays mounted
+    // until the last one lets go.
+    for (const mount of mounts) {
+      await deploymentsApi.removeComposeMount(props.deploymentName, {
+        source_path: mount.source,
+        target_path: mount.target,
+        service_name: mount.service,
+      });
+    }
+    emit("unmounted");
+    showUnmountModal.value = false;
+    fileToUnmount.value = null;
+  } catch (err: any) {
+    error.value = err.response?.data?.error || err.message || "Could not unmount";
+  } finally {
+    unmounting.value = false;
+  }
 };
 
 const onDocumentClick = () => {
@@ -679,6 +789,11 @@ const mountsBySource = computed(() => {
 const fileMounts = (file: FileInfo): ComposeMount[] => {
   return mountsBySource.value.get(toComposeRelativePath(file.path)) || [];
 };
+
+const mountSummary = (file: FileInfo): string =>
+  fileMounts(file)
+    .map((m) => `${m.service} reads this at ${m.target}${m.readOnly ? " (read only)" : ""}`)
+    .join("\n");
 
 const pathParts = computed(() => {
   return currentPath.value.split("/").filter((p) => p.length > 0);
@@ -1146,6 +1261,23 @@ onBeforeUnmount(() => {
   flex-direction: column;
   height: 100%;
   min-height: 500px;
+}
+
+/* Marks a path a container reads through a bind mount, so it is clear before
+   editing or deleting that the change reaches inside the container. */
+.mount-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 0 var(--space-2);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-full);
+  background: var(--accent-subtle);
+  color: var(--accent);
+  font-size: var(--text-xs);
+  line-height: 1.6;
+  white-space: nowrap;
+  cursor: help;
 }
 
 .browser-toolbar {

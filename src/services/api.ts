@@ -214,6 +214,25 @@ export const deploymentsApi = {
       mount: string;
       added: boolean;
     }>(`/deployments/${name}/compose/mount`, mount),
+  // Removes a bind mount and recreates the service, which returns it to what its
+  // image holds there. The host copy is left alone.
+  removeComposeMount: (
+    name: string,
+    mount: {
+      source_path: string;
+      target_path: string;
+      service_name: string;
+    },
+  ) =>
+    apiClient.post<{
+      message: string;
+      name: string;
+      filename: string;
+      content: string;
+      service_name: string;
+      source_path: string;
+      target_path: string;
+    }>(`/deployments/${name}/compose/unmount`, mount),
   getStats: (name: string) =>
     apiClient.get<{
       deployment: string;
