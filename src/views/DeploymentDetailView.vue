@@ -103,6 +103,13 @@
 
       <div class="tab-content">
         <div v-if="activeTab === 'overview'" class="overview-tab">
+          <DeploymentHealthSummary
+            class="overview-summary"
+            :deployment-name="route.params.name as string"
+            :status="deployment?.status"
+            @open="openMetricsTab"
+          />
+
           <div class="info-cards">
             <div class="info-card">
               <div class="card-header">
@@ -1797,6 +1804,7 @@ import type {
   ProtectedModeConfig,
 } from "@/types";
 import FileBrowser from "@/components/FileBrowser.vue";
+import DeploymentHealthSummary from "@/components/DeploymentHealthSummary.vue";
 import ContainerFilesPanel from "@/components/ContainerFilesPanel.vue";
 import LogViewer from "@/components/LogViewer.vue";
 import ConfirmModal from "@/components/ConfirmModal.vue";
@@ -1921,6 +1929,11 @@ const tabs = [
   { id: "security", label: "Security", icon: "pi pi-shield" },
   { id: "config", label: "Configuration", icon: "pi pi-cog" },
 ];
+
+const openMetricsTab = () => {
+  const metrics = pluginTabs.value.find((t) => t.plugin === "observability");
+  if (metrics) activeTab.value = metrics.id;
+};
 
 const pluginsStore = usePluginsStore();
 const pluginTabs = computed(() =>
@@ -4256,6 +4269,10 @@ onUnmounted(() => {
   border-top: 1px solid var(--border);
   display: flex;
   justify-content: flex-end;
+}
+
+.overview-summary {
+  margin-bottom: var(--space-4);
 }
 
 .files-tab {
