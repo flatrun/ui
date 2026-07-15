@@ -545,6 +545,10 @@
             @refresh="fetchLogs"
           >
             <template #filters>
+              <button class="btn btn-sm" :class="following ? 'btn-primary' : 'btn-secondary'" @click="toggleFollow">
+                <Icon :name="following ? 'circle-stop' : 'play'" :size="14" />
+                {{ following ? "Following" : "Follow" }}
+              </button>
               <select v-model="logsService" class="form-select">
                 <option value="all">All Services</option>
                 <option v-for="service in services" :key="service.name" :value="service.name">
@@ -1805,6 +1809,7 @@ import type {
 } from "@/types";
 import FileBrowser from "@/components/FileBrowser.vue";
 import DeploymentHealthSummary from "@/components/DeploymentHealthSummary.vue";
+import { useLogStream } from "@/composables/useLogStream";
 import ContainerFilesPanel from "@/components/ContainerFilesPanel.vue";
 import LogViewer from "@/components/LogViewer.vue";
 import ConfirmModal from "@/components/ConfirmModal.vue";
@@ -2005,7 +2010,11 @@ const setServiceCredential = (service: string, credentialId: string) => {
 const showDeleteEnvModal = ref(false);
 const envKeyToDelete = ref("");
 
-const logs = ref("");
+const logStream = useLogStream();
+const following = logStream.following;
+// While following, the viewer shows what the socket has delivered; otherwise the last fetch.
+const logs = computed(() => (following.value ? logStream.lines.value.join("\n") : fetchedLogs.value));
+const fetchedLogs = ref("");
 const logsLoading = ref(false);
 const logsService = ref("all");
 const logsTail = ref(100);
@@ -2497,12 +2506,22 @@ const fetchLogs = async () => {
   logsLoading.value = true;
   try {
     const response = await deploymentsApi.logs(route.params.name as string);
-    logs.value = response.data.logs || "";
+    fetchedLogs.value = response.data.logs || "";
   } catch (err) {
     console.error("Failed to fetch logs:", err);
   } finally {
     logsLoading.value = false;
   }
+};
+
+// Following replaces polling for a tail: the container hands over each line as it writes it.
+const toggleFollow = () => {
+  if (following.value) {
+    logStream.stop();
+    fetchLogs();
+    return;
+  }
+  logStream.start(route.params.name as string, { tail: logsTail.value || 100 });
 };
 
 const handleOperation = async (operation: string, onlyLatest: boolean = false, opts?: ActionOptions) => {

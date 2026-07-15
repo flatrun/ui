@@ -133,6 +133,23 @@ export const deploymentJobWsUrl = (name: string, jobId: string): string => {
   return `${protocol}//${window.location.host}${path}`;
 };
 
+// Follows a deployment's logs. Filtering happens on the agent, so a noisy container does not
+// push everything it writes down the socket for the browser to discard.
+export const deploymentLogsWsUrl = (name: string, opts: { tail?: number; filter?: string } = {}): string => {
+  const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+  const apiUrl = import.meta.env.VITE_API_URL || "";
+  const params = new URLSearchParams();
+  if (opts.tail !== undefined) params.set("tail", String(opts.tail));
+  if (opts.filter) params.set("filter", opts.filter);
+  const query = params.toString();
+  const path = `/api/deployments/${name}/logs/stream${query ? `?${query}` : ""}`;
+  if (apiUrl.startsWith("http")) {
+    const url = new URL(apiUrl);
+    return `${protocol}//${url.host}${path}`;
+  }
+  return `${protocol}//${window.location.host}${path}`;
+};
+
 export const deploymentsApi = {
   list: () => apiClient.get<{ deployments: Deployment[] }>("/deployments"),
   get: (name: string) => apiClient.get<Deployment>(`/deployments/${name}`),
