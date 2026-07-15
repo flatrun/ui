@@ -103,6 +103,13 @@
 
       <div class="tab-content">
         <div v-if="activeTab === 'overview'" class="overview-tab">
+          <DeploymentHealthSummary
+            class="overview-summary"
+            :deployment-name="route.params.name as string"
+            :status="deployment?.status"
+            @open="openMetricsTab"
+          />
+
           <div class="info-cards">
             <div class="info-card">
               <div class="card-header">
@@ -491,69 +498,6 @@
               </div>
             </div>
           </div>
-
-          <div class="info-card wide">
-            <div class="card-header">
-              <i class="pi pi-chart-line" />
-              <h3>Resource Usage</h3>
-            </div>
-            <div class="card-body">
-              <div class="resource-grid">
-                <div class="resource-item">
-                  <div class="resource-label">CPU Usage</div>
-                  <div class="resource-bar-wrapper">
-                    <div class="resource-bar">
-                      <div
-                        class="resource-fill"
-                        :style="{ width: resourceUsage.cpu + '%' }"
-                        :class="getUsageClass(resourceUsage.cpu)"
-                      />
-                    </div>
-                    <span class="resource-value">{{ resourceUsage.cpu }}%</span>
-                  </div>
-                </div>
-                <div class="resource-item">
-                  <div class="resource-label">Memory Usage</div>
-                  <div class="resource-bar-wrapper">
-                    <div class="resource-bar">
-                      <div
-                        class="resource-fill"
-                        :style="{ width: resourceUsage.memory + '%' }"
-                        :class="getUsageClass(resourceUsage.memory)"
-                      />
-                    </div>
-                    <span class="resource-value">{{ resourceUsage.memory }}%</span>
-                  </div>
-                </div>
-                <div class="resource-item">
-                  <div class="resource-label">Disk I/O</div>
-                  <div class="resource-bar-wrapper">
-                    <div class="resource-bar">
-                      <div
-                        class="resource-fill"
-                        :style="{ width: resourceUsage.disk + '%' }"
-                        :class="getUsageClass(resourceUsage.disk)"
-                      />
-                    </div>
-                    <span class="resource-value">{{ resourceUsage.disk }}%</span>
-                  </div>
-                </div>
-                <div class="resource-item">
-                  <div class="resource-label">Network I/O</div>
-                  <div class="resource-bar-wrapper">
-                    <div class="resource-bar">
-                      <div
-                        class="resource-fill"
-                        :style="{ width: resourceUsage.network + '%' }"
-                        :class="getUsageClass(resourceUsage.network)"
-                      />
-                    </div>
-                    <span class="resource-value">{{ resourceUsage.network }}%</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
 
         <div v-if="activeTab === 'files'" class="files-tab">
@@ -601,6 +545,10 @@
             @refresh="fetchLogs"
           >
             <template #filters>
+              <button class="btn btn-sm" :class="following ? 'btn-primary' : 'btn-secondary'" @click="toggleFollow">
+                <Icon :name="following ? 'circle-stop' : 'play'" :size="14" />
+                {{ following ? "Following" : "Follow" }}
+              </button>
               <select v-model="logsService" class="form-select">
                 <option value="all">All Services</option>
                 <option v-for="service in services" :key="service.name" :value="service.name">
@@ -1860,6 +1808,8 @@ import type {
   ProtectedModeConfig,
 } from "@/types";
 import FileBrowser from "@/components/FileBrowser.vue";
+import DeploymentHealthSummary from "@/components/DeploymentHealthSummary.vue";
+import { useLogStream } from "@/composables/useLogStream";
 import ContainerFilesPanel from "@/components/ContainerFilesPanel.vue";
 import LogViewer from "@/components/LogViewer.vue";
 import ConfirmModal from "@/components/ConfirmModal.vue";
@@ -1985,6 +1935,11 @@ const tabs = [
   { id: "config", label: "Configuration", icon: "pi pi-cog" },
 ];
 
+const openMetricsTab = () => {
+  const metrics = pluginTabs.value.find((t) => t.plugin === "observability");
+  if (metrics) activeTab.value = metrics.id;
+};
+
 const pluginsStore = usePluginsStore();
 const pluginTabs = computed(() =>
   (pluginsStore.getPluginsForSlot("deployment.detail") || []).map((e) => ({
@@ -1996,13 +1951,6 @@ const pluginTabs = computed(() =>
 );
 
 const services = ref<any[]>([]);
-const resourceUsage = ref({
-  cpu: 0,
-  memory: 0,
-  disk: 0,
-  network: 0,
-});
-
 const hasMultipleDomains = computed(() => {
   return deployment.value?.metadata?.domains && deployment.value.metadata.domains.length > 1;
 });
@@ -2062,7 +2010,11 @@ const setServiceCredential = (service: string, credentialId: string) => {
 const showDeleteEnvModal = ref(false);
 const envKeyToDelete = ref("");
 
-const logs = ref("");
+const logStream = useLogStream();
+const following = logStream.following;
+// While following, the viewer shows what the socket has delivered; otherwise the last fetch.
+const logs = computed(() => (following.value ? logStream.lines.value.join("\n") : fetchedLogs.value));
+const fetchedLogs = ref("");
 const logsLoading = ref(false);
 const logsService = ref("all");
 const logsTail = ref(100);
@@ -2388,8 +2340,6 @@ const fetchDeployment = async () => {
       registryCredential.value = null;
     }
 
-    fetchStats();
-
     try {
       const envResponse = await deploymentsApi.getEnvVars(route.params.name as string);
       envVars.value = (envResponse.data.env_vars || []).map((e: EnvVar) => ({
@@ -2556,7 +2506,7 @@ const fetchLogs = async () => {
   logsLoading.value = true;
   try {
     const response = await deploymentsApi.logs(route.params.name as string);
-    logs.value = response.data.logs || "";
+    fetchedLogs.value = response.data.logs || "";
   } catch (err) {
     console.error("Failed to fetch logs:", err);
   } finally {
@@ -2564,22 +2514,14 @@ const fetchLogs = async () => {
   }
 };
 
-const fetchStats = async () => {
-  try {
-    const response = await deploymentsApi.getStats(route.params.name as string);
-    const stats = response.data;
-    if (stats?.summary) {
-      resourceUsage.value = {
-        cpu: Math.round(stats.summary.cpu_percent * 10) / 10,
-        memory: Math.round(stats.summary.memory_percent * 10) / 10,
-        disk: 0,
-        network: 0,
-      };
-    }
-  } catch (err) {
-    console.error("Failed to fetch stats:", err);
-    resourceUsage.value = { cpu: 0, memory: 0, disk: 0, network: 0 };
+// Following replaces polling for a tail: the container hands over each line as it writes it.
+const toggleFollow = () => {
+  if (following.value) {
+    logStream.stop();
+    fetchLogs();
+    return;
   }
+  logStream.start(route.params.name as string, { tail: logsTail.value || 100 });
 };
 
 const handleOperation = async (operation: string, onlyLatest: boolean = false, opts?: ActionOptions) => {
@@ -3213,12 +3155,6 @@ const formatDateTime = (date: string) => {
   return new Date(date).toLocaleString();
 };
 
-const getUsageClass = (percentage: number) => {
-  if (percentage > 80) return "critical";
-  if (percentage > 60) return "warning";
-  return "normal";
-};
-
 watch(activeTab, (newTab) => {
   if (newTab === "logs" && !logs.value) {
     fetchLogs();
@@ -3253,9 +3189,6 @@ onMounted(() => {
   refreshInterval = window.setInterval(() => {
     if (logsFollow.value && activeTab.value === "logs") {
       fetchLogs();
-    }
-    if (activeTab.value === "overview") {
-      fetchStats();
     }
   }, 5000);
 });
@@ -3525,13 +3458,25 @@ onUnmounted(() => {
   grid-column: 1 / -1;
 }
 
+/* Every card header is the same height because only its icon and title decide that height.
+   An action sits over the header rather than in it: a button is taller than a line of text,
+   so a card with one would otherwise stand taller than the cards beside it. */
 .info-card .card-header {
+  position: relative;
   display: flex;
   align-items: center;
   gap: var(--space-2);
   padding: var(--space-3) var(--space-4);
+  padding-right: calc(var(--space-4) + 2rem);
   background: var(--surface-sunken);
   border-bottom: 1px solid var(--border);
+}
+
+.info-card .card-header > .btn {
+  position: absolute;
+  right: var(--space-3);
+  top: 50%;
+  transform: translateY(-50%);
 }
 
 .info-card .card-header i {
@@ -4355,6 +4300,10 @@ onUnmounted(() => {
   border-top: 1px solid var(--border);
   display: flex;
   justify-content: flex-end;
+}
+
+.overview-summary {
+  margin-bottom: var(--space-4);
 }
 
 .files-tab {

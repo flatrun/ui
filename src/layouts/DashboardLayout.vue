@@ -204,6 +204,15 @@
               Observability
             </router-link>
             <router-link
+              v-if="authStore.hasPermission('deployments:read')"
+              to="/observability/alerts"
+              class="nav-subitem"
+              active-class="active"
+            >
+              <Icon name="bell" :size="15" />
+              Alerts
+            </router-link>
+            <router-link
               v-if="authStore.hasPermission('security:read')"
               to="/security"
               class="nav-subitem"
@@ -601,6 +610,7 @@ const currentPageTitle = computed(() => {
   const titles: Record<string, string> = {
     home: "Dashboard",
     observability: "Observability",
+    alerts: "Alerts",
     deployments: "Deployments",
     "deployment-detail": "Deployment Details",
     containers: "Containers",

@@ -46,8 +46,37 @@ export interface MetricSeries {
   values: (number | null)[][];
 }
 
+export interface AlertRule {
+  id?: string;
+  name: string;
+  deployment?: string;
+  metric: string;
+  comparison: "above" | "below";
+  threshold: number;
+  for_seconds: number;
+  enabled: boolean;
+}
+
+export interface AlertEvent {
+  rule_id: string;
+  rule_name: string;
+  deployment: string;
+  container: string;
+  metric: string;
+  value: number;
+  threshold: number;
+  comparison: "above" | "below";
+  state: "ok" | "pending" | "firing";
+  at: string;
+}
+
 export const observabilityApi = {
   latest: () => apiClient.get<DeploymentMetrics[]>(`${base}/metrics/latest`),
+  alertRules: () => apiClient.get<AlertRule[]>(`${base}/alerts/rules`),
+  saveAlertRules: (rules: AlertRule[]) => apiClient.put<AlertRule[]>(`${base}/alerts/rules`, rules),
+  // Rules currently breached, which is what needs attention now rather than what happened.
+  firingAlerts: () => apiClient.get<AlertEvent[]>(`${base}/alerts/firing`),
+  alertEvents: () => apiClient.get<AlertEvent[]>(`${base}/alerts/events`),
   timeseries: (deployment: string, sinceRange = "15m") =>
     apiClient.get<{ metrics: Record<string, MetricSeries> }>(`${base}/metrics/timeseries`, {
       params: { deployment, since: sinceRange },

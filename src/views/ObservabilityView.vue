@@ -5,9 +5,15 @@
         <h2>Observability</h2>
         <p class="subtitle">Health and resources across all deployments.</p>
       </div>
-      <button class="btn btn-icon" :disabled="loading" @click="load">
-        <Icon name="refresh-cw" :size="16" :spin="loading" />
-      </button>
+      <div class="header-actions">
+        <router-link to="/observability/alerts" class="btn btn-sm btn-secondary">
+          <Icon name="bell" :size="14" />
+          Alerts
+        </router-link>
+        <button class="btn btn-icon" :disabled="loading" @click="load">
+          <Icon name="refresh-cw" :size="16" :spin="loading" />
+        </button>
+      </div>
     </div>
 
     <div v-if="loading && !containerCount" class="state-panel">
@@ -304,6 +310,12 @@ onUnmounted(() => {
 
 .summary-card.warn .summary-num {
   color: var(--color-warning-600);
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
 }
 
 .panel {

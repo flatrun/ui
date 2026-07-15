@@ -11,7 +11,7 @@ const props = defineProps<{
   containers: string[];
   timestamps: number[]; // unix seconds
   values: (number | null)[][]; // [container][time]
-  unit?: "percent" | "bytes";
+  unit?: "percent" | "bytes" | "ms" | "count";
   area?: boolean;
 }>();
 
@@ -31,6 +31,15 @@ function fmtValue(v: number | null): string {
     if (v >= 1 << 20) return `${(v / (1 << 20)).toFixed(0)}M`;
     if (v >= 1 << 10) return `${(v / (1 << 10)).toFixed(0)}K`;
     return `${v}B`;
+  }
+  if (props.unit === "ms") {
+    // A request measured in seconds reads better than one in four digits of milliseconds.
+    if (v >= 1000) return `${(v / 1000).toFixed(2)}s`;
+    return `${v.toFixed(0)}ms`;
+  }
+  if (props.unit === "count") {
+    if (v >= 1000) return `${(v / 1000).toFixed(1)}k`;
+    return v.toFixed(v < 10 && !Number.isInteger(v) ? 1 : 0);
   }
   return String(v);
 }

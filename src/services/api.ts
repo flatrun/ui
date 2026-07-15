@@ -133,6 +133,23 @@ export const deploymentJobWsUrl = (name: string, jobId: string): string => {
   return `${protocol}//${window.location.host}${path}`;
 };
 
+// Follows a deployment's logs. Filtering happens on the agent, so a noisy container does not
+// push everything it writes down the socket for the browser to discard.
+export const deploymentLogsWsUrl = (name: string, opts: { tail?: number; filter?: string } = {}): string => {
+  const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+  const apiUrl = import.meta.env.VITE_API_URL || "";
+  const params = new URLSearchParams();
+  if (opts.tail !== undefined) params.set("tail", String(opts.tail));
+  if (opts.filter) params.set("filter", opts.filter);
+  const query = params.toString();
+  const path = `/api/deployments/${name}/logs/stream${query ? `?${query}` : ""}`;
+  if (apiUrl.startsWith("http")) {
+    const url = new URL(apiUrl);
+    return `${protocol}//${url.host}${path}`;
+  }
+  return `${protocol}//${window.location.host}${path}`;
+};
+
 export const deploymentsApi = {
   list: () => apiClient.get<{ deployments: Deployment[] }>("/deployments"),
   get: (name: string) => apiClient.get<Deployment>(`/deployments/${name}`),
@@ -661,6 +678,46 @@ export interface FilesInfo {
   total_size: number;
   file_count: number;
 }
+
+// How a deployment is serving its users, measured at the proxy every request already
+// crosses. Nothing is installed in the container to produce this.
+export interface REDPoint {
+  time: string;
+  requests: number;
+  errors: number;
+  avg_time_ms: number;
+  p95_time_ms: number;
+}
+
+export interface DashboardPanel {
+  id?: string;
+  title: string;
+  source: "container" | "serving";
+  series: string;
+  deployment?: string;
+  type: "line" | "stat";
+  width: number;
+}
+
+export interface Dashboard {
+  id?: string;
+  name: string;
+  panels: DashboardPanel[];
+}
+
+export const dashboardsApi = {
+  list: () => apiClient.get<{ dashboards: Dashboard[] }>("/dashboards"),
+  get: (id: string) => apiClient.get<Dashboard>(`/dashboards/${id}`),
+  save: (dashboard: Dashboard) => apiClient.post<Dashboard>("/dashboards", dashboard),
+  remove: (id: string) => apiClient.delete(`/dashboards/${id}`),
+};
+
+export const servingApi = {
+  series: (deploymentName: string, since = "1h") =>
+    apiClient.get<{ deployment: string; since: string; points: REDPoint[] }>(`/deployments/${deploymentName}/serving`, {
+      params: { since },
+    }),
+};
 
 export interface ContainerFile {
   name: string;
