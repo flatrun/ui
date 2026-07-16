@@ -83,6 +83,11 @@ export const useSecurityStore = defineStore("security", () => {
     }
   }
 
+  async function fetchEventsByIP(ip: string): Promise<SecurityEvent[]> {
+    const response = await securityApi.getEventsByIP(ip);
+    return response.data.events || [];
+  }
+
   async function fetchWhitelist() {
     loading.value = true;
     error.value = null;
@@ -232,6 +237,7 @@ export const useSecurityStore = defineStore("security", () => {
     fetchStats,
     fetchEvents,
     fetchBlockedIPs,
+    fetchEventsByIP,
     blockIP,
     unblockIP,
     fetchWhitelist,

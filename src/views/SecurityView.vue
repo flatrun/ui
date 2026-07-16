@@ -309,6 +309,13 @@
                 <td>{{ event.status_code || "-" }}</td>
                 <td class="actions-cell">
                   <button
+                    class="btn btn-icon btn-sm"
+                    title="View this IP's events"
+                    @click="showIPTrace(event.source_ip)"
+                  >
+                    <i class="pi pi-history" />
+                  </button>
+                  <button
                     v-if="canWrite"
                     class="btn btn-icon btn-sm"
                     title="Block IP"
@@ -369,16 +376,22 @@
                   <span v-if="ip.expires_at" class="blocked-expires"> Expires {{ formatTime(ip.expires_at) }} </span>
                 </div>
               </div>
-              <button
-                v-if="canWrite"
-                class="btn btn-danger-ghost btn-sm"
-                :disabled="unblockingIP === ip.ip"
-                @click="handleUnblockIP(ip.ip)"
-              >
-                <i v-if="unblockingIP === ip.ip" class="pi pi-spin pi-spinner" />
-                <i v-else class="pi pi-times" />
-                Unblock
-              </button>
+              <div class="blocked-actions">
+                <button class="btn btn-secondary btn-sm" @click="showIPTrace(ip.ip)">
+                  <i class="pi pi-history" />
+                  Events
+                </button>
+                <button
+                  v-if="canWrite"
+                  class="btn btn-danger-ghost btn-sm"
+                  :disabled="unblockingIP === ip.ip"
+                  @click="handleUnblockIP(ip.ip)"
+                >
+                  <i v-if="unblockingIP === ip.ip" class="pi pi-spin pi-spinner" />
+                  <i v-else class="pi pi-times" />
+                  Unblock
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -655,6 +668,51 @@
       </div>
     </Teleport>
 
+    <!-- IP Event Trace Dialog -->
+    <Teleport to="body">
+      <div v-if="showTraceDialog" class="modal-overlay" @click.self="showTraceDialog = false">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-header">
+            <h3>
+              Events from <code class="trace-ip">{{ traceIP }}</code>
+            </h3>
+            <button class="btn btn-icon" @click="showTraceDialog = false">
+              <i class="pi pi-times" />
+            </button>
+          </div>
+          <div class="modal-body">
+            <div v-if="loadingTrace" class="trace-loading">
+              <i class="pi pi-spin pi-spinner" />
+              Loading events
+            </div>
+            <div v-else-if="traceEvents.length === 0" class="empty-state">
+              <i class="pi pi-list" />
+              <p>No recorded events for this IP</p>
+              <span class="empty-hint">Events are kept while they remain in the security log</span>
+            </div>
+            <ul v-else class="trace-list">
+              <li v-for="ev in traceEvents" :key="ev.id" class="trace-item">
+                <div class="trace-line">
+                  <span class="severity-badge" :class="ev.severity">{{ ev.severity }}</span>
+                  <span class="trace-type">{{ formatEventType(ev.event_type) }}</span>
+                  <span v-if="ev.status_code" class="trace-status">{{ ev.status_code }}</span>
+                  <span class="trace-time">{{ formatTime(ev.created_at) }}</span>
+                </div>
+                <code v-if="ev.request_path" class="trace-path">
+                  {{ ev.request_method ? ev.request_method + " " : "" }}{{ ev.request_path }}
+                </code>
+                <p v-if="ev.message" class="trace-message">{{ ev.message }}</p>
+                <p v-if="ev.user_agent" class="trace-ua">{{ ev.user_agent }}</p>
+              </li>
+            </ul>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" @click="showTraceDialog = false">Close</button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
+
     <!-- Add Whitelist Entry Dialog -->
     <Teleport to="body">
       <div v-if="showAddWhitelistDialog" class="modal-overlay" @click.self="showAddWhitelistDialog = false">
@@ -773,7 +831,7 @@ import { useSecurityStore } from "@/stores/security";
 import { useNotificationsStore } from "@/stores/notifications";
 import { useAuthStore } from "@/stores/auth";
 import { configApi } from "@/services/api";
-import type { ProtectedRoute, WhitelistEntry } from "@/types";
+import type { ProtectedRoute, WhitelistEntry, SecurityEvent } from "@/types";
 import SecurityHealthCard from "@/components/SecurityHealthCard.vue";
 import TrafficDashboard from "@/components/TrafficDashboard.vue";
 
@@ -814,6 +872,11 @@ const showAddBlockDialog = ref(false);
 const blockForm = reactive({ ip: "", reason: "", duration: 0 });
 const blockingIP = ref(false);
 const unblockingIP = ref<string | null>(null);
+
+const showTraceDialog = ref(false);
+const traceIP = ref("");
+const traceEvents = ref<SecurityEvent[]>([]);
+const loadingTrace = ref(false);
 
 const showAddWhitelistDialog = ref(false);
 const whitelistForm = reactive({ value: "", type: "ip" as WhitelistEntry["type"], reason: "" });
@@ -1071,6 +1134,20 @@ const handleBlockIP = async () => {
     notifications.error("Failed", e.response?.data?.error || "Failed to block IP");
   } finally {
     blockingIP.value = false;
+  }
+};
+
+const showIPTrace = async (ip: string) => {
+  traceIP.value = ip;
+  traceEvents.value = [];
+  showTraceDialog.value = true;
+  loadingTrace.value = true;
+  try {
+    traceEvents.value = await securityStore.fetchEventsByIP(ip);
+  } catch (e: any) {
+    notifications.error("Failed", e.response?.data?.error || "Failed to load events for this IP");
+  } finally {
+    loadingTrace.value = false;
   }
 };
 
@@ -1795,6 +1872,93 @@ onMounted(() => {
   max-width: 480px;
   max-height: 90vh;
   overflow: hidden;
+}
+
+.modal-dialog.modal-lg {
+  max-width: 640px;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-dialog.modal-lg .modal-body {
+  overflow-y: auto;
+}
+
+.blocked-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.trace-loading {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-muted);
+  padding: 1rem 0;
+}
+
+.trace-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.trace-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  padding: 0.75rem;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+}
+
+.trace-line {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.trace-type {
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.trace-status {
+  font-family: "SF Mono", "Fira Code", monospace;
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+}
+
+.trace-time {
+  margin-left: auto;
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+}
+
+.trace-path {
+  font-family: "SF Mono", "Fira Code", monospace;
+  font-size: 0.8125rem;
+  background: var(--surface-inset);
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-sm);
+  word-break: break-all;
+}
+
+.trace-message {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--text);
+}
+
+.trace-ua {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  word-break: break-all;
 }
 
 .modal-header {
