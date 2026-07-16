@@ -7,6 +7,7 @@ vi.mock("@/services/api", () => ({
     getStats: vi.fn(),
     getEvents: vi.fn(),
     getBlockedIPs: vi.fn(),
+    getEventsByIP: vi.fn(),
     getProtectedRoutes: vi.fn(),
     blockIP: vi.fn(),
     unblockIP: vi.fn(),
@@ -138,6 +139,44 @@ describe("Security Store", () => {
       await store.fetchBlockedIPs();
 
       expect(store.blockedIPs).toEqual(mockBlockedIPs);
+    });
+  });
+
+  describe("fetchEventsByIP", () => {
+    it("returns the events recorded for an IP", async () => {
+      const { securityApi } = await import("@/services/api");
+      const mockEvents = [
+        {
+          id: 1,
+          event_type: "not_found",
+          severity: "low",
+          source_ip: "1.2.3.4",
+          request_path: "/missing.php",
+          status_code: 404,
+          user_agent: "curl/8.4.0",
+          message: "Not found",
+          created_at: "2024-01-01",
+        },
+      ];
+      vi.mocked(securityApi.getEventsByIP).mockResolvedValue({
+        data: { events: mockEvents, ip: "1.2.3.4" },
+      } as any);
+
+      const store = useSecurityStore();
+      const events = await store.fetchEventsByIP("1.2.3.4");
+
+      expect(securityApi.getEventsByIP).toHaveBeenCalledWith("1.2.3.4");
+      expect(events).toEqual(mockEvents);
+    });
+
+    it("returns an empty array when the response has no events", async () => {
+      const { securityApi } = await import("@/services/api");
+      vi.mocked(securityApi.getEventsByIP).mockResolvedValue({
+        data: { events: null, ip: "1.2.3.4" },
+      } as any);
+
+      const store = useSecurityStore();
+      expect(await store.fetchEventsByIP("1.2.3.4")).toEqual([]);
     });
   });
 
