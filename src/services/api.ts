@@ -689,29 +689,6 @@ export interface REDPoint {
   p95_time_ms: number;
 }
 
-export interface DashboardPanel {
-  id?: string;
-  title: string;
-  source: "container" | "serving";
-  series: string;
-  deployment?: string;
-  type: "line" | "stat";
-  width: number;
-}
-
-export interface Dashboard {
-  id?: string;
-  name: string;
-  panels: DashboardPanel[];
-}
-
-export const dashboardsApi = {
-  list: () => apiClient.get<{ dashboards: Dashboard[] }>("/dashboards"),
-  get: (id: string) => apiClient.get<Dashboard>(`/dashboards/${id}`),
-  save: (dashboard: Dashboard) => apiClient.post<Dashboard>("/dashboards", dashboard),
-  remove: (id: string) => apiClient.delete(`/dashboards/${id}`),
-};
-
 export const servingApi = {
   series: (deploymentName: string, since = "1h") =>
     apiClient.get<{ deployment: string; since: string; points: REDPoint[] }>(`/deployments/${deploymentName}/serving`, {
