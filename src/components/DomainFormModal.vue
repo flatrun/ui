@@ -73,6 +73,17 @@
               </div>
             </div>
 
+            <div class="form-group checkbox-group">
+              <label class="checkbox-label">
+                <input v-model="form.static_cache" type="checkbox" />
+                <span>Cache static assets in the browser</span>
+              </label>
+              <span class="hint">
+                Sets a long cache on static files (styles, scripts, images, fonts). Dynamic responses keep the app's own
+                cache headers.
+              </span>
+            </div>
+
             <div class="form-group">
               <label>Domain Aliases</label>
               <div class="aliases-input">
@@ -155,6 +166,7 @@ const form = ref<{
   ssl: { enabled: boolean; auto_cert: boolean };
   aliases: string[];
   route_only_aliases: string[];
+  static_cache: boolean;
 }>({
   domain: "",
   service: "",
@@ -164,6 +176,7 @@ const form = ref<{
   ssl: { enabled: false, auto_cert: false },
   aliases: [],
   route_only_aliases: [],
+  static_cache: false,
 });
 
 watch(
@@ -183,6 +196,7 @@ watch(
           },
           aliases: [...(props.domain.aliases || [])],
           route_only_aliases: [...(props.domain.route_only_aliases || [])],
+          static_cache: props.domain.static_cache || false,
         };
       } else {
         form.value = {
@@ -194,6 +208,7 @@ watch(
           ssl: { enabled: false, auto_cert: false },
           aliases: [],
           route_only_aliases: [],
+          static_cache: false,
         };
       }
     }
@@ -234,6 +249,7 @@ function handleSubmit() {
     ssl: form.value.ssl,
     aliases: form.value.aliases.filter((a) => a.trim() !== ""),
     route_only_aliases: form.value.route_only_aliases.filter((a) => a.trim() !== ""),
+    static_cache: form.value.static_cache || undefined,
   };
 
   emit("save", domainData);
