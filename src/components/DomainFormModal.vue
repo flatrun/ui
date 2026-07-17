@@ -89,6 +89,31 @@
               </div>
               <span class="hint">Additional domain names that should also resolve here</span>
             </div>
+
+            <div class="form-group">
+              <label>Routing-only hostnames</label>
+              <div class="aliases-input">
+                <div v-for="(alias, index) in form.route_only_aliases" :key="index" class="alias-item">
+                  <input
+                    v-model="form.route_only_aliases[index]"
+                    type="text"
+                    class="form-input"
+                    placeholder="dashboard.example.com"
+                  />
+                  <button type="button" class="remove-btn" @click="removeRouteOnly(index)">
+                    <i class="pi pi-times" />
+                  </button>
+                </div>
+                <button type="button" class="btn btn-sm btn-secondary" @click="addRouteOnly">
+                  <i class="pi pi-plus" />
+                  Add hostname
+                </button>
+              </div>
+              <span class="hint">
+                Routed here but never issued a certificate, for a hostname whose TLS is terminated by an external proxy
+                (e.g. Cloudflare). It shares this domain's certificate over the proxy's SNI.
+              </span>
+            </div>
           </form>
 
           <div class="modal-footer">
@@ -129,6 +154,7 @@ const form = ref<{
   strip_prefix: boolean;
   ssl: { enabled: boolean; auto_cert: boolean };
   aliases: string[];
+  route_only_aliases: string[];
 }>({
   domain: "",
   service: "",
@@ -137,6 +163,7 @@ const form = ref<{
   strip_prefix: false,
   ssl: { enabled: false, auto_cert: false },
   aliases: [],
+  route_only_aliases: [],
 });
 
 watch(
@@ -155,6 +182,7 @@ watch(
             auto_cert: props.domain.ssl?.auto_cert || false,
           },
           aliases: [...(props.domain.aliases || [])],
+          route_only_aliases: [...(props.domain.route_only_aliases || [])],
         };
       } else {
         form.value = {
@@ -165,6 +193,7 @@ watch(
           strip_prefix: false,
           ssl: { enabled: false, auto_cert: false },
           aliases: [],
+          route_only_aliases: [],
         };
       }
     }
@@ -184,6 +213,14 @@ function removeAlias(index: number) {
   form.value.aliases.splice(index, 1);
 }
 
+function addRouteOnly() {
+  form.value.route_only_aliases.push("");
+}
+
+function removeRouteOnly(index: number) {
+  form.value.route_only_aliases.splice(index, 1);
+}
+
 function handleSubmit() {
   if (!isValid.value) return;
 
@@ -196,6 +233,7 @@ function handleSubmit() {
     strip_prefix: form.value.strip_prefix || undefined,
     ssl: form.value.ssl,
     aliases: form.value.aliases.filter((a) => a.trim() !== ""),
+    route_only_aliases: form.value.route_only_aliases.filter((a) => a.trim() !== ""),
   };
 
   emit("save", domainData);

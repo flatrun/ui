@@ -61,6 +61,7 @@ export interface DomainConfig {
   strip_prefix?: boolean;
   ssl: SSLConfig;
   aliases?: string[];
+  route_only_aliases?: string[];
 }
 
 export interface QuickAction {
