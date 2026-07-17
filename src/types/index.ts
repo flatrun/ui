@@ -62,6 +62,7 @@ export interface DomainConfig {
   ssl: SSLConfig;
   aliases?: string[];
   route_only_aliases?: string[];
+  static_cache?: boolean;
 }
 
 export interface QuickAction {

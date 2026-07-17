@@ -57,3 +57,22 @@ describe("DomainFormModal routing-only hostnames", () => {
     expect(saved.route_only_aliases).toEqual(["dashboard.example.com"]);
   });
 });
+
+describe("DomainFormModal static caching", () => {
+  it("emits the static-cache toggle when enabled on the domain", async () => {
+    const wrapper = mountModal({
+      id: "d1",
+      service: "web",
+      container_port: 80,
+      domain: "api.example.com",
+      ssl: { enabled: false, auto_cert: false },
+      static_cache: true,
+    });
+
+    document.querySelector<HTMLButtonElement>(".btn-primary")?.click();
+    await wrapper.vm.$nextTick();
+
+    const saved = wrapper.emitted("save")?.[0]?.[0] as DomainConfig;
+    expect(saved.static_cache).toBe(true);
+  });
+});
