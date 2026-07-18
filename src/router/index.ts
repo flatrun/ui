@@ -113,6 +113,18 @@ const routes: RouteRecordRaw[] = [
         meta: { permission: "templates:read" },
       },
       {
+        path: "dashboards",
+        name: "dashboards",
+        component: () => import("@/views/DashboardsView.vue"),
+        meta: { permission: "deployments:read" },
+      },
+      {
+        path: "dashboards/:id",
+        name: "dashboard-detail",
+        component: () => import("@/views/DashboardDetailView.vue"),
+        meta: { permission: "deployments:read" },
+      },
+      {
         path: "observability",
         name: "observability",
         component: () => import("@/views/ObservabilityView.vue"),

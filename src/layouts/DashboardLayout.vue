@@ -205,6 +205,15 @@
             </router-link>
             <router-link
               v-if="authStore.hasPermission('deployments:read')"
+              to="/dashboards"
+              class="nav-subitem"
+              active-class="active"
+            >
+              <Icon name="layout-dashboard" :size="15" />
+              Dashboards
+            </router-link>
+            <router-link
+              v-if="authStore.hasPermission('deployments:read')"
               to="/observability/alerts"
               class="nav-subitem"
               active-class="active"
