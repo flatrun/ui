@@ -457,8 +457,19 @@ export interface AISession {
   suggested_actions: AISuggestedAction[];
 }
 
+export interface AISessionSummary {
+  id: string;
+  scope: "system" | "deployment";
+  deployment?: string;
+  status: "ready" | "awaiting_approval";
+  title: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export const aiApi = {
   status: () => apiClient.get<AIStatus>("/ai/status"),
+  listSessions: () => apiClient.get<{ sessions: AISessionSummary[] }>("/ai/sessions"),
   createSession: (body: {
     scope: "system" | "deployment";
     deployment?: string;

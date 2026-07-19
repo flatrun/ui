@@ -42,16 +42,18 @@
           <span>Past conversations</span>
           <button class="btn btn-xs btn-secondary" @click="newChat"><Icon name="plus" :size="12" /> New chat</button>
         </div>
-        <div v-if="!pastSessions.length" class="history-empty">
+        <div v-if="store.listing" class="history-empty">
+          <p>Loading conversations</p>
+        </div>
+        <div v-else-if="!store.sessions.length" class="history-empty">
           <Icon name="message-square" :size="28" />
           <p>Your past conversations will appear here.</p>
         </div>
-        <button v-for="s in pastSessions" v-else :key="s.id" class="history-item" @click="loadPast(s)">
+        <button v-for="s in store.sessions" v-else :key="s.id" class="history-item" @click="loadPast(s.id)">
           <Icon name="message-square" :size="16" class="history-item-icon" />
           <span class="history-item-title">{{ s.title }}</span>
-          <span class="history-item-meta">{{ s.when }}</span>
+          <span class="history-item-meta">{{ formatWhen(s.updated_at) }}</span>
         </button>
-        <p class="history-note">History is a preview; saved conversations arrive with persistence.</p>
       </div>
 
       <div v-else ref="scrollEl" class="chat-body">
@@ -265,6 +267,7 @@ const newChat = () => {
 
 const toggleHistory = () => {
   view.value = view.value === "history" ? "chat" : "history";
+  if (view.value === "history") store.listSessions();
 };
 
 const sampleQueries = computed(() =>
@@ -286,22 +289,21 @@ const runSample = (q: string) => {
   store.send(q);
 };
 
-interface PastSession {
-  id: string;
-  title: string;
-  when: string;
-}
+const formatWhen = (iso: string): string => {
+  const then = new Date(iso).getTime();
+  if (Number.isNaN(then)) return "";
+  const mins = Math.floor((Date.now() - then) / 60000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days}d ago`;
+  return new Date(then).toLocaleDateString();
+};
 
-// Placeholder list so the history flow is visible; real data arrives with the
-// chat-persistence API.
-const pastSessions = ref<PastSession[]>([
-  { id: "1", title: "Why is wordpress-blog unhealthy?", when: "2 hours ago" },
-  { id: "2", title: "Summarize recent security events", when: "Yesterday" },
-  { id: "3", title: "Which containers restarted recently?", when: "3 days ago" },
-]);
-
-const loadPast = (_session: PastSession) => {
-  // Loading a stored conversation needs the persistence API; return to chat.
+const loadPast = async (id: string) => {
+  await store.loadSession(id);
   view.value = "chat";
 };
 
