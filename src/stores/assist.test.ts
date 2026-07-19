@@ -10,6 +10,8 @@ vi.mock("@/services/api", () => ({
     createSession: vi.fn(),
     sessionMessage: vi.fn(),
     approveSession: vi.fn(),
+    listSessions: vi.fn(),
+    getSession: vi.fn(),
   },
   containersApi: { exec: vi.fn() },
   deploymentsApi: { serviceAction: vi.fn(), getServices: vi.fn() },
@@ -53,6 +55,38 @@ describe("assist store", () => {
 
     expect(store.error).toBe(AI_DISABLED_MESSAGE);
     expect(store.session).toBeNull();
+  });
+
+  it("lists saved sessions for the history view", async () => {
+    const { aiApi } = await import("@/services/api");
+    vi.mocked(aiApi.listSessions).mockResolvedValue({
+      data: {
+        sessions: [
+          { id: "ais_2", scope: "system", status: "ready", title: "recent one", updated_at: "2026-07-18T10:00:00Z" },
+        ],
+      },
+    } as any);
+
+    const store = useAssistStore();
+    await store.listSessions();
+
+    expect(store.sessions).toHaveLength(1);
+    expect(store.sessions[0].title).toBe("recent one");
+  });
+
+  it("resumes a saved session and binds later turns to its scope", async () => {
+    const { aiApi } = await import("@/services/api");
+    vi.mocked(aiApi.getSession).mockResolvedValue({
+      data: session({ id: "ais_9", scope: "deployment", deployment: "shop" }),
+    } as any);
+
+    const store = useAssistStore();
+    await store.loadSession("ais_9");
+
+    expect(aiApi.getSession).toHaveBeenCalledWith("ais_9");
+    expect(store.session?.id).toBe("ais_9");
+    expect(store.scope).toBe("deployment");
+    expect(store.deployment).toBe("shop");
   });
 
   it("creates a session from a seed message", async () => {

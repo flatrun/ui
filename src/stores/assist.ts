@@ -1,6 +1,13 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
-import { aiApi, containersApi, deploymentsApi, type AISession, type AISuggestedAction } from "@/services/api";
+import {
+  aiApi,
+  containersApi,
+  deploymentsApi,
+  type AISession,
+  type AISessionSummary,
+  type AISuggestedAction,
+} from "@/services/api";
 import { useAIStore } from "@/stores/ai";
 import { usePlanFlowStore } from "@/stores/planFlow";
 
@@ -41,6 +48,9 @@ export const useAssistStore = defineStore("assist", () => {
   // Per-call decisions while an approval batch is open; once every
   // pending call is decided the batch is submitted.
   const decisions = ref<Record<string, boolean>>({});
+  // Saved sessions the current user can resume.
+  const sessions = ref<AISessionSummary[]>([]);
+  const listing = ref(false);
 
   function reset() {
     session.value = null;
@@ -173,6 +183,37 @@ export const useAssistStore = defineStore("assist", () => {
     }
   }
 
+  // listSessions loads the user's saved conversations for the history view.
+  async function listSessions() {
+    listing.value = true;
+    try {
+      const { data } = await aiApi.listSessions();
+      sessions.value = data.sessions || [];
+    } catch (err: any) {
+      error.value = err.response?.data?.error || err.message;
+    } finally {
+      listing.value = false;
+    }
+  }
+
+  // loadSession reopens a saved conversation and binds later turns to its scope.
+  async function loadSession(id: string) {
+    loading.value = true;
+    error.value = "";
+    suggestionOutputs.value = {};
+    decisions.value = {};
+    try {
+      const { data } = await aiApi.getSession(id);
+      session.value = data;
+      scope.value = data.scope;
+      deployment.value = data.deployment;
+    } catch (err: any) {
+      error.value = err.response?.data?.error || err.message;
+    } finally {
+      loading.value = false;
+    }
+  }
+
   function close() {
     visible.value = false;
     embedded.value = false;
@@ -192,8 +233,12 @@ export const useAssistStore = defineStore("assist", () => {
     runningIndex,
     suggestionOutputs,
     decisions,
+    sessions,
+    listing,
     open,
     send,
+    listSessions,
+    loadSession,
     decide,
     approveAll,
     declineAll,
