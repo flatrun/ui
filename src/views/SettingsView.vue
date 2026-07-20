@@ -1009,14 +1009,55 @@
           </div>
         </div>
       </div>
+
+      <div v-show="activeTab === 'mcp'" class="tab-content">
+        <div class="settings-card">
+          <div class="card-header">
+            <Plug :size="16" />
+            <h3>MCP Server</h3>
+          </div>
+          <div class="card-body">
+            <p class="section-description">
+              Expose the assistant's tools over the Model Context Protocol so an external client, an IDE, a desktop
+              app, or another agent, can drive this server through the same capabilities the built-in assistant has.
+              Every call is authenticated and runs with the caller's own permissions, so a client can do exactly what
+              its access allows and no more.
+            </p>
+            <div class="form-group">
+              <label class="form-label checkbox-label">
+                <input v-model="mcpSettings.enabled" type="checkbox" :disabled="!canWriteSettings" />
+                Enable MCP server
+              </label>
+            </div>
+            <div v-if="mcpSettings.enabled" class="config-grid">
+              <div class="config-item full-width">
+                <span class="config-label">Endpoint</span>
+                <code>{{ mcpEndpoint }}</code>
+              </div>
+              <div class="config-item">
+                <span class="config-label">Transport</span>
+                <code>Streamable HTTP</code>
+              </div>
+              <div class="config-item">
+                <span class="config-label">Authentication</span>
+                <code>X-API-Key header</code>
+              </div>
+            </div>
+            <button class="btn btn-primary" :disabled="savingMcp || !canWriteSettings" @click="saveMcpSettings">
+              <i v-if="savingMcp" class="pi pi-spin pi-spinner" />
+              Save MCP Settings
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted, markRaw, type Component } from "vue";
-import { Bell, FolderClosed, Sparkles } from "lucide-vue-next";
-import { settingsApi, healthApi, templatesApi, credentialsApi, registriesApi, configApi } from "@/services/api";
+import { Bell, FolderClosed, Sparkles, Plug } from "lucide-vue-next";
+import { settingsApi, healthApi, templatesApi, credentialsApi, registriesApi, configApi, apiClient } from "@/services/api";
 import type { DomainSettings } from "@/services/api";
 import type { ProtectedCommandRule, ProtectedModeConfig, RegistryCredential, RegistryType } from "@/types";
 import { useNotificationsStore } from "@/stores/notifications";
@@ -1054,10 +1095,12 @@ const tabs = [
   { id: "notifications", label: "Notifications", icon: "" },
   { id: "credentials", label: "Credentials", icon: "pi pi-key" },
   { id: "ai", label: "AI Assistant", icon: "" },
+  { id: "mcp", label: "MCP Server", icon: "" },
 ];
 
 const tabLucideIcons: Record<string, Component> = {
   ai: markRaw(Sparkles),
+  mcp: markRaw(Plug),
   notifications: markRaw(Bell),
 };
 
@@ -1666,6 +1709,39 @@ const saveAISettings = async () => {
   }
 };
 
+const mcpSettings = reactive({ enabled: false });
+const savingMcp = ref(false);
+
+const mcpEndpoint = computed(() => {
+  const base = apiClient.defaults.baseURL || "/api";
+  try {
+    return new URL(`${base}/mcp`, window.location.origin).toString();
+  } catch {
+    return `${base}/mcp`;
+  }
+});
+
+const fetchMcpSettings = async () => {
+  try {
+    const { data } = await configApi.get("mcp.enabled");
+    mcpSettings.enabled = Boolean(data.entry.value);
+  } catch {
+    // Older agents without the config key; the tab stays editable.
+  }
+};
+
+const saveMcpSettings = async () => {
+  savingMcp.value = true;
+  try {
+    const response = await configApi.set("mcp.enabled", mcpSettings.enabled);
+    notifications.success("Saved", response.data.applied ? "MCP settings applied immediately" : "MCP settings saved");
+  } catch (e: any) {
+    notifications.error("Error", e.response?.data?.error || "Failed to save MCP settings");
+  } finally {
+    savingMcp.value = false;
+  }
+};
+
 onMounted(() => {
   fetchSettings();
   pluginsStore.fetchPlugins();
@@ -1674,6 +1750,7 @@ onMounted(() => {
   fetchRegistryTypes();
   fetchAISettings();
   fetchFilesSettings();
+  fetchMcpSettings();
 });
 </script>
 
