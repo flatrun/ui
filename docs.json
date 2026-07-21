@@ -1,0 +1,16 @@
+{
+  "$schema": "https://raw.githubusercontent.com/whilesmart/docs-kit/main/schema/docs.schema.json",
+  "name": "FlatRun UI",
+  "description": "Modern Vue 3 web interface for FlatRun container orchestration with real-time monitoring and deployment management",
+  "icon": "layout-dashboard",
+  "category": {
+    "language": "typescript",
+    "framework": "vue"
+  },
+  "sidebar": [
+    { "title": "Overview", "path": "docs/overview.md" },
+    { "title": "Development", "path": "docs/development.md" },
+    { "title": "Connecting to Agent", "path": "docs/connecting-to-agent.md" },
+    { "title": "Production Deployment", "path": "docs/deployment.md" }
+  ]
+}
