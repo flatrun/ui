@@ -1018,10 +1018,10 @@
           </div>
           <div class="card-body">
             <p class="section-description">
-              Expose the assistant's tools over the Model Context Protocol so an external client, an IDE, a desktop
-              app, or another agent, can drive this server through the same capabilities the built-in assistant has.
-              Every call is authenticated and runs with the caller's own permissions, so a client can do exactly what
-              its access allows and no more.
+              Expose the assistant's tools over the Model Context Protocol so an external client, an IDE, a desktop app,
+              or another agent, can drive this server through the same capabilities the built-in assistant has. Every
+              call is authenticated and runs with the caller's own permissions, so a client can do exactly what its
+              access allows and no more.
             </p>
             <div class="form-group">
               <label class="form-label checkbox-label">
@@ -1057,7 +1057,15 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted, markRaw, type Component } from "vue";
 import { Bell, FolderClosed, Sparkles, Plug } from "lucide-vue-next";
-import { settingsApi, healthApi, templatesApi, credentialsApi, registriesApi, configApi, apiClient } from "@/services/api";
+import {
+  settingsApi,
+  healthApi,
+  templatesApi,
+  credentialsApi,
+  registriesApi,
+  configApi,
+  apiClient,
+} from "@/services/api";
 import type { DomainSettings } from "@/services/api";
 import type { ProtectedCommandRule, ProtectedModeConfig, RegistryCredential, RegistryType } from "@/types";
 import { useNotificationsStore } from "@/stores/notifications";
