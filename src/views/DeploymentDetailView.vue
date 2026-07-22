@@ -604,9 +604,12 @@
         <div v-if="activeTab === 'environment'" class="env-tab">
           <div class="env-header">
             <h3>Environment Variables</h3>
-            <button class="btn btn-sm btn-primary" @click="openAddEnvModal">
-              <i class="pi pi-plus" /> Add Variable
-            </button>
+            <div class="env-header-actions">
+              <AssistButton :context="envAssistContext" title="Ask the assistant about these variables" />
+              <button class="btn btn-sm btn-primary" @click="openAddEnvModal">
+                <i class="pi pi-plus" /> Add Variable
+              </button>
+            </div>
           </div>
           <div class="env-list">
             <div v-if="envVars.length === 0" class="empty-env">
@@ -1825,6 +1828,7 @@ import { matchTypeHints, describeBlockedRule } from "@/utils/protectedMode";
 import { usePlanFlow } from "@/composables/usePlanFlow";
 import SplitActionButton from "@/components/base/SplitActionButton.vue";
 import SubTabs from "@/components/base/SubTabs.vue";
+import AssistButton from "@/components/ai/AssistButton.vue";
 import InlineAssist from "@/components/ai/InlineAssist.vue";
 import { useAssistStore } from "@/stores/assist";
 import Icon from "@/components/base/Icon.vue";
@@ -2815,6 +2819,17 @@ const serviceConfigAssistContext = computed<AssistContext>(() => ({
   deployment: route.params.name as string,
   subject: "service.yml",
   seedContext: serviceConfig.value,
+}));
+
+// Keys only: a value typed here may not be saved yet, so the server-side
+// redactor cannot know it. Withholding values keeps drafts off the model.
+const envAssistContext = computed<AssistContext>(() => ({
+  scope: "deployment",
+  deployment: route.params.name as string,
+  subject: "environment variables",
+  seedContext:
+    "Environment variable keys configured for this deployment (values withheld):\n" +
+    (envVars.value.length ? envVars.value.map((env) => "- " + env.key).join("\n") : "(none)"),
 }));
 
 const operationAssistContext = computed<AssistContext>(() => ({
@@ -4045,6 +4060,12 @@ onUnmounted(() => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: var(--space-4);
+}
+
+.env-header-actions {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
 }
 
 .env-header h3 {

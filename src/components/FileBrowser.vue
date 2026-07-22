@@ -745,7 +745,8 @@ const editorExtensions = [yaml(), oneDark];
 const fileModified = computed(() => fileContent.value !== originalContent.value);
 
 const editorAssistContext = computed<AssistContext>(() => ({
-  scope: "system",
+  scope: props.deploymentName ? "deployment" : "system",
+  deployment: props.deploymentName || undefined,
   subject: editingFile.value?.path || editingFile.value?.name || "file",
   seedContext: fileContent.value,
 }));
