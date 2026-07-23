@@ -45,6 +45,16 @@
           <span v-if="!sidebarCollapsed">Dashboard</span>
         </router-link>
 
+        <router-link
+          v-if="authStore.hasPermission('deployments:read')"
+          to="/agents"
+          class="nav-item"
+          active-class="active"
+        >
+          <Icon name="bot" :size="18" />
+          <span v-if="!sidebarCollapsed">Agents</span>
+        </router-link>
+
         <div v-if="authStore.hasPermission('deployments:read')" class="nav-group">
           <div class="nav-group-header" @click="toggleGroup('stacks')">
             <Icon name="layers" :size="17" />

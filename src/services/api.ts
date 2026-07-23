@@ -449,6 +449,7 @@ export interface AISession {
   id: string;
   scope: "system" | "deployment";
   deployment?: string;
+  agent?: string;
   auto_run: boolean;
   status: "ready" | "awaiting_approval";
   model?: string;
@@ -461,6 +462,7 @@ export interface AISessionSummary {
   id: string;
   scope: "system" | "deployment";
   deployment?: string;
+  agent?: string;
   status: "ready" | "awaiting_approval";
   title: string;
   created_at: string;
@@ -484,6 +486,21 @@ export const aiApi = {
     apiClient.post<AISession>(`/ai/sessions/${id}/approve`, { approved }),
   getSession: (id: string) => apiClient.get<AISession>(`/ai/sessions/${id}`),
   deleteSession: (id: string) => apiClient.delete<{ message: string; id: string }>(`/ai/sessions/${id}`),
+};
+
+export interface AgentDefinition {
+  name: string;
+  description: string;
+  scope: "system" | "deployment";
+  deployment?: string;
+}
+
+export const agentsApi = {
+  list: () => apiClient.get<{ agents: AgentDefinition[]; dir: string }>("/ai/agents"),
+  get: (name: string) => apiClient.get<{ agent: AgentDefinition; content: string }>(`/ai/agents/${name}`),
+  put: (name: string, content: string) => apiClient.put<{ agent: AgentDefinition }>(`/ai/agents/${name}`, { content }),
+  remove: (name: string) => apiClient.delete<{ message: string; name: string }>(`/ai/agents/${name}`),
+  run: (name: string) => apiClient.post<AISession>(`/ai/agents/${name}/run`),
 };
 
 export const pluginsApi = {
