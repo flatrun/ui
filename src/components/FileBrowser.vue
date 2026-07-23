@@ -1166,6 +1166,8 @@ const viewFile = async (file: FileInfo) => {
   loadingFileContent.value = true;
   fileContent.value = "";
   originalContent.value = "";
+  // Writes from an earlier conversation are already in the file being loaded.
+  seenAssistWrites.value = assistWritesToOpenFile();
 
   try {
     const response = await fileApi.value.getContent(file.path);
@@ -1187,6 +1189,8 @@ const openFileEditor = async (file: FileInfo) => {
   loadingFileContent.value = true;
   fileContent.value = "";
   originalContent.value = "";
+  // Writes from an earlier conversation are already in the file being loaded.
+  seenAssistWrites.value = assistWritesToOpenFile();
 
   try {
     const response = await fileApi.value.getContent(file.path);
@@ -1232,6 +1236,63 @@ const saveFile = async () => {
     savingFile.value = false;
   }
 };
+
+// A file write by the assistant leaves the open editor buffer stale, and a
+// later manual save would clobber it. Track completed assistant writes to the
+// open file and reload the buffer, unless the operator has unsaved edits.
+const seenAssistWrites = ref(0);
+
+const assistWritesToOpenFile = (): number => {
+  const session = assistStore.session;
+  const open = (editingFile.value?.path || "").replace(/^\/+/, "");
+  if (!session || !open) return 0;
+  let count = 0;
+  for (const turn of session.messages) {
+    for (const step of turn.tool_steps || []) {
+      if (step.name !== "write_deployment_file" || !step.result || step.result.startsWith("Error")) continue;
+      try {
+        const target = String(JSON.parse(step.arguments || "{}").path || "").replace(/^\/+/, "");
+        if (target && (target === open || open.endsWith("/" + target))) count++;
+      } catch {
+        // Unparseable arguments cannot name the open file.
+      }
+    }
+  }
+  return count;
+};
+
+const reloadEditorContent = async () => {
+  if (!editingFile.value) return;
+  try {
+    const response = await fileApi.value.getContent(editingFile.value.path);
+    fileContent.value = response.data;
+    originalContent.value = response.data;
+    notifications.info("File updated", `${editingFile.value.name} was reloaded with the assistant's change`);
+  } catch {
+    // Keep the buffer; reopening the file re-reads it.
+  }
+};
+
+watch(
+  () => assistStore.session,
+  async () => {
+    if (!showEditorModal.value || !editingFile.value) return;
+    const count = assistWritesToOpenFile();
+    if (count <= seenAssistWrites.value) {
+      seenAssistWrites.value = count;
+      return;
+    }
+    seenAssistWrites.value = count;
+    if (!viewOnly.value && fileModified.value) {
+      notifications.warning(
+        "File changed on disk",
+        "The assistant updated this file, but you have unsaved edits. Saving now would overwrite its change.",
+      );
+      return;
+    }
+    await reloadEditorContent();
+  },
+);
 
 watch(currentPath, () => {
   fetchFiles();
