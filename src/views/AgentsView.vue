@@ -238,7 +238,7 @@ onMounted(fetchAgents);
 }
 
 .subtitle {
-  color: var(--text-secondary);
+  color: var(--text-muted);
   margin-top: var(--space-1);
 }
 
@@ -249,14 +249,14 @@ onMounted(fetchAgents);
   align-items: center;
   gap: var(--space-3);
   padding: var(--space-10) var(--space-6);
-  color: var(--text-secondary);
+  color: var(--text-muted);
   text-align: center;
 }
 
 .empty-state .example {
   text-align: left;
-  background: var(--surface-ground);
-  border: 1px solid var(--border-color);
+  background: var(--surface-sunken);
+  border: 1px solid var(--border);
   border-radius: 8px;
   padding: var(--space-4);
   font-size: 0.82rem;
@@ -276,8 +276,8 @@ onMounted(fetchAgents);
   align-items: center;
   gap: var(--space-4);
   padding: var(--space-4);
-  background: var(--surface-card);
-  border: 1px solid var(--border-color);
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
   border-radius: 10px;
 }
 
@@ -296,14 +296,14 @@ onMounted(fetchAgents);
   font-size: 0.72rem;
   padding: 0.15rem 0.5rem;
   border-radius: 50px;
-  background: var(--surface-ground);
-  border: 1px solid var(--border-color);
-  color: var(--text-secondary);
+  background: var(--surface-sunken);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
 }
 
 .agent-description {
   margin: var(--space-1) 0 0;
-  color: var(--text-secondary);
+  color: var(--text-muted);
   font-size: 0.88rem;
 }
 
@@ -314,6 +314,12 @@ onMounted(fetchAgents);
   flex-shrink: 0;
 }
 
+.header-actions {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+}
+
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -321,13 +327,13 @@ onMounted(fetchAgents);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: var(--z-modal);
 }
 
 .modal-container.agent-editor {
   width: min(720px, 92vw);
-  background: var(--surface-card);
-  border: 1px solid var(--border-color);
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
   border-radius: 12px;
   display: flex;
   flex-direction: column;
@@ -339,7 +345,7 @@ onMounted(fetchAgents);
   align-items: center;
   gap: var(--space-2);
   padding: var(--space-4);
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border);
 }
 
 .modal-header h3 {
@@ -354,7 +360,7 @@ onMounted(fetchAgents);
 .close-btn {
   background: none;
   border: none;
-  color: var(--text-secondary);
+  color: var(--text-muted);
   cursor: pointer;
   padding: var(--space-1);
 }
@@ -370,16 +376,16 @@ onMounted(fetchAgents);
   display: block;
   margin-bottom: var(--space-1);
   font-size: 0.85rem;
-  color: var(--text-secondary);
+  color: var(--text-muted);
 }
 
 .form-control {
   width: 100%;
   padding: 0.5rem 0.75rem;
-  background: var(--surface-ground);
-  border: 1px solid var(--border-color);
+  background: var(--surface-sunken);
+  border: 1px solid var(--border);
   border-radius: 8px;
-  color: var(--text-color);
+  color: var(--text);
 }
 
 .modal-footer {
@@ -387,7 +393,7 @@ onMounted(fetchAgents);
   gap: var(--space-2);
   align-items: center;
   padding: var(--space-4);
-  border-top: 1px solid var(--border-color);
+  border-top: 1px solid var(--border);
 }
 
 .footer-spacer {
