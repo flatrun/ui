@@ -149,6 +149,12 @@ const routes: RouteRecordRaw[] = [
         meta: { permission: "templates:read" },
       },
       {
+        path: "agents",
+        name: "agents",
+        component: () => import("@/views/AgentsView.vue"),
+        meta: { permission: "deployments:read" },
+      },
+      {
         path: "settings",
         name: "settings",
         component: () => import("@/views/SettingsView.vue"),
