@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.4.0-beta.1] - 2026-07-29
+
+First beta of the Albacore release. Some Albacore items remain in progress and are not in this beta.
+
+### Added
+- Observability views: container and per-deployment serving metrics as time-series charts over 6h and 24h ranges, threshold alerts, and live log following
+- Dashboards screen to create, rename and delete dashboards and arrange panels over container and serving metrics
+- Remote S3-compatible backup configuration (AWS, R2, B2, MinIO) alongside the local copy, with object-storage credentials entered as secrets
+- Container file browser: bring a running service's files onto the host, edit them with the existing editor, and unmount tagged paths
+- Per-IP security event trace showing each event's path, status, user agent and message
+- Deployment-scoped AI file editor with per-call approval for state-changing tools; the env tab shares keys only and seeded session input is redacted
+- MCP server settings tab
+- AI chat session history: list saved sessions, most recent first, and reopen one to restore its transcript and scope
+- Agents managed as flat markdown files, with a panel editor and starter template plus creation through the assistant
+- Routing-only hostname entry in the domain form for externally-fronted proxies, separate from ordinary aliases
+- Opt-in per-domain static-asset caching toggle
+- Global search and an AI assistant entry point across the dashboard
+
+### Enhanced
+- Design refresh foundation: dark mode, design tokens and Iconify iconography
+- Start/stop/restart run as background jobs with streamed output that survives a page reload
+- Deployments list and dashboard rendering reworked so views load without waiting on everything at once
+
 ## [0.3.0] - 2026-06-08
 
 ### Added
