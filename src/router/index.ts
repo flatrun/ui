@@ -173,6 +173,12 @@ const routes: RouteRecordRaw[] = [
         meta: { permission: "system:read" },
       },
       {
+        path: "updates",
+        name: "updates",
+        component: () => import("@/views/UpdatesView.vue"),
+        meta: { permission: "settings:read" },
+      },
+      {
         path: "system-terminal",
         name: "system-terminal",
         component: () => import("@/views/SystemTerminalView.vue"),

@@ -1764,3 +1764,43 @@ export const deploymentUsersApi = {
       }>;
     }>(`/deployments/${deploymentName}/users`),
 };
+
+export type UpdateChannel = "stable" | "prerelease";
+
+export interface UpdateReleaseInfo {
+  version: string;
+  prerelease: boolean;
+  published_at: string;
+  changelog: string;
+}
+
+export interface UpdateAvailability {
+  current_version: string;
+  channel: UpdateChannel;
+  latest_version: string;
+  update_available: boolean;
+  releases: UpdateReleaseInfo[];
+}
+
+export interface UpdateResult {
+  current_version: string;
+  latest_version: string;
+  update_available: boolean;
+  downloaded: boolean;
+  installed: boolean;
+  message: string;
+}
+
+export interface TriggerUpdateResponse {
+  result: UpdateResult;
+  restarted: boolean;
+  restart_error?: string;
+  restart_manual?: string;
+}
+
+export const agentUpdateApi = {
+  get: (channel: UpdateChannel) => apiClient.get<UpdateAvailability>("/agent/update", { params: { channel } }),
+
+  trigger: (body: { channel: UpdateChannel; force?: boolean; restart?: boolean }) =>
+    apiClient.post<TriggerUpdateResponse>("/agent/update", body),
+};
