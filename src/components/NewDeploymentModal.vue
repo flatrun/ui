@@ -4001,7 +4001,7 @@ const handleClose = () => {
   flex-direction: column;
   align-items: flex-start;
   min-width: 0;
-  padding: var(--space-5);
+  padding: var(--space-6);
   background: var(--surface-raised);
   border: 2px solid var(--border);
   border-radius: var(--radius-xl);
