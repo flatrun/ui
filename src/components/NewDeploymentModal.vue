@@ -4074,8 +4074,11 @@ const handleClose = () => {
   padding: var(--space-4);
 }
 
-/* The container owns the inset; fields align to it instead of each carrying
-   their own padding, which left them ragged against the toggle and hint. */
+/* The panel content owns the inset; deploy-method fields align to it instead of
+   each carrying their own padding, which left them inset further than the
+   toggles and hints and made the panels look unevenly padded. */
+.compose-info-content .form-field,
+.image-config-content .form-field,
 .git-config-content .form-field {
   padding: 0;
 }
