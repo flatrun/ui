@@ -4018,7 +4018,6 @@ const handleClose = () => {
 .source-method-toggle {
   display: flex;
   gap: var(--space-2);
-  margin-bottom: var(--space-4);
 }
 
 .source-method-option {
@@ -4061,8 +4060,10 @@ const handleClose = () => {
 }
 
 .private-source-config {
-  margin-top: var(--space-3);
-  padding-top: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding-top: var(--space-4);
   border-top: 1px solid var(--border);
 }
 
@@ -4070,7 +4071,32 @@ const handleClose = () => {
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
-  padding: var(--space-5);
+  padding: var(--space-4);
+}
+
+/* The container owns the inset; fields align to it instead of each carrying
+   their own padding, which left them ragged against the toggle and hint. */
+.git-config-content .form-field {
+  padding: 0;
+}
+
+.git-config-content .info-hint {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  background: var(--color-info-50);
+  border-radius: var(--radius-sm);
+}
+
+.git-config-content .info-hint i {
+  color: var(--color-info-500);
+  font-size: var(--text-sm);
+}
+
+.git-config-content .info-hint span {
+  font-size: var(--text-xs);
+  color: var(--color-info-700);
 }
 
 .git-fields-row {
