@@ -588,20 +588,22 @@
                       <span class="field-hint">The repository's compose file becomes the deployment.</span>
                     </div>
 
-                    <div class="form-field">
-                      <label for="gitBranch">Branch (optional)</label>
-                      <input id="gitBranch" v-model="form.gitSource.branch" class="form-input" placeholder="main" />
-                    </div>
-
-                    <div class="form-field">
-                      <label for="gitSubpath">Subdirectory (optional)</label>
-                      <input
-                        id="gitSubpath"
-                        v-model="form.gitSource.subpath"
-                        class="form-input"
-                        placeholder="deploy/"
-                      />
-                      <span class="field-hint">Deploy from a subdirectory of the repository.</span>
+                    <div class="git-fields-row">
+                      <div class="form-field">
+                        <label for="gitBranch">Branch</label>
+                        <input id="gitBranch" v-model="form.gitSource.branch" class="form-input" placeholder="main" />
+                        <span class="field-hint">Optional</span>
+                      </div>
+                      <div class="form-field">
+                        <label for="gitSubpath">Subdirectory</label>
+                        <input
+                          id="gitSubpath"
+                          v-model="form.gitSource.subpath"
+                          class="form-input"
+                          placeholder="deploy/"
+                        />
+                        <span class="field-hint">Optional</span>
+                      </div>
                     </div>
 
                     <label class="advanced-option">
@@ -3898,7 +3900,7 @@ const handleClose = () => {
 
 .mode-selection {
   text-align: center;
-  max-width: 700px;
+  max-width: 1080px;
   width: 100%;
 }
 
@@ -3972,12 +3974,34 @@ const handleClose = () => {
   border-top: 1px solid var(--border);
 }
 
+.git-fields-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+}
+
+.git-config-card .credential-source-toggle {
+  display: flex;
+  gap: var(--space-4);
+  margin-bottom: var(--space-3);
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.git-config-card .credential-source-toggle label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  cursor: pointer;
+}
+
 .deployment-mode-card {
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  padding: var(--space-6);
+  min-width: 0;
+  padding: var(--space-5);
   background: var(--surface-raised);
   border: 2px solid var(--border);
   border-radius: var(--radius-xl);
