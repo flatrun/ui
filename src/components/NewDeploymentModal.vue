@@ -45,85 +45,74 @@
               <h3 class="mode-title">How would you like to deploy?</h3>
               <p class="mode-subtitle">Choose the deployment method that works best for you</p>
 
-              <div class="deployment-modes">
+              <div class="deploy-options">
                 <button
-                  class="deployment-mode-card"
+                  class="deploy-option-row"
                   :class="{ selected: deploymentMode === 'easy' }"
-                  @click="deploymentMode = 'easy'"
+                  @click="selectMode('easy')"
                 >
-                  <div class="mode-card-icon easy">
+                  <div class="deploy-option-icon easy">
                     <i class="pi pi-bolt" />
                   </div>
-                  <div class="mode-card-content">
-                    <h4>Easy Mode</h4>
-                    <p>Guided setup with templates</p>
-                    <ul class="mode-features">
-                      <li><i class="pi pi-check" /> Choose from pre-built templates</li>
-                      <li><i class="pi pi-check" /> Auto-configure database</li>
-                      <li><i class="pi pi-check" /> Domain & SSL setup</li>
-                    </ul>
+                  <div class="deploy-option-text">
+                    <div class="deploy-option-head">
+                      <h4>Template</h4>
+                      <span class="deploy-option-tag recommended">Recommended</span>
+                    </div>
+                    <p>Guided setup from a ready-made app, with database and SSL configured for you</p>
                   </div>
-                  <div class="mode-badge recommended">Recommended</div>
+                  <i class="pi pi-chevron-right deploy-option-arrow" />
                 </button>
 
                 <button
-                  class="deployment-mode-card"
+                  class="deploy-option-row"
                   :class="{ selected: deploymentMode === 'image' }"
-                  @click="deploymentMode = 'image'"
+                  @click="selectMode('image')"
                 >
-                  <div class="mode-card-icon image">
+                  <div class="deploy-option-icon image">
                     <i class="pi pi-box" />
                   </div>
-                  <div class="mode-card-content">
-                    <h4>From Image</h4>
-                    <p>Deploy any Docker image</p>
-                    <ul class="mode-features">
-                      <li><i class="pi pi-check" /> Use any public/private image</li>
-                      <li><i class="pi pi-check" /> Auto-generate compose</li>
-                      <li><i class="pi pi-check" /> Quick deployment</li>
-                    </ul>
+                  <div class="deploy-option-text">
+                    <div class="deploy-option-head">
+                      <h4>Docker image</h4>
+                    </div>
+                    <p>Run a public or private image; the compose is generated for you</p>
                   </div>
-                  <div class="mode-badge">Quick</div>
+                  <i class="pi pi-chevron-right deploy-option-arrow" />
                 </button>
 
                 <button
-                  class="deployment-mode-card"
+                  class="deploy-option-row"
                   :class="{ selected: deploymentMode === 'compose' }"
-                  @click="deploymentMode = 'compose'"
+                  @click="selectMode('compose')"
                 >
-                  <div class="mode-card-icon compose">
+                  <div class="deploy-option-icon compose">
                     <i class="pi pi-code" />
                   </div>
-                  <div class="mode-card-content">
-                    <h4>Compose Mode</h4>
-                    <p>Full control with docker-compose</p>
-                    <ul class="mode-features">
-                      <li><i class="pi pi-check" /> Write your own compose file</li>
-                      <li><i class="pi pi-check" /> Advanced configuration</li>
-                      <li><i class="pi pi-check" /> For power users</li>
-                    </ul>
+                  <div class="deploy-option-text">
+                    <div class="deploy-option-head">
+                      <h4>Compose file</h4>
+                    </div>
+                    <p>Paste your own docker-compose for full control</p>
                   </div>
-                  <div class="mode-badge">Advanced</div>
+                  <i class="pi pi-chevron-right deploy-option-arrow" />
                 </button>
 
                 <button
-                  class="deployment-mode-card"
+                  class="deploy-option-row"
                   :class="{ selected: deploymentMode === 'git' }"
-                  @click="deploymentMode = 'git'"
+                  @click="selectMode('git')"
                 >
-                  <div class="mode-card-icon compose">
+                  <div class="deploy-option-icon git">
                     <i class="pi pi-github" />
                   </div>
-                  <div class="mode-card-content">
-                    <h4>From Git</h4>
-                    <p>Deploy code from a repository</p>
-                    <ul class="mode-features">
-                      <li><i class="pi pi-check" /> Clone a public or private repo</li>
-                      <li><i class="pi pi-check" /> Uses the repo's compose file</li>
-                      <li><i class="pi pi-check" /> Branch and subdirectory support</li>
-                    </ul>
+                  <div class="deploy-option-text">
+                    <div class="deploy-option-head">
+                      <h4>Git repository</h4>
+                    </div>
+                    <p>Clone a repository and deploy its compose file</p>
                   </div>
-                  <div class="mode-badge">Source</div>
+                  <i class="pi pi-chevron-right deploy-option-arrow" />
                 </button>
               </div>
             </div>
@@ -2505,6 +2494,11 @@ const removePort = (index: number) => {
 
 const generatingCompose = ref(false);
 
+const selectMode = async (mode: "easy" | "compose" | "image" | "git") => {
+  deploymentMode.value = mode;
+  await nextStep();
+};
+
 const nextStep = async () => {
   if (!canProceed.value) return;
 
@@ -3899,8 +3893,8 @@ const handleClose = () => {
 }
 
 .mode-selection {
-  text-align: center;
-  max-width: 1080px;
+  text-align: left;
+  max-width: 560px;
   width: 100%;
 }
 
@@ -3917,10 +3911,105 @@ const handleClose = () => {
   margin: 0 0 var(--space-8);
 }
 
-.deployment-modes {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
+.deploy-options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-top: var(--space-6);
+}
+
+.deploy-option-row {
+  display: flex;
+  align-items: center;
   gap: var(--space-4);
+  width: 100%;
+  padding: var(--space-4) var(--space-5);
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s ease;
+}
+
+.deploy-option-row:hover {
+  border-color: var(--color-primary-500);
+  background: var(--surface-inset);
+}
+
+.deploy-option-row.selected {
+  border-color: var(--color-primary-500);
+  box-shadow: 0 0 0 1px var(--color-primary-500);
+}
+
+.deploy-option-icon {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  font-size: 1.15rem;
+  background: var(--surface-inset);
+  color: var(--text);
+}
+
+.deploy-option-icon.easy {
+  color: var(--color-primary-600);
+}
+.deploy-option-icon.image {
+  color: #3b82f6;
+}
+.deploy-option-icon.compose {
+  color: #8b5cf6;
+}
+.deploy-option-icon.git {
+  color: #10b981;
+}
+
+.deploy-option-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.deploy-option-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.deploy-option-head h4 {
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
+  color: var(--text);
+  margin: 0;
+}
+
+.deploy-option-tag {
+  padding: 2px var(--space-2);
+  font-size: var(--text-xs);
+  font-weight: var(--font-medium);
+  border-radius: var(--radius-sm);
+  background: var(--surface-inset);
+  color: var(--text-muted);
+}
+
+.deploy-option-tag.recommended {
+  background: color-mix(in srgb, var(--color-primary-500) 15%, transparent);
+  color: var(--color-primary-500);
+}
+
+.deploy-option-text p {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  margin: var(--space-1) 0 0;
+}
+
+.deploy-option-arrow {
+  flex-shrink: 0;
+  color: var(--text-subtle, var(--text-muted));
+  font-size: 0.8rem;
 }
 
 .source-method-toggle {
@@ -3946,7 +4035,7 @@ const handleClose = () => {
 }
 
 .source-method-option.active {
-  border-color: var(--primary);
+  border-color: var(--color-primary-500);
   color: var(--text);
   background: var(--surface-raised);
 }
@@ -4001,6 +4090,7 @@ const handleClose = () => {
   flex-direction: column;
   align-items: flex-start;
   min-width: 0;
+  min-height: 168px;
   padding: var(--space-6);
   background: var(--surface-raised);
   border: 2px solid var(--border);
