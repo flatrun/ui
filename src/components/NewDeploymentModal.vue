@@ -104,7 +104,7 @@
                   @click="selectMode('git')"
                 >
                   <div class="deploy-option-icon git">
-                    <i class="pi pi-github" />
+                    <Icon name="git-branch" :size="20" />
                   </div>
                   <div class="deploy-option-text">
                     <div class="deploy-option-head">
@@ -528,152 +528,154 @@
                 <div v-else-if="deploymentMode === 'git'" class="section-card git-config-card">
                   <div class="section-header compact">
                     <div class="section-icon small">
-                      <i class="pi pi-github" />
+                      <Icon name="git-branch" :size="16" />
                     </div>
                     <h4>Git Repository</h4>
                   </div>
 
-                  <div class="source-method-toggle">
-                    <button
-                      type="button"
-                      class="source-method-option"
-                      :class="{ active: form.gitSource.method === 'url' }"
-                      @click="form.gitSource.method = 'url'"
-                    >
-                      <i class="pi pi-link" />
-                      Repository URL
-                    </button>
-                    <button
-                      type="button"
-                      class="source-method-option"
-                      :class="{ active: form.gitSource.method === 'account' }"
-                      @click="form.gitSource.method = 'account'"
-                    >
-                      <i class="pi pi-user" />
-                      Connected account
-                    </button>
-                  </div>
-
-                  <template v-if="form.gitSource.method === 'account'">
-                    <div class="connected-account-empty">
-                      <i class="pi pi-github" />
-                      <p><strong>No connected accounts</strong></p>
-                      <p class="field-hint">
-                        Connecting a GitHub or GitLab account to browse and pick a repository is coming soon. For now,
-                        add a repository by URL.
-                      </p>
-                    </div>
-                  </template>
-
-                  <template v-else>
-                    <div class="form-field">
-                      <label for="gitRepoUrl">Repository URL</label>
-                      <input
-                        id="gitRepoUrl"
-                        v-model="form.gitSource.repoUrl"
-                        class="form-input"
-                        placeholder="https://github.com/owner/repo.git"
-                      />
-                      <span class="field-hint">The repository's compose file becomes the deployment.</span>
+                  <div class="git-config-content">
+                    <div class="source-method-toggle">
+                      <button
+                        type="button"
+                        class="source-method-option"
+                        :class="{ active: form.gitSource.method === 'url' }"
+                        @click="form.gitSource.method = 'url'"
+                      >
+                        <i class="pi pi-link" />
+                        Repository URL
+                      </button>
+                      <button
+                        type="button"
+                        class="source-method-option"
+                        :class="{ active: form.gitSource.method === 'account' }"
+                        @click="form.gitSource.method = 'account'"
+                      >
+                        <i class="pi pi-user" />
+                        Connected account
+                      </button>
                     </div>
 
-                    <div class="git-fields-row">
-                      <div class="form-field">
-                        <label for="gitBranch">Branch</label>
-                        <input id="gitBranch" v-model="form.gitSource.branch" class="form-input" placeholder="main" />
-                        <span class="field-hint">Optional</span>
+                    <template v-if="form.gitSource.method === 'account'">
+                      <div class="connected-account-empty">
+                        <i class="pi pi-github" />
+                        <p><strong>No connected accounts</strong></p>
+                        <p class="field-hint">
+                          Connecting a GitHub or GitLab account to browse and pick a repository is coming soon. For now,
+                          add a repository by URL.
+                        </p>
                       </div>
+                    </template>
+
+                    <template v-else>
                       <div class="form-field">
-                        <label for="gitSubpath">Subdirectory</label>
+                        <label for="gitRepoUrl">Repository URL</label>
                         <input
-                          id="gitSubpath"
-                          v-model="form.gitSource.subpath"
+                          id="gitRepoUrl"
+                          v-model="form.gitSource.repoUrl"
                           class="form-input"
-                          placeholder="deploy/"
+                          placeholder="https://github.com/owner/repo.git"
                         />
-                        <span class="field-hint">Optional</span>
-                      </div>
-                    </div>
-
-                    <label class="advanced-option">
-                      <input v-model="form.gitSource.isPrivate" type="checkbox" />
-                      <div class="option-content">
-                        <span class="option-label">
-                          <i class="pi pi-lock" />
-                          Private repository
-                        </span>
-                        <span class="option-desc">Authenticate to clone a private repo</span>
-                      </div>
-                    </label>
-
-                    <div v-if="form.gitSource.isPrivate" class="private-source-config">
-                      <div v-if="sourceCredentials.length > 0" class="credential-source-toggle">
-                        <label>
-                          <input v-model="form.gitSource.useExisting" type="radio" :value="true" />
-                          Use saved credential
-                        </label>
-                        <label>
-                          <input v-model="form.gitSource.useExisting" type="radio" :value="false" />
-                          Enter a token
-                        </label>
+                        <span class="field-hint">The repository's compose file becomes the deployment.</span>
                       </div>
 
-                      <div v-if="form.gitSource.useExisting && sourceCredentials.length > 0" class="form-field">
-                        <label for="gitCred">Saved credential</label>
-                        <select id="gitCred" v-model="form.gitSource.selectedCredentialId" class="form-select">
-                          <option value="">Select a credential</option>
-                          <option v-for="c in sourceCredentials" :key="c.id" :value="c.id">{{ c.name }}</option>
-                        </select>
-                      </div>
-
-                      <template v-else>
+                      <div class="git-fields-row">
                         <div class="form-field">
-                          <label for="gitUser">Username (optional)</label>
-                          <input
-                            id="gitUser"
-                            v-model="form.gitSource.username"
-                            class="form-input"
-                            placeholder="oauth2"
-                          />
+                          <label for="gitBranch">Branch</label>
+                          <input id="gitBranch" v-model="form.gitSource.branch" class="form-input" placeholder="main" />
+                          <span class="field-hint">Optional</span>
                         </div>
                         <div class="form-field">
-                          <label for="gitToken">Access token</label>
+                          <label for="gitSubpath">Subdirectory</label>
                           <input
-                            id="gitToken"
-                            v-model="form.gitSource.token"
-                            type="password"
+                            id="gitSubpath"
+                            v-model="form.gitSource.subpath"
                             class="form-input"
-                            placeholder="Personal access token"
+                            placeholder="deploy/"
                           />
-                          <span class="field-hint">A token with read access to the repository.</span>
+                          <span class="field-hint">Optional</span>
                         </div>
-                        <label class="advanced-option">
-                          <input v-model="form.gitSource.saveCredential" type="checkbox" />
-                          <div class="option-content">
-                            <span class="option-label">
-                              <i class="pi pi-save" />
-                              Save this token
-                            </span>
-                            <span class="option-desc">Reuse it for future deployments</span>
+                      </div>
+
+                      <label class="advanced-option">
+                        <input v-model="form.gitSource.isPrivate" type="checkbox" />
+                        <div class="option-content">
+                          <span class="option-label">
+                            <i class="pi pi-lock" />
+                            Private repository
+                          </span>
+                          <span class="option-desc">Authenticate to clone a private repo</span>
+                        </div>
+                      </label>
+
+                      <div v-if="form.gitSource.isPrivate" class="private-source-config">
+                        <div v-if="sourceCredentials.length > 0" class="credential-source-toggle">
+                          <label>
+                            <input v-model="form.gitSource.useExisting" type="radio" :value="true" />
+                            Use saved credential
+                          </label>
+                          <label>
+                            <input v-model="form.gitSource.useExisting" type="radio" :value="false" />
+                            Enter a token
+                          </label>
+                        </div>
+
+                        <div v-if="form.gitSource.useExisting && sourceCredentials.length > 0" class="form-field">
+                          <label for="gitCred">Saved credential</label>
+                          <select id="gitCred" v-model="form.gitSource.selectedCredentialId" class="form-select">
+                            <option value="">Select a credential</option>
+                            <option v-for="c in sourceCredentials" :key="c.id" :value="c.id">{{ c.name }}</option>
+                          </select>
+                        </div>
+
+                        <template v-else>
+                          <div class="form-field">
+                            <label for="gitUser">Username (optional)</label>
+                            <input
+                              id="gitUser"
+                              v-model="form.gitSource.username"
+                              class="form-input"
+                              placeholder="oauth2"
+                            />
                           </div>
-                        </label>
-                        <div v-if="form.gitSource.saveCredential" class="form-field">
-                          <label for="gitCredName">Credential name</label>
-                          <input
-                            id="gitCredName"
-                            v-model="form.gitSource.credentialName"
-                            class="form-input"
-                            placeholder="github-token"
-                          />
-                        </div>
-                      </template>
-                    </div>
+                          <div class="form-field">
+                            <label for="gitToken">Access token</label>
+                            <input
+                              id="gitToken"
+                              v-model="form.gitSource.token"
+                              type="password"
+                              class="form-input"
+                              placeholder="Personal access token"
+                            />
+                            <span class="field-hint">A token with read access to the repository.</span>
+                          </div>
+                          <label class="advanced-option">
+                            <input v-model="form.gitSource.saveCredential" type="checkbox" />
+                            <div class="option-content">
+                              <span class="option-label">
+                                <i class="pi pi-save" />
+                                Save this token
+                              </span>
+                              <span class="option-desc">Reuse it for future deployments</span>
+                            </div>
+                          </label>
+                          <div v-if="form.gitSource.saveCredential" class="form-field">
+                            <label for="gitCredName">Credential name</label>
+                            <input
+                              id="gitCredName"
+                              v-model="form.gitSource.credentialName"
+                              class="form-input"
+                              placeholder="github-token"
+                            />
+                          </div>
+                        </template>
+                      </div>
 
-                    <div class="info-hint">
-                      <i class="pi pi-info-circle" />
-                      <span>The repository must contain a compose file</span>
-                    </div>
-                  </template>
+                      <div class="info-hint">
+                        <i class="pi pi-info-circle" />
+                        <span>The repository must contain a compose file</span>
+                      </div>
+                    </template>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1615,6 +1617,7 @@ import {
   sourceCredentialsApi,
   type SourceCredential,
 } from "@/services/api";
+import Icon from "@/components/base/Icon.vue";
 import type { RegistryCredential } from "@/types";
 import type { AssistContext } from "@/stores/assist";
 import { extractComposeServiceNames } from "@/utils/compose";
@@ -4061,6 +4064,13 @@ const handleClose = () => {
   margin-top: var(--space-3);
   padding-top: var(--space-3);
   border-top: 1px solid var(--border);
+}
+
+.git-config-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-5);
 }
 
 .git-fields-row {
