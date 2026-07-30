@@ -105,6 +105,26 @@
                   </div>
                   <div class="mode-badge">Advanced</div>
                 </button>
+
+                <button
+                  class="deployment-mode-card"
+                  :class="{ selected: deploymentMode === 'git' }"
+                  @click="deploymentMode = 'git'"
+                >
+                  <div class="mode-card-icon compose">
+                    <i class="pi pi-github" />
+                  </div>
+                  <div class="mode-card-content">
+                    <h4>From Git</h4>
+                    <p>Deploy code from a repository</p>
+                    <ul class="mode-features">
+                      <li><i class="pi pi-check" /> Clone a public or private repo</li>
+                      <li><i class="pi pi-check" /> Uses the repo's compose file</li>
+                      <li><i class="pi pi-check" /> Branch and subdirectory support</li>
+                    </ul>
+                  </div>
+                  <div class="mode-badge">Source</div>
+                </button>
               </div>
             </div>
           </div>
@@ -513,6 +533,156 @@
                       <span>A compose file will be auto-generated for your image</span>
                     </div>
                   </div>
+                </div>
+
+                <!-- Git Mode Panel -->
+                <div v-else-if="deploymentMode === 'git'" class="section-card git-config-card">
+                  <div class="section-header compact">
+                    <div class="section-icon small">
+                      <i class="pi pi-github" />
+                    </div>
+                    <h4>Git Repository</h4>
+                  </div>
+
+                  <div class="source-method-toggle">
+                    <button
+                      type="button"
+                      class="source-method-option"
+                      :class="{ active: form.gitSource.method === 'url' }"
+                      @click="form.gitSource.method = 'url'"
+                    >
+                      <i class="pi pi-link" />
+                      Repository URL
+                    </button>
+                    <button
+                      type="button"
+                      class="source-method-option"
+                      :class="{ active: form.gitSource.method === 'account' }"
+                      @click="form.gitSource.method = 'account'"
+                    >
+                      <i class="pi pi-user" />
+                      Connected account
+                    </button>
+                  </div>
+
+                  <template v-if="form.gitSource.method === 'account'">
+                    <div class="connected-account-empty">
+                      <i class="pi pi-github" />
+                      <p><strong>No connected accounts</strong></p>
+                      <p class="field-hint">
+                        Connecting a GitHub or GitLab account to browse and pick a repository is coming soon. For now,
+                        add a repository by URL.
+                      </p>
+                    </div>
+                  </template>
+
+                  <template v-else>
+                    <div class="form-field">
+                      <label for="gitRepoUrl">Repository URL</label>
+                      <input
+                        id="gitRepoUrl"
+                        v-model="form.gitSource.repoUrl"
+                        class="form-input"
+                        placeholder="https://github.com/owner/repo.git"
+                      />
+                      <span class="field-hint">The repository's compose file becomes the deployment.</span>
+                    </div>
+
+                    <div class="form-field">
+                      <label for="gitBranch">Branch (optional)</label>
+                      <input id="gitBranch" v-model="form.gitSource.branch" class="form-input" placeholder="main" />
+                    </div>
+
+                    <div class="form-field">
+                      <label for="gitSubpath">Subdirectory (optional)</label>
+                      <input
+                        id="gitSubpath"
+                        v-model="form.gitSource.subpath"
+                        class="form-input"
+                        placeholder="deploy/"
+                      />
+                      <span class="field-hint">Deploy from a subdirectory of the repository.</span>
+                    </div>
+
+                    <label class="advanced-option">
+                      <input v-model="form.gitSource.isPrivate" type="checkbox" />
+                      <div class="option-content">
+                        <span class="option-label">
+                          <i class="pi pi-lock" />
+                          Private repository
+                        </span>
+                        <span class="option-desc">Authenticate to clone a private repo</span>
+                      </div>
+                    </label>
+
+                    <div v-if="form.gitSource.isPrivate" class="private-source-config">
+                      <div v-if="sourceCredentials.length > 0" class="credential-source-toggle">
+                        <label>
+                          <input v-model="form.gitSource.useExisting" type="radio" :value="true" />
+                          Use saved credential
+                        </label>
+                        <label>
+                          <input v-model="form.gitSource.useExisting" type="radio" :value="false" />
+                          Enter a token
+                        </label>
+                      </div>
+
+                      <div v-if="form.gitSource.useExisting && sourceCredentials.length > 0" class="form-field">
+                        <label for="gitCred">Saved credential</label>
+                        <select id="gitCred" v-model="form.gitSource.selectedCredentialId" class="form-select">
+                          <option value="">Select a credential</option>
+                          <option v-for="c in sourceCredentials" :key="c.id" :value="c.id">{{ c.name }}</option>
+                        </select>
+                      </div>
+
+                      <template v-else>
+                        <div class="form-field">
+                          <label for="gitUser">Username (optional)</label>
+                          <input
+                            id="gitUser"
+                            v-model="form.gitSource.username"
+                            class="form-input"
+                            placeholder="oauth2"
+                          />
+                        </div>
+                        <div class="form-field">
+                          <label for="gitToken">Access token</label>
+                          <input
+                            id="gitToken"
+                            v-model="form.gitSource.token"
+                            type="password"
+                            class="form-input"
+                            placeholder="Personal access token"
+                          />
+                          <span class="field-hint">A token with read access to the repository.</span>
+                        </div>
+                        <label class="advanced-option">
+                          <input v-model="form.gitSource.saveCredential" type="checkbox" />
+                          <div class="option-content">
+                            <span class="option-label">
+                              <i class="pi pi-save" />
+                              Save this token
+                            </span>
+                            <span class="option-desc">Reuse it for future deployments</span>
+                          </div>
+                        </label>
+                        <div v-if="form.gitSource.saveCredential" class="form-field">
+                          <label for="gitCredName">Credential name</label>
+                          <input
+                            id="gitCredName"
+                            v-model="form.gitSource.credentialName"
+                            class="form-input"
+                            placeholder="github-token"
+                          />
+                        </div>
+                      </template>
+                    </div>
+
+                    <div class="info-hint">
+                      <i class="pi pi-info-circle" />
+                      <span>The repository must contain a compose file</span>
+                    </div>
+                  </template>
                 </div>
               </div>
             </div>
@@ -1370,7 +1540,26 @@
                   </div>
                 </div>
 
-                <div class="compose-summary">
+                <div v-if="deploymentMode === 'git'" class="review-section">
+                  <div class="review-item">
+                    <span class="review-label">Repository</span>
+                    <span class="review-value">{{ form.gitSource.repoUrl || "—" }}</span>
+                  </div>
+                  <div v-if="form.gitSource.branch" class="review-item">
+                    <span class="review-label">Branch</span>
+                    <span class="review-value">{{ form.gitSource.branch }}</span>
+                  </div>
+                  <div v-if="form.gitSource.subpath" class="review-item">
+                    <span class="review-label">Subdirectory</span>
+                    <span class="review-value">{{ form.gitSource.subpath }}</span>
+                  </div>
+                  <div class="review-item">
+                    <span class="review-label">Access</span>
+                    <span class="review-value">{{ form.gitSource.isPrivate ? "Private" : "Public" }}</span>
+                  </div>
+                </div>
+
+                <div v-else class="compose-summary">
                   <div class="compose-summary-header">
                     <i class="pi pi-file-edit" />
                     <span>Docker Compose</span>
@@ -1425,7 +1614,16 @@ import { yaml } from "@codemirror/lang-yaml";
 import { oneDark } from "@codemirror/theme-one-dark";
 import BaseModal from "@/components/base/BaseModal.vue";
 import AssistButton from "@/components/ai/AssistButton.vue";
-import { deploymentsApi, templatesApi, settingsApi, containersApi, composeApi, credentialsApi } from "@/services/api";
+import {
+  deploymentsApi,
+  templatesApi,
+  settingsApi,
+  containersApi,
+  composeApi,
+  credentialsApi,
+  sourceCredentialsApi,
+  type SourceCredential,
+} from "@/services/api";
 import type { RegistryCredential } from "@/types";
 import type { AssistContext } from "@/stores/assist";
 import { extractComposeServiceNames } from "@/utils/compose";
@@ -1490,7 +1688,7 @@ const existingDeployments = ref<string[]>([]);
 
 const extensions = shallowRef([yaml(), oneDark]);
 
-const deploymentMode = ref<"" | "easy" | "compose" | "image">("");
+const deploymentMode = ref<"" | "easy" | "compose" | "image" | "git">("");
 const templatePreset = ref("");
 const showRegistryPassword = ref(false);
 
@@ -1520,6 +1718,7 @@ const onTemplatePresetChange = () => {
 };
 const existingCredentials = ref<RegistryCredential[]>([]);
 const loadingCredentials = ref(false);
+const sourceCredentials = ref<SourceCredential[]>([]);
 
 const composeServiceNames = computed(() => extractComposeServiceNames(form.composeContent));
 
@@ -1634,6 +1833,19 @@ const steps = computed(() => {
     composeSteps.push({ id: "review", label: "Review" });
     return composeSteps;
   }
+  if (deploymentMode.value === "git") {
+    // The compose file comes from the repository, so there is no "configure"
+    // step where the user writes one.
+    const gitSteps = [
+      { id: "basics", label: "Basics" },
+      { id: "database", label: "Database" },
+    ];
+    if (advancedOptions.multiDomain) {
+      gitSteps.push({ id: "domains", label: "Domains" });
+    }
+    gitSteps.push({ id: "review", label: "Review" });
+    return gitSteps;
+  }
   return easySteps;
 });
 
@@ -1678,6 +1890,19 @@ const form = reactive({
   name: "",
   image: "",
   composeContent: "",
+  gitSource: {
+    method: "url" as "url" | "account",
+    repoUrl: "",
+    branch: "",
+    subpath: "",
+    isPrivate: false,
+    useExisting: false,
+    selectedCredentialId: "",
+    username: "",
+    token: "",
+    saveCredential: false,
+    credentialName: "",
+  },
   envVars: [] as { key: string; value: string }[],
   autoStart: false,
   useCustomDomain: false,
@@ -1776,10 +2001,13 @@ const canProceed = computed(() => {
     if (deploymentMode.value === "image") {
       return nameValid && form.image.trim() !== "";
     }
+    if (deploymentMode.value === "git") {
+      return Boolean(nameValid) && form.gitSource.repoUrl.trim() !== "";
+    }
     return nameValid && selectedQuickApp.value !== "";
   }
 
-  if (deploymentMode.value === "easy") {
+  if (deploymentMode.value === "easy" || deploymentMode.value === "git") {
     if (currentStep.value === 2) {
       if (form.database.type !== "none") {
         if (form.database.mode === "existing") {
@@ -1800,7 +2028,7 @@ const canProceed = computed(() => {
       }
       return true;
     }
-    if (currentStep.value === 3) {
+    if (deploymentMode.value === "easy" && currentStep.value === 3) {
       return form.composeContent.trim().length > 0;
     }
   }
@@ -1855,6 +2083,16 @@ const loadCredentials = async () => {
     existingCredentials.value = [];
   } finally {
     loadingCredentials.value = false;
+  }
+};
+
+const loadSourceCredentials = async () => {
+  try {
+    const response = await sourceCredentialsApi.list();
+    sourceCredentials.value = response.data.credentials || [];
+    form.gitSource.useExisting = sourceCredentials.value.length > 0;
+  } catch {
+    sourceCredentials.value = [];
   }
 };
 
@@ -2401,6 +2639,7 @@ watch(
       loadQuickApps();
       loadExistingDeployments();
       loadCredentials();
+      loadSourceCredentials();
     }
   },
 );
@@ -2483,7 +2722,11 @@ const validate = () => {
     valid = false;
   }
 
-  if (!form.composeContent.trim()) {
+  if (deploymentMode.value === "git") {
+    if (!form.gitSource.repoUrl.trim()) {
+      valid = false;
+    }
+  } else if (!form.composeContent.trim()) {
     errors.composeContent = "Compose configuration is required";
     valid = false;
   }
@@ -2500,9 +2743,11 @@ const handleCreate = async () => {
     const finalDomain =
       form.useCustomDomain || !domainSettings.default_domain ? form.networking.domain : generatedDomain.value;
 
+    const isGit = deploymentMode.value === "git";
+
     const payload: Record<string, any> = {
       name: form.name,
-      compose_content: form.composeContent,
+      compose_content: isGit ? "" : form.composeContent,
       template_id: effectiveTemplateId.value || undefined,
       env_vars: form.envVars.filter((e) => e.key),
       auto_start: form.autoStart,
@@ -2512,6 +2757,33 @@ const handleCreate = async () => {
           ? form.database.existingContainer
           : undefined,
     };
+
+    if (isGit) {
+      const src: Record<string, any> = {
+        type: "git",
+        ref: form.gitSource.repoUrl.trim(),
+        branch: form.gitSource.branch.trim() || undefined,
+        subpath: form.gitSource.subpath.trim() || undefined,
+      };
+      if (form.gitSource.isPrivate) {
+        if (form.gitSource.useExisting && form.gitSource.selectedCredentialId) {
+          src.credential_id = form.gitSource.selectedCredentialId;
+        } else if (form.gitSource.token) {
+          if (form.gitSource.saveCredential && form.gitSource.credentialName.trim()) {
+            const created = await sourceCredentialsApi.create({
+              name: form.gitSource.credentialName.trim(),
+              username: form.gitSource.username.trim() || undefined,
+              token: form.gitSource.token,
+            });
+            src.credential_id = created.data.credential.id;
+          } else {
+            src.username = form.gitSource.username.trim() || undefined;
+            src.token = form.gitSource.token;
+          }
+        }
+      }
+      payload.source = src;
+    }
 
     if (form.registry.isPrivate) {
       if (form.registry.useExisting && form.registry.selectedCredentialId) {
@@ -3645,8 +3917,59 @@ const handleClose = () => {
 
 .deployment-modes {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: var(--space-4);
+}
+
+.source-method-toggle {
+  display: flex;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+
+.source-method-option {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-muted);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.15s;
+}
+
+.source-method-option.active {
+  border-color: var(--primary);
+  color: var(--text);
+  background: var(--surface-raised);
+}
+
+.connected-account-empty {
+  text-align: center;
+  padding: var(--space-6);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text-muted);
+}
+
+.connected-account-empty i {
+  font-size: 1.5rem;
+  margin-bottom: var(--space-2);
+}
+
+.connected-account-empty p {
+  margin: 0 0 var(--space-1);
+}
+
+.private-source-config {
+  margin-top: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--border);
 }
 
 .deployment-mode-card {
