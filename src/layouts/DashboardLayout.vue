@@ -428,6 +428,15 @@
               Settings
             </router-link>
             <router-link
+              v-if="authStore.hasPermission('settings:read')"
+              to="/updates"
+              class="nav-subitem"
+              active-class="active"
+            >
+              <Icon name="download" :size="15" />
+              Updates
+            </router-link>
+            <router-link
               v-if="authStore.hasPermission('users:read')"
               to="/users"
               class="nav-subitem"
@@ -642,6 +651,7 @@ const currentPageTitle = computed(() => {
     services: "System Services",
     "cron-jobs": "Cron Jobs",
     "server-info": "Server Info",
+    updates: "Updates",
     "system-terminal": "System Terminal",
     "system-files": "System Files",
     cluster: "Cluster",
