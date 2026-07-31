@@ -60,6 +60,14 @@ export interface AlertRule {
   threshold: number;
   for_seconds: number;
   enabled: boolean;
+  targets?: string[];
+  action?: "" | "restart";
+}
+
+export interface Consumer {
+  deployment: string;
+  container: string;
+  value: number;
 }
 
 export interface AlertEvent {
@@ -73,6 +81,7 @@ export interface AlertEvent {
   comparison: "above" | "below";
   state: "ok" | "pending" | "firing";
   at: string;
+  snapshot?: Consumer[];
 }
 
 export const observabilityApi = {
