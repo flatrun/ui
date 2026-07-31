@@ -420,7 +420,7 @@ onMounted(() => {
   justify-content: center;
   padding: 3rem;
   gap: 1rem;
-  color: var(--text-secondary);
+  color: var(--text-muted);
 }
 
 .error-state {
@@ -428,7 +428,7 @@ onMounted(() => {
 }
 
 .users-table-container {
-  background: var(--surface-card);
+  background: var(--surface-raised);
   border-radius: 8px;
   border: 1px solid var(--surface-border);
   overflow: hidden;
@@ -447,9 +447,9 @@ onMounted(() => {
 }
 
 .data-table th {
-  background: var(--surface-ground);
+  background: var(--surface-sunken);
   font-weight: 600;
-  color: var(--text-secondary);
+  color: var(--text-muted);
   font-size: 0.8125rem;
   text-transform: uppercase;
 }
@@ -503,7 +503,7 @@ onMounted(() => {
 
 .status-badge.inactive {
   background: var(--color-gray-100, #f3f4f6);
-  color: var(--text-secondary);
+  color: var(--text-muted);
 }
 
 .perm-indicator {
@@ -520,13 +520,13 @@ onMounted(() => {
 }
 
 .perm-indicator.default {
-  background: var(--surface-ground);
-  color: var(--text-secondary);
+  background: var(--surface-sunken);
+  color: var(--text-muted);
 }
 
 .deploy-count {
   font-weight: 500;
-  color: var(--text-secondary);
+  color: var(--text-muted);
 }
 
 .actions-cell {
@@ -548,7 +548,7 @@ onMounted(() => {
 }
 
 .modal-content {
-  background: var(--surface-card);
+  background: var(--surface-raised);
   border-radius: var(--radius-xl);
   width: 100%;
   max-width: 720px;
@@ -595,7 +595,7 @@ onMounted(() => {
   padding: 0.75rem 1rem;
   border: none;
   background: none;
-  color: var(--text-secondary);
+  color: var(--text-muted);
   font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
@@ -623,10 +623,10 @@ onMounted(() => {
   height: 1.25rem;
   padding: 0 0.375rem;
   border-radius: 999px;
-  background: var(--surface-ground);
+  background: var(--surface-sunken);
   font-size: 0.6875rem;
   font-weight: 600;
-  color: var(--text-secondary);
+  color: var(--text-muted);
 }
 
 .tab-btn.active .tab-count {
@@ -642,7 +642,7 @@ onMounted(() => {
 .tab-hint {
   margin: 0.25rem 0 1rem;
   font-size: 0.8125rem;
-  color: var(--text-secondary);
+  color: var(--text-muted);
   padding: 0;
 }
 
@@ -654,7 +654,7 @@ onMounted(() => {
   display: block;
   margin-bottom: 0.5rem;
   font-weight: 500;
-  color: var(--text-secondary);
+  color: var(--text-muted);
 }
 
 .form-group input,
@@ -663,7 +663,7 @@ onMounted(() => {
   padding: 0.5rem 0.75rem;
   border: 1px solid var(--surface-border);
   border-radius: 4px;
-  background: var(--surface-ground);
+  background: var(--surface-sunken);
   color: var(--text-primary);
 }
 
@@ -722,7 +722,7 @@ onMounted(() => {
   padding: 0.5rem;
   border: 1px solid var(--surface-border);
   border-radius: 4px;
-  background: var(--surface-ground);
+  background: var(--surface-sunken);
 }
 
 .deployments-list {
@@ -736,7 +736,7 @@ onMounted(() => {
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem;
-  background: var(--surface-ground);
+  background: var(--surface-sunken);
   border-radius: 4px;
 }
 
@@ -749,7 +749,7 @@ onMounted(() => {
   padding: 0.25rem 0.5rem;
   border: 1px solid var(--surface-border);
   border-radius: 4px;
-  background: var(--surface-card);
+  background: var(--surface-raised);
 }
 
 .no-deployments {
@@ -758,7 +758,7 @@ onMounted(() => {
   justify-content: center;
   gap: 0.5rem;
   padding: 2rem;
-  color: var(--text-secondary);
+  color: var(--text-muted);
 }
 
 .btn {
@@ -768,7 +768,7 @@ onMounted(() => {
   padding: 0.5rem 1rem;
   border: none;
   border-radius: 4px;
-  background: var(--surface-ground);
+  background: var(--surface-sunken);
   color: var(--text-primary);
   cursor: pointer;
   font-size: 0.875rem;

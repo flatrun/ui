@@ -601,7 +601,7 @@ onMounted(() => {
   justify-content: center;
   padding: 3rem;
   gap: 1rem;
-  color: var(--text-secondary);
+  color: var(--text-muted);
 }
 
 .error-state {
@@ -609,7 +609,7 @@ onMounted(() => {
 }
 
 .apikeys-table-container {
-  background: var(--surface-card);
+  background: var(--surface-raised);
   border-radius: 8px;
   border: 1px solid var(--surface-border);
   overflow: hidden;
@@ -628,9 +628,9 @@ onMounted(() => {
 }
 
 .data-table th {
-  background: var(--surface-ground);
+  background: var(--surface-sunken);
   font-weight: 600;
-  color: var(--text-secondary);
+  color: var(--text-muted);
   font-size: 0.8125rem;
   text-transform: uppercase;
 }
@@ -656,12 +656,12 @@ onMounted(() => {
 
 .key-desc {
   font-size: 0.75rem;
-  color: var(--text-secondary);
+  color: var(--text-muted);
 }
 
 code {
   padding: 0.25rem 0.5rem;
-  background: var(--surface-ground);
+  background: var(--surface-sunken);
   border-radius: 4px;
   font-family: monospace;
   font-size: 0.8125rem;
@@ -693,7 +693,7 @@ code {
 
 .role-badge.inherit {
   background: rgba(var(--text-secondary-rgb), 0.1);
-  color: var(--text-secondary);
+  color: var(--text-muted);
 }
 
 .status-badge {
@@ -711,7 +711,7 @@ code {
 
 .status-badge.inactive {
   background: rgba(var(--text-secondary-rgb), 0.1);
-  color: var(--text-secondary);
+  color: var(--text-muted);
 }
 
 .actions-cell {
@@ -733,7 +733,7 @@ code {
 }
 
 .modal-content {
-  background: var(--surface-card);
+  background: var(--surface-raised);
   border-radius: var(--radius-xl);
   width: 100%;
   max-width: 960px;
@@ -789,7 +789,7 @@ code {
   display: block;
   margin-bottom: 0.5rem;
   font-weight: 500;
-  color: var(--text-secondary);
+  color: var(--text-muted);
 }
 
 .form-group input,
@@ -798,7 +798,7 @@ code {
   padding: 0.5rem 0.75rem;
   border: 1px solid var(--surface-border);
   border-radius: 4px;
-  background: var(--surface-ground);
+  background: var(--surface-sunken);
   color: var(--text-primary);
 }
 
@@ -806,7 +806,7 @@ code {
   display: block;
   margin-top: 0.25rem;
   font-size: 0.75rem;
-  color: var(--text-secondary);
+  color: var(--text-muted);
 }
 
 .checkbox-label {
@@ -849,7 +849,7 @@ code {
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem;
-  background: var(--surface-ground);
+  background: var(--surface-sunken);
   border-radius: 4px;
 }
 
@@ -867,7 +867,7 @@ code {
   padding: 0.5rem 1rem;
   border: none;
   border-radius: 4px;
-  background: var(--surface-ground);
+  background: var(--surface-sunken);
   color: var(--text-primary);
   cursor: pointer;
   font-size: 0.875rem;
