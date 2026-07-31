@@ -1061,6 +1061,20 @@ export const credentialsApi = {
   test: (id: string) => apiClient.post<{ message: string; success: boolean }>(`/credentials/${id}/test`),
 };
 
+export interface SourceCredential {
+  id: string;
+  name: string;
+  kind: string;
+  data: Record<string, string>;
+}
+
+export const sourceCredentialsApi = {
+  list: () => apiClient.get<{ credentials: SourceCredential[] }>("/source-credentials"),
+  create: (data: { name: string; username?: string; token: string }) =>
+    apiClient.post<{ message: string; credential: SourceCredential }>("/source-credentials", data),
+  delete: (id: string) => apiClient.delete(`/source-credentials/${id}`),
+};
+
 export type CredentialKind = "s3";
 
 export interface StorageCredential {

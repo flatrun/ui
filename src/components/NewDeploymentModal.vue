@@ -45,65 +45,74 @@
               <h3 class="mode-title">How would you like to deploy?</h3>
               <p class="mode-subtitle">Choose the deployment method that works best for you</p>
 
-              <div class="deployment-modes">
+              <div class="deploy-options">
                 <button
-                  class="deployment-mode-card"
+                  class="deploy-option-row"
                   :class="{ selected: deploymentMode === 'easy' }"
-                  @click="deploymentMode = 'easy'"
+                  @click="selectMode('easy')"
                 >
-                  <div class="mode-card-icon easy">
+                  <div class="deploy-option-icon easy">
                     <i class="pi pi-bolt" />
                   </div>
-                  <div class="mode-card-content">
-                    <h4>Easy Mode</h4>
-                    <p>Guided setup with templates</p>
-                    <ul class="mode-features">
-                      <li><i class="pi pi-check" /> Choose from pre-built templates</li>
-                      <li><i class="pi pi-check" /> Auto-configure database</li>
-                      <li><i class="pi pi-check" /> Domain & SSL setup</li>
-                    </ul>
+                  <div class="deploy-option-text">
+                    <div class="deploy-option-head">
+                      <h4>Template</h4>
+                      <span class="deploy-option-tag recommended">Recommended</span>
+                    </div>
+                    <p>Guided setup from a ready-made app, with database and SSL configured for you</p>
                   </div>
-                  <div class="mode-badge recommended">Recommended</div>
+                  <i class="pi pi-chevron-right deploy-option-arrow" />
                 </button>
 
                 <button
-                  class="deployment-mode-card"
+                  class="deploy-option-row"
                   :class="{ selected: deploymentMode === 'image' }"
-                  @click="deploymentMode = 'image'"
+                  @click="selectMode('image')"
                 >
-                  <div class="mode-card-icon image">
+                  <div class="deploy-option-icon image">
                     <i class="pi pi-box" />
                   </div>
-                  <div class="mode-card-content">
-                    <h4>From Image</h4>
-                    <p>Deploy any Docker image</p>
-                    <ul class="mode-features">
-                      <li><i class="pi pi-check" /> Use any public/private image</li>
-                      <li><i class="pi pi-check" /> Auto-generate compose</li>
-                      <li><i class="pi pi-check" /> Quick deployment</li>
-                    </ul>
+                  <div class="deploy-option-text">
+                    <div class="deploy-option-head">
+                      <h4>Docker image</h4>
+                    </div>
+                    <p>Run a public or private image; the compose is generated for you</p>
                   </div>
-                  <div class="mode-badge">Quick</div>
+                  <i class="pi pi-chevron-right deploy-option-arrow" />
                 </button>
 
                 <button
-                  class="deployment-mode-card"
+                  class="deploy-option-row"
                   :class="{ selected: deploymentMode === 'compose' }"
-                  @click="deploymentMode = 'compose'"
+                  @click="selectMode('compose')"
                 >
-                  <div class="mode-card-icon compose">
+                  <div class="deploy-option-icon compose">
                     <i class="pi pi-code" />
                   </div>
-                  <div class="mode-card-content">
-                    <h4>Compose Mode</h4>
-                    <p>Full control with docker-compose</p>
-                    <ul class="mode-features">
-                      <li><i class="pi pi-check" /> Write your own compose file</li>
-                      <li><i class="pi pi-check" /> Advanced configuration</li>
-                      <li><i class="pi pi-check" /> For power users</li>
-                    </ul>
+                  <div class="deploy-option-text">
+                    <div class="deploy-option-head">
+                      <h4>Compose file</h4>
+                    </div>
+                    <p>Paste your own docker-compose for full control</p>
                   </div>
-                  <div class="mode-badge">Advanced</div>
+                  <i class="pi pi-chevron-right deploy-option-arrow" />
+                </button>
+
+                <button
+                  class="deploy-option-row"
+                  :class="{ selected: deploymentMode === 'git' }"
+                  @click="selectMode('git')"
+                >
+                  <div class="deploy-option-icon git">
+                    <Icon name="git-branch" :size="20" />
+                  </div>
+                  <div class="deploy-option-text">
+                    <div class="deploy-option-head">
+                      <h4>Git repository</h4>
+                    </div>
+                    <p>Clone a repository and deploy its compose file</p>
+                  </div>
+                  <i class="pi pi-chevron-right deploy-option-arrow" />
                 </button>
               </div>
             </div>
@@ -512,6 +521,160 @@
                       <i class="pi pi-info-circle" />
                       <span>A compose file will be auto-generated for your image</span>
                     </div>
+                  </div>
+                </div>
+
+                <!-- Git Mode Panel -->
+                <div v-else-if="deploymentMode === 'git'" class="section-card git-config-card">
+                  <div class="section-header compact">
+                    <div class="section-icon small">
+                      <Icon name="git-branch" :size="16" />
+                    </div>
+                    <h4>Git Repository</h4>
+                  </div>
+
+                  <div class="git-config-content">
+                    <div class="source-method-toggle">
+                      <button
+                        type="button"
+                        class="source-method-option"
+                        :class="{ active: form.gitSource.method === 'url' }"
+                        @click="form.gitSource.method = 'url'"
+                      >
+                        <i class="pi pi-link" />
+                        Repository URL
+                      </button>
+                      <button
+                        type="button"
+                        class="source-method-option"
+                        :class="{ active: form.gitSource.method === 'account' }"
+                        @click="form.gitSource.method = 'account'"
+                      >
+                        <i class="pi pi-user" />
+                        Connected account
+                      </button>
+                    </div>
+
+                    <template v-if="form.gitSource.method === 'account'">
+                      <div class="connected-account-empty">
+                        <i class="pi pi-github" />
+                        <p><strong>No connected accounts</strong></p>
+                        <p class="field-hint">
+                          Connecting a GitHub or GitLab account to browse and pick a repository is coming soon. For now,
+                          add a repository by URL.
+                        </p>
+                      </div>
+                    </template>
+
+                    <template v-else>
+                      <div class="form-field">
+                        <label for="gitRepoUrl">Repository URL</label>
+                        <input
+                          id="gitRepoUrl"
+                          v-model="form.gitSource.repoUrl"
+                          class="form-input"
+                          placeholder="https://github.com/owner/repo.git"
+                        />
+                        <span class="field-hint">The repository's compose file becomes the deployment.</span>
+                      </div>
+
+                      <div class="git-fields-row">
+                        <div class="form-field">
+                          <label for="gitBranch">Branch</label>
+                          <input id="gitBranch" v-model="form.gitSource.branch" class="form-input" placeholder="main" />
+                          <span class="field-hint">Optional</span>
+                        </div>
+                        <div class="form-field">
+                          <label for="gitSubpath">Subdirectory</label>
+                          <input
+                            id="gitSubpath"
+                            v-model="form.gitSource.subpath"
+                            class="form-input"
+                            placeholder="deploy/"
+                          />
+                          <span class="field-hint">Optional</span>
+                        </div>
+                      </div>
+
+                      <label class="advanced-option">
+                        <input v-model="form.gitSource.isPrivate" type="checkbox" />
+                        <div class="option-content">
+                          <span class="option-label">
+                            <i class="pi pi-lock" />
+                            Private repository
+                          </span>
+                          <span class="option-desc">Authenticate to clone a private repo</span>
+                        </div>
+                      </label>
+
+                      <div v-if="form.gitSource.isPrivate" class="private-source-config">
+                        <div v-if="sourceCredentials.length > 0" class="credential-source-toggle">
+                          <label>
+                            <input v-model="form.gitSource.useExisting" type="radio" :value="true" />
+                            Use saved credential
+                          </label>
+                          <label>
+                            <input v-model="form.gitSource.useExisting" type="radio" :value="false" />
+                            Enter a token
+                          </label>
+                        </div>
+
+                        <div v-if="form.gitSource.useExisting && sourceCredentials.length > 0" class="form-field">
+                          <label for="gitCred">Saved credential</label>
+                          <select id="gitCred" v-model="form.gitSource.selectedCredentialId" class="form-select">
+                            <option value="">Select a credential</option>
+                            <option v-for="c in sourceCredentials" :key="c.id" :value="c.id">{{ c.name }}</option>
+                          </select>
+                        </div>
+
+                        <template v-else>
+                          <div class="form-field">
+                            <label for="gitUser">Username (optional)</label>
+                            <input
+                              id="gitUser"
+                              v-model="form.gitSource.username"
+                              class="form-input"
+                              placeholder="oauth2"
+                            />
+                          </div>
+                          <div class="form-field">
+                            <label for="gitToken">Access token</label>
+                            <input
+                              id="gitToken"
+                              v-model="form.gitSource.token"
+                              type="password"
+                              class="form-input"
+                              placeholder="Personal access token"
+                            />
+                            <span class="field-hint">A token with read access to the repository.</span>
+                          </div>
+                          <label class="advanced-option">
+                            <input v-model="form.gitSource.saveCredential" type="checkbox" />
+                            <div class="option-content">
+                              <span class="option-label">
+                                <i class="pi pi-save" />
+                                Save this token
+                              </span>
+                              <span class="option-desc">Reuse it for future deployments</span>
+                            </div>
+                          </label>
+                          <div v-if="form.gitSource.saveCredential" class="form-field">
+                            <label for="gitCredName">Credential name</label>
+                            <input
+                              id="gitCredName"
+                              v-model="form.gitSource.credentialName"
+                              class="form-input"
+                              placeholder="github-token"
+                            />
+                          </div>
+                        </template>
+                      </div>
+
+                      <div class="info-hint">
+                        <i class="pi pi-info-circle" />
+                        <span>The repository must contain a compose file</span>
+                      </div>
+                    </template>
                   </div>
                 </div>
               </div>
@@ -1370,7 +1533,26 @@
                   </div>
                 </div>
 
-                <div class="compose-summary">
+                <div v-if="deploymentMode === 'git'" class="review-section">
+                  <div class="review-item">
+                    <span class="review-label">Repository</span>
+                    <span class="review-value">{{ form.gitSource.repoUrl || "—" }}</span>
+                  </div>
+                  <div v-if="form.gitSource.branch" class="review-item">
+                    <span class="review-label">Branch</span>
+                    <span class="review-value">{{ form.gitSource.branch }}</span>
+                  </div>
+                  <div v-if="form.gitSource.subpath" class="review-item">
+                    <span class="review-label">Subdirectory</span>
+                    <span class="review-value">{{ form.gitSource.subpath }}</span>
+                  </div>
+                  <div class="review-item">
+                    <span class="review-label">Access</span>
+                    <span class="review-value">{{ form.gitSource.isPrivate ? "Private" : "Public" }}</span>
+                  </div>
+                </div>
+
+                <div v-else class="compose-summary">
                   <div class="compose-summary-header">
                     <i class="pi pi-file-edit" />
                     <span>Docker Compose</span>
@@ -1425,7 +1607,17 @@ import { yaml } from "@codemirror/lang-yaml";
 import { oneDark } from "@codemirror/theme-one-dark";
 import BaseModal from "@/components/base/BaseModal.vue";
 import AssistButton from "@/components/ai/AssistButton.vue";
-import { deploymentsApi, templatesApi, settingsApi, containersApi, composeApi, credentialsApi } from "@/services/api";
+import {
+  deploymentsApi,
+  templatesApi,
+  settingsApi,
+  containersApi,
+  composeApi,
+  credentialsApi,
+  sourceCredentialsApi,
+  type SourceCredential,
+} from "@/services/api";
+import Icon from "@/components/base/Icon.vue";
 import type { RegistryCredential } from "@/types";
 import type { AssistContext } from "@/stores/assist";
 import { extractComposeServiceNames } from "@/utils/compose";
@@ -1490,7 +1682,7 @@ const existingDeployments = ref<string[]>([]);
 
 const extensions = shallowRef([yaml(), oneDark]);
 
-const deploymentMode = ref<"" | "easy" | "compose" | "image">("");
+const deploymentMode = ref<"" | "easy" | "compose" | "image" | "git">("");
 const templatePreset = ref("");
 const showRegistryPassword = ref(false);
 
@@ -1520,6 +1712,7 @@ const onTemplatePresetChange = () => {
 };
 const existingCredentials = ref<RegistryCredential[]>([]);
 const loadingCredentials = ref(false);
+const sourceCredentials = ref<SourceCredential[]>([]);
 
 const composeServiceNames = computed(() => extractComposeServiceNames(form.composeContent));
 
@@ -1634,6 +1827,19 @@ const steps = computed(() => {
     composeSteps.push({ id: "review", label: "Review" });
     return composeSteps;
   }
+  if (deploymentMode.value === "git") {
+    // The compose file comes from the repository, so there is no "configure"
+    // step where the user writes one.
+    const gitSteps = [
+      { id: "basics", label: "Basics" },
+      { id: "database", label: "Database" },
+    ];
+    if (advancedOptions.multiDomain) {
+      gitSteps.push({ id: "domains", label: "Domains" });
+    }
+    gitSteps.push({ id: "review", label: "Review" });
+    return gitSteps;
+  }
   return easySteps;
 });
 
@@ -1678,6 +1884,19 @@ const form = reactive({
   name: "",
   image: "",
   composeContent: "",
+  gitSource: {
+    method: "url" as "url" | "account",
+    repoUrl: "",
+    branch: "",
+    subpath: "",
+    isPrivate: false,
+    useExisting: false,
+    selectedCredentialId: "",
+    username: "",
+    token: "",
+    saveCredential: false,
+    credentialName: "",
+  },
   envVars: [] as { key: string; value: string }[],
   autoStart: false,
   useCustomDomain: false,
@@ -1776,10 +1995,13 @@ const canProceed = computed(() => {
     if (deploymentMode.value === "image") {
       return nameValid && form.image.trim() !== "";
     }
+    if (deploymentMode.value === "git") {
+      return Boolean(nameValid) && form.gitSource.repoUrl.trim() !== "";
+    }
     return nameValid && selectedQuickApp.value !== "";
   }
 
-  if (deploymentMode.value === "easy") {
+  if (deploymentMode.value === "easy" || deploymentMode.value === "git") {
     if (currentStep.value === 2) {
       if (form.database.type !== "none") {
         if (form.database.mode === "existing") {
@@ -1800,7 +2022,7 @@ const canProceed = computed(() => {
       }
       return true;
     }
-    if (currentStep.value === 3) {
+    if (deploymentMode.value === "easy" && currentStep.value === 3) {
       return form.composeContent.trim().length > 0;
     }
   }
@@ -1855,6 +2077,16 @@ const loadCredentials = async () => {
     existingCredentials.value = [];
   } finally {
     loadingCredentials.value = false;
+  }
+};
+
+const loadSourceCredentials = async () => {
+  try {
+    const response = await sourceCredentialsApi.list();
+    sourceCredentials.value = response.data.credentials || [];
+    form.gitSource.useExisting = sourceCredentials.value.length > 0;
+  } catch {
+    sourceCredentials.value = [];
   }
 };
 
@@ -2265,6 +2497,11 @@ const removePort = (index: number) => {
 
 const generatingCompose = ref(false);
 
+const selectMode = async (mode: "easy" | "compose" | "image" | "git") => {
+  deploymentMode.value = mode;
+  await nextStep();
+};
+
 const nextStep = async () => {
   if (!canProceed.value) return;
 
@@ -2401,6 +2638,7 @@ watch(
       loadQuickApps();
       loadExistingDeployments();
       loadCredentials();
+      loadSourceCredentials();
     }
   },
 );
@@ -2483,7 +2721,11 @@ const validate = () => {
     valid = false;
   }
 
-  if (!form.composeContent.trim()) {
+  if (deploymentMode.value === "git") {
+    if (!form.gitSource.repoUrl.trim()) {
+      valid = false;
+    }
+  } else if (!form.composeContent.trim()) {
     errors.composeContent = "Compose configuration is required";
     valid = false;
   }
@@ -2500,9 +2742,11 @@ const handleCreate = async () => {
     const finalDomain =
       form.useCustomDomain || !domainSettings.default_domain ? form.networking.domain : generatedDomain.value;
 
+    const isGit = deploymentMode.value === "git";
+
     const payload: Record<string, any> = {
       name: form.name,
-      compose_content: form.composeContent,
+      compose_content: isGit ? "" : form.composeContent,
       template_id: effectiveTemplateId.value || undefined,
       env_vars: form.envVars.filter((e) => e.key),
       auto_start: form.autoStart,
@@ -2512,6 +2756,33 @@ const handleCreate = async () => {
           ? form.database.existingContainer
           : undefined,
     };
+
+    if (isGit) {
+      const src: Record<string, any> = {
+        type: "git",
+        ref: form.gitSource.repoUrl.trim(),
+        branch: form.gitSource.branch.trim() || undefined,
+        subpath: form.gitSource.subpath.trim() || undefined,
+      };
+      if (form.gitSource.isPrivate) {
+        if (form.gitSource.useExisting && form.gitSource.selectedCredentialId) {
+          src.credential_id = form.gitSource.selectedCredentialId;
+        } else if (form.gitSource.token) {
+          if (form.gitSource.saveCredential && form.gitSource.credentialName.trim()) {
+            const created = await sourceCredentialsApi.create({
+              name: form.gitSource.credentialName.trim(),
+              username: form.gitSource.username.trim() || undefined,
+              token: form.gitSource.token,
+            });
+            src.credential_id = created.data.credential.id;
+          } else {
+            src.username = form.gitSource.username.trim() || undefined;
+            src.token = form.gitSource.token;
+          }
+        }
+      }
+      payload.source = src;
+    }
 
     if (form.registry.isPrivate) {
       if (form.registry.useExisting && form.registry.selectedCredentialId) {
@@ -3625,8 +3896,8 @@ const handleClose = () => {
 }
 
 .mode-selection {
-  text-align: center;
-  max-width: 700px;
+  text-align: left;
+  max-width: 560px;
   width: 100%;
 }
 
@@ -3643,10 +3914,213 @@ const handleClose = () => {
   margin: 0 0 var(--space-8);
 }
 
-.deployment-modes {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
+.deploy-options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-top: var(--space-6);
+}
+
+.deploy-option-row {
+  display: flex;
+  align-items: center;
   gap: var(--space-4);
+  width: 100%;
+  padding: var(--space-4) var(--space-5);
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s ease;
+}
+
+.deploy-option-row:hover {
+  border-color: var(--color-primary-500);
+  background: var(--surface-inset);
+}
+
+.deploy-option-row.selected {
+  border-color: var(--color-primary-500);
+  box-shadow: 0 0 0 1px var(--color-primary-500);
+}
+
+.deploy-option-icon {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  font-size: 1.15rem;
+  background: var(--surface-inset);
+  color: var(--text);
+}
+
+.deploy-option-icon.easy {
+  color: var(--color-primary-600);
+}
+.deploy-option-icon.image {
+  color: #3b82f6;
+}
+.deploy-option-icon.compose {
+  color: #8b5cf6;
+}
+.deploy-option-icon.git {
+  color: #10b981;
+}
+
+.deploy-option-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.deploy-option-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.deploy-option-head h4 {
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
+  color: var(--text);
+  margin: 0;
+}
+
+.deploy-option-tag {
+  padding: 2px var(--space-2);
+  font-size: var(--text-xs);
+  font-weight: var(--font-medium);
+  border-radius: var(--radius-sm);
+  background: var(--surface-inset);
+  color: var(--text-muted);
+}
+
+.deploy-option-tag.recommended {
+  background: color-mix(in srgb, var(--color-primary-500) 15%, transparent);
+  color: var(--color-primary-500);
+}
+
+.deploy-option-text p {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  margin: var(--space-1) 0 0;
+}
+
+.deploy-option-arrow {
+  flex-shrink: 0;
+  color: var(--text-subtle, var(--text-muted));
+  font-size: 0.8rem;
+}
+
+.source-method-toggle {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.source-method-option {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-muted);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.15s;
+}
+
+.source-method-option.active {
+  border-color: var(--color-primary-500);
+  color: var(--text);
+  background: var(--surface-raised);
+}
+
+.connected-account-empty {
+  text-align: center;
+  padding: var(--space-6);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text-muted);
+}
+
+.connected-account-empty i {
+  font-size: 1.5rem;
+  margin-bottom: var(--space-2);
+}
+
+.connected-account-empty p {
+  margin: 0 0 var(--space-1);
+}
+
+.private-source-config {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border);
+}
+
+.git-config-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-4);
+}
+
+/* The panel content owns the inset; deploy-method fields align to it instead of
+   each carrying their own padding, which left them inset further than the
+   toggles and hints and made the panels look unevenly padded. */
+.compose-info-content .form-field,
+.image-config-content .form-field,
+.git-config-content .form-field {
+  padding: 0;
+}
+
+.git-config-content .info-hint {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  background: var(--color-info-50);
+  border-radius: var(--radius-sm);
+}
+
+.git-config-content .info-hint i {
+  color: var(--color-info-500);
+  font-size: var(--text-sm);
+}
+
+.git-config-content .info-hint span {
+  font-size: var(--text-xs);
+  color: var(--color-info-700);
+}
+
+.git-fields-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+}
+
+.git-config-card .credential-source-toggle {
+  display: flex;
+  gap: var(--space-4);
+  margin-bottom: var(--space-3);
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.git-config-card .credential-source-toggle label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  cursor: pointer;
 }
 
 .deployment-mode-card {
@@ -3654,6 +4128,8 @@ const handleClose = () => {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+  min-width: 0;
+  min-height: 168px;
   padding: var(--space-6);
   background: var(--surface-raised);
   border: 2px solid var(--border);
