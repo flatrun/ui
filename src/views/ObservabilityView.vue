@@ -66,51 +66,53 @@
         </component>
       </section>
 
-      <div class="charts-head">
-        <h3>Host</h3>
-        <TimeRangePicker :model-value="since" :ranges="ranges" @update:model-value="setRange" />
-      </div>
-      <div class="three-col">
-        <section class="panel">
-          <div class="chart-title"><Icon name="flame" :size="15" /> CPU</div>
-          <TimeSeriesChart
-            v-if="hostCpuSeries"
-            :containers="hostCpuSeries.containers"
-            :timestamps="hostCpuSeries.timestamps"
-            :values="hostCpuSeries.values"
-            unit="percent"
-            area
-          />
-          <p v-else class="muted">No data.</p>
-        </section>
-        <section class="panel">
-          <div class="chart-title"><Icon name="memory-stick" :size="15" /> Memory</div>
-          <TimeSeriesChart
-            v-if="hostMemSeries"
-            :containers="hostMemSeries.containers"
-            :timestamps="hostMemSeries.timestamps"
-            :values="hostMemSeries.values"
-            unit="percent"
-            area
-          />
-          <p v-else class="muted">No data.</p>
-        </section>
-        <section class="panel">
-          <div class="chart-title"><Icon name="hard-drive" :size="15" /> Disk</div>
-          <TimeSeriesChart
-            v-if="hostDiskSeries"
-            :containers="hostDiskSeries.containers"
-            :timestamps="hostDiskSeries.timestamps"
-            :values="hostDiskSeries.values"
-            unit="percent"
-            area
-          />
-          <p v-else class="muted">No data.</p>
-        </section>
-      </div>
+      <template v-if="hasHostData">
+        <div class="charts-head">
+          <h3>Host</h3>
+        </div>
+        <div class="three-col">
+          <section class="panel">
+            <div class="chart-title"><Icon name="flame" :size="15" /> CPU</div>
+            <TimeSeriesChart
+              v-if="hostCpuSeries"
+              :containers="hostCpuSeries.containers"
+              :timestamps="hostCpuSeries.timestamps"
+              :values="hostCpuSeries.values"
+              unit="percent"
+              area
+            />
+            <p v-else class="muted">No data.</p>
+          </section>
+          <section class="panel">
+            <div class="chart-title"><Icon name="memory-stick" :size="15" /> Memory</div>
+            <TimeSeriesChart
+              v-if="hostMemSeries"
+              :containers="hostMemSeries.containers"
+              :timestamps="hostMemSeries.timestamps"
+              :values="hostMemSeries.values"
+              unit="percent"
+              area
+            />
+            <p v-else class="muted">No data.</p>
+          </section>
+          <section class="panel">
+            <div class="chart-title"><Icon name="hard-drive" :size="15" /> Disk</div>
+            <TimeSeriesChart
+              v-if="hostDiskSeries"
+              :containers="hostDiskSeries.containers"
+              :timestamps="hostDiskSeries.timestamps"
+              :values="hostDiskSeries.values"
+              unit="percent"
+              area
+            />
+            <p v-else class="muted">No data.</p>
+          </section>
+        </div>
+      </template>
 
       <div class="charts-head">
         <h3>Fleet resources</h3>
+        <TimeRangePicker :model-value="since" :ranges="ranges" @update:model-value="setRange" />
       </div>
       <div class="two-col">
         <section class="panel">
@@ -189,18 +191,24 @@ async function load() {
   loading.value = true;
   error.value = false;
   try {
-    const [metrics, health, events, ts, host] = await Promise.all([
+    const [metrics, health, events, ts] = await Promise.all([
       observabilityApi.latest(),
       observabilityApi.health(),
       observabilityApi.recoveries(),
       observabilityApi.timeseries("", since.value),
-      observabilityApi.hostTimeseries(since.value),
     ]);
     containerCount.value = (metrics.data || []).reduce((n, d) => n + d.containers.length, 0);
     healthList.value = health.data || [];
     recoveries.value = events.data || [];
     series.value = ts.data.metrics || {};
-    hostSeries.value = host.data.metrics || {};
+    // Host metrics are optional: an agent without the endpoint (or a transient
+    // failure) must not take down the whole view, just hide the host charts.
+    try {
+      const host = await observabilityApi.hostTimeseries(since.value);
+      hostSeries.value = host.data.metrics || {};
+    } catch {
+      hostSeries.value = {};
+    }
     if (!deploymentsStore.deployments.length) await deploymentsStore.fetchDeployments();
   } catch {
     error.value = true;
@@ -221,6 +229,7 @@ const memSeries = computed(() => series.value[METRIC.memUsage]);
 const hostCpuSeries = computed(() => hostSeries.value[METRIC.hostCpu]);
 const hostMemSeries = computed(() => hostSeries.value[METRIC.hostMemUtil]);
 const hostDiskSeries = computed(() => hostSeries.value[METRIC.hostDisk]);
+const hasHostData = computed(() => Object.keys(hostSeries.value).length > 0);
 
 function relTime(iso: string): string {
   const secs = Math.max(0, (Date.now() - new Date(iso).getTime()) / 1000);
