@@ -568,6 +568,18 @@ onMounted(fetchAgents);
 </style>
 
 <style scoped>
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.btn-icon {
+  background: var(--surface-raised);
+  border-color: var(--border);
+  color: var(--text-muted);
+}
+
 .scope-badge.scheduled {
   display: inline-flex;
   align-items: center;
