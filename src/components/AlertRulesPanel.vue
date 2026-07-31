@@ -20,6 +20,7 @@
         <div class="arp-rule-main">
           <p class="arp-rule-name">{{ rule.name }}</p>
           <p class="arp-rule-cond">{{ describe(rule) }}</p>
+          <p v-if="firingSnapshot(rule.id)" class="arp-rule-top">Top: {{ firingSnapshot(rule.id) }}</p>
         </div>
 
         <span v-if="firingIds.has(rule.id ?? '')" class="arp-firing">Firing</span>
@@ -78,6 +79,27 @@
           <BaseInput v-model="draft.for_seconds" type="number" min="0" />
         </BaseField>
 
+        <BaseField label="Notify" hint="Which targets to alert. None selected sends to all.">
+          <div v-if="notifyTargets.length" class="arp-targets">
+            <label v-for="t in notifyTargets" :key="t.id" class="arp-target">
+              <input type="checkbox" :checked="draft.targets?.includes(t.id)" @change="toggleTarget(t.id)" />
+              {{ t.name }}
+            </label>
+          </div>
+          <p v-else class="arp-muted">No notification targets yet. Add one in Settings to send anywhere.</p>
+        </BaseField>
+
+        <BaseField
+          v-if="!isHostMetric"
+          label="When it fires"
+          hint="Optionally restart the offending deployment. Managed deployments only, rate-limited so it cannot loop."
+        >
+          <BaseSelect v-model="draft.action">
+            <option value="">Notify only</option>
+            <option value="restart">Notify and restart the deployment</option>
+          </BaseSelect>
+        </BaseField>
+
         <label class="arp-enable">
           <input v-model="draft.enabled" type="checkbox" />
           Enabled
@@ -100,6 +122,7 @@
 import { ref, computed, watch, onMounted } from "vue";
 import { observabilityApi, METRIC } from "@/services/observability";
 import type { AlertRule, AlertEvent } from "@/services/observability";
+import { notificationsApi, type NotificationTarget } from "@/services/api";
 import { useNotificationsStore } from "@/stores/notifications";
 import Icon from "@/components/base/Icon.vue";
 import BaseModal from "@/components/base/BaseModal.vue";
@@ -118,6 +141,21 @@ const saving = ref(false);
 const formError = ref("");
 
 const firingIds = computed(() => new Set(firing.value.map((f) => f.rule_id)));
+const firingByRule = computed(() => {
+  const m = new Map<string, AlertEvent>();
+  for (const f of firing.value) m.set(f.rule_id, f);
+  return m;
+});
+
+// firingSnapshot renders the top-consuming containers recorded when a rule
+// fired, so the panel shows what was using the resource, not just that a line
+// was crossed.
+const firingSnapshot = (id?: string): string => {
+  const ev = id ? firingByRule.value.get(id) : undefined;
+  if (!ev?.snapshot?.length) return "";
+  const asBytes = ev.metric.includes("memory");
+  return ev.snapshot.map((c) => `${c.container} (${asBytes ? bytes(c.value) : `${c.value.toFixed(1)}%`})`).join(", ");
+};
 
 const metricOptions = [
   { value: METRIC.cpu, label: "Container CPU usage", unit: "percent" },
@@ -130,6 +168,8 @@ const metricOptions = [
   { value: METRIC.hostDisk, label: "Host disk used %", unit: "percent", host: true },
 ];
 
+const notifyTargets = ref<NotificationTarget[]>([]);
+
 const blank = (): AlertRule => ({
   name: "",
   deployment: "",
@@ -138,15 +178,28 @@ const blank = (): AlertRule => ({
   threshold: 80,
   for_seconds: 60,
   enabled: true,
+  targets: [],
+  action: "",
 });
 
 const draft = ref<AlertRule>(blank());
 
+const toggleTarget = (id: string) => {
+  const list = draft.value.targets ?? (draft.value.targets = []);
+  const i = list.indexOf(id);
+  if (i === -1) list.push(id);
+  else list.splice(i, 1);
+};
+
 // A host metric is machine-wide, so it is never scoped to a deployment; picking
-// one clears any deployment so the rule reads the host series.
+// one clears any deployment so the rule reads the host series. It also has no
+// deployment to restart, so the action is cleared too.
 const isHostMetric = computed(() => metricOptions.find((m) => m.value === draft.value.metric)?.host === true);
 watch(isHostMetric, (host) => {
-  if (host) draft.value.deployment = "";
+  if (host) {
+    draft.value.deployment = "";
+    draft.value.action = "";
+  }
 });
 
 const unitHint = computed(() =>
@@ -173,12 +226,14 @@ function bytes(v: number): string {
 }
 
 const load = async () => {
-  const [rulesResult, firingResult] = await Promise.allSettled([
+  const [rulesResult, firingResult, targetsResult] = await Promise.allSettled([
     observabilityApi.alertRules(),
     observabilityApi.firingAlerts(),
+    notificationsApi.getTargets(),
   ]);
   if (rulesResult.status === "fulfilled") rules.value = rulesResult.value.data || [];
   if (firingResult.status === "fulfilled") firing.value = firingResult.value.data || [];
+  if (targetsResult.status === "fulfilled") notifyTargets.value = targetsResult.value.data.targets || [];
 };
 
 const openNew = () => {
@@ -188,7 +243,7 @@ const openNew = () => {
 };
 
 const openEdit = (rule: AlertRule) => {
-  draft.value = { ...rule };
+  draft.value = { ...rule, targets: [...(rule.targets ?? [])] };
   formError.value = "";
   editing.value = draft.value;
 };
@@ -318,6 +373,33 @@ onMounted(load);
 
 .arp-rule-cond {
   margin: 2px 0 0;
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+.arp-rule-top {
+  margin: 3px 0 0;
+  font-size: var(--text-xs);
+  color: var(--color-danger-600, #dc2626);
+}
+
+.arp-targets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.arp-target {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--text-sm);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.arp-muted {
+  margin: 0;
   font-size: var(--text-xs);
   color: var(--text-muted);
 }

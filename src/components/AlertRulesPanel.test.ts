@@ -12,6 +12,10 @@ vi.mock("@/services/observability", async (importOriginal) => {
   };
 });
 
+vi.mock("@/services/api", () => ({
+  notificationsApi: { getTargets: vi.fn().mockResolvedValue({ data: { targets: [] } }) },
+}));
+
 const rule = {
   id: "r1",
   name: "CPU high",
