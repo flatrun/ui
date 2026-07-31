@@ -66,6 +66,50 @@
         </component>
       </section>
 
+      <template v-if="hasHostData">
+        <div class="charts-head">
+          <h3>Host</h3>
+        </div>
+        <div class="three-col">
+          <section class="panel">
+            <div class="chart-title"><Icon name="flame" :size="15" /> CPU</div>
+            <TimeSeriesChart
+              v-if="hostCpuSeries"
+              :containers="hostCpuSeries.containers"
+              :timestamps="hostCpuSeries.timestamps"
+              :values="hostCpuSeries.values"
+              unit="percent"
+              area
+            />
+            <p v-else class="muted">No data.</p>
+          </section>
+          <section class="panel">
+            <div class="chart-title"><Icon name="memory-stick" :size="15" /> Memory</div>
+            <TimeSeriesChart
+              v-if="hostMemSeries"
+              :containers="hostMemSeries.containers"
+              :timestamps="hostMemSeries.timestamps"
+              :values="hostMemSeries.values"
+              unit="percent"
+              area
+            />
+            <p v-else class="muted">No data.</p>
+          </section>
+          <section class="panel">
+            <div class="chart-title"><Icon name="hard-drive" :size="15" /> Disk</div>
+            <TimeSeriesChart
+              v-if="hostDiskSeries"
+              :containers="hostDiskSeries.containers"
+              :timestamps="hostDiskSeries.timestamps"
+              :values="hostDiskSeries.values"
+              unit="percent"
+              area
+            />
+            <p v-else class="muted">No data.</p>
+          </section>
+        </div>
+      </template>
+
       <div class="charts-head">
         <h3>Fleet resources</h3>
         <TimeRangePicker :model-value="since" :ranges="ranges" @update:model-value="setRange" />
@@ -136,6 +180,7 @@ const containerCount = ref(0);
 const healthList = ref<ContainerHealth[]>([]);
 const recoveries = ref<RecoveryEvent[]>([]);
 const series = ref<Record<string, MetricSeries>>({});
+const hostSeries = ref<Record<string, MetricSeries>>({});
 const loading = ref(true);
 const error = ref(false);
 const ranges = ["15m", "1h", "6h", "24h"];
@@ -156,6 +201,14 @@ async function load() {
     healthList.value = health.data || [];
     recoveries.value = events.data || [];
     series.value = ts.data.metrics || {};
+    // Host metrics are optional: an agent without the endpoint (or a transient
+    // failure) must not take down the whole view, just hide the host charts.
+    try {
+      const host = await observabilityApi.hostTimeseries(since.value);
+      hostSeries.value = host.data.metrics || {};
+    } catch {
+      hostSeries.value = {};
+    }
     if (!deploymentsStore.deployments.length) await deploymentsStore.fetchDeployments();
   } catch {
     error.value = true;
@@ -173,6 +226,10 @@ const healthyCount = computed(() => healthList.value.filter((h) => h.status === 
 const unhealthy = computed(() => healthList.value.filter((h) => h.status === "unhealthy"));
 const cpuSeries = computed(() => series.value[METRIC.cpu]);
 const memSeries = computed(() => series.value[METRIC.memUsage]);
+const hostCpuSeries = computed(() => hostSeries.value[METRIC.hostCpu]);
+const hostMemSeries = computed(() => hostSeries.value[METRIC.hostMemUtil]);
+const hostDiskSeries = computed(() => hostSeries.value[METRIC.hostDisk]);
+const hasHostData = computed(() => Object.keys(hostSeries.value).length > 0);
 
 function relTime(iso: string): string {
   const secs = Math.max(0, (Date.now() - new Date(iso).getTime()) / 1000);
@@ -394,8 +451,15 @@ onUnmounted(() => {
   gap: var(--space-4);
 }
 
+.three-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: var(--space-4);
+}
+
 @media (max-width: 720px) {
-  .two-col {
+  .two-col,
+  .three-col {
     grid-template-columns: 1fr;
   }
 }

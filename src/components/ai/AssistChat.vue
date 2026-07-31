@@ -53,6 +53,14 @@
           <Icon name="message-square" :size="16" class="history-item-icon" />
           <span class="history-item-title">{{ s.title }}</span>
           <span class="history-item-meta">{{ formatWhen(s.updated_at) }}</span>
+          <Icon
+            name="trash-2"
+            :size="15"
+            class="history-item-delete"
+            role="button"
+            aria-label="Delete conversation"
+            @click.stop="pendingDeleteId = s.id"
+          />
         </button>
       </div>
 
@@ -190,6 +198,17 @@
       </div>
     </template>
   </SlidePanel>
+
+  <ConfirmModal
+    :visible="pendingDeleteId !== null"
+    title="Delete conversation"
+    message="Delete this conversation? Its transcript is removed and cannot be recovered."
+    variant="danger"
+    confirm-text="Delete"
+    :loading="deleting"
+    @confirm="confirmDelete"
+    @cancel="pendingDeleteId = null"
+  />
 </template>
 
 <script setup lang="ts">
@@ -199,6 +218,7 @@ import { marked } from "marked";
 import DOMPurify from "dompurify";
 import SlidePanel from "@/components/base/SlidePanel.vue";
 import Icon from "@/components/base/Icon.vue";
+import ConfirmModal from "@/components/ConfirmModal.vue";
 import { useAssistStore, AI_DISABLED_MESSAGE } from "@/stores/assist";
 import type { AIToolCall, AIToolStep } from "@/services/api";
 
@@ -305,6 +325,20 @@ const formatWhen = (iso: string): string => {
 const loadPast = async (id: string) => {
   await store.loadSession(id);
   view.value = "chat";
+};
+
+const pendingDeleteId = ref<string | null>(null);
+const deleting = ref(false);
+
+const confirmDelete = async () => {
+  if (!pendingDeleteId.value) return;
+  deleting.value = true;
+  try {
+    await store.deleteSession(pendingDeleteId.value);
+    pendingDeleteId.value = null;
+  } finally {
+    deleting.value = false;
+  }
 };
 
 const renderMarkdown = (content: string) => DOMPurify.sanitize(marked.parse(content, { async: false }) as string);
@@ -537,6 +571,18 @@ watch(
   font-size: 0.7rem;
   color: var(--text-subtle);
   flex-shrink: 0;
+}
+.history-item-delete {
+  flex-shrink: 0;
+  color: var(--text-subtle);
+  opacity: 0;
+  transition: all var(--transition-base);
+}
+.history-item:hover .history-item-delete {
+  opacity: 1;
+}
+.history-item-delete:hover {
+  color: var(--color-danger-500);
 }
 .history-note {
   margin-top: 0.5rem;

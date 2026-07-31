@@ -196,6 +196,16 @@ export const useAssistStore = defineStore("assist", () => {
     }
   }
 
+  // deleteSession removes a saved conversation. If the deleted one is open, the
+  // view is reset so it does not keep showing a session that no longer exists.
+  async function deleteSession(id: string) {
+    await aiApi.deleteSession(id);
+    sessions.value = sessions.value.filter((s) => s.id !== id);
+    if (session.value?.id === id) {
+      session.value = null;
+    }
+  }
+
   // loadSession reopens a saved conversation and binds later turns to its scope.
   async function loadSession(id: string) {
     loading.value = true;
@@ -239,6 +249,7 @@ export const useAssistStore = defineStore("assist", () => {
     send,
     listSessions,
     loadSession,
+    deleteSession,
     decide,
     approveAll,
     declineAll,

@@ -7,6 +7,11 @@ export const METRIC = {
   memLimit: "container.memory.limit",
   netRx: "container.network.io.rx",
   netTx: "container.network.io.tx",
+  hostCpu: "system.cpu.utilization",
+  hostMemUtil: "system.memory.utilization",
+  hostMemUsage: "system.memory.usage",
+  hostMemLimit: "system.memory.limit",
+  hostDisk: "system.disk.utilization",
 } as const;
 
 export interface ContainerMetrics {
@@ -80,6 +85,10 @@ export const observabilityApi = {
   timeseries: (deployment: string, sinceRange = "15m") =>
     apiClient.get<{ metrics: Record<string, MetricSeries> }>(`${base}/metrics/timeseries`, {
       params: { deployment, since: sinceRange },
+    }),
+  hostTimeseries: (sinceRange = "6h") =>
+    apiClient.get<{ metrics: Record<string, MetricSeries> }>(`${base}/metrics/host`, {
+      params: { since: sinceRange },
     }),
   series: (deployment: string, container: string, metric: string, since = "15m") =>
     apiClient.get<{ samples: Sample[] }>(`${base}/metrics/series`, {
