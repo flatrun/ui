@@ -162,6 +162,8 @@ function buildUrl(): string {
 const previewUrl = computed(buildUrl);
 
 function kindOf(url: string): string {
+  // A saved target comes back with its URL masked, so its scheme is unknowable.
+  if (!url || url.startsWith("****")) return "Configured";
   if (url.startsWith("smtp://")) return "Email";
   if (url.startsWith("generic")) return "Webhook";
   const scheme = url.split("://")[0];
@@ -195,6 +197,10 @@ function remove(id: string) {
 }
 
 async function save() {
+  // A target the user filled in but did not click Add on must not be silently
+  // dropped: pull it into the list before saving. Testing a draft goes straight
+  // to the form, so without this a tested-then-saved target vanished on refresh.
+  if (buildUrl()) add();
   saving.value = true;
   savedNote.value = false;
   try {
