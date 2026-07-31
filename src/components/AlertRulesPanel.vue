@@ -42,9 +42,12 @@
           <BaseInput v-model="draft.name" placeholder="Memory close to the limit" />
         </BaseField>
 
-        <BaseField label="Deployment" hint="Leave empty to watch every deployment.">
-          <BaseSelect v-model="draft.deployment">
-            <option value="">Every deployment</option>
+        <BaseField
+          label="Deployment"
+          :hint="isHostMetric ? 'A host metric watches the whole machine.' : 'Leave empty to watch every deployment.'"
+        >
+          <BaseSelect v-model="draft.deployment" :disabled="isHostMetric">
+            <option value="">{{ isHostMetric ? "Whole host" : "Every deployment" }}</option>
             <option v-for="d in deployments" :key="d" :value="d">{{ d }}</option>
           </BaseSelect>
         </BaseField>
@@ -94,7 +97,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, watch, onMounted } from "vue";
 import { observabilityApi, METRIC } from "@/services/observability";
 import type { AlertRule, AlertEvent } from "@/services/observability";
 import { useNotificationsStore } from "@/stores/notifications";
@@ -117,10 +120,14 @@ const formError = ref("");
 const firingIds = computed(() => new Set(firing.value.map((f) => f.rule_id)));
 
 const metricOptions = [
-  { value: METRIC.cpu, label: "CPU usage", unit: "percent" },
-  { value: METRIC.memUsage, label: "Memory usage", unit: "bytes" },
-  { value: METRIC.netRx, label: "Network in", unit: "bytes" },
-  { value: METRIC.netTx, label: "Network out", unit: "bytes" },
+  { value: METRIC.cpu, label: "Container CPU usage", unit: "percent" },
+  { value: METRIC.memUsage, label: "Container memory usage", unit: "bytes" },
+  { value: METRIC.netRx, label: "Container network in", unit: "bytes" },
+  { value: METRIC.netTx, label: "Container network out", unit: "bytes" },
+  { value: METRIC.hostCpu, label: "Host CPU", unit: "percent", host: true },
+  { value: METRIC.hostMemUtil, label: "Host memory used %", unit: "percent", host: true },
+  { value: METRIC.hostMemUsage, label: "Host memory used", unit: "bytes", host: true },
+  { value: METRIC.hostDisk, label: "Host disk used %", unit: "percent", host: true },
 ];
 
 const blank = (): AlertRule => ({
@@ -134,6 +141,13 @@ const blank = (): AlertRule => ({
 });
 
 const draft = ref<AlertRule>(blank());
+
+// A host metric is machine-wide, so it is never scoped to a deployment; picking
+// one clears any deployment so the rule reads the host series.
+const isHostMetric = computed(() => metricOptions.find((m) => m.value === draft.value.metric)?.host === true);
+watch(isHostMetric, (host) => {
+  if (host) draft.value.deployment = "";
+});
 
 const unitHint = computed(() =>
   metricOptions.find((m) => m.value === draft.value.metric)?.unit === "bytes" ? "In bytes." : "A percentage.",
