@@ -471,7 +471,8 @@ export interface AISessionSummary {
 
 export const aiApi = {
   status: () => apiClient.get<AIStatus>("/ai/status"),
-  listSessions: () => apiClient.get<{ sessions: AISessionSummary[] }>("/ai/sessions"),
+  listSessions: (agent?: string) =>
+    apiClient.get<{ sessions: AISessionSummary[] }>("/ai/sessions", { params: agent ? { agent } : {} }),
   createSession: (body: {
     scope: "system" | "deployment";
     deployment?: string;
@@ -493,6 +494,8 @@ export interface AgentDefinition {
   description: string;
   scope: "system" | "deployment";
   deployment?: string;
+  schedule?: string;
+  permissions?: string[];
 }
 
 export const agentsApi = {
