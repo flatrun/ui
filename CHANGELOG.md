@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.4.0-beta.2] - 2026-08-01
+
+Second beta of the Albacore release, continuing the work on top of beta.1. Some Albacore items remain in progress and are not in this beta.
+
+### Added
+- From Git option in the new-deployment flow: clone a repository and deploy its compose file, with a private repository authenticated by a saved credential or a token that can be saved for reuse
+- Administration > Updates: the current version and the releases available on a channel (stable, or prereleases behind an opt-in), each with its changelog, installing the newest in one click behind the settings permission
+- Host charts on the observability screen for host CPU, memory and disk, with an alert rule able to target a host metric; the host section is hidden when its endpoint is absent instead of breaking the view
+- Agent scheduling from a cadence picker with a permissions selector instead of hand-typed frontmatter, and a per-agent list of past runs that open in the assistant
+- Deleting a saved assistant conversation, behind a confirmation
+
+### Enhanced
+- An alert rule selects which notification targets it sends to (none selected means all) and can opt to restart the offending deployment when it fires, offered for container metrics only; a firing rule shows the containers that were using the most of the resource
+- The new-deployment method picker is a vertical option list with Template recommended, replacing the four equal cards, so a further source is one more row rather than a tighter squeeze
+
+### Fixed
+- A notification target no longer disappears after a successful test and save; the filled-in draft is pulled into the list on save
+- The Agents, API keys and users views referenced design tokens that do not exist, so borders and surfaces dropped out (the Agents editor input had no visible border in dark mode); all three now use the design system's real tokens
+
 ## [0.4.0-beta.1] - 2026-07-29
 
 First beta of the Albacore release. Some Albacore items remain in progress and are not in this beta.
