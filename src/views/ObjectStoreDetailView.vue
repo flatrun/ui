@@ -1,26 +1,49 @@
 <template>
-  <BaseModal
-    :visible="visible"
-    :title="store ? `Objects in ${store.name}` : 'Objects'"
-    :subtitle="store ? `Bucket ${store.bucket}` : ''"
-    size="xl"
-    @close="emit('close')"
-  >
-    <div class="browser">
+  <div class="store-detail">
+    <header class="page-header">
+      <button type="button" class="back" @click="router.push('/storage/object-stores')">
+        <Icon name="arrow-left" :size="16" /> Object Stores
+      </button>
+      <div v-if="store" class="head-main">
+        <div class="title-row">
+          <Icon name="container" :size="20" />
+          <h1>{{ store.name }}</h1>
+          <span class="store-kind" :class="kind">{{ kind === "managed" ? "Managed" : "External" }}</span>
+          <span class="store-state" :class="store.enabled === false ? 'off' : 'on'">
+            {{ store.enabled === false ? "Disabled" : "Active" }}
+          </span>
+        </div>
+        <dl class="meta">
+          <dt>Bucket</dt>
+          <dd>{{ store.bucket }}</dd>
+          <dt>Endpoint</dt>
+          <dd>{{ store.endpoint || "AWS default" }}</dd>
+          <dt>Region</dt>
+          <dd>{{ store.region || "—" }}</dd>
+        </dl>
+        <div v-if="canManage" class="head-actions">
+          <BaseButton variant="secondary" size="sm" icon="plug" @click="showAttach = true">Use in app</BaseButton>
+          <BaseButton variant="secondary" size="sm" icon="copy" @click="showReplicate = true">Replicate</BaseButton>
+        </div>
+      </div>
+    </header>
+
+    <BaseCard v-if="store">
       <div class="toolbar">
+        <h2>Objects</h2>
+        <span class="spacer" />
+        <span class="count muted">{{ objects.length }} object{{ objects.length === 1 ? "" : "s" }}</span>
         <BaseButton variant="secondary" size="sm" icon="refresh-cw" :loading="loading" @click="load">Refresh</BaseButton>
         <input ref="fileInput" type="file" class="hidden-file" @change="onFilePicked" />
         <BaseButton v-if="canWrite" variant="primary" size="sm" icon="upload" :loading="uploading" @click="pickFile">
           Upload
         </BaseButton>
-        <span class="spacer" />
-        <span class="count muted">{{ objects.length }} object{{ objects.length === 1 ? "" : "s" }}</span>
       </div>
 
       <div v-if="loading" class="state muted"><Icon name="loader-circle" spin :size="18" /> Loading…</div>
 
       <div v-else-if="!objects.length" class="state empty">
-        <Icon name="package-open" :size="26" />
+        <Icon name="package-open" :size="28" />
         <p>This store is empty.</p>
       </div>
 
@@ -55,45 +78,66 @@
           </tr>
         </tbody>
       </table>
+    </BaseCard>
+
+    <div v-else-if="!resolving" class="state empty">
+      <Icon name="alert-triangle" :size="26" />
+      <p>Store not found.</p>
     </div>
-  </BaseModal>
+
+    <AttachStoreModal :visible="showAttach" :store="store" @close="showAttach = false" />
+    <ReplicateStoreModal :visible="showReplicate" :store="store" @close="showReplicate = false" />
+  </div>
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from "vue";
-import BaseModal from "@/components/base/BaseModal.vue";
-import BaseButton from "@/components/base/BaseButton.vue";
+import { ref, computed, onMounted } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import Icon from "@/components/base/Icon.vue";
-import { objectStoresApi, type BackupDestination, type StoreObject } from "@/services/api";
+import BaseCard from "@/components/base/BaseCard.vue";
+import BaseButton from "@/components/base/BaseButton.vue";
+import AttachStoreModal from "@/components/AttachStoreModal.vue";
+import ReplicateStoreModal from "@/components/ReplicateStoreModal.vue";
+import { backupDestinationsApi, objectStoresApi, type BackupDestination, type StoreObject } from "@/services/api";
 import { useNotificationsStore } from "@/stores/notifications";
 import { useAuthStore } from "@/stores/auth";
 
-const props = defineProps<{ visible: boolean; store: BackupDestination | null }>();
-const emit = defineEmits(["close"]);
-
+const route = useRoute();
+const router = useRouter();
 const notifications = useNotificationsStore();
 const auth = useAuthStore();
 const canWrite = auth.hasPermission("backups:write");
+const canManage = auth.hasPermission("backups:write") || auth.hasPermission("config:write");
 
+const name = route.params.name as string;
+const store = ref<BackupDestination | null>(null);
+const resolving = ref(true);
 const objects = ref<StoreObject[]>([]);
 const loading = ref(false);
 const uploading = ref(false);
 const busyKey = ref<string | null>(null);
 const fileInput = ref<HTMLInputElement | null>(null);
+const showAttach = ref(false);
+const showReplicate = ref(false);
 
-watch(
-  () => props.visible,
-  (open) => {
-    if (open && props.store) load();
-    else objects.value = [];
-  },
-);
+const kind = computed(() => store.value?.kind || "external");
+
+onMounted(async () => {
+  try {
+    const res = await backupDestinationsApi.list();
+    store.value = (res.data.destinations || []).find((d) => d.name === name) || null;
+  } catch (e: any) {
+    notifications.error("Could not load store", e.response?.data?.error || e.message);
+  } finally {
+    resolving.value = false;
+  }
+  if (store.value) load();
+});
 
 async function load() {
-  if (!props.store) return;
   loading.value = true;
   try {
-    const res = await objectStoresApi.listObjects(props.store.name);
+    const res = await objectStoresApi.listObjects(name);
     objects.value = (res.data.objects || []).sort((a, b) => b.ModTime.localeCompare(a.ModTime));
   } catch (e: any) {
     notifications.error("Could not list objects", e.response?.data?.error || e.message);
@@ -111,11 +155,11 @@ async function onFilePicked(e: Event) {
   const input = e.target as HTMLInputElement;
   const file = input.files?.[0];
   input.value = "";
-  if (!file || !props.store) return;
+  if (!file) return;
   uploading.value = true;
   try {
-    await objectStoresApi.uploadObject(props.store.name, file);
-    notifications.success("Uploaded", `${file.name} uploaded to ${props.store.name}.`);
+    await objectStoresApi.uploadObject(name, file);
+    notifications.success("Uploaded", `${file.name} uploaded.`);
     await load();
   } catch (e: any) {
     notifications.error("Upload failed", e.response?.data?.error || e.message);
@@ -125,10 +169,9 @@ async function onFilePicked(e: Event) {
 }
 
 async function download(o: StoreObject) {
-  if (!props.store) return;
   busyKey.value = o.Key;
   try {
-    const res = await objectStoresApi.downloadObject(props.store.name, o.Key);
+    const res = await objectStoresApi.downloadObject(name, o.Key);
     const url = URL.createObjectURL(res.data as Blob);
     const a = document.createElement("a");
     a.href = url;
@@ -143,10 +186,9 @@ async function download(o: StoreObject) {
 }
 
 async function remove(o: StoreObject) {
-  if (!props.store) return;
   busyKey.value = o.Key;
   try {
-    await objectStoresApi.deleteObject(props.store.name, o.Key);
+    await objectStoresApi.deleteObject(name, o.Key);
     objects.value = objects.value.filter((x) => x.Key !== o.Key);
   } catch (e: any) {
     notifications.error("Delete failed", e.response?.data?.error || e.message);
@@ -173,17 +215,109 @@ function formatTime(iso: string): string {
 </script>
 
 <style scoped>
-.browser {
+.store-detail {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
-  min-height: 200px;
+  gap: var(--space-4);
+}
+
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: var(--space-3);
+}
+
+.back:hover {
+  color: var(--text);
+}
+
+.title-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.title-row h1 {
+  margin: 0;
+  font-size: var(--text-xl);
+  font-weight: var(--font-bold);
+  color: var(--text);
+}
+
+.store-kind,
+.store-state {
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  padding: 0.05rem 0.45rem;
+  border-radius: var(--radius-full);
+}
+
+.store-kind.external {
+  background: var(--surface-inset);
+  color: var(--text-muted);
+}
+
+.store-kind.managed {
+  background: var(--color-info-50);
+  color: var(--color-info-700);
+}
+
+.store-state.on {
+  background: var(--color-success-50);
+  color: var(--color-success-700);
+}
+
+.store-state.off {
+  background: var(--surface-inset);
+  color: var(--text-muted);
+}
+
+.meta {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.25rem 1rem;
+  margin: var(--space-3) 0;
+  max-width: 640px;
+}
+
+.meta dt {
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+}
+
+.meta dd {
+  margin: 0;
+  color: var(--text);
+  font-size: var(--text-sm);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.head-actions {
+  display: flex;
+  gap: var(--space-2);
 }
 
 .toolbar {
   display: flex;
   align-items: center;
   gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+
+.toolbar h2 {
+  margin: 0;
+  font-size: var(--text-md);
+  font-weight: var(--font-semibold);
+  color: var(--text);
 }
 
 .spacer {

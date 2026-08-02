@@ -101,6 +101,12 @@ const routes: RouteRecordRaw[] = [
         meta: { permission: "backups:read" },
       },
       {
+        path: "storage/object-stores/:name",
+        name: "object-store-detail",
+        component: () => import("@/views/ObjectStoreDetailView.vue"),
+        meta: { permission: "backups:read" },
+      },
+      {
         path: "certificates",
         name: "certificates",
         component: () => import("@/views/CertificatesView.vue"),
