@@ -87,6 +87,16 @@
 
     <AttachStoreModal :visible="showAttach" :store="store" @close="showAttach = false" />
     <ReplicateStoreModal :visible="showReplicate" :store="store" @close="showReplicate = false" />
+    <ConfirmModal
+      :visible="!!pendingDelete"
+      title="Delete object"
+      :message="pendingDelete ? `Delete “${pendingDelete.Key}” from ${name}? This cannot be undone.` : ''"
+      variant="danger"
+      confirm-text="Delete"
+      :loading="!!busyKey"
+      @confirm="confirmDelete"
+      @cancel="pendingDelete = null"
+    />
   </div>
 </template>
 
@@ -98,6 +108,7 @@ import BaseCard from "@/components/base/BaseCard.vue";
 import BaseButton from "@/components/base/BaseButton.vue";
 import AttachStoreModal from "@/components/AttachStoreModal.vue";
 import ReplicateStoreModal from "@/components/ReplicateStoreModal.vue";
+import ConfirmModal from "@/components/ConfirmModal.vue";
 import { backupDestinationsApi, objectStoresApi, type BackupDestination, type StoreObject } from "@/services/api";
 import { useNotificationsStore } from "@/stores/notifications";
 import { useAuthStore } from "@/stores/auth";
@@ -119,6 +130,7 @@ const busyKey = ref<string | null>(null);
 const fileInput = ref<HTMLInputElement | null>(null);
 const showAttach = ref(false);
 const showReplicate = ref(false);
+const pendingDelete = ref<StoreObject | null>(null);
 
 const kind = computed(() => store.value?.kind || "external");
 
@@ -185,11 +197,18 @@ async function download(o: StoreObject) {
   }
 }
 
-async function remove(o: StoreObject) {
+function remove(o: StoreObject) {
+  pendingDelete.value = o;
+}
+
+async function confirmDelete() {
+  const o = pendingDelete.value;
+  if (!o) return;
   busyKey.value = o.Key;
   try {
     await objectStoresApi.deleteObject(name, o.Key);
     objects.value = objects.value.filter((x) => x.Key !== o.Key);
+    pendingDelete.value = null;
   } catch (e: any) {
     notifications.error("Delete failed", e.response?.data?.error || e.message);
   } finally {
