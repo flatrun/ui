@@ -64,7 +64,12 @@
               <dt>Endpoint</dt>
               <dd>{{ d.endpoint || "AWS default" }}</dd>
             </dl>
-            <div class="store-open"><Icon name="folder-open" :size="14" /> Browse objects</div>
+            <div class="store-actions">
+              <span class="store-open"><Icon name="folder-open" :size="14" /> Browse objects</span>
+              <button v-if="canManage" type="button" class="store-use" @click.stop="openAttach(d)">
+                <Icon name="plug" :size="13" /> Use in app
+              </button>
+            </div>
           </BaseCard>
         </div>
       </section>
@@ -76,6 +81,7 @@
 
     <DeployObjectStoreModal :visible="showDeployModal" @close="showDeployModal = false" @created="onStoreDeployed" />
     <ObjectBrowserModal :visible="showBrowser" :store="selectedStore" @close="showBrowser = false" />
+    <AttachStoreModal :visible="showAttach" :store="selectedStore" @close="showAttach = false" />
   </div>
 </template>
 
@@ -88,6 +94,7 @@ import BaseButton from "@/components/base/BaseButton.vue";
 import StorageBackupsSettings from "@/components/StorageBackupsSettings.vue";
 import DeployObjectStoreModal from "@/components/DeployObjectStoreModal.vue";
 import ObjectBrowserModal from "@/components/ObjectBrowserModal.vue";
+import AttachStoreModal from "@/components/AttachStoreModal.vue";
 import { backupDestinationsApi, type BackupDestination } from "@/services/api";
 import { useAuthStore } from "@/stores/auth";
 
@@ -97,11 +104,17 @@ const canManage = auth.hasPermission("backups:write") || auth.hasPermission("con
 
 const showDeployModal = ref(false);
 const showBrowser = ref(false);
+const showAttach = ref(false);
 const selectedStore = ref<BackupDestination | null>(null);
 
 function openBrowser(d: BackupDestination) {
   selectedStore.value = d;
   showBrowser.value = true;
+}
+
+function openAttach(d: BackupDestination) {
+  selectedStore.value = d;
+  showAttach.value = true;
 }
 
 function storeKind(d: BackupDestination): string {
@@ -241,13 +254,37 @@ onMounted(load);
   border-color: var(--accent);
 }
 
+.store-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: var(--space-3);
+}
+
 .store-open {
   display: flex;
   align-items: center;
   gap: 0.35rem;
-  margin-top: var(--space-3);
   font-size: var(--text-xs);
   color: var(--accent);
+}
+
+.store-use {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: none;
+  border: none;
+  padding: 0.1rem 0.2rem;
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+}
+
+.store-use:hover {
+  color: var(--text);
+  background: var(--surface-inset);
 }
 
 .store-top {

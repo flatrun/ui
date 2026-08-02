@@ -1156,6 +1156,11 @@ export const objectStoresApi = {
     }),
   deleteObject: (name: string, key: string) =>
     apiClient.delete(`/object-stores/${encodeURIComponent(name)}/objects`, { params: { key } }),
+  attach: (name: string, data: { deployment: string; prefix?: string }) =>
+    apiClient.post<{ message: string; keys: string[]; endpoint: string; network: string }>(
+      `/object-stores/${encodeURIComponent(name)}/attach`,
+      data,
+    ),
   provisionManaged: (
     data: {
       deployment: string;
