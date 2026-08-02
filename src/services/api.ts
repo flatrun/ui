@@ -1129,7 +1129,33 @@ export interface ObjectStoreContract {
   use_path_style?: boolean;
 }
 
+export interface StoreObject {
+  Key: string;
+  Size: number;
+  ModTime: string;
+}
+
 export const objectStoresApi = {
+  listObjects: (name: string, prefix?: string) =>
+    apiClient.get<{ objects: StoreObject[] }>(`/object-stores/${encodeURIComponent(name)}/objects`, {
+      params: prefix ? { prefix } : undefined,
+    }),
+  uploadObject: (name: string, file: File, key?: string) => {
+    const form = new FormData();
+    form.append("file", file);
+    if (key) form.append("key", key);
+    return apiClient.post<{ message: string; key: string }>(
+      `/object-stores/${encodeURIComponent(name)}/objects`,
+      form,
+    );
+  },
+  downloadObject: (name: string, key: string) =>
+    apiClient.get(`/object-stores/${encodeURIComponent(name)}/objects/download`, {
+      params: { key },
+      responseType: "blob",
+    }),
+  deleteObject: (name: string, key: string) =>
+    apiClient.delete(`/object-stores/${encodeURIComponent(name)}/objects`, { params: { key } }),
   provisionManaged: (
     data: {
       deployment: string;

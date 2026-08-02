@@ -47,7 +47,7 @@
         </div>
 
         <div v-else class="store-grid">
-          <BaseCard v-for="d in destinations" :key="d.name">
+          <BaseCard v-for="d in destinations" :key="d.name" class="store-card" @click="openBrowser(d)">
             <div class="store-top">
               <Icon name="container" :size="16" />
               <span class="store-name">{{ d.name }}</span>
@@ -64,6 +64,7 @@
               <dt>Endpoint</dt>
               <dd>{{ d.endpoint || "AWS default" }}</dd>
             </dl>
+            <div class="store-open"><Icon name="folder-open" :size="14" /> Browse objects</div>
           </BaseCard>
         </div>
       </section>
@@ -74,6 +75,7 @@
     </div>
 
     <DeployObjectStoreModal :visible="showDeployModal" @close="showDeployModal = false" @created="onStoreDeployed" />
+    <ObjectBrowserModal :visible="showBrowser" :store="selectedStore" @close="showBrowser = false" />
   </div>
 </template>
 
@@ -85,6 +87,7 @@ import BaseCard from "@/components/base/BaseCard.vue";
 import BaseButton from "@/components/base/BaseButton.vue";
 import StorageBackupsSettings from "@/components/StorageBackupsSettings.vue";
 import DeployObjectStoreModal from "@/components/DeployObjectStoreModal.vue";
+import ObjectBrowserModal from "@/components/ObjectBrowserModal.vue";
 import { backupDestinationsApi, type BackupDestination } from "@/services/api";
 import { useAuthStore } from "@/stores/auth";
 
@@ -93,6 +96,13 @@ const auth = useAuthStore();
 const canManage = auth.hasPermission("backups:write") || auth.hasPermission("config:write");
 
 const showDeployModal = ref(false);
+const showBrowser = ref(false);
+const selectedStore = ref<BackupDestination | null>(null);
+
+function openBrowser(d: BackupDestination) {
+  selectedStore.value = d;
+  showBrowser.value = true;
+}
 
 function storeKind(d: BackupDestination): string {
   return d.kind || "external";
@@ -220,6 +230,24 @@ onMounted(load);
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   gap: var(--space-3);
+}
+
+.store-card {
+  cursor: pointer;
+  transition: border-color 0.12s;
+}
+
+.store-card:hover {
+  border-color: var(--accent);
+}
+
+.store-open {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: var(--space-3);
+  font-size: var(--text-xs);
+  color: var(--accent);
 }
 
 .store-top {
