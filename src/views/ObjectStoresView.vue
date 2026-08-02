@@ -66,9 +66,14 @@
             </dl>
             <div class="store-actions">
               <span class="store-open"><Icon name="folder-open" :size="14" /> Browse objects</span>
-              <button v-if="canManage" type="button" class="store-use" @click.stop="openAttach(d)">
-                <Icon name="plug" :size="13" /> Use in app
-              </button>
+              <span class="store-action-group">
+                <button v-if="canManage" type="button" class="store-use" @click.stop="openAttach(d)">
+                  <Icon name="plug" :size="13" /> Use in app
+                </button>
+                <button v-if="canManage" type="button" class="store-use" @click.stop="openReplicate(d)">
+                  <Icon name="copy" :size="13" /> Replicate
+                </button>
+              </span>
             </div>
           </BaseCard>
         </div>
@@ -82,6 +87,7 @@
     <DeployObjectStoreModal :visible="showDeployModal" @close="showDeployModal = false" @created="onStoreDeployed" />
     <ObjectBrowserModal :visible="showBrowser" :store="selectedStore" @close="showBrowser = false" />
     <AttachStoreModal :visible="showAttach" :store="selectedStore" @close="showAttach = false" />
+    <ReplicateStoreModal :visible="showReplicate" :store="selectedStore" @close="showReplicate = false" />
   </div>
 </template>
 
@@ -95,6 +101,7 @@ import StorageBackupsSettings from "@/components/StorageBackupsSettings.vue";
 import DeployObjectStoreModal from "@/components/DeployObjectStoreModal.vue";
 import ObjectBrowserModal from "@/components/ObjectBrowserModal.vue";
 import AttachStoreModal from "@/components/AttachStoreModal.vue";
+import ReplicateStoreModal from "@/components/ReplicateStoreModal.vue";
 import { backupDestinationsApi, type BackupDestination } from "@/services/api";
 import { useAuthStore } from "@/stores/auth";
 
@@ -105,6 +112,7 @@ const canManage = auth.hasPermission("backups:write") || auth.hasPermission("con
 const showDeployModal = ref(false);
 const showBrowser = ref(false);
 const showAttach = ref(false);
+const showReplicate = ref(false);
 const selectedStore = ref<BackupDestination | null>(null);
 
 function openBrowser(d: BackupDestination) {
@@ -115,6 +123,11 @@ function openBrowser(d: BackupDestination) {
 function openAttach(d: BackupDestination) {
   selectedStore.value = d;
   showAttach.value = true;
+}
+
+function openReplicate(d: BackupDestination) {
+  selectedStore.value = d;
+  showReplicate.value = true;
 }
 
 function storeKind(d: BackupDestination): string {
@@ -267,6 +280,11 @@ onMounted(load);
   gap: 0.35rem;
   font-size: var(--text-xs);
   color: var(--accent);
+}
+
+.store-action-group {
+  display: inline-flex;
+  gap: 0.15rem;
 }
 
 .store-use {

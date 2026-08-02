@@ -1161,6 +1161,16 @@ export const objectStoresApi = {
       `/object-stores/${encodeURIComponent(name)}/attach`,
       data,
     ),
+  replicate: (name: string, target: string) =>
+    apiClient.post<{
+      message: string;
+      target: string;
+      copied: number;
+      skipped: number;
+      failed: number;
+      bytes_copied: number;
+      total_objects: number;
+    }>(`/object-stores/${encodeURIComponent(name)}/replicate`, { target }),
   provisionManaged: (
     data: {
       deployment: string;
