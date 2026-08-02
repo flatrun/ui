@@ -1136,27 +1136,35 @@ export interface StoreObject {
 }
 
 export const objectStoresApi = {
-  listObjects: (name: string, prefix?: string) =>
-    apiClient.get<{ objects: StoreObject[] }>(`/object-stores/${encodeURIComponent(name)}/objects`, {
-      params: prefix ? { prefix } : undefined,
+  listBuckets: (name: string) =>
+    apiClient.get<{ buckets: string[]; backup_bucket: string }>(`/object-stores/${encodeURIComponent(name)}/buckets`),
+  createBucket: (name: string, bucket: string) =>
+    apiClient.post<{ message: string; bucket: string }>(`/object-stores/${encodeURIComponent(name)}/buckets`, {
+      bucket,
     }),
-  uploadObject: (name: string, file: File, key?: string) => {
+  listObjects: (name: string, bucket?: string, prefix?: string) =>
+    apiClient.get<{ objects: StoreObject[] }>(`/object-stores/${encodeURIComponent(name)}/objects`, {
+      params: { ...(bucket ? { bucket } : {}), ...(prefix ? { prefix } : {}) },
+    }),
+  uploadObject: (name: string, file: File, bucket?: string, key?: string) => {
     const form = new FormData();
     form.append("file", file);
     if (key) form.append("key", key);
     return apiClient.post<{ message: string; key: string }>(
       `/object-stores/${encodeURIComponent(name)}/objects`,
       form,
-      { headers: { "Content-Type": "multipart/form-data" } },
+      { params: bucket ? { bucket } : undefined, headers: { "Content-Type": "multipart/form-data" } },
     );
   },
-  downloadObject: (name: string, key: string) =>
+  downloadObject: (name: string, key: string, bucket?: string, inline?: boolean) =>
     apiClient.get(`/object-stores/${encodeURIComponent(name)}/objects/download`, {
-      params: { key },
+      params: { key, ...(bucket ? { bucket } : {}), ...(inline ? { inline: "true" } : {}) },
       responseType: "blob",
     }),
-  deleteObject: (name: string, key: string) =>
-    apiClient.delete(`/object-stores/${encodeURIComponent(name)}/objects`, { params: { key } }),
+  deleteObject: (name: string, key: string, bucket?: string) =>
+    apiClient.delete(`/object-stores/${encodeURIComponent(name)}/objects`, {
+      params: { key, ...(bucket ? { bucket } : {}) },
+    }),
   attach: (name: string, data: { deployment: string; prefix?: string }) =>
     apiClient.post<{ message: string; keys: string[]; endpoint: string; network: string }>(
       `/object-stores/${encodeURIComponent(name)}/attach`,

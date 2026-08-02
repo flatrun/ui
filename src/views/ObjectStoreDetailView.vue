@@ -14,8 +14,6 @@
           </span>
         </div>
         <dl class="meta">
-          <dt>Bucket</dt>
-          <dd>{{ store.bucket }}</dd>
           <dt>Endpoint</dt>
           <dd>{{ store.endpoint || "AWS default" }}</dd>
           <dt>Region</dt>
@@ -29,8 +27,34 @@
     </header>
 
     <BaseCard v-if="store">
+      <div class="bucket-bar">
+        <span class="bucket-label">Buckets</span>
+        <button
+          v-for="b in buckets"
+          :key="b"
+          type="button"
+          class="bucket-chip"
+          :class="{ active: b === selectedBucket }"
+          @click="selectBucket(b)"
+        >
+          {{ b }}
+          <Icon v-if="b === backupBucket" name="shield" :size="12" title="Backup bucket (protected)" />
+        </button>
+        <template v-if="showNewBucket">
+          <BaseInput v-model="newBucketName" placeholder="new-bucket" class="new-bucket-input" @keyup.enter="createBucket" />
+          <BaseButton variant="primary" size="sm" :loading="creatingBucket" :disabled="!newBucketName" @click="createBucket">
+            Create
+          </BaseButton>
+          <BaseButton variant="ghost" size="sm" @click="showNewBucket = false">Cancel</BaseButton>
+        </template>
+        <button v-else-if="canWrite" type="button" class="bucket-new" @click="showNewBucket = true">
+          <Icon name="plus" :size="13" /> New bucket
+        </button>
+      </div>
+
       <div class="toolbar">
-        <h2>Objects</h2>
+        <h2>{{ selectedBucket }}</h2>
+        <span v-if="isProtected" class="protected"><Icon name="shield" :size="12" /> Backups (delete disabled)</span>
         <span class="spacer" />
         <span class="count muted">{{ objects.length }} object{{ objects.length === 1 ? "" : "s" }}</span>
         <BaseButton variant="secondary" size="sm" icon="refresh-cw" :loading="loading" @click="load">Refresh</BaseButton>
@@ -44,7 +68,7 @@
 
       <div v-else-if="!objects.length" class="state empty">
         <Icon name="package-open" :size="28" />
-        <p>This store is empty.</p>
+        <p>This bucket is empty.</p>
       </div>
 
       <table v-else class="obj-table">
@@ -58,7 +82,10 @@
         </thead>
         <tbody>
           <tr v-for="o in objects" :key="o.Key">
-            <td class="key">{{ o.Key }}</td>
+            <td class="key">
+              <button v-if="previewable(o.Key)" class="key-link" @click="openPreview(o)">{{ o.Key }}</button>
+              <span v-else>{{ o.Key }}</span>
+            </td>
             <td class="num">{{ formatBytes(o.Size) }}</td>
             <td>{{ formatTime(o.ModTime) }}</td>
             <td class="actions-col">
@@ -66,7 +93,7 @@
                 <Icon name="download" :size="15" />
               </button>
               <button
-                v-if="canWrite"
+                v-if="canWrite && !isProtected"
                 class="icon-action danger"
                 title="Delete"
                 :disabled="busyKey === o.Key"
@@ -90,13 +117,20 @@
     <ConfirmModal
       :visible="!!pendingDelete"
       title="Delete object"
-      :message="pendingDelete ? `Delete “${pendingDelete.Key}” from ${name}? This cannot be undone.` : ''"
+      :message="pendingDelete ? `Delete “${pendingDelete.Key}” from ${selectedBucket}? This cannot be undone.` : ''"
       variant="danger"
       confirm-text="Delete"
       :loading="!!busyKey"
       @confirm="confirmDelete"
       @cancel="pendingDelete = null"
     />
+
+    <BaseModal :visible="!!preview" :title="preview?.key || 'Preview'" size="xl" @close="closePreview">
+      <div v-if="preview" class="preview">
+        <img v-if="preview.kind === 'image'" :src="preview.url" :alt="preview.key" class="preview-img" />
+        <pre v-else class="preview-text">{{ preview.text }}</pre>
+      </div>
+    </BaseModal>
   </div>
 </template>
 
@@ -106,6 +140,8 @@ import { useRoute, useRouter } from "vue-router";
 import Icon from "@/components/base/Icon.vue";
 import BaseCard from "@/components/base/BaseCard.vue";
 import BaseButton from "@/components/base/BaseButton.vue";
+import BaseInput from "@/components/base/BaseInput.vue";
+import BaseModal from "@/components/base/BaseModal.vue";
 import AttachStoreModal from "@/components/AttachStoreModal.vue";
 import ReplicateStoreModal from "@/components/ReplicateStoreModal.vue";
 import ConfirmModal from "@/components/ConfirmModal.vue";
@@ -132,7 +168,20 @@ const showAttach = ref(false);
 const showReplicate = ref(false);
 const pendingDelete = ref<StoreObject | null>(null);
 
+const buckets = ref<string[]>([]);
+const backupBucket = ref("");
+const selectedBucket = ref("");
+const showNewBucket = ref(false);
+const newBucketName = ref("");
+const creatingBucket = ref(false);
+
+const preview = ref<{ key: string; kind: "image" | "text"; url?: string; text?: string } | null>(null);
+
 const kind = computed(() => store.value?.kind || "external");
+const isProtected = computed(() => selectedBucket.value === backupBucket.value);
+
+const IMAGE_EXT = ["png", "jpg", "jpeg", "gif", "webp", "svg", "bmp", "ico"];
+const TEXT_EXT = ["txt", "json", "yaml", "yml", "md", "log", "csv", "xml", "html", "css", "js", "ts", "env", "sh", "conf"];
 
 onMounted(async () => {
   try {
@@ -143,13 +192,50 @@ onMounted(async () => {
   } finally {
     resolving.value = false;
   }
-  if (store.value) load();
+  if (store.value) await loadBuckets();
 });
+
+async function loadBuckets() {
+  try {
+    const res = await objectStoresApi.listBuckets(name);
+    buckets.value = res.data.buckets || [];
+    backupBucket.value = res.data.backup_bucket || "";
+    selectedBucket.value = buckets.value.includes(backupBucket.value)
+      ? backupBucket.value
+      : buckets.value[0] || backupBucket.value;
+  } catch (e: any) {
+    notifications.error("Could not list buckets", e.response?.data?.error || e.message);
+    selectedBucket.value = store.value?.bucket || "";
+  }
+  await load();
+}
+
+function selectBucket(b: string) {
+  selectedBucket.value = b;
+  load();
+}
+
+async function createBucket() {
+  const bucket = newBucketName.value.trim();
+  if (!bucket) return;
+  creatingBucket.value = true;
+  try {
+    await objectStoresApi.createBucket(name, bucket);
+    showNewBucket.value = false;
+    newBucketName.value = "";
+    await loadBuckets();
+    selectBucket(bucket);
+  } catch (e: any) {
+    notifications.error("Could not create bucket", e.response?.data?.error || e.message);
+  } finally {
+    creatingBucket.value = false;
+  }
+}
 
 async function load() {
   loading.value = true;
   try {
-    const res = await objectStoresApi.listObjects(name);
+    const res = await objectStoresApi.listObjects(name, selectedBucket.value);
     objects.value = (res.data.objects || []).sort((a, b) => b.ModTime.localeCompare(a.ModTime));
   } catch (e: any) {
     notifications.error("Could not list objects", e.response?.data?.error || e.message);
@@ -170,8 +256,8 @@ async function onFilePicked(e: Event) {
   if (!file) return;
   uploading.value = true;
   try {
-    await objectStoresApi.uploadObject(name, file);
-    notifications.success("Uploaded", `${file.name} uploaded.`);
+    await objectStoresApi.uploadObject(name, file, selectedBucket.value);
+    notifications.success("Uploaded", `${file.name} uploaded to ${selectedBucket.value}.`);
     await load();
   } catch (e: any) {
     notifications.error("Upload failed", e.response?.data?.error || e.message);
@@ -183,7 +269,7 @@ async function onFilePicked(e: Event) {
 async function download(o: StoreObject) {
   busyKey.value = o.Key;
   try {
-    const res = await objectStoresApi.downloadObject(name, o.Key);
+    const res = await objectStoresApi.downloadObject(name, o.Key, selectedBucket.value);
     const url = URL.createObjectURL(res.data as Blob);
     const a = document.createElement("a");
     a.href = url;
@@ -206,7 +292,7 @@ async function confirmDelete() {
   if (!o) return;
   busyKey.value = o.Key;
   try {
-    await objectStoresApi.deleteObject(name, o.Key);
+    await objectStoresApi.deleteObject(name, o.Key, selectedBucket.value);
     objects.value = objects.value.filter((x) => x.Key !== o.Key);
     pendingDelete.value = null;
   } catch (e: any) {
@@ -214,6 +300,38 @@ async function confirmDelete() {
   } finally {
     busyKey.value = null;
   }
+}
+
+function ext(key: string): string {
+  return key.split(".").pop()?.toLowerCase() || "";
+}
+
+function previewable(key: string): boolean {
+  const e = ext(key);
+  return IMAGE_EXT.includes(e) || TEXT_EXT.includes(e);
+}
+
+async function openPreview(o: StoreObject) {
+  const e = ext(o.Key);
+  busyKey.value = o.Key;
+  try {
+    const res = await objectStoresApi.downloadObject(name, o.Key, selectedBucket.value, true);
+    const blob = res.data as Blob;
+    if (IMAGE_EXT.includes(e)) {
+      preview.value = { key: o.Key, kind: "image", url: URL.createObjectURL(blob) };
+    } else {
+      preview.value = { key: o.Key, kind: "text", text: await blob.text() };
+    }
+  } catch (err: any) {
+    notifications.error("Preview failed", err.response?.data?.error || err.message);
+  } finally {
+    busyKey.value = null;
+  }
+}
+
+function closePreview() {
+  if (preview.value?.url) URL.revokeObjectURL(preview.value.url);
+  preview.value = null;
 }
 
 function formatBytes(n: number): string {
@@ -325,6 +443,68 @@ function formatTime(iso: string): string {
   gap: var(--space-2);
 }
 
+.bucket-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  padding-bottom: var(--space-3);
+  margin-bottom: var(--space-3);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.bucket-label {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.bucket-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.25rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--text);
+  font-size: var(--text-sm);
+  cursor: pointer;
+}
+
+.bucket-chip:hover {
+  border-color: var(--accent);
+}
+
+.bucket-chip.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent, #fff);
+}
+
+.bucket-new {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: none;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-full);
+  padding: 0.25rem 0.6rem;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  cursor: pointer;
+}
+
+.bucket-new:hover {
+  color: var(--text);
+  border-color: var(--accent);
+}
+
+.new-bucket-input {
+  max-width: 180px;
+}
+
 .toolbar {
   display: flex;
   align-items: center;
@@ -337,6 +517,17 @@ function formatTime(iso: string): string {
   font-size: var(--text-md);
   font-weight: var(--font-semibold);
   color: var(--text);
+}
+
+.protected {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  background: var(--surface-inset);
+  padding: 0.1rem 0.45rem;
+  border-radius: var(--radius-full);
 }
 
 .spacer {
@@ -381,6 +572,20 @@ function formatTime(iso: string): string {
   word-break: break-all;
 }
 
+.key-link {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--accent);
+  font: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.key-link:hover {
+  text-decoration: underline;
+}
+
 .num {
   text-align: right;
   white-space: nowrap;
@@ -413,6 +618,30 @@ function formatTime(iso: string): string {
 .icon-action:disabled {
   opacity: 0.5;
   cursor: default;
+}
+
+.preview {
+  display: flex;
+  justify-content: center;
+}
+
+.preview-img {
+  max-width: 100%;
+  max-height: 70vh;
+  object-fit: contain;
+}
+
+.preview-text {
+  width: 100%;
+  max-height: 70vh;
+  overflow: auto;
+  margin: 0;
+  padding: var(--space-3);
+  background: var(--surface-inset);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 .muted {
