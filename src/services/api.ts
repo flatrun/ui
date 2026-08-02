@@ -1147,6 +1147,7 @@ export const objectStoresApi = {
     return apiClient.post<{ message: string; key: string }>(
       `/object-stores/${encodeURIComponent(name)}/objects`,
       form,
+      { headers: { "Content-Type": "multipart/form-data" } },
     );
   },
   downloadObject: (name: string, key: string) =>
