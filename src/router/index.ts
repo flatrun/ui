@@ -107,6 +107,12 @@ const routes: RouteRecordRaw[] = [
         meta: { permission: "backups:read" },
       },
       {
+        path: "storage/object-stores/:name/buckets/:bucket",
+        name: "object-store-bucket",
+        component: () => import("@/views/ObjectBucketView.vue"),
+        meta: { permission: "backups:read" },
+      },
+      {
         path: "certificates",
         name: "certificates",
         component: () => import("@/views/CertificatesView.vue"),

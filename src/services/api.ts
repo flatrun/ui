@@ -1135,17 +1135,30 @@ export interface StoreObject {
   ModTime: string;
 }
 
+export interface StoreBucket {
+  name: string;
+  objects: number;
+  size: number;
+  truncated: boolean;
+  is_backup: boolean;
+}
+
 export const objectStoresApi = {
   listBuckets: (name: string) =>
-    apiClient.get<{ buckets: string[]; backup_bucket: string }>(`/object-stores/${encodeURIComponent(name)}/buckets`),
+    apiClient.get<{ buckets: StoreBucket[]; backup_bucket: string }>(
+      `/object-stores/${encodeURIComponent(name)}/buckets`,
+    ),
   createBucket: (name: string, bucket: string) =>
     apiClient.post<{ message: string; bucket: string }>(`/object-stores/${encodeURIComponent(name)}/buckets`, {
       bucket,
     }),
-  listObjects: (name: string, bucket?: string, prefix?: string) =>
-    apiClient.get<{ objects: StoreObject[] }>(`/object-stores/${encodeURIComponent(name)}/objects`, {
-      params: { ...(bucket ? { bucket } : {}), ...(prefix ? { prefix } : {}) },
-    }),
+  deleteBucket: (name: string, bucket: string) =>
+    apiClient.delete(`/object-stores/${encodeURIComponent(name)}/buckets/${encodeURIComponent(bucket)}`),
+  listObjects: (name: string, bucket?: string, token?: string, prefix?: string) =>
+    apiClient.get<{ objects: StoreObject[]; next_token: string }>(
+      `/object-stores/${encodeURIComponent(name)}/objects`,
+      { params: { ...(bucket ? { bucket } : {}), ...(token ? { token } : {}), ...(prefix ? { prefix } : {}) } },
+    ),
   uploadObject: (name: string, file: File, bucket?: string, key?: string) => {
     const form = new FormData();
     form.append("file", file);
