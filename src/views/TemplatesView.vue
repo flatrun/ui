@@ -135,7 +135,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from "vue";
-import { templatesApi, type TemplateCategory } from "@/services/api";
+import { templatesApi, type TemplateCategory, type ObjectStoreContract } from "@/services/api";
 import { useNotificationsStore } from "@/stores/notifications";
 import NewDeploymentModal from "@/components/NewDeploymentModal.vue";
 
@@ -146,6 +146,7 @@ interface Template {
   icon: string;
   logo?: string;
   category: string;
+  object_store?: ObjectStoreContract;
   priority?: number;
   content: string;
 }

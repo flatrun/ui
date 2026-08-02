@@ -1121,6 +1121,33 @@ export const backupDestinationsApi = {
     apiClient.post<{ success: boolean; message?: string; error?: string }>("/backup-destinations/test", data),
 };
 
+export interface ObjectStoreContract {
+  access_key_env?: string;
+  secret_key_env?: string;
+  api_port: number;
+  region?: string;
+  use_path_style?: boolean;
+}
+
+export const objectStoresApi = {
+  provisionManaged: (
+    data: {
+      deployment: string;
+      store_name?: string;
+      bucket?: string;
+      access_key?: string;
+      secret_key?: string;
+    } & ObjectStoreContract,
+  ) =>
+    apiClient.post<{
+      message: string;
+      destination: BackupDestination;
+      credential: StorageCredential;
+      applied: boolean;
+      apply_error?: string;
+    }>("/object-stores/provision-managed", data),
+};
+
 export interface SecurityEventFilter {
   event_type?: string;
   severity?: string;

@@ -98,40 +98,23 @@
             <Icon name="check" :size="15" />
             Installed
           </button>
-          <button v-else class="btn btn-primary" @click="openInstall(app)">
-            <Icon name="download" :size="15" />
-            Install
+          <button v-else class="btn btn-primary" :disabled="preparing === app.slug" @click="openInstall(app)">
+            <Icon v-if="preparing === app.slug" name="loader-circle" spin :size="15" />
+            <Icon v-else name="download" :size="15" />
+            Deploy
           </button>
         </div>
       </div>
     </div>
 
-    <!-- Install modal -->
-    <Teleport to="body">
-      <div v-if="installTarget" class="modal-overlay" @click.self="closeInstall">
-        <div class="install-modal">
-          <div class="modal-header">
-            <h3>Deploy {{ installTarget.name }}</h3>
-            <button class="icon-btn" @click="closeInstall"><Icon name="x" :size="18" /></button>
-          </div>
-          <div class="modal-body">
-            <p class="modal-note">
-              This downloads the template and creates a new deployment. Pick a name (it must be unique).
-            </p>
-            <label class="field-label">Deployment name</label>
-            <input v-model="installName" type="text" class="text-input" placeholder="my-app" />
-          </div>
-          <div class="modal-footer">
-            <button class="btn btn-secondary" :disabled="installing" @click="closeInstall">Cancel</button>
-            <button class="btn btn-primary" :disabled="installing || !installName.trim()" @click="confirmInstall">
-              <Icon v-if="installing" name="loader-circle" spin :size="15" />
-              <Icon v-else name="download" :size="15" />
-              {{ installing ? "Deploying…" : "Deploy" }}
-            </button>
-          </div>
-        </div>
-      </div>
-    </Teleport>
+    <NewDeploymentModal
+      :visible="showDeployModal"
+      initial-mode="compose"
+      :initial-compose="installCompose"
+      :initial-name="installName"
+      @close="showDeployModal = false"
+      @created="onDeployed"
+    />
   </div>
 </template>
 
@@ -139,8 +122,8 @@
 import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import Icon from "@/components/base/Icon.vue";
+import NewDeploymentModal from "@/components/NewDeploymentModal.vue";
 import { marketplaceApi, type MarketplaceTemplate, type MarketplaceCategory } from "@/services/marketplace";
-import { deploymentsApi } from "@/services/api";
 import { useDeploymentsStore } from "@/stores/deployments";
 import { useNotificationsStore } from "@/stores/notifications";
 
@@ -156,9 +139,10 @@ const searchQuery = ref("");
 const selectedCategory = ref("all");
 const brokenLogos = ref<Set<string>>(new Set());
 
-const installTarget = ref<MarketplaceTemplate | null>(null);
+const showDeployModal = ref(false);
+const installCompose = ref("");
 const installName = ref("");
-const installing = ref(false);
+const preparing = ref<string | null>(null);
 
 async function load() {
   loading.value = true;
@@ -213,34 +197,27 @@ function openDeployment(app: MarketplaceTemplate) {
   router.push(`/deployments/${app.slug}`);
 }
 
-function openInstall(app: MarketplaceTemplate) {
-  installTarget.value = app;
-  installName.value = app.slug;
-}
-
-function closeInstall() {
-  if (installing.value) return;
-  installTarget.value = null;
-  installName.value = "";
-}
-
-async function confirmInstall() {
-  if (!installTarget.value) return;
-  const app = installTarget.value;
-  const name = installName.value.trim();
-  installing.value = true;
+// The store is a discovery surface: deploying downloads the template's compose
+// and hands it to the standard deployment flow so it gets the same name, domain,
+// SSL, and database options as deploying from anywhere else.
+async function openInstall(app: MarketplaceTemplate) {
+  preparing.value = app.slug;
   try {
     const payload = await marketplaceApi.download(app.slug);
-    await deploymentsApi.create({ name, compose_content: payload.data.content });
-    await deploymentsStore.fetchDeployments();
-    notifications.success("Deployed", `${app.name} was deployed as "${name}".`);
-    installTarget.value = null;
-    router.push(`/deployments/${name}`);
+    installCompose.value = payload.data.content;
+    installName.value = app.slug;
+    showDeployModal.value = true;
   } catch (e: any) {
-    notifications.error("Install failed", e?.response?.data?.error || e?.message || "Could not deploy the template.");
+    notifications.error("Could not load template", e?.response?.data?.error || e?.message || "Download failed.");
   } finally {
-    installing.value = false;
+    preparing.value = null;
   }
+}
+
+async function onDeployed(name: string) {
+  showDeployModal.value = false;
+  await deploymentsStore.fetchDeployments();
+  router.push(`/deployments/${name}`);
 }
 </script>
 
@@ -599,90 +576,5 @@ async function confirmInstall() {
   .skeleton-line {
     animation: none;
   }
-}
-
-/* Modal */
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  padding: var(--space-4);
-}
-
-.install-modal {
-  background: var(--surface-raised);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  width: 100%;
-  max-width: 440px;
-  box-shadow: var(--shadow-lg);
-}
-
-.modal-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: var(--space-4) var(--space-5);
-  border-bottom: 1px solid var(--border-subtle);
-}
-
-.modal-header h3 {
-  margin: 0;
-  font-size: var(--text-lg);
-  color: var(--text);
-}
-
-.icon-btn {
-  background: none;
-  border: none;
-  color: var(--text-muted);
-  cursor: pointer;
-  display: inline-flex;
-}
-
-.modal-body {
-  padding: var(--space-5);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-}
-
-.modal-note {
-  margin: 0 0 var(--space-2) 0;
-  font-size: var(--text-sm);
-  color: var(--text-muted);
-}
-
-.field-label {
-  font-size: var(--text-sm);
-  font-weight: var(--font-medium);
-  color: var(--text);
-}
-
-.text-input {
-  padding: var(--space-2) var(--space-3);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  font-size: var(--text-md);
-  background: var(--surface);
-  color: var(--text);
-}
-
-.text-input:focus {
-  outline: none;
-  border-color: var(--color-primary-500);
-  box-shadow: 0 0 0 var(--ring-width) var(--ring-color);
-}
-
-.modal-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: var(--space-2);
-  padding: var(--space-4) var(--space-5);
-  border-top: 1px solid var(--border-subtle);
 }
 </style>
