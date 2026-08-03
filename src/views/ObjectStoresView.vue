@@ -19,7 +19,7 @@
         <div class="section-head">
           <h2>Connected stores</h2>
           <div class="head-actions">
-            <BaseButton v-if="canManage" variant="secondary" size="sm" icon="plus" @click="deployStore">
+            <BaseButton v-if="canManage" variant="primary" size="sm" icon="plus" @click="showDeployModal = true">
               Deploy a local store
             </BaseButton>
             <BaseButton v-if="canManage" variant="secondary" size="sm" icon="settings" @click="tab = 'settings'">
@@ -34,17 +34,20 @@
           <Icon name="container" :size="28" />
           <p>No object stores connected yet.</p>
           <div class="head-actions">
-            <BaseButton v-if="canManage" variant="secondary" size="sm" icon="plus" @click="deployStore">
+            <BaseButton v-if="canManage" variant="primary" size="sm" icon="plus" @click="showDeployModal = true">
               Deploy a local store
             </BaseButton>
-            <BaseButton v-if="canManage" variant="primary" size="sm" icon="link" @click="tab = 'settings'">
+            <BaseButton v-if="canManage" variant="secondary" size="sm" icon="link" @click="tab = 'settings'">
               Connect external
             </BaseButton>
           </div>
+          <button v-if="canManage" type="button" class="browse-link" @click="browseTemplates">
+            Or browse all templates
+          </button>
         </div>
 
         <div v-else class="store-grid">
-          <BaseCard v-for="d in destinations" :key="d.name">
+          <BaseCard v-for="d in destinations" :key="d.name" class="store-card" @click="openBrowser(d)">
             <div class="store-top">
               <Icon name="container" :size="16" />
               <span class="store-name">{{ d.name }}</span>
@@ -61,6 +64,7 @@
               <dt>Endpoint</dt>
               <dd>{{ d.endpoint || "AWS default" }}</dd>
             </dl>
+            <div class="store-open"><Icon name="folder-open" :size="14" /> Open store</div>
           </BaseCard>
         </div>
       </section>
@@ -69,6 +73,8 @@
     <div v-else class="tab-panel">
       <StorageBackupsSettings />
     </div>
+
+    <DeployObjectStoreModal :visible="showDeployModal" @close="showDeployModal = false" @created="onStoreDeployed" />
   </div>
 </template>
 
@@ -79,6 +85,7 @@ import Icon from "@/components/base/Icon.vue";
 import BaseCard from "@/components/base/BaseCard.vue";
 import BaseButton from "@/components/base/BaseButton.vue";
 import StorageBackupsSettings from "@/components/StorageBackupsSettings.vue";
+import DeployObjectStoreModal from "@/components/DeployObjectStoreModal.vue";
 import { backupDestinationsApi, type BackupDestination } from "@/services/api";
 import { useAuthStore } from "@/stores/auth";
 
@@ -86,12 +93,23 @@ const router = useRouter();
 const auth = useAuthStore();
 const canManage = auth.hasPermission("backups:write") || auth.hasPermission("config:write");
 
+const showDeployModal = ref(false);
+
+function openBrowser(d: BackupDestination) {
+  router.push(`/storage/object-stores/${encodeURIComponent(d.name)}`);
+}
+
 function storeKind(d: BackupDestination): string {
   return d.kind || "external";
 }
 
-function deployStore() {
+function browseTemplates() {
   router.push("/templates");
+}
+
+function onStoreDeployed() {
+  tab.value = "overview";
+  load();
 }
 
 const tabs = [
@@ -209,6 +227,30 @@ onMounted(load);
   gap: var(--space-3);
 }
 
+.store-card {
+  cursor: pointer;
+  transition: border-color 0.12s;
+}
+
+.store-card:hover {
+  border-color: var(--accent);
+}
+
+.store-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: var(--space-3);
+}
+
+.store-open {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: var(--text-xs);
+  color: var(--accent);
+}
+
 .store-top {
   display: flex;
   align-items: center;
@@ -240,6 +282,21 @@ onMounted(load);
 .head-actions {
   display: flex;
   gap: var(--space-2);
+}
+
+.browse-link {
+  margin-top: var(--space-2);
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.browse-link:hover {
+  color: var(--text);
 }
 
 .store-state {

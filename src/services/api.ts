@@ -1121,6 +1121,96 @@ export const backupDestinationsApi = {
     apiClient.post<{ success: boolean; message?: string; error?: string }>("/backup-destinations/test", data),
 };
 
+export interface ObjectStoreContract {
+  access_key_env?: string;
+  secret_key_env?: string;
+  api_port: number;
+  region?: string;
+  use_path_style?: boolean;
+}
+
+export interface StoreObject {
+  Key: string;
+  Size: number;
+  ModTime: string;
+}
+
+export interface StoreBucket {
+  name: string;
+  objects: number;
+  size: number;
+  truncated: boolean;
+  is_backup: boolean;
+}
+
+export const objectStoresApi = {
+  listBuckets: (name: string) =>
+    apiClient.get<{ buckets: StoreBucket[]; backup_bucket: string }>(
+      `/object-stores/${encodeURIComponent(name)}/buckets`,
+    ),
+  createBucket: (name: string, bucket: string) =>
+    apiClient.post<{ message: string; bucket: string }>(`/object-stores/${encodeURIComponent(name)}/buckets`, {
+      bucket,
+    }),
+  deleteBucket: (name: string, bucket: string) =>
+    apiClient.delete(`/object-stores/${encodeURIComponent(name)}/buckets/${encodeURIComponent(bucket)}`),
+  listObjects: (name: string, bucket?: string, token?: string, prefix?: string) =>
+    apiClient.get<{ objects: StoreObject[]; next_token: string }>(
+      `/object-stores/${encodeURIComponent(name)}/objects`,
+      { params: { ...(bucket ? { bucket } : {}), ...(token ? { token } : {}), ...(prefix ? { prefix } : {}) } },
+    ),
+  uploadObject: (name: string, file: File, bucket?: string, key?: string) => {
+    const form = new FormData();
+    form.append("file", file);
+    if (key) form.append("key", key);
+    return apiClient.post<{ message: string; key: string }>(
+      `/object-stores/${encodeURIComponent(name)}/objects`,
+      form,
+      { params: bucket ? { bucket } : undefined, headers: { "Content-Type": "multipart/form-data" } },
+    );
+  },
+  downloadObject: (name: string, key: string, bucket?: string, inline?: boolean) =>
+    apiClient.get(`/object-stores/${encodeURIComponent(name)}/objects/download`, {
+      params: { key, ...(bucket ? { bucket } : {}), ...(inline ? { inline: "true" } : {}) },
+      responseType: "blob",
+    }),
+  deleteObject: (name: string, key: string, bucket?: string) =>
+    apiClient.delete(`/object-stores/${encodeURIComponent(name)}/objects`, {
+      params: { key, ...(bucket ? { bucket } : {}) },
+    }),
+  attach: (name: string, data: { deployment: string; prefix?: string }) =>
+    apiClient.post<{ message: string; keys: string[]; endpoint: string; network: string }>(
+      `/object-stores/${encodeURIComponent(name)}/attach`,
+      data,
+    ),
+  replicate: (name: string, target: string) =>
+    apiClient.post<{
+      message: string;
+      target: string;
+      copied: number;
+      skipped: number;
+      failed: number;
+      bytes_copied: number;
+      total_objects: number;
+    }>(`/object-stores/${encodeURIComponent(name)}/replicate`, { target }),
+  provisionManaged: (
+    data: {
+      deployment: string;
+      store_name?: string;
+      bucket?: string;
+      access_key?: string;
+      secret_key?: string;
+    } & ObjectStoreContract,
+  ) =>
+    apiClient.post<{
+      message: string;
+      destination: BackupDestination;
+      credential: StorageCredential;
+      applied: boolean;
+      apply_error?: string;
+    }>("/object-stores/provision-managed", data),
+};
+
 export interface SecurityEventFilter {
   event_type?: string;
   severity?: string;

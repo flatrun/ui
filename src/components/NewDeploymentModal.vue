@@ -1647,6 +1647,9 @@ interface QuickApp {
 
 const props = defineProps<{
   visible: boolean;
+  initialMode?: "easy" | "compose" | "image" | "git";
+  initialCompose?: string;
+  initialName?: string;
 }>();
 
 const emit = defineEmits(["close", "created"]);
@@ -2639,9 +2642,30 @@ watch(
       loadExistingDeployments();
       loadCredentials();
       loadSourceCredentials();
+
+      applyInitialSelection();
     }
   },
 );
+
+// applyInitialSelection preseeds the wizard when a caller opens it aimed at a
+// specific deploy mode (e.g. the Marketplace hands off a downloaded compose),
+// skipping the mode picker and landing on the configuration step.
+const applyInitialSelection = () => {
+  const mode = props.initialMode;
+  if (!mode) return;
+
+  deploymentMode.value = mode;
+  if (props.initialName) {
+    form.name = props.initialName.toLowerCase().replace(/[^a-z0-9-]+/g, "-");
+    onNameChange();
+  }
+  if (mode === "compose") {
+    selectedQuickApp.value = "custom";
+    form.composeContent = props.initialCompose || getDefaultComposeContent();
+  }
+  currentStep.value = 1;
+};
 
 watch(deploymentMode, (newMode, oldMode) => {
   if (oldMode && newMode !== oldMode) {
@@ -2897,7 +2921,7 @@ const handleCreate = async () => {
     };
 
     await deploymentsApi.create(payload);
-    emit("created");
+    emit("created", form.name);
   } catch (e: any) {
     const msg = e.response?.data?.error || e.message;
     notifications.error("Failed to create deployment", msg);
