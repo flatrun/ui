@@ -12,36 +12,39 @@
         <span v-if="counts[lvl.value]" class="level-count">{{ counts[lvl.value] }}</span>
       </button>
       <span v-if="truncated" class="truncation-note">
-        showing last {{ visibleRecords.length }} of {{ filtered.length }}
+        showing last {{ visibleEntries.length }} of {{ filtered.length }}
       </span>
     </div>
 
     <div ref="scrollBox" class="rows" @scroll="onScroll">
       <div
-        v-for="row in visibleRecords"
-        :key="row.key"
+        v-for="entry in visibleEntries"
+        :key="entry.key"
         class="row"
-        :class="[levelClass(row.rec.level), { expanded: expanded.has(row.key) }]"
-        @click="toggleExpand(row.key)"
+        :class="[levelClass(entry.record.level), { expanded: expanded.has(entry.key) }]"
+        @click="toggleExpand(entry.key)"
       >
         <div class="row-head">
-          <i class="chevron" :class="expanded.has(row.key) ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" />
-          <span v-if="row.rec.timestamp" class="ts">{{ formatTs(row.rec.timestamp) }}</span>
-          <span v-if="row.rec.service" class="service" :title="row.rec.service">{{ row.rec.service }}</span>
-          <span class="level-tag" :class="levelClass(row.rec.level)">{{ row.rec.level || "log" }}</span>
-          <span class="msg">{{ row.rec.message }}</span>
+          <i class="chevron" :class="expanded.has(entry.key) ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" />
+          <span v-if="entry.record.timestamp" class="ts">{{ formatTs(entry.record.timestamp) }}</span>
+          <span v-if="entry.record.service" class="service" :title="entry.record.service">{{ entry.record.service }}</span>
+          <span class="level-tag" :class="levelClass(entry.record.level)">{{ entry.record.level || "log" }}</span>
+          <span class="msg">{{ entry.record.message }}</span>
+          <span v-if="entry.lines.length > 1" class="line-count" title="Lines folded into this entry">
+            +{{ entry.lines.length - 1 }}
+          </span>
         </div>
 
-        <div v-if="expanded.has(row.key)" class="row-detail" @click.stop>
-          <div v-if="row.rec.fields" class="fields">
-            <div v-for="(val, key) in row.rec.fields" :key="key" class="field">
+        <div v-if="expanded.has(entry.key)" class="row-detail" @click.stop>
+          <div v-if="entry.record.fields" class="fields">
+            <div v-for="(val, key) in entry.record.fields" :key="key" class="field">
               <span class="field-key">{{ key }}</span>
               <span class="field-val">{{ val }}</span>
             </div>
           </div>
-          <pre class="raw">{{ row.rec.raw }}</pre>
-          <button class="copy-btn" @click.stop="copyRaw(row.rec.raw)">
-            <i class="pi pi-copy" /> Copy line
+          <pre class="raw">{{ entry.lines.join("\n") }}</pre>
+          <button class="copy-btn" @click.stop="copyRaw(entry.lines.join('\n'))">
+            <i class="pi pi-copy" /> Copy entry
           </button>
         </div>
       </div>
@@ -56,7 +59,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, nextTick } from "vue";
-import type { LogRecord } from "@/types/logs";
+import { groupLogRecords, type LogRecord } from "@/types/logs";
 
 const props = withDefaults(
   defineProps<{
@@ -88,16 +91,14 @@ const expanded = ref<Set<number>>(new Set());
 const activeLevels = ref<Set<string>>(new Set());
 const pinnedToBottom = ref(true);
 
-// A stable key per record keeps expand state attached to the right line as new
-// lines stream in and old ones fall off the buffer.
-const keyed = computed(() =>
-  props.records.map((rec, i) => ({ key: i, rec })),
-);
+// Continuation lines (a stack trace under an error) fold into the entry above
+// them, so one exception reads as a single expandable row.
+const entries = computed(() => groupLogRecords(props.records));
 
 const counts = computed(() => {
   const c: Record<string, number> = { error: 0, warn: 0, info: 0, debug: 0 };
-  for (const { rec } of keyed.value) {
-    const cls = levelClass(rec.level);
+  for (const entry of entries.value) {
+    const cls = levelClass(entry.record.level);
     if (cls in c) c[cls]++;
   }
   return c;
@@ -106,16 +107,17 @@ const counts = computed(() => {
 const filtered = computed(() => {
   const q = props.searchQuery.trim().toLowerCase();
   const levels = activeLevels.value;
-  return keyed.value.filter(({ rec }) => {
-    if (levels.size && !levels.has(levelClass(rec.level))) return false;
-    if (q && !rec.raw.toLowerCase().includes(q)) return false;
+  return entries.value.filter((entry) => {
+    if (levels.size && !levels.has(levelClass(entry.record.level))) return false;
+    // Search the whole entry, so a match inside a folded stack trace still finds it.
+    if (q && !entry.lines.some((l) => l.toLowerCase().includes(q))) return false;
     return true;
   });
 });
 
 const truncated = computed(() => filtered.value.length > props.renderLimit);
 
-const visibleRecords = computed(() =>
+const visibleEntries = computed(() =>
   truncated.value ? filtered.value.slice(-props.renderLimit) : filtered.value,
 );
 
@@ -360,6 +362,16 @@ defineExpose({ scrollToBottom });
   text-overflow: ellipsis;
   flex: 1;
   min-width: 0;
+}
+
+.line-count {
+  flex-shrink: 0;
+  align-self: center;
+  font-size: 10px;
+  color: #7dcfff;
+  background: rgba(125, 207, 255, 0.12);
+  border-radius: 999px;
+  padding: 1px 6px;
 }
 
 .row.expanded .msg {
