@@ -153,7 +153,7 @@ onUnmounted(() => {
 
 .av-body {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 320px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: var(--space-4);
   align-items: start;
 }
