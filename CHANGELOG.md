@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.4.0-beta.3] - 2026-08-05
+
+Third beta of the Albacore release, reworking the observability and logs experience.
+
+### Added
+- Observability console at `/observability` with a left rail that folds metrics, logs, alerts and dashboards into one place, replacing the separate sidebar entries
+- Structured log view: one expandable row per entry coloured by level, multi-line entries (an exception and its stack trace) folded into a single row, JSON fields parsed out, and the raw terminal a toggle away
+- Reading a deployment's own log files from the logs view, plus a fleet-wide Logs page for any deployment
+- A Databases tab on the deployment detail, moved out of the overview
+
+### Enhanced
+- The observability screens are denser: the count cards became a compact strip, fleet and host charts split into tabs (fleet first) with a per-deployment filter, and the alerts screen moved to a stable two-column layout so firing alerts no longer push the rules around; network reads as a per-second rate
+- The console scrolls its own body instead of the whole page, and the sidebar starts collapsed and remembers the choice, opening hover flyouts so grouped navigation stays reachable when collapsed
+
+### Fixed
+- A long unbreakable log line no longer widens the whole page
+- A folded log entry keeps its expanded state as the live stream buffer slides, and log level detection matches the agent
+- The "All logs" tail option now requests all logs instead of a hundred lines
+
 ## [0.4.0-beta.2] - 2026-08-01
 
 Second beta of the Albacore release, continuing the work on top of beta.1. Some Albacore items remain in progress and are not in this beta.
