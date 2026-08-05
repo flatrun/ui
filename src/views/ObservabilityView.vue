@@ -68,64 +68,23 @@
         </component>
       </section>
 
-      <template v-if="hasHostData">
-        <div class="charts-head">
-          <h3>Host</h3>
-        </div>
-        <div class="three-col">
-          <section class="panel">
-            <div class="chart-title"><Icon name="flame" :size="15" /> CPU</div>
-            <TimeSeriesChart
-              v-if="hostCpuSeries"
-              :containers="hostCpuSeries.containers"
-              :timestamps="hostCpuSeries.timestamps"
-              :values="hostCpuSeries.values"
-              unit="percent"
-              :height="140"
-              area
-            />
-            <p v-else class="muted">No data.</p>
-          </section>
-          <section class="panel">
-            <div class="chart-title"><Icon name="memory-stick" :size="15" /> Memory</div>
-            <TimeSeriesChart
-              v-if="hostMemSeries"
-              :containers="hostMemSeries.containers"
-              :timestamps="hostMemSeries.timestamps"
-              :values="hostMemSeries.values"
-              unit="percent"
-              :height="140"
-              area
-            />
-            <p v-else class="muted">No data.</p>
-          </section>
-          <section class="panel">
-            <div class="chart-title"><Icon name="hard-drive" :size="15" /> Disk</div>
-            <TimeSeriesChart
-              v-if="hostDiskSeries"
-              :containers="hostDiskSeries.containers"
-              :timestamps="hostDiskSeries.timestamps"
-              :values="hostDiskSeries.values"
-              unit="percent"
-              :height="140"
-              area
-            />
-            <p v-else class="muted">No data.</p>
-          </section>
-        </div>
-      </template>
-
       <div class="charts-head">
-        <h3>{{ deploymentFilter ? deploymentFilter : "Fleet" }} resources</h3>
+        <div class="chart-tabs" role="tablist">
+          <button class="chart-tab" :class="{ active: showFleet }" @click="chartTab = 'fleet'">Fleet</button>
+          <button v-if="hasHostData" class="chart-tab" :class="{ active: !showFleet }" @click="chartTab = 'host'">
+            Host
+          </button>
+        </div>
         <div class="charts-controls">
-          <select v-model="deploymentFilter" class="form-select" @change="load">
+          <select v-if="showFleet" v-model="deploymentFilter" class="form-select" @change="load">
             <option value="">All deployments</option>
             <option v-for="name in deploymentOptions" :key="name" :value="name">{{ name }}</option>
           </select>
           <TimeRangePicker :model-value="since" :ranges="ranges" @update:model-value="setRange" />
         </div>
       </div>
-      <div class="two-col">
+
+      <div v-if="showFleet" class="two-col">
         <section class="panel">
           <div class="chart-title"><Icon name="flame" :size="15" /> CPU</div>
           <TimeSeriesChart
@@ -151,6 +110,48 @@
             area
           />
           <p v-else class="muted">No data for this selection.</p>
+        </section>
+      </div>
+
+      <div v-else class="three-col">
+        <section class="panel">
+          <div class="chart-title"><Icon name="flame" :size="15" /> CPU</div>
+          <TimeSeriesChart
+            v-if="hostCpuSeries"
+            :containers="hostCpuSeries.containers"
+            :timestamps="hostCpuSeries.timestamps"
+            :values="hostCpuSeries.values"
+            unit="percent"
+            :height="150"
+            area
+          />
+          <p v-else class="muted">No data.</p>
+        </section>
+        <section class="panel">
+          <div class="chart-title"><Icon name="memory-stick" :size="15" /> Memory</div>
+          <TimeSeriesChart
+            v-if="hostMemSeries"
+            :containers="hostMemSeries.containers"
+            :timestamps="hostMemSeries.timestamps"
+            :values="hostMemSeries.values"
+            unit="percent"
+            :height="150"
+            area
+          />
+          <p v-else class="muted">No data.</p>
+        </section>
+        <section class="panel">
+          <div class="chart-title"><Icon name="hard-drive" :size="15" /> Disk</div>
+          <TimeSeriesChart
+            v-if="hostDiskSeries"
+            :containers="hostDiskSeries.containers"
+            :timestamps="hostDiskSeries.timestamps"
+            :values="hostDiskSeries.values"
+            unit="percent"
+            :height="150"
+            area
+          />
+          <p v-else class="muted">No data.</p>
         </section>
       </div>
 
@@ -200,6 +201,8 @@ const ranges = ["15m", "1h", "6h", "24h"];
 const since = ref("15m");
 const deploymentFilter = ref("");
 const deploymentOptions = computed(() => deploymentsStore.deployments.map((d) => d.name).sort());
+const chartTab = ref<"fleet" | "host">("fleet");
+const showFleet = computed(() => chartTab.value === "fleet" || !hasHostData.value);
 let timer: number | undefined;
 
 async function load() {
@@ -483,6 +486,37 @@ onUnmounted(() => {
   justify-content: space-between;
   gap: var(--space-3);
   flex-wrap: wrap;
+}
+
+.chart-tabs {
+  display: inline-flex;
+  gap: 2px;
+  background: var(--surface-sunken);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 2px;
+}
+
+.chart-tab {
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+.chart-tab:hover {
+  color: var(--text);
+}
+
+.chart-tab.active {
+  background: var(--surface-raised);
+  color: var(--text);
+  box-shadow: var(--shadow-xs);
 }
 
 .charts-head h3 {
