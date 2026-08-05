@@ -30,7 +30,7 @@ export function useLogStream() {
     }
   };
 
-  const start = (deployment: string, opts: { tail?: number; filter?: string } = {}) => {
+  const start = (deployment: string, opts: { tail?: number; filter?: string; source?: string } = {}) => {
     stop();
     lines.value = [];
     records.value = [];

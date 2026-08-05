@@ -14,6 +14,18 @@ export interface LogRecord {
 
 export type LogLevel = "trace" | "debug" | "info" | "warn" | "error" | "fatal";
 
+// LogSource is a place a deployment's logs can be read from: the container
+// output ("stdout") or a file the app writes under its own directory ("file").
+export interface LogSource {
+  id: string;
+  name: string;
+  type: "stdout" | "file";
+  service?: string;
+  path?: string;
+  format?: string;
+  builtin?: boolean;
+}
+
 const COMPOSE_PREFIX = /^([A-Za-z0-9][A-Za-z0-9._-]*)\s*\|\s?/;
 const LEADING_TIMESTAMP =
   /^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2}))\s+/;
