@@ -45,8 +45,9 @@
             </div>
           </div>
           <pre class="raw">{{ entry.lines.join("\n") }}</pre>
-          <button class="copy-btn" @click.stop="copyRaw(entry.lines.join('\n'))">
-            <i class="pi pi-copy" /> Copy entry
+          <button class="copy-btn" @click.stop="copyEntry(entry)">
+            <i :class="copiedKey === entry.key ? 'pi pi-check' : 'pi pi-copy'" />
+            {{ copiedKey === entry.key ? "Copied" : "Copy entry" }}
           </button>
         </div>
       </div>
@@ -61,7 +62,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, nextTick } from "vue";
-import { groupLogRecords, type LogRecord } from "@/types/logs";
+import { groupLogRecords, type LogRecord, type LogEntry } from "@/types/logs";
 
 const props = withDefaults(
   defineProps<{
@@ -153,8 +154,14 @@ function formatTs(ts: string): string {
   return d.toLocaleTimeString(undefined, { hour12: false }) + "." + String(d.getMilliseconds()).padStart(3, "0");
 }
 
-function copyRaw(raw: string) {
-  navigator.clipboard?.writeText(raw);
+const copiedKey = ref<number | null>(null);
+let copiedTimer: ReturnType<typeof setTimeout> | undefined;
+
+function copyEntry(entry: LogEntry) {
+  navigator.clipboard?.writeText(entry.lines.join("\n"));
+  copiedKey.value = entry.key;
+  clearTimeout(copiedTimer);
+  copiedTimer = setTimeout(() => (copiedKey.value = null), 1500);
 }
 
 function onScroll() {
