@@ -27,10 +27,10 @@
         <slot name="filters" />
       </div>
       <div class="toolbar-right">
-        <label class="follow-toggle" :class="{ active: autoScroll }">
+        <label class="follow-toggle" :class="{ active: autoScroll }" title="Keep scrolling to the newest line">
           <input v-model="autoScroll" type="checkbox" />
           <i class="pi pi-arrow-down" />
-          Follow
+          Auto-scroll
         </label>
         <button
           v-if="logs"
