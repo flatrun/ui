@@ -479,7 +479,7 @@
             <span class="user-role">{{ authStore.currentUser.role }}</span>
           </div>
         </div>
-        <div class="agent-status">
+        <div class="agent-status" :title="agentOnline ? 'Connected' : 'Disconnected'">
           <span class="status-dot" :class="{ online: agentOnline }" />
           <span v-if="!sidebarCollapsed" class="status-text">{{ agentOnline ? "Connected" : "Disconnected" }}</span>
         </div>
@@ -1180,6 +1180,25 @@ onMounted(() => {
 .status-dot.online {
   background: var(--c-green);
   box-shadow: 0 0 8px rgba(34, 197, 94, 0.5);
+}
+
+.sidebar.collapsed .agent-status {
+  justify-content: center;
+}
+
+.sidebar.collapsed .status-dot {
+  width: 10px;
+  height: 10px;
+}
+
+.sidebar.collapsed .sidebar-footer {
+  padding: 0.75rem 0.5rem;
+}
+
+.sidebar.collapsed .collapse-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .logout-btn {
