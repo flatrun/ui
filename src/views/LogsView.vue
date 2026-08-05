@@ -92,7 +92,7 @@ const fetchLogs = async () => {
   logsLoading.value = true;
   try {
     const response = await deploymentsApi.logs(selectedDeployment.value, {
-      tail: logsTail.value || 100,
+      tail: logsTail.value ?? 100,
       source: logSource.value,
     });
     fetchedLogs.value = response.data.logs || "";
@@ -113,7 +113,7 @@ const onDeploymentChange = async () => {
 
 const onSourceChange = () => {
   if (following.value) {
-    logStream.start(selectedDeployment.value, { tail: logsTail.value || 100, source: logSource.value });
+    logStream.start(selectedDeployment.value, { tail: logsTail.value ?? 100, source: logSource.value });
   } else {
     fetchLogs();
   }
@@ -126,7 +126,7 @@ const toggleFollow = () => {
     fetchLogs();
     return;
   }
-  logStream.start(selectedDeployment.value, { tail: logsTail.value || 100, source: logSource.value });
+  logStream.start(selectedDeployment.value, { tail: logsTail.value ?? 100, source: logSource.value });
 };
 
 onMounted(async () => {

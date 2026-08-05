@@ -2597,7 +2597,7 @@ const fetchLogs = async () => {
   logsLoading.value = true;
   try {
     const response = await deploymentsApi.logs(route.params.name as string, {
-      tail: logsTail.value || 100,
+      tail: logsTail.value ?? 100,
       source: logSource.value,
     });
     fetchedLogs.value = response.data.logs || "";
@@ -2625,12 +2625,12 @@ const toggleFollow = () => {
     fetchLogs();
     return;
   }
-  logStream.start(route.params.name as string, { tail: logsTail.value || 100, source: logSource.value });
+  logStream.start(route.params.name as string, { tail: logsTail.value ?? 100, source: logSource.value });
 };
 
 const onLogSourceChange = () => {
   if (following.value) {
-    logStream.start(route.params.name as string, { tail: logsTail.value || 100, source: logSource.value });
+    logStream.start(route.params.name as string, { tail: logsTail.value ?? 100, source: logSource.value });
   } else {
     fetchLogs();
   }
