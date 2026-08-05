@@ -20,6 +20,7 @@ export function useLogStream() {
   const error = ref("");
 
   let socket: WebSocket | null = null;
+  let seq = 0;
 
   const stop = () => {
     following.value = false;
@@ -34,6 +35,7 @@ export function useLogStream() {
     stop();
     lines.value = [];
     records.value = [];
+    seq = 0;
     error.value = "";
 
     socket = new WebSocket(deploymentLogsWsUrl(deployment, opts));
@@ -51,7 +53,9 @@ export function useLogStream() {
         const message = JSON.parse(event.data);
         if (message.type === "log") {
           lines.value.push(message.line);
-          records.value.push(toRecord(message.record ?? message.line));
+          const record = toRecord(message.record ?? message.line);
+          record.id = seq++;
+          records.value.push(record);
           if (lines.value.length > maxBufferedLines) {
             lines.value = lines.value.slice(-maxBufferedLines);
             records.value = records.value.slice(-maxBufferedLines);

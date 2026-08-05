@@ -45,6 +45,12 @@ describe("groupLogRecords", () => {
     expect(entries.length).toBe(3);
   });
 
+  it("keys entries by a record's stable id when present", () => {
+    const records = ["one", "two"].map((l, i) => ({ ...parseLogLine(l), id: 100 + i }));
+    const entries = groupLogRecords(records);
+    expect(entries.map((e) => e.key)).toEqual([100, 101]);
+  });
+
   it("folds indented continuation lines (java/python style)", () => {
     const lines = [
       "ERROR: unhandled exception",

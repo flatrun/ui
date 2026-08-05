@@ -5,6 +5,7 @@ export interface LogRecord {
   message: string;
   fields?: Record<string, string>;
   raw: string;
+  id?: number;
 }
 
 export type LogLevel = "trace" | "debug" | "info" | "warn" | "error" | "fatal";
@@ -143,7 +144,7 @@ export function groupLogRecords(records: LogRecord[]): LogEntry[] {
     if (isContinuation) {
       entries[entries.length - 1].lines.push(rec.raw);
     } else {
-      entries.push({ record: rec, lines: [rec.raw], key: i });
+      entries.push({ record: rec, lines: [rec.raw], key: rec.id ?? i });
     }
   }
   return entries;
