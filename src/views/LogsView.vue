@@ -1,12 +1,5 @@
 <template>
   <div class="logs-view">
-    <div class="logs-view-header">
-      <div>
-        <h1>Logs</h1>
-        <p class="subtitle">Read any deployment's logs, from container output or its own log files.</p>
-      </div>
-    </div>
-
     <div class="logs-panel">
       <LogViewer
         :logs="logs"
@@ -152,19 +145,9 @@ onMounted(async () => {
   padding: var(--space-5);
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
-  height: calc(100vh - 80px);
-}
-
-.logs-view-header h1 {
-  margin: 0;
-  font-size: var(--text-xl);
-}
-
-.subtitle {
-  margin: var(--space-1) 0 0;
-  color: var(--text-muted);
-  font-size: var(--text-sm);
+  flex: 1;
+  min-height: 0;
+  height: calc(100vh - 90px);
 }
 
 .logs-panel {
