@@ -27,7 +27,9 @@
         <div class="row-head">
           <i class="chevron" :class="expanded.has(entry.key) ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" />
           <span v-if="entry.record.timestamp" class="ts">{{ formatTs(entry.record.timestamp) }}</span>
-          <span v-if="entry.record.service" class="service" :title="entry.record.service">{{ entry.record.service }}</span>
+          <span v-if="entry.record.service" class="service" :title="entry.record.service">{{
+            entry.record.service
+          }}</span>
           <span class="level-tag" :class="levelClass(entry.record.level)">{{ entry.record.level || "log" }}</span>
           <span class="msg">{{ entry.record.message }}</span>
           <span v-if="entry.lines.length > 1" class="line-count" title="Lines folded into this entry">
@@ -112,9 +114,7 @@ const filtered = computed(() => {
 
 const truncated = computed(() => filtered.value.length > props.renderLimit);
 
-const visibleEntries = computed(() =>
-  truncated.value ? filtered.value.slice(-props.renderLimit) : filtered.value,
-);
+const visibleEntries = computed(() => (truncated.value ? filtered.value.slice(-props.renderLimit) : filtered.value));
 
 function levelClass(level?: string): string {
   switch (level) {

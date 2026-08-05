@@ -449,7 +449,6 @@
                 </div>
               </div>
             </div>
-
           </div>
         </div>
 
@@ -479,19 +478,27 @@
               <dl class="database-details">
                 <template v-if="db.host">
                   <dt>Host</dt>
-                  <dd><code>{{ db.host }}{{ db.port ? `:${db.port}` : "" }}</code></dd>
+                  <dd>
+                    <code>{{ db.host }}{{ db.port ? `:${db.port}` : "" }}</code>
+                  </dd>
                 </template>
                 <template v-if="db.database_name">
                   <dt>Database</dt>
-                  <dd><code>{{ db.database_name }}</code></dd>
+                  <dd>
+                    <code>{{ db.database_name }}</code>
+                  </dd>
                 </template>
                 <template v-if="db.username">
                   <dt>User</dt>
-                  <dd><code>{{ db.username }}</code></dd>
+                  <dd>
+                    <code>{{ db.username }}</code>
+                  </dd>
                 </template>
                 <template v-if="db.env_prefix">
                   <dt>Env prefix</dt>
-                  <dd><code>{{ db.env_prefix }}_*</code></dd>
+                  <dd>
+                    <code>{{ db.env_prefix }}_*</code>
+                  </dd>
                 </template>
               </dl>
             </div>
@@ -500,10 +507,11 @@
           <div v-else class="databases-empty">
             <i class="pi pi-database" />
             <h3>No databases attached</h3>
-            <p>Databases are attached when a deployment is created. Manage standalone database servers from the databases area.</p>
-            <router-link :to="{ name: 'databases' }" class="btn btn-primary btn-sm">
-              Go to databases
-            </router-link>
+            <p>
+              Databases are attached when a deployment is created. Manage standalone database servers from the databases
+              area.
+            </p>
+            <router-link :to="{ name: 'databases' }" class="btn btn-primary btn-sm"> Go to databases </router-link>
           </div>
         </div>
 
@@ -562,7 +570,11 @@
                   {{ src.name }}{{ src.path ? ` (${src.path})` : "" }}
                 </option>
               </select>
-              <button class="btn btn-sm btn-secondary" title="Read logs from a file this app writes" @click="openAddLogSource">
+              <button
+                class="btn btn-sm btn-secondary"
+                title="Read logs from a file this app writes"
+                @click="openAddLogSource"
+              >
                 <Icon name="file-plus" :size="14" />
                 Point at a file
               </button>
@@ -1442,8 +1454,8 @@
           </div>
           <div class="modal-body">
             <p class="modal-hint">
-              Read logs from a file this deployment writes. The path is relative to the deployment
-              directory, for example <code>storage/logs/laravel.log</code>.
+              Read logs from a file this deployment writes. The path is relative to the deployment directory, for
+              example <code>storage/logs/laravel.log</code>.
             </p>
             <div class="form-group">
               <label>Name</label>
@@ -1451,7 +1463,12 @@
             </div>
             <div class="form-group">
               <label>File path</label>
-              <input v-model="newLogSource.path" type="text" class="form-input" placeholder="storage/logs/laravel.log" />
+              <input
+                v-model="newLogSource.path"
+                type="text"
+                class="form-input"
+                placeholder="storage/logs/laravel.log"
+              />
             </div>
             <p v-if="logSourceError" class="form-error">{{ logSourceError }}</p>
           </div>

@@ -67,7 +67,10 @@
               :name="expandedGroups.stacks ? 'chevron-down' : 'chevron-right'"
             />
           </div>
-          <div :class="{ open: expandedGroups.stacks && !sidebarCollapsed, flyout: sidebarCollapsed }" class="nav-group-items">
+          <div
+            :class="{ open: expandedGroups.stacks && !sidebarCollapsed, flyout: sidebarCollapsed }"
+            class="nav-group-items"
+          >
             <router-link to="/deployments" class="nav-subitem" active-class="active">
               <Icon name="layers" :size="15" />
               Deployments
@@ -95,7 +98,10 @@
               :name="expandedGroups.docker ? 'chevron-down' : 'chevron-right'"
             />
           </div>
-          <div :class="{ open: expandedGroups.docker && !sidebarCollapsed, flyout: sidebarCollapsed }" class="nav-group-items">
+          <div
+            :class="{ open: expandedGroups.docker && !sidebarCollapsed, flyout: sidebarCollapsed }"
+            class="nav-group-items"
+          >
             <router-link
               v-if="authStore.hasPermission('containers:read')"
               to="/containers"
@@ -163,7 +169,10 @@
               :name="expandedGroups.storage ? 'chevron-down' : 'chevron-right'"
             />
           </div>
-          <div :class="{ open: expandedGroups.storage && !sidebarCollapsed, flyout: sidebarCollapsed }" class="nav-group-items">
+          <div
+            :class="{ open: expandedGroups.storage && !sidebarCollapsed, flyout: sidebarCollapsed }"
+            class="nav-group-items"
+          >
             <router-link
               v-if="authStore.hasPermission('databases:read')"
               to="/databases"
@@ -204,7 +213,10 @@
               :name="expandedGroups.security ? 'chevron-down' : 'chevron-right'"
             />
           </div>
-          <div :class="{ open: expandedGroups.security && !sidebarCollapsed, flyout: sidebarCollapsed }" class="nav-group-items">
+          <div
+            :class="{ open: expandedGroups.security && !sidebarCollapsed, flyout: sidebarCollapsed }"
+            class="nav-group-items"
+          >
             <router-link
               v-if="authStore.hasPermission('deployments:read')"
               to="/observability"
@@ -247,7 +259,10 @@
               :name="expandedGroups.extensions ? 'chevron-down' : 'chevron-right'"
             />
           </div>
-          <div :class="{ open: expandedGroups.extensions && !sidebarCollapsed, flyout: sidebarCollapsed }" class="nav-group-items">
+          <div
+            :class="{ open: expandedGroups.extensions && !sidebarCollapsed, flyout: sidebarCollapsed }"
+            class="nav-group-items"
+          >
             <router-link to="/apps" class="nav-subitem" active-class="active">
               <Icon name="layout-grid" :size="15" />
               Installed Apps
@@ -279,7 +294,10 @@
               :name="expandedGroups.system ? 'chevron-down' : 'chevron-right'"
             />
           </div>
-          <div :class="{ open: expandedGroups.system && !sidebarCollapsed, flyout: sidebarCollapsed }" class="nav-group-items">
+          <div
+            :class="{ open: expandedGroups.system && !sidebarCollapsed, flyout: sidebarCollapsed }"
+            class="nav-group-items"
+          >
             <router-link
               v-if="authStore.hasPermission('system:read')"
               to="/server-info"
@@ -370,7 +388,10 @@
               :name="expandedGroups.dns ? 'chevron-down' : 'chevron-right'"
             />
           </div>
-          <div :class="{ open: expandedGroups.dns && !sidebarCollapsed, flyout: sidebarCollapsed }" class="nav-group-items">
+          <div
+            :class="{ open: expandedGroups.dns && !sidebarCollapsed, flyout: sidebarCollapsed }"
+            class="nav-group-items"
+          >
             <router-link to="/dns/zones" class="nav-subitem" active-class="active">
               <Icon name="globe" :size="15" />
               Zones
@@ -400,7 +421,10 @@
               :name="expandedGroups.admin ? 'chevron-down' : 'chevron-right'"
             />
           </div>
-          <div :class="{ open: expandedGroups.admin && !sidebarCollapsed, flyout: sidebarCollapsed }" class="nav-group-items">
+          <div
+            :class="{ open: expandedGroups.admin && !sidebarCollapsed, flyout: sidebarCollapsed }"
+            class="nav-group-items"
+          >
             <router-link
               v-if="authStore.hasPermission('settings:read')"
               to="/settings"

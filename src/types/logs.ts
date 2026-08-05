@@ -1,4 +1,3 @@
-
 export interface LogRecord {
   timestamp?: string;
   service?: string;
@@ -21,10 +20,10 @@ export interface LogSource {
 }
 
 const COMPOSE_PREFIX = /^([A-Za-z0-9][A-Za-z0-9._-]*)\s*\|\s?/;
-const LEADING_TIMESTAMP =
-  /^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2}))\s+/;
+const LEADING_TIMESTAMP = /^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2}))\s+/;
 
-const LEVEL_WORDS = "TRACE|DEBUG|INFO(?:RMATION)?|NOTICE|WARN(?:ING)?|ERROR|ERR|FATAL|CRIT(?:ICAL)?|PANIC|EMERG(?:ENCY)?|ALERT";
+const LEVEL_WORDS =
+  "TRACE|DEBUG|INFO(?:RMATION)?|NOTICE|WARN(?:ING)?|ERROR|ERR|FATAL|CRIT(?:ICAL)?|PANIC|EMERG(?:ENCY)?|ALERT";
 
 const LEVEL_PATTERNS = [
   new RegExp(`^\\s*\\[?\\s*(${LEVEL_WORDS})\\s*\\]?\\s*[:\\-\\s]`, "i"),
@@ -93,9 +92,7 @@ export function parseLogLine(raw: string): LogRecord {
 
   const trimmed = rest.trim();
   const json =
-    trimmed.length >= 2 && trimmed[0] === "{" && trimmed[trimmed.length - 1] === "}"
-      ? parseJsonObject(trimmed)
-      : null;
+    trimmed.length >= 2 && trimmed[0] === "{" && trimmed[trimmed.length - 1] === "}" ? parseJsonObject(trimmed) : null;
   if (json) {
     rec.level = json.level || undefined;
     rec.message = json.message || trimmed;
@@ -108,9 +105,7 @@ export function parseLogLine(raw: string): LogRecord {
   return rec;
 }
 
-function parseJsonObject(
-  s: string,
-): { level: string; message: string; fields?: Record<string, string> } | null {
+function parseJsonObject(s: string): { level: string; message: string; fields?: Record<string, string> } | null {
   let obj: Record<string, unknown>;
   try {
     obj = JSON.parse(s) as Record<string, unknown>;

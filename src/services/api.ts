@@ -216,10 +216,9 @@ export const deploymentsApi = {
   executeQuickAction: (name: string, actionId: string) =>
     apiClient.post<{ message: string; action_id: string; output: string }>(`/deployments/${name}/actions/${actionId}`),
   logs: (name: string, params?: { tail?: number; source?: string }) =>
-    apiClient.get<{ name: string; source?: string; logs: string; records: LogRecord[] }>(
-      `/deployments/${name}/logs`,
-      { params },
-    ),
+    apiClient.get<{ name: string; source?: string; logs: string; records: LogRecord[] }>(`/deployments/${name}/logs`, {
+      params,
+    }),
   logSources: (name: string) =>
     apiClient.get<{ name: string; sources: LogSource[] }>(`/deployments/${name}/log-sources`),
   updateLogSources: (name: string, sources: LogSource[]) =>

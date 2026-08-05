@@ -28,9 +28,7 @@
               <span class="av-count" :class="{ danger: firing.length }">{{ firing.length }}</span>
             </h3>
             <div class="av-scroll">
-              <p v-if="!firing.length" class="av-clear">
-                <Icon name="check" :size="14" /> Nothing firing.
-              </p>
+              <p v-if="!firing.length" class="av-clear"><Icon name="check" :size="14" /> Nothing firing.</p>
               <div v-for="event in firing" :key="`${event.rule_id}-${event.container}`" class="av-row av-row--firing">
                 <span class="av-dot" />
                 <span class="av-row-rule">{{ event.rule_name }}</span>
