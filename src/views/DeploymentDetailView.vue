@@ -538,6 +538,7 @@
         <div v-if="activeTab === 'logs'" class="logs-tab">
           <LogViewer
             :logs="logs"
+            :records="logRecords"
             :loading="logsLoading"
             :file-name="`${deployment?.name || 'deployment'}-logs.txt`"
             empty-message="No logs available"
@@ -1813,6 +1814,7 @@ import type {
 import FileBrowser from "@/components/FileBrowser.vue";
 import DeploymentHealthSummary from "@/components/DeploymentHealthSummary.vue";
 import { useLogStream } from "@/composables/useLogStream";
+import type { LogRecord } from "@/types/logs";
 import ContainerFilesPanel from "@/components/ContainerFilesPanel.vue";
 import LogViewer from "@/components/LogViewer.vue";
 import ConfirmModal from "@/components/ConfirmModal.vue";
@@ -2018,7 +2020,9 @@ const logStream = useLogStream();
 const following = logStream.following;
 // While following, the viewer shows what the socket has delivered; otherwise the last fetch.
 const logs = computed(() => (following.value ? logStream.lines.value.join("\n") : fetchedLogs.value));
+const logRecords = computed(() => (following.value ? logStream.records.value : fetchedRecords.value));
 const fetchedLogs = ref("");
+const fetchedRecords = ref<LogRecord[]>([]);
 const logsLoading = ref(false);
 const logsService = ref("all");
 const logsTail = ref(100);
@@ -2511,6 +2515,7 @@ const fetchLogs = async () => {
   try {
     const response = await deploymentsApi.logs(route.params.name as string);
     fetchedLogs.value = response.data.logs || "";
+    fetchedRecords.value = response.data.records || [];
   } catch (err) {
     console.error("Failed to fetch logs:", err);
   } finally {

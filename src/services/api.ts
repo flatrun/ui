@@ -21,6 +21,7 @@ import type {
   Plan,
   PlanStatus,
 } from "@/types";
+import type { LogRecord } from "@/types/logs";
 
 export const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_URL || "/api",
@@ -210,7 +211,8 @@ export const deploymentsApi = {
     }>(`/deployments/${name}/images`),
   executeQuickAction: (name: string, actionId: string) =>
     apiClient.post<{ message: string; action_id: string; output: string }>(`/deployments/${name}/actions/${actionId}`),
-  logs: (name: string) => apiClient.get(`/deployments/${name}/logs`),
+  logs: (name: string) =>
+    apiClient.get<{ name: string; logs: string; records: LogRecord[] }>(`/deployments/${name}/logs`),
   getComposeFile: (name: string) => apiClient.get(`/deployments/${name}/compose`),
   addComposeMount: (
     name: string,

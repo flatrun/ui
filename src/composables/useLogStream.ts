@@ -1,5 +1,6 @@
 import { ref, onUnmounted } from "vue";
 import { deploymentLogsWsUrl } from "@/services/api";
+import { toRecord, type LogRecord } from "@/types/logs";
 
 // maxBufferedLines bounds what a follow keeps. A container that logs a line a millisecond
 // would otherwise grow the buffer until the tab dies; the oldest lines go first, which is
@@ -14,6 +15,7 @@ const maxBufferedLines = 5000;
  */
 export function useLogStream() {
   const lines = ref<string[]>([]);
+  const records = ref<LogRecord[]>([]);
   const following = ref(false);
   const error = ref("");
 
@@ -31,6 +33,7 @@ export function useLogStream() {
   const start = (deployment: string, opts: { tail?: number; filter?: string } = {}) => {
     stop();
     lines.value = [];
+    records.value = [];
     error.value = "";
 
     socket = new WebSocket(deploymentLogsWsUrl(deployment, opts));
@@ -48,8 +51,10 @@ export function useLogStream() {
         const message = JSON.parse(event.data);
         if (message.type === "log") {
           lines.value.push(message.line);
+          records.value.push(toRecord(message.record ?? message.line));
           if (lines.value.length > maxBufferedLines) {
             lines.value = lines.value.slice(-maxBufferedLines);
+            records.value = records.value.slice(-maxBufferedLines);
           }
         } else if (message.type === "error") {
           error.value = message.error || message.message || "The log stream stopped";
@@ -72,5 +77,5 @@ export function useLogStream() {
 
   onUnmounted(stop);
 
-  return { lines, following, error, start, stop };
+  return { lines, records, following, error, start, stop };
 }

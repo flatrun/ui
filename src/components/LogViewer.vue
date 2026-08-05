@@ -11,13 +11,13 @@
             @keyup.enter="searchNext"
             @keyup.shift.enter="searchPrevious"
           />
-          <span v-if="searchResults" class="search-results">
+          <span v-if="searchResults && viewMode === 'raw'" class="search-results">
             {{ searchResults }}
           </span>
-          <button class="search-btn" title="Previous (Shift+Enter)" @click="searchPrevious">
+          <button v-if="viewMode === 'raw'" class="search-btn" title="Previous (Shift+Enter)" @click="searchPrevious">
             <i class="pi pi-chevron-up" />
           </button>
-          <button class="search-btn" title="Next (Enter)" @click="searchNext">
+          <button v-if="viewMode === 'raw'" class="search-btn" title="Next (Enter)" @click="searchNext">
             <i class="pi pi-chevron-down" />
           </button>
           <button class="search-btn" title="Close" @click="closeSearch">
@@ -27,6 +27,24 @@
         <slot name="filters" />
       </div>
       <div class="toolbar-right">
+        <div class="view-toggle">
+          <button
+            class="view-btn"
+            :class="{ active: viewMode === 'structured' }"
+            title="Structured rows"
+            @click="viewMode = 'structured'"
+          >
+            <i class="pi pi-list" />
+          </button>
+          <button
+            class="view-btn"
+            :class="{ active: viewMode === 'raw' }"
+            title="Raw terminal"
+            @click="viewMode = 'raw'"
+          >
+            <i class="pi pi-align-left" />
+          </button>
+        </div>
         <label class="follow-toggle" :class="{ active: autoScroll }" title="Keep scrolling to the newest line">
           <input v-model="autoScroll" type="checkbox" />
           <i class="pi pi-arrow-down" />
@@ -57,8 +75,16 @@
         </button>
       </div>
     </div>
-    <div ref="terminalContainer" class="terminal-container" />
-    <div v-if="!logs && !loading" class="empty-state">
+    <StructuredLogView
+      v-show="viewMode === 'structured'"
+      ref="structuredView"
+      :records="effectiveRecords"
+      :auto-scroll="autoScroll"
+      :search-query="searchQuery"
+      :empty-message="emptyMessage"
+    />
+    <div v-show="viewMode === 'raw'" ref="terminalContainer" class="terminal-container" />
+    <div v-if="viewMode === 'raw' && !logs && !loading" class="empty-state">
       <i class="pi pi-file-edit" />
       <p>{{ emptyMessage }}</p>
     </div>
@@ -66,7 +92,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch, nextTick } from "vue";
+import { ref, computed, onMounted, onUnmounted, watch, nextTick } from "vue";
 import { Terminal } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
 import { SearchAddon } from "@xterm/addon-search";
@@ -74,10 +100,13 @@ import { WebLinksAddon } from "@xterm/addon-web-links";
 import "@xterm/xterm/css/xterm.css";
 import { Sparkles } from "lucide-vue-next";
 import { useAssistStore, type AssistContext } from "@/stores/assist";
+import StructuredLogView from "@/components/StructuredLogView.vue";
+import { parseLogLine, type LogRecord } from "@/types/logs";
 
 const props = withDefaults(
   defineProps<{
     logs?: string;
+    records?: LogRecord[] | null;
     loading?: boolean;
     emptyMessage?: string;
     fileName?: string;
@@ -88,6 +117,7 @@ const props = withDefaults(
   }>(),
   {
     logs: "",
+    records: null,
     loading: false,
     emptyMessage: "No logs available",
     fileName: "logs.txt",
@@ -132,8 +162,22 @@ const openAssist = () => {
 };
 
 const terminalContainer = ref<HTMLElement | null>(null);
+const structuredView = ref<InstanceType<typeof StructuredLogView> | null>(null);
+const viewMode = ref<"structured" | "raw">("structured");
 const autoScroll = ref(true);
 const showSearch = ref(false);
+
+// When the parent hands over parsed records they win; otherwise the raw text is
+// split back into records so the structured view still works for a plain
+// snapshot string or an older agent that only sent lines.
+const effectiveRecords = computed<LogRecord[]>(() => {
+  if (props.records && props.records.length) return props.records;
+  if (!props.logs) return [];
+  return props.logs
+    .replace(/\n$/, "")
+    .split("\n")
+    .map((line) => parseLogLine(line));
+});
 const searchQuery = ref("");
 const searchResults = ref("");
 const isFullscreen = ref(false);
@@ -345,6 +389,14 @@ watch(
   },
 );
 
+// The terminal is measured from a hidden container while structured mode is
+// showing, so switching to raw needs a refit to fill the space it just gained.
+watch(viewMode, (mode) => {
+  if (mode === "raw") {
+    nextTick(() => fitAddon?.fit());
+  }
+});
+
 onMounted(() => {
   initTerminal();
   document.addEventListener("keydown", handleKeydown);
@@ -442,6 +494,34 @@ onUnmounted(() => {
 .search-btn:hover {
   color: #a9b1d6;
   background: #2a2e3d;
+}
+
+.view-toggle {
+  display: flex;
+  align-items: center;
+  border: 1px solid #2a2e3d;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.view-btn {
+  background: transparent;
+  border: none;
+  color: #565f89;
+  cursor: pointer;
+  padding: var(--space-1) var(--space-2);
+  display: flex;
+  align-items: center;
+  transition: all var(--transition-base);
+}
+
+.view-btn:hover {
+  color: #a9b1d6;
+}
+
+.view-btn.active {
+  color: #7aa2f7;
+  background: rgba(122, 162, 247, 0.12);
 }
 
 .follow-toggle {
