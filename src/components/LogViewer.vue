@@ -167,9 +167,6 @@ const viewMode = ref<"structured" | "raw">("structured");
 const autoScroll = ref(true);
 const showSearch = ref(false);
 
-// When the parent hands over parsed records they win; otherwise the raw text is
-// split back into records so the structured view still works for a plain
-// snapshot string or an older agent that only sent lines.
 const effectiveRecords = computed<LogRecord[]>(() => {
   if (props.records && props.records.length) return props.records;
   if (!props.logs) return [];
@@ -389,8 +386,6 @@ watch(
   },
 );
 
-// The terminal is measured from a hidden container while structured mode is
-// showing, so switching to raw needs a refit to fill the space it just gained.
 watch(viewMode, (mode) => {
   if (mode === "raw") {
     nextTick(() => fitAddon?.fit());
@@ -549,8 +544,6 @@ onUnmounted(() => {
   background: rgba(158, 206, 106, 0.1);
 }
 
-/* The toolbar is always dark, so selects a parent projects into the filters
-   slot must be dark too, whatever the app theme. */
 .log-toolbar :deep(.form-select) {
   padding: var(--space-1) var(--space-2);
   border: 1px solid #2a2e3d;

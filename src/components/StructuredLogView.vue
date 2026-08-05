@@ -67,8 +67,6 @@ const props = withDefaults(
     autoScroll?: boolean;
     searchQuery?: string;
     emptyMessage?: string;
-    // renderLimit caps how many rows reach the DOM; a container that logged all
-    // day would otherwise render tens of thousands of nodes and stutter.
     renderLimit?: number;
   }>(),
   {
@@ -91,8 +89,6 @@ const expanded = ref<Set<number>>(new Set());
 const activeLevels = ref<Set<string>>(new Set());
 const pinnedToBottom = ref(true);
 
-// Continuation lines (a stack trace under an error) fold into the entry above
-// them, so one exception reads as a single expandable row.
 const entries = computed(() => groupLogRecords(props.records));
 
 const counts = computed(() => {
@@ -109,7 +105,6 @@ const filtered = computed(() => {
   const levels = activeLevels.value;
   return entries.value.filter((entry) => {
     if (levels.size && !levels.has(levelClass(entry.record.level))) return false;
-    // Search the whole entry, so a match inside a folded stack trace still finds it.
     if (q && !entry.lines.some((l) => l.toLowerCase().includes(q))) return false;
     return true;
   });

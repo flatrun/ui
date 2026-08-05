@@ -1169,9 +1169,8 @@ onMounted(() => {
 
 .main-content {
   flex: 1;
-  /* Without min-width:0 a flex item keeps its min-content width, so one
-     unbreakable line (e.g. a long file-log entry) forces the whole page wider
-     than the viewport and adds a horizontal scrollbar. */
+  /* min-width:0 lets this flex column shrink below its content, so a long
+     unbreakable line cannot widen the whole page. */
   min-width: 0;
   margin-left: 260px;
   display: flex;

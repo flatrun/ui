@@ -113,7 +113,6 @@ const fetchLogs = async () => {
 
 const onDeploymentChange = async () => {
   logStream.stop();
-  // Keep the deployment in the URL so the view is shareable and survives reload.
   router.replace({ query: { ...route.query, deployment: selectedDeployment.value } });
   await fetchLogSources();
   await fetchLogs();

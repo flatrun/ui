@@ -1,7 +1,3 @@
-// LogRecord is one log line broken into the parts the structured viewer renders
-// as a row. The agent produces these; this file mirrors that shape and can
-// rebuild one from a raw line when only text is available (a static snapshot, or
-// an older agent that only sent `line`).
 
 export interface LogRecord {
   timestamp?: string;
@@ -14,8 +10,6 @@ export interface LogRecord {
 
 export type LogLevel = "trace" | "debug" | "info" | "warn" | "error" | "fatal";
 
-// LogSource is a place a deployment's logs can be read from: the container
-// output ("stdout") or a file the app writes under its own directory ("file").
 export interface LogSource {
   id: string;
   name: string;
@@ -32,10 +26,6 @@ const LEADING_TIMESTAMP =
 
 const LEVEL_WORDS = "TRACE|DEBUG|INFO(?:RMATION)?|NOTICE|WARN(?:ING)?|ERROR|ERR|FATAL|CRIT(?:ICAL)?|PANIC|EMERG(?:ENCY)?|ALERT";
 
-// Detect a severity only where a log format puts one: the start of the line, a
-// `channel.LEVEL` tag, or a `level=` field. This mirrors the agent parser so
-// the level shown is the same whichever side produced the record, and it avoids
-// tagging a stack frame like `App\ErrorHandler->handle()` as an error.
 const LEVEL_PATTERNS = [
   new RegExp(`^\\s*\\[?\\s*(${LEVEL_WORDS})\\s*\\]?\\s*[:\\-\\s]`, "i"),
   new RegExp(`\\b[a-z][a-z0-9_-]*\\.(${LEVEL_WORDS})\\b`, "i"),
@@ -50,10 +40,6 @@ function detectTextLevel(s: string): LogLevel | "" {
   return "";
 }
 
-// A continuation line is part of the entry above it (a stack frame, an indented
-// detail, a closing brace) rather than a new log entry. These markers are
-// format-agnostic: indentation, numbered frames, `at`/`Caused by` frames, and
-// trailing brackets show up across Java, PHP, Python, and Node stack traces.
 const CONTINUATION_LINE = /^(\s+|#\d+\b|at\s|Caused by:|\.\.\.|"?[}\]])/i;
 
 export function canonicalLevel(raw: string | undefined): LogLevel | "" {
@@ -87,9 +73,6 @@ export function canonicalLevel(raw: string | undefined): LogLevel | "" {
   }
 }
 
-// parseLogLine rebuilds a record from a raw compose line. It mirrors the agent's
-// parser so a viewer looks the same whether the record came down structured or
-// had to be reconstructed from text.
 export function parseLogLine(raw: string): LogRecord {
   const rec: LogRecord = { message: raw, raw };
   let rest = raw;
@@ -109,30 +92,15 @@ export function parseLogLine(raw: string): LogRecord {
   rest = rest.replace(/\r$/, "");
 
   const trimmed = rest.trim();
-  if (trimmed.length >= 2 && trimmed[0] === "{" && trimmed[trimmed.length - 1] === "}") {
-    try {
-      const obj = JSON.parse(trimmed) as Record<string, unknown>;
-      const fields: Record<string, string> = {};
-      let level = "";
-      let message = "";
-      for (const [k, v] of Object.entries(obj)) {
-        const key = k.toLowerCase();
-        const val = typeof v === "string" ? v : JSON.stringify(v);
-        if (["level", "severity", "lvl", "loglevel", "log.level"].includes(key)) {
-          if (!level) level = canonicalLevel(val) || val;
-        } else if (["message", "msg", "log", "text"].includes(key)) {
-          if (!message) message = val;
-        } else {
-          fields[k] = val;
-        }
-      }
-      rec.level = level;
-      rec.message = message || trimmed;
-      if (Object.keys(fields).length) rec.fields = fields;
-      return rec;
-    } catch {
-      // Not valid JSON after all; fall through to plain-text handling.
-    }
+  const json =
+    trimmed.length >= 2 && trimmed[0] === "{" && trimmed[trimmed.length - 1] === "}"
+      ? parseJsonObject(trimmed)
+      : null;
+  if (json) {
+    rec.level = json.level || undefined;
+    rec.message = json.message || trimmed;
+    if (json.fields) rec.fields = json.fields;
+    return rec;
   }
 
   rec.message = rest;
@@ -140,20 +108,38 @@ export function parseLogLine(raw: string): LogRecord {
   return rec;
 }
 
-// LogEntry is one logical log entry: a header record plus any continuation
-// lines (a stack trace, an indented dump) that belong under it. The structured
-// view shows the header on one row and reveals the whole entry when expanded.
+function parseJsonObject(
+  s: string,
+): { level: string; message: string; fields?: Record<string, string> } | null {
+  let obj: Record<string, unknown>;
+  try {
+    obj = JSON.parse(s) as Record<string, unknown>;
+  } catch {
+    return null;
+  }
+  const fields: Record<string, string> = {};
+  let level = "";
+  let message = "";
+  for (const [k, v] of Object.entries(obj)) {
+    const key = k.toLowerCase();
+    const val = typeof v === "string" ? v : JSON.stringify(v);
+    if (["level", "severity", "lvl", "loglevel", "log.level"].includes(key)) {
+      if (!level) level = canonicalLevel(val) || val;
+    } else if (["message", "msg", "log", "text"].includes(key)) {
+      if (!message) message = val;
+    } else {
+      fields[k] = val;
+    }
+  }
+  return { level, message, fields: Object.keys(fields).length ? fields : undefined };
+}
+
 export interface LogEntry {
   record: LogRecord;
   lines: string[];
   key: number;
 }
 
-// groupLogRecords folds continuation lines into the entry above them, so a
-// multi-line entry (an exception with its stack trace) reads as one expandable
-// row instead of dozens of level-less lines. A line that does not look like a
-// continuation always starts its own entry, so independent lines (an access
-// log, a plain message stream) are never merged together.
 export function groupLogRecords(records: LogRecord[]): LogEntry[] {
   const entries: LogEntry[] = [];
   for (let i = 0; i < records.length; i++) {
@@ -168,8 +154,6 @@ export function groupLogRecords(records: LogRecord[]): LogEntry[] {
   return entries;
 }
 
-// toRecord accepts whatever a log frame carried (a structured record or a bare
-// line) and always returns a record, parsing the line when needed.
 export function toRecord(input: LogRecord | string | undefined): LogRecord {
   if (input == null) return { message: "", raw: "" };
   if (typeof input === "string") return parseLogLine(input);
