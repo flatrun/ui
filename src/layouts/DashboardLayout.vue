@@ -492,7 +492,7 @@
       </div>
     </aside>
 
-    <main class="main-content" :class="{ expanded: sidebarCollapsed }">
+    <main class="main-content" :class="{ expanded: sidebarCollapsed, 'is-full-height': fullHeight }">
       <header class="top-header">
         <div class="header-left">
           <div class="breadcrumb">
@@ -540,7 +540,7 @@
         </button>
       </div>
 
-      <div class="content-area">
+      <div class="content-area" :class="{ 'is-full-height': fullHeight }">
         <router-view />
       </div>
     </main>
@@ -563,6 +563,7 @@ const { theme, toggleTheme } = useTheme();
 
 const route = useRoute();
 const router = useRouter();
+const fullHeight = computed(() => route.matched.some((r) => Boolean(r.meta?.fullHeight)));
 const statsStore = useStatsStore();
 const authStore = useAuthStore();
 const aiStore = useAIStore();
@@ -1257,6 +1258,17 @@ onMounted(() => {
   flex: 1;
   padding: 1.5rem;
   background: var(--app-bg);
+}
+
+.main-content.is-full-height {
+  height: 100vh;
+  min-height: 0;
+}
+
+.content-area.is-full-height {
+  padding: 0;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .version-warning {

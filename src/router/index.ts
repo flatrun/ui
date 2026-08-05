@@ -127,7 +127,7 @@ const routes: RouteRecordRaw[] = [
       {
         path: "observability",
         component: () => import("@/views/ObservabilityConsole.vue"),
-        meta: { permission: "deployments:read" },
+        meta: { permission: "deployments:read", fullHeight: true },
         children: [
           {
             path: "",

@@ -147,7 +147,7 @@ onMounted(async () => {
   flex-direction: column;
   flex: 1;
   min-height: 0;
-  height: calc(100vh - 90px);
+  height: 100%;
 }
 
 .logs-panel {

@@ -43,7 +43,8 @@ function isActive(section: { match: string[] }): boolean {
 .obs-console {
   display: flex;
   align-items: stretch;
-  min-height: calc(100vh - 70px);
+  height: 100%;
+  overflow: hidden;
 }
 
 .obs-rail {
@@ -52,6 +53,7 @@ function isActive(section: { match: string[] }): boolean {
   border-right: 1px solid var(--border);
   padding: var(--space-4) var(--space-2);
   background: var(--surface);
+  overflow-y: auto;
 }
 
 .obs-rail-title {
@@ -97,6 +99,7 @@ function isActive(section: { match: string[] }): boolean {
   min-width: 0;
   display: flex;
   flex-direction: column;
+  overflow-y: auto;
 }
 
 @media (max-width: 720px) {
