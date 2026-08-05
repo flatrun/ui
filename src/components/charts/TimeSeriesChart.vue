@@ -12,7 +12,7 @@ const props = withDefaults(
     containers: string[];
     timestamps: number[]; // unix seconds
     values: (number | null)[][]; // [container][time]
-    unit?: "percent" | "bytes" | "ms" | "count";
+    unit?: "percent" | "bytes" | "bytes/s" | "ms" | "count";
     area?: boolean;
     height?: number;
   }>(),
@@ -30,11 +30,12 @@ const palette = ["#6366f1", "#10b981", "#f59e0b", "#ec4899", "#0ea5e9", "#8b5cf6
 function fmtValue(v: number | null): string {
   if (v == null) return "-";
   if (props.unit === "percent") return `${v.toFixed(1)}%`;
-  if (props.unit === "bytes") {
-    if (v >= 1 << 30) return `${(v / (1 << 30)).toFixed(1)}G`;
-    if (v >= 1 << 20) return `${(v / (1 << 20)).toFixed(0)}M`;
-    if (v >= 1 << 10) return `${(v / (1 << 10)).toFixed(0)}K`;
-    return `${v}B`;
+  if (props.unit === "bytes" || props.unit === "bytes/s") {
+    const s = props.unit === "bytes/s" ? "/s" : "";
+    if (v >= 1 << 30) return `${(v / (1 << 30)).toFixed(1)}G${s}`;
+    if (v >= 1 << 20) return `${(v / (1 << 20)).toFixed(0)}M${s}`;
+    if (v >= 1 << 10) return `${(v / (1 << 10)).toFixed(0)}K${s}`;
+    return `${v}B${s}`;
   }
   if (props.unit === "ms") {
     // A request measured in seconds reads better than one in four digits of milliseconds.

@@ -97,8 +97,8 @@ let timer: number | undefined;
 const panels = [
   { metric: "container.cpu.usage", title: "CPU", unit: "percent" as const, area: true },
   { metric: "container.memory.usage", title: "Memory", unit: "bytes" as const, area: true },
-  { metric: "container.network.io.rx", title: "Network In", unit: "bytes" as const, area: false },
-  { metric: "container.network.io.tx", title: "Network Out", unit: "bytes" as const, area: false },
+  { metric: "container.network.io.rx", title: "Network In", unit: "bytes/s" as const, area: false },
+  { metric: "container.network.io.tx", title: "Network Out", unit: "bytes/s" as const, area: false },
 ];
 
 const hasData = computed(() => Object.keys(metrics.value).length > 0);

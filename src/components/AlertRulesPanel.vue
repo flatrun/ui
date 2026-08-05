@@ -157,11 +157,11 @@ const firingSnapshot = (id?: string): string => {
   return ev.snapshot.map((c) => `${c.container} (${asBytes ? bytes(c.value) : `${c.value.toFixed(1)}%`})`).join(", ");
 };
 
-const metricOptions = [
+const metricOptions: { value: string; label: string; unit: string; host?: boolean; rate?: boolean }[] = [
   { value: METRIC.cpu, label: "Container CPU usage", unit: "percent" },
   { value: METRIC.memUsage, label: "Container memory usage", unit: "bytes" },
-  { value: METRIC.netRx, label: "Container network in", unit: "bytes" },
-  { value: METRIC.netTx, label: "Container network out", unit: "bytes" },
+  { value: METRIC.netRx, label: "Container network in (per second)", unit: "bytes", rate: true },
+  { value: METRIC.netTx, label: "Container network out (per second)", unit: "bytes", rate: true },
   { value: METRIC.hostCpu, label: "Host CPU", unit: "percent", host: true },
   { value: METRIC.hostMemUtil, label: "Host memory used %", unit: "percent", host: true },
   { value: METRIC.hostMemUsage, label: "Host memory used", unit: "bytes", host: true },
@@ -202,14 +202,16 @@ watch(isHostMetric, (host) => {
   }
 });
 
-const unitHint = computed(() =>
-  metricOptions.find((m) => m.value === draft.value.metric)?.unit === "bytes" ? "In bytes." : "A percentage.",
-);
+const unitHint = computed(() => {
+  const opt = metricOptions.find((m) => m.value === draft.value.metric);
+  if (opt?.unit !== "bytes") return "A percentage.";
+  return opt.rate ? "In bytes per second." : "In bytes.";
+});
 
 const describe = (rule: AlertRule) => {
-  const metric = metricOptions.find((m) => m.value === rule.metric)?.label ?? rule.metric;
-  const value =
-    metricOptions.find((m) => m.value === rule.metric)?.unit === "bytes" ? bytes(rule.threshold) : `${rule.threshold}%`;
+  const opt = metricOptions.find((m) => m.value === rule.metric);
+  const metric = opt?.label ?? rule.metric;
+  const value = opt?.unit === "bytes" ? bytes(rule.threshold) + (opt.rate ? "/s" : "") : `${rule.threshold}%`;
   const where = rule.deployment ? rule.deployment : "any deployment";
   const held = rule.for_seconds ? ` for ${rule.for_seconds}s` : "";
   return `${metric} ${rule.comparison} ${value}${held}, on ${where}`;

@@ -21,33 +21,37 @@
 
       <aside class="av-side">
         <section class="av-panel" :class="{ 'is-firing': firing.length }">
-          <h3 :class="{ danger: firing.length }">
-            <Icon name="triangle-alert" :size="15" />
-            Firing now
-            <span class="av-count" :class="{ danger: firing.length }">{{ firing.length }}</span>
-          </h3>
-          <div class="av-scroll">
-            <p v-if="!firing.length" class="av-clear">
-              <Icon name="check" :size="14" /> Nothing firing.
-            </p>
-            <div v-for="event in firing" :key="`${event.rule_id}-${event.container}`" class="av-row av-row--firing">
-              <span class="av-dot" />
-              <span class="av-row-rule">{{ event.rule_name }}</span>
-              <span class="av-row-where">{{ event.container }}</span>
-              <span class="av-row-when">{{ relTime(event.at) }}</span>
+          <div class="av-block">
+            <h3 :class="{ danger: firing.length }">
+              <Icon name="triangle-alert" :size="15" />
+              Firing now
+              <span class="av-count" :class="{ danger: firing.length }">{{ firing.length }}</span>
+            </h3>
+            <div class="av-scroll">
+              <p v-if="!firing.length" class="av-clear">
+                <Icon name="check" :size="14" /> Nothing firing.
+              </p>
+              <div v-for="event in firing" :key="`${event.rule_id}-${event.container}`" class="av-row av-row--firing">
+                <span class="av-dot" />
+                <span class="av-row-rule">{{ event.rule_name }}</span>
+                <span class="av-row-where">{{ event.container }}</span>
+                <span class="av-row-when">{{ relTime(event.at) }}</span>
+              </div>
             </div>
           </div>
-        </section>
 
-        <section class="av-panel">
-          <h3><Icon name="history" :size="15" /> Recent</h3>
-          <div class="av-scroll">
-            <p v-if="!history.length" class="av-clear">Nothing recent.</p>
-            <div v-for="(event, i) in history" :key="i" class="av-row av-row--history">
-              <span class="av-state" :class="`av-state--${event.state}`">{{ event.state }}</span>
-              <span class="av-row-rule">{{ event.rule_name }}</span>
-              <span class="av-row-where">{{ event.container }}</span>
-              <span class="av-row-when">{{ relTime(event.at) }}</span>
+          <div class="av-divider" />
+
+          <div class="av-block">
+            <h3><Icon name="history" :size="15" /> Recent</h3>
+            <div class="av-scroll">
+              <p v-if="!history.length" class="av-clear">Nothing recent.</p>
+              <div v-for="(event, i) in history" :key="i" class="av-row av-row--history">
+                <span class="av-state" :class="`av-state--${event.state}`">{{ event.state }}</span>
+                <span class="av-row-rule">{{ event.rule_name }}</span>
+                <span class="av-row-where">{{ event.container }}</span>
+                <span class="av-row-when">{{ relTime(event.at) }}</span>
+              </div>
             </div>
           </div>
         </section>
@@ -181,6 +185,12 @@ onUnmounted(() => {
   border-color: var(--color-danger-300, #fca5a5);
 }
 
+.av-divider {
+  height: 1px;
+  background: var(--border);
+  margin: var(--space-3) 0;
+}
+
 .av-panel h3 {
   display: flex;
   align-items: center;
@@ -212,7 +222,7 @@ onUnmounted(() => {
 }
 
 .av-scroll {
-  max-height: 300px;
+  max-height: 240px;
   overflow-y: auto;
 }
 
