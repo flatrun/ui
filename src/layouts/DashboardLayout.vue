@@ -40,7 +40,7 @@
       </div>
 
       <nav class="nav-menu">
-        <router-link to="/" class="nav-item" exact-active-class="active">
+        <router-link to="/" class="nav-item" exact-active-class="active" title="Dashboard">
           <Icon name="layout-dashboard" :size="18" />
           <span v-if="!sidebarCollapsed">Dashboard</span>
         </router-link>
@@ -50,6 +50,7 @@
           to="/agents"
           class="nav-item"
           active-class="active"
+          title="Agents"
         >
           <Icon name="bot" :size="18" />
           <span v-if="!sidebarCollapsed">Agents</span>
@@ -66,7 +67,10 @@
               :name="expandedGroups.stacks ? 'chevron-down' : 'chevron-right'"
             />
           </div>
-          <div v-show="expandedGroups.stacks && !sidebarCollapsed" class="nav-group-items">
+          <div
+            :class="{ open: expandedGroups.stacks && !sidebarCollapsed, flyout: sidebarCollapsed }"
+            class="nav-group-items"
+          >
             <router-link to="/deployments" class="nav-subitem" active-class="active">
               <Icon name="layers" :size="15" />
               Deployments
@@ -94,7 +98,10 @@
               :name="expandedGroups.docker ? 'chevron-down' : 'chevron-right'"
             />
           </div>
-          <div v-show="expandedGroups.docker && !sidebarCollapsed" class="nav-group-items">
+          <div
+            :class="{ open: expandedGroups.docker && !sidebarCollapsed, flyout: sidebarCollapsed }"
+            class="nav-group-items"
+          >
             <router-link
               v-if="authStore.hasPermission('containers:read')"
               to="/containers"
@@ -162,7 +169,10 @@
               :name="expandedGroups.storage ? 'chevron-down' : 'chevron-right'"
             />
           </div>
-          <div v-show="expandedGroups.storage && !sidebarCollapsed" class="nav-group-items">
+          <div
+            :class="{ open: expandedGroups.storage && !sidebarCollapsed, flyout: sidebarCollapsed }"
+            class="nav-group-items"
+          >
             <router-link
               v-if="authStore.hasPermission('databases:read')"
               to="/databases"
@@ -203,7 +213,10 @@
               :name="expandedGroups.security ? 'chevron-down' : 'chevron-right'"
             />
           </div>
-          <div v-show="expandedGroups.security && !sidebarCollapsed" class="nav-group-items">
+          <div
+            :class="{ open: expandedGroups.security && !sidebarCollapsed, flyout: sidebarCollapsed }"
+            class="nav-group-items"
+          >
             <router-link
               v-if="authStore.hasPermission('deployments:read')"
               to="/observability"
@@ -212,24 +225,6 @@
             >
               <Icon name="activity" :size="15" />
               Observability
-            </router-link>
-            <router-link
-              v-if="authStore.hasPermission('deployments:read')"
-              to="/dashboards"
-              class="nav-subitem"
-              active-class="active"
-            >
-              <Icon name="layout-dashboard" :size="15" />
-              Dashboards
-            </router-link>
-            <router-link
-              v-if="authStore.hasPermission('deployments:read')"
-              to="/observability/alerts"
-              class="nav-subitem"
-              active-class="active"
-            >
-              <Icon name="bell" :size="15" />
-              Alerts
             </router-link>
             <router-link
               v-if="authStore.hasPermission('security:read')"
@@ -264,7 +259,10 @@
               :name="expandedGroups.extensions ? 'chevron-down' : 'chevron-right'"
             />
           </div>
-          <div v-show="expandedGroups.extensions && !sidebarCollapsed" class="nav-group-items">
+          <div
+            :class="{ open: expandedGroups.extensions && !sidebarCollapsed, flyout: sidebarCollapsed }"
+            class="nav-group-items"
+          >
             <router-link to="/apps" class="nav-subitem" active-class="active">
               <Icon name="layout-grid" :size="15" />
               Installed Apps
@@ -296,7 +294,10 @@
               :name="expandedGroups.system ? 'chevron-down' : 'chevron-right'"
             />
           </div>
-          <div v-show="expandedGroups.system && !sidebarCollapsed" class="nav-group-items">
+          <div
+            :class="{ open: expandedGroups.system && !sidebarCollapsed, flyout: sidebarCollapsed }"
+            class="nav-group-items"
+          >
             <router-link
               v-if="authStore.hasPermission('system:read')"
               to="/server-info"
@@ -387,7 +388,10 @@
               :name="expandedGroups.dns ? 'chevron-down' : 'chevron-right'"
             />
           </div>
-          <div v-show="expandedGroups.dns && !sidebarCollapsed" class="nav-group-items">
+          <div
+            :class="{ open: expandedGroups.dns && !sidebarCollapsed, flyout: sidebarCollapsed }"
+            class="nav-group-items"
+          >
             <router-link to="/dns/zones" class="nav-subitem" active-class="active">
               <Icon name="globe" :size="15" />
               Zones
@@ -417,7 +421,10 @@
               :name="expandedGroups.admin ? 'chevron-down' : 'chevron-right'"
             />
           </div>
-          <div v-show="expandedGroups.admin && !sidebarCollapsed" class="nav-group-items">
+          <div
+            :class="{ open: expandedGroups.admin && !sidebarCollapsed, flyout: sidebarCollapsed }"
+            class="nav-group-items"
+          >
             <router-link
               v-if="authStore.hasPermission('settings:read')"
               to="/settings"
@@ -496,7 +503,7 @@
             <span class="user-role">{{ authStore.currentUser.role }}</span>
           </div>
         </div>
-        <div class="agent-status">
+        <div class="agent-status" :title="agentOnline ? 'Connected' : 'Disconnected'">
           <span class="status-dot" :class="{ online: agentOnline }" />
           <span v-if="!sidebarCollapsed" class="status-text">{{ agentOnline ? "Connected" : "Disconnected" }}</span>
         </div>
@@ -510,7 +517,7 @@
       </div>
     </aside>
 
-    <main class="main-content" :class="{ expanded: sidebarCollapsed }">
+    <main class="main-content" :class="{ expanded: sidebarCollapsed, 'is-full-height': fullHeight }">
       <header class="top-header">
         <div class="header-left">
           <div class="breadcrumb">
@@ -558,7 +565,7 @@
         </button>
       </div>
 
-      <div class="content-area">
+      <div class="content-area" :class="{ 'is-full-height': fullHeight }">
         <router-view />
       </div>
     </main>
@@ -566,7 +573,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from "vue";
+import { ref, reactive, computed, onMounted, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useStatsStore } from "@/stores/stats";
 import { useAuthStore } from "@/stores/auth";
@@ -581,12 +588,14 @@ const { theme, toggleTheme } = useTheme();
 
 const route = useRoute();
 const router = useRouter();
+const fullHeight = computed(() => route.matched.some((r) => Boolean(r.meta?.fullHeight)));
 const statsStore = useStatsStore();
 const authStore = useAuthStore();
 const aiStore = useAIStore();
 
 const uiVersion = __APP_VERSION__;
-const sidebarCollapsed = ref(false);
+const sidebarCollapsed = ref(localStorage.getItem("sidebar_collapsed") !== "false");
+watch(sidebarCollapsed, (v) => localStorage.setItem("sidebar_collapsed", String(v)));
 const isRefreshing = ref(false);
 const envDropdownOpen = ref(false);
 const currentServerName = ref("Local Server");
@@ -638,7 +647,10 @@ const currentPageTitle = computed(() => {
   const titles: Record<string, string> = {
     home: "Dashboard",
     observability: "Observability",
+    logs: "Logs",
     alerts: "Alerts",
+    dashboards: "Dashboards",
+    "dashboard-detail": "Dashboard",
     deployments: "Deployments",
     "deployment-detail": "Deployment Details",
     containers: "Containers",
@@ -697,6 +709,11 @@ const breadcrumbs = computed(() => {
   } else if (routeName === "databases") {
     crumbs.push({ label: "Databases", path: "" });
     crumbs.push({ label: "Servers", path: "" });
+  } else if (["observability", "logs", "alerts", "dashboards", "dashboard-detail"].includes(routeName)) {
+    crumbs.push({ label: "Observability", path: "/observability" });
+    if (routeName !== "observability") {
+      crumbs.push({ label: currentPageTitle.value, path: "" });
+    }
   } else if (routeName === "security") {
     crumbs.push({ label: "Security", path: "" });
     crumbs.push({ label: "Security & Monitoring", path: "" });
@@ -784,6 +801,7 @@ onMounted(() => {
 
 .sidebar.collapsed {
   width: 70px;
+  overflow: visible;
 }
 
 .sidebar::-webkit-scrollbar {
@@ -971,7 +989,79 @@ onMounted(() => {
 }
 
 .nav-group-items {
+  display: none;
   padding-left: 0;
+}
+
+.nav-group-items.open {
+  display: block;
+}
+
+.sidebar.collapsed .nav-group {
+  position: relative;
+}
+
+.sidebar.collapsed .nav-group-header {
+  justify-content: center;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.sidebar.collapsed .nav-item {
+  justify-content: center;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.nav-group-items.flyout {
+  display: block;
+  position: absolute;
+  left: calc(100% + 6px);
+  top: 0;
+  min-width: 200px;
+  background: var(--sidebar-surface);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-md);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  padding: var(--space-2);
+  z-index: 300;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateX(-4px);
+  transition:
+    opacity 0.12s ease,
+    transform 0.12s ease;
+}
+
+/* A transparent bridge across the gap keeps hover alive between icon and flyout. */
+.nav-group-items.flyout::before {
+  content: "";
+  position: absolute;
+  left: -6px;
+  top: 0;
+  width: 6px;
+  height: 100%;
+}
+
+.nav-group-items.flyout::after {
+  content: "";
+  position: absolute;
+  left: -5px;
+  top: 13px;
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+  border-right: 5px solid var(--sidebar-surface);
+}
+
+.sidebar.collapsed .nav-group:hover .nav-group-items.flyout {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+}
+
+.nav-group-items.flyout .nav-subitem {
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius-sm);
 }
 
 .nav-subitem {
@@ -1116,6 +1206,25 @@ onMounted(() => {
   box-shadow: 0 0 8px rgba(34, 197, 94, 0.5);
 }
 
+.sidebar.collapsed .agent-status {
+  justify-content: center;
+}
+
+.sidebar.collapsed .status-dot {
+  width: 10px;
+  height: 10px;
+}
+
+.sidebar.collapsed .sidebar-footer {
+  padding: 0.75rem 0.5rem;
+}
+
+.sidebar.collapsed .collapse-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .logout-btn {
   width: 100%;
   padding: 0.5rem;
@@ -1156,6 +1265,9 @@ onMounted(() => {
 
 .main-content {
   flex: 1;
+  /* min-width:0 lets this flex column shrink below its content, so a long
+     unbreakable line cannot widen the whole page. */
+  min-width: 0;
   margin-left: 260px;
   display: flex;
   flex-direction: column;
@@ -1264,6 +1376,17 @@ onMounted(() => {
   flex: 1;
   padding: 1.5rem;
   background: var(--app-bg);
+}
+
+.main-content.is-full-height {
+  height: 100vh;
+  min-height: 0;
+}
+
+.content-area.is-full-height {
+  padding: 0;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .version-warning {

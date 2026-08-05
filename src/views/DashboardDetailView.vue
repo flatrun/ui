@@ -5,7 +5,9 @@
     <template v-else-if="dashboard">
       <div class="view-header">
         <div class="title-block">
-          <router-link to="/dashboards" class="back-link"><Icon name="arrow-left" :size="16" /></router-link>
+          <router-link :to="{ name: 'dashboards' }" class="back-link"
+            ><Icon name="arrow-left" :size="16"
+          /></router-link>
           <input v-model="dashboard.name" class="name-input" @change="persist" />
         </div>
         <div class="header-actions">

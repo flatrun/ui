@@ -80,24 +80,15 @@
     <template v-else-if="deployment">
       <div class="detail-tabs">
         <button
-          v-for="tab in tabs"
-          :key="tab.id"
+          v-for="item in tabBarItems"
+          :key="item.id"
           class="tab-btn"
-          :class="{ active: activeTab === tab.id }"
-          @click="activeTab = tab.id"
+          :class="{ active: activeTab === item.id }"
+          @click="activeTab = item.id"
         >
-          <i :class="tab.icon" />
-          {{ tab.label }}
-        </button>
-        <button
-          v-for="pt in pluginTabs"
-          :key="pt.id"
-          class="tab-btn"
-          :class="{ active: activeTab === pt.id }"
-          @click="activeTab = pt.id"
-        >
-          <Icon :name="pt.icon || 'puzzle'" :size="15" />
-          {{ pt.label }}
+          <i v-if="item.kind === 'native'" :class="item.icon" />
+          <Icon v-else :name="item.icon || 'puzzle'" :size="15" />
+          {{ item.label }}
         </button>
       </div>
 
@@ -458,45 +449,69 @@
                 </div>
               </div>
             </div>
+          </div>
+        </div>
 
-            <div v-if="deployment.metadata?.databases?.length" class="info-card">
-              <div class="card-header">
-                <i class="pi pi-database" />
-                <h3>Databases</h3>
-              </div>
-              <div class="card-body">
-                <div class="databases-list">
-                  <div v-for="db in deployment.metadata.databases" :key="db.id" class="database-item">
-                    <div class="database-header">
-                      <span class="database-alias">{{ db.alias }}</span>
-                      <span class="database-type" :class="db.type">{{ db.type }}</span>
-                    </div>
-                    <div class="database-details">
-                      <div class="detail-row">
-                        <span class="detail-label">Mode</span>
-                        <span class="detail-value">{{ db.mode }}</span>
-                      </div>
-                      <div v-if="db.host" class="detail-row">
-                        <span class="detail-label">Host</span>
-                        <code class="detail-value">{{ db.host }}{{ db.port ? `:${db.port}` : "" }}</code>
-                      </div>
-                      <div v-if="db.database_name" class="detail-row">
-                        <span class="detail-label">Database</span>
-                        <code class="detail-value">{{ db.database_name }}</code>
-                      </div>
-                      <div v-if="db.username" class="detail-row">
-                        <span class="detail-label">User</span>
-                        <code class="detail-value">{{ db.username }}</code>
-                      </div>
-                      <div v-if="db.env_prefix" class="detail-row">
-                        <span class="detail-label">Env Prefix</span>
-                        <code class="detail-value">{{ db.env_prefix }}_*</code>
-                      </div>
-                    </div>
-                  </div>
+        <div v-if="activeTab === 'databases'" class="databases-tab">
+          <div class="databases-tab-header">
+            <div>
+              <h2>Databases</h2>
+              <p class="databases-tab-sub">Database servers this deployment is wired to.</p>
+            </div>
+            <router-link :to="{ name: 'databases' }" class="btn btn-secondary btn-sm">
+              <i class="pi pi-external-link" />
+              Manage database servers
+            </router-link>
+          </div>
+
+          <div v-if="deployment.metadata?.databases?.length" class="databases-grid">
+            <div v-for="db in deployment.metadata.databases" :key="db.id" class="database-card">
+              <div class="database-card-top">
+                <div class="database-icon" :class="db.type">
+                  <i class="pi pi-database" />
+                </div>
+                <div class="database-title">
+                  <span class="database-alias">{{ db.alias }}</span>
+                  <span class="database-meta">{{ db.type }} · {{ db.mode }}</span>
                 </div>
               </div>
+              <dl class="database-details">
+                <template v-if="db.host">
+                  <dt>Host</dt>
+                  <dd>
+                    <code>{{ db.host }}{{ db.port ? `:${db.port}` : "" }}</code>
+                  </dd>
+                </template>
+                <template v-if="db.database_name">
+                  <dt>Database</dt>
+                  <dd>
+                    <code>{{ db.database_name }}</code>
+                  </dd>
+                </template>
+                <template v-if="db.username">
+                  <dt>User</dt>
+                  <dd>
+                    <code>{{ db.username }}</code>
+                  </dd>
+                </template>
+                <template v-if="db.env_prefix">
+                  <dt>Env prefix</dt>
+                  <dd>
+                    <code>{{ db.env_prefix }}_*</code>
+                  </dd>
+                </template>
+              </dl>
             </div>
+          </div>
+
+          <div v-else class="databases-empty">
+            <i class="pi pi-database" />
+            <h3>No databases attached</h3>
+            <p>
+              Databases are attached when a deployment is created. Manage standalone database servers from the databases
+              area.
+            </p>
+            <router-link :to="{ name: 'databases' }" class="btn btn-primary btn-sm"> Go to databases </router-link>
           </div>
         </div>
 
@@ -538,6 +553,7 @@
         <div v-if="activeTab === 'logs'" class="logs-tab">
           <LogViewer
             :logs="logs"
+            :records="logRecords"
             :loading="logsLoading"
             :file-name="`${deployment?.name || 'deployment'}-logs.txt`"
             empty-message="No logs available"
@@ -549,12 +565,19 @@
                 <Icon :name="following ? 'circle-stop' : 'play'" :size="14" />
                 {{ following ? "Following" : "Follow" }}
               </button>
-              <select v-model="logsService" class="form-select">
-                <option value="all">All Services</option>
-                <option v-for="service in services" :key="service.name" :value="service.name">
-                  {{ service.name }}
+              <select v-model="logSource" class="form-select" @change="onLogSourceChange">
+                <option v-for="src in logSources" :key="src.id" :value="src.id">
+                  {{ src.name }}{{ src.path ? ` (${src.path})` : "" }}
                 </option>
               </select>
+              <button
+                class="btn btn-sm btn-secondary"
+                title="Read logs from a file this app writes"
+                @click="openAddLogSource"
+              >
+                <Icon name="file-plus" :size="14" />
+                Point at a file
+              </button>
               <select v-model="logsTail" class="form-select">
                 <option :value="100">Last 100 lines</option>
                 <option :value="500">Last 500 lines</option>
@@ -1418,6 +1441,49 @@
     </Teleport>
 
     <Teleport to="body">
+      <div v-if="showAddLogSource" class="modal-overlay">
+        <div class="modal-container">
+          <div class="modal-header">
+            <h3>
+              <i class="pi pi-file-edit" />
+              Point at a log file
+            </h3>
+            <button class="close-btn" @click="showAddLogSource = false">
+              <i class="pi pi-times" />
+            </button>
+          </div>
+          <div class="modal-body">
+            <p class="modal-hint">
+              Read logs from a file this deployment writes. The path is relative to the deployment directory, for
+              example <code>storage/logs/laravel.log</code>.
+            </p>
+            <div class="form-group">
+              <label>Name</label>
+              <input v-model="newLogSource.name" type="text" class="form-input" placeholder="Application log" />
+            </div>
+            <div class="form-group">
+              <label>File path</label>
+              <input
+                v-model="newLogSource.path"
+                type="text"
+                class="form-input"
+                placeholder="storage/logs/laravel.log"
+              />
+            </div>
+            <p v-if="logSourceError" class="form-error">{{ logSourceError }}</p>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" @click="showAddLogSource = false">Cancel</button>
+            <button class="btn btn-primary" :disabled="savingLogSource" @click="saveLogSource">
+              <i :class="savingLogSource ? 'pi pi-spin pi-spinner' : 'pi pi-check'" />
+              Add source
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
+
+    <Teleport to="body">
       <div v-if="showRebuildModal" class="modal-overlay">
         <div class="rebuild-modal modal-container">
           <div class="modal-header">
@@ -1813,6 +1879,7 @@ import type {
 import FileBrowser from "@/components/FileBrowser.vue";
 import DeploymentHealthSummary from "@/components/DeploymentHealthSummary.vue";
 import { useLogStream } from "@/composables/useLogStream";
+import type { LogRecord, LogSource } from "@/types/logs";
 import ContainerFilesPanel from "@/components/ContainerFilesPanel.vue";
 import LogViewer from "@/components/LogViewer.vue";
 import ConfirmModal from "@/components/ConfirmModal.vue";
@@ -1933,6 +2000,7 @@ const tabs = [
   { id: "logs", label: "Logs", icon: "pi pi-file-edit" },
   { id: "terminal", label: "Terminal", icon: "pi pi-desktop" },
   { id: "environment", label: "Environment", icon: "pi pi-list" },
+  { id: "databases", label: "Databases", icon: "pi pi-database" },
   { id: "actions", label: "Quick Actions", icon: "pi pi-bolt" },
   { id: "backups", label: "Backups", icon: "pi pi-history" },
   { id: "security", label: "Security", icon: "pi pi-shield" },
@@ -1953,6 +2021,17 @@ const pluginTabs = computed(() =>
     plugin: e.plugin.name,
   })),
 );
+
+const tabBarItems = computed(() => {
+  const items: Array<{ id: string; label: string; icon?: string; kind: "native" | "plugin" }> = [];
+  for (const tab of tabs) {
+    items.push({ ...tab, kind: "native" });
+    if (tab.id === "actions") {
+      for (const pt of pluginTabs.value) items.push({ ...pt, kind: "plugin" });
+    }
+  }
+  return items;
+});
 
 const services = ref<any[]>([]);
 const hasMultipleDomains = computed(() => {
@@ -2018,11 +2097,19 @@ const logStream = useLogStream();
 const following = logStream.following;
 // While following, the viewer shows what the socket has delivered; otherwise the last fetch.
 const logs = computed(() => (following.value ? logStream.lines.value.join("\n") : fetchedLogs.value));
+const logRecords = computed(() => (following.value ? logStream.records.value : fetchedRecords.value));
 const fetchedLogs = ref("");
+const fetchedRecords = ref<LogRecord[]>([]);
 const logsLoading = ref(false);
 const logsService = ref("all");
 const logsTail = ref(100);
 const logsFollow = ref(false);
+const logSources = ref<LogSource[]>([{ id: "stdout", name: "Container output", type: "stdout" }]);
+const logSource = ref("stdout");
+const showAddLogSource = ref(false);
+const newLogSource = reactive({ name: "", path: "" });
+const savingLogSource = ref(false);
+const logSourceError = ref("");
 
 const terminalService = ref("");
 
@@ -2509,12 +2596,25 @@ const handleDisableSSL = async () => {
 const fetchLogs = async () => {
   logsLoading.value = true;
   try {
-    const response = await deploymentsApi.logs(route.params.name as string);
+    const response = await deploymentsApi.logs(route.params.name as string, {
+      tail: logsTail.value ?? 100,
+      source: logSource.value,
+    });
     fetchedLogs.value = response.data.logs || "";
+    fetchedRecords.value = response.data.records || [];
   } catch (err) {
     console.error("Failed to fetch logs:", err);
   } finally {
     logsLoading.value = false;
+  }
+};
+
+const fetchLogSources = async () => {
+  try {
+    const response = await deploymentsApi.logSources(route.params.name as string);
+    if (response.data.sources?.length) logSources.value = response.data.sources;
+  } catch (err) {
+    console.error("Failed to fetch log sources:", err);
   }
 };
 
@@ -2525,7 +2625,47 @@ const toggleFollow = () => {
     fetchLogs();
     return;
   }
-  logStream.start(route.params.name as string, { tail: logsTail.value || 100 });
+  logStream.start(route.params.name as string, { tail: logsTail.value ?? 100, source: logSource.value });
+};
+
+const onLogSourceChange = () => {
+  if (following.value) {
+    logStream.start(route.params.name as string, { tail: logsTail.value ?? 100, source: logSource.value });
+  } else {
+    fetchLogs();
+  }
+};
+
+const openAddLogSource = () => {
+  newLogSource.name = "";
+  newLogSource.path = "";
+  logSourceError.value = "";
+  showAddLogSource.value = true;
+};
+
+const saveLogSource = async () => {
+  if (!newLogSource.name.trim() || !newLogSource.path.trim()) {
+    logSourceError.value = "A name and a file path are both required.";
+    return;
+  }
+  savingLogSource.value = true;
+  logSourceError.value = "";
+  try {
+    const custom = logSources.value.filter((s) => s.type === "file" && !s.builtin);
+    custom.push({ id: "", name: newLogSource.name.trim(), type: "file", path: newLogSource.path.trim() });
+    const response = await deploymentsApi.updateLogSources(route.params.name as string, custom);
+    if (response.data.sources?.length) logSources.value = response.data.sources;
+    const added = logSources.value.find((s) => s.path === newLogSource.path.trim());
+    if (added) {
+      logSource.value = added.id;
+      onLogSourceChange();
+    }
+    showAddLogSource.value = false;
+  } catch (err: any) {
+    logSourceError.value = err.response?.data?.error || err.message || "Could not save the log source.";
+  } finally {
+    savingLogSource.value = false;
+  }
 };
 
 const handleOperation = async (operation: string, onlyLatest: boolean = false, opts?: ActionOptions) => {
@@ -3171,8 +3311,9 @@ const formatDateTime = (date: string) => {
 };
 
 watch(activeTab, (newTab) => {
-  if (newTab === "logs" && !logs.value) {
-    fetchLogs();
+  if (newTab === "logs") {
+    fetchLogSources();
+    if (!logs.value) fetchLogs();
   }
 });
 
@@ -3185,6 +3326,7 @@ watch(activeTab, (newTab) => {
 
 onMounted(() => {
   fetchDeployment();
+  if (activeTab.value === "logs") fetchLogSources();
   Promise.resolve(pluginsStore.fetchPlugins()).then(() => {
     // A deep-link may point at a plugin tab that is not available (plugin not installed);
     // fall back to Overview rather than showing an empty tab.
@@ -3680,24 +3822,103 @@ onUnmounted(() => {
 }
 
 /* Databases List */
-.databases-list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
+.databases-tab {
+  padding: var(--space-5);
 }
 
-.database-item {
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  padding: var(--space-3);
-  background: var(--surface-sunken);
-}
-
-.database-header {
+.databases-tab-header {
   display: flex;
   justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
+  flex-wrap: wrap;
+}
+
+.databases-tab-header h2 {
+  margin: 0;
+  font-size: var(--text-lg);
+}
+
+.databases-tab-sub {
+  margin: var(--space-1) 0 0;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+.databases-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--space-4);
+}
+
+.database-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  background: var(--surface-raised);
+  transition:
+    border-color var(--transition-base),
+    box-shadow var(--transition-base);
+}
+
+.database-card:hover {
+  border-color: var(--border-strong, var(--color-primary-300));
+  box-shadow: var(--shadow-sm);
+}
+
+.database-card-top {
+  display: flex;
   align-items: center;
-  margin-bottom: var(--space-2);
+  gap: var(--space-3);
+  padding-bottom: var(--space-3);
+  margin-bottom: var(--space-3);
+  border-bottom: 1px solid var(--border);
+}
+
+.database-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  background: var(--surface-inset);
+  color: var(--text-muted);
+  flex-shrink: 0;
+  font-size: 1.1rem;
+}
+
+.database-icon.mysql {
+  background: var(--color-info-100);
+  color: var(--color-info-700);
+}
+
+.database-icon.postgres {
+  background: var(--color-primary-100);
+  color: var(--color-primary-700);
+}
+
+.database-icon.mariadb {
+  background: var(--color-success-100);
+  color: var(--color-success-700);
+}
+
+.database-icon.mongodb {
+  background: var(--color-warning-100);
+  color: var(--color-warning-700);
+}
+
+.database-icon.redis {
+  background: var(--color-error-100);
+  color: var(--color-error-700);
+}
+
+.database-title {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
 }
 
 .database-alias {
@@ -3705,69 +3926,82 @@ onUnmounted(() => {
   color: var(--text);
 }
 
-.database-type {
+.database-meta {
   font-size: var(--text-xs);
-  padding: var(--space-1) var(--space-2);
-  border-radius: var(--radius-full);
-  font-weight: var(--font-medium);
-  text-transform: uppercase;
-  background: var(--surface-inset);
-  color: var(--text);
-}
-
-.database-type.mysql {
-  background: var(--color-info-100);
-  color: var(--color-info-700);
-}
-
-.database-type.postgres {
-  background: var(--color-primary-100);
-  color: var(--color-primary-700);
-}
-
-.database-type.mariadb {
-  background: var(--color-success-100);
-  color: var(--color-success-700);
-}
-
-.database-type.mongodb {
-  background: var(--color-warning-100);
-  color: var(--color-warning-700);
-}
-
-.database-type.redis {
-  background: var(--color-error-100);
-  color: var(--color-error-700);
+  color: var(--text-muted);
+  text-transform: capitalize;
 }
 
 .database-details {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: var(--space-2) var(--space-3);
+  margin: 0;
 }
 
-.database-details .detail-row {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
+.database-details dt {
+  color: var(--text-muted);
   font-size: var(--text-sm);
 }
 
-.database-details .detail-label {
-  color: var(--text-muted);
-  min-width: 80px;
+.database-details dd {
+  margin: 0;
+  min-width: 0;
 }
 
-.database-details .detail-value {
-  color: var(--text);
-}
-
-.database-details code.detail-value {
+.database-details dd code {
   font-family: var(--font-mono);
   font-size: var(--text-xs);
   background: var(--surface-inset);
   padding: var(--space-0-5) var(--space-1);
   border-radius: var(--radius-xs);
+  word-break: break-all;
+}
+
+.databases-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: var(--space-2);
+  padding: var(--space-8) var(--space-4);
+  color: var(--text-muted);
+}
+
+.databases-empty i {
+  font-size: 2.5rem;
+  color: var(--text-subtle, var(--text-muted));
+}
+
+.databases-empty h3 {
+  margin: 0;
+  color: var(--text);
+}
+
+.databases-empty p {
+  margin: 0;
+  max-width: 420px;
+}
+
+.modal-hint {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  margin: 0 0 var(--space-3);
+}
+
+.modal-hint code {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  background: var(--surface-inset);
+  padding: var(--space-0-5) var(--space-1);
+  border-radius: var(--radius-xs);
+}
+
+.form-error {
+  color: var(--color-error-600, #dc2626);
+  font-size: var(--text-sm);
+  margin: var(--space-2) 0 0;
 }
 
 .service-status.running {

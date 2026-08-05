@@ -14,27 +14,47 @@
       </router-link>
     </header>
 
-    <section v-if="firing.length" class="av-firing">
-      <h3><Icon name="triangle-alert" :size="16" /> Firing now</h3>
-      <div v-for="event in firing" :key="`${event.rule_id}-${event.container}`" class="av-firing-row">
-        <span class="av-dot" />
-        <span class="av-firing-rule">{{ event.rule_name }}</span>
-        <span class="av-firing-where">{{ event.container }}</span>
-        <span class="av-firing-when">{{ relTime(event.at) }}</span>
+    <div class="av-body">
+      <div class="av-main">
+        <AlertRulesPanel :deployments="deploymentNames" />
       </div>
-    </section>
 
-    <AlertRulesPanel :deployments="deploymentNames" />
+      <aside class="av-side">
+        <section class="av-panel" :class="{ 'is-firing': firing.length }">
+          <div class="av-block">
+            <h3 :class="{ danger: firing.length }">
+              <Icon name="triangle-alert" :size="15" />
+              Firing now
+              <span class="av-count" :class="{ danger: firing.length }">{{ firing.length }}</span>
+            </h3>
+            <div class="av-scroll">
+              <p v-if="!firing.length" class="av-clear"><Icon name="check" :size="14" /> Nothing firing.</p>
+              <div v-for="event in firing" :key="`${event.rule_id}-${event.container}`" class="av-row av-row--firing">
+                <span class="av-dot" />
+                <span class="av-row-rule">{{ event.rule_name }}</span>
+                <span class="av-row-where">{{ event.container }}</span>
+                <span class="av-row-when">{{ relTime(event.at) }}</span>
+              </div>
+            </div>
+          </div>
 
-    <section v-if="history.length" class="av-history">
-      <h3><Icon name="history" :size="16" /> Recent</h3>
-      <div v-for="(event, i) in history" :key="i" class="av-history-row">
-        <span class="av-state" :class="`av-state--${event.state}`">{{ event.state }}</span>
-        <span class="av-history-rule">{{ event.rule_name }}</span>
-        <span class="av-history-where">{{ event.container }}</span>
-        <span class="av-history-when">{{ relTime(event.at) }}</span>
-      </div>
-    </section>
+          <div class="av-divider" />
+
+          <div class="av-block">
+            <h3><Icon name="history" :size="15" /> Recent</h3>
+            <div class="av-scroll">
+              <p v-if="!history.length" class="av-clear">Nothing recent.</p>
+              <div v-for="(event, i) in history" :key="i" class="av-row av-row--history">
+                <span class="av-state" :class="`av-state--${event.state}`">{{ event.state }}</span>
+                <span class="av-row-rule">{{ event.rule_name }}</span>
+                <span class="av-row-where">{{ event.container }}</span>
+                <span class="av-row-when">{{ relTime(event.at) }}</span>
+              </div>
+            </div>
+          </div>
+        </section>
+      </aside>
+    </div>
   </div>
 </template>
 
@@ -55,8 +75,6 @@ let timer: ReturnType<typeof setInterval> | null = null;
 
 const eventKey = (e: AlertEvent) => `${e.rule_id}\u0000${e.container}\u0000${e.at}`;
 
-// What is firing is shown above, so it is not repeated here. Recent is what has happened
-// since, most recent first, and only so many: it is a glance, not an audit log.
 const firingKeys = computed(() => new Set(firing.value.map(eventKey)));
 const history = computed(() =>
   events.value
@@ -135,43 +153,97 @@ onUnmounted(() => {
   text-decoration: underline;
 }
 
-.av-firing,
-.av-history {
+.av-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--space-4);
+  align-items: start;
+}
+
+.av-main {
+  min-width: 0;
+}
+
+.av-side {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  position: sticky;
+  top: var(--space-4);
+}
+
+.av-panel {
   background: var(--surface-raised);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  padding: var(--space-4);
+  padding: var(--space-3) var(--space-4);
 }
 
-.av-firing {
-  border-color: var(--color-danger-200);
+.av-panel.is-firing {
+  border-color: var(--color-danger-300, #fca5a5);
 }
 
-.av-firing h3,
-.av-history h3 {
+.av-divider {
+  height: 1px;
+  background: var(--border);
+  margin: var(--space-3) 0;
+}
+
+.av-panel h3 {
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  margin: 0 0 var(--space-3);
-  font-size: var(--text-md);
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--text);
 }
 
-.av-firing h3 {
+.av-panel h3.danger {
   color: var(--color-danger-600);
 }
 
-.av-firing-row,
-.av-history-row {
+.av-count {
+  margin-left: auto;
+  min-width: 1.5rem;
+  text-align: center;
+  padding: 0 var(--space-1);
+  border-radius: var(--radius-full);
+  background: var(--surface-inset);
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.av-count.danger {
+  background: var(--color-danger-100, #fee2e2);
+  color: var(--color-danger-700, #b91c1c);
+}
+
+.av-scroll {
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.av-clear {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
+  gap: var(--space-1);
+  margin: 0;
+  padding: var(--space-2) 0;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+.av-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
   padding: var(--space-2) 0;
   border-bottom: 1px solid var(--border-subtle);
   font-size: var(--text-sm);
 }
 
-.av-firing-row:last-child,
-.av-history-row:last-child {
+.av-row:last-child {
   border-bottom: 0;
 }
 
@@ -183,28 +255,34 @@ onUnmounted(() => {
   flex-shrink: 0;
 }
 
-.av-firing-rule,
-.av-history-rule {
+.av-row-rule {
   flex: 1;
+  min-width: 0;
   color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.av-firing-where,
-.av-history-where {
+.av-row-where {
   color: var(--text-muted);
+  max-width: 40%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.av-firing-when,
-.av-history-when {
+.av-row-when {
   color: var(--text-subtle);
   white-space: nowrap;
+  font-size: var(--text-xs);
 }
 
 .av-state {
   font-size: var(--text-xs);
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  min-width: 3.5rem;
+  min-width: 3rem;
 }
 
 .av-state--firing {
@@ -213,5 +291,15 @@ onUnmounted(() => {
 
 .av-state--ok {
   color: var(--color-success-500);
+}
+
+@media (max-width: 900px) {
+  .av-body {
+    grid-template-columns: 1fr;
+  }
+
+  .av-side {
+    position: static;
+  }
 }
 </style>

@@ -51,9 +51,9 @@ describe("AlertsView", () => {
     const wrapper = mountView();
     await flushPromises();
 
-    expect(wrapper.findAll(".av-firing-row")).toHaveLength(1);
-    // Recent shows what happened since, not the thing already named above it.
-    const rows = wrapper.findAll(".av-history-row");
+    expect(wrapper.findAll(".av-row--firing")).toHaveLength(1);
+    // Recent shows what happened since, not the thing already named beside it.
+    const rows = wrapper.findAll(".av-row--history");
     expect(rows).toHaveLength(1);
     expect(rows[0].text()).toContain("ok");
   });
@@ -65,7 +65,8 @@ describe("AlertsView", () => {
     const wrapper = mountView();
     await flushPromises();
 
-    expect(wrapper.find(".av-firing").exists()).toBe(false);
-    expect(wrapper.findAll(".av-history-row")).toHaveLength(1);
+    expect(wrapper.findAll(".av-row--firing")).toHaveLength(0);
+    expect(wrapper.find(".av-clear").exists()).toBe(true);
+    expect(wrapper.findAll(".av-row--history")).toHaveLength(1);
   });
 });

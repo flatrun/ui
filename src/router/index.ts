@@ -125,28 +125,36 @@ const routes: RouteRecordRaw[] = [
         meta: { permission: "templates:read" },
       },
       {
-        path: "dashboards",
-        name: "dashboards",
-        component: () => import("@/views/DashboardsView.vue"),
-        meta: { permission: "deployments:read" },
-      },
-      {
-        path: "dashboards/:id",
-        name: "dashboard-detail",
-        component: () => import("@/views/DashboardDetailView.vue"),
-        meta: { permission: "deployments:read" },
-      },
-      {
         path: "observability",
-        name: "observability",
-        component: () => import("@/views/ObservabilityView.vue"),
-        meta: { permission: "deployments:read" },
-      },
-      {
-        path: "observability/alerts",
-        name: "alerts",
-        component: () => import("@/views/AlertsView.vue"),
-        meta: { permission: "deployments:read" },
+        component: () => import("@/views/ObservabilityConsole.vue"),
+        meta: { permission: "deployments:read", fullHeight: true },
+        children: [
+          {
+            path: "",
+            name: "observability",
+            component: () => import("@/views/ObservabilityView.vue"),
+          },
+          {
+            path: "logs",
+            name: "logs",
+            component: () => import("@/views/LogsView.vue"),
+          },
+          {
+            path: "alerts",
+            name: "alerts",
+            component: () => import("@/views/AlertsView.vue"),
+          },
+          {
+            path: "dashboards",
+            name: "dashboards",
+            component: () => import("@/views/DashboardsView.vue"),
+          },
+          {
+            path: "dashboards/:id",
+            name: "dashboard-detail",
+            component: () => import("@/views/DashboardDetailView.vue"),
+          },
+        ],
       },
       {
         path: "templates",

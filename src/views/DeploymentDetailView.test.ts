@@ -174,11 +174,11 @@ describe("DeploymentDetailView", () => {
   });
 
   describe("Tab navigation", () => {
-    it("displays all nine tabs", async () => {
+    it("displays all ten tabs", async () => {
       const wrapper = mountView();
       await flushPromises();
       const tabs = wrapper.findAll(".tab-btn");
-      expect(tabs.length).toBe(9);
+      expect(tabs.length).toBe(10);
     });
 
     it("has Overview tab", async () => {
@@ -197,6 +197,12 @@ describe("DeploymentDetailView", () => {
       const wrapper = mountView();
       await flushPromises();
       expect(wrapper.text()).toContain("Logs");
+    });
+
+    it("has Databases tab", async () => {
+      const wrapper = mountView();
+      await flushPromises();
+      expect(wrapper.text()).toContain("Databases");
     });
 
     it("has Terminal tab", async () => {
@@ -270,6 +276,7 @@ describe("DeploymentDetailView", () => {
         { id: "logs", label: "Logs", icon: "pi pi-file-edit" },
         { id: "terminal", label: "Terminal", icon: "pi pi-desktop" },
         { id: "environment", label: "Environment", icon: "pi pi-list" },
+        { id: "databases", label: "Databases", icon: "pi pi-database" },
         { id: "actions", label: "Quick Actions", icon: "pi pi-bolt" },
         { id: "backups", label: "Backups", icon: "pi pi-history" },
         { id: "security", label: "Security", icon: "pi pi-shield" },

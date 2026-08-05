@@ -21,6 +21,7 @@ import type {
   Plan,
   PlanStatus,
 } from "@/types";
+import type { LogRecord, LogSource } from "@/types/logs";
 
 export const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_URL || "/api",
@@ -135,12 +136,16 @@ export const deploymentJobWsUrl = (name: string, jobId: string): string => {
 
 // Follows a deployment's logs. Filtering happens on the agent, so a noisy container does not
 // push everything it writes down the socket for the browser to discard.
-export const deploymentLogsWsUrl = (name: string, opts: { tail?: number; filter?: string } = {}): string => {
+export const deploymentLogsWsUrl = (
+  name: string,
+  opts: { tail?: number; filter?: string; source?: string } = {},
+): string => {
   const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
   const apiUrl = import.meta.env.VITE_API_URL || "";
   const params = new URLSearchParams();
   if (opts.tail !== undefined) params.set("tail", String(opts.tail));
   if (opts.filter) params.set("filter", opts.filter);
+  if (opts.source) params.set("source", opts.source);
   const query = params.toString();
   const path = `/api/deployments/${name}/logs/stream${query ? `?${query}` : ""}`;
   if (apiUrl.startsWith("http")) {
@@ -210,7 +215,14 @@ export const deploymentsApi = {
     }>(`/deployments/${name}/images`),
   executeQuickAction: (name: string, actionId: string) =>
     apiClient.post<{ message: string; action_id: string; output: string }>(`/deployments/${name}/actions/${actionId}`),
-  logs: (name: string) => apiClient.get(`/deployments/${name}/logs`),
+  logs: (name: string, params?: { tail?: number; source?: string }) =>
+    apiClient.get<{ name: string; source?: string; logs: string; records: LogRecord[] }>(`/deployments/${name}/logs`, {
+      params,
+    }),
+  logSources: (name: string) =>
+    apiClient.get<{ name: string; sources: LogSource[] }>(`/deployments/${name}/log-sources`),
+  updateLogSources: (name: string, sources: LogSource[]) =>
+    apiClient.put<{ name: string; sources: LogSource[] }>(`/deployments/${name}/log-sources`, { sources }),
   getComposeFile: (name: string) => apiClient.get(`/deployments/${name}/compose`),
   addComposeMount: (
     name: string,
