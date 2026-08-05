@@ -550,6 +550,14 @@
           />
         </div>
 
+        <div v-if="activeTab === 'monitoring'" class="monitoring-tab">
+          <MetricsPanel
+            plugin-name="observability"
+            endpoint=""
+            :context="{ deployment: route.params.name }"
+          />
+        </div>
+
         <div v-if="activeTab === 'logs'" class="logs-tab">
           <LogViewer
             :logs="logs"
@@ -1836,6 +1844,7 @@ import ConfirmModal from "@/components/ConfirmModal.vue";
 import ContainerTerminal from "@/components/ContainerTerminal.vue";
 import BackupsTab from "@/components/BackupsTab.vue";
 import PluginSlot from "@/components/plugins/PluginSlot.vue";
+import MetricsPanel from "@/components/plugins/kinds/MetricsPanel.vue";
 import { usePluginsStore } from "@/stores/plugins";
 import DomainsManager from "@/components/DomainsManager.vue";
 import DomainFormModal from "@/components/DomainFormModal.vue";
@@ -1888,7 +1897,10 @@ const backLabel = computed(() => {
 const deployment = ref<any>(null);
 const loading = ref(false);
 const error = ref("");
-const activeTab = ref((route.query.tab as string) || "overview");
+// The observability plugin tab folded into the native Monitoring tab, so an old
+// deep-link to it still lands somewhere real.
+const initialTab = (route.query.tab as string) || "overview";
+const activeTab = ref(initialTab === "plugin:observability" ? "monitoring" : initialTab);
 const proxyStatus = ref<ProxyStatus | null>(null);
 const settingUpProxy = ref(false);
 const requestingCert = ref(false);
@@ -1947,6 +1959,7 @@ const protectedPathPresets = [
 const tabs = [
   { id: "overview", label: "Overview", icon: "pi pi-info-circle" },
   { id: "files", label: "Files", icon: "pi pi-folder" },
+  { id: "monitoring", label: "Monitoring", icon: "pi pi-chart-line" },
   { id: "logs", label: "Logs", icon: "pi pi-file-edit" },
   { id: "terminal", label: "Terminal", icon: "pi pi-desktop" },
   { id: "environment", label: "Environment", icon: "pi pi-list" },
@@ -1958,18 +1971,21 @@ const tabs = [
 ];
 
 const openMetricsTab = () => {
-  const metrics = pluginTabs.value.find((t) => t.plugin === "observability");
-  if (metrics) activeTab.value = metrics.id;
+  activeTab.value = "monitoring";
 };
 
 const pluginsStore = usePluginsStore();
+// The native Monitoring tab already renders the observability metrics, so the
+// plugin's own deployment.detail tab is dropped to avoid showing it twice.
 const pluginTabs = computed(() =>
-  (pluginsStore.getPluginsForSlot("deployment.detail") || []).map((e) => ({
-    id: `plugin:${e.plugin.name}`,
-    label: e.extension.title || e.plugin.display_name,
-    icon: e.extension.icon,
-    plugin: e.plugin.name,
-  })),
+  (pluginsStore.getPluginsForSlot("deployment.detail") || [])
+    .filter((e) => e.plugin.name !== "observability")
+    .map((e) => ({
+      id: `plugin:${e.plugin.name}`,
+      label: e.extension.title || e.plugin.display_name,
+      icon: e.extension.icon,
+      plugin: e.plugin.name,
+    })),
 );
 
 const services = ref<any[]>([]);

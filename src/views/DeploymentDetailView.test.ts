@@ -174,11 +174,11 @@ describe("DeploymentDetailView", () => {
   });
 
   describe("Tab navigation", () => {
-    it("displays all nine tabs", async () => {
+    it("displays all eleven tabs", async () => {
       const wrapper = mountView();
       await flushPromises();
       const tabs = wrapper.findAll(".tab-btn");
-      expect(tabs.length).toBe(9);
+      expect(tabs.length).toBe(11);
     });
 
     it("has Overview tab", async () => {
@@ -197,6 +197,18 @@ describe("DeploymentDetailView", () => {
       const wrapper = mountView();
       await flushPromises();
       expect(wrapper.text()).toContain("Logs");
+    });
+
+    it("has Monitoring tab", async () => {
+      const wrapper = mountView();
+      await flushPromises();
+      expect(wrapper.text()).toContain("Monitoring");
+    });
+
+    it("has Databases tab", async () => {
+      const wrapper = mountView();
+      await flushPromises();
+      expect(wrapper.text()).toContain("Databases");
     });
 
     it("has Terminal tab", async () => {
@@ -267,9 +279,11 @@ describe("DeploymentDetailView", () => {
       expect((wrapper.vm as any).tabs).toEqual([
         { id: "overview", label: "Overview", icon: "pi pi-info-circle" },
         { id: "files", label: "Files", icon: "pi pi-folder" },
+        { id: "monitoring", label: "Monitoring", icon: "pi pi-chart-line" },
         { id: "logs", label: "Logs", icon: "pi pi-file-edit" },
         { id: "terminal", label: "Terminal", icon: "pi pi-desktop" },
         { id: "environment", label: "Environment", icon: "pi pi-list" },
+        { id: "databases", label: "Databases", icon: "pi pi-database" },
         { id: "actions", label: "Quick Actions", icon: "pi pi-bolt" },
         { id: "backups", label: "Backups", icon: "pi pi-history" },
         { id: "security", label: "Security", icon: "pi pi-shield" },
