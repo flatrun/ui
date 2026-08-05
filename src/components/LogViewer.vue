@@ -549,6 +549,22 @@ onUnmounted(() => {
   background: rgba(158, 206, 106, 0.1);
 }
 
+/* The toolbar is always dark, so selects a parent projects into the filters
+   slot must be dark too, whatever the app theme. */
+.log-toolbar :deep(.form-select) {
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid #2a2e3d;
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+  background: #1a1b26;
+  color: #a9b1d6;
+}
+
+.log-toolbar :deep(.form-select option) {
+  background: #1a1b26;
+  color: #a9b1d6;
+}
+
 .toolbar-btn {
   background: transparent;
   border: none;
