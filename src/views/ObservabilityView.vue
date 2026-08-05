@@ -29,23 +29,25 @@
     </div>
 
     <template v-else>
-      <!-- Summary: do I need to worry? -->
-      <div class="summary-row">
-        <div class="summary-card">
-          <span class="summary-num">{{ containerCount }}</span>
-          <span class="summary-label">Containers</span>
+      <div class="stat-strip">
+        <div class="stat">
+          <span class="stat-num">{{ containerCount }}</span>
+          <span class="stat-label">Containers</span>
         </div>
-        <div class="summary-card ok">
-          <span class="summary-num">{{ healthyCount }}</span>
-          <span class="summary-label">Healthy</span>
+        <div class="stat">
+          <span class="stat-dot ok" />
+          <span class="stat-num">{{ healthyCount }}</span>
+          <span class="stat-label">Healthy</span>
         </div>
-        <div class="summary-card" :class="{ bad: unhealthy.length }">
-          <span class="summary-num">{{ unhealthy.length }}</span>
-          <span class="summary-label">Unhealthy</span>
+        <div class="stat" :class="{ 'is-bad': unhealthy.length }">
+          <span class="stat-dot" :class="unhealthy.length ? 'bad' : 'muted'" />
+          <span class="stat-num">{{ unhealthy.length }}</span>
+          <span class="stat-label">Unhealthy</span>
         </div>
-        <div class="summary-card" :class="{ warn: recoveries.length }">
-          <span class="summary-num">{{ recoveries.length }}</span>
-          <span class="summary-label">Auto-recovered</span>
+        <div class="stat">
+          <span class="stat-dot" :class="recoveries.length ? 'warn' : 'muted'" />
+          <span class="stat-num">{{ recoveries.length }}</span>
+          <span class="stat-label">Auto-recovered</span>
         </div>
       </div>
 
@@ -79,6 +81,7 @@
               :timestamps="hostCpuSeries.timestamps"
               :values="hostCpuSeries.values"
               unit="percent"
+              :height="140"
               area
             />
             <p v-else class="muted">No data.</p>
@@ -91,6 +94,7 @@
               :timestamps="hostMemSeries.timestamps"
               :values="hostMemSeries.values"
               unit="percent"
+              :height="140"
               area
             />
             <p v-else class="muted">No data.</p>
@@ -103,6 +107,7 @@
               :timestamps="hostDiskSeries.timestamps"
               :values="hostDiskSeries.values"
               unit="percent"
+              :height="140"
               area
             />
             <p v-else class="muted">No data.</p>
@@ -111,8 +116,14 @@
       </template>
 
       <div class="charts-head">
-        <h3>Fleet resources</h3>
-        <TimeRangePicker :model-value="since" :ranges="ranges" @update:model-value="setRange" />
+        <h3>{{ deploymentFilter ? deploymentFilter : "Fleet" }} resources</h3>
+        <div class="charts-controls">
+          <select v-model="deploymentFilter" class="form-select" @change="load">
+            <option value="">All deployments</option>
+            <option v-for="name in deploymentOptions" :key="name" :value="name">{{ name }}</option>
+          </select>
+          <TimeRangePicker :model-value="since" :ranges="ranges" @update:model-value="setRange" />
+        </div>
       </div>
       <div class="two-col">
         <section class="panel">
@@ -123,9 +134,10 @@
             :timestamps="cpuSeries.timestamps"
             :values="cpuSeries.values"
             unit="percent"
+            :height="150"
             area
           />
-          <p v-else class="muted">No data.</p>
+          <p v-else class="muted">No data for this selection.</p>
         </section>
         <section class="panel">
           <div class="chart-title"><Icon name="memory-stick" :size="15" /> Memory</div>
@@ -135,9 +147,10 @@
             :timestamps="memSeries.timestamps"
             :values="memSeries.values"
             unit="bytes"
+            :height="150"
             area
           />
-          <p v-else class="muted">No data.</p>
+          <p v-else class="muted">No data for this selection.</p>
         </section>
       </div>
 
@@ -185,6 +198,8 @@ const loading = ref(true);
 const error = ref(false);
 const ranges = ["15m", "1h", "6h", "24h"];
 const since = ref("15m");
+const deploymentFilter = ref("");
+const deploymentOptions = computed(() => deploymentsStore.deployments.map((d) => d.name).sort());
 let timer: number | undefined;
 
 async function load() {
@@ -195,7 +210,7 @@ async function load() {
       observabilityApi.latest(),
       observabilityApi.health(),
       observabilityApi.recoveries(),
-      observabilityApi.timeseries("", since.value),
+      observabilityApi.timeseries(deploymentFilter.value, since.value),
     ]);
     containerCount.value = (metrics.data || []).reduce((n, d) => n + d.containers.length, 0);
     healthList.value = health.data || [];
@@ -251,7 +266,8 @@ onUnmounted(() => {
 .observability-view {
   display: flex;
   flex-direction: column;
-  gap: var(--space-5);
+  gap: var(--space-4);
+  padding: var(--space-5);
 }
 
 .view-header {
@@ -325,48 +341,76 @@ onUnmounted(() => {
   color: var(--text);
 }
 
-.summary-row {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: var(--space-3);
-}
-
-.summary-card {
+.stat-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-5);
   background: var(--surface-raised);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  padding: var(--space-4);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
+  padding: var(--space-3) var(--space-4);
 }
 
-.summary-num {
-  font-size: var(--text-2xl);
-  font-weight: var(--font-bold);
+.stat {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+
+.stat-num {
+  font-size: var(--text-xl);
+  font-weight: var(--font-semibold);
   color: var(--text);
   font-variant-numeric: tabular-nums;
 }
 
-.summary-label {
+.stat-label {
   font-size: var(--text-sm);
   color: var(--text-muted);
 }
 
-.summary-card.ok .summary-num {
-  color: var(--color-success-600);
+.stat-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  align-self: center;
 }
 
-.summary-card.bad {
-  border-color: var(--color-danger-300, #fca5a5);
+.stat-dot.ok {
+  background: var(--color-success-500);
 }
 
-.summary-card.bad .summary-num {
+.stat-dot.bad {
+  background: var(--color-danger-500, #ef4444);
+}
+
+.stat-dot.warn {
+  background: var(--color-warning-500);
+}
+
+.stat-dot.muted {
+  background: var(--border-strong, var(--border));
+}
+
+.stat.is-bad .stat-num {
   color: var(--color-danger-600, #dc2626);
 }
 
-.summary-card.warn .summary-num {
-  color: var(--color-warning-600);
+.charts-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.form-select {
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+  background: var(--surface);
+  color: var(--text);
+  max-width: 200px;
 }
 
 .header-actions {
@@ -437,6 +481,8 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
 }
 
 .charts-head h3 {
