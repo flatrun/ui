@@ -143,6 +143,12 @@ const routes: RouteRecordRaw[] = [
         meta: { permission: "deployments:read" },
       },
       {
+        path: "logs",
+        name: "logs",
+        component: () => import("@/views/LogsView.vue"),
+        meta: { permission: "deployments:read" },
+      },
+      {
         path: "observability/alerts",
         name: "alerts",
         component: () => import("@/views/AlertsView.vue"),

@@ -215,6 +215,15 @@
             </router-link>
             <router-link
               v-if="authStore.hasPermission('deployments:read')"
+              to="/logs"
+              class="nav-subitem"
+              active-class="active"
+            >
+              <Icon name="scroll-text" :size="15" />
+              Logs
+            </router-link>
+            <router-link
+              v-if="authStore.hasPermission('deployments:read')"
               to="/dashboards"
               class="nav-subitem"
               active-class="active"
@@ -638,6 +647,7 @@ const currentPageTitle = computed(() => {
   const titles: Record<string, string> = {
     home: "Dashboard",
     observability: "Observability",
+    logs: "Logs",
     alerts: "Alerts",
     deployments: "Deployments",
     "deployment-detail": "Deployment Details",
@@ -697,6 +707,9 @@ const breadcrumbs = computed(() => {
   } else if (routeName === "databases") {
     crumbs.push({ label: "Databases", path: "" });
     crumbs.push({ label: "Servers", path: "" });
+  } else if (routeName === "logs") {
+    crumbs.push({ label: "Monitoring & Security", path: "" });
+    crumbs.push({ label: "Logs", path: "" });
   } else if (routeName === "security") {
     crumbs.push({ label: "Security", path: "" });
     crumbs.push({ label: "Security & Monitoring", path: "" });
