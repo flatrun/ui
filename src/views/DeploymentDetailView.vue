@@ -459,44 +459,59 @@
               </div>
             </div>
 
-            <div v-if="deployment.metadata?.databases?.length" class="info-card">
-              <div class="card-header">
-                <i class="pi pi-database" />
-                <h3>Databases</h3>
+          </div>
+        </div>
+
+        <div v-if="activeTab === 'databases'" class="databases-tab">
+          <div class="databases-tab-header">
+            <div>
+              <h2>Databases</h2>
+              <p class="databases-tab-sub">Database servers this deployment is wired to.</p>
+            </div>
+            <router-link :to="{ name: 'databases' }" class="btn btn-secondary btn-sm">
+              <i class="pi pi-external-link" />
+              Manage database servers
+            </router-link>
+          </div>
+
+          <div v-if="deployment.metadata?.databases?.length" class="databases-grid">
+            <div v-for="db in deployment.metadata.databases" :key="db.id" class="database-card">
+              <div class="database-header">
+                <span class="database-alias">{{ db.alias }}</span>
+                <span class="database-type" :class="db.type">{{ db.type }}</span>
               </div>
-              <div class="card-body">
-                <div class="databases-list">
-                  <div v-for="db in deployment.metadata.databases" :key="db.id" class="database-item">
-                    <div class="database-header">
-                      <span class="database-alias">{{ db.alias }}</span>
-                      <span class="database-type" :class="db.type">{{ db.type }}</span>
-                    </div>
-                    <div class="database-details">
-                      <div class="detail-row">
-                        <span class="detail-label">Mode</span>
-                        <span class="detail-value">{{ db.mode }}</span>
-                      </div>
-                      <div v-if="db.host" class="detail-row">
-                        <span class="detail-label">Host</span>
-                        <code class="detail-value">{{ db.host }}{{ db.port ? `:${db.port}` : "" }}</code>
-                      </div>
-                      <div v-if="db.database_name" class="detail-row">
-                        <span class="detail-label">Database</span>
-                        <code class="detail-value">{{ db.database_name }}</code>
-                      </div>
-                      <div v-if="db.username" class="detail-row">
-                        <span class="detail-label">User</span>
-                        <code class="detail-value">{{ db.username }}</code>
-                      </div>
-                      <div v-if="db.env_prefix" class="detail-row">
-                        <span class="detail-label">Env Prefix</span>
-                        <code class="detail-value">{{ db.env_prefix }}_*</code>
-                      </div>
-                    </div>
-                  </div>
+              <div class="database-details">
+                <div class="detail-row">
+                  <span class="detail-label">Mode</span>
+                  <span class="detail-value">{{ db.mode }}</span>
+                </div>
+                <div v-if="db.host" class="detail-row">
+                  <span class="detail-label">Host</span>
+                  <code class="detail-value">{{ db.host }}{{ db.port ? `:${db.port}` : "" }}</code>
+                </div>
+                <div v-if="db.database_name" class="detail-row">
+                  <span class="detail-label">Database</span>
+                  <code class="detail-value">{{ db.database_name }}</code>
+                </div>
+                <div v-if="db.username" class="detail-row">
+                  <span class="detail-label">User</span>
+                  <code class="detail-value">{{ db.username }}</code>
+                </div>
+                <div v-if="db.env_prefix" class="detail-row">
+                  <span class="detail-label">Env Prefix</span>
+                  <code class="detail-value">{{ db.env_prefix }}_*</code>
                 </div>
               </div>
             </div>
+          </div>
+
+          <div v-else class="databases-empty">
+            <i class="pi pi-database" />
+            <h3>No databases attached</h3>
+            <p>Databases are attached when a deployment is created. Manage standalone database servers from the databases area.</p>
+            <router-link :to="{ name: 'databases' }" class="btn btn-primary btn-sm">
+              Go to databases
+            </router-link>
           </div>
         </div>
 
@@ -1935,6 +1950,7 @@ const tabs = [
   { id: "logs", label: "Logs", icon: "pi pi-file-edit" },
   { id: "terminal", label: "Terminal", icon: "pi pi-desktop" },
   { id: "environment", label: "Environment", icon: "pi pi-list" },
+  { id: "databases", label: "Databases", icon: "pi pi-database" },
   { id: "actions", label: "Quick Actions", icon: "pi pi-bolt" },
   { id: "backups", label: "Backups", icon: "pi pi-history" },
   { id: "security", label: "Security", icon: "pi pi-shield" },
@@ -3773,6 +3789,65 @@ onUnmounted(() => {
   background: var(--surface-inset);
   padding: var(--space-0-5) var(--space-1);
   border-radius: var(--radius-xs);
+}
+
+.databases-tab-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.databases-tab-header h2 {
+  margin: 0;
+  font-size: var(--text-lg);
+}
+
+.databases-tab-sub {
+  margin: var(--space-1) 0 0;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+.databases-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--space-3);
+}
+
+.database-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3);
+  background: var(--surface-sunken);
+}
+
+.databases-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: var(--space-2);
+  padding: var(--space-8) var(--space-4);
+  color: var(--text-muted);
+}
+
+.databases-empty i {
+  font-size: 2.5rem;
+  color: var(--text-subtle, var(--text-muted));
+}
+
+.databases-empty h3 {
+  margin: 0;
+  color: var(--text);
+}
+
+.databases-empty p {
+  margin: 0;
+  max-width: 420px;
 }
 
 .service-status.running {
