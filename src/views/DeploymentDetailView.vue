@@ -80,24 +80,15 @@
     <template v-else-if="deployment">
       <div class="detail-tabs">
         <button
-          v-for="tab in tabs"
-          :key="tab.id"
+          v-for="item in tabBarItems"
+          :key="item.id"
           class="tab-btn"
-          :class="{ active: activeTab === tab.id }"
-          @click="activeTab = tab.id"
+          :class="{ active: activeTab === item.id }"
+          @click="activeTab = item.id"
         >
-          <i :class="tab.icon" />
-          {{ tab.label }}
-        </button>
-        <button
-          v-for="pt in pluginTabs"
-          :key="pt.id"
-          class="tab-btn"
-          :class="{ active: activeTab === pt.id }"
-          @click="activeTab = pt.id"
-        >
-          <Icon :name="pt.icon || 'puzzle'" :size="15" />
-          {{ pt.label }}
+          <i v-if="item.kind === 'native'" :class="item.icon" />
+          <Icon v-else :name="item.icon || 'puzzle'" :size="15" />
+          {{ item.label }}
         </button>
       </div>
 
@@ -476,32 +467,33 @@
 
           <div v-if="deployment.metadata?.databases?.length" class="databases-grid">
             <div v-for="db in deployment.metadata.databases" :key="db.id" class="database-card">
-              <div class="database-header">
-                <span class="database-alias">{{ db.alias }}</span>
-                <span class="database-type" :class="db.type">{{ db.type }}</span>
-              </div>
-              <div class="database-details">
-                <div class="detail-row">
-                  <span class="detail-label">Mode</span>
-                  <span class="detail-value">{{ db.mode }}</span>
+              <div class="database-card-top">
+                <div class="database-icon" :class="db.type">
+                  <i class="pi pi-database" />
                 </div>
-                <div v-if="db.host" class="detail-row">
-                  <span class="detail-label">Host</span>
-                  <code class="detail-value">{{ db.host }}{{ db.port ? `:${db.port}` : "" }}</code>
-                </div>
-                <div v-if="db.database_name" class="detail-row">
-                  <span class="detail-label">Database</span>
-                  <code class="detail-value">{{ db.database_name }}</code>
-                </div>
-                <div v-if="db.username" class="detail-row">
-                  <span class="detail-label">User</span>
-                  <code class="detail-value">{{ db.username }}</code>
-                </div>
-                <div v-if="db.env_prefix" class="detail-row">
-                  <span class="detail-label">Env Prefix</span>
-                  <code class="detail-value">{{ db.env_prefix }}_*</code>
+                <div class="database-title">
+                  <span class="database-alias">{{ db.alias }}</span>
+                  <span class="database-meta">{{ db.type }} · {{ db.mode }}</span>
                 </div>
               </div>
+              <dl class="database-details">
+                <template v-if="db.host">
+                  <dt>Host</dt>
+                  <dd><code>{{ db.host }}{{ db.port ? `:${db.port}` : "" }}</code></dd>
+                </template>
+                <template v-if="db.database_name">
+                  <dt>Database</dt>
+                  <dd><code>{{ db.database_name }}</code></dd>
+                </template>
+                <template v-if="db.username">
+                  <dt>User</dt>
+                  <dd><code>{{ db.username }}</code></dd>
+                </template>
+                <template v-if="db.env_prefix">
+                  <dt>Env prefix</dt>
+                  <dd><code>{{ db.env_prefix }}_*</code></dd>
+                </template>
+              </dl>
             </div>
           </div>
 
@@ -547,14 +539,6 @@
             :deployment-name="route.params.name as string"
             :service-names="composeServiceNames"
             @materialized="handleMaterialized"
-          />
-        </div>
-
-        <div v-if="activeTab === 'monitoring'" class="monitoring-tab">
-          <MetricsPanel
-            plugin-name="observability"
-            endpoint=""
-            :context="{ deployment: route.params.name }"
           />
         </div>
 
@@ -1885,7 +1869,6 @@ import ConfirmModal from "@/components/ConfirmModal.vue";
 import ContainerTerminal from "@/components/ContainerTerminal.vue";
 import BackupsTab from "@/components/BackupsTab.vue";
 import PluginSlot from "@/components/plugins/PluginSlot.vue";
-import MetricsPanel from "@/components/plugins/kinds/MetricsPanel.vue";
 import { usePluginsStore } from "@/stores/plugins";
 import DomainsManager from "@/components/DomainsManager.vue";
 import DomainFormModal from "@/components/DomainFormModal.vue";
@@ -1938,10 +1921,7 @@ const backLabel = computed(() => {
 const deployment = ref<any>(null);
 const loading = ref(false);
 const error = ref("");
-// The observability plugin tab folded into the native Monitoring tab, so an old
-// deep-link to it still lands somewhere real.
-const initialTab = (route.query.tab as string) || "overview";
-const activeTab = ref(initialTab === "plugin:observability" ? "monitoring" : initialTab);
+const activeTab = ref((route.query.tab as string) || "overview");
 const proxyStatus = ref<ProxyStatus | null>(null);
 const settingUpProxy = ref(false);
 const requestingCert = ref(false);
@@ -2000,7 +1980,6 @@ const protectedPathPresets = [
 const tabs = [
   { id: "overview", label: "Overview", icon: "pi pi-info-circle" },
   { id: "files", label: "Files", icon: "pi pi-folder" },
-  { id: "monitoring", label: "Monitoring", icon: "pi pi-chart-line" },
   { id: "logs", label: "Logs", icon: "pi pi-file-edit" },
   { id: "terminal", label: "Terminal", icon: "pi pi-desktop" },
   { id: "environment", label: "Environment", icon: "pi pi-list" },
@@ -2012,22 +1991,30 @@ const tabs = [
 ];
 
 const openMetricsTab = () => {
-  activeTab.value = "monitoring";
+  const metrics = pluginTabs.value.find((t) => t.plugin === "observability");
+  if (metrics) activeTab.value = metrics.id;
 };
 
 const pluginsStore = usePluginsStore();
-// The native Monitoring tab already renders the observability metrics, so the
-// plugin's own deployment.detail tab is dropped to avoid showing it twice.
 const pluginTabs = computed(() =>
-  (pluginsStore.getPluginsForSlot("deployment.detail") || [])
-    .filter((e) => e.plugin.name !== "observability")
-    .map((e) => ({
-      id: `plugin:${e.plugin.name}`,
-      label: e.extension.title || e.plugin.display_name,
-      icon: e.extension.icon,
-      plugin: e.plugin.name,
-    })),
+  (pluginsStore.getPluginsForSlot("deployment.detail") || []).map((e) => ({
+    id: `plugin:${e.plugin.name}`,
+    label: e.extension.title || e.plugin.display_name,
+    icon: e.extension.icon,
+    plugin: e.plugin.name,
+  })),
 );
+
+const tabBarItems = computed(() => {
+  const items: Array<{ id: string; label: string; icon?: string; kind: "native" | "plugin" }> = [];
+  for (const tab of tabs) {
+    items.push({ ...tab, kind: "native" });
+    if (tab.id === "actions") {
+      for (const pt of pluginTabs.value) items.push({ ...pt, kind: "plugin" });
+    }
+  }
+  return items;
+});
 
 const services = ref<any[]>([]);
 const hasMultipleDomains = computed(() => {
@@ -2624,8 +2611,6 @@ const toggleFollow = () => {
   logStream.start(route.params.name as string, { tail: logsTail.value || 100, source: logSource.value });
 };
 
-// Switching source re-reads from the new place: restart the live tail if
-// following, otherwise pull a fresh snapshot.
 const onLogSourceChange = () => {
   if (following.value) {
     logStream.start(route.params.name as string, { tail: logsTail.value || 100, source: logSource.value });
@@ -2649,8 +2634,6 @@ const saveLogSource = async () => {
   savingLogSource.value = true;
   logSourceError.value = "";
   try {
-    // Keep the existing custom file sources and add the new one; built-in and
-    // stdout sources are implicit and are not sent back.
     const custom = logSources.value.filter((s) => s.type === "file" && !s.builtin);
     custom.push({ id: "", name: newLogSource.name.trim(), type: "file", path: newLogSource.path.trim() });
     const response = await deploymentsApi.updateLogSources(route.params.name as string, custom);
@@ -3822,94 +3805,8 @@ onUnmounted(() => {
 }
 
 /* Databases List */
-.databases-list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-}
-
-.database-item {
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  padding: var(--space-3);
-  background: var(--surface-sunken);
-}
-
-.database-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: var(--space-2);
-}
-
-.database-alias {
-  font-weight: var(--font-semibold);
-  color: var(--text);
-}
-
-.database-type {
-  font-size: var(--text-xs);
-  padding: var(--space-1) var(--space-2);
-  border-radius: var(--radius-full);
-  font-weight: var(--font-medium);
-  text-transform: uppercase;
-  background: var(--surface-inset);
-  color: var(--text);
-}
-
-.database-type.mysql {
-  background: var(--color-info-100);
-  color: var(--color-info-700);
-}
-
-.database-type.postgres {
-  background: var(--color-primary-100);
-  color: var(--color-primary-700);
-}
-
-.database-type.mariadb {
-  background: var(--color-success-100);
-  color: var(--color-success-700);
-}
-
-.database-type.mongodb {
-  background: var(--color-warning-100);
-  color: var(--color-warning-700);
-}
-
-.database-type.redis {
-  background: var(--color-error-100);
-  color: var(--color-error-700);
-}
-
-.database-details {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-}
-
-.database-details .detail-row {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  font-size: var(--text-sm);
-}
-
-.database-details .detail-label {
-  color: var(--text-muted);
-  min-width: 80px;
-}
-
-.database-details .detail-value {
-  color: var(--text);
-}
-
-.database-details code.detail-value {
-  font-family: var(--font-mono);
-  font-size: var(--text-xs);
-  background: var(--surface-inset);
-  padding: var(--space-0-5) var(--space-1);
-  border-radius: var(--radius-xs);
+.databases-tab {
+  padding: var(--space-5);
 }
 
 .databases-tab-header {
@@ -3917,7 +3814,7 @@ onUnmounted(() => {
   justify-content: space-between;
   align-items: flex-start;
   gap: var(--space-3);
-  margin-bottom: var(--space-4);
+  margin-bottom: var(--space-5);
   flex-wrap: wrap;
 }
 
@@ -3934,15 +3831,114 @@ onUnmounted(() => {
 
 .databases-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: var(--space-3);
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--space-4);
 }
 
 .database-card {
   border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  padding: var(--space-3);
-  background: var(--surface-sunken);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  background: var(--surface-raised);
+  transition:
+    border-color var(--transition-base),
+    box-shadow var(--transition-base);
+}
+
+.database-card:hover {
+  border-color: var(--border-strong, var(--color-primary-300));
+  box-shadow: var(--shadow-sm);
+}
+
+.database-card-top {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding-bottom: var(--space-3);
+  margin-bottom: var(--space-3);
+  border-bottom: 1px solid var(--border);
+}
+
+.database-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  background: var(--surface-inset);
+  color: var(--text-muted);
+  flex-shrink: 0;
+  font-size: 1.1rem;
+}
+
+.database-icon.mysql {
+  background: var(--color-info-100);
+  color: var(--color-info-700);
+}
+
+.database-icon.postgres {
+  background: var(--color-primary-100);
+  color: var(--color-primary-700);
+}
+
+.database-icon.mariadb {
+  background: var(--color-success-100);
+  color: var(--color-success-700);
+}
+
+.database-icon.mongodb {
+  background: var(--color-warning-100);
+  color: var(--color-warning-700);
+}
+
+.database-icon.redis {
+  background: var(--color-error-100);
+  color: var(--color-error-700);
+}
+
+.database-title {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.database-alias {
+  font-weight: var(--font-semibold);
+  color: var(--text);
+}
+
+.database-meta {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  text-transform: capitalize;
+}
+
+.database-details {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: var(--space-2) var(--space-3);
+  margin: 0;
+}
+
+.database-details dt {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+.database-details dd {
+  margin: 0;
+  min-width: 0;
+}
+
+.database-details dd code {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  background: var(--surface-inset);
+  padding: var(--space-0-5) var(--space-1);
+  border-radius: var(--radius-xs);
+  word-break: break-all;
 }
 
 .databases-empty {
