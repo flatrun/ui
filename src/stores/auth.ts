@@ -1,6 +1,7 @@
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
 import axios from "axios";
+import { apiClient as sharedClient, resetSessionGate } from "@/services/api";
 import type { User, Permission, UserDeploymentAccess } from "@/types";
 
 const apiClient = axios.create({
@@ -68,6 +69,7 @@ export const useAuthStore = defineStore("auth", () => {
       const response = await apiClient.post("/auth/login", { api_key: apiKey });
       token.value = response.data.token;
       localStorage.setItem("auth_token", response.data.token);
+      resetSessionGate();
 
       if (response.data.user) {
         currentUser.value = response.data.user;
@@ -97,6 +99,7 @@ export const useAuthStore = defineStore("auth", () => {
       const response = await apiClient.post("/auth/login", { username, password });
       token.value = response.data.token;
       localStorage.setItem("auth_token", response.data.token);
+      resetSessionGate();
 
       if (response.data.user) {
         currentUser.value = response.data.user;
@@ -122,15 +125,9 @@ export const useAuthStore = defineStore("auth", () => {
     if (!token.value) return;
 
     try {
-      const authClient = axios.create({
-        baseURL: import.meta.env.VITE_API_URL || "/api",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token.value}`,
-        },
-      });
-
-      const response = await authClient.get("/users/me");
+      // Shares the panel's client so this call queues behind the same session check as the
+      // rest of a page load rather than spending its own rejection on a stale token.
+      const response = await sharedClient.get("/users/me");
       currentUser.value = response.data.user;
       permissions.value = response.data.permissions || [];
       deploymentAccess.value = response.data.deployments || [];
@@ -142,6 +139,7 @@ export const useAuthStore = defineStore("auth", () => {
   };
 
   const logout = () => {
+    resetSessionGate();
     token.value = null;
     currentUser.value = null;
     permissions.value = [];

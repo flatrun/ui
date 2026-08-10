@@ -558,17 +558,36 @@
             :file-name="`${deployment?.name || 'deployment'}-logs.txt`"
             empty-message="No logs available"
             :assist-context="logsAssistContext"
+            deletable
             @refresh="fetchLogs"
+            @delete="confirmDeleteLogs = true"
           >
-            <template #filters>
+            <template #actions>
               <button class="btn btn-sm" :class="following ? 'btn-primary' : 'btn-secondary'" @click="toggleFollow">
                 <Icon :name="following ? 'circle-stop' : 'play'" :size="14" />
                 {{ following ? "Following" : "Follow" }}
               </button>
+            </template>
+
+            <template #filters>
               <select v-model="logSource" class="form-select" @change="onLogSourceChange">
                 <option v-for="src in logSources" :key="src.id" :value="src.id">
                   {{ src.name }}{{ src.path ? ` (${src.path})` : "" }}
                 </option>
+              </select>
+              <select
+                v-model="logsService"
+                class="form-select"
+                :disabled="!serviceFilterAvailable"
+                :title="
+                  serviceFilterAvailable
+                    ? 'Show one service\'s output'
+                    : 'A file source is written by the deployment, not per service'
+                "
+                @change="onLogSourceChange"
+              >
+                <option value="all">All services</option>
+                <option v-for="name in serviceNames" :key="name" :value="name">{{ name }}</option>
               </select>
               <button
                 class="btn btn-sm btn-secondary"
@@ -1555,6 +1574,17 @@
     </Teleport>
 
     <ConfirmModal
+      :visible="confirmDeleteLogs"
+      title="Delete these logs?"
+      :message="deleteLogsMessage"
+      warning="The log is emptied on the server. What has already been written is gone, and this cannot be undone."
+      confirm-text="Delete logs"
+      :loading="deletingLogs"
+      @confirm="deleteLogs"
+      @cancel="confirmDeleteLogs = false"
+    />
+
+    <ConfirmModal
       :visible="showDeleteEnvModal"
       title="Delete Environment Variable"
       :message="`Are you sure you want to delete '${envKeyToDelete}'?`"
@@ -2106,6 +2136,9 @@ const logsTail = ref(100);
 const logsFollow = ref(false);
 const logSources = ref<LogSource[]>([{ id: "stdout", name: "Container output", type: "stdout" }]);
 const logSource = ref("stdout");
+// A file source is one file the deployment writes, so there is nothing per-service to narrow.
+const serviceFilterAvailable = computed(() => logSources.value.find((s) => s.id === logSource.value)?.type !== "file");
+const activeLogService = computed(() => (serviceFilterAvailable.value ? logsService.value : "all"));
 const showAddLogSource = ref(false);
 const newLogSource = reactive({ name: "", path: "" });
 const savingLogSource = ref(false);
@@ -2599,6 +2632,7 @@ const fetchLogs = async () => {
     const response = await deploymentsApi.logs(route.params.name as string, {
       tail: logsTail.value ?? 100,
       source: logSource.value,
+      service: activeLogService.value,
     });
     fetchedLogs.value = response.data.logs || "";
     fetchedRecords.value = response.data.records || [];
@@ -2606,6 +2640,38 @@ const fetchLogs = async () => {
     console.error("Failed to fetch logs:", err);
   } finally {
     logsLoading.value = false;
+  }
+};
+
+const confirmDeleteLogs = ref(false);
+const deletingLogs = ref(false);
+
+const deleteLogsMessage = computed(() => {
+  const name = route.params.name as string;
+  const source = logSources.value.find((s) => s.id === logSource.value);
+  if (source?.type === "file") {
+    return `This empties ${source.path}, the file ${name} writes to.`;
+  }
+  return activeLogService.value === "all"
+    ? `This empties the stored output of every container in ${name}.`
+    : `This empties the stored output of ${name}/${activeLogService.value}.`;
+});
+
+const deleteLogs = async () => {
+  deletingLogs.value = true;
+  try {
+    await deploymentsApi.deleteLogs(route.params.name as string, {
+      source: logSource.value,
+      service: activeLogService.value,
+    });
+    confirmDeleteLogs.value = false;
+    logStream.stop();
+    await fetchLogs();
+    notifications.success("Logs deleted", "The log has been emptied.");
+  } catch (err: any) {
+    notifications.error("Delete failed", err?.response?.data?.error || err?.message || "The log could not be emptied.");
+  } finally {
+    deletingLogs.value = false;
   }
 };
 
@@ -2625,12 +2691,20 @@ const toggleFollow = () => {
     fetchLogs();
     return;
   }
-  logStream.start(route.params.name as string, { tail: logsTail.value ?? 100, source: logSource.value });
+  logStream.start(route.params.name as string, {
+    tail: logsTail.value ?? 100,
+    source: logSource.value,
+    service: activeLogService.value,
+  });
 };
 
 const onLogSourceChange = () => {
   if (following.value) {
-    logStream.start(route.params.name as string, { tail: logsTail.value ?? 100, source: logSource.value });
+    logStream.start(route.params.name as string, {
+      tail: logsTail.value ?? 100,
+      source: logSource.value,
+      service: activeLogService.value,
+    });
   } else {
     fetchLogs();
   }
@@ -2896,9 +2970,12 @@ const openTerminal = (service: any) => {
 };
 
 const viewServiceLogs = (service: any) => {
+  // Asking for one service's logs means its container output, not whatever file source the
+  // logs tab happened to be left on.
+  logSource.value = "stdout";
   logsService.value = service.name;
   activeTab.value = "logs";
-  fetchLogs();
+  onLogSourceChange();
 };
 
 const serviceNames = computed(() => services.value.map((s) => s.name));

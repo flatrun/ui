@@ -13,6 +13,9 @@ vi.mock("@/services/observability", async (importOriginal) => {
       alertEvents: vi.fn(),
       alertRules: vi.fn().mockResolvedValue({ data: [] }),
       saveAlertRules: vi.fn(),
+      incidents: vi.fn().mockResolvedValue({ data: [] }),
+      logRules: vi.fn().mockResolvedValue({ data: [] }),
+      saveLogRules: vi.fn(),
     },
   };
 });

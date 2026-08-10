@@ -16,7 +16,57 @@
 
     <div class="av-body">
       <div class="av-main">
-        <AlertRulesPanel :deployments="deploymentNames" />
+        <div class="av-tabs">
+          <button class="av-tab" :class="{ active: scope === 'metrics' }" @click="scope = 'metrics'">
+            <Icon name="activity" :size="14" />
+            Metric rules
+          </button>
+          <button class="av-tab" :class="{ active: scope === 'logs' }" @click="scope = 'logs'">
+            <Icon name="file-search" :size="14" />
+            Log rules
+          </button>
+        </div>
+
+        <AlertRulesPanel v-if="scope === 'metrics'" :deployments="deploymentNames" />
+        <template v-else>
+          <LogRulesPanel :deployments="deploymentNames" @changed="load" />
+
+          <section class="av-incidents">
+            <h3><Icon name="siren" :size="15" /> Incidents</h3>
+            <p v-if="!incidents.length" class="av-clear">
+              Nothing raised yet. A rule raises an incident once the same fault has happened often enough.
+            </p>
+            <article v-for="incident in incidents" :key="incident.id" class="av-incident">
+              <header>
+                <span class="av-incident-rule">{{ incident.rule_name }}</span>
+                <span class="av-incident-where">
+                  {{ incident.deployment }}<template v-if="incident.service">/{{ incident.service }}</template>
+                </span>
+                <span class="av-incident-count">{{ incident.count }}x</span>
+                <span class="av-row-when">{{ relTime(incident.last_seen) }}</span>
+              </header>
+
+              <p v-if="incident.triage?.summary" class="av-incident-summary">
+                {{ incident.triage.summary }}
+                <span v-if="incident.triage.confidence" class="av-incident-conf">
+                  ({{ incident.triage.confidence }} confidence)
+                </span>
+              </p>
+              <p v-if="incident.triage?.next_step" class="av-incident-next">Next: {{ incident.triage.next_step }}</p>
+              <p v-else-if="incident.triage?.skipped" class="av-incident-skipped">
+                Not explained: {{ incident.triage.skipped }}
+              </p>
+
+              <pre class="av-incident-sample">{{ incident.sample }}</pre>
+
+              <p v-if="incident.responses?.length" class="av-incident-responses">
+                <span v-for="(r, i) in incident.responses" :key="i">
+                  {{ r.responder }}: {{ r.error || r.detail }}
+                </span>
+              </p>
+            </article>
+          </section>
+        </template>
       </div>
 
       <aside class="av-side">
@@ -65,12 +115,16 @@ import type { AlertEvent } from "@/services/observability";
 import { useDeploymentsStore } from "@/stores/deployments";
 import Icon from "@/components/base/Icon.vue";
 import AlertRulesPanel from "@/components/AlertRulesPanel.vue";
+import LogRulesPanel from "@/components/LogRulesPanel.vue";
+import type { Incident } from "@/services/observability";
 
 const deploymentsStore = useDeploymentsStore();
 const deploymentNames = computed(() => deploymentsStore.deployments.map((d) => d.name).sort());
 
+const scope = ref<"metrics" | "logs">("metrics");
 const firing = ref<AlertEvent[]>([]);
 const events = ref<AlertEvent[]>([]);
+const incidents = ref<Incident[]>([]);
 let timer: ReturnType<typeof setInterval> | null = null;
 
 const eventKey = (e: AlertEvent) => `${e.rule_id}\u0000${e.container}\u0000${e.at}`;
@@ -93,12 +147,14 @@ const relTime = (iso: string) => {
 };
 
 const load = async () => {
-  const [firingResult, eventsResult] = await Promise.allSettled([
+  const [firingResult, eventsResult, incidentsResult] = await Promise.allSettled([
     observabilityApi.firingAlerts(),
     observabilityApi.alertEvents(),
+    observabilityApi.incidents(),
   ]);
   if (firingResult.status === "fulfilled") firing.value = firingResult.value.data || [];
   if (eventsResult.status === "fulfilled") events.value = eventsResult.value.data || [];
+  if (incidentsResult.status === "fulfilled") incidents.value = (incidentsResult.value.data || []).slice().reverse();
 };
 
 onMounted(() => {
@@ -162,6 +218,118 @@ onUnmounted(() => {
 
 .av-main {
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.av-tabs {
+  display: flex;
+  gap: var(--space-1);
+  background: var(--surface-inset);
+  padding: var(--space-1);
+  border-radius: var(--radius-sm);
+  align-self: flex-start;
+}
+
+.av-tab {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  border: none;
+  background: transparent;
+  border-radius: var(--radius-sm);
+  font-size: var(--text-md);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+.av-tab:hover {
+  color: var(--text);
+}
+
+.av-tab.active {
+  background: var(--surface-raised);
+  color: var(--text);
+  box-shadow: var(--shadow-xs);
+}
+
+.av-incidents {
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+}
+
+.av-incidents h3 {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-3);
+  font-size: var(--text-lg);
+}
+
+.av-incident {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  background: var(--surface);
+  margin-bottom: var(--space-2);
+}
+
+.av-incident header {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.av-incident-rule {
+  font-weight: var(--font-medium);
+  color: var(--text);
+}
+
+.av-incident-where,
+.av-incident-count {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+.av-incident-summary {
+  margin: var(--space-2) 0 0;
+  color: var(--text);
+}
+
+.av-incident-conf,
+.av-incident-next,
+.av-incident-skipped,
+.av-incident-responses {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+.av-incident-next,
+.av-incident-skipped {
+  margin: var(--space-1) 0 0;
+}
+
+.av-incident-responses {
+  display: flex;
+  gap: var(--space-3);
+  margin: var(--space-2) 0 0;
+}
+
+.av-incident-sample {
+  margin: var(--space-2) 0 0;
+  padding: var(--space-2);
+  background: var(--surface-inset);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-xs);
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 .av-side {

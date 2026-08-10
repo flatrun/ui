@@ -42,6 +42,9 @@ vi.mock("@/services/api", () => ({
     logs: vi.fn().mockResolvedValue({
       data: { logs: "Test logs" },
     }),
+    logSources: vi.fn().mockResolvedValue({
+      data: { name: "test-app", sources: [] },
+    }),
     getStats: vi.fn().mockResolvedValue({
       data: {
         stats: {
@@ -584,6 +587,90 @@ describe("DeploymentDetailView", () => {
       const wrapper = mountView();
       await flushPromises();
       expect((wrapper.vm as any).singleDomainId).toBeNull();
+    });
+  });
+
+  describe("Logs service filter", () => {
+    // The stub the other tests use swallows the toolbar, and the filters are what a viewer
+    // actually reaches for, so this one renders the slot.
+    const mountWithFilters = () => {
+      const pinia = createTestingPinia({ createSpy: vi.fn });
+      const authStore = useAuthStore(pinia);
+      (authStore.hasPermission as ReturnType<typeof vi.fn>).mockReturnValue(true);
+      return mount(DeploymentDetailView, {
+        global: {
+          plugins: [pinia],
+          mocks: { $route: mockRoute },
+          stubs: {
+            RouterLink: { template: "<a><slot /></a>", props: ["to"] },
+            teleport: true,
+            ContainerTerminal: true,
+            LogViewer: { template: '<div class="log-viewer"><slot name="filters" /></div>' },
+          },
+        },
+      });
+    };
+
+    const openLogsTab = async (wrapper: ReturnType<typeof mountWithFilters>) => {
+      const logsTab = wrapper.findAll(".tab-btn").find((tab) => tab.text().includes("Logs"));
+      await logsTab!.trigger("click");
+      await flushPromises();
+    };
+
+    const serviceSelect = (wrapper: ReturnType<typeof mountWithFilters>) =>
+      wrapper.findAll("select").find((select) => select.text().includes("All services"));
+
+    it("asks the agent for one service when the viewer picks it", async () => {
+      const { deploymentsApi } = await import("@/services/api");
+      const wrapper = mountWithFilters();
+      await flushPromises();
+      await openLogsTab(wrapper);
+
+      const select = serviceSelect(wrapper);
+      expect(select).toBeDefined();
+      expect(select!.findAll("option").map((o) => o.text())).toContain("web");
+
+      vi.mocked(deploymentsApi.logs).mockClear();
+      await select!.setValue("web");
+      await flushPromises();
+
+      expect(deploymentsApi.logs).toHaveBeenCalledWith("test-app", expect.objectContaining({ service: "web" }));
+    });
+
+    it("goes back to every service when the viewer clears the filter", async () => {
+      const { deploymentsApi } = await import("@/services/api");
+      const wrapper = mountWithFilters();
+      await flushPromises();
+      await openLogsTab(wrapper);
+
+      const select = serviceSelect(wrapper);
+      await select!.setValue("web");
+      await flushPromises();
+
+      vi.mocked(deploymentsApi.logs).mockClear();
+      await select!.setValue("all");
+      await flushPromises();
+
+      expect(deploymentsApi.logs).toHaveBeenCalledWith("test-app", expect.objectContaining({ service: "all" }));
+    });
+
+    it("opens one service's own output from its Logs button", async () => {
+      const { deploymentsApi } = await import("@/services/api");
+      const wrapper = mountWithFilters();
+      await flushPromises();
+
+      const servicesTab = wrapper.findAll(".tab-btn").find((tab) => tab.text().includes("Overview"));
+      await servicesTab!.trigger("click");
+      await flushPromises();
+
+      const logsButton = wrapper.findAll(".service-actions .action-btn").find((b) => b.attributes("title") === "Logs");
+      expect(logsButton).toBeDefined();
+
+      vi.mocked(deploymentsApi.logs).mockClear();
+      await logsButton!.trigger("click");
+      await flushPromises();
+
+      expect(deploymentsApi.logs).toHaveBeenCalledWith("test-app", expect.objectContaining({ service: "web" }));
     });
   });
 });

@@ -30,26 +30,124 @@ export const apiClient = axios.create({
   },
 });
 
-apiClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem("auth_token");
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+const publicPaths = ["/auth/login", "/auth/status", "/setup", "/health"];
+const isPublic = (url: string) => publicPaths.some((p) => url.startsWith(p));
+const onAuthPage = () => window.location.pathname.includes("/login") || window.location.pathname.includes("/setup");
+
+// A page load fans out into a dozen calls at once. Firing them all against a token the agent
+// has already stopped accepting spends a rejection on each, which the agent counts as a run of
+// authentication failures and blocks the address for. So the first call goes alone and the rest
+// wait on what it learns: one rejection instead of a dozen.
+type SessionGate = { settled: boolean; open: boolean; wait: Promise<void>; release: () => void };
+
+let gate: SessionGate | null = null;
+let sessionRejected = false;
+let inFlight = 0;
+
+const startGate = (): SessionGate => {
+  let release!: () => void;
+  const wait = new Promise<void>((resolve) => {
+    release = () => resolve();
+  });
+  return { settled: false, open: false, wait, release };
+};
+
+const settleGate = (authenticated: boolean) => {
+  sessionRejected = !authenticated;
+  if (gate && !gate.settled) {
+    gate.settled = true;
+    gate.open = authenticated;
+    gate.release();
   }
-  return config;
+};
+
+// The gate is armed again once the burst it was opened for has drained, so a token that expires
+// while the panel is open costs one rejection on the next burst rather than one per call.
+const finish = () => {
+  inFlight = Math.max(0, inFlight - 1);
+  if (inFlight === 0 && !sessionRejected) {
+    gate = null;
+  }
+};
+
+// Signing in makes any earlier rejection stale.
+export const resetSessionGate = () => {
+  gate = null;
+  sessionRejected = false;
+  inFlight = 0;
+};
+
+apiClient.interceptors.request.use(async (config) => {
+  const url = config.url || "";
+  if (isPublic(url)) {
+    return config;
+  }
+
+  const token = localStorage.getItem("auth_token");
+  if (!token) {
+    localStorage.removeItem("auth_token");
+    if (!onAuthPage()) {
+      window.location.href = "/login";
+    }
+    throw new axios.Cancel("not signed in");
+  }
+  config.headers.Authorization = `Bearer ${token}`;
+
+  inFlight++;
+  try {
+    if (sessionRejected) {
+      throw new axios.Cancel("session already rejected");
+    }
+    if (!gate) {
+      gate = startGate();
+      return config;
+    }
+    if (gate.settled) {
+      if (!gate.open) {
+        throw new axios.Cancel("session already rejected");
+      }
+      return config;
+    }
+
+    await gate.wait;
+    if (!gate.open) {
+      throw new axios.Cancel("session already rejected");
+    }
+    return config;
+  } catch (err) {
+    finish();
+    throw err;
+  }
 });
 
 apiClient.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    if (!isPublic(response.config.url || "")) {
+      settleGate(true);
+      finish();
+    }
+    return response;
+  },
   (error) => {
+    if (axios.isCancel(error) || isPublic(error.config?.url || "")) {
+      return Promise.reject(error);
+    }
+
     if (error.response?.status === 401) {
-      const failedURL: string = error.config?.url || "";
-      const isLoginAttempt = failedURL.includes("/auth/login");
-      const onAuthPage = window.location.pathname.includes("/login") || window.location.pathname.includes("/setup");
-      if (!isLoginAttempt && !onAuthPage) {
-        localStorage.removeItem("auth_token");
+      settleGate(false);
+      localStorage.removeItem("auth_token");
+      if (!onAuthPage()) {
         window.location.href = "/login";
       }
+    } else if (error.response) {
+      // The agent answered, so the credential got that far.
+      settleGate(true);
+    } else {
+      // A request that never reached the agent says nothing about the session, so it must not
+      // leave the rest of the burst waiting on an answer that will never come.
+      settleGate(true);
     }
+    finish();
     return Promise.reject(error);
   },
 );
@@ -138,7 +236,7 @@ export const deploymentJobWsUrl = (name: string, jobId: string): string => {
 // push everything it writes down the socket for the browser to discard.
 export const deploymentLogsWsUrl = (
   name: string,
-  opts: { tail?: number; filter?: string; source?: string } = {},
+  opts: { tail?: number; filter?: string; source?: string; service?: string } = {},
 ): string => {
   const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
   const apiUrl = import.meta.env.VITE_API_URL || "";
@@ -146,6 +244,7 @@ export const deploymentLogsWsUrl = (
   if (opts.tail !== undefined) params.set("tail", String(opts.tail));
   if (opts.filter) params.set("filter", opts.filter);
   if (opts.source) params.set("source", opts.source);
+  if (opts.service && opts.service !== "all") params.set("service", opts.service);
   const query = params.toString();
   const path = `/api/deployments/${name}/logs/stream${query ? `?${query}` : ""}`;
   if (apiUrl.startsWith("http")) {
@@ -215,10 +314,13 @@ export const deploymentsApi = {
     }>(`/deployments/${name}/images`),
   executeQuickAction: (name: string, actionId: string) =>
     apiClient.post<{ message: string; action_id: string; output: string }>(`/deployments/${name}/actions/${actionId}`),
-  logs: (name: string, params?: { tail?: number; source?: string }) =>
-    apiClient.get<{ name: string; source?: string; logs: string; records: LogRecord[] }>(`/deployments/${name}/logs`, {
-      params,
-    }),
+  logs: (name: string, params?: { tail?: number; source?: string; service?: string }) =>
+    apiClient.get<{ name: string; source?: string; service?: string; logs: string; records: LogRecord[] }>(
+      `/deployments/${name}/logs`,
+      { params: params?.service === "all" ? { ...params, service: undefined } : params },
+    ),
+  deleteLogs: (name: string, params?: { source?: string; service?: string }) =>
+    apiClient.delete<{ message: string }>(`/deployments/${name}/logs`, { params }),
   logSources: (name: string) =>
     apiClient.get<{ name: string; sources: LogSource[] }>(`/deployments/${name}/log-sources`),
   updateLogSources: (name: string, sources: LogSource[]) =>
@@ -866,6 +968,47 @@ export const systemServicesApi = {
   start: (name: string) => apiClient.post(`/system/services/${name}/start`),
   stop: (name: string) => apiClient.post(`/system/services/${name}/stop`),
   restart: (name: string) => apiClient.post(`/system/services/${name}/restart`),
+};
+
+// One place the host itself writes logs, as opposed to a deployment: the proxy's access and
+// error logs, and whatever shared infrastructure is running.
+export interface SystemLogSource {
+  id: string;
+  name: string;
+  service: string;
+  stream: string;
+  by_deployment: boolean;
+}
+
+export interface SystemLogParams {
+  source?: string;
+  tail?: number;
+  filter?: string;
+  deployment?: string;
+}
+
+export const systemLogsApi = {
+  sources: () => apiClient.get<{ sources: SystemLogSource[] }>("/system/logs/sources"),
+  logs: (params?: SystemLogParams) =>
+    apiClient.get<{ source: string; logs: string; records: LogRecord[] }>("/system/logs", { params }),
+  deleteLogs: (source: string) => apiClient.delete<{ message: string }>("/system/logs", { params: { source } }),
+};
+
+export const systemLogsWsUrl = (opts: SystemLogParams = {}): string => {
+  const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+  const apiUrl = import.meta.env.VITE_API_URL || "";
+  const params = new URLSearchParams();
+  if (opts.source) params.set("source", opts.source);
+  if (opts.tail !== undefined) params.set("tail", String(opts.tail));
+  if (opts.filter) params.set("filter", opts.filter);
+  if (opts.deployment) params.set("deployment", opts.deployment);
+  const query = params.toString();
+  const path = `/api/system/logs/stream${query ? `?${query}` : ""}`;
+  if (apiUrl.startsWith("http")) {
+    const url = new URL(apiUrl);
+    return `${protocol}//${url.host}${path}`;
+  }
+  return `${protocol}//${window.location.host}${path}`;
 };
 
 export const authApi = {

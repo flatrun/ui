@@ -8,7 +8,8 @@ import { toRecord, type LogRecord } from "@/types/logs";
 const maxBufferedLines = 5000;
 
 /**
- * Follows a deployment's logs over a websocket, handing back the text as it arrives.
+ * Follows logs over a websocket, handing back the text as it arrives: a deployment's own
+ * output through start(), or any other stream the agent exposes through startUrl().
  *
  * A tail only ever says what was true when it was asked, so watching a container start means
  * asking again and again. Following gives the line when the container writes it.
@@ -31,14 +32,14 @@ export function useLogStream() {
     }
   };
 
-  const start = (deployment: string, opts: { tail?: number; filter?: string; source?: string } = {}) => {
+  const startUrl = (url: string) => {
     stop();
     lines.value = [];
     records.value = [];
     seq = 0;
     error.value = "";
 
-    socket = new WebSocket(deploymentLogsWsUrl(deployment, opts));
+    socket = new WebSocket(url);
 
     socket.onopen = () => {
       following.value = true;
@@ -79,7 +80,12 @@ export function useLogStream() {
     };
   };
 
+  const start = (
+    deployment: string,
+    opts: { tail?: number; filter?: string; source?: string; service?: string } = {},
+  ) => startUrl(deploymentLogsWsUrl(deployment, opts));
+
   onUnmounted(stop);
 
-  return { lines, records, following, error, start, stop };
+  return { lines, records, following, error, start, startUrl, stop };
 }
