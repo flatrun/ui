@@ -32,8 +32,7 @@ export const apiClient = axios.create({
 
 const publicPaths = ["/auth/login", "/auth/status", "/setup", "/health"];
 const isPublic = (url: string) => publicPaths.some((p) => url.startsWith(p));
-const onAuthPage = () =>
-  window.location.pathname.includes("/login") || window.location.pathname.includes("/setup");
+const onAuthPage = () => window.location.pathname.includes("/login") || window.location.pathname.includes("/setup");
 
 // A page load fans out into a dozen calls at once. Firing them all against a token the agent
 // has already stopped accepting spends a rejection on each, which the agent counts as a run of

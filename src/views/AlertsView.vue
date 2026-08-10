@@ -52,9 +52,7 @@
                   ({{ incident.triage.confidence }} confidence)
                 </span>
               </p>
-              <p v-if="incident.triage?.next_step" class="av-incident-next">
-                Next: {{ incident.triage.next_step }}
-              </p>
+              <p v-if="incident.triage?.next_step" class="av-incident-next">Next: {{ incident.triage.next_step }}</p>
               <p v-else-if="incident.triage?.skipped" class="av-incident-skipped">
                 Not explained: {{ incident.triage.skipped }}
               </p>

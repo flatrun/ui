@@ -36,7 +36,12 @@
       </li>
     </ul>
 
-    <BaseModal :visible="editing !== null" :title="draft.id ? 'Edit log rule' : 'New log rule'" size="md" @close="cancel">
+    <BaseModal
+      :visible="editing !== null"
+      :title="draft.id ? 'Edit log rule' : 'New log rule'"
+      size="md"
+      @close="cancel"
+    >
       <div class="lrp-form">
         <BaseField label="Name" hint="What you will see in the notification.">
           <BaseInput v-model="draft.name" placeholder="Checkout errors" />

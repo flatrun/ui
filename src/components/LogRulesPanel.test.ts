@@ -41,9 +41,15 @@ describe("LogRulesPanel", () => {
     await flushPromises();
     await openForm(wrapper);
 
-    await wrapper.findAll("input").find((i) => i.attributes("placeholder") === "Checkout errors")!.setValue("Boom");
+    await wrapper
+      .findAll("input")
+      .find((i) => i.attributes("placeholder") === "Checkout errors")!
+      .setValue("Boom");
     await wrapper.findAll("select")[0].setValue("shop");
-    await wrapper.findAll("button").find((b) => b.text().includes("Save rule"))!.trigger("click");
+    await wrapper
+      .findAll("button")
+      .find((b) => b.text().includes("Save rule"))!
+      .trigger("click");
     await flushPromises();
 
     expect(observabilityApi.saveLogRules).toHaveBeenCalledWith([
@@ -67,14 +73,20 @@ describe("LogRulesPanel", () => {
     await flushPromises();
     await openForm(wrapper);
 
-    await wrapper.findAll("input").find((i) => i.attributes("placeholder") === "Checkout errors")!.setValue("Boom");
+    await wrapper
+      .findAll("input")
+      .find((i) => i.attributes("placeholder") === "Checkout errors")!
+      .setValue("Boom");
     await wrapper.findAll("select")[0].setValue("shop");
     const triageBox = wrapper
       .findAll("label")
       .find((l) => l.text().includes("Ask the assistant"))!
       .find("input");
     await triageBox.setValue(true);
-    await wrapper.findAll("button").find((b) => b.text().includes("Save rule"))!.trigger("click");
+    await wrapper
+      .findAll("button")
+      .find((b) => b.text().includes("Save rule"))!
+      .trigger("click");
     await flushPromises();
 
     expect(observabilityApi.saveLogRules).toHaveBeenCalledWith([expect.objectContaining({ triage: true })]);
@@ -121,7 +133,10 @@ describe("LogRulesPanel", () => {
     const wrapper = mountPanel();
     await flushPromises();
 
-    await wrapper.findAll("button").find((b) => b.attributes("title") === "Delete rule")!.trigger("click");
+    await wrapper
+      .findAll("button")
+      .find((b) => b.attributes("title") === "Delete rule")!
+      .trigger("click");
     await flushPromises();
 
     expect(observabilityApi.saveLogRules).toHaveBeenCalledWith([expect.objectContaining({ id: "r2" })]);
