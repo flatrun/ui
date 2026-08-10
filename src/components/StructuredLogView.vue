@@ -45,10 +45,16 @@
             </div>
           </div>
           <pre class="raw">{{ entry.lines.join("\n") }}</pre>
-          <button class="copy-btn" @click.stop="copyEntry(entry)">
-            <i :class="copiedKey === entry.key ? 'pi pi-check' : 'pi pi-copy'" />
-            {{ copiedKey === entry.key ? "Copied" : "Copy entry" }}
-          </button>
+          <div class="row-actions">
+            <button class="copy-btn" @click.stop="copyEntry(entry)">
+              <i :class="copiedKey === entry.key ? 'pi pi-check' : 'pi pi-copy'" />
+              {{ copiedKey === entry.key ? "Copied" : "Copy entry" }}
+            </button>
+            <button class="copy-btn" @click.stop="emit('debug', entry)">
+              <Sparkles :size="13" />
+              Debug with AI
+            </button>
+          </div>
         </div>
       </div>
 
@@ -62,7 +68,10 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, nextTick } from "vue";
+import { Sparkles } from "lucide-vue-next";
 import { groupLogRecords, type LogRecord, type LogEntry } from "@/types/logs";
+
+const emit = defineEmits<{ debug: [entry: LogEntry] }>();
 
 const props = withDefaults(
   defineProps<{
@@ -412,6 +421,11 @@ defineExpose({ scrollToBottom });
   white-space: pre-wrap;
   word-break: break-word;
   font-size: 11.5px;
+}
+
+.row-actions {
+  display: flex;
+  gap: var(--space-2);
 }
 
 .copy-btn {

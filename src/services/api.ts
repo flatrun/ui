@@ -138,7 +138,7 @@ export const deploymentJobWsUrl = (name: string, jobId: string): string => {
 // push everything it writes down the socket for the browser to discard.
 export const deploymentLogsWsUrl = (
   name: string,
-  opts: { tail?: number; filter?: string; source?: string } = {},
+  opts: { tail?: number; filter?: string; source?: string; service?: string } = {},
 ): string => {
   const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
   const apiUrl = import.meta.env.VITE_API_URL || "";
@@ -146,6 +146,7 @@ export const deploymentLogsWsUrl = (
   if (opts.tail !== undefined) params.set("tail", String(opts.tail));
   if (opts.filter) params.set("filter", opts.filter);
   if (opts.source) params.set("source", opts.source);
+  if (opts.service && opts.service !== "all") params.set("service", opts.service);
   const query = params.toString();
   const path = `/api/deployments/${name}/logs/stream${query ? `?${query}` : ""}`;
   if (apiUrl.startsWith("http")) {
@@ -215,10 +216,13 @@ export const deploymentsApi = {
     }>(`/deployments/${name}/images`),
   executeQuickAction: (name: string, actionId: string) =>
     apiClient.post<{ message: string; action_id: string; output: string }>(`/deployments/${name}/actions/${actionId}`),
-  logs: (name: string, params?: { tail?: number; source?: string }) =>
-    apiClient.get<{ name: string; source?: string; logs: string; records: LogRecord[] }>(`/deployments/${name}/logs`, {
-      params,
-    }),
+  logs: (name: string, params?: { tail?: number; source?: string; service?: string }) =>
+    apiClient.get<{ name: string; source?: string; service?: string; logs: string; records: LogRecord[] }>(
+      `/deployments/${name}/logs`,
+      { params: params?.service === "all" ? { ...params, service: undefined } : params },
+    ),
+  deleteLogs: (name: string, params?: { source?: string; service?: string }) =>
+    apiClient.delete<{ message: string }>(`/deployments/${name}/logs`, { params }),
   logSources: (name: string) =>
     apiClient.get<{ name: string; sources: LogSource[] }>(`/deployments/${name}/log-sources`),
   updateLogSources: (name: string, sources: LogSource[]) =>
@@ -866,6 +870,47 @@ export const systemServicesApi = {
   start: (name: string) => apiClient.post(`/system/services/${name}/start`),
   stop: (name: string) => apiClient.post(`/system/services/${name}/stop`),
   restart: (name: string) => apiClient.post(`/system/services/${name}/restart`),
+};
+
+// One place the host itself writes logs, as opposed to a deployment: the proxy's access and
+// error logs, and whatever shared infrastructure is running.
+export interface SystemLogSource {
+  id: string;
+  name: string;
+  service: string;
+  stream: string;
+  by_deployment: boolean;
+}
+
+export interface SystemLogParams {
+  source?: string;
+  tail?: number;
+  filter?: string;
+  deployment?: string;
+}
+
+export const systemLogsApi = {
+  sources: () => apiClient.get<{ sources: SystemLogSource[] }>("/system/logs/sources"),
+  logs: (params?: SystemLogParams) =>
+    apiClient.get<{ source: string; logs: string; records: LogRecord[] }>("/system/logs", { params }),
+  deleteLogs: (source: string) => apiClient.delete<{ message: string }>("/system/logs", { params: { source } }),
+};
+
+export const systemLogsWsUrl = (opts: SystemLogParams = {}): string => {
+  const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+  const apiUrl = import.meta.env.VITE_API_URL || "";
+  const params = new URLSearchParams();
+  if (opts.source) params.set("source", opts.source);
+  if (opts.tail !== undefined) params.set("tail", String(opts.tail));
+  if (opts.filter) params.set("filter", opts.filter);
+  if (opts.deployment) params.set("deployment", opts.deployment);
+  const query = params.toString();
+  const path = `/api/system/logs/stream${query ? `?${query}` : ""}`;
+  if (apiUrl.startsWith("http")) {
+    const url = new URL(apiUrl);
+    return `${protocol}//${url.host}${path}`;
+  }
+  return `${protocol}//${window.location.host}${path}`;
 };
 
 export const authApi = {

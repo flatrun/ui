@@ -204,7 +204,7 @@
           class="nav-group"
         >
           <div class="nav-group-header" @click="toggleGroup('security')">
-            <Icon name="activity" :size="17" />
+            <Icon name="radar" :size="17" />
             <span v-if="!sidebarCollapsed">Monitoring & Security</span>
             <Icon
               v-if="!sidebarCollapsed"
@@ -232,7 +232,7 @@
               class="nav-subitem"
               active-class="active"
             >
-              <Icon name="shield" :size="15" />
+              <Icon name="shield-alert" :size="15" />
               Security
             </router-link>
             <router-link

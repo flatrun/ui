@@ -45,6 +45,7 @@
             <i class="pi pi-align-left" />
           </button>
         </div>
+        <slot name="actions" />
         <label class="follow-toggle" :class="{ active: autoScroll }" title="Keep scrolling to the newest line">
           <input v-model="autoScroll" type="checkbox" />
           <i class="pi pi-arrow-down" />
@@ -61,13 +62,13 @@
         <button class="toolbar-btn" title="Search (Ctrl+F)" @click="toggleSearch">
           <i class="pi pi-search" />
         </button>
-        <button class="toolbar-btn" title="Clear" @click="clearLogs">
+        <button v-if="deletable" class="toolbar-btn" title="Delete these logs" @click="emit('delete')">
           <i class="pi pi-trash" />
         </button>
         <button class="toolbar-btn" title="Download" @click="downloadLogs">
           <i class="pi pi-download" />
         </button>
-        <button class="toolbar-btn" title="Refresh" :disabled="loading" @click="$emit('refresh')">
+        <button class="toolbar-btn" title="Refresh" :disabled="loading" @click="emit('refresh')">
           <i :class="loading ? 'pi pi-spin pi-spinner' : 'pi pi-refresh'" />
         </button>
         <button class="toolbar-btn" :title="isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'" @click="toggleFullscreen">
@@ -82,6 +83,7 @@
       :auto-scroll="autoScroll"
       :search-query="searchQuery"
       :empty-message="emptyMessage"
+      @debug="debugEntry"
     />
     <div v-show="viewMode === 'raw'" ref="terminalContainer" class="terminal-container" />
     <div v-if="viewMode === 'raw' && !logs && !loading" class="empty-state">
@@ -101,7 +103,7 @@ import "@xterm/xterm/css/xterm.css";
 import { Sparkles } from "lucide-vue-next";
 import { useAssistStore, type AssistContext } from "@/stores/assist";
 import StructuredLogView from "@/components/StructuredLogView.vue";
-import { parseLogLine, type LogRecord } from "@/types/logs";
+import { parseLogLine, type LogRecord, type LogEntry } from "@/types/logs";
 
 const props = withDefaults(
   defineProps<{
@@ -114,6 +116,7 @@ const props = withDefaults(
     fontSize?: number;
     lineHeight?: number;
     assistContext?: AssistContext | null;
+    deletable?: boolean;
   }>(),
   {
     logs: "",
@@ -125,11 +128,13 @@ const props = withDefaults(
     fontSize: 13,
     lineHeight: 1.4,
     assistContext: null,
+    deletable: false,
   },
 );
 
-defineEmits<{
+const emit = defineEmits<{
   refresh: [];
+  delete: [];
 }>();
 
 // Every surface that renders logs gets the AI action for free. A
@@ -159,6 +164,18 @@ const openAssist = () => {
       seedMessage: `Review the recent logs for ${base.subject}, summarize them and report any problems with potential solutions.`,
     });
   }
+};
+
+// Debugging one entry hands over that entry alone. The toolbar's assistant reads everything on
+// screen, which buries the line the reader is actually pointing at.
+const debugEntry = (entry: LogEntry) => {
+  const store = useAssistStore();
+  const base = props.assistContext ?? { scope: "system" as const, subject: props.fileName.replace(/\.txt$/, "") };
+  store.open({
+    ...base,
+    seedMessage: `Debug this log entry from ${base.subject}: what caused it, how serious is it, and what should I do next?`,
+    seedContext: `\`\`\`\n${entry.lines.join("\n")}\n\`\`\``,
+  });
 };
 
 const terminalContainer = ref<HTMLElement | null>(null);
@@ -290,13 +307,6 @@ const writeLogs = (logs: string) => {
 
   if (autoScroll.value) {
     terminal.scrollToBottom();
-  }
-};
-
-const clearLogs = () => {
-  if (terminal) {
-    terminal.clear();
-    currentLogs = "";
   }
 };
 
