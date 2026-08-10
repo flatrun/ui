@@ -84,6 +84,58 @@ export interface AlertEvent {
   snapshot?: Consumer[];
 }
 
+export interface LogRule {
+  id?: string;
+  name: string;
+  enabled: boolean;
+  deployment: string;
+  service?: string;
+  source?: string;
+  min_level?: string;
+  pattern?: string;
+  min_count?: number;
+  window_seconds?: number;
+  cooldown_seconds?: number;
+  triage?: boolean;
+  responders?: string[];
+  targets?: string[];
+}
+
+export interface IncidentTriage {
+  summary?: string;
+  cause?: string;
+  next_step?: string;
+  severity?: string;
+  confidence?: string;
+  skipped?: string;
+  at?: string;
+}
+
+export interface ResponderResult {
+  responder: string;
+  detail?: string;
+  error?: string;
+  at: string;
+}
+
+export interface Incident {
+  id: string;
+  rule_id: string;
+  rule_name: string;
+  deployment: string;
+  service?: string;
+  source?: string;
+  level: string;
+  fingerprint: string;
+  sample: string;
+  context?: string[];
+  count: number;
+  first_seen: string;
+  last_seen: string;
+  triage?: IncidentTriage;
+  responses?: ResponderResult[];
+}
+
 export const observabilityApi = {
   latest: () => apiClient.get<DeploymentMetrics[]>(`${base}/metrics/latest`),
   alertRules: () => apiClient.get<AlertRule[]>(`${base}/alerts/rules`),
@@ -105,4 +157,9 @@ export const observabilityApi = {
     }),
   health: () => apiClient.get<ContainerHealth[]>(`${base}/health`),
   recoveries: () => apiClient.get<RecoveryEvent[]>(`${base}/health/events`),
+  logRules: () => apiClient.get<LogRule[]>(`${base}/alerts/log-rules`),
+  saveLogRules: (rules: LogRule[]) => apiClient.put<LogRule[]>(`${base}/alerts/log-rules`, rules),
+  incidents: (deployment?: string) =>
+    apiClient.get<Incident[]>(`${base}/alerts/incidents`, { params: deployment ? { deployment } : undefined }),
+  responders: () => apiClient.get<string[]>(`${base}/alerts/responders`),
 };
