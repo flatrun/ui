@@ -32,6 +32,13 @@ export const apiClient = axios.create({
 
 const publicPaths = ["/auth/login", "/auth/status", "/setup", "/health"];
 const isPublic = (url: string) => publicPaths.some((p) => url.startsWith(p));
+
+// The agent answers 401 on /users/me for an authenticated actor with no user record, so this call
+// stays outside the gate until that becomes a 403: https://github.com/flatrun/agent/issues/208
+const sessionAgnosticPaths = ["/users/me"];
+const isSessionAgnostic = (url: string) => sessionAgnosticPaths.some((p) => url.startsWith(p));
+
+const isUngated = (url: string) => isPublic(url) || isSessionAgnostic(url);
 const onAuthPage = () => window.location.pathname.includes("/login") || window.location.pathname.includes("/setup");
 
 // A page load fans out into a dozen calls at once. Firing them all against a token the agent
@@ -93,11 +100,15 @@ apiClient.interceptors.request.use(async (config) => {
   }
   config.headers.Authorization = `Bearer ${token}`;
 
+  if (sessionRejected) {
+    throw new axios.Cancel("session already rejected");
+  }
+  if (isSessionAgnostic(url)) {
+    return config;
+  }
+
   inFlight++;
   try {
-    if (sessionRejected) {
-      throw new axios.Cancel("session already rejected");
-    }
     if (!gate) {
       gate = startGate();
       return config;
@@ -122,14 +133,14 @@ apiClient.interceptors.request.use(async (config) => {
 
 apiClient.interceptors.response.use(
   (response) => {
-    if (!isPublic(response.config.url || "")) {
+    if (!isUngated(response.config.url || "")) {
       settleGate(true);
       finish();
     }
     return response;
   },
   (error) => {
-    if (axios.isCancel(error) || isPublic(error.config?.url || "")) {
+    if (axios.isCancel(error) || isUngated(error.config?.url || "")) {
       return Promise.reject(error);
     }
 
