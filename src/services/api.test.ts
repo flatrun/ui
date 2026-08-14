@@ -31,7 +31,7 @@ describe("api client session gate", () => {
 
   const burst = () =>
     Promise.allSettled([
-      apiClient.get("/users/me"),
+      apiClient.get("/containers"),
       apiClient.get("/deployments"),
       apiClient.get("/stats"),
       apiClient.get("/ai/status"),
@@ -80,6 +80,23 @@ describe("api client session gate", () => {
 
     expect(localStorage.getItem("auth_token")).toBeNull();
     expect(location.href).toBe("/login");
+  });
+
+  it("keeps the session when reading the current user is refused", async () => {
+    localStorage.setItem("auth_token", "good");
+    apiClient.defaults.adapter = ((config: Parameters<AxiosAdapter>[0]) =>
+      (config.url || "").startsWith("/users/me") ? unauthorized(config) : ok(config)) as AxiosAdapter;
+
+    const [me, ...rest] = await Promise.allSettled([
+      apiClient.get("/users/me"),
+      apiClient.get("/deployments"),
+      apiClient.get("/stats"),
+    ]);
+
+    expect(me.status).toBe("rejected");
+    expect(rest.every((r) => r.status === "fulfilled")).toBe(true);
+    expect(localStorage.getItem("auth_token")).toBe("good");
+    expect(location.href).toBe("/");
   });
 
   // A page that loaded fine can still be holding a token that lapses while it is open.
