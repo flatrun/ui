@@ -49,7 +49,7 @@
       <i class="pi pi-clock" />
       <h3>No Scheduled Tasks</h3>
       <p>Create cron jobs to run commands in your containers on a schedule.</p>
-      <button v-if="canWrite" class="btn btn-primary" @click="openCreateModal">
+      <button v-if="canWrite" class="btn btn-primary btn-sm" @click="openCreateModal">
         <i class="pi pi-plus" />
         Create First Cron Job
       </button>
@@ -59,7 +59,7 @@
       <i class="pi pi-filter-slash" />
       <h3>No Matching Tasks</h3>
       <p>No tasks match your current filters. Try adjusting your search or filters.</p>
-      <button class="btn btn-secondary" @click="clearFilters">Clear Filters</button>
+      <button class="btn btn-secondary btn-sm" @click="clearFilters">Clear Filters</button>
     </div>
 
     <div v-else class="tasks-grid">

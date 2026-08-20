@@ -166,6 +166,17 @@ errors you find, and propose a fix for each.</code></pre>
         </div>
       </div>
     </Teleport>
+
+    <ConfirmModal
+      :visible="agentToDelete !== null"
+      title="Delete agent?"
+      :message="`The ${agentToDelete || ''} agent will be removed.`"
+      warning="This action cannot be undone."
+      confirm-text="Delete agent"
+      :loading="deletingAgent"
+      @confirm="confirmDeleteAgent"
+      @cancel="agentToDelete = null"
+    />
   </div>
 </template>
 
@@ -179,11 +190,14 @@ import { useAssistStore } from "@/stores/assist";
 import { useAuthStore } from "@/stores/auth";
 import { useNotificationsStore } from "@/stores/notifications";
 import Icon from "@/components/base/Icon.vue";
+import ConfirmModal from "@/components/ConfirmModal.vue";
 
 const agents = ref<AgentDefinition[]>([]);
 const dir = ref("");
 const loading = ref(false);
 const runningName = ref<string | null>(null);
+const agentToDelete = ref<string | null>(null);
+const deletingAgent = ref(false);
 const assist = useAssistStore();
 const notifications = useNotificationsStore();
 const authStore = useAuthStore();
@@ -307,15 +321,24 @@ const saveAgent = async () => {
   }
 };
 
-const deleteAgent = async (name: string) => {
-  if (!confirm(`Delete the "${name}" agent?`)) return;
+const deleteAgent = (name: string) => {
+  agentToDelete.value = name;
+};
+
+const confirmDeleteAgent = async () => {
+  if (!agentToDelete.value) return;
+  const name = agentToDelete.value;
+  deletingAgent.value = true;
   try {
     await agentsApi.remove(name);
     notifications.success("Deleted", `Agent "${name}" removed`);
+    agentToDelete.value = null;
     editorOpen.value = false;
     await fetchAgents();
   } catch (err: any) {
     notifications.error("Error", err.response?.data?.error || err.message);
+  } finally {
+    deletingAgent.value = false;
   }
 };
 

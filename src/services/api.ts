@@ -939,6 +939,17 @@ export interface FileBrowserApi {
   chmod(path: string, mode: number): Promise<any>;
   delete(path: string): Promise<any>;
   getContent(path: string): Promise<{ data: string }>;
+  copy(sourcePath: string, destinationPath: string): Promise<any>;
+  move(sourcePath: string, destinationPath: string): Promise<any>;
+  listArchive(path: string): Promise<{ data: { entries: ArchiveEntry[] } }>;
+  extractArchive(sourcePath: string, destinationPath: string): Promise<any>;
+}
+
+export interface ArchiveEntry {
+  name: string;
+  size: number;
+  is_dir: boolean;
+  mod_time: string;
 }
 
 export const createFileBrowserApi = (basePath: string): FileBrowserApi => ({
@@ -962,6 +973,16 @@ export const createFileBrowserApi = (basePath: string): FileBrowserApi => ({
   delete: (path: string) => apiClient.delete(`${basePath}/files${path}`),
   getContent: (path: string) =>
     apiClient.get<string>(`${basePath}/files${path}`, { responseType: "text" }) as Promise<{ data: string }>,
+  copy: (sourcePath: string, destinationPath: string) =>
+    apiClient.post(`${basePath}/copy`, { source_path: sourcePath, destination_path: destinationPath }),
+  move: (sourcePath: string, destinationPath: string) =>
+    apiClient.post(`${basePath}/move`, { source_path: sourcePath, destination_path: destinationPath }),
+  listArchive: (path: string) =>
+    apiClient.get<{ entries: ArchiveEntry[] }>(`${basePath}/archive`, { params: { path } }) as Promise<{
+      data: { entries: ArchiveEntry[] };
+    }>,
+  extractArchive: (sourcePath: string, destinationPath: string) =>
+    apiClient.post(`${basePath}/extract`, { source_path: sourcePath, destination_path: destinationPath }),
 });
 
 export const createDeploymentFileApi = (deploymentName: string): FileBrowserApi =>

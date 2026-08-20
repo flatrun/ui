@@ -552,7 +552,7 @@
     <div v-else class="empty-state">
       <i class="pi pi-chart-line" />
       <p>No traffic data yet</p>
-      <button class="btn-primary" @click="fetchData">Check for Traffic</button>
+      <button class="btn-primary btn-sm" @click="fetchData">Check for Traffic</button>
     </div>
 
     <ConfirmModal

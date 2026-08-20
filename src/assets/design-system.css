@@ -58,6 +58,7 @@
   --radius-md: 6px;
   --radius-lg: 8px;
   --radius-xl: 12px;
+  --radius-modal: 14px;
   --radius-full: 9999px;
 
   /* Spacing */
@@ -373,6 +374,15 @@
     0 24px 48px rgba(0, 0, 0, 0.12);
   animation: modalSlideIn var(--transition-slow) cubic-bezier(0.16, 1, 0.3, 1);
   transform-origin: center center;
+}
+
+.modal-container,
+.modal-content,
+.modal-dialog,
+.modal-panel,
+.confirm-modal {
+  border-radius: var(--radius-modal) !important;
+  overflow: hidden;
 }
 
 .modal-header {

@@ -22,7 +22,7 @@
         <i class="pi pi-server" />
         <h3>No Infrastructure Services</h3>
         <p>Configure infrastructure services in Settings to get started</p>
-        <router-link to="/settings" class="btn btn-primary">
+        <router-link to="/settings" class="btn btn-primary btn-sm">
           <i class="pi pi-cog" />
           <span>Go to Settings</span>
         </router-link>

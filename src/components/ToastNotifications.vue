@@ -12,6 +12,16 @@
           <div v-if="notification.message" class="toast-message">
             {{ notification.message }}
           </div>
+          <div
+            v-if="notification.type === 'progress'"
+            class="toast-progress"
+            role="progressbar"
+            :aria-valuenow="notification.progress"
+            aria-valuemin="0"
+            aria-valuemax="100"
+          >
+            <div class="toast-progress-fill" :style="{ width: `${notification.progress ?? 0}%` }" />
+          </div>
         </div>
         <button class="toast-close" @click="remove(notification.id)">
           <i class="pi pi-times" />
@@ -35,6 +45,7 @@ const getIcon = (type: string) => {
     error: "pi pi-times-circle",
     warning: "pi pi-exclamation-triangle",
     info: "pi pi-info-circle",
+    progress: "pi pi-spin pi-spinner",
   };
   return icons[type] || "pi pi-info-circle";
 };
@@ -45,7 +56,7 @@ const getIcon = (type: string) => {
   position: fixed;
   top: 1rem;
   right: 1rem;
-  z-index: 9999;
+  z-index: var(--z-toast);
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
@@ -60,27 +71,26 @@ const getIcon = (type: string) => {
   padding: 1rem;
   background: var(--surface-raised);
   border-radius: var(--radius-sm);
-  box-shadow:
-    0 10px 40px rgba(0, 0, 0, 0.15),
-    0 2px 10px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-xl);
   border: 1px solid var(--border);
   border-left: 4px solid;
 }
 
 .toast.success {
-  border-left-color: #22c55e;
+  border-left-color: var(--color-success-500);
 }
 
 .toast.error {
-  border-left-color: #ef4444;
+  border-left-color: var(--color-danger-500);
 }
 
 .toast.warning {
-  border-left-color: #f59e0b;
+  border-left-color: var(--color-warning-500);
 }
 
-.toast.info {
-  border-left-color: #3b82f6;
+.toast.info,
+.toast.progress {
+  border-left-color: var(--color-info-500);
 }
 
 .toast-icon {
@@ -94,19 +104,20 @@ const getIcon = (type: string) => {
 }
 
 .toast.success .toast-icon {
-  color: #22c55e;
+  color: var(--color-success-500);
 }
 
 .toast.error .toast-icon {
-  color: #ef4444;
+  color: var(--color-danger-500);
 }
 
 .toast.warning .toast-icon {
-  color: #f59e0b;
+  color: var(--color-warning-500);
 }
 
-.toast.info .toast-icon {
-  color: #3b82f6;
+.toast.info .toast-icon,
+.toast.progress .toast-icon {
+  color: var(--color-info-500);
 }
 
 .toast-content {
@@ -124,6 +135,21 @@ const getIcon = (type: string) => {
   font-size: 0.875rem;
   color: var(--text-muted);
   line-height: 1.4;
+}
+
+.toast-progress {
+  height: var(--space-1);
+  margin-top: var(--space-2);
+  overflow: hidden;
+  background: var(--surface-inset);
+  border-radius: var(--radius-full);
+}
+
+.toast-progress-fill {
+  height: 100%;
+  background: var(--color-info-500);
+  border-radius: inherit;
+  transition: width var(--transition-base);
 }
 
 .toast-close {
