@@ -5147,6 +5147,59 @@ onUnmounted(() => {
   font-weight: normal;
 }
 
+.rebuild-options {
+  display: grid;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+}
+
+.rebuild-option {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: start;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  background: var(--surface-sunken);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text);
+  cursor: pointer;
+  transition:
+    background var(--transition-base),
+    border-color var(--transition-base);
+}
+
+.rebuild-option:hover {
+  background: var(--surface-inset);
+  border-color: var(--color-primary-300);
+}
+
+.rebuild-option:focus-within {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.rebuild-option input {
+  width: 1rem;
+  height: 1rem;
+  margin: 2px 0 0;
+  accent-color: var(--accent);
+}
+
+.rebuild-option span {
+  display: grid;
+  gap: var(--space-1);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+}
+
+.rebuild-option small {
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  font-weight: var(--font-normal);
+  line-height: 1.4;
+}
+
 .rebuild-modal .modal-footer {
   padding: var(--space-3) var(--space-4);
   border-top: 1px solid var(--border);

@@ -43,6 +43,16 @@
         </div>
       </div>
       <div class="toolbar-actions">
+        <BaseButton
+          v-if="clipboard"
+          variant="secondary"
+          size="sm"
+          icon="clipboard-paste"
+          :loading="fileOperationRunning"
+          @click="pasteClipboard"
+        >
+          Paste {{ clipboard.file.name }}
+        </BaseButton>
         <button class="btn btn-sm btn-secondary" @click="refreshFiles" :disabled="loading">
           <i :class="loading ? 'pi pi-spin pi-spinner' : 'pi pi-refresh'" />
         </button>
@@ -56,8 +66,13 @@
         </button>
         <label class="btn btn-sm btn-primary upload-btn">
           <i class="pi pi-upload" />
-          Upload
+          Upload files
           <input type="file" multiple @change="handleFileSelect" hidden />
+        </label>
+        <label class="btn btn-sm btn-secondary upload-btn">
+          <i class="pi pi-folder-open" />
+          Upload folder
+          <input type="file" multiple webkitdirectory @change="handleFolderSelect" hidden />
         </label>
       </div>
     </div>
@@ -89,11 +104,18 @@
         <i class="pi pi-folder-open" />
         <h3>No files yet</h3>
         <p>Upload files or create folders to get started</p>
-        <label class="btn btn-primary upload-btn">
-          <i class="pi pi-upload" />
-          Upload Files
-          <input type="file" multiple @change="handleFileSelect" hidden />
-        </label>
+        <div class="empty-actions">
+          <label class="btn btn-sm btn-primary upload-btn">
+            <i class="pi pi-upload" />
+            Upload files
+            <input type="file" multiple @change="handleFileSelect" hidden />
+          </label>
+          <label class="btn btn-sm btn-secondary upload-btn">
+            <i class="pi pi-folder-open" />
+            Upload folder
+            <input type="file" multiple webkitdirectory @change="handleFolderSelect" hidden />
+          </label>
+        </div>
       </div>
 
       <div v-else-if="viewMode === 'list'" class="file-list">
@@ -143,6 +165,9 @@
             <button v-if="!file.is_dir" class="action-btn" title="Download" @click="downloadFile(file)">
               <i class="pi pi-download" />
             </button>
+            <button v-if="isArchiveFile(file)" class="action-btn" title="View archive" @click="viewArchive(file)">
+              <i class="pi pi-box" />
+            </button>
             <div class="action-menu-wrap">
               <button class="action-btn" title="More" @click.stop="toggleRowMenu(file.path)">
                 <i class="pi pi-ellipsis-v" />
@@ -168,6 +193,22 @@
                 <button class="menu-item" @click="onMenuAction('permissions', file)">
                   <i class="pi pi-key" />
                   <span>Permissions</span>
+                </button>
+                <button class="menu-item" @click="onMenuAction('copy', file)">
+                  <i class="pi pi-copy" />
+                  <span>Copy</span>
+                </button>
+                <button v-if="fileMounts(file).length === 0" class="menu-item" @click="onMenuAction('cut', file)">
+                  <i class="pi pi-scissors" />
+                  <span>Cut</span>
+                </button>
+                <button v-if="fileMounts(file).length === 0" class="menu-item" @click="onMenuAction('rename', file)">
+                  <i class="pi pi-file-edit" />
+                  <span>Rename</span>
+                </button>
+                <button v-if="isArchiveFile(file)" class="menu-item" @click="onMenuAction('archive', file)">
+                  <i class="pi pi-box" />
+                  <span>View archive</span>
                 </button>
                 <button class="menu-item danger" @click="onMenuAction('delete', file)">
                   <i class="pi pi-trash" />
@@ -220,6 +261,9 @@
             <button v-if="!file.is_dir" class="action-btn" title="Download" @click="downloadFile(file)">
               <i class="pi pi-download" />
             </button>
+            <button v-if="isArchiveFile(file)" class="action-btn" title="View archive" @click="viewArchive(file)">
+              <i class="pi pi-box" />
+            </button>
             <div class="action-menu-wrap">
               <button class="action-btn" title="More" @click.stop="toggleRowMenu(file.path)">
                 <i class="pi pi-ellipsis-v" />
@@ -245,6 +289,22 @@
                 <button class="menu-item" @click="onMenuAction('permissions', file)">
                   <i class="pi pi-key" />
                   <span>Permissions</span>
+                </button>
+                <button class="menu-item" @click="onMenuAction('copy', file)">
+                  <i class="pi pi-copy" />
+                  <span>Copy</span>
+                </button>
+                <button v-if="fileMounts(file).length === 0" class="menu-item" @click="onMenuAction('cut', file)">
+                  <i class="pi pi-scissors" />
+                  <span>Cut</span>
+                </button>
+                <button v-if="fileMounts(file).length === 0" class="menu-item" @click="onMenuAction('rename', file)">
+                  <i class="pi pi-file-edit" />
+                  <span>Rename</span>
+                </button>
+                <button v-if="isArchiveFile(file)" class="menu-item" @click="onMenuAction('archive', file)">
+                  <i class="pi pi-box" />
+                  <span>View archive</span>
                 </button>
                 <button class="menu-item danger" @click="onMenuAction('delete', file)">
                   <i class="pi pi-trash" />
@@ -553,6 +613,71 @@
         </div>
       </div>
     </Teleport>
+
+    <BaseModal
+      :visible="showRenameModal"
+      title="Rename"
+      :subtitle="renamingFile?.path"
+      icon="pi pi-file-edit"
+      size="sm"
+      :close-disabled="fileOperationRunning"
+      @close="showRenameModal = false"
+    >
+      <BaseField label="New name">
+        <BaseInput v-model="renameName" :disabled="fileOperationRunning" @keyup.enter="renamePath" />
+      </BaseField>
+      <template #footer>
+        <BaseButton variant="secondary" :disabled="fileOperationRunning" @click="showRenameModal = false">
+          Cancel
+        </BaseButton>
+        <BaseButton :loading="fileOperationRunning" :disabled="!renameName.trim()" @click="renamePath">
+          Rename
+        </BaseButton>
+      </template>
+    </BaseModal>
+
+    <BaseModal
+      :visible="showArchiveModal"
+      :title="archiveFile?.name || 'Archive'"
+      subtitle="Review the archive before extracting it"
+      icon="pi pi-box"
+      size="lg"
+      :close-disabled="extractingArchive"
+      @close="closeArchive"
+    >
+      <div v-if="loadingArchive" class="archive-loading">
+        <Icon name="loader-circle" spin :size="20" />
+        Reading archive
+      </div>
+      <div v-else-if="archiveEntries.length === 0" class="archive-empty">This archive is empty.</div>
+      <div v-else class="archive-list">
+        <div class="archive-list-header">
+          <span>Name</span>
+          <span>Size</span>
+        </div>
+        <div v-for="entry in archiveEntries" :key="entry.name" class="archive-entry">
+          <span class="archive-entry-name">
+            <Icon :name="entry.is_dir ? 'folder' : 'file'" :size="15" />
+            {{ entry.name }}
+          </span>
+          <span>{{ entry.is_dir ? "Folder" : formatSize(entry.size) }}</span>
+        </div>
+      </div>
+      <BaseField label="Extract into" hint="A new folder will be created. Existing files are never overwritten.">
+        <BaseInput v-model="archiveDestination" :disabled="extractingArchive" />
+      </BaseField>
+      <template #footer>
+        <BaseButton variant="secondary" :disabled="extractingArchive" @click="closeArchive">Close</BaseButton>
+        <BaseButton
+          icon="archive-restore"
+          :loading="extractingArchive"
+          :disabled="loadingArchive || !archiveDestination.trim()"
+          @click="extractOpenArchive"
+        >
+          Extract
+        </BaseButton>
+      </template>
+    </BaseModal>
   </div>
 </template>
 
@@ -561,10 +686,21 @@ import { ref, reactive, computed, onMounted, onBeforeUnmount, watch } from "vue"
 import { Codemirror } from "vue-codemirror";
 import { yaml } from "@codemirror/lang-yaml";
 import { oneDark } from "@codemirror/theme-one-dark";
-import { configApi, createDeploymentFileApi, deploymentsApi, type FileBrowserApi, type FileInfo } from "@/services/api";
+import {
+  configApi,
+  createDeploymentFileApi,
+  deploymentsApi,
+  type ArchiveEntry,
+  type FileBrowserApi,
+  type FileInfo,
+} from "@/services/api";
 import { useNotificationsStore } from "@/stores/notifications";
 import { toComposeRelativePath, type ComposeMount } from "@/utils/compose";
 import Icon from "@/components/base/Icon.vue";
+import BaseButton from "@/components/base/BaseButton.vue";
+import BaseField from "@/components/base/BaseField.vue";
+import BaseInput from "@/components/base/BaseInput.vue";
+import BaseModal from "@/components/base/BaseModal.vue";
 import InlineAssist from "@/components/ai/InlineAssist.vue";
 import { useAssistStore, type AssistContext } from "@/stores/assist";
 
@@ -640,16 +776,34 @@ const fileToUnmount = ref<FileInfo | null>(null);
 const unmounting = ref(false);
 
 const rowMenuOpenFor = ref<string | null>(null);
+const clipboard = ref<{ file: FileInfo; operation: "copy" | "move" } | null>(null);
+const fileOperationRunning = ref(false);
+const showRenameModal = ref(false);
+const renamingFile = ref<FileInfo | null>(null);
+const renameName = ref("");
+const showArchiveModal = ref(false);
+const archiveFile = ref<FileInfo | null>(null);
+const archiveEntries = ref<ArchiveEntry[]>([]);
+const archiveDestination = ref("");
+const loadingArchive = ref(false);
+const extractingArchive = ref(false);
 
 const toggleRowMenu = (path: string) => {
   rowMenuOpenFor.value = rowMenuOpenFor.value === path ? null : path;
 };
 
-const onMenuAction = (action: "mount" | "unmount" | "permissions" | "delete", file: FileInfo) => {
+const onMenuAction = (
+  action: "mount" | "unmount" | "permissions" | "copy" | "cut" | "rename" | "archive" | "delete",
+  file: FileInfo,
+) => {
   rowMenuOpenFor.value = null;
   if (action === "mount") openMountModal(file);
   else if (action === "unmount") confirmUnmount(file);
   else if (action === "permissions") openPermissionsModal(file);
+  else if (action === "copy") setClipboard(file, "copy");
+  else if (action === "cut") setClipboard(file, "move");
+  else if (action === "rename") openRenameModal(file);
+  else if (action === "archive") viewArchive(file);
   else if (action === "delete") confirmDelete(file);
 };
 
@@ -736,7 +890,10 @@ const busy = computed(
     deleting.value ||
     savingPermissions.value ||
     loadingFileContent.value ||
-    savingFile.value,
+    savingFile.value ||
+    fileOperationRunning.value ||
+    loadingArchive.value ||
+    extractingArchive.value,
 );
 const viewOnly = ref(false);
 
@@ -809,6 +966,64 @@ const navigateTo = (path: string) => {
   selectedFiles.value = [];
 };
 
+const joinPath = (directory: string, name: string) => (directory === "/" ? `/${name}` : `${directory}/${name}`);
+
+const parentPath = (path: string) => {
+  const parts = path.split("/").filter(Boolean);
+  parts.pop();
+  return parts.length === 0 ? "/" : `/${parts.join("/")}`;
+};
+
+const setClipboard = (file: FileInfo, operation: "copy" | "move") => {
+  clipboard.value = { file, operation };
+  notifications.info(operation === "copy" ? "Ready to copy" : "Ready to move", `Open a folder and paste ${file.name}.`);
+};
+
+const pasteClipboard = async () => {
+  if (!clipboard.value) return;
+  const item = clipboard.value;
+  const destination = joinPath(currentPath.value, item.file.name);
+  fileOperationRunning.value = true;
+  try {
+    if (item.operation === "copy") {
+      await fileApi.value.copy(item.file.path, destination);
+      notifications.success("Copied", `${item.file.name} copied here.`);
+    } else {
+      await fileApi.value.move(item.file.path, destination);
+      notifications.success("Moved", `${item.file.name} moved here.`);
+      clipboard.value = null;
+    }
+    refreshFiles();
+  } catch (err: any) {
+    notifications.error("Paste failed", err.response?.data?.error || err.message || "Could not paste the path");
+  } finally {
+    fileOperationRunning.value = false;
+  }
+};
+
+const openRenameModal = (file: FileInfo) => {
+  renamingFile.value = file;
+  renameName.value = file.name;
+  showRenameModal.value = true;
+};
+
+const renamePath = async () => {
+  if (!renamingFile.value || !renameName.value.trim()) return;
+  const destination = joinPath(parentPath(renamingFile.value.path), renameName.value.trim());
+  fileOperationRunning.value = true;
+  try {
+    await fileApi.value.move(renamingFile.value.path, destination);
+    notifications.success("Renamed", `${renamingFile.value.name} renamed to ${renameName.value.trim()}.`);
+    showRenameModal.value = false;
+    renamingFile.value = null;
+    refreshFiles();
+  } catch (err: any) {
+    notifications.error("Rename failed", err.response?.data?.error || err.message || "Could not rename the path");
+  } finally {
+    fileOperationRunning.value = false;
+  }
+};
+
 const fetchFiles = async () => {
   loading.value = true;
   error.value = "";
@@ -866,24 +1081,38 @@ const handleFileSelect = async (event: Event) => {
 
   for (let i = 0; i < fileList.length; i++) {
     const file = fileList[i];
-    await uploadFile(file);
+    await uploadFile(file, file.name);
   }
 
   input.value = "";
   refreshFiles();
 };
 
-const uploadFile = async (file: File) => {
+const handleFolderSelect = async (event: Event) => {
+  const input = event.target as HTMLInputElement;
+  const fileList = input.files;
+  if (!fileList || fileList.length === 0) return;
+
+  for (let i = 0; i < fileList.length; i++) {
+    const file = fileList[i];
+    await uploadFile(file, file.webkitRelativePath || file.name);
+  }
+
+  input.value = "";
+  refreshFiles();
+};
+
+const uploadFile = async (file: File, relativePath: string) => {
   uploading.value = true;
   uploadProgress.value = 0;
-  uploadFileName.value = file.name;
+  uploadFileName.value = relativePath;
 
   try {
-    const targetPath = currentPath.value === "/" ? `/${file.name}` : `${currentPath.value}/${file.name}`;
+    const targetPath = currentPath.value === "/" ? `/${relativePath}` : `${currentPath.value}/${relativePath}`;
 
     await fileApi.value.upload(targetPath, file);
     uploadProgress.value = 100;
-    notifications.success("Upload Complete", `${file.name} uploaded successfully`);
+    notifications.success("Upload Complete", `${relativePath} uploaded successfully`);
   } catch (err: any) {
     const msg = err.response?.data?.error || err.message || "Upload failed";
     notifications.error("Upload Failed", msg);
@@ -1098,6 +1327,59 @@ const getFileIcon = (file: FileInfo): string => {
   };
 
   return iconMap[ext || ""] || "pi pi-file";
+};
+
+const isArchiveFile = (file: FileInfo): boolean => {
+  if (file.is_dir) return false;
+  return /\.(zip|tar|tar\.gz|tgz)$/i.test(file.name);
+};
+
+const archiveFolderName = (name: string) => name.replace(/\.(tar\.gz|tgz|tar|zip)$/i, "") || "archive";
+
+const viewArchive = async (file: FileInfo) => {
+  archiveFile.value = file;
+  archiveEntries.value = [];
+  archiveDestination.value = joinPath(parentPath(file.path), archiveFolderName(file.name));
+  showArchiveModal.value = true;
+  loadingArchive.value = true;
+  try {
+    const response = await fileApi.value.listArchive(file.path);
+    archiveEntries.value = response.data.entries || [];
+  } catch (err: any) {
+    notifications.error(
+      "Archive unavailable",
+      err.response?.data?.error || err.message || "Could not read the archive",
+    );
+    showArchiveModal.value = false;
+  } finally {
+    loadingArchive.value = false;
+  }
+};
+
+const closeArchive = () => {
+  if (extractingArchive.value) return;
+  showArchiveModal.value = false;
+  archiveFile.value = null;
+  archiveEntries.value = [];
+};
+
+const extractOpenArchive = async () => {
+  if (!archiveFile.value || !archiveDestination.value.trim()) return;
+  extractingArchive.value = true;
+  try {
+    await fileApi.value.extractArchive(archiveFile.value.path, archiveDestination.value.trim());
+    notifications.success("Archive extracted", `${archiveFile.value.name} extracted successfully.`);
+    extractingArchive.value = false;
+    closeArchive();
+    refreshFiles();
+  } catch (err: any) {
+    notifications.error(
+      "Extraction failed",
+      err.response?.data?.error || err.message || "Could not extract the archive",
+    );
+  } finally {
+    extractingArchive.value = false;
+  }
 };
 
 const formatSize = (bytes: number): string => {
@@ -1506,6 +1788,13 @@ onBeforeUnmount(() => {
 
 .empty-state p {
   margin: 0;
+}
+
+.empty-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-2);
 }
 
 .file-list {
@@ -2180,5 +2469,58 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   gap: var(--space-2);
+}
+
+.archive-loading,
+.archive-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: 160px;
+  color: var(--text-muted);
+}
+
+.archive-list {
+  max-height: 360px;
+  overflow: auto;
+  margin-bottom: var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.archive-list-header,
+.archive-entry {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-4);
+  padding: var(--space-2) var(--space-3);
+}
+
+.archive-list-header {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--surface-sunken);
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+}
+
+.archive-entry {
+  color: var(--text);
+  font-size: var(--text-sm);
+}
+
+.archive-entry + .archive-entry {
+  border-top: 1px solid var(--border-subtle);
+}
+
+.archive-entry-name {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 </style>

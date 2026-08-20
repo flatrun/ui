@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.4.0-beta.4] - 2026-08-20
+
+### Added
+- Folder uploads and file browser actions for copying, moving, renaming, browsing archives, and extracting them
+
+### Fixed
+- Rebuild options and empty-state actions now use the shared design system
+
 ## [0.4.0-beta.3] - 2026-08-05
 
 Third beta of the Albacore release, reworking the observability and logs experience.

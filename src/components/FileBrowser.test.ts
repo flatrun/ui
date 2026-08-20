@@ -40,6 +40,10 @@ const fakeApi = (): FileBrowserApi => ({
   chmod: vi.fn(),
   delete: vi.fn().mockResolvedValue({}),
   getContent: vi.fn().mockResolvedValue({ data: "" }),
+  copy: vi.fn().mockResolvedValue({}),
+  move: vi.fn().mockResolvedValue({}),
+  listArchive: vi.fn().mockResolvedValue({ data: { entries: [] } }),
+  extractArchive: vi.fn().mockResolvedValue({}),
 });
 
 const mountBrowser = () =>
@@ -124,5 +128,81 @@ describe("FileBrowser mounted paths", () => {
     expect(document.body.textContent).toContain("will not touch the container");
 
     wrapper.unmount();
+  });
+});
+
+describe("FileBrowser uploads", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("keeps a selected folder's relative paths", async () => {
+    const api = fakeApi();
+    const wrapper = mount(FileBrowser, {
+      props: { api },
+      global: { plugins: [createTestingPinia({ createSpy: vi.fn })] },
+    });
+    await flushPromises();
+
+    const file = new File(["server config"], "site.conf", { type: "text/plain" });
+    Object.defineProperty(file, "webkitRelativePath", { value: "nginx/conf.d/site.conf" });
+
+    await (wrapper.vm as any).handleFolderSelect({
+      target: { files: [file], value: "selected" },
+    });
+    await flushPromises();
+
+    expect(api.upload).toHaveBeenCalledWith("/nginx/conf.d/site.conf", file);
+  });
+});
+
+describe("FileBrowser operations", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("copies a path into the open folder", async () => {
+    const api = fakeApi();
+    const wrapper = mount(FileBrowser, {
+      props: { api },
+      global: { plugins: [createTestingPinia({ createSpy: vi.fn })] },
+    });
+    await flushPromises();
+
+    (wrapper.vm as any).setClipboard(files[1], "copy");
+    (wrapper.vm as any).navigateTo("/conf.d");
+    await (wrapper.vm as any).pasteClipboard();
+
+    expect(api.copy).toHaveBeenCalledWith("/notes.txt", "/conf.d/notes.txt");
+  });
+
+  it("renames through the move boundary", async () => {
+    const api = fakeApi();
+    const wrapper = mount(FileBrowser, {
+      props: { api },
+      global: { plugins: [createTestingPinia({ createSpy: vi.fn })] },
+    });
+    await flushPromises();
+
+    (wrapper.vm as any).openRenameModal(files[1]);
+    (wrapper.vm as any).renameName = "readme.txt";
+    await (wrapper.vm as any).renamePath();
+
+    expect(api.move).toHaveBeenCalledWith("/notes.txt", "/readme.txt");
+  });
+
+  it("loads and extracts an archive into its suggested folder", async () => {
+    const api = fakeApi();
+    const archive = { ...files[1], name: "release.tar.gz", path: "/release.tar.gz" };
+    vi.mocked(api.listArchive).mockResolvedValue({
+      data: { entries: [{ name: "app/config.yml", size: 12, is_dir: false, mod_time: "2026-07-14T00:00:00Z" }] },
+    });
+    const wrapper = mount(FileBrowser, {
+      props: { api },
+      global: { plugins: [createTestingPinia({ createSpy: vi.fn })] },
+    });
+    await flushPromises();
+
+    await (wrapper.vm as any).viewArchive(archive);
+    await (wrapper.vm as any).extractOpenArchive();
+
+    expect(api.listArchive).toHaveBeenCalledWith("/release.tar.gz");
+    expect(api.extractArchive).toHaveBeenCalledWith("/release.tar.gz", "/release");
   });
 });
