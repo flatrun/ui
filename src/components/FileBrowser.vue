@@ -1083,14 +1083,8 @@ const handleFileSelect = async (event: Event) => {
   const input = event.target as HTMLInputElement;
   const fileList = input.files;
   if (!fileList || fileList.length === 0) return;
-
-  for (let i = 0; i < fileList.length; i++) {
-    const file = fileList[i];
-    await uploadFile(file, file.name);
-  }
-
+  await uploadFiles(fileList, (file) => file.name, "files");
   input.value = "";
-  refreshFiles();
 };
 
 const handleFolderSelect = async (event: Event) => {
@@ -1098,32 +1092,73 @@ const handleFolderSelect = async (event: Event) => {
   const fileList = input.files;
   if (!fileList || fileList.length === 0) return;
 
-  for (let i = 0; i < fileList.length; i++) {
-    const file = fileList[i];
-    await uploadFile(file, file.webkitRelativePath || file.name);
-  }
-
+  await uploadFiles(fileList, (file) => file.webkitRelativePath || file.name, "folder");
   input.value = "";
-  refreshFiles();
 };
 
-const uploadFile = async (file: File, relativePath: string) => {
+const uploadFiles = async (
+  fileList: FileList | File[],
+  relativePathFor: (file: File) => string,
+  kind: "files" | "folder",
+) => {
   uploading.value = true;
   uploadProgress.value = 0;
-  uploadFileName.value = relativePath;
+  const total = fileList.length;
+  const notificationId = notifications.progress(
+    kind === "folder" ? "Uploading folder" : "Uploading files",
+    `0 of ${total} files processed`,
+  );
+  const failures: Array<{ name: string; message: string }> = [];
 
   try {
-    const targetPath = joinPath(currentPath.value, relativePath);
+    for (let index = 0; index < total; index++) {
+      const file = fileList[index];
+      const relativePath = relativePathFor(file);
+      uploadFileName.value = relativePath;
+      const error = await uploadFile(file, relativePath);
+      if (error) failures.push({ name: relativePath, message: error });
 
-    await fileApi.value.upload(targetPath, file);
-    uploadProgress.value = 100;
-    notifications.success("Upload Complete", `${relativePath} uploaded successfully`);
-  } catch (err: any) {
-    const msg = err.response?.data?.error || err.message || "Upload failed";
-    notifications.error("Upload Failed", msg);
+      const completed = index + 1;
+      uploadProgress.value = Math.round((completed / total) * 100);
+      notifications.update(notificationId, {
+        message: `${completed} of ${total} files processed`,
+        progress: uploadProgress.value,
+      });
+    }
+
+    const uploaded = total - failures.length;
+    if (failures.length === 0) {
+      notifications.update(notificationId, {
+        type: "success",
+        title: kind === "folder" ? "Folder uploaded" : "Files uploaded",
+        message: `${uploaded} ${uploaded === 1 ? "file" : "files"} uploaded`,
+      });
+    } else {
+      const failureNames = failures
+        .slice(0, 3)
+        .map(({ name }) => name)
+        .join(", ");
+      const remaining = failures.length - 3;
+      notifications.update(notificationId, {
+        type: uploaded === 0 ? "error" : "warning",
+        title: uploaded === 0 ? "Upload failed" : "Upload completed with errors",
+        message: `${uploaded} uploaded, ${failures.length} failed: ${failureNames}${remaining > 0 ? ` and ${remaining} more` : ""}`,
+      });
+    }
   } finally {
     uploading.value = false;
     uploadFileName.value = "";
+    refreshFiles();
+  }
+};
+
+const uploadFile = async (file: File, relativePath: string) => {
+  try {
+    const targetPath = joinPath(currentPath.value, relativePath);
+    await fileApi.value.upload(targetPath, file);
+    return null;
+  } catch (err: any) {
+    return err.response?.data?.error || err.message || "Upload failed";
   }
 };
 

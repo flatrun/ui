@@ -1,10 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { mount, flushPromises } from "@vue/test-utils";
+import { createPinia } from "pinia";
 import { createTestingPinia } from "@pinia/testing";
 import FileBrowser from "./FileBrowser.vue";
 import { deploymentsApi } from "@/services/api";
 import type { FileBrowserApi, FileInfo } from "@/services/api";
 import type { ComposeMount } from "@/utils/compose";
+import { useNotificationsStore } from "@/stores/notifications";
 
 vi.mock("@/services/api", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/services/api")>();
@@ -151,6 +153,36 @@ describe("FileBrowser uploads", () => {
     await flushPromises();
 
     expect(api.upload).toHaveBeenCalledWith("/nginx/conf.d/site.conf", file);
+  });
+
+  it("updates one notification for a folder upload", async () => {
+    const api = fakeApi();
+    const pinia = createPinia();
+    const wrapper = mount(FileBrowser, {
+      props: { api },
+      global: { plugins: [pinia] },
+    });
+    await flushPromises();
+
+    const filesToUpload = ["one.txt", "two.txt", "three.txt"].map((name) => {
+      const file = new File([name], name, { type: "text/plain" });
+      Object.defineProperty(file, "webkitRelativePath", { value: `folder/${name}` });
+      return file;
+    });
+
+    await (wrapper.vm as any).handleFolderSelect({
+      target: { files: filesToUpload, value: "selected" },
+    });
+    await flushPromises();
+
+    const notifications = useNotificationsStore(pinia).notifications;
+    expect(notifications).toHaveLength(1);
+    expect(notifications[0]).toMatchObject({
+      type: "success",
+      title: "Folder uploaded",
+      message: "3 files uploaded",
+      progress: 100,
+    });
   });
 });
 
