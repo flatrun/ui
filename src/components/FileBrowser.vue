@@ -678,6 +678,43 @@
         </BaseButton>
       </template>
     </BaseModal>
+
+    <BaseModal
+      :visible="uploadResult !== null"
+      :title="uploadResult?.uploaded === 0 ? 'Upload failed' : 'Upload completed with errors'"
+      :subtitle="uploadResult ? `${uploadResult.uploaded} of ${uploadResult.total} files uploaded` : ''"
+      icon="pi pi-exclamation-triangle"
+      :icon-color="uploadResult?.uploaded === 0 ? 'danger' : 'warning'"
+      size="md"
+      @close="uploadResult = null"
+    >
+      <div v-if="uploadResult" class="upload-result">
+        <p>These files could not be uploaded:</p>
+        <div class="upload-failure-list">
+          <div v-for="failure in uploadResult.failures.slice(0, 20)" :key="failure.name" class="upload-failure">
+            <span>{{ failure.name }}</span>
+            <small>{{ failure.message }}</small>
+          </div>
+        </div>
+        <p v-if="uploadResult.failures.length > 20" class="upload-failure-more">
+          {{ uploadResult.failures.length - 20 }} more files failed.
+        </p>
+      </div>
+      <template #footer>
+        <BaseButton @click="uploadResult = null">Close</BaseButton>
+      </template>
+    </BaseModal>
+
+    <ConfirmModal
+      :visible="showDiscardEditorModal"
+      title="Discard unsaved changes?"
+      :message="`Changes to ${editingFile?.name || 'this file'} have not been saved.`"
+      warning="Closing the editor will discard them."
+      variant="warning"
+      confirm-text="Discard changes"
+      @confirm="discardFileEditor"
+      @cancel="showDiscardEditorModal = false"
+    />
   </div>
 </template>
 
@@ -701,6 +738,7 @@ import BaseButton from "@/components/base/BaseButton.vue";
 import BaseField from "@/components/base/BaseField.vue";
 import BaseInput from "@/components/base/BaseInput.vue";
 import BaseModal from "@/components/base/BaseModal.vue";
+import ConfirmModal from "@/components/ConfirmModal.vue";
 import InlineAssist from "@/components/ai/InlineAssist.vue";
 import { useAssistStore, type AssistContext } from "@/stores/assist";
 
@@ -753,6 +791,11 @@ const selectedFiles = ref<string[]>([]);
 const uploading = ref(false);
 const uploadProgress = ref(0);
 const uploadFileName = ref("");
+const uploadResult = ref<{
+  uploaded: number;
+  total: number;
+  failures: Array<{ name: string; message: string }>;
+} | null>(null);
 
 const showNewFolderModal = ref(false);
 const newFolderName = ref("");
@@ -875,6 +918,7 @@ const SYSTEM_FOLDER_NAMES = new Set(["proc", "sys", "dev", "boot", "run", "lost+
 const viewMode = ref<"list" | "grid">("list");
 
 const showEditorModal = ref(false);
+const showDiscardEditorModal = ref(false);
 const editingFile = ref<FileInfo | null>(null);
 const fileContent = ref("");
 const originalContent = ref("");
@@ -1134,16 +1178,8 @@ const uploadFiles = async (
         message: `${uploaded} ${uploaded === 1 ? "file" : "files"} uploaded`,
       });
     } else {
-      const failureNames = failures
-        .slice(0, 3)
-        .map(({ name }) => name)
-        .join(", ");
-      const remaining = failures.length - 3;
-      notifications.update(notificationId, {
-        type: uploaded === 0 ? "error" : "warning",
-        title: uploaded === 0 ? "Upload failed" : "Upload completed with errors",
-        message: `${uploaded} uploaded, ${failures.length} failed: ${failureNames}${remaining > 0 ? ` and ${remaining} more` : ""}`,
-      });
+      notifications.remove(notificationId);
+      uploadResult.value = { uploaded, total, failures };
     }
   } finally {
     uploading.value = false;
@@ -1529,10 +1565,14 @@ const openFileEditor = async (file: FileInfo) => {
 
 const closeFileEditor = () => {
   if (!viewOnly.value && fileModified.value) {
-    if (!confirm("You have unsaved changes. Are you sure you want to close?")) {
-      return;
-    }
+    showDiscardEditorModal.value = true;
+    return;
   }
+  discardFileEditor();
+};
+
+const discardFileEditor = () => {
+  showDiscardEditorModal.value = false;
   if (assistOpen.value) closeAssist();
   showEditorModal.value = false;
   editingFile.value = null;
@@ -2072,6 +2112,50 @@ onBeforeUnmount(() => {
 .warning-text {
   color: var(--color-warning-600);
   font-size: var(--text-sm);
+}
+
+.upload-result {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.upload-result p {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+.upload-failure-list {
+  display: grid;
+  max-height: 280px;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface-sunken);
+}
+
+.upload-failure {
+  display: grid;
+  gap: var(--space-1);
+  padding: var(--space-3);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.upload-failure:last-child {
+  border-bottom: 0;
+}
+
+.upload-failure span {
+  color: var(--text);
+  font-size: var(--text-md);
+  font-weight: var(--font-medium);
+  word-break: break-word;
+}
+
+.upload-failure small,
+.upload-failure-more {
+  color: var(--color-danger-700);
+  font-size: var(--text-sm);
+  word-break: break-word;
 }
 
 .mount-source {

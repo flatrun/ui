@@ -184,6 +184,38 @@ describe("FileBrowser uploads", () => {
       progress: 100,
     });
   });
+
+  it("shows upload failures in one modal and removes the progress notification", async () => {
+    const api = fakeApi();
+    vi.mocked(api.upload)
+      .mockResolvedValueOnce({} as any)
+      .mockRejectedValueOnce(new Error("Storage is full"));
+    const pinia = createPinia();
+    const wrapper = mount(FileBrowser, {
+      props: { api },
+      global: { plugins: [pinia] },
+    });
+    await flushPromises();
+
+    const filesToUpload = ["one.txt", "two.txt"].map((name) => {
+      const file = new File([name], name, { type: "text/plain" });
+      Object.defineProperty(file, "webkitRelativePath", { value: `folder/${name}` });
+      return file;
+    });
+
+    await (wrapper.vm as any).handleFolderSelect({
+      target: { files: filesToUpload, value: "selected" },
+    });
+    await flushPromises();
+
+    expect(useNotificationsStore(pinia).notifications).toHaveLength(0);
+    expect(document.body.textContent).toContain("Upload completed with errors");
+    expect(document.body.textContent).toContain("1 of 2 files uploaded");
+    expect(document.body.textContent).toContain("folder/two.txt");
+    expect(document.body.textContent).toContain("Storage is full");
+
+    wrapper.unmount();
+  });
 });
 
 describe("FileBrowser operations", () => {

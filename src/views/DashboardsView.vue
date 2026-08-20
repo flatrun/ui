@@ -58,6 +58,17 @@
         </div>
       </div>
     </Teleport>
+
+    <ConfirmModal
+      :visible="dashboardToDelete !== null"
+      title="Delete dashboard?"
+      :message="`The ${dashboardToDelete?.name || ''} dashboard will be removed.`"
+      warning="This action cannot be undone."
+      confirm-text="Delete dashboard"
+      :loading="deleting"
+      @confirm="confirmRemove"
+      @cancel="dashboardToDelete = null"
+    />
   </div>
 </template>
 
@@ -65,6 +76,7 @@
 import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import Icon from "@/components/base/Icon.vue";
+import ConfirmModal from "@/components/ConfirmModal.vue";
 import { dashboardsApi, type Dashboard } from "@/services/api";
 
 const router = useRouter();
@@ -74,6 +86,8 @@ const error = ref("");
 const showCreate = ref(false);
 const newName = ref("");
 const creating = ref(false);
+const dashboardToDelete = ref<Dashboard | null>(null);
+const deleting = ref(false);
 
 async function fetchDashboards() {
   loading.value = true;
@@ -107,13 +121,22 @@ async function create() {
   }
 }
 
-async function remove(d: Dashboard) {
-  if (!d.id || !confirm(`Delete dashboard "${d.name}"?`)) return;
+function remove(d: Dashboard) {
+  if (d.id) dashboardToDelete.value = d;
+}
+
+async function confirmRemove() {
+  const dashboard = dashboardToDelete.value;
+  if (!dashboard?.id) return;
+  deleting.value = true;
   try {
-    await dashboardsApi.remove(d.id);
-    dashboards.value = dashboards.value.filter((x) => x.id !== d.id);
+    await dashboardsApi.remove(dashboard.id);
+    dashboards.value = dashboards.value.filter((item) => item.id !== dashboard.id);
+    dashboardToDelete.value = null;
   } catch (e: any) {
     error.value = e.response?.data?.error || e.message || "Failed to delete dashboard";
+  } finally {
+    deleting.value = false;
   }
 }
 
