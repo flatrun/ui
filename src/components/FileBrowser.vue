@@ -983,6 +983,11 @@ const pasteClipboard = async () => {
   if (!clipboard.value) return;
   const item = clipboard.value;
   const destination = joinPath(currentPath.value, item.file.name);
+
+  if (item.file.path === destination) {
+    notifications.info("No action", "Source and destination are the same.");
+    return;
+  }
   fileOperationRunning.value = true;
   try {
     if (item.operation === "copy") {
@@ -1108,7 +1113,7 @@ const uploadFile = async (file: File, relativePath: string) => {
   uploadFileName.value = relativePath;
 
   try {
-    const targetPath = currentPath.value === "/" ? `/${relativePath}` : `${currentPath.value}/${relativePath}`;
+    const targetPath = joinPath(currentPath.value, relativePath);
 
     await fileApi.value.upload(targetPath, file);
     uploadProgress.value = 100;
