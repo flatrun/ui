@@ -33,6 +33,14 @@ vi.mock("@/services/api", () => ({
         proxy_status: { enabled: true, domain: "test-app.example.com" },
       },
     }),
+    diagnostics: vi.fn().mockResolvedValue({
+      data: {
+        deployment: "test-app",
+        healthy: true,
+        steps: [],
+        checked_at: "2024-01-01T00:00:00Z",
+      },
+    }),
     getEnvVars: vi.fn().mockResolvedValue({
       data: { env_vars: [] },
     }),

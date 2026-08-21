@@ -1,12 +1,14 @@
 # Changelog
 
-## [0.4.0-beta.4] - 2026-08-20
+## [0.4.0-beta.4] - 2026-08-21
 
 ### Added
 - Folder uploads and file browser actions for copying, moving, renaming, browsing archives, and extracting them
+- Guided deployment diagnostics with incident lookup, configurable application health checks, response details, and log file selection from disk or a container
 
 ### Fixed
 - Rebuild options and empty-state actions now use the shared design system
+- Paused and incomplete health states use distinct status treatments
 
 ## [0.4.0-beta.3] - 2026-08-05
 

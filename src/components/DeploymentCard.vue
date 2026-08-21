@@ -33,7 +33,7 @@
 <script setup lang="ts">
 defineProps<{
   name: string;
-  status: "running" | "stopped" | "error" | "unknown" | "external";
+  status: "running" | "paused" | "stopped" | "error" | "unknown" | "external";
   subtitle?: string;
   icon?: string;
   iconClass?: string;
@@ -266,6 +266,15 @@ defineEmits<{
 .status-badge.stopped {
   background: var(--surface-inset);
   color: var(--text-muted);
+}
+
+.status-badge.paused {
+  background: var(--color-warning-100);
+  color: var(--color-warning-700);
+}
+
+.status-badge.paused .status-dot {
+  background: var(--color-warning-500);
 }
 
 .status-badge.stopped .status-dot {

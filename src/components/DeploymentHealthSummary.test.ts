@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { mount, flushPromises } from "@vue/test-utils";
 import DeploymentHealthSummary from "./DeploymentHealthSummary.vue";
 import { observabilityApi } from "@/services/observability";
-import { servingApi } from "@/services/api";
+import { deploymentsApi, servingApi } from "@/services/api";
 
 vi.mock("@/services/observability", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/services/observability")>();
@@ -13,6 +13,7 @@ vi.mock("@/services/observability", async (importOriginal) => {
 });
 
 vi.mock("@/services/api", () => ({
+  deploymentsApi: { diagnostics: vi.fn() },
   servingApi: { series: vi.fn() },
 }));
 
@@ -48,6 +49,9 @@ describe("DeploymentHealthSummary", () => {
     vi.mocked(observabilityApi.health).mockResolvedValue({ data: healthy } as any);
     vi.mocked(observabilityApi.latest).mockResolvedValue({ data: metrics } as any);
     vi.mocked(servingApi.series).mockResolvedValue({ data: { deployment: "shop", since: "1h", points: quiet } } as any);
+    vi.mocked(deploymentsApi.diagnostics).mockResolvedValue({
+      data: { deployment: "shop", healthy: true, steps: [], checked_at: "2026-07-15T10:00:00Z" },
+    } as any);
   });
 
   it("leads with a verdict, not a grid of numbers", async () => {
@@ -71,6 +75,56 @@ describe("DeploymentHealthSummary", () => {
 
     expect(wrapper.text()).toContain("Needs attention");
     expect(wrapper.text()).toContain("shop-db is failing its health check");
+  });
+
+  it("uses failed deployment diagnostics when traffic and observability look healthy", async () => {
+    vi.mocked(deploymentsApi.diagnostics).mockResolvedValue({
+      data: {
+        deployment: "shop",
+        healthy: false,
+        checked_at: "2026-07-15T10:00:00Z",
+        steps: [
+          {
+            id: "application",
+            label: "Application endpoint",
+            status: "failed",
+            detail: "GET /health returned HTTP 503.",
+            checked_at: "2026-07-15T10:00:00Z",
+          },
+        ],
+      },
+    } as any);
+
+    const wrapper = mountSummary();
+    await flushPromises();
+
+    expect(wrapper.text()).toContain("Needs attention");
+    expect(wrapper.text()).toContain("GET /health returned HTTP 503.");
+  });
+
+  it("shows a warning when diagnostics cannot confirm application health", async () => {
+    vi.mocked(deploymentsApi.diagnostics).mockResolvedValue({
+      data: {
+        deployment: "shop",
+        healthy: true,
+        checked_at: "2026-07-15T10:00:00Z",
+        steps: [
+          {
+            id: "application",
+            label: "Application endpoint",
+            status: "warning",
+            detail: "GET /health returned HTTP 404. Configure a health endpoint to enable this check.",
+            checked_at: "2026-07-15T10:00:00Z",
+          },
+        ],
+      },
+    } as any);
+
+    const wrapper = mountSummary();
+    await flushPromises();
+
+    expect(wrapper.text()).toContain("Check recommended");
+    expect(wrapper.text()).toContain("returned HTTP 404");
   });
 
   // A container can pass its health check while every request it answers fails.

@@ -27,8 +27,8 @@
 import { ref, computed, onMounted, onUnmounted } from "vue";
 import { observabilityApi, METRIC } from "@/services/observability";
 import type { ContainerHealth, DeploymentMetrics } from "@/services/observability";
-import { servingApi } from "@/services/api";
-import type { REDPoint } from "@/services/api";
+import { deploymentsApi, servingApi } from "@/services/api";
+import type { DeploymentDiagnostics, REDPoint } from "@/services/api";
 import Icon from "@/components/base/Icon.vue";
 
 const props = defineProps<{ deploymentName: string; status?: string }>();
@@ -37,6 +37,7 @@ const emit = defineEmits<{ open: [] }>();
 const health = ref<ContainerHealth[]>([]);
 const metrics = ref<DeploymentMetrics | null>(null);
 const points = ref<REDPoint[]>([]);
+const diagnostics = ref<DeploymentDiagnostics | null>(null);
 let timer: ReturnType<typeof setInterval> | null = null;
 
 const unhealthy = computed(() => health.value.filter((h) => h.status === "unhealthy"));
@@ -60,6 +61,24 @@ const memoryPercent = computed(() => {
 // One sentence saying what is true, in the order an operator cares about it: broken beats
 // slow, slow beats idle.
 const verdict = computed(() => {
+  if (diagnostics.value && !diagnostics.value.healthy) {
+    const failed = diagnostics.value.steps.find((step) => step.status === "failed");
+    return {
+      tone: "bad",
+      icon: "solar:danger-triangle-bold",
+      headline: "Needs attention",
+      detail: failed?.detail || "One or more deployment checks failed.",
+    };
+  }
+  const warning = diagnostics.value?.steps.find((step) => step.status === "warning");
+  if (warning) {
+    return {
+      tone: "warn",
+      icon: "solar:danger-triangle-bold",
+      headline: "Check recommended",
+      detail: warning.detail,
+    };
+  }
   if (props.status && props.status !== "running") {
     return {
       tone: "idle",
@@ -149,12 +168,16 @@ function compact(v: number): string {
 const refresh = async () => {
   // Each source is optional: the plugin may be off, traffic logging may be off. A summary
   // that fails whole because one number is missing is worse than one that shows the rest.
-  const [healthResult, metricsResult, servingResult] = await Promise.allSettled([
+  const [diagnosticsResult, healthResult, metricsResult, servingResult] = await Promise.allSettled([
+    deploymentsApi.diagnostics(props.deploymentName),
     observabilityApi.health(),
     observabilityApi.latest(),
     servingApi.series(props.deploymentName, "1h"),
   ]);
 
+  if (diagnosticsResult.status === "fulfilled") {
+    diagnostics.value = diagnosticsResult.value.data;
+  }
   if (healthResult.status === "fulfilled") {
     health.value = (healthResult.value.data || []).filter((h) => h.deployment === props.deploymentName);
   }
