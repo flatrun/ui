@@ -1,7 +1,7 @@
 export interface Deployment {
   name: string;
   path: string;
-  status: "running" | "stopped" | "error" | "unknown";
+  status: "running" | "paused" | "stopped" | "error" | "unknown";
   created_at: string;
   updated_at: string;
   services?: Service[];
@@ -107,6 +107,8 @@ export interface SSLConfig {
 export interface HealthCheckConfig {
   path: string;
   interval: string;
+  success_statuses?: number[];
+  response_contains?: string;
 }
 
 export interface Network {

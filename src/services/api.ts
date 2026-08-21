@@ -173,7 +173,7 @@ export interface ServiceMetadata {
     service?: string;
     container_port: number;
     protocol: string;
-    proxy_type: string;
+    proxy_type?: string;
   };
   ssl: {
     enabled: boolean;
@@ -182,6 +182,8 @@ export interface ServiceMetadata {
   healthcheck: {
     path: string;
     interval: string;
+    success_statuses?: number[];
+    response_contains?: string;
   };
   protected_mode?: ProtectedModeConfig;
   require_plan?: boolean;
@@ -268,6 +270,10 @@ export const deploymentLogsWsUrl = (
 export const deploymentsApi = {
   list: () => apiClient.get<{ deployments: Deployment[] }>("/deployments"),
   get: (name: string) => apiClient.get<Deployment>(`/deployments/${name}`),
+  diagnostics: (name: string, incidentId?: string) =>
+    apiClient.get<DeploymentDiagnostics>(`/deployments/${name}/diagnostics`, {
+      params: incidentId ? { incident_id: incidentId } : undefined,
+    }),
   create: (data: any) => apiClient.post("/deployments", data),
   update: (name: string, data: any, opts?: PlanOpts) =>
     apiClient.put(withPlanQuery(`/deployments/${name}`, opts), data),
@@ -414,6 +420,27 @@ export const deploymentsApi = {
   deleteDomain: (name: string, domainId: string, opts?: PlanOpts) =>
     apiClient.delete<{ message: string }>(withPlanQuery(`/deployments/${name}/domains/${domainId}`, opts)),
 };
+
+export type DeploymentDiagnosticStatus = "passed" | "failed" | "warning" | "skipped";
+
+export interface DeploymentDiagnosticStep {
+  id: string;
+  label: string;
+  status: DeploymentDiagnosticStatus;
+  detail: string;
+  output?: string;
+  action?: string;
+  value?: string;
+  checked_at: string;
+}
+
+export interface DeploymentDiagnostics {
+  deployment: string;
+  incident_id?: string;
+  healthy: boolean;
+  steps: DeploymentDiagnosticStep[];
+  checked_at: string;
+}
 
 export const plansApi = {
   list: (params?: { deployment?: string; status?: PlanStatus; resource_type?: string }) =>

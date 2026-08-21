@@ -13,7 +13,7 @@ export type LogLevel = "trace" | "debug" | "info" | "warn" | "error" | "fatal";
 export interface LogSource {
   id: string;
   name: string;
-  type: "stdout" | "file";
+  type: "stdout" | "file" | "container_file";
   service?: string;
   path?: string;
   format?: string;

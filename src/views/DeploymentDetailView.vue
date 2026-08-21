@@ -14,6 +14,7 @@
         </div>
       </div>
       <div class="header-actions">
+        <BaseButton icon="stethoscope" variant="secondary" @click="showDiagnostics = true">Diagnose</BaseButton>
         <SplitActionButton
           v-if="canWrite"
           label="Start"
@@ -98,7 +99,7 @@
             class="overview-summary"
             :deployment-name="route.params.name as string"
             :status="deployment?.status"
-            @open="openMetricsTab"
+            @open="showDiagnostics = true"
           />
 
           <div class="info-cards">
@@ -1459,48 +1460,46 @@
       </div>
     </Teleport>
 
-    <Teleport to="body">
-      <div v-if="showAddLogSource" class="modal-overlay">
-        <div class="modal-container">
-          <div class="modal-header">
-            <h3>
-              <i class="pi pi-file-edit" />
-              Point at a log file
-            </h3>
-            <button class="close-btn" @click="showAddLogSource = false">
-              <i class="pi pi-times" />
-            </button>
-          </div>
-          <div class="modal-body">
-            <p class="modal-hint">
-              Read logs from a file this deployment writes. The path is relative to the deployment directory, for
-              example <code>storage/logs/laravel.log</code>.
-            </p>
-            <div class="form-group">
-              <label>Name</label>
-              <input v-model="newLogSource.name" type="text" class="form-input" placeholder="Application log" />
-            </div>
-            <div class="form-group">
-              <label>File path</label>
-              <input
-                v-model="newLogSource.path"
-                type="text"
-                class="form-input"
-                placeholder="storage/logs/laravel.log"
-              />
-            </div>
-            <p v-if="logSourceError" class="form-error">{{ logSourceError }}</p>
-          </div>
-          <div class="modal-footer">
-            <button class="btn btn-secondary" @click="showAddLogSource = false">Cancel</button>
-            <button class="btn btn-primary" :disabled="savingLogSource" @click="saveLogSource">
-              <i :class="savingLogSource ? 'pi pi-spin pi-spinner' : 'pi pi-check'" />
-              Add source
-            </button>
-          </div>
+    <BaseModal
+      :visible="showAddLogSource"
+      title="Point at a log file"
+      subtitle="Choose a file on the deployment disk or inside a running container."
+      icon="pi pi-file-edit"
+      size="lg"
+      :close-disabled="savingLogSource"
+      @close="showAddLogSource = false"
+    >
+      <div class="log-source-form">
+        <div class="form-group">
+          <label>Name</label>
+          <input v-model="newLogSource.name" type="text" class="form-input" placeholder="Application log" />
         </div>
+        <div class="form-group">
+          <label>File path</label>
+          <input
+            v-model="newLogSource.path"
+            type="text"
+            class="form-input"
+            :placeholder="newLogSource.type === 'file' ? 'storage/logs/laravel.log' : '/var/log/app.log'"
+          />
+          <span v-if="newLogSource.type === 'container_file' && newLogSource.service" class="field-hint">
+            Container service: {{ newLogSource.service }}
+          </span>
+        </div>
+        <LogFilePicker
+          :deployment-name="route.params.name as string"
+          :service-names="serviceNames"
+          @select="selectLogFile"
+        />
+        <p v-if="logSourceError" class="form-error">{{ logSourceError }}</p>
       </div>
-    </Teleport>
+      <template #footer>
+        <BaseButton variant="secondary" :disabled="savingLogSource" @click="showAddLogSource = false"
+          >Cancel</BaseButton
+        >
+        <BaseButton icon="check" :loading="savingLogSource" @click="saveLogSource">Add source</BaseButton>
+      </template>
+    </BaseModal>
 
     <Teleport to="body">
       <div v-if="showRebuildModal" class="modal-overlay">
@@ -1874,6 +1873,22 @@
       @close="serviceResourcesModal.visible = false"
       @updated="serviceResourcesModal.visible = false"
     />
+
+    <DeploymentDiagnosticsModal
+      :visible="showDiagnostics"
+      :deployment-name="route.params.name as string"
+      @close="showDiagnostics = false"
+      @action="handleDiagnosticAction"
+    />
+
+    <DeploymentHealthCheckModal
+      :visible="showHealthCheckModal"
+      :deployment-name="route.params.name as string"
+      :services="serviceNames"
+      :metadata="deployment?.metadata"
+      @close="showHealthCheckModal = false"
+      @saved="handleHealthCheckSaved"
+    />
   </div>
 </template>
 
@@ -1920,10 +1935,15 @@ import { usePluginsStore } from "@/stores/plugins";
 import DomainsManager from "@/components/DomainsManager.vue";
 import DomainFormModal from "@/components/DomainFormModal.vue";
 import ContainerResourcesModal from "@/components/ContainerResourcesModal.vue";
+import DeploymentDiagnosticsModal from "@/components/DeploymentDiagnosticsModal.vue";
+import DeploymentHealthCheckModal from "@/components/DeploymentHealthCheckModal.vue";
+import LogFilePicker from "@/components/LogFilePicker.vue";
+import BaseModal from "@/components/base/BaseModal.vue";
 import { extractComposeMounts, extractComposeServiceNames } from "@/utils/compose";
 import { matchTypeHints, describeBlockedRule } from "@/utils/protectedMode";
 import { usePlanFlow } from "@/composables/usePlanFlow";
 import SplitActionButton from "@/components/base/SplitActionButton.vue";
+import BaseButton from "@/components/base/BaseButton.vue";
 import SubTabs from "@/components/base/SubTabs.vue";
 import AssistButton from "@/components/ai/AssistButton.vue";
 import InlineAssist from "@/components/ai/InlineAssist.vue";
@@ -1969,6 +1989,8 @@ const deployment = ref<any>(null);
 const loading = ref(false);
 const error = ref("");
 const activeTab = ref((route.query.tab as string) || "overview");
+const showDiagnostics = ref(false);
+const showHealthCheckModal = ref(false);
 const proxyStatus = ref<ProxyStatus | null>(null);
 const settingUpProxy = ref(false);
 const requestingCert = ref(false);
@@ -2036,11 +2058,6 @@ const tabs = [
   { id: "security", label: "Security", icon: "pi pi-shield" },
   { id: "config", label: "Configuration", icon: "pi pi-cog" },
 ];
-
-const openMetricsTab = () => {
-  const metrics = pluginTabs.value.find((t) => t.plugin === "observability");
-  if (metrics) activeTab.value = metrics.id;
-};
 
 const pluginsStore = usePluginsStore();
 const pluginTabs = computed(() =>
@@ -2137,10 +2154,16 @@ const logsFollow = ref(false);
 const logSources = ref<LogSource[]>([{ id: "stdout", name: "Container output", type: "stdout" }]);
 const logSource = ref("stdout");
 // A file source is one file the deployment writes, so there is nothing per-service to narrow.
-const serviceFilterAvailable = computed(() => logSources.value.find((s) => s.id === logSource.value)?.type !== "file");
+const serviceFilterAvailable = computed(
+  () => logSources.value.find((s) => s.id === logSource.value)?.type === "stdout",
+);
 const activeLogService = computed(() => (serviceFilterAvailable.value ? logsService.value : "all"));
 const showAddLogSource = ref(false);
-const newLogSource = reactive({ name: "", path: "" });
+const newLogSource = reactive<{ name: string; path: string; type: "file" | "container_file"; service?: string }>({
+  name: "",
+  path: "",
+  type: "file",
+});
 const savingLogSource = ref(false);
 const logSourceError = ref("");
 
@@ -2713,6 +2736,8 @@ const onLogSourceChange = () => {
 const openAddLogSource = () => {
   newLogSource.name = "";
   newLogSource.path = "";
+  newLogSource.type = "file";
+  newLogSource.service = undefined;
   logSourceError.value = "";
   showAddLogSource.value = true;
 };
@@ -2725,8 +2750,14 @@ const saveLogSource = async () => {
   savingLogSource.value = true;
   logSourceError.value = "";
   try {
-    const custom = logSources.value.filter((s) => s.type === "file" && !s.builtin);
-    custom.push({ id: "", name: newLogSource.name.trim(), type: "file", path: newLogSource.path.trim() });
+    const custom = logSources.value.filter((s) => s.type !== "stdout" && !s.builtin);
+    custom.push({
+      id: "",
+      name: newLogSource.name.trim(),
+      type: newLogSource.type,
+      path: newLogSource.path.trim(),
+      service: newLogSource.service,
+    });
     const response = await deploymentsApi.updateLogSources(route.params.name as string, custom);
     if (response.data.sources?.length) logSources.value = response.data.sources;
     const added = logSources.value.find((s) => s.path === newLogSource.path.trim());
@@ -2740,6 +2771,13 @@ const saveLogSource = async () => {
   } finally {
     savingLogSource.value = false;
   }
+};
+
+const selectLogFile = (selection: { type: "file" | "container_file"; path: string; service?: string }) => {
+  newLogSource.type = selection.type;
+  newLogSource.path = selection.path;
+  newLogSource.service = selection.service;
+  logSourceError.value = "";
 };
 
 const handleOperation = async (operation: string, onlyLatest: boolean = false, opts?: ActionOptions) => {
@@ -3016,6 +3054,40 @@ const handleScopedAction = (action: "start" | "stop" | "restart" | "rebuild" | "
     return;
   }
   runServiceJob(scope, action);
+};
+
+const handleDiagnosticAction = (action: string) => {
+  showDiagnostics.value = false;
+  if (action === "start_deployment") {
+    handleScopedAction("start", "deployment");
+    return;
+  }
+  if (action === "edit_compose") {
+    activeTab.value = "config";
+    activeConfigTab.value = "compose";
+    return;
+  }
+  if (action === "edit_healthcheck") {
+    showHealthCheckModal.value = true;
+    return;
+  }
+  if (action === "configure_domain") {
+    openDomainSettings();
+    return;
+  }
+  if (action === "renew_certificate") {
+    handleRenewDeploymentSSL();
+    return;
+  }
+  if (action === "view_logs") {
+    activeTab.value = "logs";
+  }
+};
+
+const handleHealthCheckSaved = async () => {
+  showHealthCheckModal.value = false;
+  await fetchDeployment();
+  showDiagnostics.value = true;
 };
 
 const logsAssistContext = computed<AssistContext>(() => ({
@@ -3493,6 +3565,10 @@ onUnmounted(() => {
 .status-badge.stopped {
   background: var(--color-danger-50);
   color: var(--color-danger-700);
+}
+.status-badge.paused {
+  background: var(--color-warning-50);
+  color: var(--color-warning-700);
 }
 .status-badge.error {
   background: var(--color-danger-50);
@@ -6215,6 +6291,18 @@ onUnmounted(() => {
 .severity-badge.low {
   background: var(--surface-inset);
   color: var(--text-muted);
+}
+
+.log-source-form {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.field-hint {
+  display: block;
+  margin-top: var(--space-1);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
 }
 
 @media (max-width: 1024px) {

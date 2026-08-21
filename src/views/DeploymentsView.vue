@@ -1219,6 +1219,10 @@ onMounted(async () => {
   background: var(--color-gray-400);
 }
 
+.status-indicator.paused {
+  background: var(--color-warning-500);
+}
+
 .status-indicator.error {
   background: var(--color-danger-500);
 }

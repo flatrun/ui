@@ -816,6 +816,11 @@ onMounted(() => {
   color: #4b5563;
 }
 
+.status-badge.paused {
+  background: var(--color-warning-50);
+  color: var(--color-warning-700);
+}
+
 .status-badge.error {
   background: var(--color-danger-50);
   color: var(--color-danger-700);
