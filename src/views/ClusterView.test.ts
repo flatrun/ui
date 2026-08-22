@@ -15,6 +15,8 @@ vi.mock("@/services/api", () => ({
     getStatus: vi.fn(),
     setup: vi.fn(),
     listPeers: vi.fn(),
+    getPeerPolicy: vi.fn(),
+    updatePeerPolicy: vi.fn(),
     createInvite: vi.fn(),
     acceptInvite: vi.fn(),
     removePeer: vi.fn(),
@@ -32,6 +34,7 @@ describe("ClusterView", () => {
       data: { enabled: true, server_name: "prod-1", advertise_url: "https://prod-1.example.com:8090" },
     } as any);
     vi.mocked(clusterApi.listPeers).mockResolvedValue({ data: { peers: [] } } as any);
+    vi.mocked(clusterApi.updatePeerPolicy).mockResolvedValue({ data: { peer: "prod-2", grants: [] } } as any);
   });
 
   const mountView = () =>
@@ -69,5 +72,42 @@ describe("ClusterView", () => {
     expect(clusterApi.setup).toHaveBeenCalledWith("prod-1", "https://prod-1.example.com:8090");
     expect(clusterApi.listPeers).toHaveBeenCalledOnce();
     expect(wrapper.text()).toContain("prod-1");
+  });
+
+  it("updates a peer resource lending policy through the modal", async () => {
+    const { clusterApi } = await import("@/services/api");
+    vi.mocked(clusterApi.getStatus).mockReset();
+    vi.mocked(clusterApi.getStatus).mockResolvedValue({
+      data: { enabled: true, server_name: "prod-1", peer_count: 1 },
+    } as any);
+    vi.mocked(clusterApi.listPeers).mockResolvedValue({
+      data: {
+        peers: [
+          { name: "prod-2", url: "https://prod-2.example.com", online: true, last_seen: new Date().toISOString() },
+        ],
+      },
+    } as any);
+    vi.mocked(clusterApi.getPeerPolicy).mockResolvedValue({
+      data: { peer: "prod-2", grants: [{ capability: "fleet.read" }] },
+    } as any);
+    const wrapper = mountView();
+    await flushPromises();
+
+    await wrapper
+      .findAll("button")
+      .find((button) => button.text().includes("Access"))!
+      .trigger("click");
+    await flushPromises();
+    await wrapper.find('input[value="capacity.offer"]').setValue(true);
+    await wrapper.find("#policy-cpu").setValue(2);
+    await wrapper.find("#policy-memory").setValue(4);
+    await wrapper.find("#policy-replicas").setValue(3);
+    await wrapper.find("#peer-policy-form").trigger("submit");
+    await flushPromises();
+
+    expect(clusterApi.updatePeerPolicy).toHaveBeenCalledWith("prod-2", [
+      { capability: "fleet.read" },
+      { capability: "capacity.offer", max_cpu: 2, max_memory: 4 * 1024 ** 3, max_replicas: 3 },
+    ]);
   });
 });

@@ -112,6 +112,10 @@
               </td>
               <td class="time-cell">{{ peer.last_seen ? formatTime(peer.last_seen) : "—" }}</td>
               <td v-if="canWrite">
+                <button class="btn btn-sm btn-secondary" @click="openPolicyModal(peer)">
+                  <Icon name="shield-check" :size="14" />
+                  Access
+                </button>
                 <button
                   class="btn btn-sm btn-danger"
                   :disabled="removingPeer === peer.name"
@@ -270,12 +274,100 @@
         >
       </template>
     </BaseModal>
+
+    <BaseModal
+      :visible="showPolicyModal"
+      :title="policyPeer ? `Access for ${policyPeer.name}` : 'Peer access'"
+      subtitle="Choose exactly what this server may do here."
+      icon="shield-check"
+      size="lg"
+      @close="closePolicyModal"
+    >
+      <div v-if="loadingPolicy" class="policy-loading">
+        <Icon name="loader-circle" spin :size="22" /> Loading access policy
+      </div>
+      <form v-else id="peer-policy-form" class="policy-form" @submit.prevent="savePolicy">
+        <label v-for="option in capabilityOptions" :key="option.id" class="capability-row">
+          <input v-model="selectedCapabilities" type="checkbox" :value="option.id" />
+          <span class="capability-icon"><Icon :name="option.icon" :size="18" /></span>
+          <span
+            ><strong>{{ option.label }}</strong
+            ><small>{{ option.description }}</small></span
+          >
+        </label>
+        <div v-if="hasDeploymentAccess" class="policy-fields">
+          <label for="policy-deployments">Deployment scope</label>
+          <input
+            id="policy-deployments"
+            v-model.trim="policyForm.deployments"
+            class="form-input"
+            placeholder="Leave empty for every deployment"
+          />
+          <span class="field-help">Enter deployment names separated by commas.</span>
+        </div>
+        <div v-if="selectedCapabilities.includes('capacity.offer')" class="policy-fields lending-fields">
+          <div>
+            <label for="policy-cpu">CPU limit</label>
+            <input
+              id="policy-cpu"
+              v-model.number="policyForm.maxCPU"
+              class="form-input"
+              type="number"
+              min="0"
+              step="0.25"
+            />
+          </div>
+          <div>
+            <label for="policy-memory">Memory limit (GB)</label>
+            <input
+              id="policy-memory"
+              v-model.number="policyForm.maxMemoryGB"
+              class="form-input"
+              type="number"
+              min="0"
+              step="0.25"
+            />
+          </div>
+          <div>
+            <label for="policy-replicas">Replica limit</label>
+            <input
+              id="policy-replicas"
+              v-model.number="policyForm.maxReplicas"
+              class="form-input"
+              type="number"
+              min="0"
+              step="1"
+            />
+          </div>
+        </div>
+        <div v-if="policyError" class="setup-error">
+          <Icon name="solar:danger-triangle-bold" :size="18" />{{ policyError }}
+        </div>
+      </form>
+      <template #footer>
+        <BaseButton @click="closePolicyModal">Cancel</BaseButton>
+        <BaseButton
+          form="peer-policy-form"
+          type="submit"
+          variant="primary"
+          :loading="savingPolicy"
+          :disabled="loadingPolicy"
+          >Save access</BaseButton
+        >
+      </template>
+    </BaseModal>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
-import { clusterApi, type ClusterStatus, type ClusterPeer } from "@/services/api";
+import { computed, ref, onMounted } from "vue";
+import {
+  clusterApi,
+  type ClusterCapability,
+  type ClusterGrant,
+  type ClusterStatus,
+  type ClusterPeer,
+} from "@/services/api";
 import { useNotificationsStore } from "@/stores/notifications";
 import { useAuthStore } from "@/stores/auth";
 import BaseButton from "@/components/base/BaseButton.vue";
@@ -308,6 +400,46 @@ const acceptError = ref("");
 const showRemoveModal = ref(false);
 const peerToRemove = ref<ClusterPeer | null>(null);
 const removingPeer = ref<string | null>(null);
+const showPolicyModal = ref(false);
+const policyPeer = ref<ClusterPeer | null>(null);
+const loadingPolicy = ref(false);
+const savingPolicy = ref(false);
+const policyError = ref("");
+const selectedCapabilities = ref<ClusterCapability[]>([]);
+const policyForm = ref({ deployments: "", maxCPU: 0, maxMemoryGB: 0, maxReplicas: 0 });
+const capabilityOptions: Array<{ id: ClusterCapability; label: string; description: string; icon: string }> = [
+  { id: "fleet.read", label: "View Fleet", description: "See server status and connected peers.", icon: "network" },
+  {
+    id: "deployments.read",
+    label: "View deployments",
+    description: "Inspect deployments and containers.",
+    icon: "eye",
+  },
+  {
+    id: "deployments.run",
+    label: "Operate deployments",
+    description: "Start, stop, and restart allowed deployments.",
+    icon: "play",
+  },
+  { id: "capacity.read", label: "View capacity", description: "Read host headroom and scaling policy.", icon: "gauge" },
+  {
+    id: "capacity.offer",
+    label: "Borrow resources",
+    description: "Place temporary replicas within the limits below.",
+    icon: "cpu",
+  },
+  { id: "events.publish", label: "Publish events", description: "Send Fleet events to this server.", icon: "bell" },
+  {
+    id: "routing.manage",
+    label: "Manage routing",
+    description: "Update load-balancer routes for Fleet workloads.",
+    icon: "route",
+  },
+];
+const hasDeploymentAccess = computed(
+  () =>
+    selectedCapabilities.value.includes("deployments.read") || selectedCapabilities.value.includes("deployments.run"),
+);
 
 const fetchAll = async () => {
   loading.value = true;
@@ -402,6 +534,72 @@ const removePeer = async () => {
     notifications.error("Error", "Failed to remove peer");
   } finally {
     removingPeer.value = null;
+  }
+};
+
+const openPolicyModal = async (peer: ClusterPeer) => {
+  policyPeer.value = peer;
+  showPolicyModal.value = true;
+  loadingPolicy.value = true;
+  policyError.value = "";
+  try {
+    const { data } = await clusterApi.getPeerPolicy(peer.name);
+    selectedCapabilities.value = data.grants.map((grant) => grant.capability);
+    const deploymentGrant = data.grants.find(
+      (grant) => grant.capability === "deployments.run" || grant.capability === "deployments.read",
+    );
+    const lendingGrant = data.grants.find((grant) => grant.capability === "capacity.offer");
+    policyForm.value = {
+      deployments: deploymentGrant?.deployments?.join(", ") || "",
+      maxCPU: lendingGrant?.max_cpu || 0,
+      maxMemoryGB: lendingGrant?.max_memory ? lendingGrant.max_memory / 1024 ** 3 : 0,
+      maxReplicas: lendingGrant?.max_replicas || 0,
+    };
+  } catch (error: any) {
+    policyError.value = error.response?.data?.error || error.message;
+  } finally {
+    loadingPolicy.value = false;
+  }
+};
+
+const closePolicyModal = () => {
+  if (savingPolicy.value) return;
+  showPolicyModal.value = false;
+  policyPeer.value = null;
+  policyError.value = "";
+};
+
+const savePolicy = async () => {
+  if (!policyPeer.value) return;
+  savingPolicy.value = true;
+  policyError.value = "";
+  const deployments = policyForm.value.deployments
+    .split(",")
+    .map((name) => name.trim())
+    .filter(Boolean);
+  const grants: ClusterGrant[] = selectedCapabilities.value.map((capability) => {
+    if (capability === "deployments.read" || capability === "deployments.run") {
+      return { capability, deployments };
+    }
+    if (capability === "capacity.offer") {
+      return {
+        capability,
+        max_cpu: policyForm.value.maxCPU,
+        max_memory: Math.round(policyForm.value.maxMemoryGB * 1024 ** 3),
+        max_replicas: policyForm.value.maxReplicas,
+      };
+    }
+    return { capability };
+  });
+  try {
+    await clusterApi.updatePeerPolicy(policyPeer.value.name, grants);
+    notifications.success("Access updated", `${policyPeer.value.name} now uses the new Fleet policy.`);
+    showPolicyModal.value = false;
+    policyPeer.value = null;
+  } catch (error: any) {
+    policyError.value = error.response?.data?.error || error.message;
+  } finally {
+    savingPolicy.value = false;
   }
 };
 
@@ -558,6 +756,85 @@ onMounted(() => {
   gap: var(--space-3);
   padding: var(--space-3);
   border-radius: var(--radius-lg);
+}
+
+.policy-loading {
+  display: flex;
+  min-height: 180px;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  color: var(--text-muted);
+}
+
+.policy-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.capability-row {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+}
+
+.capability-row:has(input:checked) {
+  background: var(--color-primary-50);
+  border-color: var(--color-primary-200);
+}
+
+.capability-icon {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  color: var(--color-primary-700);
+  background: var(--surface-raised);
+  border-radius: var(--radius-lg);
+}
+
+.capability-row > span:last-child {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.capability-row strong,
+.policy-fields label {
+  color: var(--text);
+  font-size: var(--text-sm);
+}
+
+.capability-row small {
+  color: var(--text-muted);
+}
+
+.policy-fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+  padding: var(--space-4);
+  background: var(--surface-inset);
+  border-radius: var(--radius-lg);
+}
+
+.lending-fields {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.lending-fields > div {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
 }
 
 .setup-note {
@@ -989,6 +1266,10 @@ code {
 
   .header-right {
     flex-direction: column;
+  }
+
+  .lending-fields {
+    grid-template-columns: 1fr;
   }
 }
 </style>

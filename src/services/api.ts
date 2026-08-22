@@ -2021,6 +2021,28 @@ export interface ClusterPeer {
   error?: string;
 }
 
+export type ClusterCapability =
+  | "fleet.read"
+  | "deployments.read"
+  | "deployments.run"
+  | "capacity.read"
+  | "capacity.offer"
+  | "events.publish"
+  | "routing.manage";
+
+export interface ClusterGrant {
+  capability: ClusterCapability;
+  deployments?: string[];
+  max_cpu?: number;
+  max_memory?: number;
+  max_replicas?: number;
+}
+
+export interface ClusterPeerPolicy {
+  peer: string;
+  grants: ClusterGrant[];
+}
+
 export interface ClusterInvite {
   invite_token: string;
   expires_at: string;
@@ -2048,6 +2070,10 @@ export const clusterApi = {
   setup: (serverName: string, advertiseUrl: string) =>
     apiClient.post<ClusterStatus>("/cluster/setup", { server_name: serverName, advertise_url: advertiseUrl }),
   listPeers: () => apiClient.get<{ peers: ClusterPeer[] }>("/cluster/peers"),
+  getPeerPolicy: (name: string) =>
+    apiClient.get<ClusterPeerPolicy>(`/cluster/peers/${encodeURIComponent(name)}/policy`),
+  updatePeerPolicy: (name: string, grants: ClusterGrant[]) =>
+    apiClient.put<ClusterPeerPolicy>(`/cluster/peers/${encodeURIComponent(name)}/policy`, { grants }),
   createInvite: () => apiClient.post<ClusterInvite>("/cluster/invite"),
   acceptInvite: (inviteToken: string, peerUrl: string) =>
     apiClient.post<ClusterAcceptResult>("/cluster/accept", { invite_token: inviteToken, peer_url: peerUrl }),
