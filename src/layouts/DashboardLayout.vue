@@ -20,11 +20,11 @@
             </div>
             <Icon name="check" :size="16" />
           </div>
-          <div v-for="peer in clusterPeers" :key="peer.id" class="env-option" @click="envDropdownOpen = false">
+          <div v-for="peer in clusterPeers" :key="peer.name" class="env-option" @click="envDropdownOpen = false">
             <Icon name="server" :size="16" />
             <div class="env-option-info">
               <span class="env-option-name">{{ peer.name }}</span>
-              <span class="env-option-hint">{{ peer.status }}</span>
+              <span class="env-option-hint">{{ peer.online ? "Online" : "Offline" }}</span>
             </div>
           </div>
           <router-link

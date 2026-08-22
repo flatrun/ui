@@ -1966,17 +1966,17 @@ export const powerDnsApi = {
 export interface ClusterStatus {
   enabled: boolean;
   server_name?: string;
+  advertise_url?: string;
   peer_count?: number;
   version?: { version: string; build_time: string; git_commit: string };
 }
 
 export interface ClusterPeer {
-  id: number;
   name: string;
   url: string;
-  status: string;
-  created_at: string;
-  last_seen_at?: string;
+  online: boolean;
+  last_seen: string;
+  error?: string;
 }
 
 export interface ClusterInvite {
@@ -1990,14 +1990,31 @@ export interface ClusterAcceptResult {
   status: string;
 }
 
+export interface ClusterServerDeployments {
+  name: string;
+  online: boolean;
+  data?: { deployments: Deployment[] };
+  error?: string;
+}
+
+export interface ClusterDeployments {
+  servers: Record<string, ClusterServerDeployments>;
+}
+
 export const clusterApi = {
   getStatus: () => apiClient.get<ClusterStatus>("/cluster/status"),
+  setup: (serverName: string, advertiseUrl: string) =>
+    apiClient.post<ClusterStatus>("/cluster/setup", { server_name: serverName, advertise_url: advertiseUrl }),
   listPeers: () => apiClient.get<{ peers: ClusterPeer[] }>("/cluster/peers"),
   createInvite: () => apiClient.post<ClusterInvite>("/cluster/invite"),
   acceptInvite: (inviteToken: string, peerUrl: string) =>
     apiClient.post<ClusterAcceptResult>("/cluster/accept", { invite_token: inviteToken, peer_url: peerUrl }),
   removePeer: (name: string) => apiClient.delete<{ status: string; peer: string }>(`/cluster/peers/${name}`),
-  getAggregatedDeployments: () => apiClient.get("/cluster/deployments"),
+  getAggregatedDeployments: () => apiClient.get<ClusterDeployments>("/cluster/deployments"),
+  deploymentAction: (server: string, name: string, action: "start" | "stop" | "restart") =>
+    apiClient.post<ActionJobResponse>(`/cluster/peers/${encodeURIComponent(server)}/proxy/deployments/${encodeURIComponent(name)}/${action}`),
+  deploymentLogs: (server: string, name: string) =>
+    apiClient.get<{ logs: string }>(`/cluster/peers/${encodeURIComponent(server)}/proxy/deployments/${encodeURIComponent(name)}/logs`),
   getAggregatedStats: () => apiClient.get("/cluster/stats"),
 };
 

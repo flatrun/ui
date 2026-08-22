@@ -89,13 +89,12 @@
               <th>Name</th>
               <th>URL</th>
               <th>Status</th>
-              <th>Connected</th>
               <th>Last Seen</th>
               <th v-if="canWrite">Actions</th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="peer in peers" :key="peer.id">
+            <tr v-for="peer in peers" :key="peer.name">
               <td>
                 <div class="peer-name">
                   <i class="pi pi-server" />
@@ -106,12 +105,11 @@
                 <code>{{ peer.url }}</code>
               </td>
               <td>
-                <span class="peer-status" :class="peer.status">
-                  {{ peer.status }}
+                <span class="peer-status" :class="peer.online ? 'active' : 'offline'">
+                  {{ peer.online ? "online" : "offline" }}
                 </span>
               </td>
-              <td class="time-cell">{{ formatTime(peer.created_at) }}</td>
-              <td class="time-cell">{{ peer.last_seen_at ? formatTime(peer.last_seen_at) : "—" }}</td>
+              <td class="time-cell">{{ peer.last_seen ? formatTime(peer.last_seen) : "—" }}</td>
               <td v-if="canWrite">
                 <button
                   class="btn btn-sm btn-danger"
