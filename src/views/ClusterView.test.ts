@@ -62,6 +62,7 @@ describe("ClusterView", () => {
           { id: "nginx", active: true, available: true },
           { id: "traefik", active: false, available: false, reason: "Traefik adapter is not configured" },
         ],
+        k3s: { kubeconfig: "", namespace: "default" },
       },
     } as any);
     vi.mocked(clusterApi.updateProviders).mockResolvedValue({
@@ -170,12 +171,49 @@ describe("ClusterView", () => {
       .find((button) => button.text().includes("Configure"))!
       .trigger("click");
     expect(wrapper.text()).toContain("k3s adapter is not configured");
-    expect(wrapper.find('input[value="k3s"]').attributes("disabled")).toBeDefined();
+    expect(wrapper.find('input[value="k3s"]').attributes("disabled")).toBeUndefined();
     await wrapper.find('input[value="swarm"]').setValue(true);
     await wrapper.find("#provider-form").trigger("submit");
     await flushPromises();
 
-    expect(clusterApi.updateProviders).toHaveBeenCalledWith("swarm", "nginx");
+    expect(clusterApi.updateProviders).toHaveBeenCalledWith("swarm", "nginx", {
+      kubeconfig: "",
+      namespace: "default",
+    });
+  });
+
+  it("configures the selected K3s cluster context", async () => {
+    const { clusterApi } = await import("@/services/api");
+    vi.mocked(clusterApi.getStatus).mockReset();
+    vi.mocked(clusterApi.getStatus).mockResolvedValue({
+      data: { enabled: true, server_name: "prod-1", peer_count: 0 },
+    } as any);
+    vi.mocked(clusterApi.getProviders).mockResolvedValue({
+      data: {
+        orchestrators: [
+          { id: "standalone", active: true, available: true },
+          { id: "k3s", active: false, available: true },
+        ],
+        routing: [{ id: "nginx", active: true, available: true }],
+        k3s: { kubeconfig: "/etc/rancher/k3s/k3s.yaml", namespace: "apps" },
+      },
+    } as any);
+    const wrapper = mountView();
+    await flushPromises();
+
+    await wrapper
+      .findAll("button")
+      .find((button) => button.text().includes("Configure"))!
+      .trigger("click");
+    await wrapper.find('input[value="k3s"]').setValue(true);
+    await wrapper.find("#provider-namespace").setValue("flatrun");
+    await wrapper.find("#provider-form").trigger("submit");
+    await flushPromises();
+
+    expect(clusterApi.updateProviders).toHaveBeenCalledWith("k3s", "nginx", {
+      kubeconfig: "/etc/rancher/k3s/k3s.yaml",
+      namespace: "flatrun",
+    });
   });
 
   it("renders the Fleet review without calling the agent", async () => {

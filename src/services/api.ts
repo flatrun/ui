@@ -2026,6 +2026,7 @@ export interface ClusterProviderOption {
 export interface ClusterProviders {
   orchestrators: ClusterProviderOption[];
   routing: ClusterProviderOption[];
+  k3s: { kubeconfig: string; namespace: string };
 }
 
 export interface ClusterPeer {
@@ -2096,8 +2097,12 @@ export interface AutoscalePolicy {
 export const clusterApi = {
   getStatus: () => apiClient.get<ClusterStatus>("/cluster/status"),
   getProviders: () => apiClient.get<ClusterProviders>("/cluster/providers"),
-  updateProviders: (orchestrator: string, routing: string) =>
-    apiClient.put<{ orchestrator: string; routing: string }>("/cluster/providers", { orchestrator, routing }),
+  updateProviders: (orchestrator: string, routing: string, k3s: ClusterProviders["k3s"]) =>
+    apiClient.put<{ orchestrator: string; routing: string; k3s: ClusterProviders["k3s"] }>("/cluster/providers", {
+      orchestrator,
+      routing,
+      k3s,
+    }),
   setup: (serverName: string, advertiseUrl: string) =>
     apiClient.post<ClusterStatus>("/cluster/setup", { server_name: serverName, advertise_url: advertiseUrl }),
   listPeers: () => apiClient.get<{ peers: ClusterPeer[] }>("/cluster/peers"),
@@ -2111,9 +2116,13 @@ export const clusterApi = {
   removePeer: (name: string) => apiClient.delete<{ status: string; peer: string }>(`/cluster/peers/${name}`),
   getAggregatedDeployments: () => apiClient.get<ClusterDeployments>("/cluster/deployments"),
   deploymentAction: (server: string, name: string, action: "start" | "stop" | "restart") =>
-    apiClient.post<ActionJobResponse>(`/cluster/peers/${encodeURIComponent(server)}/proxy/deployments/${encodeURIComponent(name)}/${action}`),
+    apiClient.post<ActionJobResponse>(
+      `/cluster/peers/${encodeURIComponent(server)}/proxy/deployments/${encodeURIComponent(name)}/${action}`,
+    ),
   deploymentLogs: (server: string, name: string) =>
-    apiClient.get<{ logs: string }>(`/cluster/peers/${encodeURIComponent(server)}/proxy/deployments/${encodeURIComponent(name)}/logs`),
+    apiClient.get<{ logs: string }>(
+      `/cluster/peers/${encodeURIComponent(server)}/proxy/deployments/${encodeURIComponent(name)}/logs`,
+    ),
   getAggregatedStats: () => apiClient.get("/cluster/stats"),
 };
 

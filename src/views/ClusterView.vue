@@ -313,14 +313,17 @@
             v-for="provider in providers?.orchestrators"
             :key="provider.id"
             class="provider-option"
-            :class="{ selected: selectedOrchestrator === provider.id, unavailable: !provider.available }"
+            :class="{
+              selected: selectedOrchestrator === provider.id,
+              unavailable: !provider.available && provider.id !== 'k3s',
+            }"
           >
             <input
               v-model="selectedOrchestrator"
               type="radio"
               name="orchestrator"
               :value="provider.id"
-              :disabled="!provider.available"
+              :disabled="!provider.available && provider.id !== 'k3s'"
             />
             <span class="provider-option-icon"><Icon :name="providerIcon(provider.id)" :size="20" /></span>
             <span class="provider-option-copy">
@@ -330,6 +333,36 @@
             </span>
             <span v-if="provider.active" class="active-chip">Active</span>
           </label>
+        </fieldset>
+        <fieldset v-if="selectedOrchestrator === 'k3s'" class="provider-connection">
+          <legend>K3s connection</legend>
+          <p>Choose the cluster context and namespace FlatRun will manage.</p>
+          <div class="provider-fields">
+            <label for="provider-kubeconfig">
+              <span>Kubeconfig path</span>
+              <input
+                id="provider-kubeconfig"
+                v-model.trim="k3sForm.kubeconfig"
+                class="form-input"
+                type="text"
+                placeholder="/etc/rancher/k3s/k3s.yaml"
+                required
+              />
+              <small>Use a path available to the FlatRun agent service.</small>
+            </label>
+            <label for="provider-namespace">
+              <span>Namespace</span>
+              <input
+                id="provider-namespace"
+                v-model.trim="k3sForm.namespace"
+                class="form-input"
+                type="text"
+                placeholder="default"
+                required
+              />
+              <small>FlatRun workloads will be created only in this namespace.</small>
+            </label>
+          </div>
         </fieldset>
         <fieldset>
           <legend>Traffic routing</legend>
@@ -490,6 +523,7 @@ const reviewProviders: ClusterProviders = {
     { id: "nginx", active: true, available: true },
     { id: "traefik", active: false, available: false, reason: "Traefik adapter is not configured" },
   ],
+  k3s: { kubeconfig: "/etc/rancher/k3s/k3s.yaml", namespace: "flatrun" },
 };
 
 const loading = ref(false);
@@ -507,6 +541,7 @@ const savingProviders = ref(false);
 const providerError = ref("");
 const selectedOrchestrator = ref("");
 const selectedRouting = ref("");
+const k3sForm = ref({ kubeconfig: "", namespace: "default" });
 const activeOrchestrator = computed(() => providers.value?.orchestrators.find((provider) => provider.active)?.id || "");
 const activeRouting = computed(() => providers.value?.routing.find((provider) => provider.active)?.id || "");
 
@@ -642,6 +677,10 @@ const loadProviders = async () => {
 const openProvidersModal = () => {
   selectedOrchestrator.value = activeOrchestrator.value;
   selectedRouting.value = activeRouting.value;
+  k3sForm.value = {
+    kubeconfig: providers.value?.k3s.kubeconfig || "",
+    namespace: providers.value?.k3s.namespace || "default",
+  };
   providerError.value = "";
   showProvidersModal.value = true;
 };
@@ -665,7 +704,7 @@ const saveProviders = async () => {
       showProvidersModal.value = false;
       return;
     }
-    await clusterApi.updateProviders(selectedOrchestrator.value, selectedRouting.value);
+    await clusterApi.updateProviders(selectedOrchestrator.value, selectedRouting.value, k3sForm.value);
     await loadProviders();
     notifications.success("Providers updated", "Fleet will use the selected runtime and traffic router.");
     showProvidersModal.value = false;
@@ -1477,6 +1516,39 @@ code {
   color: var(--color-warning-700);
 }
 
+.provider-connection {
+  grid-column: 1 / -1;
+  padding: 0.875rem !important;
+  background: var(--surface-inset);
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius-sm);
+}
+
+.provider-connection > p {
+  min-height: 0 !important;
+}
+
+.provider-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.provider-fields label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  color: var(--text);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.provider-fields small {
+  color: var(--text-muted);
+  font-weight: 400;
+  line-height: 1.35;
+}
+
 .active-chip {
   padding: 0.2rem 0.45rem;
   color: var(--color-success-700);
@@ -1656,6 +1728,10 @@ code {
 
   .provider-form fieldset > p {
     min-height: 0;
+  }
+
+  .provider-fields {
+    grid-template-columns: 1fr;
   }
 }
 </style>
