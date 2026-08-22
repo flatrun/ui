@@ -7,6 +7,19 @@
           <span v-if="tab.count()" class="count-chip">{{ tab.count() }}</span>
         </button>
       </nav>
+      <ContextBanner id="notifications" icon="bell-ring" width="half" align="end" dismissible>
+        Related failures are grouped into incidents before delivery.
+        <template #actions>
+          <a
+            class="guide-link btn btn-secondary btn-sm"
+            href="https://flatrun.dev/docs/ui/notifications"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <Icon name="book-open" :size="14" />Guide<Icon name="external-link" :size="12" />
+          </a>
+        </template>
+      </ContextBanner>
     </div>
 
     <div v-if="loading" class="state-panel loading-panel">
@@ -428,6 +441,7 @@
 import { computed, onMounted, reactive, ref } from "vue";
 import BaseButton from "@/components/base/BaseButton.vue";
 import BaseModal from "@/components/base/BaseModal.vue";
+import ContextBanner from "@/components/base/ContextBanner.vue";
 import Icon from "@/components/base/Icon.vue";
 import {
   notificationsApi,
@@ -738,6 +752,10 @@ onMounted(load);
   align-items: center;
   justify-content: space-between;
   gap: var(--space-3);
+}
+.guide-link {
+  flex: none;
+  text-decoration: none;
 }
 .empty-icon,
 .incident-icon,

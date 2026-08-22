@@ -409,7 +409,6 @@ onMounted(fetchAgents);
 
 <style scoped>
 .agents-view {
-  padding: var(--space-6);
   display: flex;
   flex-direction: column;
   gap: var(--space-6);

@@ -138,7 +138,7 @@ function dismiss() {
   gap: var(--space-2);
 }
 
-@media (max-width: 640px) {
+@media (max-width: 760px) {
   .context-banner {
     width: 100%;
     align-items: stretch;
