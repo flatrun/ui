@@ -1403,6 +1403,7 @@ export interface StoreBucket {
 }
 
 export const objectStoresApi = {
+  list: () => apiClient.get<{ destinations: BackupDestination[] }>("/object-stores"),
   listBuckets: (name: string) =>
     apiClient.get<{ buckets: StoreBucket[]; backup_bucket: string }>(
       `/object-stores/${encodeURIComponent(name)}/buckets`,

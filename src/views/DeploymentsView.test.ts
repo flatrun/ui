@@ -126,6 +126,28 @@ describe("DeploymentsView", () => {
     });
   };
 
+  const mountViewWithPermissions = (permissions: string[]) => {
+    const pinia = createTestingPinia({ createSpy: vi.fn });
+    const authStore = useAuthStore(pinia);
+    (authStore.hasPermission as ReturnType<typeof vi.fn>).mockImplementation((permission: string) =>
+      permissions.includes(permission),
+    );
+    return mount(DeploymentsView, {
+      global: {
+        plugins: [pinia],
+        stubs: {
+          DataTable: {
+            template: `<div class="data-table"><slot name="actions" /><slot name="grid" :items="items" /></div>`,
+            props: ["items", "columns", "loading"],
+          },
+          OperationModal: true,
+          LogsModal: true,
+          NewDeploymentModal: true,
+        },
+      },
+    });
+  };
+
   describe("View structure", () => {
     it("renders the deployments view container", () => {
       const wrapper = mountView();
@@ -165,6 +187,17 @@ describe("DeploymentsView", () => {
       mountView();
       await flushPromises();
       expect(deploymentsApi.list).toHaveBeenCalled();
+    });
+
+    it("loads assigned deployments without requesting Fleet access", async () => {
+      const { clusterApi, deploymentsApi } = await import("@/services/api");
+      const wrapper = mountViewWithPermissions(["deployments:read"]);
+      await flushPromises();
+
+      expect(clusterApi.getStatus).not.toHaveBeenCalled();
+      expect(clusterApi.getAggregatedDeployments).not.toHaveBeenCalled();
+      expect(deploymentsApi.list).toHaveBeenCalledOnce();
+      expect(wrapper.text()).toContain("my-laravel-app");
     });
 
     it("filters the aggregate inventory by the selected server", async () => {

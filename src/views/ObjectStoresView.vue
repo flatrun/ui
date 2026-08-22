@@ -86,12 +86,12 @@ import BaseCard from "@/components/base/BaseCard.vue";
 import BaseButton from "@/components/base/BaseButton.vue";
 import StorageBackupsSettings from "@/components/StorageBackupsSettings.vue";
 import DeployObjectStoreModal from "@/components/DeployObjectStoreModal.vue";
-import { backupDestinationsApi, type BackupDestination } from "@/services/api";
+import { objectStoresApi, type BackupDestination } from "@/services/api";
 import { useAuthStore } from "@/stores/auth";
 
 const router = useRouter();
 const auth = useAuthStore();
-const canManage = auth.hasPermission("backups:write") || auth.hasPermission("config:write");
+const canManage = auth.hasPermission("storage:write");
 
 const showDeployModal = ref(false);
 
@@ -124,7 +124,7 @@ const loading = ref(true);
 async function load() {
   loading.value = true;
   try {
-    const res = await backupDestinationsApi.list();
+    const res = await objectStoresApi.list();
     destinations.value = res.data.destinations || [];
   } catch {
     destinations.value = [];

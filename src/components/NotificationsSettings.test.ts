@@ -2,8 +2,9 @@ import { flushPromises, mount } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import NotificationsSettings from "./NotificationsSettings.vue";
 
+const hasPermission = vi.fn((_permission: string) => true);
 vi.mock("@/stores/auth", () => ({
-  useAuthStore: () => ({ hasPermission: () => true }),
+  useAuthStore: () => ({ hasPermission }),
 }));
 
 vi.mock("@/stores/notifications", () => ({
@@ -25,6 +26,7 @@ describe("NotificationsSettings", () => {
   beforeEach(async () => {
     window.history.replaceState({}, "", "/");
     vi.clearAllMocks();
+    hasPermission.mockReturnValue(true);
     const { notificationsApi } = await import("@/services/api");
     vi.mocked(notificationsApi.getTargets).mockResolvedValue({
       data: { targets: [{ id: "ops", name: "Operations", url: "********", kind: "email", enabled: true }] },
@@ -156,5 +158,16 @@ describe("NotificationsSettings", () => {
     expect(wrapper.text()).toContain("Incident details");
     expect(wrapper.text()).toContain("The node stopped responding.");
     expect(wrapper.text()).toContain("inc-42");
+  });
+
+  it("keeps notification readers out of mutation controls", async () => {
+    hasPermission.mockImplementation((permission: string) => permission === "notifications:read");
+    const wrapper = mountSettings();
+    await flushPromises();
+
+    await wrapper.findAll(".section-tabs button")[2].trigger("click");
+    expect(wrapper.text()).not.toContain("Add target");
+    expect(wrapper.text()).not.toContain("Test");
+    expect(wrapper.text()).toContain("View");
   });
 });

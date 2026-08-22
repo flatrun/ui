@@ -154,6 +154,7 @@
               ><span>{{ kindOf(target) }}</span>
             </div>
             <BaseButton
+              v-if="canWrite"
               size="sm"
               icon="send"
               :loading="testing === target.id"
@@ -457,7 +458,7 @@ import { randomUUID } from "@/utils/uuid";
 
 const auth = useAuthStore();
 const notifications = useNotificationsStore();
-const canWrite = auth.hasPermission("settings:write");
+const canWrite = auth.hasPermission("notifications:write");
 const activeTab = ref<"incidents" | "rules" | "targets">("incidents");
 const targets = ref<NotificationTarget[]>([]);
 const rules = ref<NotificationRule[]>([]);

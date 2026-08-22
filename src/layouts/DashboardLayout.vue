@@ -205,7 +205,7 @@
         </div>
 
         <div
-          v-if="authStore.hasPermission('databases:read') || authStore.hasPermission('backups:read')"
+          v-if="authStore.hasPermission('databases:read') || authStore.hasPermission('storage:read')"
           class="nav-group"
         >
           <div class="nav-group-header" @click="toggleGroup('storage')">
@@ -233,7 +233,7 @@
               <span class="nav-count">{{ stats.databases }}</span>
             </router-link>
             <router-link
-              v-if="authStore.hasPermission('backups:read')"
+              v-if="authStore.hasPermission('storage:read')"
               to="/storage/object-stores"
               class="nav-subitem"
               active-class="active"
@@ -444,6 +444,7 @@
         <div
           v-if="
             authStore.hasPermission('settings:read') ||
+            authStore.hasPermission('notifications:read') ||
             authStore.hasPermission('users:read') ||
             authStore.hasPermission('apikeys:read')
           "
@@ -482,7 +483,7 @@
               Updates
             </router-link>
             <router-link
-              v-if="authStore.hasPermission('settings:read')"
+              v-if="authStore.hasPermission('notifications:read')"
               to="/notifications"
               class="nav-subitem"
               active-class="active"
@@ -809,6 +810,7 @@ const handleLogout = () => {
 };
 
 const fetchClusterInfo = async () => {
+  if (!authStore.hasPermission("cluster:read")) return;
   try {
     const res = await clusterApi.getStatus();
     if (res.data.enabled && res.data.server_name) {

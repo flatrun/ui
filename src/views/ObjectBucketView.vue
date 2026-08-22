@@ -113,7 +113,7 @@ const route = useRoute();
 const router = useRouter();
 const notifications = useNotificationsStore();
 const auth = useAuthStore();
-const canWrite = auth.hasPermission("backups:write");
+const canWrite = auth.hasPermission("storage:write");
 
 const name = route.params.name as string;
 const bucket = route.params.bucket as string;

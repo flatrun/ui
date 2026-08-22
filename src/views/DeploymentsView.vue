@@ -341,6 +341,7 @@ const route = useRoute();
 const notifications = useNotificationsStore();
 const authStore = useAuthStore();
 const canWrite = authStore.hasPermission("deployments:write");
+const canReadCluster = authStore.hasPermission("cluster:read");
 type ManagedDeployment = Deployment & { server: string; local: boolean; clusterKey: string };
 const deployments = ref<ManagedDeployment[]>([]);
 const localServer = ref("This server");
@@ -381,6 +382,13 @@ const columns = [
 const fetchDeployments = async () => {
   loading.value = true;
   try {
+    if (!canReadCluster) {
+      const response = await deploymentsApi.list();
+      deployments.value = (response.data.deployments || []).map((deployment) =>
+        managedDeployment(deployment, localServer.value, true),
+      );
+      return;
+    }
     const status = await clusterApi.getStatus();
     if (!status.data.enabled) {
       const response = await deploymentsApi.list();

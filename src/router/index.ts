@@ -98,19 +98,19 @@ const routes: RouteRecordRaw[] = [
         path: "storage/object-stores",
         name: "object-stores",
         component: () => import("@/views/ObjectStoresView.vue"),
-        meta: { permission: "backups:read" },
+        meta: { permission: "storage:read" },
       },
       {
         path: "storage/object-stores/:name",
         name: "object-store-detail",
         component: () => import("@/views/ObjectStoreDetailView.vue"),
-        meta: { permission: "backups:read" },
+        meta: { permission: "storage:read" },
       },
       {
         path: "storage/object-stores/:name/buckets/:bucket",
         name: "object-store-bucket",
         component: () => import("@/views/ObjectBucketView.vue"),
-        meta: { permission: "backups:read" },
+        meta: { permission: "storage:read" },
       },
       {
         path: "certificates",
@@ -220,7 +220,7 @@ const routes: RouteRecordRaw[] = [
         path: "notifications",
         name: "notifications",
         component: () => import("@/views/NotificationsView.vue"),
-        meta: { permission: "settings:read" },
+        meta: { permission: "notifications:read" },
       },
       {
         path: "security",
