@@ -7,7 +7,7 @@ describe("ContextBanner", () => {
 
   it("stays dismissed after the user closes it", async () => {
     const wrapper = mount(ContextBanner, {
-      props: { id: "fleet", icon: "network" },
+      props: { id: "fleet", icon: "network", dismissible: true },
       slots: { default: "Connected servers keep their existing deployments." },
     });
 
@@ -19,7 +19,7 @@ describe("ContextBanner", () => {
 
   it("keeps page actions available after information is dismissed", async () => {
     const wrapper = mount(ContextBanner, {
-      props: { id: "agents", icon: "bot" },
+      props: { id: "agents", icon: "bot", dismissible: true },
       slots: {
         default: "Scheduled agents use restricted permissions.",
         actions: '<button type="button">New agent</button>',
@@ -31,5 +31,24 @@ describe("ContextBanner", () => {
     expect(wrapper.text()).not.toContain("Scheduled agents");
     expect(wrapper.get("button").text()).toBe("New agent");
     expect(wrapper.get("aside").classes()).toContain("information-dismissed");
+  });
+
+  it("keeps action headers persistent by default", () => {
+    const wrapper = mount(ContextBanner, {
+      props: { id: "agents", icon: "bot" },
+      slots: { actions: '<button type="button">New agent</button>' },
+    });
+
+    expect(wrapper.find('[aria-label="Dismiss information"]').exists()).toBe(false);
+    expect(wrapper.get("button").text()).toBe("New agent");
+  });
+
+  it("adapts its width and placement to the page", () => {
+    const wrapper = mount(ContextBanner, {
+      props: { id: "notifications", width: "half", align: "end" },
+      slots: { default: "Related failures are grouped into incidents." },
+    });
+
+    expect(wrapper.get("aside").classes()).toEqual(expect.arrayContaining(["width-half", "align-end"]));
   });
 });

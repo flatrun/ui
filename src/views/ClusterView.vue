@@ -3,9 +3,9 @@
     <ContextBanner id="fleet" icon="network">
       Connecting a server does not move existing deployments. It adds that server to this management view.
       <template #actions>
-        <button class="btn btn-icon" :disabled="loading" aria-label="Refresh Fleet" @click="fetchAll">
-          <Icon name="refresh-cw" :spin="loading" :size="16" />
-        </button>
+        <BaseButton size="sm" variant="ghost" icon="refresh-cw" :loading="loading" @click="fetchAll">
+          Refresh
+        </BaseButton>
       </template>
     </ContextBanner>
 

@@ -7,9 +7,6 @@
           <span v-if="tab.count()" class="count-chip">{{ tab.count() }}</span>
         </button>
       </nav>
-      <a class="docs-link" href="https://flatrun.dev/docs/ui/notifications" target="_blank" rel="noopener noreferrer">
-        <Icon name="book-open" :size="16" /> Notification guide <Icon name="external-link" :size="14" />
-      </a>
     </div>
 
     <div v-if="loading" class="state-panel loading-panel">
@@ -742,20 +739,6 @@ onMounted(load);
   justify-content: space-between;
   gap: var(--space-3);
 }
-.docs-link {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  min-height: 44px;
-  padding: var(--space-2) var(--space-3);
-  color: var(--color-primary-700);
-  background: var(--surface-raised);
-  border: 1px solid var(--color-primary-200);
-  border-radius: var(--radius-sm);
-  font-size: var(--text-sm);
-  font-weight: var(--font-semibold);
-  text-decoration: none;
-}
 .empty-icon,
 .incident-icon,
 .target-icon {
@@ -1173,9 +1156,6 @@ fieldset legend {
   }
   .section-tabs button {
     flex: 1;
-    justify-content: center;
-  }
-  .docs-link {
     justify-content: center;
   }
   .configured-target {

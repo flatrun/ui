@@ -4,13 +4,12 @@
       Scheduled agents use only the permissions selected for unattended runs. Interactive changes still require
       approval.
       <template #actions>
-        <button v-if="canWrite" class="btn btn-primary" @click="openEditor(null)">
-          <i class="pi pi-plus" />
-          New Agent
-        </button>
-        <button class="btn btn-icon" :disabled="loading" aria-label="Refresh agents" @click="fetchAgents">
-          <Icon name="refresh-cw" :spin="loading" :size="16" />
-        </button>
+        <BaseButton v-if="canWrite" size="sm" variant="primary" icon="plus" @click="openEditor(null)">
+          New agent
+        </BaseButton>
+        <BaseButton size="sm" variant="ghost" icon="refresh-cw" :loading="loading" @click="fetchAgents">
+          Refresh
+        </BaseButton>
       </template>
     </ContextBanner>
 
@@ -187,6 +186,7 @@ import { useAuthStore } from "@/stores/auth";
 import { useNotificationsStore } from "@/stores/notifications";
 import Icon from "@/components/base/Icon.vue";
 import ContextBanner from "@/components/base/ContextBanner.vue";
+import BaseButton from "@/components/base/BaseButton.vue";
 import ConfirmModal from "@/components/ConfirmModal.vue";
 
 const agents = ref<AgentDefinition[]>([]);

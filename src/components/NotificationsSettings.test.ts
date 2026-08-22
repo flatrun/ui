@@ -95,7 +95,6 @@ describe("NotificationsSettings", () => {
     expect(wrapper.text()).toContain("Node unavailable");
     expect(wrapper.text()).toContain("inc-42");
     expect(wrapper.text()).toContain("4 events");
-    expect(wrapper.find(".docs-link").attributes("href")).toBe("https://flatrun.dev/docs/ui/notifications");
   });
 
   it("creates a delivery rule through the modal", async () => {
