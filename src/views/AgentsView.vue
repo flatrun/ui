@@ -3,17 +3,16 @@
     <ContextBanner id="agents" icon="bot">
       Scheduled agents use only the permissions selected for unattended runs. Interactive changes still require
       approval.
+      <template #actions>
+        <button v-if="canWrite" class="btn btn-primary" @click="openEditor(null)">
+          <i class="pi pi-plus" />
+          New Agent
+        </button>
+        <button class="btn btn-icon" :disabled="loading" aria-label="Refresh agents" @click="fetchAgents">
+          <Icon name="refresh-cw" :spin="loading" :size="16" />
+        </button>
+      </template>
     </ContextBanner>
-
-    <div class="agent-toolbar">
-      <button v-if="canWrite" class="btn btn-primary" @click="openEditor(null)">
-        <i class="pi pi-plus" />
-        New Agent
-      </button>
-      <button class="btn btn-icon" :disabled="loading" @click="fetchAgents">
-        <i class="pi pi-refresh" :class="{ 'pi-spin': loading }" />
-      </button>
-    </div>
 
     <div v-if="loading && agents.length === 0" class="loading-state">
       <i class="pi pi-spin pi-spinner" />
@@ -409,11 +408,6 @@ onMounted(fetchAgents);
 </script>
 
 <style scoped>
-.agent-toolbar {
-  display: flex;
-  justify-content: flex-end;
-  gap: var(--space-2);
-}
 .agents-view {
   padding: var(--space-6);
   display: flex;

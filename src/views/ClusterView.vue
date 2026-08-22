@@ -2,13 +2,12 @@
   <div class="cluster-view">
     <ContextBanner id="fleet" icon="network">
       Connecting a server does not move existing deployments. It adds that server to this management view.
+      <template #actions>
+        <button class="btn btn-icon" :disabled="loading" aria-label="Refresh Fleet" @click="fetchAll">
+          <Icon name="refresh-cw" :spin="loading" :size="16" />
+        </button>
+      </template>
     </ContextBanner>
-
-    <div class="fleet-toolbar">
-      <button class="btn btn-icon" :disabled="loading" aria-label="Refresh Fleet" @click="fetchAll">
-        <Icon name="refresh-cw" :spin="loading" :size="16" />
-      </button>
-    </div>
 
     <div v-if="loading && !status" class="loading-state">
       <i class="pi pi-spin pi-spinner" />
@@ -899,11 +898,6 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-}
-
-.fleet-toolbar {
-  display: flex;
-  justify-content: flex-end;
 }
 
 .btn-icon {
