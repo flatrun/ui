@@ -23,6 +23,7 @@ vi.mock("@/services/api", () => ({
 
 describe("NotificationsSettings", () => {
   beforeEach(async () => {
+    window.history.replaceState({}, "", "/");
     vi.clearAllMocks();
     const { notificationsApi } = await import("@/services/api");
     vi.mocked(notificationsApi.getTargets).mockResolvedValue({
@@ -92,6 +93,7 @@ describe("NotificationsSettings", () => {
     expect(wrapper.text()).toContain("Node unavailable");
     expect(wrapper.text()).toContain("inc-42");
     expect(wrapper.text()).toContain("4 events");
+    expect(wrapper.find(".docs-link").attributes("href")).toBe("https://flatrun.dev/docs/ui/notifications");
   });
 
   it("creates a delivery rule through the modal", async () => {
@@ -119,5 +121,16 @@ describe("NotificationsSettings", () => {
         target_ids: ["ops"],
       }),
     ]);
+  });
+
+  it("renders notification review data without calling the agent", async () => {
+    const { notificationsApi } = await import("@/services/api");
+    window.history.replaceState({}, "", "/settings?tab=notifications&review=notifications");
+    const wrapper = mountSettings();
+    await flushPromises();
+
+    expect(wrapper.text()).toContain("Autoscaling needs attention");
+    expect(wrapper.text()).toContain("8 events");
+    expect(notificationsApi.getIncidents).not.toHaveBeenCalled();
   });
 });

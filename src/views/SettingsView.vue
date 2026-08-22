@@ -1090,7 +1090,23 @@ const savingDomain = ref(false);
 const savingInfrastructure = ref(false);
 const refreshingTemplates = ref(false);
 const agentVersion = ref("unknown");
-const activeTab = ref("general");
+const requestedTab = new URLSearchParams(window.location.search).get("tab");
+const activeTab = ref(
+  [
+    "general",
+    "domain",
+    "infrastructure",
+    "security",
+    "terminal",
+    "healthchecks",
+    "notifications",
+    "credentials",
+    "ai",
+    "mcp",
+  ].includes(requestedTab || "")
+    ? requestedTab!
+    : "general",
+);
 const configCollapsed = ref(true);
 
 const tabs = [

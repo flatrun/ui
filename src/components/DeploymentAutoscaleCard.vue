@@ -86,6 +86,7 @@ import BaseModal from "@/components/base/BaseModal.vue";
 import Icon from "@/components/base/Icon.vue";
 
 const props = defineProps<{ deployment: string; canWrite: boolean }>();
+const reviewMode = import.meta.env.DEV && new URLSearchParams(window.location.search).get("review") === "autoscale";
 const notifications = useNotificationsStore();
 const loading = ref(true);
 const saving = ref(false);
@@ -120,6 +121,22 @@ const editablePolicy = (value: AutoscalePolicy): Omit<AutoscalePolicy, "state"> 
 const load = async () => {
   loading.value = true;
   error.value = "";
+  if (reviewMode) {
+    policy.value = {
+      enabled: true,
+      min_replicas: 1,
+      max_replicas: 4,
+      scale_up_percent: 80,
+      scale_down_percent: 30,
+      scale_up_windows: 3,
+      scale_down_windows: 10,
+      cooldown_seconds: 300,
+      allow_fleet_capacity: true,
+      state: { high_windows: 2, low_windows: 0 },
+    };
+    loading.value = false;
+    return;
+  }
   try {
     policy.value = (await autoscaleApi.getPolicy(props.deployment)).data;
   } catch (cause: any) {
@@ -141,6 +158,12 @@ const save = async () => {
   saving.value = true;
   saveError.value = "";
   try {
+    if (reviewMode) {
+      policy.value = { ...form.value, state: policy.value?.state || { high_windows: 0, low_windows: 0 } };
+      showModal.value = false;
+      notifications.success("Review updated", "The preview now uses the new scaling policy.");
+      return;
+    }
     policy.value = (await autoscaleApi.updatePolicy(props.deployment, form.value)).data;
     showModal.value = false;
     notifications.success("Autoscaling updated", "The deployment now uses the new scaling policy.");

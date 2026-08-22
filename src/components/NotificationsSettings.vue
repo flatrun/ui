@@ -3,10 +3,13 @@
     <div class="notification-summary">
       <div class="summary-icon"><Icon name="solar:danger-circle-bold-duotone" :size="30" /></div>
       <div class="summary-copy">
-        <span class="eyebrow">FlatRun Notifications</span>
-        <h2>One incident, one useful update</h2>
-        <p>Group related failures and send each team only the events they need.</p>
+        <span class="eyebrow">Notifications</span>
+        <h2>Incidents, rules, and delivery targets</h2>
+        <p>Review incidents here. Use rules to decide which updates reach each target.</p>
       </div>
+      <a class="docs-link" href="https://flatrun.dev/docs/ui/notifications" target="_blank" rel="noopener noreferrer">
+        <Icon name="book-open" :size="16" /> Notification guide <Icon name="external-link" :size="14" />
+      </a>
       <div class="summary-stats">
         <div>
           <strong>{{ openIncidentCount }}</strong
@@ -377,6 +380,7 @@ import { randomUUID } from "@/utils/uuid";
 const auth = useAuthStore();
 const notifications = useNotificationsStore();
 const canWrite = auth.hasPermission("settings:write");
+const reviewMode = import.meta.env.DEV && new URLSearchParams(window.location.search).get("review") === "notifications";
 const activeTab = ref<"incidents" | "rules" | "targets">("incidents");
 const targets = ref<NotificationTarget[]>([]);
 const rules = ref<NotificationRule[]>([]);
@@ -438,6 +442,44 @@ const targetURL = computed(() => {
 async function load() {
   loading.value = true;
   loadError.value = "";
+  if (reviewMode) {
+    targets.value = [
+      { id: "ops-email", name: "Operations email", url: "********", enabled: true },
+      { id: "incident-webhook", name: "Incident webhook", url: "********", enabled: true },
+    ];
+    rules.value = [
+      {
+        id: "critical-fleet",
+        name: "Critical Fleet incidents",
+        enabled: true,
+        topics: ["fleet", "capacity"],
+        severities: ["critical"],
+        notifications: ["opened", "resolved"],
+        target_ids: ["ops-email", "incident-webhook"],
+      },
+    ];
+    incidents.value = [
+      {
+        id: "autoscale:prod-1:shop:1787406000000",
+        correlation_key: "autoscale:prod-1:shop",
+        status: "open",
+        severity: "warning",
+        title: "Autoscaling needs attention",
+        event_count: 8,
+        first_event_at: new Date(Date.now() - 24 * 60_000).toISOString(),
+        last_event_at: new Date(Date.now() - 2 * 60_000).toISOString(),
+        last_event: {
+          source: "capacity",
+          type: "autoscale.blocked",
+          title: "Autoscaling needs attention",
+          message: "No permitted Fleet capacity is available.",
+          scope: { node: "prod-1", deployment: "shop" },
+        },
+      },
+    ];
+    loading.value = false;
+    return;
+  }
   try {
     const [targetResponse, ruleResponse, incidentResponse] = await Promise.all([
       notificationsApi.getTargets(),
@@ -473,6 +515,7 @@ const notificationLabel = (rule: NotificationRule) =>
   rule.notifications?.length ? rule.notifications.join(", ") : "All incident updates";
 
 async function saveTargets() {
+  if (reviewMode) return;
   try {
     await notificationsApi.updateTargets(targets.value);
   } catch (error: any) {
@@ -480,6 +523,7 @@ async function saveTargets() {
   }
 }
 async function saveRules() {
+  if (reviewMode) return;
   try {
     await notificationsApi.updateRules(rules.value);
   } catch (error: any) {
@@ -489,6 +533,10 @@ async function saveRules() {
 async function runTest(id: string, url: string) {
   testing.value = id;
   try {
+    if (reviewMode) {
+      notifications.success("Review test", "The preview target accepted the test notification.");
+      return;
+    }
     await notificationsApi.test(url);
     notifications.success("Test sent", "Check the destination for the test notification.");
   } catch (error: any) {
@@ -582,6 +630,19 @@ onMounted(load);
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-sm);
 }
+.docs-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  color: var(--color-primary-700);
+  background: var(--surface-raised);
+  border: 1px solid var(--color-primary-200);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  text-decoration: none;
+}
 .summary-icon,
 .empty-icon,
 .incident-icon,
@@ -617,6 +678,7 @@ onMounted(load);
   text-transform: uppercase;
 }
 .summary-stats {
+  grid-column: 2 / -1;
   display: flex;
   gap: var(--space-6);
 }
@@ -858,7 +920,7 @@ onMounted(load);
   width: 14px;
   height: 14px;
   content: "";
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-xs);
   background: var(--surface-raised);
   box-shadow: var(--shadow-xs);
   transition: transform var(--transition-fast);
@@ -977,6 +1039,9 @@ fieldset legend {
 @media (max-width: 760px) {
   .notification-summary {
     grid-template-columns: auto 1fr;
+  }
+  .docs-link {
+    grid-column: 2;
   }
   .summary-stats {
     grid-column: 1 / -1;

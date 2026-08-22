@@ -216,6 +216,16 @@ const routes: RouteRecordRaw[] = [
         component: () => import("@/views/ClusterView.vue"),
         meta: { permission: "cluster:read" },
       },
+      ...(import.meta.env.DEV
+        ? [
+            {
+              path: "review/autoscaling",
+              name: "autoscaling-review",
+              component: () => import("@/views/AutoscalingReviewView.vue"),
+              meta: { permission: "deployments:read" as Permission },
+            },
+          ]
+        : []),
       {
         path: "security",
         name: "security",

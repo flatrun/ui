@@ -27,6 +27,7 @@ vi.mock("@/services/api", () => ({
 
 describe("ClusterView", () => {
   beforeEach(async () => {
+    window.history.replaceState({}, "", "/");
     vi.clearAllMocks();
     const { clusterApi } = await import("@/services/api");
     vi.mocked(clusterApi.getStatus)
@@ -149,5 +150,16 @@ describe("ClusterView", () => {
     await flushPromises();
 
     expect(clusterApi.updateProviders).toHaveBeenCalledWith("swarm", "nginx");
+  });
+
+  it("renders the Fleet review without calling the agent", async () => {
+    const { clusterApi } = await import("@/services/api");
+    window.history.replaceState({}, "", "/cluster?review=fleet");
+    const wrapper = mountView();
+    await flushPromises();
+
+    expect(wrapper.text()).toContain("prod-2");
+    expect(wrapper.text()).toContain("Docker Swarm");
+    expect(clusterApi.getStatus).not.toHaveBeenCalled();
   });
 });
