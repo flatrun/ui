@@ -525,11 +525,53 @@ export interface NotificationTarget {
   name: string;
   url: string;
   enabled: boolean;
+  topics?: string[];
+  severities?: NotificationSeverity[];
+  nodes?: string[];
+  deployments?: string[];
+}
+
+export type NotificationSeverity = "info" | "warning" | "critical";
+export type IncidentAction = "opened" | "updated" | "resolved";
+
+export interface NotificationRule {
+  id: string;
+  name: string;
+  enabled: boolean;
+  topics?: string[];
+  event_types?: string[];
+  severities?: NotificationSeverity[];
+  nodes?: string[];
+  deployments?: string[];
+  notifications?: IncidentAction[];
+  target_ids: string[];
+}
+
+export interface NotificationIncident {
+  id: string;
+  correlation_key: string;
+  status: "open" | "resolved";
+  severity: NotificationSeverity;
+  title: string;
+  event_count: number;
+  first_event_at: string;
+  last_event_at: string;
+  last_event: {
+    source: string;
+    type: string;
+    title: string;
+    message: string;
+    scope: { node?: string; deployment?: string; container?: string };
+  };
 }
 
 export const notificationsApi = {
   getTargets: () => apiClient.get<{ targets: NotificationTarget[] }>("/notifications/targets"),
   updateTargets: (targets: NotificationTarget[]) => apiClient.put("/notifications/targets", { targets }),
+  getRules: () => apiClient.get<{ rules: NotificationRule[] }>("/notifications/rules"),
+  updateRules: (rules: NotificationRule[]) =>
+    apiClient.put<{ rules: NotificationRule[] }>("/notifications/rules", { rules }),
+  getIncidents: () => apiClient.get<{ incidents: NotificationIncident[] }>("/notifications/incidents"),
   test: (url: string) => apiClient.post("/notifications/test", { url }),
 };
 

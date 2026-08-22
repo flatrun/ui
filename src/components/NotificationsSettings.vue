@@ -1,422 +1,1017 @@
 <template>
-  <div class="notifications-settings">
-    <div class="settings-card">
-      <div class="card-header">
-        <h3><Icon name="bell" :size="16" /> Notification targets</h3>
+  <section class="notifications-settings">
+    <div class="notification-summary">
+      <div class="summary-icon"><Icon name="solar:danger-circle-bold-duotone" :size="30" /></div>
+      <div class="summary-copy">
+        <span class="eyebrow">FlatRun Notifications</span>
+        <h2>One incident, one useful update</h2>
+        <p>Group related failures and send each team only the events they need.</p>
       </div>
-      <div class="card-body">
-        <p class="hint">Apps (like Observability) send alerts here, for example when a container is auto-restarted.</p>
-
-        <div v-if="loading" class="muted"><Icon name="loader-circle" spin :size="18" /></div>
-
-        <div v-else class="target-list">
-          <div v-for="t in targets" :key="t.id" class="target-row">
-            <input v-model="t.enabled" type="checkbox" :disabled="!canWrite" title="Enabled" />
-            <div class="target-summary">
-              <span class="t-name">{{ t.name || "Untitled" }}</span>
-              <span class="t-kind">{{ kindOf(t.url) }}</span>
-            </div>
-            <button class="btn btn-ghost" :disabled="testing === t.id || !t.url" @click="test(t)">
-              <Icon v-if="testing === t.id" name="loader-circle" spin :size="14" />
-              <Icon v-else name="send" :size="14" />
-              Test
-            </button>
-            <button v-if="canWrite" class="btn btn-ghost danger" @click="remove(t.id)">
-              <Icon name="trash-2" :size="14" />
-            </button>
-          </div>
-          <p v-if="!targets.length" class="muted">No targets yet. Add one below.</p>
+      <div class="summary-stats">
+        <div>
+          <strong>{{ openIncidentCount }}</strong
+          ><span>Open incidents</span>
         </div>
-
-        <!-- Add target with structured, per-service fields -->
-        <div v-if="canWrite" class="add-target">
-          <div class="add-head">
-            <span class="add-title">Add a target</span>
-            <div class="type-tabs">
-              <button
-                v-for="opt in typeOptions"
-                :key="opt.id"
-                class="type-tab"
-                :class="{ active: form.type === opt.id }"
-                @click="form.type = opt.id"
-              >
-                <Icon :name="opt.icon" :size="14" />
-                {{ opt.label }}
-              </button>
-            </div>
-          </div>
-
-          <div class="field">
-            <label>Name</label>
-            <input v-model="form.name" placeholder="e.g. Ops email" />
-          </div>
-
-          <template v-if="form.type === 'email'">
-            <div class="grid2">
-              <div class="field">
-                <label>SMTP host</label><input v-model="form.email.host" placeholder="smtp.example.com" />
-              </div>
-              <div class="field"><label>Port</label><input v-model="form.email.port" placeholder="587" /></div>
-            </div>
-            <div class="grid2">
-              <div class="field">
-                <label>Username</label><input v-model="form.email.username" placeholder="user@example.com" />
-              </div>
-              <div class="field"><label>Password</label><input v-model="form.email.password" type="password" /></div>
-            </div>
-            <div class="grid2">
-              <div class="field">
-                <label>From</label><input v-model="form.email.from" placeholder="alerts@example.com" />
-              </div>
-              <div class="field"><label>To</label><input v-model="form.email.to" placeholder="ops@example.com" /></div>
-            </div>
-          </template>
-
-          <template v-else-if="form.type === 'webhook'">
-            <div class="field">
-              <label>Webhook URL</label>
-              <input v-model="form.webhook" placeholder="https://hooks.example.com/services/…" />
-            </div>
-          </template>
-
-          <template v-else>
-            <div class="field">
-              <label>
-                Shoutrrr URL
-                <a href="https://github.com/nicholas-fedor/shoutrrr" target="_blank" rel="noopener">(format)</a>
-              </label>
-              <input v-model="form.custom" placeholder="slack://token-a/token-b/token-c" />
-            </div>
-          </template>
-
-          <div class="add-actions">
-            <button class="btn btn-ghost" :disabled="testing === 'new' || !previewUrl" @click="testDraft">
-              <Icon v-if="testing === 'new'" name="loader-circle" spin :size="14" />
-              <Icon v-else name="send" :size="14" />
-              Test
-            </button>
-            <button class="btn btn-secondary" :disabled="!previewUrl" @click="add">
-              <Icon name="plus" :size="14" /> Add
-            </button>
-          </div>
+        <div>
+          <strong>{{ rules.length }}</strong
+          ><span>Delivery rules</span>
         </div>
-      </div>
-
-      <div v-if="canWrite" class="save-footer">
-        <span v-if="savedNote" class="saved-note"><Icon name="check" :size="14" /> Saved</span>
-        <button class="btn btn-primary" :disabled="saving" @click="save">
-          <Icon v-if="saving" name="loader-circle" spin :size="14" />
-          Save targets
-        </button>
+        <div>
+          <strong>{{ enabledTargetCount }}</strong
+          ><span>Active targets</span>
+        </div>
       </div>
     </div>
-  </div>
+
+    <nav class="section-tabs" aria-label="Notification sections">
+      <button v-for="tab in tabs" :key="tab.id" :class="{ active: activeTab === tab.id }" @click="activeTab = tab.id">
+        <Icon :name="tab.icon" :size="16" />{{ tab.label }}
+        <span v-if="tab.count()" class="count-chip">{{ tab.count() }}</span>
+      </button>
+    </nav>
+
+    <div v-if="loading" class="state-panel loading-panel">
+      <span v-for="item in 3" :key="item" class="skeleton-row" />
+    </div>
+    <div v-else-if="loadError" class="state-panel error-panel">
+      <Icon name="solar:danger-triangle-bold" :size="28" />
+      <div>
+        <strong>Notifications could not be loaded</strong>
+        <p>{{ loadError }}</p>
+      </div>
+      <BaseButton icon="refresh-cw" @click="load">Try again</BaseButton>
+    </div>
+
+    <template v-else>
+      <section v-if="activeTab === 'incidents'" class="content-card">
+        <header class="content-header">
+          <div>
+            <h3>Incidents</h3>
+            <p>Related events remain grouped across agent restarts.</p>
+          </div>
+          <BaseButton icon="refresh-cw" @click="load">Refresh</BaseButton>
+        </header>
+        <div v-if="!incidents.length" class="empty-state">
+          <div class="empty-icon success"><Icon name="solar:check-circle-bold" :size="30" /></div>
+          <strong>No incidents recorded</strong>
+          <p>New infrastructure and application events will appear here as grouped incidents.</p>
+        </div>
+        <div v-else class="incident-list">
+          <article v-for="incident in incidents" :key="incident.id" class="incident-row">
+            <div class="incident-icon" :class="incident.status === 'resolved' ? 'resolved' : incident.severity">
+              <Icon
+                :name="incident.status === 'resolved' ? 'solar:check-circle-bold' : 'solar:danger-circle-bold-duotone'"
+                :size="20"
+              />
+            </div>
+            <div class="incident-main">
+              <div class="incident-title">
+                <strong>{{ incident.title }}</strong
+                ><span class="status-chip" :class="incident.status">{{ incident.status }}</span>
+              </div>
+              <span>{{ incident.last_event.message || incident.last_event.type }}</span>
+              <div class="incident-scope">
+                <span v-if="incident.last_event.scope.node"
+                  ><Icon name="server" :size="13" />{{ incident.last_event.scope.node }}</span
+                >
+                <span v-if="incident.last_event.scope.deployment"
+                  ><Icon name="box" :size="13" />{{ incident.last_event.scope.deployment }}</span
+                >
+                <span><Icon name="layers" :size="13" />{{ incident.event_count }} events</span>
+              </div>
+            </div>
+            <div class="incident-time">
+              <span>{{ formatRelative(incident.last_event_at) }}</span
+              ><code>{{ incident.id }}</code>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section v-if="activeTab === 'rules'" class="content-card">
+        <header class="content-header">
+          <div>
+            <h3>Delivery rules</h3>
+            <p>Choose which events reach each destination.</p>
+          </div>
+          <BaseButton v-if="canWrite" variant="primary" icon="plus" @click="openRuleModal()">New rule</BaseButton>
+        </header>
+        <div v-if="!rules.length" class="empty-state">
+          <div class="empty-icon"><Icon name="filter" :size="28" /></div>
+          <strong>No delivery rules</strong>
+          <p>Without rules, enabled targets receive every incident update. Add a rule to filter delivery.</p>
+          <BaseButton v-if="canWrite" variant="primary" icon="plus" @click="openRuleModal()">Create rule</BaseButton>
+        </div>
+        <div v-else class="rule-list">
+          <article v-for="rule in rules" :key="rule.id" class="rule-row">
+            <label class="toggle" :title="rule.enabled ? 'Enabled' : 'Disabled'"
+              ><input v-model="rule.enabled" type="checkbox" :disabled="!canWrite" @change="saveRules" /><span
+            /></label>
+            <div class="rule-main">
+              <strong>{{ rule.name }}</strong>
+              <div class="chip-row">
+                <span v-for="topic in rule.topics || []" :key="topic" class="filter-chip">{{ topic }}</span
+                ><span
+                  v-for="severity in rule.severities || []"
+                  :key="severity"
+                  class="severity-chip"
+                  :class="severity"
+                  >{{ severity }}</span
+                >
+              </div>
+            </div>
+            <div class="rule-targets">
+              <span>{{ rule.target_ids.length }} target{{ rule.target_ids.length === 1 ? "" : "s" }}</span
+              ><small>{{ notificationLabel(rule) }}</small>
+            </div>
+            <BaseButton v-if="canWrite" variant="ghost" size="sm" icon="pencil" @click="openRuleModal(rule)"
+              >Edit</BaseButton
+            >
+            <BaseButton v-if="canWrite" variant="ghost" size="sm" icon="trash-2" @click="askDeleteRule(rule)"
+              >Remove</BaseButton
+            >
+          </article>
+        </div>
+      </section>
+
+      <section v-if="activeTab === 'targets'" class="content-card">
+        <header class="content-header">
+          <div>
+            <h3>Delivery targets</h3>
+            <p>Email, webhook, and supported Shoutrrr destinations.</p>
+          </div>
+          <BaseButton v-if="canWrite" variant="primary" icon="plus" @click="showTargetModal = true"
+            >Add target</BaseButton
+          >
+        </header>
+        <div v-if="!targets.length" class="empty-state">
+          <div class="empty-icon"><Icon name="send" :size="28" /></div>
+          <strong>No delivery targets</strong>
+          <p>Add the first destination before creating delivery rules.</p>
+          <BaseButton v-if="canWrite" variant="primary" icon="plus" @click="showTargetModal = true"
+            >Add target</BaseButton
+          >
+        </div>
+        <div v-else class="target-list">
+          <article v-for="target in targets" :key="target.id" class="target-row">
+            <label class="toggle"
+              ><input v-model="target.enabled" type="checkbox" :disabled="!canWrite" @change="saveTargets" /><span
+            /></label>
+            <div class="target-icon">
+              <Icon :name="kindOf(target.url) === 'Email' ? 'mail' : 'webhook'" :size="18" />
+            </div>
+            <div class="target-main">
+              <strong>{{ target.name || "Untitled target" }}</strong
+              ><span>{{ kindOf(target.url) }}</span>
+            </div>
+            <BaseButton
+              size="sm"
+              icon="send"
+              :loading="testing === target.id"
+              :disabled="!target.url"
+              @click="testTarget(target)"
+              >Test</BaseButton
+            >
+            <BaseButton v-if="canWrite" variant="ghost" size="sm" icon="trash-2" @click="askDeleteTarget(target)"
+              >Remove</BaseButton
+            >
+          </article>
+        </div>
+      </section>
+    </template>
+
+    <BaseModal
+      :visible="showTargetModal"
+      title="Add delivery target"
+      subtitle="Test the destination before saving it."
+      icon="send"
+      size="md"
+      @close="closeTargetModal"
+    >
+      <form id="target-form" class="modal-form" @submit.prevent="addTarget">
+        <div class="segmented-control">
+          <button
+            v-for="option in targetTypes"
+            :key="option.id"
+            type="button"
+            :class="{ active: targetForm.type === option.id }"
+            @click="targetForm.type = option.id"
+          >
+            <Icon :name="option.icon" :size="15" />{{ option.label }}
+          </button>
+        </div>
+        <label for="target-name">Name</label
+        ><input
+          id="target-name"
+          v-model.trim="targetForm.name"
+          class="form-input"
+          placeholder="Operations email"
+          required
+        />
+        <template v-if="targetForm.type === 'email'">
+          <div class="form-grid">
+            <div>
+              <label for="smtp-host">SMTP host</label
+              ><input
+                id="smtp-host"
+                v-model.trim="targetForm.host"
+                class="form-input"
+                placeholder="smtp.example.com"
+                required
+              />
+            </div>
+            <div>
+              <label for="smtp-port">Port</label
+              ><input id="smtp-port" v-model.trim="targetForm.port" class="form-input" inputmode="numeric" required />
+            </div>
+          </div>
+          <div class="form-grid">
+            <div>
+              <label for="smtp-user">Username</label
+              ><input id="smtp-user" v-model="targetForm.username" class="form-input" autocomplete="username" />
+            </div>
+            <div>
+              <label for="smtp-password">Password</label
+              ><input
+                id="smtp-password"
+                v-model="targetForm.password"
+                class="form-input"
+                type="password"
+                autocomplete="new-password"
+              />
+            </div>
+          </div>
+          <div class="form-grid">
+            <div>
+              <label for="smtp-from">From</label
+              ><input id="smtp-from" v-model.trim="targetForm.from" class="form-input" type="email" required />
+            </div>
+            <div>
+              <label for="smtp-to">To</label
+              ><input id="smtp-to" v-model.trim="targetForm.to" class="form-input" type="email" required />
+            </div>
+          </div>
+        </template>
+        <template v-else
+          ><label for="target-url">{{ targetForm.type === "webhook" ? "Webhook URL" : "Shoutrrr URL" }}</label
+          ><input
+            id="target-url"
+            v-model.trim="targetForm.url"
+            class="form-input"
+            :placeholder="
+              targetForm.type === 'webhook' ? 'https://hooks.example.com/…' : 'slack://token-a/token-b/token-c'
+            "
+            required
+        /></template>
+      </form>
+      <template #footer
+        ><BaseButton :loading="testing === 'draft'" :disabled="!targetURL" icon="send" @click="testDraft"
+          >Test</BaseButton
+        ><BaseButton form="target-form" type="submit" variant="primary" :disabled="!targetURL || !targetForm.name"
+          >Save target</BaseButton
+        ></template
+      >
+    </BaseModal>
+
+    <BaseModal
+      :visible="showRuleModal"
+      :title="editingRuleId ? 'Edit delivery rule' : 'Create delivery rule'"
+      subtitle="Events must match every selected filter."
+      icon="filter"
+      size="lg"
+      @close="showRuleModal = false"
+    >
+      <form id="rule-form" class="modal-form" @submit.prevent="saveRule">
+        <label for="rule-name">Rule name</label
+        ><input
+          id="rule-name"
+          v-model.trim="ruleForm.name"
+          class="form-input"
+          placeholder="Critical fleet incidents"
+          required
+        />
+        <fieldset>
+          <legend>Topics</legend>
+          <div class="choice-grid">
+            <label v-for="topic in topicOptions" :key="topic"
+              ><input v-model="ruleForm.topics" type="checkbox" :value="topic" />{{ topic }}</label
+            >
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend>Severity</legend>
+          <div class="choice-grid">
+            <label v-for="severity in severityOptions" :key="severity"
+              ><input v-model="ruleForm.severities" type="checkbox" :value="severity" />{{ severity }}</label
+            >
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend>Incident updates</legend>
+          <div class="choice-grid">
+            <label v-for="action in actionOptions" :key="action"
+              ><input v-model="ruleForm.notifications" type="checkbox" :value="action" />{{ action }}</label
+            >
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend>Delivery targets</legend>
+          <div v-if="targets.length" class="choice-grid">
+            <label v-for="target in targets" :key="target.id"
+              ><input v-model="ruleForm.target_ids" type="checkbox" :value="target.id" />{{ target.name }}</label
+            >
+          </div>
+          <p v-else class="field-help">Add a delivery target first.</p>
+        </fieldset>
+      </form>
+      <template #footer
+        ><BaseButton @click="showRuleModal = false">Cancel</BaseButton
+        ><BaseButton
+          form="rule-form"
+          type="submit"
+          variant="primary"
+          :disabled="!ruleForm.name || !ruleForm.target_ids.length"
+          >Save rule</BaseButton
+        ></template
+      >
+    </BaseModal>
+
+    <BaseModal
+      :visible="deleteRequest !== null"
+      title="Remove notification configuration"
+      subtitle="This change takes effect immediately."
+      icon="trash-2"
+      icon-color="danger"
+      size="sm"
+      @close="deleteRequest = null"
+    >
+      <p>
+        Remove <strong>{{ deleteRequest?.name }}</strong
+        >?
+      </p>
+      <template #footer
+        ><BaseButton @click="deleteRequest = null">Cancel</BaseButton
+        ><BaseButton variant="danger" @click="confirmDelete">Remove</BaseButton></template
+      >
+    </BaseModal>
+  </section>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from "vue";
+import { computed, onMounted, reactive, ref } from "vue";
+import BaseButton from "@/components/base/BaseButton.vue";
+import BaseModal from "@/components/base/BaseModal.vue";
 import Icon from "@/components/base/Icon.vue";
-import { notificationsApi, type NotificationTarget } from "@/services/api";
-import { randomUUID } from "@/utils/uuid";
+import {
+  notificationsApi,
+  type IncidentAction,
+  type NotificationIncident,
+  type NotificationRule,
+  type NotificationSeverity,
+  type NotificationTarget,
+} from "@/services/api";
 import { useAuthStore } from "@/stores/auth";
 import { useNotificationsStore } from "@/stores/notifications";
+import { randomUUID } from "@/utils/uuid";
 
 const auth = useAuthStore();
 const notifications = useNotificationsStore();
 const canWrite = auth.hasPermission("settings:write");
+const activeTab = ref<"incidents" | "rules" | "targets">("incidents");
+const targets = ref<NotificationTarget[]>([]);
+const rules = ref<NotificationRule[]>([]);
+const incidents = ref<NotificationIncident[]>([]);
+const loading = ref(true);
+const loadError = ref("");
+const testing = ref<string | null>(null);
+const showTargetModal = ref(false);
+const showRuleModal = ref(false);
+const editingRuleId = ref<string | null>(null);
+const deleteRequest = ref<{ type: "target" | "rule"; id: string; name: string } | null>(null);
 
-const typeOptions = [
+const targetTypes = [
   { id: "email", label: "Email", icon: "mail" },
   { id: "webhook", label: "Webhook", icon: "webhook" },
   { id: "custom", label: "Custom", icon: "settings-2" },
 ] as const;
+const topicOptions = ["fleet", "capacity", "security", "backups", "certificates", "deployments"];
+const severityOptions: NotificationSeverity[] = ["critical", "warning", "info"];
+const actionOptions: IncidentAction[] = ["opened", "updated", "resolved"];
+const tabs = [
+  { id: "incidents" as const, label: "Incidents", icon: "history", count: () => openIncidentCount.value },
+  { id: "rules" as const, label: "Rules", icon: "filter", count: () => rules.value.length },
+  { id: "targets" as const, label: "Targets", icon: "send", count: () => targets.value.length },
+];
+const openIncidentCount = computed(() => incidents.value.filter((item) => item.status === "open").length);
+const enabledTargetCount = computed(() => targets.value.filter((item) => item.enabled).length);
 
-const targets = ref<NotificationTarget[]>([]);
-const loading = ref(true);
-const saving = ref(false);
-const testing = ref<string | null>(null);
-const savedNote = ref(false);
-
-const form = reactive({
+const targetForm = reactive({
   type: "email" as "email" | "webhook" | "custom",
   name: "",
-  email: { host: "", port: "587", username: "", password: "", from: "", to: "" },
-  webhook: "",
-  custom: "",
+  host: "",
+  port: "587",
+  username: "",
+  password: "",
+  from: "",
+  to: "",
+  url: "",
 });
-
-// buildUrl turns the structured fields into a shoutrrr URL.
-function buildUrl(): string {
-  if (form.type === "email") {
-    const e = form.email;
-    if (!e.host || !e.from || !e.to) return "";
-    const cred = e.username ? `${encodeURIComponent(e.username)}:${encodeURIComponent(e.password)}@` : "";
-    const params = new URLSearchParams({ fromAddress: e.from, toAddresses: e.to, useStartTLS: "yes" });
-    return `smtp://${cred}${e.host}:${e.port || "587"}/?${params.toString()}`;
+const ruleForm = reactive<{
+  name: string;
+  topics: string[];
+  severities: NotificationSeverity[];
+  notifications: IncidentAction[];
+  target_ids: string[];
+}>({ name: "", topics: [], severities: [], notifications: ["opened", "resolved"], target_ids: [] });
+const targetURL = computed(() => {
+  if (targetForm.type === "email") {
+    if (!targetForm.host || !targetForm.from || !targetForm.to) return "";
+    const credentials = targetForm.username
+      ? `${encodeURIComponent(targetForm.username)}:${encodeURIComponent(targetForm.password)}@`
+      : "";
+    const query = new URLSearchParams({ fromAddress: targetForm.from, toAddresses: targetForm.to, useStartTLS: "yes" });
+    return `smtp://${credentials}${targetForm.host}:${targetForm.port || "587"}/?${query}`;
   }
-  if (form.type === "webhook") {
-    return form.webhook ? `generic+${form.webhook}` : "";
-  }
-  return form.custom.trim();
-}
-const previewUrl = computed(buildUrl);
-
-function kindOf(url: string): string {
-  // A saved target comes back with its URL masked, so its scheme is unknowable.
-  if (!url || url.startsWith("****")) return "Configured";
-  if (url.startsWith("smtp://")) return "Email";
-  if (url.startsWith("generic")) return "Webhook";
-  const scheme = url.split("://")[0];
-  return scheme ? scheme[0].toUpperCase() + scheme.slice(1) : "Custom";
-}
+  return targetForm.type === "webhook" && targetForm.url ? `generic+${targetForm.url}` : targetForm.url;
+});
 
 async function load() {
   loading.value = true;
+  loadError.value = "";
   try {
-    const res = await notificationsApi.getTargets();
-    targets.value = res.data.targets || [];
-  } catch {
-    targets.value = [];
+    const [targetResponse, ruleResponse, incidentResponse] = await Promise.all([
+      notificationsApi.getTargets(),
+      notificationsApi.getRules(),
+      notificationsApi.getIncidents(),
+    ]);
+    targets.value = targetResponse.data.targets || [];
+    rules.value = ruleResponse.data.rules || [];
+    incidents.value = incidentResponse.data.incidents || [];
+  } catch (error: any) {
+    loadError.value = error.response?.data?.error || error.message;
   } finally {
     loading.value = false;
   }
 }
 
-function add() {
-  const url = buildUrl();
-  if (!url) return;
-  targets.value.push({ id: randomUUID(), name: form.name, url, enabled: true });
-  form.name = "";
-  form.email = { host: "", port: "587", username: "", password: "", from: "", to: "" };
-  form.webhook = "";
-  form.custom = "";
-}
+const kindOf = (url: string) =>
+  !url || url.startsWith("****")
+    ? "Configured"
+    : url.startsWith("smtp://")
+      ? "Email"
+      : url.startsWith("generic")
+        ? "Webhook"
+        : "Custom";
+const formatRelative = (value: string) => {
+  const minutes = Math.max(0, Math.floor((Date.now() - new Date(value).getTime()) / 60000));
+  if (minutes < 1) return "Just now";
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  return hours < 24 ? `${hours}h ago` : `${Math.floor(hours / 24)}d ago`;
+};
+const notificationLabel = (rule: NotificationRule) =>
+  rule.notifications?.length ? rule.notifications.join(", ") : "All incident updates";
 
-function remove(id: string) {
-  targets.value = targets.value.filter((t) => t.id !== id);
-}
-
-async function save() {
-  // A target the user filled in but did not click Add on must not be silently
-  // dropped: pull it into the list before saving. Testing a draft goes straight
-  // to the form, so without this a tested-then-saved target vanished on refresh.
-  if (buildUrl()) add();
-  saving.value = true;
-  savedNote.value = false;
+async function saveTargets() {
   try {
     await notificationsApi.updateTargets(targets.value);
-    savedNote.value = true;
-    setTimeout(() => (savedNote.value = false), 2000);
-  } catch (e: any) {
-    notifications.error("Save failed", e.response?.data?.error || e.message);
-  } finally {
-    saving.value = false;
+  } catch (error: any) {
+    notifications.error("Targets not saved", error.response?.data?.error || error.message);
   }
 }
-
+async function saveRules() {
+  try {
+    await notificationsApi.updateRules(rules.value);
+  } catch (error: any) {
+    notifications.error("Rules not saved", error.response?.data?.error || error.message);
+  }
+}
 async function runTest(id: string, url: string) {
   testing.value = id;
   try {
     await notificationsApi.test(url);
-    notifications.success("Test sent", "Check the destination for a test notification.");
-  } catch (e: any) {
-    notifications.error("Test failed", e.response?.data?.error || e.message);
+    notifications.success("Test sent", "Check the destination for the test notification.");
+  } catch (error: any) {
+    notifications.error("Test failed", error.response?.data?.error || error.message);
   } finally {
     testing.value = null;
   }
 }
-const test = (t: NotificationTarget) => runTest(t.id, t.url);
-const testDraft = () => runTest("new", buildUrl());
+const testTarget = (target: NotificationTarget) => runTest(target.id, target.url);
+const testDraft = () => runTest("draft", targetURL.value);
+
+async function addTarget() {
+  targets.value.push({ id: randomUUID(), name: targetForm.name, url: targetURL.value, enabled: true });
+  await saveTargets();
+  closeTargetModal();
+}
+function closeTargetModal() {
+  showTargetModal.value = false;
+  Object.assign(targetForm, {
+    type: "email",
+    name: "",
+    host: "",
+    port: "587",
+    username: "",
+    password: "",
+    from: "",
+    to: "",
+    url: "",
+  });
+}
+function openRuleModal(rule?: NotificationRule) {
+  editingRuleId.value = rule?.id || null;
+  Object.assign(ruleForm, {
+    name: rule?.name || "",
+    topics: [...(rule?.topics || [])],
+    severities: [...(rule?.severities || [])],
+    notifications: [...(rule?.notifications || ["opened", "resolved"])],
+    target_ids: [...(rule?.target_ids || [])],
+  });
+  showRuleModal.value = true;
+}
+async function saveRule() {
+  const rule: NotificationRule = {
+    id: editingRuleId.value || randomUUID(),
+    name: ruleForm.name,
+    enabled: true,
+    topics: [...ruleForm.topics],
+    severities: [...ruleForm.severities],
+    notifications: [...ruleForm.notifications],
+    target_ids: [...ruleForm.target_ids],
+  };
+  const index = rules.value.findIndex((item) => item.id === rule.id);
+  if (index >= 0) rules.value[index] = { ...rules.value[index], ...rule };
+  else rules.value.push(rule);
+  await saveRules();
+  showRuleModal.value = false;
+}
+const askDeleteTarget = (target: NotificationTarget) =>
+  (deleteRequest.value = { type: "target", id: target.id, name: target.name });
+const askDeleteRule = (rule: NotificationRule) =>
+  (deleteRequest.value = { type: "rule", id: rule.id, name: rule.name });
+async function confirmDelete() {
+  if (!deleteRequest.value) return;
+  if (deleteRequest.value.type === "target") {
+    targets.value = targets.value.filter((item) => item.id !== deleteRequest.value?.id);
+    await saveTargets();
+  } else {
+    rules.value = rules.value.filter((item) => item.id !== deleteRequest.value?.id);
+    await saveRules();
+  }
+  deleteRequest.value = null;
+}
 
 onMounted(load);
 </script>
 
 <style scoped>
-.hint {
-  font-size: var(--text-sm);
-  color: var(--text-muted);
-  margin: 0 0 var(--space-4) 0;
-}
-
-.target-list {
+.notifications-settings {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
-  margin-bottom: var(--space-4);
+  gap: var(--space-4);
 }
-
+.notification-summary {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-5);
+  padding: var(--space-5);
+  background: var(--accent-subtle);
+  border: 1px solid var(--color-primary-200);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
+}
+.summary-icon,
+.empty-icon,
+.incident-icon,
+.target-icon {
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-lg);
+}
+.summary-icon {
+  width: 54px;
+  height: 54px;
+  color: var(--color-primary-700);
+  background: var(--surface-raised);
+  box-shadow: var(--shadow-sm);
+}
+.summary-copy h2,
+.content-header h3 {
+  margin: 0;
+  color: var(--text);
+}
+.summary-copy p,
+.content-header p {
+  margin: var(--space-1) 0 0;
+  color: var(--text-muted);
+}
+.eyebrow {
+  display: block;
+  margin-bottom: var(--space-1);
+  color: var(--color-primary-700);
+  font-size: var(--text-xs);
+  font-weight: var(--font-bold);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.summary-stats {
+  display: flex;
+  gap: var(--space-6);
+}
+.summary-stats div {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+.summary-stats strong {
+  color: var(--text);
+  font-size: var(--text-2xl);
+}
+.summary-stats span {
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+}
+.section-tabs {
+  display: flex;
+  gap: var(--space-1);
+  padding: var(--space-1);
+  width: fit-content;
+  background: var(--surface-inset);
+  border-radius: var(--radius-full);
+}
+.section-tabs button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 36px;
+  padding: var(--space-2) var(--space-4);
+  border: 0;
+  border-radius: var(--radius-full);
+  color: var(--text-muted);
+  background: transparent;
+  cursor: pointer;
+}
+.section-tabs button.active {
+  color: var(--color-primary-700);
+  background: var(--surface-raised);
+  box-shadow: var(--shadow-sm);
+}
+.count-chip,
+.filter-chip,
+.severity-chip,
+.status-chip {
+  display: inline-flex;
+  border-radius: var(--radius-full);
+  padding: 2px var(--space-2);
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+}
+.count-chip,
+.filter-chip {
+  color: var(--text-muted);
+  background: var(--surface-inset);
+}
+.content-card,
+.state-panel {
+  overflow: hidden;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-xs);
+}
+.content-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--border-subtle);
+}
+.content-header h3 {
+  font-size: var(--text-lg);
+}
+.content-header p {
+  font-size: var(--text-sm);
+}
+.empty-state {
+  display: flex;
+  min-height: 250px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  padding: var(--space-8);
+  text-align: center;
+}
+.empty-state strong {
+  color: var(--text);
+  font-size: var(--text-lg);
+}
+.empty-state p {
+  max-width: 440px;
+  margin: 0;
+  color: var(--text-muted);
+}
+.empty-icon {
+  width: 52px;
+  height: 52px;
+  color: var(--color-primary-700);
+  background: var(--color-primary-50);
+}
+.empty-icon.success {
+  color: var(--color-success-700);
+  background: var(--color-success-50);
+}
+.incident-row,
+.rule-row,
 .target-row {
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  padding: var(--space-2) var(--space-3);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-sm);
+  padding: 10px var(--space-5);
+  border-bottom: 1px solid var(--border-subtle);
 }
-
-.target-summary {
+.incident-row:last-child,
+.rule-row:last-child,
+.target-row:last-child {
+  border-bottom: 0;
+}
+.incident-icon,
+.target-icon {
+  width: 38px;
+  height: 38px;
+  flex: 0 0 auto;
+}
+.incident-icon.critical {
+  color: var(--color-danger-700);
+  background: var(--color-danger-50);
+}
+.incident-icon.warning {
+  color: var(--color-warning-700);
+  background: var(--color-warning-50);
+}
+.incident-icon.resolved {
+  color: var(--color-success-700);
+  background: var(--color-success-50);
+}
+.incident-main,
+.rule-main,
+.target-main {
+  display: flex;
+  min-width: 0;
   flex: 1;
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-}
-
-.t-name {
-  font-weight: var(--font-medium);
-  color: var(--text);
-  font-size: var(--text-sm);
-}
-
-.t-kind {
-  font-size: var(--text-xs);
-  padding: 0.05rem 0.4rem;
-  border-radius: var(--radius-full);
-  background: var(--surface-inset);
-  color: var(--text-muted);
-}
-
-.add-target {
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  padding: var(--space-4);
-  background: var(--surface-sunken);
-  display: flex;
   flex-direction: column;
-  gap: var(--space-3);
+  gap: var(--space-1);
 }
-
-.add-head {
+.incident-main > span,
+.target-main span {
+  overflow: hidden;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.incident-title,
+.chip-row,
+.incident-scope {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   flex-wrap: wrap;
   gap: var(--space-2);
 }
-
-.add-title {
-  font-size: var(--text-sm);
-  font-weight: var(--font-medium);
+.incident-title strong,
+.rule-main strong,
+.target-main strong {
   color: var(--text);
 }
-
-.type-tabs {
-  display: inline-flex;
-  gap: 2px;
-  padding: 2px;
-  background: var(--surface-inset);
-  border-radius: var(--radius-sm);
+.status-chip.open {
+  color: var(--color-danger-700);
+  background: var(--color-danger-50);
 }
-
-.type-tab {
+.status-chip.resolved {
+  color: var(--color-success-700);
+  background: var(--color-success-50);
+}
+.severity-chip.critical {
+  color: var(--color-danger-700);
+  background: var(--color-danger-50);
+}
+.severity-chip.warning {
+  color: var(--color-warning-700);
+  background: var(--color-warning-50);
+}
+.severity-chip.info {
+  color: var(--color-info-700);
+  background: var(--color-info-50);
+}
+.incident-scope {
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+}
+.incident-scope span {
   display: inline-flex;
   align-items: center;
-  gap: 0.3rem;
-  padding: 0.25rem 0.6rem;
-  border: none;
-  background: transparent;
-  border-radius: calc(var(--radius-sm) - 2px);
-  font-size: var(--text-xs);
-  color: var(--text-muted);
-  cursor: pointer;
+  gap: var(--space-1);
 }
-
-.type-tab.active {
-  background: var(--surface-raised);
-  color: var(--color-primary-600);
-  box-shadow: var(--shadow-sm);
-}
-
-.grid2 {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--space-3);
-}
-
-.field {
+.incident-time,
+.rule-targets {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
-}
-
-.field label {
-  font-size: var(--text-xs);
+  align-items: flex-end;
+  gap: var(--space-1);
   color: var(--text-muted);
+  font-size: var(--text-xs);
 }
-
-.field input {
-  padding: var(--space-2) var(--space-3);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  background: var(--surface);
-  color: var(--text);
-  font-size: var(--text-sm);
+.incident-time code {
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
-
-.add-actions {
+.target-icon {
+  color: var(--color-primary-700);
+  background: var(--color-primary-50);
+}
+.toggle {
+  position: relative;
+  width: 34px;
+  height: 20px;
+  flex: 0 0 auto;
+}
+.toggle input {
+  position: absolute;
+  opacity: 0;
+}
+.toggle span {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-full);
+  background: var(--surface-inset);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+.toggle span::after {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 14px;
+  height: 14px;
+  content: "";
+  border-radius: var(--radius-full);
+  background: var(--surface-raised);
+  box-shadow: var(--shadow-xs);
+  transition: transform var(--transition-fast);
+}
+.toggle input:checked + span {
+  background: var(--color-primary-500);
+}
+.toggle input:checked + span::after {
+  transform: translateX(14px);
+}
+.modal-form {
   display: flex;
-  justify-content: flex-end;
-  gap: var(--space-2);
+  flex-direction: column;
+  gap: var(--space-3);
 }
-
-.btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.375rem;
-  padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius-sm);
+.modal-form > label,
+.modal-form div > label,
+fieldset legend {
+  color: var(--text);
   font-size: var(--text-sm);
   font-weight: var(--font-medium);
-  cursor: pointer;
-  border: 1px solid transparent;
 }
-
-.btn-primary {
-  background: var(--color-primary-500);
-  color: white;
-}
-
-.btn-primary:disabled {
-  opacity: 0.6;
-}
-
-.btn-secondary {
-  background: var(--surface-inset);
-  color: var(--text);
-}
-
-.btn-secondary:disabled {
-  opacity: 0.6;
-}
-
-.btn-ghost {
-  background: none;
-  border: 1px solid var(--border);
-  color: var(--text-muted);
-}
-
-.btn-ghost.danger:hover {
-  color: var(--color-danger-600, #dc2626);
-}
-
-.save-footer {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
+.form-grid,
+.choice-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--space-3);
-  padding-top: var(--space-3);
 }
-
-.saved-note {
+.form-grid > div {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.segmented-control {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-1);
+  padding: var(--space-1);
+  background: var(--surface-inset);
+  border-radius: var(--radius-lg);
+}
+.segmented-control button {
   display: inline-flex;
   align-items: center;
-  gap: 0.25rem;
-  color: var(--color-success-600);
-  font-size: var(--text-sm);
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-2);
+  border: 0;
+  border-radius: var(--radius-md);
+  color: var(--text-muted);
+  background: transparent;
+  cursor: pointer;
 }
-
-.muted {
+.segmented-control button.active {
+  color: var(--color-primary-700);
+  background: var(--surface-raised);
+  box-shadow: var(--shadow-sm);
+}
+fieldset {
+  margin: 0;
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+fieldset legend {
+  padding: 0 var(--space-2);
+}
+.choice-grid label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 32px;
   color: var(--text-muted);
   font-size: var(--text-sm);
-  margin: var(--space-2) 0;
+}
+.field-help {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+.loading-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-5);
+}
+.skeleton-row {
+  height: 54px;
+  border-radius: var(--radius-lg);
+  background: var(--surface-inset);
+  animation: pulse 1.4s ease-in-out infinite;
+}
+.error-panel {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-5);
+  color: var(--color-danger-700);
+}
+.error-panel div {
+  flex: 1;
+}
+.error-panel p {
+  margin: var(--space-1) 0 0;
+  color: var(--text-muted);
+}
+@keyframes pulse {
+  50% {
+    opacity: 0.55;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-row {
+    animation: none;
+  }
+}
+@media (max-width: 760px) {
+  .notification-summary {
+    grid-template-columns: auto 1fr;
+  }
+  .summary-stats {
+    grid-column: 1 / -1;
+    width: 100%;
+    justify-content: space-between;
+  }
+  .section-tabs {
+    width: 100%;
+  }
+  .section-tabs button {
+    flex: 1;
+    justify-content: center;
+  }
+  .content-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .content-header :deep(.btn-primary) {
+    width: 100%;
+  }
+  .incident-row,
+  .rule-row,
+  .target-row {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+  .incident-time,
+  .rule-targets {
+    width: 100%;
+    align-items: flex-start;
+    padding-left: 50px;
+  }
+  .form-grid,
+  .choice-grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>
