@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.4.0-beta.5] - 2026-08-22
+
+### Added
+- Guided Fleet setup, peer access controls, runtime provider selection, and remote deployment inventories
+- Deployment autoscaling configuration with workload compatibility and activation guidance
+- Grouped notification incidents with editable targets and delivery rules
+
+### Changed
+- Deployments show the selected server in the navigation and remain local by default
+- Deployment configuration keeps scaling beside settings while service image changes remain in the overview
+
 ## [0.4.0-beta.4] - 2026-08-21
 
 ### Added

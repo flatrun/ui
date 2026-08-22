@@ -525,12 +525,56 @@ export interface NotificationTarget {
   name: string;
   url: string;
   enabled: boolean;
+  kind?: "email" | "webhook" | "custom";
+  topics?: string[];
+  severities?: NotificationSeverity[];
+  nodes?: string[];
+  deployments?: string[];
+}
+
+export type NotificationSeverity = "info" | "warning" | "critical";
+export type IncidentAction = "opened" | "updated" | "resolved";
+
+export interface NotificationRule {
+  id: string;
+  name: string;
+  enabled: boolean;
+  topics?: string[];
+  event_types?: string[];
+  severities?: NotificationSeverity[];
+  nodes?: string[];
+  deployments?: string[];
+  notifications?: IncidentAction[];
+  target_ids: string[];
+}
+
+export interface NotificationIncident {
+  id: string;
+  correlation_key: string;
+  status: "open" | "resolved";
+  severity: NotificationSeverity;
+  title: string;
+  event_count: number;
+  first_event_at: string;
+  last_event_at: string;
+  last_event: {
+    source: string;
+    type: string;
+    title: string;
+    message: string;
+    scope: { node?: string; deployment?: string; container?: string };
+  };
 }
 
 export const notificationsApi = {
   getTargets: () => apiClient.get<{ targets: NotificationTarget[] }>("/notifications/targets"),
   updateTargets: (targets: NotificationTarget[]) => apiClient.put("/notifications/targets", { targets }),
+  getRules: () => apiClient.get<{ rules: NotificationRule[] }>("/notifications/rules"),
+  updateRules: (rules: NotificationRule[]) =>
+    apiClient.put<{ rules: NotificationRule[] }>("/notifications/rules", { rules }),
+  getIncidents: () => apiClient.get<{ incidents: NotificationIncident[] }>("/notifications/incidents"),
   test: (url: string) => apiClient.post("/notifications/test", { url }),
+  testTarget: (targetId: string) => apiClient.post("/notifications/test", { target_id: targetId }),
 };
 
 export const configApi = {
@@ -818,6 +862,7 @@ export interface NetworkInterface {
 
 export interface ServerInfo {
   hostname: string;
+  agent_url: string;
   public_ipv4: string;
   public_ipv6: string;
   interfaces: NetworkInterface[];
@@ -1966,17 +2011,52 @@ export const powerDnsApi = {
 export interface ClusterStatus {
   enabled: boolean;
   server_name?: string;
+  advertise_url?: string;
   peer_count?: number;
   version?: { version: string; build_time: string; git_commit: string };
 }
 
+export interface ClusterProviderOption {
+  id: string;
+  active: boolean;
+  available: boolean;
+  reason?: string;
+}
+
+export interface ClusterProviders {
+  orchestrators: ClusterProviderOption[];
+  routing: ClusterProviderOption[];
+  k3s: { kubeconfig: string; namespace: string };
+}
+
 export interface ClusterPeer {
-  id: number;
   name: string;
   url: string;
-  status: string;
-  created_at: string;
-  last_seen_at?: string;
+  online: boolean;
+  last_seen: string;
+  error?: string;
+}
+
+export type ClusterCapability =
+  | "fleet.read"
+  | "deployments.read"
+  | "deployments.run"
+  | "capacity.read"
+  | "capacity.offer"
+  | "events.publish"
+  | "routing.manage";
+
+export interface ClusterGrant {
+  capability: ClusterCapability;
+  deployments?: string[];
+  max_cpu?: number;
+  max_memory?: number;
+  max_replicas?: number;
+}
+
+export interface ClusterPeerPolicy {
+  peer: string;
+  grants: ClusterGrant[];
 }
 
 export interface ClusterInvite {
@@ -1990,15 +2070,105 @@ export interface ClusterAcceptResult {
   status: string;
 }
 
+export interface ClusterServerDeployments {
+  name: string;
+  online: boolean;
+  data?: { deployments: Deployment[] };
+  error?: string;
+}
+
+export interface ClusterDeployments {
+  servers: Record<string, ClusterServerDeployments>;
+}
+
+export interface AutoscalePolicy {
+  enabled: boolean;
+  min_replicas: number;
+  max_replicas: number;
+  scale_up_percent: number;
+  scale_down_percent: number;
+  scale_up_windows: number;
+  scale_down_windows: number;
+  cooldown_seconds: number;
+  allow_fleet_capacity: boolean;
+  state: {
+    high_windows: number;
+    low_windows: number;
+    last_action?: string;
+    active?: boolean;
+    provider?: "swarm" | "k3s";
+    service?: string;
+    replicas?: number;
+  };
+}
+
+export interface AutoscaleActivation {
+  workload: { workload: string; desired: number; available: number };
+  route: { id: string; service: string; domain: string; path?: string; protocol: string };
+}
+
+export interface AutoscaleCompatibility {
+  compatible: boolean;
+  service?: string;
+  image?: string;
+  services: string[];
+  blockers: string[];
+  warnings: string[];
+  workload?: AutoscaleWorkload;
+}
+
+export interface AutoscaleWorkload {
+  service: string;
+  stateless: boolean;
+  storage: { mode: "none" | "shared"; class: string };
+}
+
 export const clusterApi = {
   getStatus: () => apiClient.get<ClusterStatus>("/cluster/status"),
+  getProviders: () => apiClient.get<ClusterProviders>("/cluster/providers"),
+  updateProviders: (orchestrator: string, routing: string, k3s: ClusterProviders["k3s"]) =>
+    apiClient.put<{ orchestrator: string; routing: string; k3s: ClusterProviders["k3s"] }>("/cluster/providers", {
+      orchestrator,
+      routing,
+      k3s,
+    }),
+  setup: (serverName: string, advertiseUrl: string) =>
+    apiClient.post<ClusterStatus>("/cluster/setup", { server_name: serverName, advertise_url: advertiseUrl }),
   listPeers: () => apiClient.get<{ peers: ClusterPeer[] }>("/cluster/peers"),
+  getPeerPolicy: (name: string) =>
+    apiClient.get<ClusterPeerPolicy>(`/cluster/peers/${encodeURIComponent(name)}/policy`),
+  updatePeerPolicy: (name: string, grants: ClusterGrant[]) =>
+    apiClient.put<ClusterPeerPolicy>(`/cluster/peers/${encodeURIComponent(name)}/policy`, { grants }),
   createInvite: () => apiClient.post<ClusterInvite>("/cluster/invite"),
   acceptInvite: (inviteToken: string, peerUrl: string) =>
     apiClient.post<ClusterAcceptResult>("/cluster/accept", { invite_token: inviteToken, peer_url: peerUrl }),
   removePeer: (name: string) => apiClient.delete<{ status: string; peer: string }>(`/cluster/peers/${name}`),
-  getAggregatedDeployments: () => apiClient.get("/cluster/deployments"),
+  getAggregatedDeployments: () => apiClient.get<ClusterDeployments>("/cluster/deployments"),
+  deploymentAction: (server: string, name: string, action: "start" | "stop" | "restart") =>
+    apiClient.post<ActionJobResponse>(
+      `/cluster/peers/${encodeURIComponent(server)}/proxy/deployments/${encodeURIComponent(name)}/${action}`,
+    ),
+  deploymentLogs: (server: string, name: string) =>
+    apiClient.get<{ logs: string }>(
+      `/cluster/peers/${encodeURIComponent(server)}/proxy/deployments/${encodeURIComponent(name)}/logs`,
+    ),
   getAggregatedStats: () => apiClient.get("/cluster/stats"),
+};
+
+export const autoscaleApi = {
+  getPolicy: (deployment: string) =>
+    apiClient.get<AutoscalePolicy>(`/deployments/${encodeURIComponent(deployment)}/autoscale`),
+  updatePolicy: (deployment: string, policy: Omit<AutoscalePolicy, "state">) =>
+    apiClient.put<AutoscalePolicy>(`/deployments/${encodeURIComponent(deployment)}/autoscale`, policy),
+  getCompatibility: (deployment: string) =>
+    apiClient.get<AutoscaleCompatibility>(`/deployments/${encodeURIComponent(deployment)}/autoscale/compatibility`),
+  updateWorkload: (deployment: string, workload: AutoscaleWorkload) =>
+    apiClient.put<AutoscaleCompatibility>(
+      `/deployments/${encodeURIComponent(deployment)}/autoscale/workload`,
+      workload,
+    ),
+  activate: (deployment: string) =>
+    apiClient.post<AutoscaleActivation>(`/deployments/${encodeURIComponent(deployment)}/autoscale/activate`),
 };
 
 import type { User, APIKey, UserRole, UserDeploymentAccess, DeploymentAccessMap } from "@/types";

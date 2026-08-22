@@ -159,6 +159,7 @@ describe("DeploymentDetailView", () => {
           teleport: true,
           ContainerTerminal: true,
           LogViewer: true,
+          DeploymentAutoscaleCard: { template: '<div class="autoscale-test-panel" />' },
         },
       },
     });
@@ -202,6 +203,29 @@ describe("DeploymentDetailView", () => {
       const wrapper = mountView();
       await flushPromises();
       expect(wrapper.text()).toContain("Files");
+    });
+
+    it("keeps autoscaling under Configuration after Settings", async () => {
+      const wrapper = mountView();
+      await flushPromises();
+
+      expect(wrapper.find(".autoscale-test-panel").exists()).toBe(false);
+      await wrapper
+        .findAll(".tab-btn")
+        .find((tab) => tab.text().includes("Configuration"))!
+        .trigger("click");
+
+      const subTabs = wrapper.findAll(".sub-tab");
+      expect(subTabs.map((tab) => tab.text().trim())).toEqual([
+        "Settings",
+        "Autoscaling",
+        "docker-compose.yml",
+        "service.yml",
+      ]);
+      expect(subTabs[0].classes()).toContain("active");
+      await subTabs[1].trigger("click");
+
+      expect(wrapper.find(".autoscale-test-panel").exists()).toBe(true);
     });
 
     it("has Logs tab", async () => {
@@ -679,6 +703,15 @@ describe("DeploymentDetailView", () => {
       await flushPromises();
 
       expect(deploymentsApi.logs).toHaveBeenCalledWith("test-app", expect.objectContaining({ service: "web" }));
+    });
+
+    it("opens the image editor from the service actions in Overview", async () => {
+      const wrapper = mountView();
+      await flushPromises();
+
+      await wrapper.find('button[title="Edit image"]').trigger("click");
+
+      expect(wrapper.find("#overview-service-image").exists()).toBe(true);
     });
   });
 });

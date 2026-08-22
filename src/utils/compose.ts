@@ -49,6 +49,67 @@ export interface ComposeMount {
   selinux?: "z" | "Z";
 }
 
+export interface ComposeServiceImageUpdate {
+  content: string;
+  previousImage: string;
+}
+
+export function updateComposeServiceImage(
+  content: string,
+  serviceName: string,
+  image: string,
+): ComposeServiceImageUpdate {
+  const nextImage = image.trim();
+  if (!nextImage || /[\r\n]/.test(nextImage)) throw new Error("Enter a valid image reference");
+
+  const lines = content.split(/\r?\n/);
+  let inServices = false;
+  let serviceIndent = -1;
+  let targetIndex = -1;
+  let targetIndent = -1;
+  let imageIndex = -1;
+  let previousImage = "";
+
+  for (let index = 0; index < lines.length; index += 1) {
+    const raw = lines[index];
+    if (/^\s*#/.test(raw) || raw.trim() === "") continue;
+    const indent = raw.match(/^\s*/)?.[0].length ?? 0;
+
+    if (!inServices) {
+      if (/^services\s*:\s*$/.test(raw)) inServices = true;
+      continue;
+    }
+    if (indent === 0) break;
+    if (serviceIndent === -1) serviceIndent = indent;
+
+    if (indent === serviceIndent) {
+      const match = raw.match(/^\s*([A-Za-z0-9_.-]+)\s*:\s*$/);
+      if (match?.[1] === serviceName) {
+        targetIndex = index;
+        targetIndent = indent;
+      } else if (targetIndex !== -1) {
+        break;
+      }
+      continue;
+    }
+
+    if (targetIndex !== -1 && indent > targetIndent) {
+      const match = raw.match(/^(\s*)image\s*:\s*(.+?)\s*$/);
+      if (match) {
+        imageIndex = index;
+        previousImage = stripQuotes(match[2].trim());
+        lines[index] = `${match[1]}image: ${nextImage}`;
+        break;
+      }
+    }
+  }
+
+  if (targetIndex === -1) throw new Error(`Service ${serviceName} was not found in the Compose file`);
+  if (imageIndex === -1) lines.splice(targetIndex + 1, 0, `${" ".repeat(targetIndent + 2)}image: ${nextImage}`);
+
+  return { content: lines.join("\n"), previousImage };
+}
+
 export function extractComposeMounts(content: string): ComposeMount[] {
   if (!content) return [];
   const lines = content.split(/\r?\n/);

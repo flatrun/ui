@@ -12,21 +12,33 @@
           <Icon class="env-caret" :name="envDropdownOpen ? 'chevron-up' : 'chevron-down'" :size="14" />
         </div>
         <div v-if="envDropdownOpen" class="env-dropdown">
-          <div class="env-option active" @click="envDropdownOpen = false">
+          <button
+            class="env-option"
+            :class="{ active: selectedDeploymentServer === currentServerName }"
+            @click="openServer(currentServerName)"
+          >
             <Icon name="server" :size="16" />
             <div class="env-option-info">
               <span class="env-option-name">{{ currentServerName }}</span>
               <span class="env-option-hint">Current server</span>
             </div>
             <Icon name="check" :size="16" />
-          </div>
-          <div v-for="peer in clusterPeers" :key="peer.id" class="env-option" @click="envDropdownOpen = false">
+          </button>
+          <button
+            v-for="peer in clusterPeers"
+            :key="peer.name"
+            class="env-option"
+            :class="{ active: selectedDeploymentServer === peer.name }"
+            :disabled="!peer.online"
+            @click="openServer(peer.name)"
+          >
             <Icon name="server" :size="16" />
             <div class="env-option-info">
               <span class="env-option-name">{{ peer.name }}</span>
-              <span class="env-option-hint">{{ peer.status }}</span>
+              <span class="env-option-hint">{{ peer.online ? "Online" : "Offline" }}</span>
             </div>
-          </div>
+            <Icon v-if="selectedDeploymentServer === peer.name" name="check" :size="16" />
+          </button>
           <router-link
             v-if="authStore.hasPermission('cluster:read')"
             to="/cluster"
@@ -34,7 +46,7 @@
             @click="envDropdownOpen = false"
           >
             <Icon name="settings" :size="16" />
-            <span class="env-option-name">Manage Cluster</span>
+            <span class="env-option-name">Manage Fleet</span>
           </router-link>
         </div>
       </div>
@@ -56,6 +68,18 @@
           <span v-if="!sidebarCollapsed">Agents</span>
         </router-link>
 
+        <router-link
+          v-if="authStore.hasPermission('cluster:read')"
+          to="/cluster"
+          class="nav-item"
+          active-class="active"
+          title="Fleet"
+        >
+          <Icon name="boxes" :size="18" />
+          <span v-if="!sidebarCollapsed">Fleet</span>
+          <span v-if="!sidebarCollapsed && clusterPeers.length" class="nav-count">{{ clusterPeers.length + 1 }}</span>
+        </router-link>
+
         <div v-if="authStore.hasPermission('deployments:read')" class="nav-group">
           <div class="nav-group-header" @click="toggleGroup('stacks')">
             <Icon name="layers" :size="17" />
@@ -71,11 +95,36 @@
             :class="{ open: expandedGroups.stacks && !sidebarCollapsed, flyout: sidebarCollapsed }"
             class="nav-group-items"
           >
-            <router-link to="/deployments" class="nav-subitem" active-class="active">
+            <router-link
+              to="/deployments"
+              class="nav-subitem"
+              :class="{ active: route.name === 'deployments' && !selectedDeploymentServer }"
+            >
               <Icon name="layers" :size="15" />
               Deployments
               <span class="nav-count">{{ stats.deployments }}</span>
             </router-link>
+            <template v-if="clusterPeers.length">
+              <router-link
+                :to="serverDeploymentRoute(currentServerName)"
+                class="nav-subitem nav-server"
+                :class="{ active: selectedDeploymentServer === currentServerName }"
+              >
+                <span class="server-dot online" />
+                {{ currentServerName }}
+              </router-link>
+              <component
+                :is="peer.online ? 'router-link' : 'span'"
+                v-for="peer in clusterPeers"
+                :key="peer.name"
+                :to="peer.online ? serverDeploymentRoute(peer.name) : undefined"
+                class="nav-subitem nav-server"
+                :class="{ active: selectedDeploymentServer === peer.name, disabled: !peer.online }"
+              >
+                <span class="server-dot" :class="{ online: peer.online }" />
+                {{ peer.name }}
+              </component>
+            </template>
           </div>
         </div>
 
@@ -279,8 +328,7 @@
           v-if="
             authStore.hasPermission('system:read') ||
             authStore.hasPermission('infrastructure:read') ||
-            authStore.hasPermission('scheduler:read') ||
-            authStore.hasPermission('cluster:read')
+            authStore.hasPermission('scheduler:read')
           "
           class="nav-group"
         >
@@ -324,16 +372,6 @@
             >
               <Icon name="folder" :size="15" />
               Files
-            </router-link>
-            <router-link
-              v-if="authStore.hasPermission('cluster:read')"
-              to="/cluster"
-              class="nav-subitem"
-              active-class="active"
-            >
-              <Icon name="boxes" :size="15" />
-              Cluster
-              <span v-if="clusterPeers.length" class="nav-count">{{ clusterPeers.length + 1 }}</span>
             </router-link>
             <router-link
               v-if="authStore.hasPermission('infrastructure:read')"
@@ -444,6 +482,15 @@
               Updates
             </router-link>
             <router-link
+              v-if="authStore.hasPermission('settings:read')"
+              to="/notifications"
+              class="nav-subitem"
+              active-class="active"
+            >
+              <Icon name="bell" :size="15" />
+              Notifications
+            </router-link>
+            <router-link
               v-if="authStore.hasPermission('users:read')"
               to="/users"
               class="nav-subitem"
@@ -494,23 +541,10 @@
             </div>
           </div>
         </div>
-        <div v-if="!sidebarCollapsed && authStore.currentUser" class="user-info">
-          <div class="user-avatar">
-            <Icon name="user" :size="16" />
-          </div>
-          <div class="user-details">
-            <span class="user-name">{{ authStore.currentUser.username }}</span>
-            <span class="user-role">{{ authStore.currentUser.role }}</span>
-          </div>
-        </div>
         <div class="agent-status" :title="agentOnline ? 'Connected' : 'Disconnected'">
           <span class="status-dot" :class="{ online: agentOnline }" />
           <span v-if="!sidebarCollapsed" class="status-text">{{ agentOnline ? "Connected" : "Disconnected" }}</span>
         </div>
-        <button v-if="!sidebarCollapsed" class="logout-btn" @click="handleLogout">
-          <Icon name="log-out" :size="16" />
-          Sign Out
-        </button>
         <button class="collapse-btn" @click="sidebarCollapsed = !sidebarCollapsed">
           <Icon :name="sidebarCollapsed ? 'chevrons-right' : 'chevrons-left'" :size="16" />
         </button>
@@ -543,16 +577,16 @@
               <span>{{ stats.stoppedContainers }} Stopped</span>
             </div>
           </div>
-          <button
-            class="header-btn"
-            :title="theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'"
-            @click="toggleTheme"
-          >
-            <Icon :name="theme === 'dark' ? 'sun' : 'moon'" :size="16" />
-          </button>
           <button class="header-btn" :disabled="isRefreshing" @click="refreshAll">
             <Icon name="refresh-cw" :spin="isRefreshing" :size="16" />
           </button>
+          <UserMenu
+            :username="authStore.currentUser?.username"
+            :role="authStore.currentUser?.role"
+            :theme="theme"
+            @toggle-theme="toggleTheme"
+            @sign-out="handleLogout"
+          />
         </div>
       </header>
 
@@ -582,6 +616,7 @@ import { clusterApi, type ClusterPeer } from "@/services/api";
 import Logo from "@/components/base/Logo.vue";
 import Icon from "@/components/base/Icon.vue";
 import GlobalSearch from "@/components/GlobalSearch.vue";
+import UserMenu from "@/components/UserMenu.vue";
 import { useTheme } from "@/composables/useTheme";
 
 const { theme, toggleTheme } = useTheme();
@@ -600,6 +635,7 @@ const isRefreshing = ref(false);
 const envDropdownOpen = ref(false);
 const currentServerName = ref("Local Server");
 const clusterPeers = ref<ClusterPeer[]>([]);
+const selectedDeploymentServer = computed(() => (route.name === "deployments" ? String(route.query.server || "") : ""));
 
 const expandedGroups = reactive({
   stacks: true,
@@ -637,6 +673,16 @@ const toggleGroup = (group: keyof typeof expandedGroups) => {
   expandedGroups[group] = !expandedGroups[group];
 };
 
+const openServer = (server: string) => {
+  envDropdownOpen.value = false;
+  router.push(serverDeploymentRoute(server));
+};
+
+const serverDeploymentRoute = (server: string) => ({
+  path: "/deployments",
+  query: { server },
+});
+
 const getUsageClass = (percentage: number) => {
   if (percentage > 80) return "critical";
   if (percentage > 60) return "warning";
@@ -646,12 +692,13 @@ const getUsageClass = (percentage: number) => {
 const currentPageTitle = computed(() => {
   const titles: Record<string, string> = {
     home: "Dashboard",
+    agents: "Agents",
     observability: "Observability",
     logs: "Logs",
     alerts: "Alerts",
     dashboards: "Dashboards",
     "dashboard-detail": "Dashboard",
-    deployments: "Deployments",
+    deployments: selectedDeploymentServer.value ? `${selectedDeploymentServer.value} deployments` : "Deployments",
     "deployment-detail": "Deployment Details",
     containers: "Containers",
     images: "Images",
@@ -666,7 +713,8 @@ const currentPageTitle = computed(() => {
     updates: "Updates",
     "system-terminal": "System Terminal",
     "system-files": "System Files",
-    cluster: "Cluster",
+    cluster: "Fleet",
+    notifications: "Notifications",
     databases: "Database Servers",
     security: "Security & Monitoring",
     certificates: "SSL Certificates",
@@ -688,7 +736,12 @@ const breadcrumbs = computed(() => {
 
   if (routeName === "deployments") {
     crumbs.push({ label: "Stacks", path: "" });
-    crumbs.push({ label: "Deployments", path: "" });
+    if (selectedDeploymentServer.value) {
+      crumbs.push({ label: "Deployments", path: "/deployments" });
+      crumbs.push({ label: selectedDeploymentServer.value, path: "" });
+    } else {
+      crumbs.push({ label: "Deployments", path: "" });
+    }
   } else if (["containers", "images", "volumes", "networks", "docker-ports"].includes(routeName)) {
     crumbs.push({ label: "Docker", path: "" });
     crumbs.push({ label: currentPageTitle.value, path: "" });
@@ -701,7 +754,6 @@ const breadcrumbs = computed(() => {
       "server-info",
       "system-terminal",
       "system-files",
-      "cluster",
     ].includes(routeName)
   ) {
     crumbs.push({ label: "System", path: "" });
@@ -856,6 +908,7 @@ onMounted(() => {
 }
 
 .env-option {
+  width: 100%;
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -866,6 +919,12 @@ onMounted(() => {
   font-size: 0.8125rem;
   text-decoration: none;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-top: 0;
+  border-right: 0;
+  border-left: 0;
+  background: transparent;
+  font-family: inherit;
+  text-align: left;
 }
 
 .env-option:last-child {
@@ -878,7 +937,13 @@ onMounted(() => {
 }
 
 .env-option.active {
+  background: rgba(59, 130, 246, 0.12);
   color: var(--sidebar-text-active);
+}
+
+.env-option:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
 }
 
 .env-option.active .pi-check {
@@ -1087,6 +1152,29 @@ onMounted(() => {
   border-left-color: var(--accent);
 }
 
+.nav-server {
+  padding-top: var(--space-2);
+  padding-bottom: var(--space-2);
+  font-size: var(--text-xs);
+}
+
+.nav-server.disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.server-dot {
+  width: 6px;
+  height: 6px;
+  flex: 0 0 6px;
+  background: var(--c-red);
+  border-radius: var(--radius-full);
+}
+
+.server-dot.online {
+  background: var(--c-green);
+}
+
 .nav-count {
   background: rgba(255, 255, 255, 0.1);
   padding: 0.125rem 0.5rem;
@@ -1142,48 +1230,6 @@ onMounted(() => {
   background: var(--c-red);
 }
 
-.user-info {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 6px;
-  margin-bottom: 0.75rem;
-}
-
-.user-avatar {
-  width: 32px;
-  height: 32px;
-  background: var(--accent);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.user-avatar i {
-  font-size: 0.875rem;
-  color: var(--sidebar-text-hover);
-}
-
-.user-details {
-  display: flex;
-  flex-direction: column;
-}
-
-.user-name {
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--sidebar-text-hover);
-}
-
-.user-role {
-  font-size: 0.75rem;
-  color: var(--sidebar-text);
-  text-transform: capitalize;
-}
-
 .agent-status {
   display: flex;
   align-items: center;
@@ -1223,28 +1269,6 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.logout-btn {
-  width: 100%;
-  padding: 0.5rem;
-  background: rgba(239, 68, 68, 0.1);
-  border: none;
-  border-radius: var(--radius-sm);
-  color: #f87171;
-  cursor: pointer;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  font-size: 0.8125rem;
-  margin-bottom: 0.5rem;
-}
-
-.logout-btn:hover {
-  background: rgba(239, 68, 68, 0.2);
-  color: #fca5a5;
 }
 
 .collapse-btn {

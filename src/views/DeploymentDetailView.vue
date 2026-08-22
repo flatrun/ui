@@ -101,9 +101,8 @@
             :status="deployment?.status"
             @open="showDiagnostics = true"
           />
-
           <div class="info-cards">
-            <div class="info-card">
+            <div class="info-card general-overview-card">
               <div class="card-header">
                 <i class="pi pi-info-circle" />
                 <h3>General Information</h3>
@@ -183,7 +182,7 @@
               </div>
             </div>
 
-            <div class="info-card">
+            <div class="info-card domain-overview-card">
               <div class="card-header">
                 <i class="pi pi-globe" />
                 <h3>Domain & SSL</h3>
@@ -323,7 +322,7 @@
               </div>
             </div>
 
-            <div class="info-card">
+            <div class="info-card service-overview-card">
               <div class="card-header">
                 <i class="pi pi-box" />
                 <h3>Services</h3>
@@ -368,6 +367,14 @@
                       </button>
                       <button class="action-btn" title="Resources" @click="openServiceResources(service)">
                         <i class="pi pi-sliders-h" />
+                      </button>
+                      <button
+                        v-if="canWrite"
+                        class="action-btn"
+                        title="Edit image"
+                        @click="openServiceImageEditor(service)"
+                      >
+                        <Icon name="pencil" :size="14" />
                       </button>
                       <button class="action-btn" title="Terminal" @click="openTerminal(service)">
                         <i class="pi pi-desktop" />
@@ -1195,7 +1202,14 @@
               </div>
             </div>
 
-            <div v-if="activeConfigTab !== 'settings'" class="config-sections">
+            <DeploymentAutoscaleCard
+              v-if="activeConfigTab === 'autoscaling'"
+              class="config-autoscaling"
+              :deployment="route.params.name as string"
+              :can-write="canWrite"
+            />
+
+            <div v-if="activeConfigTab === 'compose' || activeConfigTab === 'service'" class="config-sections">
               <div v-if="activeConfigTab === 'compose'" class="config-section">
                 <div class="config-header">
                   <h3>Docker Compose Configuration</h3>
@@ -1889,6 +1903,37 @@
       @close="showHealthCheckModal = false"
       @saved="handleHealthCheckSaved"
     />
+
+    <BaseModal
+      :visible="Boolean(editingServiceImage)"
+      title="Change service image"
+      :subtitle="editingServiceImage ? `Update the image used by ${editingServiceImage.name}.` : ''"
+      icon="solar:box-bold-duotone"
+      size="sm"
+      @close="closeServiceImageEditor"
+    >
+      <form id="overview-service-image-form" class="service-image-form" @submit.prevent="saveServiceImage">
+        <label for="overview-service-image">Image reference</label>
+        <input
+          id="overview-service-image"
+          v-model.trim="serviceImageReference"
+          class="form-input"
+          autocomplete="off"
+          placeholder="nginx:1.27"
+          required
+        />
+        <span class="field-hint">Use a complete image reference, including the tag or digest you want to deploy.</span>
+        <div v-if="serviceImageError" class="form-error" role="alert">{{ serviceImageError }}</div>
+      </form>
+      <template #footer>
+        <BaseButton variant="secondary" :disabled="savingServiceImage" @click="closeServiceImageEditor">
+          Cancel
+        </BaseButton>
+        <BaseButton form="overview-service-image-form" type="submit" variant="primary" :loading="savingServiceImage">
+          Save image
+        </BaseButton>
+      </template>
+    </BaseModal>
   </div>
 </template>
 
@@ -1935,11 +1980,12 @@ import { usePluginsStore } from "@/stores/plugins";
 import DomainsManager from "@/components/DomainsManager.vue";
 import DomainFormModal from "@/components/DomainFormModal.vue";
 import ContainerResourcesModal from "@/components/ContainerResourcesModal.vue";
+import DeploymentAutoscaleCard from "@/components/DeploymentAutoscaleCard.vue";
 import DeploymentDiagnosticsModal from "@/components/DeploymentDiagnosticsModal.vue";
 import DeploymentHealthCheckModal from "@/components/DeploymentHealthCheckModal.vue";
 import LogFilePicker from "@/components/LogFilePicker.vue";
 import BaseModal from "@/components/base/BaseModal.vue";
-import { extractComposeMounts, extractComposeServiceNames } from "@/utils/compose";
+import { extractComposeMounts, extractComposeServiceNames, updateComposeServiceImage } from "@/utils/compose";
 import { matchTypeHints, describeBlockedRule } from "@/utils/protectedMode";
 import { usePlanFlow } from "@/composables/usePlanFlow";
 import SplitActionButton from "@/components/base/SplitActionButton.vue";
@@ -2081,6 +2127,10 @@ const tabBarItems = computed(() => {
 });
 
 const services = ref<any[]>([]);
+const editingServiceImage = ref<any | null>(null);
+const serviceImageReference = ref("");
+const savingServiceImage = ref(false);
+const serviceImageError = ref("");
 const hasMultipleDomains = computed(() => {
   return deployment.value?.metadata?.domains && deployment.value.metadata.domains.length > 1;
 });
@@ -2182,12 +2232,13 @@ const isEditingConfig = ref(false);
 const serviceConfig = ref("");
 const isEditingServiceConfig = ref(false);
 const configExtensions = [yaml(), oneDark];
-const activeConfigTab = ref<"compose" | "service" | "settings">("compose");
+const activeConfigTab = ref<"settings" | "autoscaling" | "compose" | "service">("settings");
 
 const configSubTabs = computed(() => [
+  { id: "settings", label: "Settings", icon: "pi pi-sliders-h" },
+  { id: "autoscaling", label: "Autoscaling", icon: "pi pi-chart-line" },
   { id: "compose", label: composeFilename.value, icon: "pi pi-file" },
   { id: "service", label: "service.yml", icon: "pi pi-cog" },
-  { id: "settings", label: "Settings", icon: "pi pi-sliders-h" },
 ]);
 
 const showOperationModal = ref(false);
@@ -3434,6 +3485,46 @@ const saveConfig = async () => {
   notifications.success("Saved", "Configuration saved successfully");
 };
 
+const openServiceImageEditor = (service: any) => {
+  editingServiceImage.value = service;
+  serviceImageReference.value = service.image || "";
+  serviceImageError.value = "";
+};
+
+const closeServiceImageEditor = () => {
+  if (savingServiceImage.value) return;
+  editingServiceImage.value = null;
+  serviceImageError.value = "";
+};
+
+const saveServiceImage = async () => {
+  if (!editingServiceImage.value) return;
+  serviceImageError.value = "";
+  savingServiceImage.value = true;
+  try {
+    const updated = updateComposeServiceImage(
+      composeConfig.value,
+      editingServiceImage.value.name,
+      serviceImageReference.value,
+    ).content;
+    const result = await runGuarded(
+      () => deploymentsApi.update(route.params.name as string, { compose_content: updated }),
+      () => deploymentsApi.update(route.params.name as string, { compose_content: updated }, { plan: true }),
+      "Image update failed",
+    );
+    if (result === false) return;
+    composeConfig.value = updated;
+    originalConfig = updated;
+    notifications.success("Image updated", `${editingServiceImage.value.name} will use ${serviceImageReference.value}`);
+    editingServiceImage.value = null;
+    await fetchDeployment();
+  } catch (err: any) {
+    serviceImageError.value = err.response?.data?.error || err.message;
+  } finally {
+    savingServiceImage.value = false;
+  }
+};
+
 const saveServiceConfig = async () => {
   try {
     const blob = new Blob([serviceConfig.value], { type: "text/yaml" });
@@ -3707,6 +3798,7 @@ onUnmounted(() => {
 .detail-tabs {
   display: flex;
   gap: var(--space-1);
+  overflow-x: auto;
   background: var(--surface-inset);
   padding: var(--space-1);
   border-radius: var(--radius-sm);
@@ -3724,6 +3816,7 @@ onUnmounted(() => {
   color: var(--text-muted);
   cursor: pointer;
   transition: all var(--transition-base);
+  white-space: nowrap;
 }
 
 .tab-btn:hover {
@@ -3748,14 +3841,17 @@ onUnmounted(() => {
 }
 
 .overview-tab {
-  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-4);
 }
 
 .info-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--space-4);
-  margin-bottom: var(--space-4);
+  align-items: start;
 }
 
 .info-card {
@@ -4157,6 +4253,18 @@ onUnmounted(() => {
   margin: var(--space-2) 0 0;
 }
 
+.service-image-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.service-image-form label {
+  color: var(--text);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+}
+
 .service-status.running {
   background: var(--color-success-50);
   color: var(--color-success-700);
@@ -4537,6 +4645,11 @@ onUnmounted(() => {
   padding: var(--space-4);
 }
 
+.config-autoscaling {
+  border: 0;
+  box-shadow: none;
+}
+
 .config-section {
   display: flex;
   flex-direction: column;
@@ -4711,7 +4824,17 @@ onUnmounted(() => {
 }
 
 .overview-summary {
-  margin-bottom: var(--space-4);
+  margin: 0;
+}
+
+@media (max-width: 960px) {
+  .info-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .info-card.wide {
+    grid-column: auto;
+  }
 }
 
 .files-tab {

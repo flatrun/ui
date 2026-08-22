@@ -5,6 +5,10 @@ import DeploymentsView from "./DeploymentsView.vue";
 import { useAuthStore } from "@/stores/auth";
 
 vi.mock("@/services/api", () => ({
+  clusterApi: {
+    getStatus: vi.fn().mockResolvedValue({ data: { enabled: false } }),
+    getAggregatedDeployments: vi.fn(),
+  },
   deploymentsApi: {
     list: vi.fn().mockResolvedValue({
       data: {
@@ -81,15 +85,18 @@ vi.mock("@/services/api", () => ({
 }));
 
 const mockPush = vi.fn();
+const mockRoute = { query: {} as Record<string, string>, name: "deployments" };
 vi.mock("vue-router", () => ({
   useRouter: () => ({
     push: mockPush,
   }),
+  useRoute: () => mockRoute,
 }));
 
 describe("DeploymentsView", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockRoute.query = {};
   });
 
   const mountView = () => {
@@ -158,6 +165,68 @@ describe("DeploymentsView", () => {
       mountView();
       await flushPromises();
       expect(deploymentsApi.list).toHaveBeenCalled();
+    });
+
+    it("filters the aggregate inventory by the selected server", async () => {
+      const { clusterApi } = await import("@/services/api");
+      mockRoute.query = { server: "prod-2" };
+      vi.mocked(clusterApi.getStatus).mockResolvedValueOnce({
+        data: { enabled: true, server_name: "prod-1" },
+      } as any);
+      vi.mocked(clusterApi.getAggregatedDeployments).mockResolvedValueOnce({
+        data: {
+          servers: {
+            "prod-1": {
+              name: "prod-1",
+              online: true,
+              data: { deployments: [{ name: "local-app", status: "running", services: [] }] },
+            },
+            "prod-2": {
+              name: "prod-2",
+              online: true,
+              data: { deployments: [{ name: "remote-app", status: "running", services: [] }] },
+            },
+          },
+        },
+      } as any);
+
+      const wrapper = mountView();
+      await flushPromises();
+
+      expect(wrapper.text()).toContain("remote-app");
+      expect(wrapper.text()).not.toContain("local-app");
+      expect(wrapper.find(".server-context").exists()).toBe(false);
+      expect(wrapper.text()).not.toContain("New Deployment");
+    });
+
+    it("shows only local deployments when no peer is selected", async () => {
+      const { clusterApi } = await import("@/services/api");
+      vi.mocked(clusterApi.getStatus).mockResolvedValueOnce({
+        data: { enabled: true, server_name: "prod-1" },
+      } as any);
+      vi.mocked(clusterApi.getAggregatedDeployments).mockResolvedValueOnce({
+        data: {
+          servers: {
+            "prod-1": {
+              name: "prod-1",
+              online: true,
+              data: { deployments: [{ name: "local-app", status: "running", services: [] }] },
+            },
+            "prod-2": {
+              name: "prod-2",
+              online: true,
+              data: { deployments: [{ name: "remote-app", status: "running", services: [] }] },
+            },
+          },
+        },
+      } as any);
+
+      const wrapper = mountView();
+      await flushPromises();
+
+      expect(wrapper.text()).toContain("local-app");
+      expect(wrapper.text()).not.toContain("remote-app");
+      expect(wrapper.find(".server-context").exists()).toBe(false);
     });
   });
 

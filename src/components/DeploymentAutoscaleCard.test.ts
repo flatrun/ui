@@ -1,0 +1,124 @@
+import { flushPromises, mount } from "@vue/test-utils";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import DeploymentAutoscaleCard from "./DeploymentAutoscaleCard.vue";
+
+vi.mock("@/stores/notifications", () => ({
+  useNotificationsStore: () => ({ success: vi.fn(), error: vi.fn() }),
+}));
+
+vi.mock("@/services/api", () => ({
+  autoscaleApi: {
+    getPolicy: vi.fn(),
+    updatePolicy: vi.fn(),
+    getCompatibility: vi.fn(),
+    updateWorkload: vi.fn(),
+    activate: vi.fn(),
+  },
+}));
+
+describe("DeploymentAutoscaleCard", () => {
+  beforeEach(async () => {
+    window.history.replaceState({}, "", "/");
+    vi.clearAllMocks();
+    const { autoscaleApi } = await import("@/services/api");
+    vi.mocked(autoscaleApi.getPolicy).mockResolvedValue({
+      data: {
+        enabled: true,
+        min_replicas: 1,
+        max_replicas: 3,
+        scale_up_percent: 80,
+        scale_down_percent: 30,
+        scale_up_windows: 3,
+        scale_down_windows: 10,
+        cooldown_seconds: 300,
+        allow_fleet_capacity: false,
+        state: { high_windows: 0, low_windows: 0 },
+      },
+    } as any);
+    vi.mocked(autoscaleApi.updatePolicy).mockImplementation(
+      async (_deployment, policy) =>
+        ({
+          data: { ...policy, state: { high_windows: 0, low_windows: 0 } },
+        }) as any,
+    );
+    vi.mocked(autoscaleApi.getCompatibility).mockResolvedValue({
+      data: {
+        compatible: true,
+        service: "app",
+        image: "nginx:alpine",
+        services: ["app"],
+        blockers: [],
+        warnings: [],
+        workload: { service: "app", stateless: true, storage: { mode: "none", class: "" } },
+      },
+    } as any);
+    vi.mocked(autoscaleApi.updateWorkload).mockResolvedValue({
+      data: {
+        compatible: true,
+        service: "app",
+        image: "nginx:alpine",
+        services: ["app"],
+        blockers: [],
+        warnings: [],
+        workload: { service: "app", stateless: true, storage: { mode: "none", class: "" } },
+      },
+    } as any);
+    vi.mocked(autoscaleApi.activate).mockResolvedValue({
+      data: { workload: { workload: "shop", desired: 1, available: 1 }, route: { id: "shop" } },
+    } as any);
+  });
+
+  it("activates managed scaling through a confirmation modal", async () => {
+    const { autoscaleApi } = await import("@/services/api");
+    const wrapper = mount(DeploymentAutoscaleCard, {
+      props: { deployment: "shop", canWrite: true },
+      global: {
+        stubs: {
+          BaseModal: {
+            props: ["visible"],
+            template: '<div v-if="visible"><slot /><slot name="footer" /></div>',
+          },
+        },
+      },
+    });
+    await flushPromises();
+    await wrapper.find(".activate-button").trigger("click");
+    await wrapper
+      .findAll("button")
+      .find((button) => button.text() === "Activate scaling")
+      ?.trigger("click");
+    await flushPromises();
+
+    expect(autoscaleApi.activate).toHaveBeenCalledWith("shop");
+  });
+
+  it("updates the policy through the deployment UI", async () => {
+    const { autoscaleApi } = await import("@/services/api");
+    const wrapper = mount(DeploymentAutoscaleCard, {
+      props: { deployment: "shop", canWrite: true },
+      global: {
+        stubs: {
+          BaseModal: {
+            props: ["visible"],
+            template: '<div v-if="visible"><slot /><slot name="footer" /></div>',
+          },
+        },
+      },
+    });
+    await flushPromises();
+    await wrapper
+      .findAll(".autoscale-header button")
+      .find((button) => button.text() === "Configure")
+      ?.trigger("click");
+    await wrapper.find('input[type="number"]').setValue(2);
+    await wrapper.find("#autoscale-policy-form").trigger("submit");
+    await flushPromises();
+
+    expect(autoscaleApi.updatePolicy).toHaveBeenCalledWith("shop", expect.objectContaining({ min_replicas: 2 }));
+    expect(autoscaleApi.updateWorkload).toHaveBeenCalledWith("shop", {
+      service: "app",
+      stateless: true,
+      storage: { mode: "none", class: "" },
+    });
+  });
+});

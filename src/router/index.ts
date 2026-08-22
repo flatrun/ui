@@ -217,6 +217,12 @@ const routes: RouteRecordRaw[] = [
         meta: { permission: "cluster:read" },
       },
       {
+        path: "notifications",
+        name: "notifications",
+        component: () => import("@/views/NotificationsView.vue"),
+        meta: { permission: "settings:read" },
+      },
+      {
         path: "security",
         name: "security",
         component: () => import("@/views/SecurityView.vue"),

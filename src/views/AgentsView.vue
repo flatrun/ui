@@ -1,22 +1,17 @@
 <template>
   <div class="agents-view">
-    <div class="view-header">
-      <div class="header-left">
-        <h2>Agents</h2>
-        <p class="subtitle">
-          Agents defined as plain markdown files, run by FlatRun through the assistant's permissioned tools
-        </p>
-      </div>
-      <div class="header-actions">
-        <button v-if="canWrite" class="btn btn-primary" @click="openEditor(null)">
-          <i class="pi pi-plus" />
-          New Agent
-        </button>
-        <button class="btn btn-icon" :disabled="loading" @click="fetchAgents">
-          <i class="pi pi-refresh" :class="{ 'pi-spin': loading }" />
-        </button>
-      </div>
-    </div>
+    <ContextBanner id="agents" icon="bot">
+      Scheduled agents use only the permissions selected for unattended runs. Interactive changes still require
+      approval.
+      <template #actions>
+        <BaseButton v-if="canWrite" size="sm" variant="primary" icon="plus" @click="openEditor(null)">
+          New agent
+        </BaseButton>
+        <BaseButton size="sm" variant="ghost" icon="refresh-cw" :loading="loading" @click="fetchAgents">
+          Refresh
+        </BaseButton>
+      </template>
+    </ContextBanner>
 
     <div v-if="loading && agents.length === 0" class="loading-state">
       <i class="pi pi-spin pi-spinner" />
@@ -190,6 +185,8 @@ import { useAssistStore } from "@/stores/assist";
 import { useAuthStore } from "@/stores/auth";
 import { useNotificationsStore } from "@/stores/notifications";
 import Icon from "@/components/base/Icon.vue";
+import ContextBanner from "@/components/base/ContextBanner.vue";
+import BaseButton from "@/components/base/BaseButton.vue";
 import ConfirmModal from "@/components/ConfirmModal.vue";
 
 const agents = ref<AgentDefinition[]>([]);
@@ -412,19 +409,9 @@ onMounted(fetchAgents);
 
 <style scoped>
 .agents-view {
-  padding: var(--space-6);
-}
-
-.view-header {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: var(--space-6);
-}
-
-.subtitle {
-  color: var(--text-muted);
-  margin-top: var(--space-1);
+  flex-direction: column;
+  gap: var(--space-4);
 }
 
 .loading-state,
@@ -497,12 +484,6 @@ onMounted(fetchAgents);
   gap: var(--space-2);
   align-items: center;
   flex-shrink: 0;
-}
-
-.header-actions {
-  display: flex;
-  gap: var(--space-2);
-  align-items: center;
 }
 
 .modal-overlay {
@@ -597,12 +578,6 @@ onMounted(fetchAgents);
 </style>
 
 <style scoped>
-.header-actions {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-}
-
 .btn-icon {
   background: var(--surface-raised);
   border-color: var(--border);

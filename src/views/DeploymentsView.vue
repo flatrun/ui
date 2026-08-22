@@ -1,23 +1,27 @@
 <template>
   <div class="deployments-view">
     <DataTable
-      :items="deployments"
+      :items="visibleDeployments"
       :columns="columns"
       :loading="loading"
       :searchable="true"
       search-placeholder="Search deployments..."
       :search-fields="['name', 'path', 'status']"
-      item-key="name"
+      item-key="clusterKey"
       :empty-icon="Inbox"
-      empty-title="No Deployments Found"
-      empty-text="Create your first deployment to get started"
+      :empty-title="selectedServer ? `No deployments on ${selectedServer}` : 'No deployments found'"
+      :empty-text="
+        selectedServer
+          ? 'Choose another Fleet server or refresh this view.'
+          : 'Create your first deployment to get started.'
+      "
       loading-text="Loading deployments..."
       :default-page-size="12"
       :toggleable="true"
       default-view-mode="grid"
     >
       <template #actions>
-        <button v-if="canWrite" class="btn btn-primary" @click="showNewDeploymentModal = true">
+        <button v-if="canWrite && !viewingRemoteServer" class="btn btn-primary" @click="showNewDeploymentModal = true">
           <Plus :size="16" />
           New Deployment
         </button>
@@ -32,8 +36,9 @@
       </template>
 
       <template #cell-name="{ item }">
-        <div class="deployment-info clickable" @click="goToDeployment(item.name)">
+        <div class="deployment-info" :class="{ clickable: item.local }" @click="goToDeployment(item)">
           <span class="deployment-name">{{ item.name }}</span>
+          <span class="server-badge">{{ item.server }}</span>
           <span v-if="item.metadata?.networking?.domain" class="deployment-domain">
             {{ item.metadata.networking.domain }}
           </span>
@@ -87,7 +92,7 @@
             class="action-btn start"
             title="Start"
             :disabled="item.status === 'running'"
-            @click.stop="handleOperation('start', item.name)"
+            @click.stop="handleOperation('start', item)"
           >
             <Play :size="14" />
           </button>
@@ -96,7 +101,7 @@
             class="action-btn stop"
             title="Stop"
             :disabled="item.status === 'stopped'"
-            @click.stop="handleOperation('stop', item.name)"
+            @click.stop="handleOperation('stop', item)"
           >
             <Square :size="14" />
           </button>
@@ -105,11 +110,11 @@
             class="action-btn restart"
             title="Restart"
             :disabled="item.status === 'stopped'"
-            @click.stop="handleOperation('restart', item.name)"
+            @click.stop="handleOperation('restart', item)"
           >
             <RotateCw :size="14" />
           </button>
-          <button class="action-btn logs" title="Logs" @click.stop="viewLogs(item.name)">
+          <button class="action-btn logs" title="Logs" @click.stop="viewLogs(item)">
             <FileText :size="14" />
           </button>
         </div>
@@ -119,14 +124,14 @@
         <div class="deployments-grid">
           <DeploymentCard
             v-for="deployment in items"
-            :key="deployment.name"
+            :key="deployment.clusterKey"
             :name="deployment.name"
             :status="deployment.status"
             :logo="getDeploymentLogo(deployment)"
             :icon="getDeploymentIcon(deployment)"
             :icon-class="getDeploymentIconClass(deployment)"
-            :clickable="true"
-            @click="goToDeployment(deployment.name)"
+            :clickable="deployment.local"
+            @click="goToDeployment(deployment)"
           >
             <!-- Domain Link -->
             <div
@@ -237,7 +242,7 @@
                 class="icon-btn start"
                 title="Start"
                 :disabled="deployment.status === 'running'"
-                @click="handleOperation('start', deployment.name)"
+                @click="handleOperation('start', deployment)"
               >
                 <Play :size="14" />
               </button>
@@ -246,7 +251,7 @@
                 class="icon-btn stop"
                 title="Stop"
                 :disabled="deployment.status === 'stopped'"
-                @click="handleOperation('stop', deployment.name)"
+                @click="handleOperation('stop', deployment)"
               >
                 <Square :size="14" />
               </button>
@@ -255,14 +260,19 @@
                 class="icon-btn restart"
                 title="Restart"
                 :disabled="deployment.status === 'stopped'"
-                @click="handleOperation('restart', deployment.name)"
+                @click="handleOperation('restart', deployment)"
               >
                 <RotateCw :size="14" />
               </button>
-              <button class="icon-btn logs" title="Logs" @click="viewLogs(deployment.name)">
+              <button class="icon-btn logs" title="Logs" @click="viewLogs(deployment)">
                 <FileText :size="14" />
               </button>
-              <button class="icon-btn settings" title="Settings" @click="goToDeployment(deployment.name)">
+              <button
+                v-if="deployment.local"
+                class="icon-btn settings"
+                title="Settings"
+                @click="goToDeployment(deployment)"
+              >
                 <Settings :size="14" />
               </button>
             </template>
@@ -297,16 +307,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
-import { useRouter } from "vue-router";
-import { deploymentsApi } from "@/services/api";
+import { computed, ref, onMounted } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { clusterApi, deploymentsApi } from "@/services/api";
 import { useNotificationsStore } from "@/stores/notifications";
 import { useAuthStore } from "@/stores/auth";
 import type { Deployment } from "@/types";
 import DataTable from "@/components/DataTable.vue";
 import DeploymentCard from "@/components/DeploymentCard.vue";
 import OperationModal from "@/components/OperationModal.vue";
-import { useDeploymentJob, type DeploymentOperation } from "@/composables/useDeploymentJob";
+import { useDeploymentJob } from "@/composables/useDeploymentJob";
 import LogsModal from "@/components/LogsModal.vue";
 import NewDeploymentModal from "@/components/NewDeploymentModal.vue";
 import {
@@ -332,12 +342,20 @@ import {
 import type { Service } from "@/types";
 
 const router = useRouter();
+const route = useRoute();
 const notifications = useNotificationsStore();
 const authStore = useAuthStore();
 const canWrite = authStore.hasPermission("deployments:write");
-const deployments = ref<Deployment[]>([]);
+type ManagedDeployment = Deployment & { server: string; local: boolean; clusterKey: string };
+const deployments = ref<ManagedDeployment[]>([]);
+const localServer = ref("This server");
 const loading = ref(true);
 const showNewDeploymentModal = ref(false);
+const selectedServer = computed(() => String(route.query.server || ""));
+const viewingRemoteServer = computed(() => Boolean(selectedServer.value) && selectedServer.value !== localServer.value);
+const visibleDeployments = computed(() =>
+  deployments.value.filter((deployment) => deployment.server === (selectedServer.value || localServer.value)),
+);
 
 const deploymentJob = useDeploymentJob((state) => {
   const op = state.operation;
@@ -368,8 +386,23 @@ const columns = [
 const fetchDeployments = async () => {
   loading.value = true;
   try {
-    const response = await deploymentsApi.list();
-    deployments.value = response.data.deployments || [];
+    const status = await clusterApi.getStatus();
+    if (!status.data.enabled) {
+      const response = await deploymentsApi.list();
+      deployments.value = (response.data.deployments || []).map((deployment) =>
+        managedDeployment(deployment, localServer.value, true),
+      );
+      return;
+    }
+    localServer.value = status.data.server_name || localServer.value;
+    const response = await clusterApi.getAggregatedDeployments();
+    deployments.value = Object.values(response.data.servers).flatMap((server) =>
+      server.online
+        ? (server.data?.deployments || []).map((deployment) =>
+            managedDeployment(deployment, server.name, server.name === localServer.value),
+          )
+        : [],
+    );
   } catch (e: any) {
     notifications.error("Failed to load deployments", e.message);
   } finally {
@@ -382,23 +415,42 @@ const refreshDeployments = () => {
   notifications.info("Refreshing", "Fetching latest deployment status");
 };
 
-const handleOperation = (op: DeploymentOperation, name: string) => {
-  deploymentJob.run(op, name);
+const managedDeployment = (deployment: Deployment, server: string, local: boolean): ManagedDeployment => ({
+  ...deployment,
+  server,
+  local,
+  clusterKey: `${server}:${deployment.name}`,
+});
+
+const handleOperation = async (op: "start" | "stop" | "restart", deployment: ManagedDeployment) => {
+  if (deployment.local) {
+    deploymentJob.run(op, deployment.name);
+    return;
+  }
+  try {
+    await clusterApi.deploymentAction(deployment.server, deployment.name, op);
+    notifications.success(`${op} started`, `${deployment.name} on ${deployment.server}`);
+    await fetchDeployments();
+  } catch (e: any) {
+    notifications.error(`${op} failed`, e.response?.data?.error || e.message);
+  }
 };
 
 const closeOperationModal = () => {
   deploymentJob.close();
 };
 
-const viewLogs = async (name: string) => {
+const viewLogs = async (deployment: ManagedDeployment) => {
   logsModal.value = {
     visible: true,
-    deploymentName: name,
+    deploymentName: `${deployment.name} on ${deployment.server}`,
     logs: "Loading...",
   };
 
   try {
-    const response = await deploymentsApi.logs(name);
+    const response = deployment.local
+      ? await deploymentsApi.logs(deployment.name)
+      : await clusterApi.deploymentLogs(deployment.server, deployment.name);
     logsModal.value.logs = response.data.logs || "No logs available";
   } catch (e: any) {
     logsModal.value.logs = `Error: ${e.message}`;
@@ -412,8 +464,8 @@ const onDeploymentCreated = () => {
   notifications.success("Deployment created", "New deployment folder created successfully");
 };
 
-const goToDeployment = (name: string) => {
-  router.push(`/deployments/${name}`);
+const goToDeployment = (deployment: ManagedDeployment) => {
+  if (deployment.local) router.push(`/deployments/${deployment.name}`);
 };
 
 const getServiceClass = (service: Service) => {
