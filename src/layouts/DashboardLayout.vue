@@ -504,23 +504,10 @@
             </div>
           </div>
         </div>
-        <div v-if="!sidebarCollapsed && authStore.currentUser" class="user-info">
-          <div class="user-avatar">
-            <Icon name="user" :size="16" />
-          </div>
-          <div class="user-details">
-            <span class="user-name">{{ authStore.currentUser.username }}</span>
-            <span class="user-role">{{ authStore.currentUser.role }}</span>
-          </div>
-        </div>
         <div class="agent-status" :title="agentOnline ? 'Connected' : 'Disconnected'">
           <span class="status-dot" :class="{ online: agentOnline }" />
           <span v-if="!sidebarCollapsed" class="status-text">{{ agentOnline ? "Connected" : "Disconnected" }}</span>
         </div>
-        <button v-if="!sidebarCollapsed" class="logout-btn" @click="handleLogout">
-          <Icon name="log-out" :size="16" />
-          Sign Out
-        </button>
         <button class="collapse-btn" @click="sidebarCollapsed = !sidebarCollapsed">
           <Icon :name="sidebarCollapsed ? 'chevrons-right' : 'chevrons-left'" :size="16" />
         </button>
@@ -553,16 +540,16 @@
               <span>{{ stats.stoppedContainers }} Stopped</span>
             </div>
           </div>
-          <button
-            class="header-btn"
-            :title="theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'"
-            @click="toggleTheme"
-          >
-            <Icon :name="theme === 'dark' ? 'sun' : 'moon'" :size="16" />
-          </button>
           <button class="header-btn" :disabled="isRefreshing" @click="refreshAll">
             <Icon name="refresh-cw" :spin="isRefreshing" :size="16" />
           </button>
+          <UserMenu
+            :username="authStore.currentUser?.username"
+            :role="authStore.currentUser?.role"
+            :theme="theme"
+            @toggle-theme="toggleTheme"
+            @sign-out="handleLogout"
+          />
         </div>
       </header>
 
@@ -592,6 +579,7 @@ import { clusterApi, type ClusterPeer } from "@/services/api";
 import Logo from "@/components/base/Logo.vue";
 import Icon from "@/components/base/Icon.vue";
 import GlobalSearch from "@/components/GlobalSearch.vue";
+import UserMenu from "@/components/UserMenu.vue";
 import { useTheme } from "@/composables/useTheme";
 
 const { theme, toggleTheme } = useTheme();
@@ -1153,48 +1141,6 @@ onMounted(() => {
   background: var(--c-red);
 }
 
-.user-info {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 6px;
-  margin-bottom: 0.75rem;
-}
-
-.user-avatar {
-  width: 32px;
-  height: 32px;
-  background: var(--accent);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.user-avatar i {
-  font-size: 0.875rem;
-  color: var(--sidebar-text-hover);
-}
-
-.user-details {
-  display: flex;
-  flex-direction: column;
-}
-
-.user-name {
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--sidebar-text-hover);
-}
-
-.user-role {
-  font-size: 0.75rem;
-  color: var(--sidebar-text);
-  text-transform: capitalize;
-}
-
 .agent-status {
   display: flex;
   align-items: center;
@@ -1234,28 +1180,6 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.logout-btn {
-  width: 100%;
-  padding: 0.5rem;
-  background: rgba(239, 68, 68, 0.1);
-  border: none;
-  border-radius: var(--radius-sm);
-  color: #f87171;
-  cursor: pointer;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  font-size: 0.8125rem;
-  margin-bottom: 0.5rem;
-}
-
-.logout-btn:hover {
-  background: rgba(239, 68, 68, 0.2);
-  color: #fca5a5;
 }
 
 .collapse-btn {

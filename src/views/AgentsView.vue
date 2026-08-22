@@ -1,21 +1,19 @@
 <template>
   <div class="agents-view">
-    <PageHeader
-      title="Agents"
-      subtitle="Run reusable markdown instructions through the assistant's permissioned tools."
-      section="Automation"
-      icon="bot"
-    >
-      <template #actions>
-        <button v-if="canWrite" class="btn btn-primary" @click="openEditor(null)">
-          <i class="pi pi-plus" />
-          New Agent
-        </button>
-        <button class="btn btn-icon" :disabled="loading" @click="fetchAgents">
-          <i class="pi pi-refresh" :class="{ 'pi-spin': loading }" />
-        </button>
-      </template>
-    </PageHeader>
+    <ContextBanner id="agents" icon="bot">
+      Scheduled agents use only the permissions selected for unattended runs. Interactive changes still require
+      approval.
+    </ContextBanner>
+
+    <div class="agent-toolbar">
+      <button v-if="canWrite" class="btn btn-primary" @click="openEditor(null)">
+        <i class="pi pi-plus" />
+        New Agent
+      </button>
+      <button class="btn btn-icon" :disabled="loading" @click="fetchAgents">
+        <i class="pi pi-refresh" :class="{ 'pi-spin': loading }" />
+      </button>
+    </div>
 
     <div v-if="loading && agents.length === 0" class="loading-state">
       <i class="pi pi-spin pi-spinner" />
@@ -189,7 +187,7 @@ import { useAssistStore } from "@/stores/assist";
 import { useAuthStore } from "@/stores/auth";
 import { useNotificationsStore } from "@/stores/notifications";
 import Icon from "@/components/base/Icon.vue";
-import PageHeader from "@/components/base/PageHeader.vue";
+import ContextBanner from "@/components/base/ContextBanner.vue";
 import ConfirmModal from "@/components/ConfirmModal.vue";
 
 const agents = ref<AgentDefinition[]>([]);
@@ -411,6 +409,11 @@ onMounted(fetchAgents);
 </script>
 
 <style scoped>
+.agent-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
 .agents-view {
   padding: var(--space-6);
   display: flex;

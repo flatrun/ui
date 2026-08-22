@@ -1,18 +1,15 @@
 <template>
   <div class="notifications-view">
-    <PageHeader
-      title="Notifications"
-      subtitle="Review incidents and control where updates are delivered."
-      section="Operations"
-      icon="bell-ring"
-    />
+    <ContextBanner id="notifications" icon="bell-ring">
+      Related failures are grouped into incidents before delivery, which prevents repeated alerts for the same problem.
+    </ContextBanner>
     <NotificationsSettings />
   </div>
 </template>
 
 <script setup lang="ts">
 import NotificationsSettings from "@/components/NotificationsSettings.vue";
-import PageHeader from "@/components/base/PageHeader.vue";
+import ContextBanner from "@/components/base/ContextBanner.vue";
 </script>
 
 <style scoped>

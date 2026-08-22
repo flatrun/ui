@@ -1,17 +1,14 @@
 <template>
   <div class="cluster-view">
-    <PageHeader
-      title="Fleet"
-      subtitle="Manage peer servers and shared capacity from one place."
-      section="Infrastructure"
-      icon="network"
-    >
-      <template #actions>
-        <button class="btn btn-icon" :disabled="loading" @click="fetchAll">
-          <i class="pi pi-refresh" :class="{ 'pi-spin': loading }" />
-        </button>
-      </template>
-    </PageHeader>
+    <ContextBanner id="fleet" icon="network">
+      Connecting a server does not move existing deployments. It adds that server to this management view.
+    </ContextBanner>
+
+    <div class="fleet-toolbar">
+      <button class="btn btn-icon" :disabled="loading" aria-label="Refresh Fleet" @click="fetchAll">
+        <Icon name="refresh-cw" :spin="loading" :size="16" />
+      </button>
+    </div>
 
     <div v-if="loading && !status" class="loading-state">
       <i class="pi pi-spin pi-spinner" />
@@ -478,7 +475,7 @@ import { useAuthStore } from "@/stores/auth";
 import BaseButton from "@/components/base/BaseButton.vue";
 import BaseModal from "@/components/base/BaseModal.vue";
 import Icon from "@/components/base/Icon.vue";
-import PageHeader from "@/components/base/PageHeader.vue";
+import ContextBanner from "@/components/base/ContextBanner.vue";
 
 const notifications = useNotificationsStore();
 const authStore = useAuthStore();
@@ -902,6 +899,11 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+}
+
+.fleet-toolbar {
+  display: flex;
+  justify-content: flex-end;
 }
 
 .btn-icon {
