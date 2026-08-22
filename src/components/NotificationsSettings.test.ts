@@ -27,7 +27,7 @@ describe("NotificationsSettings", () => {
     vi.clearAllMocks();
     const { notificationsApi } = await import("@/services/api");
     vi.mocked(notificationsApi.getTargets).mockResolvedValue({
-      data: { targets: [{ id: "ops", name: "Operations", url: "smtp://mail.example.com", enabled: true }] },
+      data: { targets: [{ id: "ops", name: "Operations", url: "********", kind: "email", enabled: true }] },
     } as any);
     vi.mocked(notificationsApi.getRules).mockResolvedValue({
       data: {
@@ -68,6 +68,7 @@ describe("NotificationsSettings", () => {
       },
     } as any);
     vi.mocked(notificationsApi.updateRules).mockResolvedValue({ data: { rules: [] } } as any);
+    vi.mocked(notificationsApi.updateTargets).mockResolvedValue({ data: { targets: [] } } as any);
   });
 
   const mountSettings = () =>
@@ -75,8 +76,9 @@ describe("NotificationsSettings", () => {
       global: {
         stubs: {
           BaseModal: {
-            props: ["visible", "title"],
-            template: '<div v-if="visible" class="test-modal"><slot /><slot name="footer" /></div>',
+            props: ["visible", "title", "subtitle"],
+            template:
+              '<div v-if="visible" class="test-modal"><h2>{{ title }}</h2><p>{{ subtitle }}</p><slot /><slot name="footer" /></div>',
           },
         },
       },
@@ -121,6 +123,39 @@ describe("NotificationsSettings", () => {
         target_ids: ["ops"],
       }),
     ]);
+  });
+
+  it("edits a saved target without replacing its hidden connection", async () => {
+    const { notificationsApi } = await import("@/services/api");
+    const wrapper = mountSettings();
+    await flushPromises();
+
+    await wrapper.findAll(".section-tabs button")[2].trigger("click");
+    await wrapper
+      .findAll("button")
+      .find((button) => button.text() === "Edit")!
+      .trigger("click");
+    await wrapper.find("#target-name").setValue("Primary operations");
+    await wrapper.find("#target-form").trigger("submit");
+    await flushPromises();
+
+    expect(notificationsApi.updateTargets).toHaveBeenCalledWith([
+      expect.objectContaining({ id: "ops", name: "Primary operations", url: "********", kind: "email" }),
+    ]);
+  });
+
+  it("opens incident details from a compact row", async () => {
+    const wrapper = mountSettings();
+    await flushPromises();
+
+    await wrapper
+      .findAll("button")
+      .find((button) => button.text() === "View")!
+      .trigger("click");
+
+    expect(wrapper.text()).toContain("Incident details");
+    expect(wrapper.text()).toContain("The node stopped responding.");
+    expect(wrapper.text()).toContain("inc-42");
   });
 
   it("renders notification review data without calling the agent", async () => {

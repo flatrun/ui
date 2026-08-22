@@ -525,6 +525,7 @@ export interface NotificationTarget {
   name: string;
   url: string;
   enabled: boolean;
+  kind?: "email" | "webhook" | "custom";
   topics?: string[];
   severities?: NotificationSeverity[];
   nodes?: string[];
@@ -573,6 +574,7 @@ export const notificationsApi = {
     apiClient.put<{ rules: NotificationRule[] }>("/notifications/rules", { rules }),
   getIncidents: () => apiClient.get<{ incidents: NotificationIncident[] }>("/notifications/incidents"),
   test: (url: string) => apiClient.post("/notifications/test", { url }),
+  testTarget: (targetId: string) => apiClient.post("/notifications/test", { target_id: targetId }),
 };
 
 export const configApi = {

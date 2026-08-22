@@ -66,6 +66,7 @@
               <span>{{ formatRelative(incident.last_event_at) }}</span
               ><code>{{ incident.id }}</code>
             </div>
+            <BaseButton variant="ghost" size="sm" icon="eye" @click="selectedIncident = incident">View</BaseButton>
           </article>
         </div>
       </section>
@@ -106,9 +107,9 @@
               <span>{{ rule.target_ids.length }} target{{ rule.target_ids.length === 1 ? "" : "s" }}</span
               ><small>{{ notificationLabel(rule) }}</small>
             </div>
-            <BaseButton v-if="canWrite" variant="ghost" size="sm" icon="pencil" @click="openRuleModal(rule)"
-              >Edit</BaseButton
-            >
+            <BaseButton variant="ghost" size="sm" :icon="canWrite ? 'pencil' : 'eye'" @click="openRuleModal(rule)">
+              {{ canWrite ? "Edit" : "View" }}
+            </BaseButton>
             <BaseButton v-if="canWrite" variant="ghost" size="sm" icon="trash-2" @click="askDeleteRule(rule)"
               >Remove</BaseButton
             >
@@ -122,17 +123,13 @@
             <h3>Delivery targets</h3>
             <p>Email, webhook, and supported Shoutrrr destinations.</p>
           </div>
-          <BaseButton v-if="canWrite" variant="primary" icon="plus" @click="showTargetModal = true"
-            >Add target</BaseButton
-          >
+          <BaseButton v-if="canWrite" variant="primary" icon="plus" @click="openTargetModal()">Add target</BaseButton>
         </header>
         <div v-if="!targets.length" class="empty-state">
           <div class="empty-icon"><Icon name="send" :size="28" /></div>
           <strong>No delivery targets</strong>
           <p>Add the first destination before creating delivery rules.</p>
-          <BaseButton v-if="canWrite" variant="primary" icon="plus" @click="showTargetModal = true"
-            >Add target</BaseButton
-          >
+          <BaseButton v-if="canWrite" variant="primary" icon="plus" @click="openTargetModal()">Add target</BaseButton>
         </div>
         <div v-else class="target-list">
           <article v-for="target in targets" :key="target.id" class="target-row">
@@ -140,11 +137,11 @@
               ><input v-model="target.enabled" type="checkbox" :disabled="!canWrite" @change="saveTargets" /><span
             /></label>
             <div class="target-icon">
-              <Icon :name="kindOf(target.url) === 'Email' ? 'mail' : 'webhook'" :size="18" />
+              <Icon :name="kindOf(target) === 'Email' ? 'mail' : 'webhook'" :size="18" />
             </div>
             <div class="target-main">
               <strong>{{ target.name || "Untitled target" }}</strong
-              ><span>{{ kindOf(target.url) }}</span>
+              ><span>{{ kindOf(target) }}</span>
             </div>
             <BaseButton
               size="sm"
@@ -154,6 +151,9 @@
               @click="testTarget(target)"
               >Test</BaseButton
             >
+            <BaseButton variant="ghost" size="sm" :icon="canWrite ? 'pencil' : 'eye'" @click="openTargetModal(target)">
+              {{ canWrite ? "Edit" : "View" }}
+            </BaseButton>
             <BaseButton v-if="canWrite" variant="ghost" size="sm" icon="trash-2" @click="askDeleteTarget(target)"
               >Remove</BaseButton
             >
@@ -164,92 +164,117 @@
 
     <BaseModal
       :visible="showTargetModal"
-      title="Add delivery target"
-      subtitle="Test the destination before saving it."
+      :title="editingTargetId ? (canWrite ? 'Edit delivery target' : 'Delivery target') : 'Add delivery target'"
+      :subtitle="editingTargetId ? 'Saved credentials remain hidden.' : 'Test the destination before saving it.'"
       icon="send"
       size="md"
       @close="closeTargetModal"
     >
-      <form id="target-form" class="modal-form" @submit.prevent="addTarget">
-        <div class="segmented-control">
-          <button
-            v-for="option in targetTypes"
-            :key="option.id"
-            type="button"
-            :class="{ active: targetForm.type === option.id }"
-            @click="targetForm.type = option.id"
-          >
-            <Icon :name="option.icon" :size="15" />{{ option.label }}
-          </button>
-        </div>
+      <form id="target-form" class="modal-form" @submit.prevent="saveTarget">
         <label for="target-name">Name</label
         ><input
           id="target-name"
           v-model.trim="targetForm.name"
           class="form-input"
           placeholder="Operations email"
+          :disabled="!canWrite"
           required
         />
-        <template v-if="targetForm.type === 'email'">
-          <div class="form-grid">
-            <div>
-              <label for="smtp-host">SMTP host</label
-              ><input
-                id="smtp-host"
-                v-model.trim="targetForm.host"
-                class="form-input"
-                placeholder="smtp.example.com"
-                required
-              />
-            </div>
-            <div>
-              <label for="smtp-port">Port</label
-              ><input id="smtp-port" v-model.trim="targetForm.port" class="form-input" inputmode="numeric" required />
-            </div>
+        <div v-if="editingTargetId && !replaceTargetConnection" class="configured-target">
+          <div>
+            <strong>{{
+              targetForm.type === "email" ? "Email" : targetForm.type === "webhook" ? "Webhook" : "Custom"
+            }}</strong>
+            <span>The saved connection is hidden and will remain unchanged.</span>
           </div>
-          <div class="form-grid">
-            <div>
-              <label for="smtp-user">Username</label
-              ><input id="smtp-user" v-model="targetForm.username" class="form-input" autocomplete="username" />
-            </div>
-            <div>
-              <label for="smtp-password">Password</label
-              ><input
-                id="smtp-password"
-                v-model="targetForm.password"
-                class="form-input"
-                type="password"
-                autocomplete="new-password"
-              />
-            </div>
+          <BaseButton v-if="canWrite" size="sm" icon="refresh-cw" @click="replaceTargetConnection = true">
+            Replace connection
+          </BaseButton>
+        </div>
+        <template v-if="replaceTargetConnection">
+          <div class="segmented-control">
+            <button
+              v-for="option in targetTypes"
+              :key="option.id"
+              type="button"
+              :class="{ active: targetForm.type === option.id }"
+              @click="targetForm.type = option.id"
+            >
+              <Icon :name="option.icon" :size="15" />{{ option.label }}
+            </button>
           </div>
-          <div class="form-grid">
-            <div>
-              <label for="smtp-from">From</label
-              ><input id="smtp-from" v-model.trim="targetForm.from" class="form-input" type="email" required />
+          <template v-if="targetForm.type === 'email'">
+            <div class="form-grid">
+              <div>
+                <label for="smtp-host">SMTP host</label
+                ><input
+                  id="smtp-host"
+                  v-model.trim="targetForm.host"
+                  class="form-input"
+                  placeholder="smtp.example.com"
+                  required
+                />
+              </div>
+              <div>
+                <label for="smtp-port">Port</label
+                ><input id="smtp-port" v-model.trim="targetForm.port" class="form-input" inputmode="numeric" required />
+              </div>
             </div>
-            <div>
-              <label for="smtp-to">To</label
-              ><input id="smtp-to" v-model.trim="targetForm.to" class="form-input" type="email" required />
+            <div class="form-grid">
+              <div>
+                <label for="smtp-user">Username</label
+                ><input id="smtp-user" v-model="targetForm.username" class="form-input" autocomplete="username" />
+              </div>
+              <div>
+                <label for="smtp-password">Password</label
+                ><input
+                  id="smtp-password"
+                  v-model="targetForm.password"
+                  class="form-input"
+                  type="password"
+                  autocomplete="new-password"
+                />
+              </div>
             </div>
-          </div>
+            <div class="form-grid">
+              <div>
+                <label for="smtp-from">From</label
+                ><input id="smtp-from" v-model.trim="targetForm.from" class="form-input" type="email" required />
+              </div>
+              <div>
+                <label for="smtp-to">To</label
+                ><input id="smtp-to" v-model.trim="targetForm.to" class="form-input" type="email" required />
+              </div>
+            </div>
+          </template>
+          <template v-else
+            ><label for="target-url">{{ targetForm.type === "webhook" ? "Webhook URL" : "Shoutrrr URL" }}</label
+            ><input
+              id="target-url"
+              v-model.trim="targetForm.url"
+              class="form-input"
+              :placeholder="
+                targetForm.type === 'webhook' ? 'https://hooks.example.com/…' : 'slack://token-a/token-b/token-c'
+              "
+              required
+          /></template>
         </template>
-        <template v-else
-          ><label for="target-url">{{ targetForm.type === "webhook" ? "Webhook URL" : "Shoutrrr URL" }}</label
-          ><input
-            id="target-url"
-            v-model.trim="targetForm.url"
-            class="form-input"
-            :placeholder="
-              targetForm.type === 'webhook' ? 'https://hooks.example.com/…' : 'slack://token-a/token-b/token-c'
-            "
-            required
-        /></template>
       </form>
       <template #footer
-        ><BaseButton :loading="testing === 'draft'" :disabled="!targetURL" icon="send" @click="testDraft"
+        ><BaseButton v-if="!canWrite" @click="closeTargetModal">Close</BaseButton
+        ><BaseButton
+          v-if="canWrite && replaceTargetConnection"
+          :loading="testing === 'draft'"
+          :disabled="!targetURL"
+          icon="send"
+          @click="testDraft"
           >Test</BaseButton
-        ><BaseButton form="target-form" type="submit" variant="primary" :disabled="!targetURL || !targetForm.name"
+        ><BaseButton
+          v-if="canWrite"
+          form="target-form"
+          type="submit"
+          variant="primary"
+          :disabled="!targetForm.name || (replaceTargetConnection && !targetURL)"
           >Save target</BaseButton
         ></template
       >
@@ -257,7 +282,7 @@
 
     <BaseModal
       :visible="showRuleModal"
-      :title="editingRuleId ? 'Edit delivery rule' : 'Create delivery rule'"
+      :title="editingRuleId ? (canWrite ? 'Edit delivery rule' : 'Delivery rule') : 'Create delivery rule'"
       subtitle="Events must match every selected filter."
       icon="filter"
       size="lg"
@@ -270,13 +295,16 @@
           v-model.trim="ruleForm.name"
           class="form-input"
           placeholder="Critical fleet incidents"
+          :disabled="!canWrite"
           required
         />
         <fieldset>
           <legend>Topics</legend>
           <div class="choice-grid">
             <label v-for="topic in topicOptions" :key="topic"
-              ><input v-model="ruleForm.topics" type="checkbox" :value="topic" />{{ topic }}</label
+              ><input v-model="ruleForm.topics" type="checkbox" :value="topic" :disabled="!canWrite" />{{
+                topic
+              }}</label
             >
           </div>
         </fieldset>
@@ -284,7 +312,9 @@
           <legend>Severity</legend>
           <div class="choice-grid">
             <label v-for="severity in severityOptions" :key="severity"
-              ><input v-model="ruleForm.severities" type="checkbox" :value="severity" />{{ severity }}</label
+              ><input v-model="ruleForm.severities" type="checkbox" :value="severity" :disabled="!canWrite" />{{
+                severity
+              }}</label
             >
           </div>
         </fieldset>
@@ -292,7 +322,9 @@
           <legend>Incident updates</legend>
           <div class="choice-grid">
             <label v-for="action in actionOptions" :key="action"
-              ><input v-model="ruleForm.notifications" type="checkbox" :value="action" />{{ action }}</label
+              ><input v-model="ruleForm.notifications" type="checkbox" :value="action" :disabled="!canWrite" />{{
+                action
+              }}</label
             >
           </div>
         </fieldset>
@@ -300,15 +332,18 @@
           <legend>Delivery targets</legend>
           <div v-if="targets.length" class="choice-grid">
             <label v-for="target in targets" :key="target.id"
-              ><input v-model="ruleForm.target_ids" type="checkbox" :value="target.id" />{{ target.name }}</label
+              ><input v-model="ruleForm.target_ids" type="checkbox" :value="target.id" :disabled="!canWrite" />{{
+                target.name
+              }}</label
             >
           </div>
           <p v-else class="field-help">Add a delivery target first.</p>
         </fieldset>
       </form>
       <template #footer
-        ><BaseButton @click="showRuleModal = false">Cancel</BaseButton
+        ><BaseButton @click="showRuleModal = false">{{ canWrite ? "Cancel" : "Close" }}</BaseButton
         ><BaseButton
+          v-if="canWrite"
           form="rule-form"
           type="submit"
           variant="primary"
@@ -316,6 +351,59 @@
           >Save rule</BaseButton
         ></template
       >
+    </BaseModal>
+
+    <BaseModal
+      :visible="selectedIncident !== null"
+      :title="selectedIncident?.title || 'Incident'"
+      subtitle="Incident details"
+      icon="history"
+      size="md"
+      @close="selectedIncident = null"
+    >
+      <dl v-if="selectedIncident" class="incident-details">
+        <div>
+          <dt>Status</dt>
+          <dd>{{ selectedIncident.status }}</dd>
+        </div>
+        <div>
+          <dt>Severity</dt>
+          <dd>{{ selectedIncident.severity }}</dd>
+        </div>
+        <div>
+          <dt>Events</dt>
+          <dd>{{ selectedIncident.event_count }}</dd>
+        </div>
+        <div>
+          <dt>Source</dt>
+          <dd>{{ selectedIncident.last_event.source }}</dd>
+        </div>
+        <div>
+          <dt>Event type</dt>
+          <dd>
+            <code>{{ selectedIncident.last_event.type }}</code>
+          </dd>
+        </div>
+        <div>
+          <dt>First seen</dt>
+          <dd>{{ new Date(selectedIncident.first_event_at).toLocaleString() }}</dd>
+        </div>
+        <div>
+          <dt>Last seen</dt>
+          <dd>{{ new Date(selectedIncident.last_event_at).toLocaleString() }}</dd>
+        </div>
+        <div class="detail-wide">
+          <dt>Message</dt>
+          <dd>{{ selectedIncident.last_event.message || "No message" }}</dd>
+        </div>
+        <div class="detail-wide">
+          <dt>Incident ID</dt>
+          <dd>
+            <code>{{ selectedIncident.id }}</code>
+          </dd>
+        </div>
+      </dl>
+      <template #footer><BaseButton @click="selectedIncident = null">Close</BaseButton></template>
     </BaseModal>
 
     <BaseModal
@@ -369,6 +457,9 @@ const loadError = ref("");
 const testing = ref<string | null>(null);
 const showTargetModal = ref(false);
 const showRuleModal = ref(false);
+const selectedIncident = ref<NotificationIncident | null>(null);
+const editingTargetId = ref<string | null>(null);
+const replaceTargetConnection = ref(false);
 const editingRuleId = ref<string | null>(null);
 const deleteRequest = ref<{ type: "target" | "rule"; id: string; name: string } | null>(null);
 
@@ -422,8 +513,8 @@ async function load() {
   loadError.value = "";
   if (reviewMode) {
     targets.value = [
-      { id: "ops-email", name: "Operations email", url: "********", enabled: true },
-      { id: "incident-webhook", name: "Incident webhook", url: "********", enabled: true },
+      { id: "ops-email", name: "Operations email", url: "********", kind: "email", enabled: true },
+      { id: "incident-webhook", name: "Incident webhook", url: "********", kind: "webhook", enabled: true },
     ];
     rules.value = [
       {
@@ -474,14 +565,12 @@ async function load() {
   }
 }
 
-const kindOf = (url: string) =>
-  !url || url.startsWith("****")
-    ? "Configured"
-    : url.startsWith("smtp://")
-      ? "Email"
-      : url.startsWith("generic")
-        ? "Webhook"
-        : "Custom";
+const kindOf = (target: NotificationTarget) =>
+  target.kind === "email" || target.url.startsWith("smtp://")
+    ? "Email"
+    : target.kind === "webhook" || target.url.startsWith("generic")
+      ? "Webhook"
+      : "Custom";
 const formatRelative = (value: string) => {
   const minutes = Math.max(0, Math.floor((Date.now() - new Date(value).getTime()) / 60000));
   if (minutes < 1) return "Just now";
@@ -523,16 +612,66 @@ async function runTest(id: string, url: string) {
     testing.value = null;
   }
 }
-const testTarget = (target: NotificationTarget) => runTest(target.id, target.url);
+const testTarget = async (target: NotificationTarget) => {
+  testing.value = target.id;
+  try {
+    if (reviewMode) {
+      notifications.success("Review test", "The preview target accepted the test notification.");
+      return;
+    }
+    await notificationsApi.testTarget(target.id);
+    notifications.success("Test sent", "Check the destination for the test notification.");
+  } catch (error: any) {
+    notifications.error("Test failed", error.response?.data?.error || error.message);
+  } finally {
+    testing.value = null;
+  }
+};
 const testDraft = () => runTest("draft", targetURL.value);
 
-async function addTarget() {
-  targets.value.push({ id: randomUUID(), name: targetForm.name, url: targetURL.value, enabled: true });
+async function saveTarget() {
+  if (editingTargetId.value) {
+    const index = targets.value.findIndex((target) => target.id === editingTargetId.value);
+    if (index >= 0) {
+      targets.value[index] = {
+        ...targets.value[index],
+        name: targetForm.name,
+        url: replaceTargetConnection.value ? targetURL.value : targets.value[index].url,
+        kind: replaceTargetConnection.value ? targetForm.type : targets.value[index].kind,
+      };
+    }
+  } else {
+    targets.value.push({
+      id: randomUUID(),
+      name: targetForm.name,
+      url: targetURL.value,
+      enabled: true,
+      kind: targetForm.type,
+    });
+  }
   await saveTargets();
   closeTargetModal();
 }
+function openTargetModal(target?: NotificationTarget) {
+  editingTargetId.value = target?.id || null;
+  replaceTargetConnection.value = !target;
+  Object.assign(targetForm, {
+    type: target?.kind || "email",
+    name: target?.name || "",
+    host: "",
+    port: "587",
+    username: "",
+    password: "",
+    from: "",
+    to: "",
+    url: "",
+  });
+  showTargetModal.value = true;
+}
 function closeTargetModal() {
   showTargetModal.value = false;
+  editingTargetId.value = null;
+  replaceTargetConnection.value = false;
   Object.assign(targetForm, {
     type: "email",
     name: "",
@@ -623,6 +762,57 @@ onMounted(load);
   display: grid;
   place-items: center;
   border-radius: var(--radius-lg);
+}
+.configured-target {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  background: var(--surface-inset);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+}
+.configured-target div {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+.configured-target strong {
+  color: var(--text);
+}
+.configured-target span {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+.incident-details {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+  margin: 0;
+}
+.incident-details div {
+  min-width: 0;
+  padding: var(--space-3);
+  background: var(--surface-inset);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+}
+.incident-details .detail-wide {
+  grid-column: 1 / -1;
+}
+.incident-details dt {
+  margin-bottom: var(--space-1);
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  text-transform: uppercase;
+}
+.incident-details dd {
+  overflow-wrap: anywhere;
+  margin: 0;
+  color: var(--text);
 }
 .content-header h3 {
   margin: 0;
@@ -987,6 +1177,16 @@ fieldset legend {
   }
   .docs-link {
     justify-content: center;
+  }
+  .configured-target {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .incident-details {
+    grid-template-columns: 1fr;
+  }
+  .incident-details .detail-wide {
+    grid-column: auto;
   }
   .content-header {
     align-items: flex-start;
