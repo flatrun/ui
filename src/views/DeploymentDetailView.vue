@@ -102,7 +102,7 @@
             @open="showDiagnostics = true"
           />
           <div class="info-cards">
-            <div class="info-card">
+            <div class="info-card general-overview-card">
               <div class="card-header">
                 <i class="pi pi-info-circle" />
                 <h3>General Information</h3>
@@ -182,7 +182,7 @@
               </div>
             </div>
 
-            <div class="info-card">
+            <div class="info-card domain-overview-card">
               <div class="card-header">
                 <i class="pi pi-globe" />
                 <h3>Domain & SSL</h3>
@@ -322,7 +322,7 @@
               </div>
             </div>
 
-            <div class="info-card wide service-overview-card">
+            <div class="info-card service-overview-card">
               <div class="card-header">
                 <i class="pi pi-box" />
                 <h3>Services</h3>
@@ -367,6 +367,14 @@
                       </button>
                       <button class="action-btn" title="Resources" @click="openServiceResources(service)">
                         <i class="pi pi-sliders-h" />
+                      </button>
+                      <button
+                        v-if="canWrite"
+                        class="action-btn"
+                        title="Edit image"
+                        @click="openServiceImageEditor(service)"
+                      >
+                        <Icon name="pencil" :size="14" />
                       </button>
                       <button class="action-btn" title="Terminal" @click="openTerminal(service)">
                         <i class="pi pi-desktop" />
@@ -1906,6 +1914,37 @@
       @close="showHealthCheckModal = false"
       @saved="handleHealthCheckSaved"
     />
+
+    <BaseModal
+      :visible="Boolean(editingServiceImage)"
+      title="Change service image"
+      :subtitle="editingServiceImage ? `Update the image used by ${editingServiceImage.name}.` : ''"
+      icon="solar:box-bold-duotone"
+      size="sm"
+      @close="closeServiceImageEditor"
+    >
+      <form id="overview-service-image-form" class="service-image-form" @submit.prevent="saveServiceImage">
+        <label for="overview-service-image">Image reference</label>
+        <input
+          id="overview-service-image"
+          v-model.trim="serviceImageReference"
+          class="form-input"
+          autocomplete="off"
+          placeholder="nginx:1.27"
+          required
+        />
+        <span class="field-hint">Use a complete image reference, including the tag or digest you want to deploy.</span>
+        <div v-if="serviceImageError" class="form-error" role="alert">{{ serviceImageError }}</div>
+      </form>
+      <template #footer>
+        <BaseButton variant="secondary" :disabled="savingServiceImage" @click="closeServiceImageEditor">
+          Cancel
+        </BaseButton>
+        <BaseButton form="overview-service-image-form" type="submit" variant="primary" :loading="savingServiceImage">
+          Save image
+        </BaseButton>
+      </template>
+    </BaseModal>
   </div>
 </template>
 
@@ -1958,7 +1997,7 @@ import DeploymentDiagnosticsModal from "@/components/DeploymentDiagnosticsModal.
 import DeploymentHealthCheckModal from "@/components/DeploymentHealthCheckModal.vue";
 import LogFilePicker from "@/components/LogFilePicker.vue";
 import BaseModal from "@/components/base/BaseModal.vue";
-import { extractComposeMounts, extractComposeServiceNames } from "@/utils/compose";
+import { extractComposeMounts, extractComposeServiceNames, updateComposeServiceImage } from "@/utils/compose";
 import { matchTypeHints, describeBlockedRule } from "@/utils/protectedMode";
 import { usePlanFlow } from "@/composables/usePlanFlow";
 import SplitActionButton from "@/components/base/SplitActionButton.vue";
@@ -2102,6 +2141,10 @@ const tabBarItems = computed(() => {
 });
 
 const services = ref<any[]>([]);
+const editingServiceImage = ref<any | null>(null);
+const serviceImageReference = ref("");
+const savingServiceImage = ref(false);
+const serviceImageError = ref("");
 const hasMultipleDomains = computed(() => {
   return deployment.value?.metadata?.domains && deployment.value.metadata.domains.length > 1;
 });
@@ -3455,6 +3498,46 @@ const saveConfig = async () => {
   notifications.success("Saved", "Configuration saved successfully");
 };
 
+const openServiceImageEditor = (service: any) => {
+  editingServiceImage.value = service;
+  serviceImageReference.value = service.image || "";
+  serviceImageError.value = "";
+};
+
+const closeServiceImageEditor = () => {
+  if (savingServiceImage.value) return;
+  editingServiceImage.value = null;
+  serviceImageError.value = "";
+};
+
+const saveServiceImage = async () => {
+  if (!editingServiceImage.value) return;
+  serviceImageError.value = "";
+  savingServiceImage.value = true;
+  try {
+    const updated = updateComposeServiceImage(
+      composeConfig.value,
+      editingServiceImage.value.name,
+      serviceImageReference.value,
+    ).content;
+    const result = await runGuarded(
+      () => deploymentsApi.update(route.params.name as string, { compose_content: updated }),
+      () => deploymentsApi.update(route.params.name as string, { compose_content: updated }, { plan: true }),
+      "Image update failed",
+    );
+    if (result === false) return;
+    composeConfig.value = updated;
+    originalConfig = updated;
+    notifications.success("Image updated", `${editingServiceImage.value.name} will use ${serviceImageReference.value}`);
+    editingServiceImage.value = null;
+    await fetchDeployment();
+  } catch (err: any) {
+    serviceImageError.value = err.response?.data?.error || err.message;
+  } finally {
+    savingServiceImage.value = false;
+  }
+};
+
 const handleStructuredComposeSaved = async (content: string) => {
   composeConfig.value = content;
   originalConfig = content;
@@ -3794,8 +3877,9 @@ onUnmounted(() => {
 
 .info-cards {
   display: grid;
-  grid-template-columns: minmax(280px, 0.8fr) minmax(360px, 1.2fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--space-4);
+  align-items: start;
 }
 
 .info-card {
@@ -4195,6 +4279,18 @@ onUnmounted(() => {
   color: var(--color-error-600, #dc2626);
   font-size: var(--text-sm);
   margin: var(--space-2) 0 0;
+}
+
+.service-image-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.service-image-form label {
+  color: var(--text);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
 }
 
 .service-status.running {

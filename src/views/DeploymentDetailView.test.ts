@@ -696,5 +696,14 @@ describe("DeploymentDetailView", () => {
 
       expect(deploymentsApi.logs).toHaveBeenCalledWith("test-app", expect.objectContaining({ service: "web" }));
     });
+
+    it("opens the image editor from the service actions in Overview", async () => {
+      const wrapper = mountView();
+      await flushPromises();
+
+      await wrapper.find('button[title="Edit image"]').trigger("click");
+
+      expect(wrapper.find("#overview-service-image").exists()).toBe(true);
+    });
   });
 });
