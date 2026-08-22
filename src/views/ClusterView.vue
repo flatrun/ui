@@ -19,11 +19,12 @@
 
     <template v-else-if="status && !status.enabled">
       <div class="disabled-state">
-        <i class="pi pi-sitemap" />
-        <h3>Cluster Not Enabled</h3>
-        <p>Enable clustering in your agent configuration to connect multiple servers.</p>
-        <code class="config-hint"
-          >cluster: enabled: true server_name: "my-server" advertise_url: "https://my-server:8090"</code
+        <div class="disabled-icon"><Icon name="solar:global-bold-duotone" :size="32" /></div>
+        <span class="status-chip">Not configured</span>
+        <h3>Manage every server from one place</h3>
+        <p>Enable Fleet on this server, then invite another server. Existing deployments keep running unchanged.</p>
+        <BaseButton v-if="canWrite" variant="primary" icon="network" @click="showSetupModal = true"
+          >Set up Fleet</BaseButton
         >
       </div>
     </template>
@@ -219,6 +220,56 @@
         </div>
       </div>
     </div>
+
+    <BaseModal
+      :visible="showSetupModal"
+      title="Set up FlatRun Fleet"
+      subtitle="Give this server a stable identity that other servers can reach."
+      icon="solar:global-bold-duotone"
+      size="md"
+      @close="closeSetupModal"
+    >
+      <form id="fleet-setup-form" class="setup-form" @submit.prevent="setupFleet">
+        <div class="setup-note">
+          <Icon name="solar:check-circle-bold" :size="20" />
+          <div><strong>No deployment downtime</strong><span>Setup changes fleet access only.</span></div>
+        </div>
+        <label for="fleet-server-name">Server name</label>
+        <input
+          id="fleet-server-name"
+          v-model.trim="setupForm.serverName"
+          class="form-input"
+          autocomplete="off"
+          placeholder="prod-1"
+          required
+        />
+        <span class="field-help">Use a short name that identifies this server throughout the fleet.</span>
+        <label for="fleet-advertise-url">Server URL</label>
+        <input
+          id="fleet-advertise-url"
+          v-model.trim="setupForm.advertiseUrl"
+          class="form-input"
+          type="url"
+          placeholder="https://prod-1.example.com:8090"
+          required
+        />
+        <span class="field-help">Other servers must be able to reach the agent at this HTTPS URL.</span>
+        <div v-if="setupError" class="setup-error">
+          <Icon name="solar:danger-triangle-bold" :size="18" />{{ setupError }}
+        </div>
+      </form>
+      <template #footer>
+        <BaseButton @click="closeSetupModal">Cancel</BaseButton>
+        <BaseButton
+          form="fleet-setup-form"
+          type="submit"
+          variant="primary"
+          :loading="settingUp"
+          :disabled="!setupForm.serverName || !setupForm.advertiseUrl"
+          >Enable Fleet</BaseButton
+        >
+      </template>
+    </BaseModal>
   </div>
 </template>
 
@@ -227,6 +278,9 @@ import { ref, onMounted } from "vue";
 import { clusterApi, type ClusterStatus, type ClusterPeer } from "@/services/api";
 import { useNotificationsStore } from "@/stores/notifications";
 import { useAuthStore } from "@/stores/auth";
+import BaseButton from "@/components/base/BaseButton.vue";
+import BaseModal from "@/components/base/BaseModal.vue";
+import Icon from "@/components/base/Icon.vue";
 
 const notifications = useNotificationsStore();
 const authStore = useAuthStore();
@@ -235,6 +289,10 @@ const canWrite = authStore.hasPermission("cluster:write");
 const loading = ref(false);
 const status = ref<ClusterStatus | null>(null);
 const peers = ref<ClusterPeer[]>([]);
+const showSetupModal = ref(false);
+const settingUp = ref(false);
+const setupError = ref("");
+const setupForm = ref({ serverName: "", advertiseUrl: "" });
 
 const showInviteModal = ref(false);
 const inviteToken = ref("");
@@ -265,6 +323,27 @@ const fetchAll = async () => {
     notifications.error("Error", "Failed to load cluster status");
   } finally {
     loading.value = false;
+  }
+};
+
+const closeSetupModal = () => {
+  if (settingUp.value) return;
+  showSetupModal.value = false;
+  setupError.value = "";
+};
+
+const setupFleet = async () => {
+  settingUp.value = true;
+  setupError.value = "";
+  try {
+    status.value = (await clusterApi.setup(setupForm.value.serverName, setupForm.value.advertiseUrl)).data;
+    notifications.success("Fleet enabled", `${setupForm.value.serverName} is ready to connect to other servers.`);
+    showSetupModal.value = false;
+    await fetchAll();
+  } catch (error: any) {
+    setupError.value = error.response?.data?.error || error.message || "Fleet setup failed";
+  } finally {
+    settingUp.value = false;
   }
 };
 
@@ -411,7 +490,7 @@ onMounted(() => {
   justify-content: center;
   padding: 4rem;
   background: var(--surface-raised);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-xl);
   border: 1px solid var(--border);
   text-align: center;
   gap: 1rem;
@@ -432,19 +511,76 @@ onMounted(() => {
 .disabled-state p {
   color: var(--text-muted);
   margin: 0;
+  max-width: 520px;
 }
 
-.config-hint {
-  display: block;
-  text-align: left;
-  background: #1f2937;
-  color: #e5e7eb;
-  padding: 1rem 1.25rem;
-  border-radius: var(--radius-sm);
-  font-size: 0.8125rem;
-  line-height: 1.6;
-  white-space: pre;
-  font-family: "SF Mono", "Fira Code", monospace;
+.disabled-icon {
+  display: grid;
+  width: 56px;
+  height: 56px;
+  place-items: center;
+  color: var(--color-primary-700);
+  background: var(--color-primary-50);
+  border-radius: var(--radius-xl);
+}
+
+.status-chip {
+  padding: 0.25rem 0.625rem;
+  color: var(--color-warning-700);
+  background: var(--color-warning-50);
+  border-radius: var(--radius-full);
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+}
+
+.setup-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.setup-form label {
+  margin-top: var(--space-2);
+  color: var(--text);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+}
+
+.field-help {
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+}
+
+.setup-note,
+.setup-error {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border-radius: var(--radius-lg);
+}
+
+.setup-note {
+  color: var(--color-success-700);
+  background: var(--color-success-50);
+}
+
+.setup-note div {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.setup-note span {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+.setup-error {
+  margin-top: var(--space-2);
+  color: var(--color-danger-700);
+  background: var(--color-danger-50);
+  font-size: var(--text-sm);
 }
 
 .status-cards {
