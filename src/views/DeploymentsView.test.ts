@@ -5,6 +5,10 @@ import DeploymentsView from "./DeploymentsView.vue";
 import { useAuthStore } from "@/stores/auth";
 
 vi.mock("@/services/api", () => ({
+  clusterApi: {
+    getStatus: vi.fn().mockResolvedValue({ data: { enabled: false } }),
+    getAggregatedDeployments: vi.fn(),
+  },
   deploymentsApi: {
     list: vi.fn().mockResolvedValue({
       data: {
