@@ -34,7 +34,7 @@
             @click="envDropdownOpen = false"
           >
             <Icon name="settings" :size="16" />
-            <span class="env-option-name">Manage Cluster</span>
+            <span class="env-option-name">Manage Fleet</span>
           </router-link>
         </div>
       </div>
@@ -66,17 +66,6 @@
           <Icon name="boxes" :size="18" />
           <span v-if="!sidebarCollapsed">Fleet</span>
           <span v-if="!sidebarCollapsed && clusterPeers.length" class="nav-count">{{ clusterPeers.length + 1 }}</span>
-        </router-link>
-
-        <router-link
-          v-if="authStore.hasPermission('settings:read')"
-          to="/notifications"
-          class="nav-item"
-          active-class="active"
-          title="Notifications"
-        >
-          <Icon name="bell" :size="18" />
-          <span v-if="!sidebarCollapsed">Notifications</span>
         </router-link>
 
         <div v-if="authStore.hasPermission('deployments:read')" class="nav-group">
@@ -456,6 +445,15 @@
               Updates
             </router-link>
             <router-link
+              v-if="authStore.hasPermission('settings:read')"
+              to="/notifications"
+              class="nav-subitem"
+              active-class="active"
+            >
+              <Icon name="bell" :size="15" />
+              Notifications
+            </router-link>
+            <router-link
               v-if="authStore.hasPermission('users:read')"
               to="/users"
               class="nav-subitem"
@@ -658,6 +656,7 @@ const getUsageClass = (percentage: number) => {
 const currentPageTitle = computed(() => {
   const titles: Record<string, string> = {
     home: "Dashboard",
+    agents: "Agents",
     observability: "Observability",
     logs: "Logs",
     alerts: "Alerts",

@@ -1,16 +1,12 @@
 <template>
   <div class="cluster-view">
-    <div class="view-header">
-      <div class="header-content">
-        <h1>Cluster</h1>
-        <p class="subtitle">Manage peer servers in your cluster</p>
-      </div>
-      <div class="header-actions">
+    <PageHeader title="Fleet" subtitle="Manage peer servers and shared capacity from one place.">
+      <template #actions>
         <button class="btn btn-icon" :disabled="loading" @click="fetchAll">
           <i class="pi pi-refresh" :class="{ 'pi-spin': loading }" />
         </button>
-      </div>
-    </div>
+      </template>
+    </PageHeader>
 
     <div v-if="loading && !status" class="loading-state">
       <i class="pi pi-spin pi-spinner" />
@@ -477,6 +473,7 @@ import { useAuthStore } from "@/stores/auth";
 import BaseButton from "@/components/base/BaseButton.vue";
 import BaseModal from "@/components/base/BaseModal.vue";
 import Icon from "@/components/base/Icon.vue";
+import PageHeader from "@/components/base/PageHeader.vue";
 
 const notifications = useNotificationsStore();
 const authStore = useAuthStore();
@@ -900,29 +897,6 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-}
-
-.view-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: var(--surface-raised);
-  padding: 1.25rem;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border);
-}
-
-.header-content h1 {
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: var(--text);
-  margin: 0;
-}
-
-.subtitle {
-  font-size: 0.875rem;
-  color: var(--text-muted);
-  margin: 0.25rem 0 0 0;
 }
 
 .btn-icon {

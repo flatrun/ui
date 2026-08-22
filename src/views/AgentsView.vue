@@ -1,13 +1,10 @@
 <template>
   <div class="agents-view">
-    <div class="view-header">
-      <div class="header-left">
-        <h2>Agents</h2>
-        <p class="subtitle">
-          Agents defined as plain markdown files, run by FlatRun through the assistant's permissioned tools
-        </p>
-      </div>
-      <div class="header-actions">
+    <PageHeader
+      title="Agents"
+      subtitle="Run reusable markdown instructions through the assistant's permissioned tools."
+    >
+      <template #actions>
         <button v-if="canWrite" class="btn btn-primary" @click="openEditor(null)">
           <i class="pi pi-plus" />
           New Agent
@@ -15,8 +12,8 @@
         <button class="btn btn-icon" :disabled="loading" @click="fetchAgents">
           <i class="pi pi-refresh" :class="{ 'pi-spin': loading }" />
         </button>
-      </div>
-    </div>
+      </template>
+    </PageHeader>
 
     <div v-if="loading && agents.length === 0" class="loading-state">
       <i class="pi pi-spin pi-spinner" />
@@ -190,6 +187,7 @@ import { useAssistStore } from "@/stores/assist";
 import { useAuthStore } from "@/stores/auth";
 import { useNotificationsStore } from "@/stores/notifications";
 import Icon from "@/components/base/Icon.vue";
+import PageHeader from "@/components/base/PageHeader.vue";
 import ConfirmModal from "@/components/ConfirmModal.vue";
 
 const agents = ref<AgentDefinition[]>([]);
@@ -413,18 +411,9 @@ onMounted(fetchAgents);
 <style scoped>
 .agents-view {
   padding: var(--space-6);
-}
-
-.view-header {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: var(--space-6);
-}
-
-.subtitle {
-  color: var(--text-muted);
-  margin-top: var(--space-1);
+  flex-direction: column;
+  gap: var(--space-6);
 }
 
 .loading-state,
@@ -497,12 +486,6 @@ onMounted(fetchAgents);
   gap: var(--space-2);
   align-items: center;
   flex-shrink: 0;
-}
-
-.header-actions {
-  display: flex;
-  gap: var(--space-2);
-  align-items: center;
 }
 
 .modal-overlay {
@@ -597,12 +580,6 @@ onMounted(fetchAgents);
 </style>
 
 <style scoped>
-.header-actions {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-}
-
 .btn-icon {
   background: var(--surface-raised);
   border-color: var(--border);
