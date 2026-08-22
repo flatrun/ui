@@ -13,6 +13,8 @@ vi.mock("@/stores/notifications", () => ({
 vi.mock("@/services/api", () => ({
   clusterApi: {
     getStatus: vi.fn(),
+    getProviders: vi.fn(),
+    updateProviders: vi.fn(),
     setup: vi.fn(),
     listPeers: vi.fn(),
     getPeerPolicy: vi.fn(),
@@ -34,6 +36,22 @@ describe("ClusterView", () => {
       data: { enabled: true, server_name: "prod-1", advertise_url: "https://prod-1.example.com:8090" },
     } as any);
     vi.mocked(clusterApi.listPeers).mockResolvedValue({ data: { peers: [] } } as any);
+    vi.mocked(clusterApi.getProviders).mockResolvedValue({
+      data: {
+        orchestrators: [
+          { id: "standalone", active: true, available: true },
+          { id: "swarm", active: false, available: true },
+          { id: "k3s", active: false, available: false, reason: "k3s adapter is not configured" },
+        ],
+        routing: [
+          { id: "nginx", active: true, available: true },
+          { id: "traefik", active: false, available: false, reason: "Traefik adapter is not configured" },
+        ],
+      },
+    } as any);
+    vi.mocked(clusterApi.updateProviders).mockResolvedValue({
+      data: { orchestrator: "swarm", routing: "nginx" },
+    } as any);
     vi.mocked(clusterApi.updatePeerPolicy).mockResolvedValue({ data: { peer: "prod-2", grants: [] } } as any);
   });
 
@@ -109,5 +127,27 @@ describe("ClusterView", () => {
       { capability: "fleet.read" },
       { capability: "capacity.offer", max_cpu: 2, max_memory: 4 * 1024 ** 3, max_replicas: 3 },
     ]);
+  });
+
+  it("selects an available runtime provider through the modal", async () => {
+    const { clusterApi } = await import("@/services/api");
+    vi.mocked(clusterApi.getStatus).mockReset();
+    vi.mocked(clusterApi.getStatus).mockResolvedValue({
+      data: { enabled: true, server_name: "prod-1", peer_count: 0 },
+    } as any);
+    const wrapper = mountView();
+    await flushPromises();
+
+    await wrapper
+      .findAll("button")
+      .find((button) => button.text().includes("Configure"))!
+      .trigger("click");
+    expect(wrapper.text()).toContain("k3s adapter is not configured");
+    expect(wrapper.find('input[value="k3s"]').attributes("disabled")).toBeDefined();
+    await wrapper.find('input[value="swarm"]').setValue(true);
+    await wrapper.find("#provider-form").trigger("submit");
+    await flushPromises();
+
+    expect(clusterApi.updateProviders).toHaveBeenCalledWith("swarm", "nginx");
   });
 });

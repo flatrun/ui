@@ -2013,6 +2013,18 @@ export interface ClusterStatus {
   version?: { version: string; build_time: string; git_commit: string };
 }
 
+export interface ClusterProviderOption {
+  id: string;
+  active: boolean;
+  available: boolean;
+  reason?: string;
+}
+
+export interface ClusterProviders {
+  orchestrators: ClusterProviderOption[];
+  routing: ClusterProviderOption[];
+}
+
 export interface ClusterPeer {
   name: string;
   url: string;
@@ -2067,6 +2079,9 @@ export interface ClusterDeployments {
 
 export const clusterApi = {
   getStatus: () => apiClient.get<ClusterStatus>("/cluster/status"),
+  getProviders: () => apiClient.get<ClusterProviders>("/cluster/providers"),
+  updateProviders: (orchestrator: string, routing: string) =>
+    apiClient.put<{ orchestrator: string; routing: string }>("/cluster/providers", { orchestrator, routing }),
   setup: (serverName: string, advertiseUrl: string) =>
     apiClient.post<ClusterStatus>("/cluster/setup", { server_name: serverName, advertise_url: advertiseUrl }),
   listPeers: () => apiClient.get<{ peers: ClusterPeer[] }>("/cluster/peers"),

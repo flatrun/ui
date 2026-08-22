@@ -60,6 +60,33 @@
         </div>
       </div>
 
+      <div class="section-card provider-summary">
+        <div class="card-header">
+          <div class="header-left">
+            <Icon name="settings" :size="20" />
+            <div>
+              <h3>Runtime providers</h3>
+              <p>Choose how Fleet places workloads and routes traffic on this server.</p>
+            </div>
+          </div>
+          <BaseButton v-if="canWrite" size="sm" icon="settings" @click="openProvidersModal">Configure</BaseButton>
+        </div>
+        <div v-if="loadingProviders" class="provider-loading">
+          <Icon name="loader-circle" spin :size="18" /> Checking providers
+        </div>
+        <div v-else-if="providers" class="provider-active-grid">
+          <div>
+            <span>Workload runtime</span>
+            <strong>{{ providerLabel(activeOrchestrator) }}</strong>
+          </div>
+          <div>
+            <span>Traffic routing</span>
+            <strong>{{ providerLabel(activeRouting) }}</strong>
+          </div>
+        </div>
+        <div v-else class="provider-error">Provider status is unavailable.</div>
+      </div>
+
       <div class="section-card">
         <div class="card-header">
           <div class="header-left">
@@ -276,6 +303,82 @@
     </BaseModal>
 
     <BaseModal
+      :visible="showProvidersModal"
+      title="Runtime providers"
+      subtitle="Only providers ready on this server can be selected."
+      icon="settings"
+      size="lg"
+      @close="closeProvidersModal"
+    >
+      <form id="provider-form" class="provider-form" @submit.prevent="saveProviders">
+        <fieldset>
+          <legend>Workload runtime</legend>
+          <p>Controls where Fleet creates and scales application replicas.</p>
+          <label
+            v-for="provider in providers?.orchestrators"
+            :key="provider.id"
+            class="provider-option"
+            :class="{ selected: selectedOrchestrator === provider.id, unavailable: !provider.available }"
+          >
+            <input
+              v-model="selectedOrchestrator"
+              type="radio"
+              name="orchestrator"
+              :value="provider.id"
+              :disabled="!provider.available"
+            />
+            <span class="provider-option-icon"><Icon :name="providerIcon(provider.id)" :size="20" /></span>
+            <span class="provider-option-copy">
+              <strong>{{ providerLabel(provider.id) }}</strong>
+              <small>{{ providerDescription(provider.id) }}</small>
+              <small v-if="provider.reason" class="provider-reason">{{ provider.reason }}</small>
+            </span>
+            <span v-if="provider.active" class="active-chip">Active</span>
+          </label>
+        </fieldset>
+        <fieldset>
+          <legend>Traffic routing</legend>
+          <p>Controls how incoming requests reach healthy replicas.</p>
+          <label
+            v-for="provider in providers?.routing"
+            :key="provider.id"
+            class="provider-option"
+            :class="{ selected: selectedRouting === provider.id, unavailable: !provider.available }"
+          >
+            <input
+              v-model="selectedRouting"
+              type="radio"
+              name="routing"
+              :value="provider.id"
+              :disabled="!provider.available"
+            />
+            <span class="provider-option-icon"><Icon :name="providerIcon(provider.id)" :size="20" /></span>
+            <span class="provider-option-copy">
+              <strong>{{ providerLabel(provider.id) }}</strong>
+              <small>{{ providerDescription(provider.id) }}</small>
+              <small v-if="provider.reason" class="provider-reason">{{ provider.reason }}</small>
+            </span>
+            <span v-if="provider.active" class="active-chip">Active</span>
+          </label>
+        </fieldset>
+        <div v-if="providerError" class="setup-error">
+          <Icon name="solar:danger-triangle-bold" :size="18" />{{ providerError }}
+        </div>
+      </form>
+      <template #footer>
+        <BaseButton @click="closeProvidersModal">Cancel</BaseButton>
+        <BaseButton
+          form="provider-form"
+          type="submit"
+          variant="primary"
+          :loading="savingProviders"
+          :disabled="!selectedOrchestrator || !selectedRouting"
+          >Save providers</BaseButton
+        >
+      </template>
+    </BaseModal>
+
+    <BaseModal
       :visible="showPolicyModal"
       :title="policyPeer ? `Access for ${policyPeer.name}` : 'Peer access'"
       subtitle="Choose exactly what this server may do here."
@@ -365,6 +468,7 @@ import {
   clusterApi,
   type ClusterCapability,
   type ClusterGrant,
+  type ClusterProviders,
   type ClusterStatus,
   type ClusterPeer,
 } from "@/services/api";
@@ -385,6 +489,15 @@ const showSetupModal = ref(false);
 const settingUp = ref(false);
 const setupError = ref("");
 const setupForm = ref({ serverName: "", advertiseUrl: "" });
+const providers = ref<ClusterProviders | null>(null);
+const loadingProviders = ref(false);
+const showProvidersModal = ref(false);
+const savingProviders = ref(false);
+const providerError = ref("");
+const selectedOrchestrator = ref("");
+const selectedRouting = ref("");
+const activeOrchestrator = computed(() => providers.value?.orchestrators.find((provider) => provider.active)?.id || "");
+const activeRouting = computed(() => providers.value?.routing.find((provider) => provider.active)?.id || "");
 
 const showInviteModal = ref(false);
 const inviteToken = ref("");
@@ -448,7 +561,7 @@ const fetchAll = async () => {
     status.value = statusRes.data;
 
     if (status.value.enabled) {
-      const peersRes = await clusterApi.listPeers();
+      const [peersRes] = await Promise.all([clusterApi.listPeers(), loadProviders()]);
       peers.value = peersRes.data.peers || [];
     }
   } catch {
@@ -457,6 +570,72 @@ const fetchAll = async () => {
     loading.value = false;
   }
 };
+
+const loadProviders = async () => {
+  loadingProviders.value = true;
+  try {
+    providers.value = (await clusterApi.getProviders()).data;
+  } catch {
+    providers.value = null;
+  } finally {
+    loadingProviders.value = false;
+  }
+};
+
+const openProvidersModal = () => {
+  selectedOrchestrator.value = activeOrchestrator.value;
+  selectedRouting.value = activeRouting.value;
+  providerError.value = "";
+  showProvidersModal.value = true;
+};
+
+const closeProvidersModal = () => {
+  if (savingProviders.value) return;
+  showProvidersModal.value = false;
+  providerError.value = "";
+};
+
+const saveProviders = async () => {
+  savingProviders.value = true;
+  providerError.value = "";
+  try {
+    await clusterApi.updateProviders(selectedOrchestrator.value, selectedRouting.value);
+    await loadProviders();
+    notifications.success("Providers updated", "Fleet will use the selected runtime and traffic router.");
+    showProvidersModal.value = false;
+  } catch (error: any) {
+    providerError.value = error.response?.data?.error || error.message || "Provider update failed";
+  } finally {
+    savingProviders.value = false;
+  }
+};
+
+const providerLabels: Record<string, string> = {
+  standalone: "Standalone Docker",
+  swarm: "Docker Swarm",
+  k3s: "k3s",
+  nginx: "Nginx",
+  traefik: "Traefik",
+};
+const providerLabel = (id: string) => providerLabels[id] || id;
+
+const providerDescriptions: Record<string, string> = {
+  standalone: "Keep workloads on this server.",
+  swarm: "Place and scale workloads across a Docker Swarm.",
+  k3s: "Place and scale workloads across a lightweight Kubernetes cluster.",
+  nginx: "Route traffic through the existing FlatRun Nginx proxy.",
+  traefik: "Route traffic through Traefik service discovery.",
+};
+const providerDescription = (id: string) => providerDescriptions[id] || "";
+
+const providerIcons: Record<string, string> = {
+  standalone: "server",
+  swarm: "boxes",
+  k3s: "ship-wheel",
+  nginx: "route",
+  traefik: "network",
+};
+const providerIcon = (id: string) => providerIcons[id] || "settings";
 
 const closeSetupModal = () => {
   if (settingUp.value) return;
@@ -1109,6 +1288,143 @@ code {
   cursor: not-allowed;
 }
 
+.provider-summary .header-left {
+  align-items: flex-start;
+}
+
+.provider-summary .header-left p {
+  margin: 0.25rem 0 0;
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+}
+
+.provider-loading,
+.provider-error {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem 1.25rem;
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+}
+
+.provider-active-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  padding: 1rem 1.25rem 1.25rem;
+}
+
+.provider-active-grid > div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.875rem;
+  background: var(--surface-sunken);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.provider-active-grid span {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+
+.provider-active-grid strong {
+  color: var(--text);
+  font-size: 0.875rem;
+}
+
+.provider-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.25rem;
+}
+
+.provider-form fieldset {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.provider-form legend {
+  color: var(--text);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.provider-form fieldset > p {
+  min-height: 2.5rem;
+  margin: 0.25rem 0 0.75rem;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+
+.provider-option {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.625rem;
+  min-height: 4.5rem;
+  margin-bottom: 0.625rem;
+  padding: 0.75rem;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.provider-option.selected {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+.provider-option.unavailable {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.provider-option-icon {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  color: var(--accent);
+  background: var(--accent-subtle);
+  border-radius: var(--radius-sm);
+}
+
+.provider-option-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 0;
+}
+
+.provider-option-copy strong {
+  color: var(--text);
+  font-size: 0.8125rem;
+}
+
+.provider-option-copy small {
+  color: var(--text-muted);
+  line-height: 1.35;
+}
+
+.provider-option-copy .provider-reason {
+  color: var(--color-warning-700);
+}
+
+.active-chip {
+  padding: 0.2rem 0.45rem;
+  color: var(--color-success-700);
+  background: var(--color-success-50);
+  border-radius: var(--radius-full);
+  font-size: 0.6875rem;
+  font-weight: 600;
+}
+
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -1270,6 +1586,15 @@ code {
 
   .lending-fields {
     grid-template-columns: 1fr;
+  }
+
+  .provider-active-grid,
+  .provider-form {
+    grid-template-columns: 1fr;
+  }
+
+  .provider-form fieldset > p {
+    min-height: 0;
   }
 }
 </style>
