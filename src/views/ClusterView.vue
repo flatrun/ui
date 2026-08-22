@@ -473,20 +473,6 @@ const notifications = useNotificationsStore();
 const router = useRouter();
 const authStore = useAuthStore();
 const canWrite = authStore.hasPermission("cluster:write");
-const reviewMode = import.meta.env.DEV ? new URLSearchParams(window.location.search).get("review") : null;
-const reviewProviders: ClusterProviders = {
-  orchestrators: [
-    { id: "standalone", active: false, available: true },
-    { id: "swarm", active: true, available: true },
-    { id: "k3s", active: false, available: false, reason: "k3s adapter is not configured" },
-  ],
-  routing: [
-    { id: "nginx", active: true, available: true },
-    { id: "traefik", active: false, available: false, reason: "Traefik adapter is not configured" },
-  ],
-  k3s: { kubeconfig: "/etc/rancher/k3s/k3s.yaml", namespace: "flatrun" },
-};
-
 const loading = ref(false);
 const status = ref<ClusterStatus | null>(null);
 const peers = ref<ClusterPeer[]>([]);
@@ -568,39 +554,6 @@ const hasDeploymentAccess = computed(
 
 const fetchAll = async () => {
   loading.value = true;
-  if (reviewMode === "setup") {
-    status.value = { enabled: false };
-    serverInfo.value = {
-      hostname: "prod-1",
-      agent_url: "https://prod-1.example.com",
-      public_ipv4: "203.0.113.10",
-      public_ipv6: "",
-      interfaces: [],
-    };
-    loading.value = false;
-    return;
-  }
-  if (reviewMode === "fleet") {
-    status.value = {
-      enabled: true,
-      server_name: "prod-1",
-      peer_count: 2,
-      version: { version: "0.4.0-beta.4", build_time: "", git_commit: "" },
-    };
-    peers.value = [
-      { name: "prod-2", url: "https://prod-2.example.com", online: true, last_seen: new Date().toISOString() },
-      {
-        name: "edge-1",
-        url: "https://edge-1.example.com",
-        online: false,
-        last_seen: new Date(Date.now() - 18 * 60_000).toISOString(),
-        error: "Connection timed out",
-      },
-    ];
-    providers.value = structuredClone(reviewProviders);
-    loading.value = false;
-    return;
-  }
   try {
     const statusRes = await clusterApi.getStatus();
     status.value = statusRes.data;
@@ -628,17 +581,12 @@ const openPeerDeployments = (peer: ClusterPeer) => {
   if (!peer.online) return;
   router.push({
     path: "/deployments",
-    query: { server: peer.name, ...(reviewMode === "fleet" ? { review: "fleet-deployments" } : {}) },
+    query: { server: peer.name },
   });
 };
 
 const loadProviders = async () => {
   loadingProviders.value = true;
-  if (reviewMode === "fleet") {
-    providers.value = structuredClone(reviewProviders);
-    loadingProviders.value = false;
-    return;
-  }
   try {
     providers.value = (await clusterApi.getProviders()).data;
   } catch {
@@ -669,15 +617,6 @@ const saveProviders = async () => {
   savingProviders.value = true;
   providerError.value = "";
   try {
-    if (reviewMode === "fleet" && providers.value) {
-      providers.value.orchestrators.forEach(
-        (provider) => (provider.active = provider.id === selectedOrchestrator.value),
-      );
-      providers.value.routing.forEach((provider) => (provider.active = provider.id === selectedRouting.value));
-      notifications.success("Review updated", "The preview now uses the selected providers.");
-      showProvidersModal.value = false;
-      return;
-    }
     await clusterApi.updateProviders(selectedOrchestrator.value, selectedRouting.value, k3sForm.value);
     await loadProviders();
     notifications.success("Providers updated", "Fleet will use the selected runtime and traffic router.");
@@ -800,18 +739,6 @@ const openPolicyModal = async (peer: ClusterPeer) => {
   showPolicyModal.value = true;
   loadingPolicy.value = true;
   policyError.value = "";
-  if (reviewMode === "fleet") {
-    selectedCapabilities.value = [
-      "fleet.read",
-      "deployments.read",
-      "deployments.run",
-      "capacity.read",
-      "capacity.offer",
-    ];
-    policyForm.value = { deployments: "shop, api", maxCPU: 4, maxMemoryGB: 8, maxReplicas: 3 };
-    loadingPolicy.value = false;
-    return;
-  }
   try {
     const { data } = await clusterApi.getPeerPolicy(peer.name);
     selectedCapabilities.value = data.grants.map((grant) => grant.capability);
@@ -862,12 +789,6 @@ const savePolicy = async () => {
     return { capability };
   });
   try {
-    if (reviewMode === "fleet") {
-      notifications.success("Review updated", `${policyPeer.value.name} now uses the preview policy.`);
-      showPolicyModal.value = false;
-      policyPeer.value = null;
-      return;
-    }
     await clusterApi.updatePeerPolicy(policyPeer.value.name, grants);
     notifications.success("Access updated", `${policyPeer.value.name} now uses the new Fleet policy.`);
     showPolicyModal.value = false;

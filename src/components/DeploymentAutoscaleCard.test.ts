@@ -121,15 +121,4 @@ describe("DeploymentAutoscaleCard", () => {
       storage: { mode: "none", class: "" },
     });
   });
-
-  it("renders review data without calling the agent", async () => {
-    const { autoscaleApi } = await import("@/services/api");
-    window.history.replaceState({}, "", "/deployments/trakli-local?review=autoscale");
-    const wrapper = mount(DeploymentAutoscaleCard, { props: { deployment: "trakli-local", canWrite: true } });
-    await flushPromises();
-
-    expect(wrapper.text()).toContain("1 to 4");
-    expect(wrapper.text()).toContain("Allowed");
-    expect(autoscaleApi.getPolicy).not.toHaveBeenCalled();
-  });
 });

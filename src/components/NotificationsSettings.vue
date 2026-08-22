@@ -458,7 +458,6 @@ import { randomUUID } from "@/utils/uuid";
 const auth = useAuthStore();
 const notifications = useNotificationsStore();
 const canWrite = auth.hasPermission("settings:write");
-const reviewMode = import.meta.env.DEV && new URLSearchParams(window.location.search).get("review") === "notifications";
 const activeTab = ref<"incidents" | "rules" | "targets">("incidents");
 const targets = ref<NotificationTarget[]>([]);
 const rules = ref<NotificationRule[]>([]);
@@ -522,44 +521,6 @@ const targetURL = computed(() => {
 async function load() {
   loading.value = true;
   loadError.value = "";
-  if (reviewMode) {
-    targets.value = [
-      { id: "ops-email", name: "Operations email", url: "********", kind: "email", enabled: true },
-      { id: "incident-webhook", name: "Incident webhook", url: "********", kind: "webhook", enabled: true },
-    ];
-    rules.value = [
-      {
-        id: "critical-fleet",
-        name: "Critical Fleet incidents",
-        enabled: true,
-        topics: ["fleet", "capacity"],
-        severities: ["critical"],
-        notifications: ["opened", "resolved"],
-        target_ids: ["ops-email", "incident-webhook"],
-      },
-    ];
-    incidents.value = [
-      {
-        id: "autoscale:prod-1:shop:1787406000000",
-        correlation_key: "autoscale:prod-1:shop",
-        status: "open",
-        severity: "warning",
-        title: "Autoscaling needs attention",
-        event_count: 8,
-        first_event_at: new Date(Date.now() - 24 * 60_000).toISOString(),
-        last_event_at: new Date(Date.now() - 2 * 60_000).toISOString(),
-        last_event: {
-          source: "capacity",
-          type: "autoscale.blocked",
-          title: "Autoscaling needs attention",
-          message: "No permitted Fleet capacity is available.",
-          scope: { node: "prod-1", deployment: "shop" },
-        },
-      },
-    ];
-    loading.value = false;
-    return;
-  }
   try {
     const [targetResponse, ruleResponse, incidentResponse] = await Promise.all([
       notificationsApi.getTargets(),
@@ -593,7 +554,6 @@ const notificationLabel = (rule: NotificationRule) =>
   rule.notifications?.length ? rule.notifications.join(", ") : "All incident updates";
 
 async function saveTargets() {
-  if (reviewMode) return;
   try {
     await notificationsApi.updateTargets(targets.value);
   } catch (error: any) {
@@ -601,7 +561,6 @@ async function saveTargets() {
   }
 }
 async function saveRules() {
-  if (reviewMode) return;
   try {
     await notificationsApi.updateRules(rules.value);
   } catch (error: any) {
@@ -611,10 +570,6 @@ async function saveRules() {
 async function runTest(id: string, url: string) {
   testing.value = id;
   try {
-    if (reviewMode) {
-      notifications.success("Review test", "The preview target accepted the test notification.");
-      return;
-    }
     await notificationsApi.test(url);
     notifications.success("Test sent", "Check the destination for the test notification.");
   } catch (error: any) {
@@ -626,10 +581,6 @@ async function runTest(id: string, url: string) {
 const testTarget = async (target: NotificationTarget) => {
   testing.value = target.id;
   try {
-    if (reviewMode) {
-      notifications.success("Review test", "The preview target accepted the test notification.");
-      return;
-    }
     await notificationsApi.testTarget(target.id);
     notifications.success("Test sent", "Check the destination for the test notification.");
   } catch (error: any) {

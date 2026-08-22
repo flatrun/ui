@@ -96,7 +96,7 @@
             class="nav-group-items"
           >
             <router-link
-              :to="{ path: '/deployments', query: route.query.review ? { review: route.query.review } : {} }"
+              to="/deployments"
               class="nav-subitem"
               :class="{ active: route.name === 'deployments' && !selectedDeploymentServer }"
             >
@@ -680,7 +680,7 @@ const openServer = (server: string) => {
 
 const serverDeploymentRoute = (server: string) => ({
   path: "/deployments",
-  query: { server, ...(route.query.review ? { review: route.query.review } : {}) },
+  query: { server },
 });
 
 const getUsageClass = (percentage: number) => {
@@ -809,19 +809,6 @@ const handleLogout = () => {
 };
 
 const fetchClusterInfo = async () => {
-  if (import.meta.env.DEV && route.query.review === "fleet-deployments") {
-    currentServerName.value = "prod-1";
-    clusterPeers.value = [
-      { name: "prod-2", url: "https://prod-2.example.com", online: true, last_seen: new Date().toISOString() },
-      {
-        name: "edge-1",
-        url: "https://edge-1.example.com",
-        online: false,
-        last_seen: new Date(Date.now() - 18 * 60_000).toISOString(),
-      },
-    ];
-    return;
-  }
   try {
     const res = await clusterApi.getStatus();
     if (res.data.enabled && res.data.server_name) {

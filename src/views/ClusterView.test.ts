@@ -244,15 +244,4 @@ describe("ClusterView", () => {
       namespace: "flatrun",
     });
   });
-
-  it("renders the Fleet review without calling the agent", async () => {
-    const { clusterApi } = await import("@/services/api");
-    window.history.replaceState({}, "", "/cluster?review=fleet");
-    const wrapper = mountView();
-    await flushPromises();
-
-    expect(wrapper.text()).toContain("prod-2");
-    expect(wrapper.text()).toContain("Docker Swarm");
-    expect(clusterApi.getStatus).not.toHaveBeenCalled();
-  });
 });

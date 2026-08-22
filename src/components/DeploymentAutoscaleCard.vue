@@ -176,7 +176,6 @@ import BaseSelect from "@/components/base/BaseSelect.vue";
 import Icon from "@/components/base/Icon.vue";
 
 const props = defineProps<{ deployment: string; canWrite: boolean }>();
-const reviewMode = import.meta.env.DEV && new URLSearchParams(window.location.search).get("review") === "autoscale";
 const notifications = useNotificationsStore();
 const loading = ref(true);
 const saving = ref(false);
@@ -216,31 +215,6 @@ const editablePolicy = (value: AutoscalePolicy): Omit<AutoscalePolicy, "state"> 
 const load = async () => {
   loading.value = true;
   error.value = "";
-  if (reviewMode) {
-    policy.value = {
-      enabled: true,
-      min_replicas: 1,
-      max_replicas: 4,
-      scale_up_percent: 80,
-      scale_down_percent: 30,
-      scale_up_windows: 3,
-      scale_down_windows: 10,
-      cooldown_seconds: 300,
-      allow_fleet_capacity: true,
-      state: { high_windows: 2, low_windows: 0, active: false },
-    };
-    compatibility.value = {
-      compatible: true,
-      service: "app",
-      image: "trakli:local",
-      services: ["app"],
-      blockers: [],
-      warnings: [],
-      workload: { service: "app", stateless: true, storage: { mode: "none", class: "" } },
-    };
-    loading.value = false;
-    return;
-  }
   try {
     const [policyResponse, compatibilityResponse] = await Promise.all([
       autoscaleApi.getPolicy(props.deployment),
@@ -278,12 +252,8 @@ const activate = async () => {
   activating.value = true;
   activationError.value = "";
   try {
-    if (reviewMode) {
-      if (policy.value) policy.value.state = { ...policy.value.state, active: true, provider: "swarm", replicas: 1 };
-    } else {
-      await autoscaleApi.activate(props.deployment);
-      policy.value = (await autoscaleApi.getPolicy(props.deployment)).data;
-    }
+    await autoscaleApi.activate(props.deployment);
+    policy.value = (await autoscaleApi.getPolicy(props.deployment)).data;
     showActivationModal.value = false;
     notifications.success("Managed scaling active", "Traffic now uses the ready cluster replicas.");
   } catch (cause: any) {
@@ -296,12 +266,6 @@ const save = async () => {
   saving.value = true;
   saveError.value = "";
   try {
-    if (reviewMode) {
-      policy.value = { ...form.value, state: policy.value?.state || { high_windows: 0, low_windows: 0 } };
-      showModal.value = false;
-      notifications.success("Review updated", "The preview now uses the new scaling policy.");
-      return;
-    }
     compatibility.value = (await autoscaleApi.updateWorkload(props.deployment, workloadForm.value)).data;
     if (form.value.enabled && !compatibility.value.compatible) {
       saveError.value = "Resolve the workload blockers before enabling autoscaling";

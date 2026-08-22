@@ -157,15 +157,4 @@ describe("NotificationsSettings", () => {
     expect(wrapper.text()).toContain("The node stopped responding.");
     expect(wrapper.text()).toContain("inc-42");
   });
-
-  it("renders notification review data without calling the agent", async () => {
-    const { notificationsApi } = await import("@/services/api");
-    window.history.replaceState({}, "", "/notifications?review=notifications");
-    const wrapper = mountSettings();
-    await flushPromises();
-
-    expect(wrapper.text()).toContain("Autoscaling needs attention");
-    expect(wrapper.text()).toContain("8 events");
-    expect(notificationsApi.getIncidents).not.toHaveBeenCalled();
-  });
 });

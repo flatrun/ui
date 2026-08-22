@@ -307,7 +307,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, onMounted, watch } from "vue";
+import { computed, ref, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { clusterApi, deploymentsApi } from "@/services/api";
 import { useNotificationsStore } from "@/stores/notifications";
@@ -385,17 +385,6 @@ const columns = [
 
 const fetchDeployments = async () => {
   loading.value = true;
-  if (import.meta.env.DEV && route.query.review === "fleet-deployments") {
-    localServer.value = "prod-1";
-    deployments.value = [
-      managedDeployment(reviewDeployment("api", "running", "ghcr.io/flatrun/api:latest"), "prod-1", true),
-      managedDeployment(reviewDeployment("pagemind", "running", "ghcr.io/flatrun/pagemind:latest"), "prod-2", false),
-      managedDeployment(reviewDeployment("analytics", "stopped", "grafana/grafana:latest"), "prod-2", false),
-      managedDeployment(reviewDeployment("website", "running", "nginx:alpine"), "edge-1", false),
-    ];
-    loading.value = false;
-    return;
-  }
   try {
     const status = await clusterApi.getStatus();
     if (!status.data.enabled) {
@@ -420,25 +409,6 @@ const fetchDeployments = async () => {
     loading.value = false;
   }
 };
-
-const reviewDeployment = (name: string, status: Deployment["status"], image: string): Deployment => ({
-  name,
-  path: `/deployments/${name}`,
-  status,
-  created_at: "2026-08-20T10:00:00Z",
-  updated_at: "2026-08-22T10:00:00Z",
-  services: [
-    {
-      name: "app",
-      container_id: `${name}-container`,
-      image,
-      status: status === "running" ? "running" : "exited",
-      ports: [],
-      networks: ["flatrun"],
-      created_at: "2026-08-20T10:00:00Z",
-    },
-  ],
-});
 
 const refreshDeployments = () => {
   fetchDeployments();
@@ -756,11 +726,6 @@ onMounted(async () => {
     if (await deploymentJob.resume(d.name)) break;
   }
 });
-
-watch(
-  () => route.query.review,
-  () => fetchDeployments(),
-);
 </script>
 
 <style scoped>
