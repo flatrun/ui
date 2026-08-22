@@ -2144,6 +2144,13 @@ export const clusterApi = {
     apiClient.post<ClusterAcceptResult>("/cluster/accept", { invite_token: inviteToken, peer_url: peerUrl }),
   removePeer: (name: string) => apiClient.delete<{ status: string; peer: string }>(`/cluster/peers/${name}`),
   getAggregatedDeployments: () => apiClient.get<ClusterDeployments>("/cluster/deployments"),
+  getDeployment: (server: string, name: string) =>
+    apiClient.get<{
+      deployment: Deployment;
+      compose_content?: string;
+      compose_filename?: string;
+      proxy_status?: unknown;
+    }>(`/cluster/peers/${encodeURIComponent(server)}/proxy/deployments/${encodeURIComponent(name)}`),
   deploymentAction: (server: string, name: string, action: "start" | "stop" | "restart") =>
     apiClient.post<ActionJobResponse>(
       `/cluster/peers/${encodeURIComponent(server)}/proxy/deployments/${encodeURIComponent(name)}/${action}`,

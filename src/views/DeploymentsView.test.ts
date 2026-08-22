@@ -197,6 +197,9 @@ describe("DeploymentsView", () => {
       expect(wrapper.text()).not.toContain("local-app");
       expect(wrapper.find(".server-context").exists()).toBe(false);
       expect(wrapper.text()).not.toContain("New Deployment");
+
+      await wrapper.find(".deployment-card").trigger("click");
+      expect(mockPush).toHaveBeenCalledWith({ path: "/deployments/remote-app", query: { server: "prod-2" } });
     });
 
     it("shows only local deployments when no peer is selected", async () => {
