@@ -10,14 +10,18 @@ FlatRun UI provides a user-friendly dashboard for managing Docker deployments th
 
 ## Features
 
-- **Deployment Management** - Create, start, stop, and delete Docker Compose deployments
-- **Container Monitoring** - Real-time status, resource usage, and health checks
-- **Log Viewer** - Live streaming logs with search and filtering
-- **Docker Resource Management** - Images, volumes, and networks overview
-- **SSL Certificate Tracking** - Monitor certificate expiration and status
-- **Quick App Templates** - Deploy common applications with pre-configured templates
-- **System Health Dashboard** - CPU, memory, and disk usage monitoring
-- **JWT Authentication** - Secure API key-based authentication
+- **Deployment Management**: Create, start, stop, and delete Docker Compose deployments
+- **Container Monitoring**: Real-time status, resource usage, and health checks
+- **Log Viewer**: Live streaming logs with search and filtering
+- **Docker Resource Management**: Images, volumes, and networks overview
+- **SSL Certificate Tracking**: Monitor certificate expiration and status
+- **Quick App Templates**: Deploy common applications with pre-configured templates
+- **System Health Dashboard**: CPU, memory, and disk usage monitoring
+- **JWT Authentication**: Secure API key-based authentication
+- **Fleet Management**: Connect servers, scope peer access, and open each server's deployments from one dashboard
+- **Managed Scaling**: Configure compatible workloads and activate Docker Swarm or k3s scaling
+- **Notification Service**: Review grouped incidents and configure delivery rules, email, webhooks, and custom targets
+- **File Operations**: Upload folders, copy or move files, browse archives, and extract them in place
 
 ## Tech Stack
 
@@ -107,11 +111,11 @@ api:
 
 ## Available Scripts
 
-- `npm run dev` - Start development server (http://localhost:5173)
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build locally
-- `npm run lint` - Run ESLint
-- `npm run format` - Format code with Prettier
+- `npm run dev`: Start development server (http://localhost:5173)
+- `npm run build`: Build for production
+- `npm run preview`: Preview production build locally
+- `npm run lint`: Run ESLint
+- `npm run format`: Format code with Prettier
 
 ## Production Deployment
 
@@ -175,4 +179,4 @@ EXPOSE 80
 
 ## License
 
-MIT License - See [LICENSE](LICENSE) file
+MIT License. See [LICENSE](LICENSE) file
