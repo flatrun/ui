@@ -1,6 +1,11 @@
 <template>
   <div class="notifications-view">
-    <PageHeader title="Notifications" subtitle="Review incidents and control where updates are delivered." />
+    <PageHeader
+      title="Notifications"
+      subtitle="Review incidents and control where updates are delivered."
+      section="Operations"
+      icon="bell-ring"
+    />
     <NotificationsSettings />
   </div>
 </template>

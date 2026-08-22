@@ -1,6 +1,11 @@
 <template>
   <div class="cluster-view">
-    <PageHeader title="Fleet" subtitle="Manage peer servers and shared capacity from one place.">
+    <PageHeader
+      title="Fleet"
+      subtitle="Manage peer servers and shared capacity from one place."
+      section="Infrastructure"
+      icon="network"
+    >
       <template #actions>
         <button class="btn btn-icon" :disabled="loading" @click="fetchAll">
           <i class="pi pi-refresh" :class="{ 'pi-spin': loading }" />

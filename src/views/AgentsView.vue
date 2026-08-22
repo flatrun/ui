@@ -3,6 +3,8 @@
     <PageHeader
       title="Agents"
       subtitle="Run reusable markdown instructions through the assistant's permissioned tools."
+      section="Automation"
+      icon="bot"
     >
       <template #actions>
         <button v-if="canWrite" class="btn btn-primary" @click="openEditor(null)">
