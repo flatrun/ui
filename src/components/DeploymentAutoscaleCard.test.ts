@@ -7,7 +7,7 @@ vi.mock("@/stores/notifications", () => ({
 }));
 
 vi.mock("@/services/api", () => ({
-  autoscaleApi: { getPolicy: vi.fn(), updatePolicy: vi.fn() },
+  autoscaleApi: { getPolicy: vi.fn(), updatePolicy: vi.fn(), getCompatibility: vi.fn(), updateWorkload: vi.fn() },
 }));
 
 describe("DeploymentAutoscaleCard", () => {
@@ -35,6 +35,28 @@ describe("DeploymentAutoscaleCard", () => {
           data: { ...policy, state: { high_windows: 0, low_windows: 0 } },
         }) as any,
     );
+    vi.mocked(autoscaleApi.getCompatibility).mockResolvedValue({
+      data: {
+        compatible: true,
+        service: "app",
+        image: "nginx:alpine",
+        services: ["app"],
+        blockers: [],
+        warnings: [],
+        workload: { service: "app", stateless: true, storage: { mode: "none", class: "" } },
+      },
+    } as any);
+    vi.mocked(autoscaleApi.updateWorkload).mockResolvedValue({
+      data: {
+        compatible: true,
+        service: "app",
+        image: "nginx:alpine",
+        services: ["app"],
+        blockers: [],
+        warnings: [],
+        workload: { service: "app", stateless: true, storage: { mode: "none", class: "" } },
+      },
+    } as any);
   });
 
   it("updates the policy through the deployment UI", async () => {
@@ -57,6 +79,11 @@ describe("DeploymentAutoscaleCard", () => {
     await flushPromises();
 
     expect(autoscaleApi.updatePolicy).toHaveBeenCalledWith("shop", expect.objectContaining({ min_replicas: 2 }));
+    expect(autoscaleApi.updateWorkload).toHaveBeenCalledWith("shop", {
+      service: "app",
+      stateless: true,
+      storage: { mode: "none", class: "" },
+    });
   });
 
   it("renders review data without calling the agent", async () => {

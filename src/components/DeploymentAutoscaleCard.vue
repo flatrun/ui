@@ -29,6 +29,12 @@
       <div>
         <small>Fleet capacity</small><strong>{{ policy.allow_fleet_capacity ? "Allowed" : "Local only" }}</strong>
       </div>
+      <div>
+        <small>Workload</small>
+        <strong :class="{ 'compatibility-warning': !compatibility?.compatible }">
+          {{ compatibility?.compatible ? compatibility.service : "Needs configuration" }}
+        </strong>
+      </div>
     </div>
     <BaseModal
       :visible="showModal"
@@ -39,6 +45,53 @@
       @close="closeModal"
     >
       <form id="autoscale-policy-form" class="policy-form" @submit.prevent="save">
+        <section class="workload-section">
+          <div>
+            <strong>Scale-ready workload</strong>
+            <small>Declare the portable service before Fleet can create replicas.</small>
+          </div>
+          <div class="policy-grid">
+            <label>
+              Service
+              <BaseSelect v-model="workloadForm.service">
+                <option value="" disabled>Choose a service</option>
+                <option v-for="service in compatibility?.services" :key="service" :value="service">
+                  {{ service }}
+                </option>
+              </BaseSelect>
+            </label>
+            <label>
+              Storage
+              <BaseSelect v-model="workloadForm.storage.mode">
+                <option value="none">No persistent storage</option>
+                <option value="shared">Shared storage</option>
+              </BaseSelect>
+            </label>
+            <label v-if="workloadForm.storage.mode === 'shared'">
+              Storage class
+              <input v-model.trim="workloadForm.storage.class" type="text" placeholder="shared-app-data" required />
+            </label>
+          </div>
+          <label class="toggle-row">
+            <input v-model="workloadForm.stateless" type="checkbox" />
+            <span
+              ><strong>Stateless service</strong
+              ><small>Any replica may handle any request without local state.</small></span
+            >
+          </label>
+          <div v-if="compatibility?.blockers.length" class="compatibility-list warning">
+            <strong>Resolve before activation</strong>
+            <ul>
+              <li v-for="blocker in compatibility.blockers" :key="blocker">{{ blocker }}</li>
+            </ul>
+          </div>
+          <div v-if="compatibility?.warnings.length" class="compatibility-list">
+            <strong>Check before activation</strong>
+            <ul>
+              <li v-for="warning in compatibility.warnings" :key="warning">{{ warning }}</li>
+            </ul>
+          </div>
+        </section>
         <label class="toggle-row"
           ><input v-model="form.enabled" type="checkbox" /><span
             ><strong>Enable autoscaling</strong><small>FlatRun may resize or replicate this deployment.</small></span
@@ -79,10 +132,16 @@
 
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import { autoscaleApi, type AutoscalePolicy } from "@/services/api";
+import {
+  autoscaleApi,
+  type AutoscaleCompatibility,
+  type AutoscalePolicy,
+  type AutoscaleWorkload,
+} from "@/services/api";
 import { useNotificationsStore } from "@/stores/notifications";
 import BaseButton from "@/components/base/BaseButton.vue";
 import BaseModal from "@/components/base/BaseModal.vue";
+import BaseSelect from "@/components/base/BaseSelect.vue";
 import Icon from "@/components/base/Icon.vue";
 
 const props = defineProps<{ deployment: string; canWrite: boolean }>();
@@ -94,6 +153,8 @@ const error = ref("");
 const saveError = ref("");
 const showModal = ref(false);
 const policy = ref<AutoscalePolicy | null>(null);
+const compatibility = ref<AutoscaleCompatibility | null>(null);
+const workloadForm = ref<AutoscaleWorkload>({ service: "", stateless: false, storage: { mode: "none", class: "" } });
 const form = ref<Omit<AutoscalePolicy, "state">>({
   enabled: false,
   min_replicas: 1,
@@ -134,11 +195,25 @@ const load = async () => {
       allow_fleet_capacity: true,
       state: { high_windows: 2, low_windows: 0 },
     };
+    compatibility.value = {
+      compatible: true,
+      service: "app",
+      image: "trakli:local",
+      services: ["app"],
+      blockers: [],
+      warnings: [],
+      workload: { service: "app", stateless: true, storage: { mode: "none", class: "" } },
+    };
     loading.value = false;
     return;
   }
   try {
-    policy.value = (await autoscaleApi.getPolicy(props.deployment)).data;
+    const [policyResponse, compatibilityResponse] = await Promise.all([
+      autoscaleApi.getPolicy(props.deployment),
+      autoscaleApi.getCompatibility(props.deployment),
+    ]);
+    policy.value = policyResponse.data;
+    compatibility.value = compatibilityResponse.data;
   } catch (cause: any) {
     error.value = cause.response?.data?.error || cause.message || "Autoscaling policy is unavailable";
   } finally {
@@ -148,6 +223,14 @@ const load = async () => {
 const openModal = () => {
   if (!policy.value) return;
   form.value = editablePolicy(policy.value);
+  const workload = compatibility.value?.workload;
+  workloadForm.value = workload
+    ? {
+        service: workload.service,
+        stateless: workload.stateless,
+        storage: { mode: workload.storage.mode, class: workload.storage.class },
+      }
+    : { service: "", stateless: false, storage: { mode: "none", class: "" } };
   showModal.value = true;
   saveError.value = "";
 };
@@ -162,6 +245,11 @@ const save = async () => {
       policy.value = { ...form.value, state: policy.value?.state || { high_windows: 0, low_windows: 0 } };
       showModal.value = false;
       notifications.success("Review updated", "The preview now uses the new scaling policy.");
+      return;
+    }
+    compatibility.value = (await autoscaleApi.updateWorkload(props.deployment, workloadForm.value)).data;
+    if (form.value.enabled && !compatibility.value.compatible) {
+      saveError.value = "Resolve the workload blockers before enabling autoscaling";
       return;
     }
     policy.value = (await autoscaleApi.updatePolicy(props.deployment, form.value)).data;
@@ -264,6 +352,35 @@ onMounted(load);
   display: flex;
   flex-direction: column;
   gap: 1rem;
+}
+.workload-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.875rem;
+  background: var(--surface-sunken);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+.workload-section > div:first-child {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+.workload-section small,
+.compatibility-list {
+  color: var(--text-muted);
+}
+.compatibility-warning,
+.compatibility-list.warning {
+  color: var(--color-warning-700);
+}
+.compatibility-list {
+  font-size: 0.75rem;
+}
+.compatibility-list ul {
+  margin: 0.35rem 0 0;
+  padding-left: 1.25rem;
 }
 .policy-grid {
   display: grid;

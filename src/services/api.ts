@@ -2094,6 +2094,22 @@ export interface AutoscalePolicy {
   state: { high_windows: number; low_windows: number; last_action?: string };
 }
 
+export interface AutoscaleCompatibility {
+  compatible: boolean;
+  service?: string;
+  image?: string;
+  services: string[];
+  blockers: string[];
+  warnings: string[];
+  workload?: AutoscaleWorkload;
+}
+
+export interface AutoscaleWorkload {
+  service: string;
+  stateless: boolean;
+  storage: { mode: "none" | "shared"; class: string };
+}
+
 export const clusterApi = {
   getStatus: () => apiClient.get<ClusterStatus>("/cluster/status"),
   getProviders: () => apiClient.get<ClusterProviders>("/cluster/providers"),
@@ -2131,6 +2147,13 @@ export const autoscaleApi = {
     apiClient.get<AutoscalePolicy>(`/deployments/${encodeURIComponent(deployment)}/autoscale`),
   updatePolicy: (deployment: string, policy: Omit<AutoscalePolicy, "state">) =>
     apiClient.put<AutoscalePolicy>(`/deployments/${encodeURIComponent(deployment)}/autoscale`, policy),
+  getCompatibility: (deployment: string) =>
+    apiClient.get<AutoscaleCompatibility>(`/deployments/${encodeURIComponent(deployment)}/autoscale/compatibility`),
+  updateWorkload: (deployment: string, workload: AutoscaleWorkload) =>
+    apiClient.put<AutoscaleCompatibility>(
+      `/deployments/${encodeURIComponent(deployment)}/autoscale/workload`,
+      workload,
+    ),
 };
 
 import type { User, APIKey, UserRole, UserDeploymentAccess, DeploymentAccessMap } from "@/types";
