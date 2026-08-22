@@ -8,13 +8,24 @@
           <p>Adjust resources first, then add replicas when pressure continues.</p>
         </div>
       </div>
-      <BaseButton v-if="canWrite && policy" size="sm" icon="settings" @click="openModal">Configure</BaseButton>
+      <div v-if="canWrite && policy" class="autoscale-actions">
+        <BaseButton
+          v-if="policy.enabled && compatibility?.compatible && !policy.state.active"
+          class="activate-button"
+          size="sm"
+          variant="primary"
+          icon="play"
+          @click="showActivationModal = true"
+          >Activate</BaseButton
+        >
+        <BaseButton size="sm" icon="settings" @click="openModal">Configure</BaseButton>
+      </div>
     </div>
     <div v-if="loading" class="autoscale-state"><Icon name="loader-circle" spin :size="18" /> Loading policy</div>
     <div v-else-if="error" class="autoscale-state error"><Icon name="triangle-alert" :size="18" /> {{ error }}</div>
     <div v-else-if="policy" class="autoscale-summary">
       <span class="policy-status" :class="{ enabled: policy.enabled }">{{
-        policy.enabled ? "Enabled" : "Disabled"
+        policy.state.active ? "Managed" : policy.enabled ? "Enabled" : "Disabled"
       }}</span>
       <div>
         <small>Replica range</small><strong>{{ policy.min_replicas }} to {{ policy.max_replicas }}</strong>
@@ -127,6 +138,26 @@
         ></template
       >
     </BaseModal>
+    <BaseModal
+      :visible="showActivationModal"
+      title="Activate managed scaling"
+      subtitle="Move this service from Compose to the configured cluster provider."
+      icon="play"
+      size="sm"
+      @close="closeActivationModal"
+    >
+      <div class="activation-copy">
+        <p>FlatRun will create {{ policy?.min_replicas }} ready replicas before switching traffic.</p>
+        <p>The current Compose service stops only after the new route is live.</p>
+        <div v-if="activationError" class="save-error">
+          <Icon name="triangle-alert" :size="18" /> {{ activationError }}
+        </div>
+      </div>
+      <template #footer>
+        <BaseButton :disabled="activating" @click="closeActivationModal">Cancel</BaseButton>
+        <BaseButton variant="primary" :loading="activating" @click="activate">Activate scaling</BaseButton>
+      </template>
+    </BaseModal>
   </section>
 </template>
 
@@ -149,9 +180,12 @@ const reviewMode = import.meta.env.DEV && new URLSearchParams(window.location.se
 const notifications = useNotificationsStore();
 const loading = ref(true);
 const saving = ref(false);
+const activating = ref(false);
 const error = ref("");
 const saveError = ref("");
 const showModal = ref(false);
+const showActivationModal = ref(false);
+const activationError = ref("");
 const policy = ref<AutoscalePolicy | null>(null);
 const compatibility = ref<AutoscaleCompatibility | null>(null);
 const workloadForm = ref<AutoscaleWorkload>({ service: "", stateless: false, storage: { mode: "none", class: "" } });
@@ -193,7 +227,7 @@ const load = async () => {
       scale_down_windows: 10,
       cooldown_seconds: 300,
       allow_fleet_capacity: true,
-      state: { high_windows: 2, low_windows: 0 },
+      state: { high_windows: 2, low_windows: 0, active: false },
     };
     compatibility.value = {
       compatible: true,
@@ -236,6 +270,27 @@ const openModal = () => {
 };
 const closeModal = () => {
   if (!saving.value) showModal.value = false;
+};
+const closeActivationModal = () => {
+  if (!activating.value) showActivationModal.value = false;
+};
+const activate = async () => {
+  activating.value = true;
+  activationError.value = "";
+  try {
+    if (reviewMode) {
+      if (policy.value) policy.value.state = { ...policy.value.state, active: true, provider: "swarm", replicas: 1 };
+    } else {
+      await autoscaleApi.activate(props.deployment);
+      policy.value = (await autoscaleApi.getPolicy(props.deployment)).data;
+    }
+    showActivationModal.value = false;
+    notifications.success("Managed scaling active", "Traffic now uses the ready cluster replicas.");
+  } catch (cause: any) {
+    activationError.value = cause.response?.data?.error || cause.message || "Managed scaling could not be activated";
+  } finally {
+    activating.value = false;
+  }
 };
 const save = async () => {
   saving.value = true;
@@ -284,6 +339,10 @@ onMounted(load);
   padding: 1rem 1.25rem;
   border-bottom: 1px solid var(--border);
 }
+.autoscale-actions {
+  display: flex;
+  gap: 0.5rem;
+}
 .autoscale-title {
   gap: 0.75rem;
 }
@@ -318,6 +377,16 @@ onMounted(load);
 .autoscale-state.error,
 .save-error {
   color: var(--color-danger-700);
+}
+.activation-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+.activation-copy p {
+  margin: 0;
 }
 .autoscale-summary {
   flex-wrap: wrap;

@@ -2091,7 +2091,20 @@ export interface AutoscalePolicy {
   scale_down_windows: number;
   cooldown_seconds: number;
   allow_fleet_capacity: boolean;
-  state: { high_windows: number; low_windows: number; last_action?: string };
+  state: {
+    high_windows: number;
+    low_windows: number;
+    last_action?: string;
+    active?: boolean;
+    provider?: "swarm" | "k3s";
+    service?: string;
+    replicas?: number;
+  };
+}
+
+export interface AutoscaleActivation {
+  workload: { workload: string; desired: number; available: number };
+  route: { id: string; service: string; domain: string; path?: string; protocol: string };
 }
 
 export interface AutoscaleCompatibility {
@@ -2154,6 +2167,8 @@ export const autoscaleApi = {
       `/deployments/${encodeURIComponent(deployment)}/autoscale/workload`,
       workload,
     ),
+  activate: (deployment: string) =>
+    apiClient.post<AutoscaleActivation>(`/deployments/${encodeURIComponent(deployment)}/autoscale/activate`),
 };
 
 import type { User, APIKey, UserRole, UserDeploymentAccess, DeploymentAccessMap } from "@/types";

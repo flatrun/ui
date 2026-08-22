@@ -3,11 +3,17 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import DeploymentAutoscaleCard from "./DeploymentAutoscaleCard.vue";
 
 vi.mock("@/stores/notifications", () => ({
-  useNotificationsStore: () => ({ success: vi.fn() }),
+  useNotificationsStore: () => ({ success: vi.fn(), error: vi.fn() }),
 }));
 
 vi.mock("@/services/api", () => ({
-  autoscaleApi: { getPolicy: vi.fn(), updatePolicy: vi.fn(), getCompatibility: vi.fn(), updateWorkload: vi.fn() },
+  autoscaleApi: {
+    getPolicy: vi.fn(),
+    updatePolicy: vi.fn(),
+    getCompatibility: vi.fn(),
+    updateWorkload: vi.fn(),
+    activate: vi.fn(),
+  },
 }));
 
 describe("DeploymentAutoscaleCard", () => {
@@ -57,6 +63,33 @@ describe("DeploymentAutoscaleCard", () => {
         workload: { service: "app", stateless: true, storage: { mode: "none", class: "" } },
       },
     } as any);
+    vi.mocked(autoscaleApi.activate).mockResolvedValue({
+      data: { workload: { workload: "shop", desired: 1, available: 1 }, route: { id: "shop" } },
+    } as any);
+  });
+
+  it("activates managed scaling through a confirmation modal", async () => {
+    const { autoscaleApi } = await import("@/services/api");
+    const wrapper = mount(DeploymentAutoscaleCard, {
+      props: { deployment: "shop", canWrite: true },
+      global: {
+        stubs: {
+          BaseModal: {
+            props: ["visible"],
+            template: '<div v-if="visible"><slot /><slot name="footer" /></div>',
+          },
+        },
+      },
+    });
+    await flushPromises();
+    await wrapper.find(".activate-button").trigger("click");
+    await wrapper
+      .findAll("button")
+      .find((button) => button.text() === "Activate scaling")
+      ?.trigger("click");
+    await flushPromises();
+
+    expect(autoscaleApi.activate).toHaveBeenCalledWith("shop");
   });
 
   it("updates the policy through the deployment UI", async () => {
@@ -73,7 +106,10 @@ describe("DeploymentAutoscaleCard", () => {
       },
     });
     await flushPromises();
-    await wrapper.find(".autoscale-header button").trigger("click");
+    await wrapper
+      .findAll(".autoscale-header button")
+      .find((button) => button.text() === "Configure")
+      ?.trigger("click");
     await wrapper.find('input[type="number"]').setValue(2);
     await wrapper.find("#autoscale-policy-form").trigger("submit");
     await flushPromises();
