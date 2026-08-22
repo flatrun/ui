@@ -897,7 +897,7 @@ onMounted(() => {
 .cluster-view {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: var(--space-4);
 }
 
 .btn-icon {

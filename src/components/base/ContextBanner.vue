@@ -49,7 +49,7 @@ function dismiss() {
   align-items: center;
   justify-content: space-between;
   gap: var(--space-3);
-  min-height: 38px;
+  min-height: 44px;
   padding: var(--space-1) var(--space-3);
   background: var(--surface-raised);
   border: 1px solid var(--border);
@@ -82,8 +82,8 @@ function dismiss() {
 
 .context-banner-icon {
   display: grid;
-  width: 30px;
-  height: 30px;
+  width: 34px;
+  height: 34px;
   place-items: center;
   background: var(--accent-subtle);
   border: 1px solid var(--border-subtle);

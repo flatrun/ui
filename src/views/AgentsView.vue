@@ -411,7 +411,7 @@ onMounted(fetchAgents);
 .agents-view {
   display: flex;
   flex-direction: column;
-  gap: var(--space-6);
+  gap: var(--space-4);
 }
 
 .loading-state,
