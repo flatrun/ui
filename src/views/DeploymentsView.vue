@@ -1,13 +1,5 @@
 <template>
   <div class="deployments-view">
-    <div v-if="selectedServer" class="server-context">
-      <div>
-        <span class="server-context-label">Fleet server</span>
-        <strong>{{ selectedServer }}</strong>
-        <span>{{ visibleDeployments.length }} deployments</span>
-      </div>
-      <button class="btn btn-secondary btn-sm" @click="showAllServers">All servers</button>
-    </div>
     <DataTable
       :items="visibleDeployments"
       :columns="columns"
@@ -362,9 +354,7 @@ const showNewDeploymentModal = ref(false);
 const selectedServer = computed(() => String(route.query.server || ""));
 const viewingRemoteServer = computed(() => Boolean(selectedServer.value) && selectedServer.value !== localServer.value);
 const visibleDeployments = computed(() =>
-  selectedServer.value
-    ? deployments.value.filter((deployment) => deployment.server === selectedServer.value)
-    : deployments.value,
+  deployments.value.filter((deployment) => deployment.server === (selectedServer.value || localServer.value)),
 );
 
 const deploymentJob = useDeploymentJob((state) => {
@@ -449,12 +439,6 @@ const reviewDeployment = (name: string, status: Deployment["status"], image: str
     },
   ],
 });
-
-const showAllServers = () => {
-  const query = { ...route.query };
-  delete query.server;
-  router.push({ path: "/deployments", query });
-};
 
 const refreshDeployments = () => {
   fetchDeployments();
@@ -784,31 +768,6 @@ watch(
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
-}
-
-.server-context {
-  display: flex;
-  min-height: 40px;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-3);
-  padding: var(--space-2) var(--space-3);
-  background: var(--surface-raised);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-}
-
-.server-context > div {
-  display: flex;
-  align-items: baseline;
-  gap: var(--space-2);
-  min-width: 0;
-}
-
-.server-context-label,
-.server-context span:last-child {
-  color: var(--text-muted);
-  font-size: var(--text-xs);
 }
 
 .deployment-info {

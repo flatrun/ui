@@ -195,8 +195,38 @@ describe("DeploymentsView", () => {
 
       expect(wrapper.text()).toContain("remote-app");
       expect(wrapper.text()).not.toContain("local-app");
-      expect(wrapper.text()).toContain("prod-2");
+      expect(wrapper.find(".server-context").exists()).toBe(false);
       expect(wrapper.text()).not.toContain("New Deployment");
+    });
+
+    it("shows only local deployments when no peer is selected", async () => {
+      const { clusterApi } = await import("@/services/api");
+      vi.mocked(clusterApi.getStatus).mockResolvedValueOnce({
+        data: { enabled: true, server_name: "prod-1" },
+      } as any);
+      vi.mocked(clusterApi.getAggregatedDeployments).mockResolvedValueOnce({
+        data: {
+          servers: {
+            "prod-1": {
+              name: "prod-1",
+              online: true,
+              data: { deployments: [{ name: "local-app", status: "running", services: [] }] },
+            },
+            "prod-2": {
+              name: "prod-2",
+              online: true,
+              data: { deployments: [{ name: "remote-app", status: "running", services: [] }] },
+            },
+          },
+        },
+      } as any);
+
+      const wrapper = mountView();
+      await flushPromises();
+
+      expect(wrapper.text()).toContain("local-app");
+      expect(wrapper.text()).not.toContain("remote-app");
+      expect(wrapper.find(".server-context").exists()).toBe(false);
     });
   });
 

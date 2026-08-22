@@ -101,7 +101,7 @@
               :class="{ active: route.name === 'deployments' && !selectedDeploymentServer }"
             >
               <Icon name="layers" :size="15" />
-              All deployments
+              Deployments
               <span class="nav-count">{{ stats.deployments }}</span>
             </router-link>
             <template v-if="clusterPeers.length">
