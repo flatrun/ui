@@ -2077,6 +2077,19 @@ export interface ClusterDeployments {
   servers: Record<string, ClusterServerDeployments>;
 }
 
+export interface AutoscalePolicy {
+  enabled: boolean;
+  min_replicas: number;
+  max_replicas: number;
+  scale_up_percent: number;
+  scale_down_percent: number;
+  scale_up_windows: number;
+  scale_down_windows: number;
+  cooldown_seconds: number;
+  allow_fleet_capacity: boolean;
+  state: { high_windows: number; low_windows: number; last_action?: string };
+}
+
 export const clusterApi = {
   getStatus: () => apiClient.get<ClusterStatus>("/cluster/status"),
   getProviders: () => apiClient.get<ClusterProviders>("/cluster/providers"),
@@ -2099,6 +2112,13 @@ export const clusterApi = {
   deploymentLogs: (server: string, name: string) =>
     apiClient.get<{ logs: string }>(`/cluster/peers/${encodeURIComponent(server)}/proxy/deployments/${encodeURIComponent(name)}/logs`),
   getAggregatedStats: () => apiClient.get("/cluster/stats"),
+};
+
+export const autoscaleApi = {
+  getPolicy: (deployment: string) =>
+    apiClient.get<AutoscalePolicy>(`/deployments/${encodeURIComponent(deployment)}/autoscale`),
+  updatePolicy: (deployment: string, policy: Omit<AutoscalePolicy, "state">) =>
+    apiClient.put<AutoscalePolicy>(`/deployments/${encodeURIComponent(deployment)}/autoscale`, policy),
 };
 
 import type { User, APIKey, UserRole, UserDeploymentAccess, DeploymentAccessMap } from "@/types";

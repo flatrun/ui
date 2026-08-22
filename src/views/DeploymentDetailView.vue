@@ -101,6 +101,7 @@
             :status="deployment?.status"
             @open="showDiagnostics = true"
           />
+          <DeploymentAutoscaleCard :deployment="route.params.name as string" :can-write="canWrite" />
 
           <div class="info-cards">
             <div class="info-card">
@@ -1935,6 +1936,7 @@ import { usePluginsStore } from "@/stores/plugins";
 import DomainsManager from "@/components/DomainsManager.vue";
 import DomainFormModal from "@/components/DomainFormModal.vue";
 import ContainerResourcesModal from "@/components/ContainerResourcesModal.vue";
+import DeploymentAutoscaleCard from "@/components/DeploymentAutoscaleCard.vue";
 import DeploymentDiagnosticsModal from "@/components/DeploymentDiagnosticsModal.vue";
 import DeploymentHealthCheckModal from "@/components/DeploymentHealthCheckModal.vue";
 import LogFilePicker from "@/components/LogFilePicker.vue";
