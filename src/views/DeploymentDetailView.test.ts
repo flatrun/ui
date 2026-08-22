@@ -186,11 +186,11 @@ describe("DeploymentDetailView", () => {
   });
 
   describe("Tab navigation", () => {
-    it("displays all twelve tabs", async () => {
+    it("displays all ten tabs", async () => {
       const wrapper = mountView();
       await flushPromises();
       const tabs = wrapper.findAll(".tab-btn");
-      expect(tabs.length).toBe(12);
+      expect(tabs.length).toBe(10);
     });
 
     it("has Overview tab", async () => {
@@ -205,15 +205,25 @@ describe("DeploymentDetailView", () => {
       expect(wrapper.text()).toContain("Files");
     });
 
-    it("keeps autoscaling out of Overview and opens it in its own tab", async () => {
+    it("keeps autoscaling under Configuration after Settings", async () => {
       const wrapper = mountView();
       await flushPromises();
 
       expect(wrapper.find(".autoscale-test-panel").exists()).toBe(false);
       await wrapper
         .findAll(".tab-btn")
-        .find((tab) => tab.text().includes("Autoscaling"))!
+        .find((tab) => tab.text().includes("Configuration"))!
         .trigger("click");
+
+      const subTabs = wrapper.findAll(".sub-tab");
+      expect(subTabs.map((tab) => tab.text().trim())).toEqual([
+        "Settings",
+        "Autoscaling",
+        "docker-compose.yml",
+        "service.yml",
+      ]);
+      expect(subTabs[0].classes()).toContain("active");
+      await subTabs[1].trigger("click");
 
       expect(wrapper.find(".autoscale-test-panel").exists()).toBe(true);
     });
@@ -297,8 +307,6 @@ describe("DeploymentDetailView", () => {
       await flushPromises();
       expect((wrapper.vm as any).tabs).toEqual([
         { id: "overview", label: "Overview", icon: "pi pi-info-circle" },
-        { id: "services", label: "Services", icon: "pi pi-box" },
-        { id: "autoscaling", label: "Autoscaling", icon: "pi pi-chart-line" },
         { id: "files", label: "Files", icon: "pi pi-folder" },
         { id: "logs", label: "Logs", icon: "pi pi-file-edit" },
         { id: "terminal", label: "Terminal", icon: "pi pi-desktop" },

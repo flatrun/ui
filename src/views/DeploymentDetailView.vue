@@ -460,24 +460,6 @@
           </div>
         </div>
 
-        <DeploymentServicesTab
-          v-if="activeTab === 'services'"
-          class="standalone-tab-panel"
-          :deployment="route.params.name as string"
-          :services="services"
-          :compose-content="composeConfig"
-          :can-write="canWrite"
-          @saved="handleStructuredComposeSaved"
-          @open-compose="openComposeConfiguration"
-        />
-
-        <DeploymentAutoscaleCard
-          v-if="activeTab === 'autoscaling'"
-          class="standalone-tab-panel"
-          :deployment="route.params.name as string"
-          :can-write="canWrite"
-        />
-
         <div v-if="activeTab === 'databases'" class="databases-tab">
           <div class="databases-tab-header">
             <div>
@@ -1220,7 +1202,14 @@
               </div>
             </div>
 
-            <div v-if="activeConfigTab !== 'settings'" class="config-sections">
+            <DeploymentAutoscaleCard
+              v-if="activeConfigTab === 'autoscaling'"
+              class="config-autoscaling"
+              :deployment="route.params.name as string"
+              :can-write="canWrite"
+            />
+
+            <div v-if="activeConfigTab === 'compose' || activeConfigTab === 'service'" class="config-sections">
               <div v-if="activeConfigTab === 'compose'" class="config-section">
                 <div class="config-header">
                   <h3>Docker Compose Configuration</h3>
@@ -1992,7 +1981,6 @@ import DomainsManager from "@/components/DomainsManager.vue";
 import DomainFormModal from "@/components/DomainFormModal.vue";
 import ContainerResourcesModal from "@/components/ContainerResourcesModal.vue";
 import DeploymentAutoscaleCard from "@/components/DeploymentAutoscaleCard.vue";
-import DeploymentServicesTab from "@/components/DeploymentServicesTab.vue";
 import DeploymentDiagnosticsModal from "@/components/DeploymentDiagnosticsModal.vue";
 import DeploymentHealthCheckModal from "@/components/DeploymentHealthCheckModal.vue";
 import LogFilePicker from "@/components/LogFilePicker.vue";
@@ -2106,8 +2094,6 @@ const protectedPathPresets = [
 
 const tabs = [
   { id: "overview", label: "Overview", icon: "pi pi-info-circle" },
-  { id: "services", label: "Services", icon: "pi pi-box" },
-  { id: "autoscaling", label: "Autoscaling", icon: "pi pi-chart-line" },
   { id: "files", label: "Files", icon: "pi pi-folder" },
   { id: "logs", label: "Logs", icon: "pi pi-file-edit" },
   { id: "terminal", label: "Terminal", icon: "pi pi-desktop" },
@@ -2246,12 +2232,13 @@ const isEditingConfig = ref(false);
 const serviceConfig = ref("");
 const isEditingServiceConfig = ref(false);
 const configExtensions = [yaml(), oneDark];
-const activeConfigTab = ref<"compose" | "service" | "settings">("compose");
+const activeConfigTab = ref<"settings" | "autoscaling" | "compose" | "service">("settings");
 
 const configSubTabs = computed(() => [
+  { id: "settings", label: "Settings", icon: "pi pi-sliders-h" },
+  { id: "autoscaling", label: "Autoscaling", icon: "pi pi-chart-line" },
   { id: "compose", label: composeFilename.value, icon: "pi pi-file" },
   { id: "service", label: "service.yml", icon: "pi pi-cog" },
-  { id: "settings", label: "Settings", icon: "pi pi-sliders-h" },
 ]);
 
 const showOperationModal = ref(false);
@@ -3538,17 +3525,6 @@ const saveServiceImage = async () => {
   }
 };
 
-const handleStructuredComposeSaved = async (content: string) => {
-  composeConfig.value = content;
-  originalConfig = content;
-  await fetchDeployment();
-};
-
-const openComposeConfiguration = () => {
-  activeTab.value = "config";
-  activeConfigTab.value = "compose";
-};
-
 const saveServiceConfig = async () => {
   try {
     const blob = new Blob([serviceConfig.value], { type: "text/yaml" });
@@ -3862,10 +3838,6 @@ onUnmounted(() => {
 
 .plugin-tab {
   padding: var(--space-5);
-}
-
-.standalone-tab-panel {
-  margin: var(--space-4);
 }
 
 .overview-tab {
@@ -4671,6 +4643,11 @@ onUnmounted(() => {
 
 .config-tab {
   padding: var(--space-4);
+}
+
+.config-autoscaling {
+  border: 0;
+  box-shadow: none;
 }
 
 .config-section {
