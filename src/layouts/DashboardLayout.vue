@@ -56,6 +56,29 @@
           <span v-if="!sidebarCollapsed">Agents</span>
         </router-link>
 
+        <router-link
+          v-if="authStore.hasPermission('cluster:read')"
+          to="/cluster"
+          class="nav-item"
+          active-class="active"
+          title="Fleet"
+        >
+          <Icon name="boxes" :size="18" />
+          <span v-if="!sidebarCollapsed">Fleet</span>
+          <span v-if="!sidebarCollapsed && clusterPeers.length" class="nav-count">{{ clusterPeers.length + 1 }}</span>
+        </router-link>
+
+        <router-link
+          v-if="authStore.hasPermission('settings:read')"
+          to="/notifications"
+          class="nav-item"
+          active-class="active"
+          title="Notifications"
+        >
+          <Icon name="bell" :size="18" />
+          <span v-if="!sidebarCollapsed">Notifications</span>
+        </router-link>
+
         <div v-if="authStore.hasPermission('deployments:read')" class="nav-group">
           <div class="nav-group-header" @click="toggleGroup('stacks')">
             <Icon name="layers" :size="17" />
@@ -279,8 +302,7 @@
           v-if="
             authStore.hasPermission('system:read') ||
             authStore.hasPermission('infrastructure:read') ||
-            authStore.hasPermission('scheduler:read') ||
-            authStore.hasPermission('cluster:read')
+            authStore.hasPermission('scheduler:read')
           "
           class="nav-group"
         >
@@ -324,16 +346,6 @@
             >
               <Icon name="folder" :size="15" />
               Files
-            </router-link>
-            <router-link
-              v-if="authStore.hasPermission('cluster:read')"
-              to="/cluster"
-              class="nav-subitem"
-              active-class="active"
-            >
-              <Icon name="boxes" :size="15" />
-              Cluster
-              <span v-if="clusterPeers.length" class="nav-count">{{ clusterPeers.length + 1 }}</span>
             </router-link>
             <router-link
               v-if="authStore.hasPermission('infrastructure:read')"
@@ -666,7 +678,8 @@ const currentPageTitle = computed(() => {
     updates: "Updates",
     "system-terminal": "System Terminal",
     "system-files": "System Files",
-    cluster: "Cluster",
+    cluster: "Fleet",
+    notifications: "Notifications",
     databases: "Database Servers",
     security: "Security & Monitoring",
     certificates: "SSL Certificates",
@@ -701,7 +714,6 @@ const breadcrumbs = computed(() => {
       "server-info",
       "system-terminal",
       "system-files",
-      "cluster",
     ].includes(routeName)
   ) {
     crumbs.push({ label: "System", path: "" });

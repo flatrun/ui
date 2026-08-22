@@ -30,6 +30,10 @@
               <code>{{ serverInfo?.hostname || "—" }}</code>
             </div>
             <div class="info-row">
+              <span class="info-label">Agent URL</span>
+              <code>{{ serverInfo?.agent_url || "—" }}</code>
+            </div>
+            <div class="info-row">
               <span class="info-label">Public IPv4</span>
               <code>{{ serverInfo?.public_ipv4 || "—" }}</code>
             </div>

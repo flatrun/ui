@@ -1,37 +1,16 @@
 <template>
   <section class="notifications-settings">
-    <div class="notification-summary">
-      <div class="summary-icon"><Icon name="solar:danger-circle-bold-duotone" :size="30" /></div>
-      <div class="summary-copy">
-        <span class="eyebrow">Notifications</span>
-        <h2>Incidents, rules, and delivery targets</h2>
-        <p>Review incidents here. Use rules to decide which updates reach each target.</p>
-      </div>
+    <div class="section-toolbar">
+      <nav class="section-tabs" aria-label="Notification sections">
+        <button v-for="tab in tabs" :key="tab.id" :class="{ active: activeTab === tab.id }" @click="activeTab = tab.id">
+          <Icon :name="tab.icon" :size="16" />{{ tab.label }}
+          <span v-if="tab.count()" class="count-chip">{{ tab.count() }}</span>
+        </button>
+      </nav>
       <a class="docs-link" href="https://flatrun.dev/docs/ui/notifications" target="_blank" rel="noopener noreferrer">
         <Icon name="book-open" :size="16" /> Notification guide <Icon name="external-link" :size="14" />
       </a>
-      <div class="summary-stats">
-        <div>
-          <strong>{{ openIncidentCount }}</strong
-          ><span>Open incidents</span>
-        </div>
-        <div>
-          <strong>{{ rules.length }}</strong
-          ><span>Delivery rules</span>
-        </div>
-        <div>
-          <strong>{{ enabledTargetCount }}</strong
-          ><span>Active targets</span>
-        </div>
-      </div>
     </div>
-
-    <nav class="section-tabs" aria-label="Notification sections">
-      <button v-for="tab in tabs" :key="tab.id" :class="{ active: activeTab === tab.id }" @click="activeTab = tab.id">
-        <Icon :name="tab.icon" :size="16" />{{ tab.label }}
-        <span v-if="tab.count()" class="count-chip">{{ tab.count() }}</span>
-      </button>
-    </nav>
 
     <div v-if="loading" class="state-panel loading-panel">
       <span v-for="item in 3" :key="item" class="skeleton-row" />
@@ -407,7 +386,6 @@ const tabs = [
   { id: "targets" as const, label: "Targets", icon: "send", count: () => targets.value.length },
 ];
 const openIncidentCount = computed(() => incidents.value.filter((item) => item.status === "open").length);
-const enabledTargetCount = computed(() => targets.value.filter((item) => item.enabled).length);
 
 const targetForm = reactive({
   type: "email" as "email" | "webhook" | "custom",
@@ -619,21 +597,17 @@ onMounted(load);
   flex-direction: column;
   gap: var(--space-4);
 }
-.notification-summary {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+.section-toolbar {
+  display: flex;
   align-items: center;
-  gap: var(--space-5);
-  padding: var(--space-5);
-  background: var(--accent-subtle);
-  border: 1px solid var(--color-primary-200);
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-sm);
+  justify-content: space-between;
+  gap: var(--space-3);
 }
 .docs-link {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
+  min-height: 44px;
   padding: var(--space-2) var(--space-3);
   color: var(--color-primary-700);
   background: var(--surface-raised);
@@ -643,7 +617,6 @@ onMounted(load);
   font-weight: var(--font-semibold);
   text-decoration: none;
 }
-.summary-icon,
 .empty-icon,
 .incident-icon,
 .target-icon {
@@ -651,49 +624,13 @@ onMounted(load);
   place-items: center;
   border-radius: var(--radius-lg);
 }
-.summary-icon {
-  width: 54px;
-  height: 54px;
-  color: var(--color-primary-700);
-  background: var(--surface-raised);
-  box-shadow: var(--shadow-sm);
-}
-.summary-copy h2,
 .content-header h3 {
   margin: 0;
   color: var(--text);
 }
-.summary-copy p,
 .content-header p {
   margin: var(--space-1) 0 0;
   color: var(--text-muted);
-}
-.eyebrow {
-  display: block;
-  margin-bottom: var(--space-1);
-  color: var(--color-primary-700);
-  font-size: var(--text-xs);
-  font-weight: var(--font-bold);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-.summary-stats {
-  grid-column: 2 / -1;
-  display: flex;
-  gap: var(--space-6);
-}
-.summary-stats div {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-}
-.summary-stats strong {
-  color: var(--text);
-  font-size: var(--text-2xl);
-}
-.summary-stats span {
-  color: var(--text-muted);
-  font-size: var(--text-xs);
 }
 .section-tabs {
   display: flex;
@@ -701,7 +638,7 @@ onMounted(load);
   padding: var(--space-1);
   width: fit-content;
   background: var(--surface-inset);
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-sm);
 }
 .section-tabs button {
   display: inline-flex;
@@ -710,7 +647,7 @@ onMounted(load);
   min-height: 36px;
   padding: var(--space-2) var(--space-4);
   border: 0;
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-xs);
   color: var(--text-muted);
   background: transparent;
   cursor: pointer;
@@ -1037,22 +974,18 @@ fieldset legend {
   }
 }
 @media (max-width: 760px) {
-  .notification-summary {
-    grid-template-columns: auto 1fr;
-  }
-  .docs-link {
-    grid-column: 2;
-  }
-  .summary-stats {
-    grid-column: 1 / -1;
-    width: 100%;
-    justify-content: space-between;
+  .section-toolbar {
+    align-items: stretch;
+    flex-direction: column;
   }
   .section-tabs {
     width: 100%;
   }
   .section-tabs button {
     flex: 1;
+    justify-content: center;
+  }
+  .docs-link {
     justify-content: center;
   }
   .content-header {

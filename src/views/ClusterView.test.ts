@@ -11,6 +11,9 @@ vi.mock("@/stores/notifications", () => ({
 }));
 
 vi.mock("@/services/api", () => ({
+  serverApi: {
+    getInfo: vi.fn(),
+  },
   clusterApi: {
     getStatus: vi.fn(),
     getProviders: vi.fn(),
@@ -29,7 +32,18 @@ describe("ClusterView", () => {
   beforeEach(async () => {
     window.history.replaceState({}, "", "/");
     vi.clearAllMocks();
-    const { clusterApi } = await import("@/services/api");
+    const { clusterApi, serverApi } = await import("@/services/api");
+    vi.mocked(serverApi.getInfo).mockResolvedValue({
+      data: {
+        server: {
+          hostname: "prod-1",
+          agent_url: "https://prod-1.example.com:8090",
+          public_ipv4: "203.0.113.10",
+          public_ipv6: "",
+          interfaces: [],
+        },
+      },
+    } as any);
     vi.mocked(clusterApi.getStatus)
       .mockResolvedValueOnce({ data: { enabled: false } } as any)
       .mockResolvedValue({ data: { enabled: true, server_name: "prod-1", peer_count: 0 } } as any);
@@ -75,6 +89,18 @@ describe("ClusterView", () => {
     expect(wrapper.text()).toContain("Manage every server from one place");
     expect(wrapper.text()).toContain("Set up Fleet");
     expect(wrapper.text()).not.toContain("cluster: enabled");
+  });
+
+  it("prefills setup with the agent URL from Server Info", async () => {
+    const wrapper = mountView();
+    await flushPromises();
+
+    await wrapper.find(".disabled-state .btn-primary").trigger("click");
+
+    expect((wrapper.find("#fleet-server-name").element as HTMLInputElement).value).toBe("prod-1");
+    expect((wrapper.find("#fleet-advertise-url").element as HTMLInputElement).value).toBe(
+      "https://prod-1.example.com:8090",
+    );
   });
 
   it("enables Fleet through the setup API", async () => {

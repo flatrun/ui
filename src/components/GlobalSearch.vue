@@ -62,7 +62,8 @@ const DESTINATIONS: Destination[] = [
   { label: "Server Info", path: "/server-info", icon: "server", group: "System", perm: "system:read" },
   { label: "Terminal", path: "/system-terminal", icon: "terminal", group: "System", perm: "system:write" },
   { label: "Files", path: "/system/files", icon: "folder", group: "System", perm: "system:files" },
-  { label: "Cluster", path: "/cluster", icon: "boxes", group: "System", perm: "cluster:read" },
+  { label: "Fleet", path: "/cluster", icon: "boxes", group: "Services", perm: "cluster:read" },
+  { label: "Notifications", path: "/notifications", icon: "bell", group: "Services", perm: "settings:read" },
   {
     label: "Infrastructure",
     path: "/infrastructure",

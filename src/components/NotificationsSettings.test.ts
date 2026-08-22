@@ -125,7 +125,7 @@ describe("NotificationsSettings", () => {
 
   it("renders notification review data without calling the agent", async () => {
     const { notificationsApi } = await import("@/services/api");
-    window.history.replaceState({}, "", "/settings?tab=notifications&review=notifications");
+    window.history.replaceState({}, "", "/notifications?review=notifications");
     const wrapper = mountSettings();
     await flushPromises();
 

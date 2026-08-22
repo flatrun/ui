@@ -23,9 +23,7 @@
         <span class="status-chip">Not configured</span>
         <h3>Manage every server from one place</h3>
         <p>Enable Fleet on this server, then invite another server. Existing deployments keep running unchanged.</p>
-        <BaseButton v-if="canWrite" variant="primary" icon="network" @click="showSetupModal = true"
-          >Set up Fleet</BaseButton
-        >
+        <BaseButton v-if="canWrite" variant="primary" icon="network" @click="openSetupModal">Set up Fleet</BaseButton>
       </div>
     </template>
 
@@ -466,11 +464,13 @@
 import { computed, ref, onMounted } from "vue";
 import {
   clusterApi,
+  serverApi,
   type ClusterCapability,
   type ClusterGrant,
   type ClusterProviders,
   type ClusterStatus,
   type ClusterPeer,
+  type ServerInfo,
 } from "@/services/api";
 import { useNotificationsStore } from "@/stores/notifications";
 import { useAuthStore } from "@/stores/auth";
@@ -501,6 +501,7 @@ const showSetupModal = ref(false);
 const settingUp = ref(false);
 const setupError = ref("");
 const setupForm = ref({ serverName: "", advertiseUrl: "" });
+const serverInfo = ref<ServerInfo | null>(null);
 const providers = ref<ClusterProviders | null>(null);
 const loadingProviders = ref(false);
 const showProvidersModal = ref(false);
@@ -570,6 +571,13 @@ const fetchAll = async () => {
   loading.value = true;
   if (reviewMode === "setup") {
     status.value = { enabled: false };
+    serverInfo.value = {
+      hostname: "prod-1",
+      agent_url: "https://prod-1.example.com",
+      public_ipv4: "203.0.113.10",
+      public_ipv6: "",
+      interfaces: [],
+    };
     loading.value = false;
     return;
   }
@@ -601,12 +609,20 @@ const fetchAll = async () => {
     if (status.value.enabled) {
       const [peersRes] = await Promise.all([clusterApi.listPeers(), loadProviders()]);
       peers.value = peersRes.data.peers || [];
+    } else {
+      serverInfo.value = (await serverApi.getInfo()).data.server;
     }
   } catch {
     notifications.error("Error", "Failed to load cluster status");
   } finally {
     loading.value = false;
   }
+};
+
+const openSetupModal = () => {
+  if (!setupForm.value.serverName) setupForm.value.serverName = serverInfo.value?.hostname || "";
+  if (!setupForm.value.advertiseUrl) setupForm.value.advertiseUrl = serverInfo.value?.agent_url || "";
+  showSetupModal.value = true;
 };
 
 const loadProviders = async () => {

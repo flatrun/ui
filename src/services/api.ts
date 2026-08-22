@@ -860,6 +860,7 @@ export interface NetworkInterface {
 
 export interface ServerInfo {
   hostname: string;
+  agent_url: string;
   public_ipv4: string;
   public_ipv6: string;
   interfaces: NetworkInterface[];

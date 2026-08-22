@@ -771,10 +771,6 @@
         <SecurityHealthCard :auto-fetch="true" />
       </div>
 
-      <div v-show="activeTab === 'notifications'" class="tab-content">
-        <NotificationsSettings />
-      </div>
-
       <div v-for="pt in pluginSettingsTabs" v-show="activeTab === pt.id" :key="pt.id" class="tab-content">
         <div class="settings-card">
           <div class="card-body">
@@ -1056,7 +1052,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted, markRaw, type Component } from "vue";
-import { Bell, FolderClosed, Sparkles, Plug } from "lucide-vue-next";
+import { FolderClosed, Sparkles, Plug } from "lucide-vue-next";
 import {
   settingsApi,
   healthApi,
@@ -1072,7 +1068,6 @@ import { useNotificationsStore } from "@/stores/notifications";
 import { useAuthStore } from "@/stores/auth";
 import { useAIStore } from "@/stores/ai";
 import SecurityHealthCard from "@/components/SecurityHealthCard.vue";
-import NotificationsSettings from "@/components/NotificationsSettings.vue";
 import Icon from "@/components/base/Icon.vue";
 import PluginSlot from "@/components/plugins/PluginSlot.vue";
 import { usePluginsStore } from "@/stores/plugins";
@@ -1092,18 +1087,9 @@ const refreshingTemplates = ref(false);
 const agentVersion = ref("unknown");
 const requestedTab = new URLSearchParams(window.location.search).get("tab");
 const activeTab = ref(
-  [
-    "general",
-    "domain",
-    "infrastructure",
-    "security",
-    "terminal",
-    "healthchecks",
-    "notifications",
-    "credentials",
-    "ai",
-    "mcp",
-  ].includes(requestedTab || "")
+  ["general", "domain", "infrastructure", "security", "terminal", "healthchecks", "credentials", "ai", "mcp"].includes(
+    requestedTab || "",
+  )
     ? requestedTab!
     : "general",
 );
@@ -1116,7 +1102,6 @@ const tabs = [
   { id: "security", label: "Security & Monitoring", icon: "pi pi-shield" },
   { id: "terminal", label: "Terminal", icon: "pi pi-desktop" },
   { id: "healthchecks", label: "Health Checks", icon: "pi pi-heart" },
-  { id: "notifications", label: "Notifications", icon: "" },
   { id: "credentials", label: "Credentials", icon: "pi pi-key" },
   { id: "ai", label: "AI Assistant", icon: "" },
   { id: "mcp", label: "MCP Server", icon: "" },
@@ -1125,7 +1110,6 @@ const tabs = [
 const tabLucideIcons: Record<string, Component> = {
   ai: markRaw(Sparkles),
   mcp: markRaw(Plug),
-  notifications: markRaw(Bell),
 };
 
 const pluginsStore = usePluginsStore();
