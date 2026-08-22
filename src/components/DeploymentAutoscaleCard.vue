@@ -409,7 +409,7 @@ onMounted(load);
   padding: 0.25rem 0.5rem;
   color: var(--text-muted);
   background: var(--surface-sunken);
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-sm);
   font-size: 0.75rem;
   font-weight: 600;
 }

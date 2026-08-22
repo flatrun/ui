@@ -210,7 +210,7 @@ describe("ClusterView", () => {
     await wrapper.find("#provider-form").trigger("submit");
     await flushPromises();
 
-    expect(clusterApi.updateProviders).toHaveBeenCalledWith("k3s", "nginx", {
+    expect(clusterApi.updateProviders).toHaveBeenCalledWith("k3s", "traefik", {
       kubeconfig: "/etc/rancher/k3s/k3s.yaml",
       namespace: "flatrun",
     });

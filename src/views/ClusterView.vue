@@ -491,7 +491,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, onMounted } from "vue";
+import { computed, ref, onMounted, watch } from "vue";
 import {
   clusterApi,
   serverApi,
@@ -544,6 +544,11 @@ const selectedRouting = ref("");
 const k3sForm = ref({ kubeconfig: "", namespace: "default" });
 const activeOrchestrator = computed(() => providers.value?.orchestrators.find((provider) => provider.active)?.id || "");
 const activeRouting = computed(() => providers.value?.routing.find((provider) => provider.active)?.id || "");
+
+watch(selectedOrchestrator, (orchestrator) => {
+  if (orchestrator === "k3s") selectedRouting.value = "traefik";
+  if (orchestrator === "swarm" || orchestrator === "standalone") selectedRouting.value = "nginx";
+});
 
 const showInviteModal = ref(false);
 const inviteToken = ref("");
