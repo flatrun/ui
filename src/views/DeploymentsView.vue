@@ -382,7 +382,7 @@ const columns = [
 const fetchDeployments = async () => {
   loading.value = true;
   try {
-    if (!canReadCluster) {
+    if (!selectedServer.value || !canReadCluster) {
       const response = await deploymentsApi.list();
       deployments.value = (response.data.deployments || []).map((deployment) =>
         managedDeployment(deployment, localServer.value, true),

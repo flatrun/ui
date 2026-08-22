@@ -182,11 +182,13 @@ describe("DeploymentsView", () => {
   });
 
   describe("Data loading", () => {
-    it("fetches deployments on mount", async () => {
-      const { deploymentsApi } = await import("@/services/api");
+    it("loads local deployments without requesting Fleet status", async () => {
+      const { clusterApi, deploymentsApi } = await import("@/services/api");
       mountView();
       await flushPromises();
       expect(deploymentsApi.list).toHaveBeenCalled();
+      expect(clusterApi.getStatus).not.toHaveBeenCalled();
+      expect(clusterApi.getAggregatedDeployments).not.toHaveBeenCalled();
     });
 
     it("loads assigned deployments without requesting Fleet access", async () => {
@@ -235,33 +237,15 @@ describe("DeploymentsView", () => {
       expect(mockPush).toHaveBeenCalledWith({ path: "/deployments/remote-app", query: { server: "prod-2" } });
     });
 
-    it("shows only local deployments when no peer is selected", async () => {
+    it("shows stopped local deployments without Fleet checks", async () => {
       const { clusterApi } = await import("@/services/api");
-      vi.mocked(clusterApi.getStatus).mockResolvedValueOnce({
-        data: { enabled: true, server_name: "prod-1" },
-      } as any);
-      vi.mocked(clusterApi.getAggregatedDeployments).mockResolvedValueOnce({
-        data: {
-          servers: {
-            "prod-1": {
-              name: "prod-1",
-              online: true,
-              data: { deployments: [{ name: "local-app", status: "running", services: [] }] },
-            },
-            "prod-2": {
-              name: "prod-2",
-              online: true,
-              data: { deployments: [{ name: "remote-app", status: "running", services: [] }] },
-            },
-          },
-        },
-      } as any);
-
       const wrapper = mountView();
       await flushPromises();
 
-      expect(wrapper.text()).toContain("local-app");
-      expect(wrapper.text()).not.toContain("remote-app");
+      expect(wrapper.text()).toContain("wordpress-site");
+      expect(wrapper.text()).toContain("stopped");
+      expect(clusterApi.getStatus).not.toHaveBeenCalled();
+      expect(clusterApi.getAggregatedDeployments).not.toHaveBeenCalled();
       expect(wrapper.find(".server-context").exists()).toBe(false);
     });
   });
