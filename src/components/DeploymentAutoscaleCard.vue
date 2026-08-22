@@ -126,7 +126,7 @@
         <label class="toggle-row"
           ><input v-model="form.allow_fleet_capacity" type="checkbox" /><span
             ><strong>Use permitted Fleet capacity</strong
-            ><small>Place extra replicas on connected servers that explicitly lend resources.</small></span
+            ><small>Place extra replicas on permitted servers in the same runtime cluster.</small></span
           ></label
         >
         <div v-if="saveError" class="save-error"><Icon name="triangle-alert" :size="18" /> {{ saveError }}</div>
