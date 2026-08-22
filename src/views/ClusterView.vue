@@ -25,85 +25,38 @@
     </template>
 
     <template v-else-if="status">
-      <div class="status-cards">
-        <div class="status-card">
-          <div class="status-icon blue">
-            <i class="pi pi-server" />
-          </div>
-          <div class="status-info">
-            <span class="status-value">{{ status.server_name }}</span>
-            <span class="status-label">This Server</span>
-          </div>
-        </div>
-        <div class="status-card">
-          <div class="status-icon green">
-            <i class="pi pi-sitemap" />
-          </div>
-          <div class="status-info">
-            <span class="status-value">{{ status.peer_count }}</span>
-            <span class="status-label">Peers</span>
-          </div>
-        </div>
-        <div class="status-card">
-          <div class="status-icon purple">
-            <i class="pi pi-tag" />
-          </div>
-          <div class="status-info">
-            <span class="status-value">{{ status.version?.version || "—" }}</span>
-            <span class="status-label">Version</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="section-card provider-summary">
-        <div class="card-header">
-          <div class="header-left">
-            <Icon name="settings" :size="20" />
-            <div>
-              <h3>Runtime providers</h3>
-              <p>Choose how Fleet places workloads and routes traffic on this server.</p>
-            </div>
-          </div>
-          <BaseButton v-if="canWrite" size="sm" icon="settings" @click="openProvidersModal">Configure</BaseButton>
-        </div>
-        <div v-if="loadingProviders" class="provider-loading">
-          <Icon name="loader-circle" spin :size="18" /> Checking providers
-        </div>
-        <div v-else-if="providers" class="provider-active-grid">
-          <div>
-            <span>Workload runtime</span>
-            <strong>{{ providerLabel(activeOrchestrator) }}</strong>
-          </div>
-          <div>
-            <span>Traffic routing</span>
-            <strong>{{ providerLabel(activeRouting) }}</strong>
-          </div>
-        </div>
-        <div v-else class="provider-error">Provider status is unavailable.</div>
-      </div>
-
       <div class="section-card">
         <div class="card-header">
-          <div class="header-left">
-            <i class="pi pi-users" />
-            <h3>Peers</h3>
+          <div class="fleet-heading">
+            <div class="header-left">
+              <Icon name="solar:server-square-cloud-bold-duotone" :size="22" />
+              <div>
+                <h3>Fleet servers</h3>
+                <p>Connected servers remain independent until you grant access.</p>
+              </div>
+            </div>
+            <div class="fleet-meta" aria-label="Fleet status">
+              <span
+                ><strong>{{ status.server_name }}</strong> this server</span
+              >
+              <span>{{ status.peer_count }} peers</span>
+              <span v-if="providers">{{ providerLabel(activeOrchestrator) }} · {{ providerLabel(activeRouting) }}</span>
+              <span v-else-if="loadingProviders"><Icon name="loader-circle" spin :size="13" /> Runtime</span>
+            </div>
           </div>
           <div v-if="canWrite" class="header-right">
-            <button class="btn btn-sm btn-secondary" @click="showAcceptModal = true">
-              <i class="pi pi-sign-in" />
-              Join Cluster
-            </button>
-            <button class="btn btn-sm btn-primary" :disabled="creatingInvite" @click="createInvite">
-              <i :class="creatingInvite ? 'pi pi-spin pi-spinner' : 'pi pi-plus'" />
-              Generate Invite
-            </button>
+            <BaseButton size="sm" icon="settings" @click="openProvidersModal">Runtime</BaseButton>
+            <BaseButton size="sm" icon="log-in" @click="showAcceptModal = true">Join Fleet</BaseButton>
+            <BaseButton size="sm" variant="primary" icon="plus" :loading="creatingInvite" @click="createInvite">
+              Invite server
+            </BaseButton>
           </div>
         </div>
 
         <div v-if="peers.length === 0" class="empty-peers">
           <i class="pi pi-sitemap" />
           <p>No peers connected yet</p>
-          <span class="hint">Generate an invite token and share it with another server to connect</span>
+          <span class="hint">Invite another server to manage it from this Fleet.</span>
         </div>
 
         <table v-else class="data-table">
@@ -113,7 +66,7 @@
               <th>URL</th>
               <th>Status</th>
               <th>Last Seen</th>
-              <th v-if="canWrite">Actions</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -133,19 +86,25 @@
                 </span>
               </td>
               <td class="time-cell">{{ peer.last_seen ? formatTime(peer.last_seen) : "—" }}</td>
-              <td v-if="canWrite">
-                <button class="btn btn-sm btn-secondary" @click="openPolicyModal(peer)">
-                  <Icon name="shield-check" :size="14" />
-                  Access
-                </button>
-                <button
-                  class="btn btn-sm btn-danger"
-                  :disabled="removingPeer === peer.name"
-                  @click="confirmRemovePeer(peer)"
-                >
-                  <i :class="removingPeer === peer.name ? 'pi pi-spin pi-spinner' : 'pi pi-trash'" />
-                  Remove
-                </button>
+              <td>
+                <div class="peer-actions">
+                  <BaseButton size="sm" icon="layers" :disabled="!peer.online" @click="openPeerDeployments(peer)">
+                    Deployments
+                  </BaseButton>
+                  <button v-if="canWrite" class="btn btn-sm btn-secondary" @click="openPolicyModal(peer)">
+                    <Icon name="shield-check" :size="14" />
+                    Access
+                  </button>
+                  <button
+                    v-if="canWrite"
+                    class="btn btn-sm btn-danger"
+                    :disabled="removingPeer === peer.name"
+                    @click="confirmRemovePeer(peer)"
+                  >
+                    <i :class="removingPeer === peer.name ? 'pi pi-spin pi-spinner' : 'pi pi-trash'" />
+                    Remove
+                  </button>
+                </div>
               </td>
             </tr>
           </tbody>
@@ -492,6 +451,7 @@
 
 <script setup lang="ts">
 import { computed, ref, onMounted, watch } from "vue";
+import { useRouter } from "vue-router";
 import {
   clusterApi,
   serverApi,
@@ -510,6 +470,7 @@ import Icon from "@/components/base/Icon.vue";
 import ContextBanner from "@/components/base/ContextBanner.vue";
 
 const notifications = useNotificationsStore();
+const router = useRouter();
 const authStore = useAuthStore();
 const canWrite = authStore.hasPermission("cluster:write");
 const reviewMode = import.meta.env.DEV ? new URLSearchParams(window.location.search).get("review") : null;
@@ -661,6 +622,14 @@ const openSetupModal = () => {
   if (!setupForm.value.serverName) setupForm.value.serverName = serverInfo.value?.hostname || "";
   if (!setupForm.value.advertiseUrl) setupForm.value.advertiseUrl = serverInfo.value?.agent_url || "";
   showSetupModal.value = true;
+};
+
+const openPeerDeployments = (peer: ClusterPeer) => {
+  if (!peer.online) return;
+  router.push({
+    path: "/deployments",
+    query: { server: peer.name, ...(reviewMode === "fleet" ? { review: "fleet-deployments" } : {}) },
+  });
 };
 
 const loadProviders = async () => {
@@ -1144,64 +1113,6 @@ onMounted(() => {
   font-size: var(--text-sm);
 }
 
-.status-cards {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1rem;
-}
-
-.status-card {
-  background: var(--surface-raised);
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border);
-  padding: 1.25rem;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.status-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: var(--radius-sm);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.125rem;
-  flex-shrink: 0;
-}
-
-.status-icon.blue {
-  background: rgba(59, 130, 246, 0.1);
-  color: #3b82f6;
-}
-
-.status-icon.green {
-  background: rgba(34, 197, 94, 0.1);
-  color: #22c55e;
-}
-
-.status-icon.purple {
-  background: rgba(139, 92, 246, 0.1);
-  color: #8b5cf6;
-}
-
-.status-info {
-  display: flex;
-  flex-direction: column;
-}
-
-.status-value {
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: var(--text);
-}
-
-.status-label {
-  font-size: 0.75rem;
-  color: var(--text-subtle);
-}
-
 .section-card {
   background: var(--surface-raised);
   border-radius: var(--radius-sm);
@@ -1223,9 +1134,8 @@ onMounted(() => {
   gap: 0.625rem;
 }
 
-.header-left i {
-  color: #3b82f6;
-  font-size: 1rem;
+.header-left > svg {
+  color: var(--accent);
 }
 
 .card-header h3 {
@@ -1238,6 +1148,42 @@ onMounted(() => {
 .header-right {
   display: flex;
   gap: 0.5rem;
+}
+
+.fleet-heading {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.fleet-heading p {
+  margin: var(--space-1) 0 0;
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+}
+
+.fleet-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+}
+
+.fleet-meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.fleet-meta span + span::before {
+  width: 3px;
+  height: 3px;
+  margin-right: var(--space-1);
+  background: var(--border-strong, var(--border));
+  border-radius: var(--radius-full);
+  content: "";
 }
 
 .empty-peers {
@@ -1272,7 +1218,7 @@ onMounted(() => {
 
 .data-table th {
   text-align: left;
-  padding: 0.75rem 1.25rem;
+  padding: 6px 10px;
   font-size: 0.75rem;
   font-weight: 600;
   color: var(--text-muted);
@@ -1283,10 +1229,16 @@ onMounted(() => {
 }
 
 .data-table td {
-  padding: 0.75rem 1.25rem;
+  padding: 6px 10px;
   font-size: 0.8125rem;
   color: var(--text);
   border-bottom: 1px solid var(--border-subtle);
+}
+
+.peer-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
 }
 
 .data-table tr:last-child td {
@@ -1318,7 +1270,8 @@ onMounted(() => {
   color: var(--color-success-700);
 }
 
-.peer-status.unreachable {
+.peer-status.unreachable,
+.peer-status.offline {
   background: var(--color-danger-50);
   color: var(--color-danger-700);
 }
@@ -1391,53 +1344,6 @@ code {
 .btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
-}
-
-.provider-summary .header-left {
-  align-items: flex-start;
-}
-
-.provider-summary .header-left p {
-  margin: 0.25rem 0 0;
-  color: var(--text-muted);
-  font-size: 0.8125rem;
-}
-
-.provider-loading,
-.provider-error {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 1rem 1.25rem;
-  color: var(--text-muted);
-  font-size: 0.8125rem;
-}
-
-.provider-active-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.75rem;
-  padding: 1rem 1.25rem 1.25rem;
-}
-
-.provider-active-grid > div {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  padding: 0.875rem;
-  background: var(--surface-sunken);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-}
-
-.provider-active-grid span {
-  color: var(--text-muted);
-  font-size: 0.75rem;
-}
-
-.provider-active-grid strong {
-  color: var(--text);
-  font-size: 0.875rem;
 }
 
 .provider-form {
@@ -1714,19 +1620,33 @@ code {
 }
 
 @media (max-width: 768px) {
-  .status-cards {
-    grid-template-columns: 1fr;
+  .card-header {
+    align-items: stretch;
+    flex-direction: column;
   }
 
   .header-right {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .header-right :deep(button:last-child) {
+    grid-column: 1 / -1;
+  }
+
+  .fleet-meta {
+    align-items: flex-start;
     flex-direction: column;
+  }
+
+  .fleet-meta span + span::before {
+    display: none;
   }
 
   .lending-fields {
     grid-template-columns: 1fr;
   }
 
-  .provider-active-grid,
   .provider-form {
     grid-template-columns: 1fr;
   }

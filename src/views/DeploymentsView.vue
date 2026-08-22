@@ -1,7 +1,15 @@
 <template>
   <div class="deployments-view">
+    <div v-if="selectedServer" class="server-context">
+      <div>
+        <span class="server-context-label">Fleet server</span>
+        <strong>{{ selectedServer }}</strong>
+        <span>{{ visibleDeployments.length }} deployments</span>
+      </div>
+      <button class="btn btn-secondary btn-sm" @click="showAllServers">All servers</button>
+    </div>
     <DataTable
-      :items="deployments"
+      :items="visibleDeployments"
       :columns="columns"
       :loading="loading"
       :searchable="true"
@@ -9,15 +17,19 @@
       :search-fields="['name', 'path', 'status']"
       item-key="clusterKey"
       :empty-icon="Inbox"
-      empty-title="No Deployments Found"
-      empty-text="Create your first deployment to get started"
+      :empty-title="selectedServer ? `No deployments on ${selectedServer}` : 'No deployments found'"
+      :empty-text="
+        selectedServer
+          ? 'Choose another Fleet server or refresh this view.'
+          : 'Create your first deployment to get started.'
+      "
       loading-text="Loading deployments..."
       :default-page-size="12"
       :toggleable="true"
       default-view-mode="grid"
     >
       <template #actions>
-        <button v-if="canWrite" class="btn btn-primary" @click="showNewDeploymentModal = true">
+        <button v-if="canWrite && !viewingRemoteServer" class="btn btn-primary" @click="showNewDeploymentModal = true">
           <Plus :size="16" />
           New Deployment
         </button>
@@ -126,7 +138,7 @@
             :logo="getDeploymentLogo(deployment)"
             :icon="getDeploymentIcon(deployment)"
             :icon-class="getDeploymentIconClass(deployment)"
-            :clickable="true"
+            :clickable="deployment.local"
             @click="goToDeployment(deployment)"
           >
             <!-- Domain Link -->
@@ -263,7 +275,12 @@
               <button class="icon-btn logs" title="Logs" @click="viewLogs(deployment)">
                 <FileText :size="14" />
               </button>
-              <button v-if="deployment.local" class="icon-btn settings" title="Settings" @click="goToDeployment(deployment)">
+              <button
+                v-if="deployment.local"
+                class="icon-btn settings"
+                title="Settings"
+                @click="goToDeployment(deployment)"
+              >
                 <Settings :size="14" />
               </button>
             </template>
@@ -298,8 +315,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
-import { useRouter } from "vue-router";
+import { computed, ref, onMounted, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import { clusterApi, deploymentsApi } from "@/services/api";
 import { useNotificationsStore } from "@/stores/notifications";
 import { useAuthStore } from "@/stores/auth";
@@ -333,6 +350,7 @@ import {
 import type { Service } from "@/types";
 
 const router = useRouter();
+const route = useRoute();
 const notifications = useNotificationsStore();
 const authStore = useAuthStore();
 const canWrite = authStore.hasPermission("deployments:write");
@@ -341,6 +359,13 @@ const deployments = ref<ManagedDeployment[]>([]);
 const localServer = ref("This server");
 const loading = ref(true);
 const showNewDeploymentModal = ref(false);
+const selectedServer = computed(() => String(route.query.server || ""));
+const viewingRemoteServer = computed(() => Boolean(selectedServer.value) && selectedServer.value !== localServer.value);
+const visibleDeployments = computed(() =>
+  selectedServer.value
+    ? deployments.value.filter((deployment) => deployment.server === selectedServer.value)
+    : deployments.value,
+);
 
 const deploymentJob = useDeploymentJob((state) => {
   const op = state.operation;
@@ -370,18 +395,33 @@ const columns = [
 
 const fetchDeployments = async () => {
   loading.value = true;
+  if (import.meta.env.DEV && route.query.review === "fleet-deployments") {
+    localServer.value = "prod-1";
+    deployments.value = [
+      managedDeployment(reviewDeployment("api", "running", "ghcr.io/flatrun/api:latest"), "prod-1", true),
+      managedDeployment(reviewDeployment("pagemind", "running", "ghcr.io/flatrun/pagemind:latest"), "prod-2", false),
+      managedDeployment(reviewDeployment("analytics", "stopped", "grafana/grafana:latest"), "prod-2", false),
+      managedDeployment(reviewDeployment("website", "running", "nginx:alpine"), "edge-1", false),
+    ];
+    loading.value = false;
+    return;
+  }
   try {
     const status = await clusterApi.getStatus();
     if (!status.data.enabled) {
       const response = await deploymentsApi.list();
-      deployments.value = (response.data.deployments || []).map((deployment) => managedDeployment(deployment, localServer.value, true));
+      deployments.value = (response.data.deployments || []).map((deployment) =>
+        managedDeployment(deployment, localServer.value, true),
+      );
       return;
     }
     localServer.value = status.data.server_name || localServer.value;
     const response = await clusterApi.getAggregatedDeployments();
     deployments.value = Object.values(response.data.servers).flatMap((server) =>
       server.online
-        ? (server.data?.deployments || []).map((deployment) => managedDeployment(deployment, server.name, server.name === localServer.value))
+        ? (server.data?.deployments || []).map((deployment) =>
+            managedDeployment(deployment, server.name, server.name === localServer.value),
+          )
         : [],
     );
   } catch (e: any) {
@@ -389,6 +429,31 @@ const fetchDeployments = async () => {
   } finally {
     loading.value = false;
   }
+};
+
+const reviewDeployment = (name: string, status: Deployment["status"], image: string): Deployment => ({
+  name,
+  path: `/deployments/${name}`,
+  status,
+  created_at: "2026-08-20T10:00:00Z",
+  updated_at: "2026-08-22T10:00:00Z",
+  services: [
+    {
+      name: "app",
+      container_id: `${name}-container`,
+      image,
+      status: status === "running" ? "running" : "exited",
+      ports: [],
+      networks: ["flatrun"],
+      created_at: "2026-08-20T10:00:00Z",
+    },
+  ],
+});
+
+const showAllServers = () => {
+  const query = { ...route.query };
+  delete query.server;
+  router.push({ path: "/deployments", query });
 };
 
 const refreshDeployments = () => {
@@ -707,6 +772,11 @@ onMounted(async () => {
     if (await deploymentJob.resume(d.name)) break;
   }
 });
+
+watch(
+  () => route.query.review,
+  () => fetchDeployments(),
+);
 </script>
 
 <style scoped>
@@ -714,6 +784,31 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
+}
+
+.server-context {
+  display: flex;
+  min-height: 40px;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.server-context > div {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.server-context-label,
+.server-context span:last-child {
+  color: var(--text-muted);
+  font-size: var(--text-xs);
 }
 
 .deployment-info {

@@ -12,21 +12,33 @@
           <Icon class="env-caret" :name="envDropdownOpen ? 'chevron-up' : 'chevron-down'" :size="14" />
         </div>
         <div v-if="envDropdownOpen" class="env-dropdown">
-          <div class="env-option active" @click="envDropdownOpen = false">
+          <button
+            class="env-option"
+            :class="{ active: selectedDeploymentServer === currentServerName }"
+            @click="openServer(currentServerName)"
+          >
             <Icon name="server" :size="16" />
             <div class="env-option-info">
               <span class="env-option-name">{{ currentServerName }}</span>
               <span class="env-option-hint">Current server</span>
             </div>
             <Icon name="check" :size="16" />
-          </div>
-          <div v-for="peer in clusterPeers" :key="peer.name" class="env-option" @click="envDropdownOpen = false">
+          </button>
+          <button
+            v-for="peer in clusterPeers"
+            :key="peer.name"
+            class="env-option"
+            :class="{ active: selectedDeploymentServer === peer.name }"
+            :disabled="!peer.online"
+            @click="openServer(peer.name)"
+          >
             <Icon name="server" :size="16" />
             <div class="env-option-info">
               <span class="env-option-name">{{ peer.name }}</span>
               <span class="env-option-hint">{{ peer.online ? "Online" : "Offline" }}</span>
             </div>
-          </div>
+            <Icon v-if="selectedDeploymentServer === peer.name" name="check" :size="16" />
+          </button>
           <router-link
             v-if="authStore.hasPermission('cluster:read')"
             to="/cluster"
@@ -83,11 +95,36 @@
             :class="{ open: expandedGroups.stacks && !sidebarCollapsed, flyout: sidebarCollapsed }"
             class="nav-group-items"
           >
-            <router-link to="/deployments" class="nav-subitem" active-class="active">
+            <router-link
+              :to="{ path: '/deployments', query: route.query.review ? { review: route.query.review } : {} }"
+              class="nav-subitem"
+              :class="{ active: route.name === 'deployments' && !selectedDeploymentServer }"
+            >
               <Icon name="layers" :size="15" />
-              Deployments
+              All deployments
               <span class="nav-count">{{ stats.deployments }}</span>
             </router-link>
+            <template v-if="clusterPeers.length">
+              <router-link
+                :to="serverDeploymentRoute(currentServerName)"
+                class="nav-subitem nav-server"
+                :class="{ active: selectedDeploymentServer === currentServerName }"
+              >
+                <span class="server-dot online" />
+                {{ currentServerName }}
+              </router-link>
+              <component
+                :is="peer.online ? 'router-link' : 'span'"
+                v-for="peer in clusterPeers"
+                :key="peer.name"
+                :to="peer.online ? serverDeploymentRoute(peer.name) : undefined"
+                class="nav-subitem nav-server"
+                :class="{ active: selectedDeploymentServer === peer.name, disabled: !peer.online }"
+              >
+                <span class="server-dot" :class="{ online: peer.online }" />
+                {{ peer.name }}
+              </component>
+            </template>
           </div>
         </div>
 
@@ -598,6 +635,7 @@ const isRefreshing = ref(false);
 const envDropdownOpen = ref(false);
 const currentServerName = ref("Local Server");
 const clusterPeers = ref<ClusterPeer[]>([]);
+const selectedDeploymentServer = computed(() => (route.name === "deployments" ? String(route.query.server || "") : ""));
 
 const expandedGroups = reactive({
   stacks: true,
@@ -635,6 +673,16 @@ const toggleGroup = (group: keyof typeof expandedGroups) => {
   expandedGroups[group] = !expandedGroups[group];
 };
 
+const openServer = (server: string) => {
+  envDropdownOpen.value = false;
+  router.push(serverDeploymentRoute(server));
+};
+
+const serverDeploymentRoute = (server: string) => ({
+  path: "/deployments",
+  query: { server, ...(route.query.review ? { review: route.query.review } : {}) },
+});
+
 const getUsageClass = (percentage: number) => {
   if (percentage > 80) return "critical";
   if (percentage > 60) return "warning";
@@ -650,7 +698,7 @@ const currentPageTitle = computed(() => {
     alerts: "Alerts",
     dashboards: "Dashboards",
     "dashboard-detail": "Dashboard",
-    deployments: "Deployments",
+    deployments: selectedDeploymentServer.value ? `${selectedDeploymentServer.value} deployments` : "Deployments",
     "deployment-detail": "Deployment Details",
     containers: "Containers",
     images: "Images",
@@ -688,7 +736,12 @@ const breadcrumbs = computed(() => {
 
   if (routeName === "deployments") {
     crumbs.push({ label: "Stacks", path: "" });
-    crumbs.push({ label: "Deployments", path: "" });
+    if (selectedDeploymentServer.value) {
+      crumbs.push({ label: "Deployments", path: "/deployments" });
+      crumbs.push({ label: selectedDeploymentServer.value, path: "" });
+    } else {
+      crumbs.push({ label: "Deployments", path: "" });
+    }
   } else if (["containers", "images", "volumes", "networks", "docker-ports"].includes(routeName)) {
     crumbs.push({ label: "Docker", path: "" });
     crumbs.push({ label: currentPageTitle.value, path: "" });
@@ -756,6 +809,19 @@ const handleLogout = () => {
 };
 
 const fetchClusterInfo = async () => {
+  if (import.meta.env.DEV && route.query.review === "fleet-deployments") {
+    currentServerName.value = "prod-1";
+    clusterPeers.value = [
+      { name: "prod-2", url: "https://prod-2.example.com", online: true, last_seen: new Date().toISOString() },
+      {
+        name: "edge-1",
+        url: "https://edge-1.example.com",
+        online: false,
+        last_seen: new Date(Date.now() - 18 * 60_000).toISOString(),
+      },
+    ];
+    return;
+  }
   try {
     const res = await clusterApi.getStatus();
     if (res.data.enabled && res.data.server_name) {
@@ -855,6 +921,7 @@ onMounted(() => {
 }
 
 .env-option {
+  width: 100%;
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -865,6 +932,12 @@ onMounted(() => {
   font-size: 0.8125rem;
   text-decoration: none;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-top: 0;
+  border-right: 0;
+  border-left: 0;
+  background: transparent;
+  font-family: inherit;
+  text-align: left;
 }
 
 .env-option:last-child {
@@ -877,7 +950,13 @@ onMounted(() => {
 }
 
 .env-option.active {
+  background: rgba(59, 130, 246, 0.12);
   color: var(--sidebar-text-active);
+}
+
+.env-option:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
 }
 
 .env-option.active .pi-check {
@@ -1084,6 +1163,29 @@ onMounted(() => {
   background: rgba(59, 130, 246, 0.1);
   color: var(--sidebar-text-active);
   border-left-color: var(--accent);
+}
+
+.nav-server {
+  padding-top: var(--space-2);
+  padding-bottom: var(--space-2);
+  font-size: var(--text-xs);
+}
+
+.nav-server.disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.server-dot {
+  width: 6px;
+  height: 6px;
+  flex: 0 0 6px;
+  background: var(--c-red);
+  border-radius: var(--radius-full);
+}
+
+.server-dot.online {
+  background: var(--c-green);
 }
 
 .nav-count {

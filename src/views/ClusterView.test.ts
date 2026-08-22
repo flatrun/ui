@@ -2,6 +2,11 @@ import { flushPromises, mount } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import ClusterView from "./ClusterView.vue";
 
+const mockPush = vi.fn();
+vi.mock("vue-router", () => ({
+  useRouter: () => ({ push: mockPush }),
+}));
+
 vi.mock("@/stores/auth", () => ({
   useAuthStore: () => ({ hasPermission: () => true }),
 }));
@@ -157,6 +162,30 @@ describe("ClusterView", () => {
     ]);
   });
 
+  it("opens an online peer deployment inventory", async () => {
+    const { clusterApi } = await import("@/services/api");
+    vi.mocked(clusterApi.getStatus).mockReset();
+    vi.mocked(clusterApi.getStatus).mockResolvedValue({
+      data: { enabled: true, server_name: "prod-1", peer_count: 1 },
+    } as any);
+    vi.mocked(clusterApi.listPeers).mockResolvedValue({
+      data: {
+        peers: [
+          { name: "prod-2", url: "https://prod-2.example.com", online: true, last_seen: new Date().toISOString() },
+        ],
+      },
+    } as any);
+    const wrapper = mountView();
+    await flushPromises();
+
+    await wrapper
+      .findAll("button")
+      .find((button) => button.text().includes("Deployments"))!
+      .trigger("click");
+
+    expect(mockPush).toHaveBeenCalledWith({ path: "/deployments", query: { server: "prod-2" } });
+  });
+
   it("selects an available runtime provider through the modal", async () => {
     const { clusterApi } = await import("@/services/api");
     vi.mocked(clusterApi.getStatus).mockReset();
@@ -168,7 +197,7 @@ describe("ClusterView", () => {
 
     await wrapper
       .findAll("button")
-      .find((button) => button.text().includes("Configure"))!
+      .find((button) => button.text().includes("Runtime"))!
       .trigger("click");
     expect(wrapper.text()).toContain("k3s adapter is not configured");
     expect(wrapper.find('input[value="k3s"]').attributes("disabled")).toBeUndefined();
@@ -203,7 +232,7 @@ describe("ClusterView", () => {
 
     await wrapper
       .findAll("button")
-      .find((button) => button.text().includes("Configure"))!
+      .find((button) => button.text().includes("Runtime"))!
       .trigger("click");
     await wrapper.find('input[value="k3s"]').setValue(true);
     await wrapper.find("#provider-namespace").setValue("flatrun");
