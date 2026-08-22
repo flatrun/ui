@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { extractComposeMounts, extractComposeServiceNames, toComposeRelativePath } from "./compose";
+import {
+  extractComposeMounts,
+  extractComposeServiceNames,
+  toComposeRelativePath,
+  updateComposeServiceImage,
+} from "./compose";
 
 describe("toComposeRelativePath", () => {
   it("converts deployment-root file paths into relative compose paths", () => {
@@ -90,5 +95,43 @@ describe("extractComposeMounts", () => {
   it("returns empty for missing compose", () => {
     expect(extractComposeMounts("")).toEqual([]);
     expect(extractComposeMounts("not yaml")).toEqual([]);
+  });
+});
+
+describe("updateComposeServiceImage", () => {
+  it("changes only the selected service image and preserves surrounding content", () => {
+    const compose = `services:
+  web:
+    # Keep this note.
+    image: nginx:1.25
+  worker:
+    image: app:old
+`;
+
+    const result = updateComposeServiceImage(compose, "web", "nginx:1.27");
+
+    expect(result.previousImage).toBe("nginx:1.25");
+    expect(result.content).toContain("# Keep this note.\n    image: nginx:1.27");
+    expect(result.content).toContain("image: app:old");
+  });
+
+  it("adds an image to a build service", () => {
+    const compose = `services:
+  app:
+    build: .
+`;
+
+    expect(updateComposeServiceImage(compose, "app", "registry.example.com/app:2").content).toContain(
+      "  app:\n    image: registry.example.com/app:2\n    build: .",
+    );
+  });
+
+  it("rejects unknown services and multiline image references", () => {
+    expect(() => updateComposeServiceImage("services:\n  app:\n    image: app:1\n", "worker", "app:2")).toThrow(
+      "Service worker was not found",
+    );
+    expect(() =>
+      updateComposeServiceImage("services:\n  app:\n    image: app:1\n", "app", "app:2\ncommand: bad"),
+    ).toThrow("Enter a valid image reference");
   });
 });

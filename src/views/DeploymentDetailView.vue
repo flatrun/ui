@@ -101,8 +101,6 @@
             :status="deployment?.status"
             @open="showDiagnostics = true"
           />
-          <DeploymentAutoscaleCard :deployment="route.params.name as string" :can-write="canWrite" />
-
           <div class="info-cards">
             <div class="info-card">
               <div class="card-header">
@@ -324,7 +322,7 @@
               </div>
             </div>
 
-            <div class="info-card">
+            <div class="info-card wide service-overview-card">
               <div class="card-header">
                 <i class="pi pi-box" />
                 <h3>Services</h3>
@@ -453,6 +451,24 @@
             </div>
           </div>
         </div>
+
+        <DeploymentServicesTab
+          v-if="activeTab === 'services'"
+          class="standalone-tab-panel"
+          :deployment="route.params.name as string"
+          :services="services"
+          :compose-content="composeConfig"
+          :can-write="canWrite"
+          @saved="handleStructuredComposeSaved"
+          @open-compose="openComposeConfiguration"
+        />
+
+        <DeploymentAutoscaleCard
+          v-if="activeTab === 'autoscaling'"
+          class="standalone-tab-panel"
+          :deployment="route.params.name as string"
+          :can-write="canWrite"
+        />
 
         <div v-if="activeTab === 'databases'" class="databases-tab">
           <div class="databases-tab-header">
@@ -1937,6 +1953,7 @@ import DomainsManager from "@/components/DomainsManager.vue";
 import DomainFormModal from "@/components/DomainFormModal.vue";
 import ContainerResourcesModal from "@/components/ContainerResourcesModal.vue";
 import DeploymentAutoscaleCard from "@/components/DeploymentAutoscaleCard.vue";
+import DeploymentServicesTab from "@/components/DeploymentServicesTab.vue";
 import DeploymentDiagnosticsModal from "@/components/DeploymentDiagnosticsModal.vue";
 import DeploymentHealthCheckModal from "@/components/DeploymentHealthCheckModal.vue";
 import LogFilePicker from "@/components/LogFilePicker.vue";
@@ -2050,6 +2067,8 @@ const protectedPathPresets = [
 
 const tabs = [
   { id: "overview", label: "Overview", icon: "pi pi-info-circle" },
+  { id: "services", label: "Services", icon: "pi pi-box" },
+  { id: "autoscaling", label: "Autoscaling", icon: "pi pi-chart-line" },
   { id: "files", label: "Files", icon: "pi pi-folder" },
   { id: "logs", label: "Logs", icon: "pi pi-file-edit" },
   { id: "terminal", label: "Terminal", icon: "pi pi-desktop" },
@@ -3436,6 +3455,17 @@ const saveConfig = async () => {
   notifications.success("Saved", "Configuration saved successfully");
 };
 
+const handleStructuredComposeSaved = async (content: string) => {
+  composeConfig.value = content;
+  originalConfig = content;
+  await fetchDeployment();
+};
+
+const openComposeConfiguration = () => {
+  activeTab.value = "config";
+  activeConfigTab.value = "compose";
+};
+
 const saveServiceConfig = async () => {
   try {
     const blob = new Blob([serviceConfig.value], { type: "text/yaml" });
@@ -3709,6 +3739,7 @@ onUnmounted(() => {
 .detail-tabs {
   display: flex;
   gap: var(--space-1);
+  overflow-x: auto;
   background: var(--surface-inset);
   padding: var(--space-1);
   border-radius: var(--radius-sm);
@@ -3726,6 +3757,7 @@ onUnmounted(() => {
   color: var(--text-muted);
   cursor: pointer;
   transition: all var(--transition-base);
+  white-space: nowrap;
 }
 
 .tab-btn:hover {
@@ -3749,15 +3781,21 @@ onUnmounted(() => {
   padding: var(--space-5);
 }
 
+.standalone-tab-panel {
+  margin: var(--space-4);
+}
+
 .overview-tab {
-  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-4);
 }
 
 .info-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  grid-template-columns: minmax(280px, 0.8fr) minmax(360px, 1.2fr);
   gap: var(--space-4);
-  margin-bottom: var(--space-4);
 }
 
 .info-card {
@@ -4713,7 +4751,17 @@ onUnmounted(() => {
 }
 
 .overview-summary {
-  margin-bottom: var(--space-4);
+  margin: 0;
+}
+
+@media (max-width: 960px) {
+  .info-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .info-card.wide {
+    grid-column: auto;
+  }
 }
 
 .files-tab {
