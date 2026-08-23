@@ -29,6 +29,10 @@
       </button>
     </div>
 
+    <ContextBanner v-if="!canWriteSettings" id="settings-limited-access" icon="lock-keyhole">
+      You have limited access. Read-only controls are locked; settings you are allowed to manage remain available.
+    </ContextBanner>
+
     <div v-if="loading" class="loading-state">
       <i class="pi pi-spin pi-spinner" />
       <span>Loading settings...</span>
@@ -162,7 +166,12 @@
       </div>
 
       <!-- Domain Tab -->
-      <div v-show="activeTab === 'domain'" class="tab-content">
+      <div
+        v-show="activeTab === 'domain'"
+        class="tab-content"
+        :class="{ 'read-only-content': !canWriteSettings }"
+        :inert="!canWriteSettings"
+      >
         <div class="settings-card">
           <div class="card-header">
             <i class="pi pi-globe" />
@@ -230,7 +239,12 @@
       </div>
 
       <!-- Infrastructure Tab -->
-      <div v-show="activeTab === 'infrastructure'" class="tab-content">
+      <div
+        v-show="activeTab === 'infrastructure'"
+        class="tab-content"
+        :class="{ 'read-only-content': !canWriteSettings }"
+        :inert="!canWriteSettings"
+      >
         <div class="settings-card">
           <div class="card-header">
             <i class="pi pi-share-alt" />
@@ -514,7 +528,12 @@
       </div>
 
       <!-- Security Tab -->
-      <div v-show="activeTab === 'security'" class="tab-content">
+      <div
+        v-show="activeTab === 'security'"
+        class="tab-content"
+        :class="{ 'read-only-content': !canWriteSettings }"
+        :inert="!canWriteSettings"
+      >
         <div class="settings-card">
           <div class="card-header">
             <i class="pi pi-shield" />
@@ -650,7 +669,12 @@
         </div>
       </div>
 
-      <div v-show="activeTab === 'terminal'" class="tab-content">
+      <div
+        v-show="activeTab === 'terminal'"
+        class="tab-content"
+        :class="{ 'read-only-content': !canWriteSettings }"
+        :inert="!canWriteSettings"
+      >
         <div class="settings-card">
           <div class="card-header">
             <i class="pi pi-desktop" />
@@ -947,7 +971,12 @@
         </Teleport>
       </div>
 
-      <div v-show="activeTab === 'ai'" class="tab-content">
+      <div
+        v-show="activeTab === 'ai'"
+        class="tab-content"
+        :class="{ 'read-only-content': !canWriteSettings }"
+        :inert="!canWriteSettings"
+      >
         <div class="settings-card">
           <div class="card-header">
             <Sparkles :size="16" />
@@ -1006,7 +1035,12 @@
         </div>
       </div>
 
-      <div v-show="activeTab === 'mcp'" class="tab-content">
+      <div
+        v-show="activeTab === 'mcp'"
+        class="tab-content"
+        :class="{ 'read-only-content': !canWriteSettings }"
+        :inert="!canWriteSettings"
+      >
         <div class="settings-card">
           <div class="card-header">
             <Plug :size="16" />
@@ -1068,6 +1102,7 @@ import { useNotificationsStore } from "@/stores/notifications";
 import { useAuthStore } from "@/stores/auth";
 import { useAIStore } from "@/stores/ai";
 import SecurityHealthCard from "@/components/SecurityHealthCard.vue";
+import ContextBanner from "@/components/base/ContextBanner.vue";
 import Icon from "@/components/base/Icon.vue";
 import PluginSlot from "@/components/plugins/PluginSlot.vue";
 import { usePluginsStore } from "@/stores/plugins";
@@ -2498,9 +2533,31 @@ onMounted(() => {
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   font-size: 0.875rem;
+  background: var(--surface);
+  color: var(--text);
+  caret-color: var(--text);
   transition:
     border-color 0.2s,
     box-shadow 0.2s;
+}
+
+.form-control::placeholder {
+  color: var(--text-subtle);
+}
+
+.form-control:disabled,
+.read-only-content .form-control,
+.read-only-content .form-input,
+.read-only-content .form-select {
+  background: var(--surface-inset);
+  color: var(--text-muted);
+  cursor: not-allowed;
+  opacity: 1;
+}
+
+.form-control option {
+  background: var(--surface-raised);
+  color: var(--text);
 }
 
 .form-control:focus {

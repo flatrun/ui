@@ -120,7 +120,7 @@ import BaseInput from "@/components/base/BaseInput.vue";
 import AttachStoreModal from "@/components/AttachStoreModal.vue";
 import ReplicateStoreModal from "@/components/ReplicateStoreModal.vue";
 import ConfirmModal from "@/components/ConfirmModal.vue";
-import { backupDestinationsApi, objectStoresApi, type BackupDestination, type StoreBucket } from "@/services/api";
+import { objectStoresApi, type BackupDestination, type StoreBucket } from "@/services/api";
 import { useNotificationsStore } from "@/stores/notifications";
 import { useAuthStore } from "@/stores/auth";
 
@@ -128,9 +128,9 @@ const route = useRoute();
 const router = useRouter();
 const notifications = useNotificationsStore();
 const auth = useAuthStore();
-const canWrite = auth.hasPermission("backups:write");
-const canDelete = auth.hasPermission("backups:delete");
-const canManage = auth.hasPermission("backups:write") || auth.hasPermission("config:write");
+const canWrite = auth.hasPermission("storage:write");
+const canDelete = auth.hasPermission("storage:delete");
+const canManage = auth.hasPermission("storage:write");
 
 const name = route.params.name as string;
 const store = ref<BackupDestination | null>(null);
@@ -149,7 +149,7 @@ const kind = computed(() => store.value?.kind || "external");
 
 onMounted(async () => {
   try {
-    const res = await backupDestinationsApi.list();
+    const res = await objectStoresApi.list();
     store.value = (res.data.destinations || []).find((d) => d.name === name) || null;
   } catch (e: any) {
     notifications.error("Could not load store", e.response?.data?.error || e.message);

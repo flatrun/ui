@@ -3,6 +3,7 @@ import { mount, flushPromises } from "@vue/test-utils";
 import { createTestingPinia } from "@pinia/testing";
 import AlertRulesPanel from "./AlertRulesPanel.vue";
 import { observabilityApi } from "@/services/observability";
+import { useAuthStore } from "@/stores/auth";
 
 vi.mock("@/services/observability", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/services/observability")>();
@@ -13,7 +14,7 @@ vi.mock("@/services/observability", async (importOriginal) => {
 });
 
 vi.mock("@/services/api", () => ({
-  notificationsApi: { getTargets: vi.fn().mockResolvedValue({ data: { targets: [] } }) },
+  notificationsApi: { getAlertTargetOptions: vi.fn().mockResolvedValue({ data: { targets: [] } }) },
 }));
 
 const rule = {
@@ -27,16 +28,21 @@ const rule = {
   enabled: true,
 };
 
-const mountPanel = () =>
-  mount(AlertRulesPanel, {
+const mountPanel = () => {
+  const pinia = createTestingPinia({ createSpy: vi.fn });
+  const auth = useAuthStore(pinia);
+  vi.mocked(auth.hasPermission).mockReturnValue(true);
+  vi.mocked(auth.canAccessDeployment).mockReturnValue(true);
+  return mount(AlertRulesPanel, {
     props: { deployments: ["shop", "blog"] },
     global: {
-      plugins: [createTestingPinia({ createSpy: vi.fn })],
+      plugins: [pinia],
       stubs: {
         BaseModal: { template: "<div v-if='visible'><slot /><slot name='footer' /></div>", props: ["visible"] },
       },
     },
   });
+};
 
 describe("AlertRulesPanel", () => {
   beforeEach(() => {

@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { reactive } from "vue";
 import { mount, flushPromises } from "@vue/test-utils";
 import { createTestingPinia } from "@pinia/testing";
 import DeploymentsView from "./DeploymentsView.vue";
@@ -85,7 +86,7 @@ vi.mock("@/services/api", () => ({
 }));
 
 const mockPush = vi.fn();
-const mockRoute = { query: {} as Record<string, string>, name: "deployments" };
+let mockRoute = reactive({ query: {} as Record<string, string>, name: "deployments" });
 vi.mock("vue-router", () => ({
   useRouter: () => ({
     push: mockPush,
@@ -96,7 +97,7 @@ vi.mock("vue-router", () => ({
 describe("DeploymentsView", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockRoute.query = {};
+    mockRoute = reactive({ query: {} as Record<string, string>, name: "deployments" });
   });
 
   const mountView = () => {
@@ -116,6 +117,28 @@ describe("DeploymentsView", () => {
                 </div>
               </div>
             `,
+            props: ["items", "columns", "loading"],
+          },
+          OperationModal: true,
+          LogsModal: true,
+          NewDeploymentModal: true,
+        },
+      },
+    });
+  };
+
+  const mountViewWithPermissions = (permissions: string[]) => {
+    const pinia = createTestingPinia({ createSpy: vi.fn });
+    const authStore = useAuthStore(pinia);
+    (authStore.hasPermission as ReturnType<typeof vi.fn>).mockImplementation((permission: string) =>
+      permissions.includes(permission),
+    );
+    return mount(DeploymentsView, {
+      global: {
+        plugins: [pinia],
+        stubs: {
+          DataTable: {
+            template: `<div class="data-table"><slot name="actions" /><slot name="grid" :items="items" /></div>`,
             props: ["items", "columns", "loading"],
           },
           OperationModal: true,
@@ -160,11 +183,24 @@ describe("DeploymentsView", () => {
   });
 
   describe("Data loading", () => {
-    it("fetches deployments on mount", async () => {
-      const { deploymentsApi } = await import("@/services/api");
+    it("loads local deployments without requesting Fleet status", async () => {
+      const { clusterApi, deploymentsApi } = await import("@/services/api");
       mountView();
       await flushPromises();
       expect(deploymentsApi.list).toHaveBeenCalled();
+      expect(clusterApi.getStatus).not.toHaveBeenCalled();
+      expect(clusterApi.getAggregatedDeployments).not.toHaveBeenCalled();
+    });
+
+    it("loads assigned deployments without requesting Fleet access", async () => {
+      const { clusterApi, deploymentsApi } = await import("@/services/api");
+      const wrapper = mountViewWithPermissions(["deployments:read"]);
+      await flushPromises();
+
+      expect(clusterApi.getStatus).not.toHaveBeenCalled();
+      expect(clusterApi.getAggregatedDeployments).not.toHaveBeenCalled();
+      expect(deploymentsApi.list).toHaveBeenCalledOnce();
+      expect(wrapper.text()).toContain("my-laravel-app");
     });
 
     it("filters the aggregate inventory by the selected server", async () => {
@@ -197,21 +233,24 @@ describe("DeploymentsView", () => {
       expect(wrapper.text()).not.toContain("local-app");
       expect(wrapper.find(".server-context").exists()).toBe(false);
       expect(wrapper.text()).not.toContain("New Deployment");
+
+      await wrapper.find(".deployment-card").trigger("click");
+      expect(mockPush).toHaveBeenCalledWith({ path: "/deployments/remote-app", query: { server: "prod-2" } });
     });
 
-    it("shows only local deployments when no peer is selected", async () => {
-      const { clusterApi } = await import("@/services/api");
+    it("loads a peer after switching from an empty local server", async () => {
+      const { clusterApi, deploymentsApi } = await import("@/services/api");
+      vi.mocked(deploymentsApi.list).mockResolvedValueOnce({ data: { deployments: [] } } as any);
+      const wrapper = mountView();
+      await flushPromises();
+
       vi.mocked(clusterApi.getStatus).mockResolvedValueOnce({
         data: { enabled: true, server_name: "prod-1" },
       } as any);
       vi.mocked(clusterApi.getAggregatedDeployments).mockResolvedValueOnce({
         data: {
           servers: {
-            "prod-1": {
-              name: "prod-1",
-              online: true,
-              data: { deployments: [{ name: "local-app", status: "running", services: [] }] },
-            },
+            "prod-1": { name: "prod-1", online: true, data: { deployments: [] } },
             "prod-2": {
               name: "prod-2",
               online: true,
@@ -221,11 +260,22 @@ describe("DeploymentsView", () => {
         },
       } as any);
 
+      mockRoute.query = { server: "prod-2" };
+      await flushPromises();
+
+      expect(clusterApi.getAggregatedDeployments).toHaveBeenCalledOnce();
+      expect(wrapper.text()).toContain("remote-app");
+    });
+
+    it("shows stopped local deployments without Fleet checks", async () => {
+      const { clusterApi } = await import("@/services/api");
       const wrapper = mountView();
       await flushPromises();
 
-      expect(wrapper.text()).toContain("local-app");
-      expect(wrapper.text()).not.toContain("remote-app");
+      expect(wrapper.text()).toContain("wordpress-site");
+      expect(wrapper.text()).toContain("stopped");
+      expect(clusterApi.getStatus).not.toHaveBeenCalled();
+      expect(clusterApi.getAggregatedDeployments).not.toHaveBeenCalled();
       expect(wrapper.find(".server-context").exists()).toBe(false);
     });
   });

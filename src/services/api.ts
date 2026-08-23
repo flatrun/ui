@@ -180,10 +180,14 @@ export interface ServiceMetadata {
     auto_cert: boolean;
   };
   healthcheck: {
+    type?: "http" | "tcp" | "exec";
+    service?: string;
+    port?: number;
     path: string;
     interval: string;
     success_statuses?: number[];
     response_contains?: string;
+    command?: string;
   };
   protected_mode?: ProtectedModeConfig;
   require_plan?: boolean;
@@ -568,6 +572,8 @@ export interface NotificationIncident {
 
 export const notificationsApi = {
   getTargets: () => apiClient.get<{ targets: NotificationTarget[] }>("/notifications/targets"),
+  getAlertTargetOptions: () =>
+    apiClient.get<{ targets: Pick<NotificationTarget, "id" | "name">[] }>("/alerts/target-options"),
   updateTargets: (targets: NotificationTarget[]) => apiClient.put("/notifications/targets", { targets }),
   getRules: () => apiClient.get<{ rules: NotificationRule[] }>("/notifications/rules"),
   updateRules: (rules: NotificationRule[]) =>
@@ -1403,6 +1409,7 @@ export interface StoreBucket {
 }
 
 export const objectStoresApi = {
+  list: () => apiClient.get<{ destinations: BackupDestination[] }>("/object-stores"),
   listBuckets: (name: string) =>
     apiClient.get<{ buckets: StoreBucket[]; backup_bucket: string }>(
       `/object-stores/${encodeURIComponent(name)}/buckets`,
@@ -2144,6 +2151,13 @@ export const clusterApi = {
     apiClient.post<ClusterAcceptResult>("/cluster/accept", { invite_token: inviteToken, peer_url: peerUrl }),
   removePeer: (name: string) => apiClient.delete<{ status: string; peer: string }>(`/cluster/peers/${name}`),
   getAggregatedDeployments: () => apiClient.get<ClusterDeployments>("/cluster/deployments"),
+  getDeployment: (server: string, name: string) =>
+    apiClient.get<{
+      deployment: Deployment;
+      compose_content?: string;
+      compose_filename?: string;
+      proxy_status?: unknown;
+    }>(`/cluster/peers/${encodeURIComponent(server)}/proxy/deployments/${encodeURIComponent(name)}`),
   deploymentAction: (server: string, name: string, action: "start" | "stop" | "restart") =>
     apiClient.post<ActionJobResponse>(
       `/cluster/peers/${encodeURIComponent(server)}/proxy/deployments/${encodeURIComponent(name)}/${action}`,

@@ -105,10 +105,14 @@ export interface SSLConfig {
 }
 
 export interface HealthCheckConfig {
+  type?: "http" | "tcp" | "exec";
+  service?: string;
+  port?: number;
   path: string;
   interval: string;
   success_statuses?: number[];
   response_contains?: string;
+  command?: string;
 }
 
 export interface Network {
@@ -394,6 +398,13 @@ export type Permission =
   | "backups:read"
   | "backups:write"
   | "backups:delete"
+  | "storage:read"
+  | "storage:write"
+  | "storage:delete"
+  | "notifications:read"
+  | "notifications:write"
+  | "alerts:read"
+  | "alerts:write"
   | "users:read"
   | "users:write"
   | "users:delete"
@@ -402,6 +413,8 @@ export type Permission =
   | "apikeys:delete"
   | "settings:read"
   | "settings:write"
+  | "updates:read"
+  | "updates:write"
   | "config:read"
   | "config:write"
   | "audit:read"

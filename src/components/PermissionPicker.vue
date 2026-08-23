@@ -130,6 +130,7 @@ const permissionGroups: PermissionGroup[] = [
     permissions: [
       { value: "system:read", label: "Read", level: "read" },
       { value: "system:write", label: "Write", level: "write" },
+      { value: "system:files", label: "Files", level: "write" },
     ],
   },
   {
@@ -201,6 +202,39 @@ const permissionGroups: PermissionGroup[] = [
     ],
   },
   {
+    key: "storage",
+    label: "Object Storage",
+    permissions: [
+      { value: "storage:read", label: "Read", level: "read" },
+      { value: "storage:write", label: "Write", level: "write" },
+      { value: "storage:delete", label: "Delete", level: "delete" },
+    ],
+  },
+  {
+    key: "alerts",
+    label: "Alerts",
+    permissions: [
+      { value: "alerts:read", label: "Read", level: "read" },
+      { value: "alerts:write", label: "Write", level: "write" },
+    ],
+  },
+  {
+    key: "notifications",
+    label: "Notifications",
+    permissions: [
+      { value: "notifications:read", label: "Read", level: "read" },
+      { value: "notifications:write", label: "Write", level: "write" },
+    ],
+  },
+  {
+    key: "cluster",
+    label: "Fleet",
+    permissions: [
+      { value: "cluster:read", label: "Read", level: "read" },
+      { value: "cluster:write", label: "Write", level: "write" },
+    ],
+  },
+  {
     key: "users",
     label: "Users",
     permissions: [
@@ -224,6 +258,22 @@ const permissionGroups: PermissionGroup[] = [
     permissions: [
       { value: "settings:read", label: "Read", level: "read" },
       { value: "settings:write", label: "Write", level: "write" },
+    ],
+  },
+  {
+    key: "config",
+    label: "Configuration",
+    permissions: [
+      { value: "config:read", label: "Read", level: "read" },
+      { value: "config:write", label: "Write", level: "write" },
+    ],
+  },
+  {
+    key: "updates",
+    label: "Updates",
+    permissions: [
+      { value: "updates:read", label: "Read", level: "read" },
+      { value: "updates:write", label: "Install", level: "write" },
     ],
   },
   {

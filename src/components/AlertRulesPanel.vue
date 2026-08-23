@@ -2,7 +2,7 @@
   <section class="arp">
     <header class="arp-head">
       <h3><Icon name="bell" :size="16" /> Alert rules</h3>
-      <button class="btn btn-sm btn-primary" @click="openNew">
+      <button v-if="canCreate" class="btn btn-sm btn-primary" @click="openNew">
         <Icon name="plus" :size="14" />
         New rule
       </button>
@@ -26,7 +26,7 @@
         <span v-if="firingIds.has(rule.id ?? '')" class="arp-firing">Firing</span>
         <span v-else-if="!rule.enabled" class="arp-off">Off</span>
 
-        <div class="arp-rule-actions">
+        <div v-if="canEditRule(rule)" class="arp-rule-actions">
           <button class="btn btn-sm btn-icon" title="Edit rule" @click="openEdit(rule)">
             <Icon name="pencil" :size="14" />
           </button>
@@ -45,11 +45,11 @@
 
         <BaseField
           label="Deployment"
-          :hint="isHostMetric ? 'A host metric watches the whole machine.' : 'Leave empty to watch every deployment.'"
+          :hint="isHostMetric ? 'A host metric watches the whole machine.' : 'Choose the deployment this rule watches.'"
         >
           <BaseSelect v-model="draft.deployment" :disabled="isHostMetric">
-            <option value="">{{ isHostMetric ? "Whole host" : "Every deployment" }}</option>
-            <option v-for="d in deployments" :key="d" :value="d">{{ d }}</option>
+            <option v-if="auth.isAdmin" value="">{{ isHostMetric ? "Whole host" : "Every deployment" }}</option>
+            <option v-for="d in writableDeployments" :key="d" :value="d">{{ d }}</option>
           </BaseSelect>
         </BaseField>
 
@@ -86,7 +86,7 @@
               {{ t.name }}
             </label>
           </div>
-          <p v-else class="arp-muted">No notification targets yet. Add one in Settings to send anywhere.</p>
+          <p v-else class="arp-muted">No enabled notification targets are available. An administrator can add one.</p>
         </BaseField>
 
         <BaseField
@@ -124,15 +124,22 @@ import { observabilityApi, METRIC } from "@/services/observability";
 import type { AlertRule, AlertEvent } from "@/services/observability";
 import { notificationsApi, type NotificationTarget } from "@/services/api";
 import { useNotificationsStore } from "@/stores/notifications";
+import { useAuthStore } from "@/stores/auth";
 import Icon from "@/components/base/Icon.vue";
 import BaseModal from "@/components/base/BaseModal.vue";
 import BaseField from "@/components/base/BaseField.vue";
 import BaseInput from "@/components/base/BaseInput.vue";
 import BaseSelect from "@/components/base/BaseSelect.vue";
 
-defineProps<{ deployments: string[] }>();
+const props = defineProps<{ deployments: string[] }>();
 
 const notifications = useNotificationsStore();
+const auth = useAuthStore();
+const canWrite = computed(() => auth.hasPermission("alerts:write"));
+const writableDeployments = computed(() => props.deployments.filter((name) => auth.canAccessDeployment(name, "write")));
+const canCreate = computed(() => canWrite.value && (auth.isAdmin || writableDeployments.value.length > 0));
+const canEditRule = (rule: AlertRule) =>
+  canWrite.value && (auth.isAdmin || (!!rule.deployment && auth.canAccessDeployment(rule.deployment, "write")));
 
 const rules = ref<AlertRule[]>([]);
 const firing = ref<AlertEvent[]>([]);
@@ -157,7 +164,7 @@ const firingSnapshot = (id?: string): string => {
   return ev.snapshot.map((c) => `${c.container} (${asBytes ? bytes(c.value) : `${c.value.toFixed(1)}%`})`).join(", ");
 };
 
-const metricOptions: { value: string; label: string; unit: string; host?: boolean; rate?: boolean }[] = [
+const allMetricOptions: { value: string; label: string; unit: string; host?: boolean; rate?: boolean }[] = [
   { value: METRIC.cpu, label: "Container CPU usage", unit: "percent" },
   { value: METRIC.memUsage, label: "Container memory usage", unit: "bytes" },
   { value: METRIC.netRx, label: "Container network in (per second)", unit: "bytes", rate: true },
@@ -167,12 +174,13 @@ const metricOptions: { value: string; label: string; unit: string; host?: boolea
   { value: METRIC.hostMemUsage, label: "Host memory used", unit: "bytes", host: true },
   { value: METRIC.hostDisk, label: "Host disk used %", unit: "percent", host: true },
 ];
+const metricOptions = computed(() => allMetricOptions.filter((metric) => auth.isAdmin || !metric.host));
 
-const notifyTargets = ref<NotificationTarget[]>([]);
+const notifyTargets = ref<Pick<NotificationTarget, "id" | "name">[]>([]);
 
 const blank = (): AlertRule => ({
   name: "",
-  deployment: "",
+  deployment: auth.isAdmin ? "" : (writableDeployments.value[0] ?? ""),
   metric: METRIC.cpu,
   comparison: "above",
   threshold: 80,
@@ -194,7 +202,7 @@ const toggleTarget = (id: string) => {
 // A host metric is machine-wide, so it is never scoped to a deployment; picking
 // one clears any deployment so the rule reads the host series. It also has no
 // deployment to restart, so the action is cleared too.
-const isHostMetric = computed(() => metricOptions.find((m) => m.value === draft.value.metric)?.host === true);
+const isHostMetric = computed(() => metricOptions.value.find((m) => m.value === draft.value.metric)?.host === true);
 watch(isHostMetric, (host) => {
   if (host) {
     draft.value.deployment = "";
@@ -203,13 +211,13 @@ watch(isHostMetric, (host) => {
 });
 
 const unitHint = computed(() => {
-  const opt = metricOptions.find((m) => m.value === draft.value.metric);
+  const opt = metricOptions.value.find((m) => m.value === draft.value.metric);
   if (opt?.unit !== "bytes") return "A percentage.";
   return opt.rate ? "In bytes per second." : "In bytes.";
 });
 
 const describe = (rule: AlertRule) => {
-  const opt = metricOptions.find((m) => m.value === rule.metric);
+  const opt = metricOptions.value.find((m) => m.value === rule.metric);
   const metric = opt?.label ?? rule.metric;
   const value = opt?.unit === "bytes" ? bytes(rule.threshold) + (opt.rate ? "/s" : "") : `${rule.threshold}%`;
   const where = rule.deployment ? rule.deployment : "any deployment";
@@ -231,7 +239,7 @@ const load = async () => {
   const [rulesResult, firingResult, targetsResult] = await Promise.allSettled([
     observabilityApi.alertRules(),
     observabilityApi.firingAlerts(),
-    notificationsApi.getTargets(),
+    notificationsApi.getAlertTargetOptions(),
   ]);
   if (rulesResult.status === "fulfilled") rules.value = rulesResult.value.data || [];
   if (firingResult.status === "fulfilled") firing.value = firingResult.value.data || [];

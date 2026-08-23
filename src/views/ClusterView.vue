@@ -149,11 +149,11 @@
           <p class="modal-hint">Enter the invite token and the URL of the server that generated it.</p>
           <div class="form-group">
             <label for="peerUrl">Peer Server URL</label>
-            <input id="peerUrl" v-model="acceptForm.peerUrl" type="url" placeholder="https://other-server:8090" />
+            <BaseInput id="peerUrl" v-model="acceptForm.peerUrl" type="url" placeholder="https://other-server:8090" />
           </div>
           <div class="form-group">
             <label for="inviteTokenInput">Invite Token</label>
-            <input
+            <BaseInput
               id="inviteTokenInput"
               v-model="acceptForm.inviteToken"
               type="text"
@@ -465,6 +465,7 @@ import {
 import { useNotificationsStore } from "@/stores/notifications";
 import { useAuthStore } from "@/stores/auth";
 import BaseButton from "@/components/base/BaseButton.vue";
+import BaseInput from "@/components/base/BaseInput.vue";
 import BaseModal from "@/components/base/BaseModal.vue";
 import Icon from "@/components/base/Icon.vue";
 import ContextBanner from "@/components/base/ContextBanner.vue";
@@ -1489,7 +1490,7 @@ code {
   margin-bottom: 0.375rem;
 }
 
-.form-group input {
+.form-group .base-input {
   width: 100%;
   padding: 0.5rem 0.75rem;
   border: 1px solid var(--border);
@@ -1497,12 +1498,6 @@ code {
   font-size: 0.875rem;
   color: var(--text);
   box-sizing: border-box;
-}
-
-.form-group input:focus {
-  outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
 }
 
 .error-message {

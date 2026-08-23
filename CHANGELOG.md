@@ -1,15 +1,24 @@
 # Changelog
 
-## [0.4.0-beta.5] - 2026-08-22
+## [0.4.0-beta.6] - 2026-08-23
 
 ### Added
 - Guided Fleet setup, peer access controls, runtime provider selection, and remote deployment inventories
 - Deployment autoscaling configuration with workload compatibility and activation guidance
 - Grouped notification incidents with editable targets and delivery rules
+- HTTP, TCP, and container command health checks for web services and databases
 
 ### Changed
 - Deployments show the selected server in the navigation and remain local by default
 - Deployment configuration keeps scaling beside settings while service image changes remain in the overview
+
+### Fixed
+- Assigned local deployments load without Fleet access or Fleet availability
+- Peer deployment lists reload when switching from an empty local server
+- Peer deployment details open for users with read access
+- Object storage and notifications follow their dedicated permissions
+- Operators no longer see Updates unless access is explicitly granted
+- Read-only Settings access is clearly identified and its controls remain legible in dark mode
 
 ## [0.4.0-beta.4] - 2026-08-21
 

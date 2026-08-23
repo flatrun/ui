@@ -35,10 +35,28 @@ Rules:
 - Status pills and tinted panels: `var(--color-{info,success,warning,danger,primary}-50)` background with the matching `-700` text. These flip per theme; the pale `#eff6ff`/`#fef3c7`/`#fee2e2` hexes do not.
 - Solid saturated fills (a colored button background, a status dot, an icon) may stay as a saturated color; those read on both themes. Do not convert those to the `-50` tints.
 - Inputs/selects must set both `background` and `color` (a missing `color` shows black text on a dark surface). Prefer `BaseInput`/`BaseSelect`, which handle this.
+- Native form controls are not accepted when a base primitive supports the same control. Theme correctness belongs to the primitive, not each page.
+- Every changed form must be exercised with `data-theme="light"` and `data-theme="dark"`. Check entered text, placeholders, disabled controls, browser autofill, dropdown options, focus rings, and modal surfaces.
+
+## Authorization: permission and resource scope are separate
+
+A module permission answers what kind of operation an actor may perform. A resource grant answers where they may perform it. Features that operate on deployments, buckets, peers, or another owned resource must enforce both.
+
+Rules:
+
+- Define dedicated read and write permissions for each module. Do not reuse an unrelated permission because the feature shares a page or transport.
+- Enforce permissions and resource scope in the agent API. Router guards and hidden buttons improve the experience but are not security boundaries.
+- Filter collection responses to resources the actor may read. Validate every resource referenced by create, update, delete, bulk, and action requests.
+- A bulk update must preserve records outside the actor's scope. Never let a scoped request replace a global collection.
+- Host-wide, fleet-wide, and all-resource operations require an explicit global permission. An empty resource identifier must not silently mean global access.
+- API keys may narrow their user's grants. Use the intersection of user and key access.
+- The UI must hide mutation controls without write permission and exclude read-only resources from target selectors.
+- Tests must call the HTTP endpoint with two actors whose resource grants differ. Prove that each actor sees only allowed records and cannot change the other actor's records.
 
 ## Review checklist (UI changes)
 
 - [ ] New inputs/selects/buttons/cards reuse `src/components/base/` rather than bespoke markup. Flag any hand-rolled control that duplicates a primitive.
 - [ ] No hardcoded hex/`white`/`black` in `<style>` or inline `style=` for surfaces, text, borders, or status tints. Semantic tokens used instead.
 - [ ] Rendered in both light and dark (toggle in the sidebar). Inputs, dropdowns, modals, and tables are readable in both.
+- [ ] Module permissions and resource grants are enforced by the API, reflected by the route, and represented by the controls.
 - [ ] `type-check`, `lint`, `format:check`, and `test:run` pass.

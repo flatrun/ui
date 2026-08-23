@@ -83,6 +83,19 @@ describe("SettingsView", () => {
     });
   };
 
+  const mountViewWithPermissions = (permissions: string[]) => {
+    const pinia = createTestingPinia({ createSpy: vi.fn });
+    const authStore = useAuthStore(pinia);
+    (authStore.hasPermission as ReturnType<typeof vi.fn>).mockImplementation((permission: string) =>
+      permissions.includes(permission),
+    );
+    return mount(SettingsView, {
+      global: {
+        plugins: [pinia],
+      },
+    });
+  };
+
   describe("View structure", () => {
     it("renders the settings view container", () => {
       const wrapper = mountView();
@@ -93,6 +106,17 @@ describe("SettingsView", () => {
       const wrapper = mountView();
       expect(wrapper.find(".view-header").exists()).toBe(true);
       expect(wrapper.find(".tabs").exists()).toBe(true);
+    });
+
+    it("explains limited access and locks assistant settings for readers", async () => {
+      const wrapper = mountViewWithPermissions(["settings:read"]);
+      expect(wrapper.text()).toContain("You have limited access");
+
+      const aiTab = wrapper.findAll(".tab").find((tab) => tab.text().includes("AI Assistant"));
+      await aiTab?.trigger("click");
+
+      const baseURL = wrapper.find('input[placeholder="https://api.openai.com/v1"]');
+      expect(baseURL.attributes("disabled")).toBeDefined();
     });
   });
 

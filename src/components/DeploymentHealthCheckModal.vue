@@ -2,7 +2,7 @@
   <BaseModal
     :visible="visible"
     title="Application health check"
-    subtitle="Choose the request FlatRun should make and what counts as healthy."
+    subtitle="Choose how FlatRun should verify this service."
     icon="pi pi-check-circle"
     size="md"
     :close-disabled="saving"
@@ -11,6 +11,14 @@
   >
     <form class="health-form" @submit.prevent="save">
       <div class="target-grid">
+        <BaseField label="Check type" hint="Use TCP or a command for services that do not speak HTTP.">
+          <BaseSelect v-model="checkType" :disabled="saving">
+            <option value="http">HTTP request</option>
+            <option value="tcp">TCP connection</option>
+            <option value="exec">Container command</option>
+          </BaseSelect>
+        </BaseField>
+
         <BaseField label="Service" hint="The container that receives the request.">
           <BaseSelect v-model="service" :disabled="saving">
             <option value="" disabled>Select a service</option>
@@ -18,24 +26,42 @@
           </BaseSelect>
         </BaseField>
 
-        <BaseField label="Container port" hint="The port used inside the container.">
+        <BaseField v-if="checkType !== 'exec'" label="Container port" hint="The port used inside the container.">
           <BaseInput v-model="port" type="number" placeholder="8080" :disabled="saving" />
         </BaseField>
       </div>
 
-      <BaseField label="Request path" hint="Any endpoint is valid. It does not need to be /health.">
-        <BaseInput v-model="path" placeholder="/" :disabled="saving" />
-      </BaseField>
+      <template v-if="checkType === 'http'">
+        <BaseField label="Request path" hint="Any endpoint is valid. It does not need to be /health.">
+          <BaseInput v-model="path" placeholder="/health" :disabled="saving" />
+        </BaseField>
 
-      <BaseField label="Accepted status codes" hint="Leave empty to accept every response from 200 through 399.">
-        <BaseInput v-model="statuses" placeholder="200, 204" :disabled="saving" />
+        <BaseField label="Accepted status codes" hint="Leave empty to accept every response from 200 through 399.">
+          <BaseInput v-model="statuses" placeholder="200, 204" :disabled="saving" />
+        </BaseField>
+
+        <BaseField
+          label="Response must contain"
+          hint='Optional text FlatRun must find in the response body, such as "status":"ready".'
+        >
+          <BaseInput v-model="responseContains" placeholder='"status":"ready"' :disabled="saving" />
+        </BaseField>
+      </template>
+
+      <BaseField
+        v-else-if="checkType === 'tcp'"
+        label="TCP check"
+        hint="FlatRun will open a connection to this port without sending an HTTP request."
+      >
+        <p class="check-summary">A successful connection marks the service healthy.</p>
       </BaseField>
 
       <BaseField
-        label="Response must contain"
-        hint='Optional text FlatRun must find in the response body, such as "status":"ready".'
+        v-else
+        label="Health command"
+        hint="The command runs inside the selected service. Exit code 0 means healthy."
       >
-        <BaseInput v-model="responseContains" placeholder='"status":"ready"' :disabled="saving" />
+        <BaseTextarea v-model="command" placeholder="pg_isready -U postgres" :disabled="saving" :rows="3" />
       </BaseField>
 
       <p v-if="error" class="form-error">{{ error }}</p>
@@ -54,6 +80,7 @@ import BaseModal from "@/components/base/BaseModal.vue";
 import BaseField from "@/components/base/BaseField.vue";
 import BaseSelect from "@/components/base/BaseSelect.vue";
 import BaseInput from "@/components/base/BaseInput.vue";
+import BaseTextarea from "@/components/base/BaseTextarea.vue";
 import BaseButton from "@/components/base/BaseButton.vue";
 import { deploymentsApi, type ServiceMetadata } from "@/services/api";
 
@@ -67,9 +94,11 @@ const emit = defineEmits<{ close: []; saved: [] }>();
 
 const service = ref("");
 const port = ref("");
-const path = ref("/");
+const checkType = ref<"http" | "tcp" | "exec">("http");
+const path = ref("");
 const statuses = ref("");
 const responseContains = ref("");
+const command = ref("");
 const saving = ref(false);
 const error = ref("");
 
@@ -77,11 +106,19 @@ watch(
   () => props.visible,
   (open) => {
     if (!open) return;
-    service.value = props.metadata?.primary_service || props.metadata?.networking?.service || "";
-    port.value = props.metadata?.networking?.container_port ? String(props.metadata.networking.container_port) : "";
-    path.value = props.metadata?.healthcheck?.path || "/";
+    const configuredType = props.metadata?.healthcheck?.type;
+    checkType.value = configuredType === "tcp" || configuredType === "exec" ? configuredType : "http";
+    service.value =
+      props.metadata?.healthcheck?.service ||
+      props.metadata?.primary_service ||
+      props.metadata?.networking?.service ||
+      "";
+    const configuredPort = props.metadata?.healthcheck?.port || props.metadata?.networking?.container_port;
+    port.value = configuredPort ? String(configuredPort) : "";
+    path.value = props.metadata?.healthcheck?.path || "";
     statuses.value = props.metadata?.healthcheck?.success_statuses?.join(", ") || "";
     responseContains.value = props.metadata?.healthcheck?.response_contains || "";
+    command.value = props.metadata?.healthcheck?.command || "";
     error.value = "";
   },
 );
@@ -95,21 +132,25 @@ function parsedStatuses(): number[] | null {
 
 async function save() {
   const acceptedStatuses = parsedStatuses();
-  const containerPort = Number(port.value);
+  const containerPort = checkType.value === "exec" ? 0 : Number(port.value);
   if (!service.value) {
     error.value = "Select the service that should receive the health request.";
     return;
   }
-  if (!Number.isInteger(containerPort) || containerPort < 1 || containerPort > 65535) {
+  if (checkType.value !== "exec" && (!Number.isInteger(containerPort) || containerPort < 1 || containerPort > 65535)) {
     error.value = "Enter a container port from 1 through 65535.";
     return;
   }
-  if (!path.value.startsWith("/")) {
+  if (checkType.value === "http" && !path.value.startsWith("/")) {
     error.value = "The request path must start with /.";
     return;
   }
-  if (acceptedStatuses === null) {
+  if (checkType.value === "http" && acceptedStatuses === null) {
     error.value = "Enter status codes separated by commas, such as 200, 204.";
+    return;
+  }
+  if (checkType.value === "exec" && !command.value.trim()) {
+    error.value = "Enter the command that should report service health.";
     return;
   }
 
@@ -117,22 +158,15 @@ async function save() {
   error.value = "";
   try {
     await deploymentsApi.updateMetadata(props.deploymentName, {
-      primary_service: service.value,
-      networking: {
-        ...(props.metadata?.networking || {
-          expose: false,
-          domain: "",
-          container_port: containerPort,
-          protocol: "http",
-        }),
-        service: service.value,
-        container_port: containerPort,
-      },
       healthcheck: {
-        path: path.value,
+        type: checkType.value,
+        service: service.value,
+        port: containerPort,
+        path: checkType.value === "http" ? path.value : "",
         interval: props.metadata?.healthcheck?.interval || "30s",
-        success_statuses: acceptedStatuses,
-        response_contains: responseContains.value,
+        success_statuses: checkType.value === "http" ? acceptedStatuses || [] : [],
+        response_contains: checkType.value === "http" ? responseContains.value : "",
+        command: checkType.value === "exec" ? command.value.trim() : "",
       },
     });
     emit("saved");
@@ -163,6 +197,19 @@ async function save() {
   border-radius: var(--radius-md);
   background: var(--color-danger-50);
   color: var(--color-danger-700);
+  font-size: var(--text-sm);
+}
+
+.check-summary {
+  margin: 0;
+  min-height: 2.5rem;
+  display: flex;
+  align-items: center;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-sunken);
+  color: var(--text-muted);
   font-size: var(--text-sm);
 }
 

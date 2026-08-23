@@ -177,8 +177,8 @@ import { useNotificationsStore } from "@/stores/notifications";
 
 const auth = useAuthStore();
 const notifications = useNotificationsStore();
-const canWriteCreds = auth.hasPermission("backups:write");
-const canDeleteCreds = auth.hasPermission("backups:delete");
+const canWriteCreds = auth.hasPermission("storage:write");
+const canDeleteCreds = auth.hasPermission("storage:delete");
 const canWriteDests = auth.hasPermission("config:write");
 
 const creds = ref<StorageCredential[]>([]);

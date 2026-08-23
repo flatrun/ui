@@ -13,7 +13,7 @@
           </span>
         </div>
       </div>
-      <div class="header-actions">
+      <div v-if="!isRemote" class="header-actions">
         <BaseButton icon="stethoscope" variant="secondary" @click="showDiagnostics = true">Diagnose</BaseButton>
         <SplitActionButton
           v-if="canWrite"
@@ -77,6 +77,13 @@
       <p>{{ error }}</p>
       <button class="btn btn-primary" @click="fetchDeployment">Try Again</button>
     </div>
+
+    <RemoteDeploymentOverview
+      v-else-if="deployment && isRemote"
+      :deployment="deployment"
+      :server="remoteServer"
+      :proxy-status="proxyStatus"
+    />
 
     <template v-else-if="deployment">
       <div class="detail-tabs">
@@ -1945,6 +1952,7 @@ import { yaml } from "@codemirror/lang-yaml";
 import { oneDark } from "@codemirror/theme-one-dark";
 import {
   deploymentsApi,
+  clusterApi,
   proxyApi,
   certificatesApi,
   filesApi,
@@ -1996,6 +2004,7 @@ import InlineAssist from "@/components/ai/InlineAssist.vue";
 import { useAssistStore } from "@/stores/assist";
 import Icon from "@/components/base/Icon.vue";
 import OperationModal from "@/components/OperationModal.vue";
+import RemoteDeploymentOverview from "@/components/RemoteDeploymentOverview.vue";
 import { useDeploymentJob, type DeploymentOperation } from "@/composables/useDeploymentJob";
 import { useServiceJobs } from "@/composables/useServiceJobs";
 
@@ -2022,12 +2031,16 @@ const closeConfigAssist = () => {
 };
 const canWrite = authStore.hasPermission("deployments:write");
 const canDelete = authStore.hasPermission("deployments:delete");
+const remoteServer = computed(() => String(route.query.server || ""));
+const isRemote = computed(() => remoteServer.value !== "");
 
 const backPath = computed(() => {
+  if (isRemote.value) return { path: "/deployments", query: { server: remoteServer.value } };
   return route.query.from === "infrastructure" ? "/infrastructure" : "/deployments";
 });
 
 const backLabel = computed(() => {
+  if (isRemote.value) return `Back to ${remoteServer.value} deployments`;
   return route.query.from === "infrastructure" ? "Back to Infrastructure" : "Back to Deployments";
 });
 
@@ -2509,7 +2522,9 @@ const fetchDeployment = async () => {
   loading.value = true;
   error.value = "";
   try {
-    const response = await deploymentsApi.get(route.params.name as string);
+    const response = isRemote.value
+      ? await clusterApi.getDeployment(remoteServer.value, route.params.name as string)
+      : await deploymentsApi.get(route.params.name as string);
     const data = response.data as any;
     deployment.value = data.deployment || data;
     syncProtectedModeFromDeployment();
@@ -2526,6 +2541,8 @@ const fetchDeployment = async () => {
     }
 
     services.value = deployment.value?.services || [];
+
+    if (isRemote.value) return;
 
     if (deployment.value?.metadata?.credential_id) {
       try {
@@ -2569,7 +2586,7 @@ const fetchDeployment = async () => {
       terminalService.value = services.value[0].container_id;
     }
   } catch (err: any) {
-    error.value = err.message || "Failed to load deployment";
+    error.value = err.response?.data?.error || err.message || "Failed to load deployment";
   } finally {
     loading.value = false;
   }
@@ -3566,6 +3583,7 @@ watch(activeTab, (newTab) => {
 
 onMounted(() => {
   fetchDeployment();
+  if (isRemote.value) return;
   if (activeTab.value === "logs") fetchLogSources();
   Promise.resolve(pluginsStore.fetchPlugins()).then(() => {
     // A deep-link may point at a plugin tab that is not available (plugin not installed);

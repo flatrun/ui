@@ -8,7 +8,7 @@
           crosses a line you care about.
         </p>
       </div>
-      <router-link to="/settings" class="av-targets">
+      <router-link v-if="canManageTargets" to="/notifications" class="av-targets">
         <Icon name="solar:alt-arrow-right-linear" :size="14" />
         Notification targets
       </router-link>
@@ -113,12 +113,15 @@ import { ref, computed, onMounted, onUnmounted } from "vue";
 import { observabilityApi } from "@/services/observability";
 import type { AlertEvent } from "@/services/observability";
 import { useDeploymentsStore } from "@/stores/deployments";
+import { useAuthStore } from "@/stores/auth";
 import Icon from "@/components/base/Icon.vue";
 import AlertRulesPanel from "@/components/AlertRulesPanel.vue";
 import LogRulesPanel from "@/components/LogRulesPanel.vue";
 import type { Incident } from "@/services/observability";
 
 const deploymentsStore = useDeploymentsStore();
+const auth = useAuthStore();
+const canManageTargets = computed(() => auth.hasPermission("notifications:read"));
 const deploymentNames = computed(() => deploymentsStore.deployments.map((d) => d.name).sort());
 
 const scope = ref<"metrics" | "logs">("metrics");

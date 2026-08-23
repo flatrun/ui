@@ -36,7 +36,7 @@
       </template>
 
       <template #cell-name="{ item }">
-        <div class="deployment-info" :class="{ clickable: item.local }" @click="goToDeployment(item)">
+        <div class="deployment-info clickable" @click="goToDeployment(item)">
           <span class="deployment-name">{{ item.name }}</span>
           <span class="server-badge">{{ item.server }}</span>
           <span v-if="item.metadata?.networking?.domain" class="deployment-domain">
@@ -130,7 +130,7 @@
             :logo="getDeploymentLogo(deployment)"
             :icon="getDeploymentIcon(deployment)"
             :icon-class="getDeploymentIconClass(deployment)"
-            :clickable="deployment.local"
+            :clickable="true"
             @click="goToDeployment(deployment)"
           >
             <!-- Domain Link -->
@@ -267,13 +267,8 @@
               <button class="icon-btn logs" title="Logs" @click="viewLogs(deployment)">
                 <FileText :size="14" />
               </button>
-              <button
-                v-if="deployment.local"
-                class="icon-btn settings"
-                title="Settings"
-                @click="goToDeployment(deployment)"
-              >
-                <Settings :size="14" />
+              <button class="icon-btn settings" title="View details" @click="goToDeployment(deployment)">
+                <Eye :size="14" />
               </button>
             </template>
           </DeploymentCard>
@@ -307,7 +302,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, onMounted } from "vue";
+import { computed, ref, onMounted, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { clusterApi, deploymentsApi } from "@/services/api";
 import { useNotificationsStore } from "@/stores/notifications";
@@ -327,7 +322,7 @@ import {
   RotateCw,
   FileText,
   Inbox,
-  Settings,
+  Eye,
   ExternalLink,
   Globe,
   Database,
@@ -346,6 +341,7 @@ const route = useRoute();
 const notifications = useNotificationsStore();
 const authStore = useAuthStore();
 const canWrite = authStore.hasPermission("deployments:write");
+const canReadCluster = authStore.hasPermission("cluster:read");
 type ManagedDeployment = Deployment & { server: string; local: boolean; clusterKey: string };
 const deployments = ref<ManagedDeployment[]>([]);
 const localServer = ref("This server");
@@ -386,6 +382,13 @@ const columns = [
 const fetchDeployments = async () => {
   loading.value = true;
   try {
+    if (!selectedServer.value || !canReadCluster) {
+      const response = await deploymentsApi.list();
+      deployments.value = (response.data.deployments || []).map((deployment) =>
+        managedDeployment(deployment, localServer.value, true),
+      );
+      return;
+    }
     const status = await clusterApi.getStatus();
     if (!status.data.enabled) {
       const response = await deploymentsApi.list();
@@ -465,7 +468,10 @@ const onDeploymentCreated = () => {
 };
 
 const goToDeployment = (deployment: ManagedDeployment) => {
-  if (deployment.local) router.push(`/deployments/${deployment.name}`);
+  router.push({
+    path: `/deployments/${encodeURIComponent(deployment.name)}`,
+    query: deployment.local ? {} : { server: deployment.server },
+  });
 };
 
 const getServiceClass = (service: Service) => {
@@ -726,6 +732,8 @@ onMounted(async () => {
     if (await deploymentJob.resume(d.name)) break;
   }
 });
+
+watch(selectedServer, () => fetchDeployments());
 </script>
 
 <style scoped>
