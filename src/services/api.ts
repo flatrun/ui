@@ -180,10 +180,14 @@ export interface ServiceMetadata {
     auto_cert: boolean;
   };
   healthcheck: {
+    type?: "http" | "tcp" | "exec";
+    service?: string;
+    port?: number;
     path: string;
     interval: string;
     success_statuses?: number[];
     response_contains?: string;
+    command?: string;
   };
   protected_mode?: ProtectedModeConfig;
   require_plan?: boolean;

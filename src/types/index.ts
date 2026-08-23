@@ -105,10 +105,14 @@ export interface SSLConfig {
 }
 
 export interface HealthCheckConfig {
+  type?: "http" | "tcp" | "exec";
+  service?: string;
+  port?: number;
   path: string;
   interval: string;
   success_statuses?: number[];
   response_contains?: string;
+  command?: string;
 }
 
 export interface Network {
