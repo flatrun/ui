@@ -16,12 +16,12 @@ const unauthorized = (config: Parameters<AxiosAdapter>[0]) =>
 
 describe("api client session gate", () => {
   const originalAdapter = apiClient.defaults.adapter;
-  let location: { pathname: string; href: string };
+  let location: { pathname: string; href: string; search: string };
 
   beforeEach(() => {
     resetSessionGate();
     localStorage.clear();
-    location = { pathname: "/", href: "/" };
+    location = { pathname: "/", href: "/", search: "" };
     Object.defineProperty(window, "location", { value: location, writable: true });
   });
 
@@ -111,5 +111,31 @@ describe("api client session gate", () => {
 
     expect(adapter).toHaveBeenCalledTimes(6);
     expect(results.every((r) => r.status === "rejected")).toBe(true);
+  });
+
+  it("routes deployment detail requests through the selected peer", async () => {
+    localStorage.setItem("auth_token", "good");
+    location.pathname = "/deployments/test-app";
+    location.search = "?server=prod-2";
+    const adapter = vi.fn(ok);
+    apiClient.defaults.adapter = adapter as AxiosAdapter;
+
+    await apiClient.get("/deployments/test-app/compose");
+
+    expect(adapter).toHaveBeenCalledWith(
+      expect.objectContaining({ url: "/cluster/peers/prod-2/proxy/deployments/test-app/compose" }),
+    );
+  });
+
+  it("keeps session requests on the selected server", async () => {
+    localStorage.setItem("auth_token", "good");
+    location.pathname = "/deployments/test-app";
+    location.search = "?server=prod-2";
+    const adapter = vi.fn(ok);
+    apiClient.defaults.adapter = adapter as AxiosAdapter;
+
+    await apiClient.get("/users/me");
+
+    expect(adapter).toHaveBeenCalledWith(expect.objectContaining({ url: "/users/me" }));
   });
 });

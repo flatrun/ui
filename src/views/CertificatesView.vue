@@ -16,11 +16,11 @@
       loading-text="Loading certificates..."
     >
       <template #actions>
-        <button v-if="canWrite" class="btn btn-primary" @click="showRequestModal = true">
+        <button v-if="canAdministerGlobally" class="btn btn-primary" @click="showRequestModal = true">
           <i class="pi pi-plus" />
           Request Certificate
         </button>
-        <button v-if="canWrite" class="btn btn-secondary" :disabled="renewingAll" @click="handleRenewAll">
+        <button v-if="canAdministerGlobally" class="btn btn-secondary" :disabled="renewingAll" @click="handleRenewAll">
           <i class="pi pi-sync" :class="{ 'pi-spin': renewingAll }" />
           Renew All
         </button>
@@ -311,6 +311,7 @@ const notifications = useNotificationsStore();
 const authStore = useAuthStore();
 const canWrite = authStore.hasPermission("certificates:write");
 const canDelete = authStore.hasPermission("certificates:delete");
+const canAdministerGlobally = computed(() => authStore.isAdmin);
 const certificates = ref<Certificate[]>([]);
 const loading = ref(false);
 const showRequestModal = ref(false);

@@ -10,7 +10,7 @@ vi.mock("@/services/api", () => ({
     createDeploymentBackup: vi.fn().mockResolvedValue({ data: { job_id: "job-123" } }),
     delete: vi.fn().mockResolvedValue({ data: { success: true } }),
     restore: vi.fn().mockResolvedValue({ data: { job_id: "restore-job-123" } }),
-    download: vi.fn().mockReturnValue("/api/backups/test-backup/download"),
+    download: vi.fn().mockResolvedValue({ data: new Blob(["backup"]) }),
     getJob: vi.fn().mockResolvedValue({
       data: { job: { id: "job-123", status: "completed", type: "backup" } },
     }),
@@ -69,6 +69,11 @@ describe("BackupsTab", () => {
     vi.clearAllMocks();
     mockGetDeploymentBackups.mockResolvedValue({ data: { backups: [] } });
     mockListTasks.mockResolvedValue({ data: { tasks: [] } });
+    vi.stubGlobal("URL", {
+      ...URL,
+      createObjectURL: vi.fn().mockReturnValue("blob:backup"),
+      revokeObjectURL: vi.fn(),
+    });
   });
 
   const mountBackupsTab = (options: { backups?: typeof mockBackups; tasks?: typeof mockScheduledTasks } = {}) => {
@@ -225,14 +230,16 @@ describe("BackupsTab", () => {
       expect(restoreButtons.length).toBe(2);
     });
 
-    it("has Download link for each backup", async () => {
+    it("has a Download button for each backup", async () => {
       const wrapper = mountBackupsTab({ backups: mockBackups });
       await wrapper.vm.$nextTick();
       await new Promise((r) => setTimeout(r, 10));
       await wrapper.vm.$nextTick();
 
-      const downloadLinks = wrapper.findAll(".backup-actions a[download]");
-      expect(downloadLinks.length).toBe(2);
+      const downloadButtons = wrapper
+        .findAll(".backup-actions button")
+        .filter((button) => button.text().includes("Download"));
+      expect(downloadButtons.length).toBe(2);
     });
 
     it("has Delete button for each backup", async () => {
@@ -295,7 +302,7 @@ describe("BackupsTab", () => {
 
       await vm.deleteBackup();
 
-      expect(mockDeleteBackup).toHaveBeenCalledWith("my-app_20250101_120000");
+      expect(mockDeleteBackup).toHaveBeenCalledWith("my-app_20250101_120000", "my-app");
     });
   });
 
@@ -328,11 +335,15 @@ describe("BackupsTab", () => {
 
       await vm.restoreBackup();
 
-      expect(mockRestoreBackup).toHaveBeenCalledWith("my-app_20250101_120000", {
-        restore_data: true,
-        restore_db: true,
-        stop_first: true,
-      });
+      expect(mockRestoreBackup).toHaveBeenCalledWith(
+        "my-app_20250101_120000",
+        {
+          restore_data: true,
+          restore_db: true,
+          stop_first: true,
+        },
+        "my-app",
+      );
     });
   });
 
@@ -456,12 +467,16 @@ describe("BackupsTab", () => {
       expect(result).toBeTruthy();
     });
 
-    it("getDownloadUrl returns correct URL", () => {
-      const wrapper = mountBackupsTab();
-      const vm = wrapper.vm as any;
+    it("downloads through the authenticated API client", async () => {
+      const wrapper = mountBackupsTab({ backups: mockBackups });
+      await new Promise((resolve) => setTimeout(resolve, 10));
+      const click = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => undefined);
 
-      vm.getDownloadUrl("test-backup-id");
-      expect(backupsApi.download).toHaveBeenCalledWith("test-backup-id");
+      const download = wrapper.findAll("button").find((button) => button.text().includes("Download"));
+      await download!.trigger("click");
+
+      expect(click).toHaveBeenCalled();
+      expect(backupsApi.download).toHaveBeenCalledWith("my-app_20250101_120000", "my-app");
     });
   });
 

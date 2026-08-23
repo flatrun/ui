@@ -7,6 +7,8 @@
 - Deployment autoscaling configuration with workload compatibility and activation guidance
 - Grouped notification incidents with editable targets and delivery rules
 - HTTP, TCP, and container command health checks for web services and databases
+- Full deployment details and management controls for permitted Fleet peers
+- Service-specific HTTP, TCP, and command health check editing
 
 ### Changed
 - Deployments show the selected server in the navigation and remain local by default
@@ -16,9 +18,13 @@
 - Assigned local deployments load without Fleet access or Fleet availability
 - Peer deployment lists reload when switching from an empty local server
 - Peer deployment details open for users with read access
+- Peer deployment details use the same overview, configuration, files, and actions as local deployments
 - Object storage and notifications follow their dedicated permissions
 - Operators no longer see Updates unless access is explicitly granted
 - Read-only Settings access is clearly identified and its controls remain legible in dark mode
+- User deployment grants can target a deployment on a specific Fleet server
+- Host terminal and process controls are hidden unless system write access is explicitly granted
+- Global certificate actions remain administrator-only while deployment certificates stay manageable
 
 ## [0.4.0-beta.4] - 2026-08-21
 

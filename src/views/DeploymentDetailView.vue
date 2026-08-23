@@ -13,7 +13,7 @@
           </span>
         </div>
       </div>
-      <div v-if="!isRemote" class="header-actions">
+      <div class="header-actions">
         <BaseButton icon="stethoscope" variant="secondary" @click="showDiagnostics = true">Diagnose</BaseButton>
         <SplitActionButton
           v-if="canWrite"
@@ -77,13 +77,6 @@
       <p>{{ error }}</p>
       <button class="btn btn-primary" @click="fetchDeployment">Try Again</button>
     </div>
-
-    <RemoteDeploymentOverview
-      v-else-if="deployment && isRemote"
-      :deployment="deployment"
-      :server="remoteServer"
-      :proxy-status="proxyStatus"
-    />
 
     <template v-else-if="deployment">
       <div class="detail-tabs">
@@ -151,7 +144,7 @@
                         {{ registryCredential.name }}
                       </span>
                       <button
-                        v-if="canWrite"
+                        v-if="canWrite && !isRemote"
                         class="btn btn-sm btn-icon"
                         title="Change credential"
                         @click="openCredentialModal"
@@ -161,7 +154,7 @@
                     </template>
                     <template v-else>
                       <span class="public-badge">Public</span>
-                      <button v-if="canWrite" class="btn btn-sm btn-link" @click="openCredentialModal">
+                      <button v-if="canWrite && !isRemote" class="btn btn-sm btn-link" @click="openCredentialModal">
                         Set credential
                       </button>
                     </template>
@@ -180,7 +173,7 @@
                     </span>
                   </span>
                 </div>
-                <div v-if="!isInfrastructure" class="info-row action-row">
+                <div v-if="!isInfrastructure && !isRemote" class="info-row action-row">
                   <button class="btn btn-sm btn-secondary" @click="migrateToInfrastructure">
                     <i class="pi pi-server" />
                     Mark as Infrastructure
@@ -383,7 +376,7 @@
                       >
                         <Icon name="pencil" :size="14" />
                       </button>
-                      <button class="action-btn" title="Terminal" @click="openTerminal(service)">
+                      <button v-if="!isRemote" class="action-btn" title="Terminal" @click="openTerminal(service)">
                         <i class="pi pi-desktop" />
                       </button>
                       <button class="action-btn" title="Logs" @click="viewServiceLogs(service)">
@@ -578,7 +571,12 @@
             @delete="confirmDeleteLogs = true"
           >
             <template #actions>
-              <button class="btn btn-sm" :class="following ? 'btn-primary' : 'btn-secondary'" @click="toggleFollow">
+              <button
+                v-if="!isRemote"
+                class="btn btn-sm"
+                :class="following ? 'btn-primary' : 'btn-secondary'"
+                @click="toggleFollow"
+              >
                 <Icon :name="following ? 'circle-stop' : 'play'" :size="14" />
                 {{ following ? "Following" : "Follow" }}
               </button>
@@ -663,7 +661,7 @@
             <h3>Environment Variables</h3>
             <div class="env-header-actions">
               <AssistButton :context="envAssistContext" title="Ask the assistant about these variables" />
-              <button class="btn btn-sm btn-primary" @click="openAddEnvModal">
+              <button v-if="canWrite" class="btn btn-sm btn-primary" @click="openAddEnvModal">
                 <i class="pi pi-plus" /> Add Variable
               </button>
             </div>
@@ -677,7 +675,7 @@
               <div class="env-row header">
                 <span class="env-key">Key</span>
                 <span class="env-value">Value</span>
-                <span class="env-actions">Actions</span>
+                <span v-if="canWrite" class="env-actions">Actions</span>
               </div>
               <div v-for="env in envVars" :key="env.key" class="env-row">
                 <span class="env-key">{{ env.key }}</span>
@@ -688,7 +686,7 @@
                     <i :class="env.hidden ? 'pi pi-eye' : 'pi pi-eye-slash'" />
                   </button>
                 </span>
-                <span class="env-actions">
+                <span v-if="canWrite" class="env-actions">
                   <button class="action-btn" @click="editEnvVar(env)">
                     <i class="pi pi-pencil" />
                   </button>
@@ -707,7 +705,9 @@
               <h3>Quick Actions</h3>
               <p class="subtitle">Execute predefined commands on your deployment</p>
             </div>
-            <button class="btn btn-primary" @click="openAddActionModal"><i class="pi pi-plus" /> Add Action</button>
+            <button v-if="canWrite" class="btn btn-primary" @click="openAddActionModal">
+              <i class="pi pi-plus" /> Add Action
+            </button>
           </div>
 
           <div v-if="!deployment?.metadata?.quick_actions?.length" class="no-actions">
@@ -730,7 +730,7 @@
                   </div>
                   <h4>{{ action.name }}</h4>
                 </div>
-                <div class="action-meta">
+                <div v-if="canWrite" class="action-meta">
                   <button class="action-meta-btn" title="Edit" @click="openEditActionModal(action)">
                     <i class="pi pi-pencil" />
                   </button>
@@ -748,6 +748,7 @@
                 <code class="action-command">{{ action.command }}</code>
               </div>
               <button
+                v-if="canWrite"
                 class="btn btn-primary action-run-btn"
                 :disabled="executingAction !== null || deployment?.status !== 'running'"
                 @click="executeAction(action)"
@@ -771,7 +772,14 @@
           </div>
         </div>
 
-        <BackupsTab v-if="activeTab === 'backups'" :deployment-name="route.params.name as string" />
+        <BackupsTab
+          v-if="activeTab === 'backups'"
+          :deployment-name="route.params.name as string"
+          :can-write="canManageBackups"
+          :can-delete="canDeleteBackups"
+          :can-schedule="canManageSchedules"
+          :can-delete-schedule="canDeleteSchedules"
+        />
 
         <div v-for="pt in pluginTabs" :key="pt.id" v-show="activeTab === pt.id" class="plugin-tab">
           <PluginSlot
@@ -792,7 +800,12 @@
               </span>
             </div>
             <label class="toggle-switch">
-              <input v-model="securityConfig.enabled" type="checkbox" @change="saveSecurityConfig" />
+              <input
+                v-model="securityConfig.enabled"
+                type="checkbox"
+                :disabled="!canManageSecurity"
+                @change="saveSecurityConfig"
+              />
               <span class="toggle-slider" />
             </label>
           </div>
@@ -858,6 +871,7 @@
                       :key="preset.pattern"
                       class="preset-btn"
                       :class="{ active: isPathProtected(preset.pattern) }"
+                      :disabled="!canManageSecurity"
                       @click="toggleProtectedPath(preset.pattern)"
                       :title="preset.pattern"
                     >
@@ -882,12 +896,18 @@
                       <code>{{ path.pattern }}</code>
                       <div class="item-actions">
                         <label class="toggle-switch small">
-                          <input v-model="path.enabled" type="checkbox" @change="saveSecurityConfig" />
+                          <input
+                            v-model="path.enabled"
+                            type="checkbox"
+                            :disabled="!canManageSecurity"
+                            @change="saveSecurityConfig"
+                          />
                           <span class="toggle-slider" />
                         </label>
                         <button
                           class="btn btn-icon btn-sm btn-ghost"
                           title="Remove"
+                          :disabled="!canManageSecurity"
                           @click="removeProtectedPath(index)"
                         >
                           <i class="pi pi-times" />
@@ -902,9 +922,14 @@
                     type="text"
                     class="form-input"
                     placeholder="Custom path (e.g., /storage/*)"
+                    :disabled="!canManageSecurity"
                     @keyup.enter="addProtectedPath"
                   />
-                  <button class="btn btn-sm btn-primary" :disabled="!newProtectedPath" @click="addProtectedPath">
+                  <button
+                    class="btn btn-sm btn-primary"
+                    :disabled="!canManageSecurity || !newProtectedPath"
+                    @click="addProtectedPath"
+                  >
                     <i class="pi pi-plus" /> Add
                   </button>
                 </div>
@@ -942,10 +967,20 @@
                       </div>
                       <div class="item-actions">
                         <label class="toggle-switch small">
-                          <input v-model="limit.enabled" type="checkbox" @change="saveSecurityConfig" />
+                          <input
+                            v-model="limit.enabled"
+                            type="checkbox"
+                            :disabled="!canManageSecurity"
+                            @change="saveSecurityConfig"
+                          />
                           <span class="toggle-slider" />
                         </label>
-                        <button class="btn btn-icon btn-sm btn-ghost" title="Remove" @click="removeRateLimit(index)">
+                        <button
+                          class="btn btn-icon btn-sm btn-ghost"
+                          title="Remove"
+                          :disabled="!canManageSecurity"
+                          @click="removeRateLimit(index)"
+                        >
                           <i class="pi pi-times" />
                         </button>
                       </div>
@@ -953,18 +988,40 @@
                   </div>
                 </div>
                 <div class="add-form rate-form">
-                  <input v-model="newRateLimit.path" type="text" class="form-input" placeholder="Path" />
+                  <input
+                    v-model="newRateLimit.path"
+                    type="text"
+                    class="form-input"
+                    placeholder="Path"
+                    :disabled="!canManageSecurity"
+                  />
                   <div class="rate-inputs">
                     <div class="input-group">
-                      <input v-model.number="newRateLimit.rate" type="number" class="form-input" placeholder="10" />
+                      <input
+                        v-model.number="newRateLimit.rate"
+                        type="number"
+                        class="form-input"
+                        placeholder="10"
+                        :disabled="!canManageSecurity"
+                      />
                       <span class="input-suffix">/min</span>
                     </div>
                     <div class="input-group">
-                      <input v-model.number="newRateLimit.burst" type="number" class="form-input" placeholder="5" />
+                      <input
+                        v-model.number="newRateLimit.burst"
+                        type="number"
+                        class="form-input"
+                        placeholder="5"
+                        :disabled="!canManageSecurity"
+                      />
                       <span class="input-suffix">burst</span>
                     </div>
                   </div>
-                  <button class="btn btn-sm btn-primary" :disabled="!newRateLimit.path" @click="addRateLimit">
+                  <button
+                    class="btn btn-sm btn-primary"
+                    :disabled="!canManageSecurity || !newRateLimit.path"
+                    @click="addRateLimit"
+                  >
                     <i class="pi pi-plus" /> Add
                   </button>
                 </div>
@@ -1952,7 +2009,6 @@ import { yaml } from "@codemirror/lang-yaml";
 import { oneDark } from "@codemirror/theme-one-dark";
 import {
   deploymentsApi,
-  clusterApi,
   proxyApi,
   certificatesApi,
   filesApi,
@@ -2004,7 +2060,6 @@ import InlineAssist from "@/components/ai/InlineAssist.vue";
 import { useAssistStore } from "@/stores/assist";
 import Icon from "@/components/base/Icon.vue";
 import OperationModal from "@/components/OperationModal.vue";
-import RemoteDeploymentOverview from "@/components/RemoteDeploymentOverview.vue";
 import { useDeploymentJob, type DeploymentOperation } from "@/composables/useDeploymentJob";
 import { useServiceJobs } from "@/composables/useServiceJobs";
 
@@ -2029,10 +2084,34 @@ const closeConfigAssist = () => {
   configAssistOpen.value = false;
   assistStore.close();
 };
-const canWrite = authStore.hasPermission("deployments:write");
-const canDelete = authStore.hasPermission("deployments:delete");
 const remoteServer = computed(() => String(route.query.server || ""));
 const isRemote = computed(() => remoteServer.value !== "");
+const deploymentAccessKey = computed(() => {
+  const name = String(route.params.name || "");
+  return isRemote.value ? `${remoteServer.value}/${name}` : name;
+});
+const canRead = computed(
+  () =>
+    Boolean(authStore.hasPermission("deployments:read")) &&
+    Boolean(authStore.canAccessDeployment(deploymentAccessKey.value, "read")),
+);
+const canWrite = computed(
+  () =>
+    Boolean(authStore.hasPermission("deployments:write")) &&
+    Boolean(authStore.canAccessDeployment(deploymentAccessKey.value, "write")),
+);
+const canDelete = computed(
+  () =>
+    Boolean(authStore.hasPermission("deployments:delete")) &&
+    Boolean(authStore.canAccessDeployment(deploymentAccessKey.value, "admin")),
+);
+const canReadBackups = computed(() => canRead.value && authStore.hasPermission("backups:read"));
+const canManageBackups = computed(() => canWrite.value && authStore.hasPermission("backups:write"));
+const canDeleteBackups = computed(() => canDelete.value && authStore.hasPermission("backups:delete"));
+const canManageSchedules = computed(() => canWrite.value && authStore.hasPermission("scheduler:write"));
+const canDeleteSchedules = computed(() => canDelete.value && authStore.hasPermission("scheduler:delete"));
+const canReadSecurity = computed(() => canRead.value && authStore.hasPermission("security:read"));
+const canManageSecurity = computed(() => canWrite.value && authStore.hasPermission("security:write"));
 
 const backPath = computed(() => {
   if (isRemote.value) return { path: "/deployments", query: { server: remoteServer.value } };
@@ -2120,7 +2199,7 @@ const tabs = [
 
 const pluginsStore = usePluginsStore();
 const pluginTabs = computed(() =>
-  (pluginsStore.getPluginsForSlot("deployment.detail") || []).map((e) => ({
+  (isRemote.value ? [] : pluginsStore.getPluginsForSlot("deployment.detail") || []).map((e) => ({
     id: `plugin:${e.plugin.name}`,
     label: e.extension.title || e.plugin.display_name,
     icon: e.extension.icon,
@@ -2131,6 +2210,9 @@ const pluginTabs = computed(() =>
 const tabBarItems = computed(() => {
   const items: Array<{ id: string; label: string; icon?: string; kind: "native" | "plugin" }> = [];
   for (const tab of tabs) {
+    if (isRemote.value && tab.id === "terminal") continue;
+    if (tab.id === "backups" && !canReadBackups.value) continue;
+    if (tab.id === "security" && !canReadSecurity.value) continue;
     items.push({ ...tab, kind: "native" });
     if (tab.id === "actions") {
       for (const pt of pluginTabs.value) items.push({ ...pt, kind: "plugin" });
@@ -2522,9 +2604,7 @@ const fetchDeployment = async () => {
   loading.value = true;
   error.value = "";
   try {
-    const response = isRemote.value
-      ? await clusterApi.getDeployment(remoteServer.value, route.params.name as string)
-      : await deploymentsApi.get(route.params.name as string);
+    const response = await deploymentsApi.get(route.params.name as string);
     const data = response.data as any;
     deployment.value = data.deployment || data;
     syncProtectedModeFromDeployment();
@@ -2542,9 +2622,9 @@ const fetchDeployment = async () => {
 
     services.value = deployment.value?.services || [];
 
-    if (isRemote.value) return;
-
-    if (deployment.value?.metadata?.credential_id) {
+    if (isRemote.value) {
+      registryCredential.value = null;
+    } else if (deployment.value?.metadata?.credential_id) {
       try {
         const credResponse = await credentialsApi.get(deployment.value.metadata.credential_id);
         registryCredential.value = credResponse.data.credential;
@@ -2662,7 +2742,11 @@ const handleRequestCertificate = async () => {
 
   requestingCert.value = true;
   try {
-    await certificatesApi.request(proxyStatus.value.domain);
+    if (isRemote.value) {
+      await certificatesApi.renewDeployment(route.params.name as string);
+    } else {
+      await certificatesApi.request(proxyStatus.value.domain);
+    }
     notifications.success(
       "Certificate Requested",
       `SSL certificate for ${proxyStatus.value.domain} has been requested`,
@@ -3583,24 +3667,25 @@ watch(activeTab, (newTab) => {
 
 onMounted(() => {
   fetchDeployment();
-  if (isRemote.value) return;
   if (activeTab.value === "logs") fetchLogSources();
-  Promise.resolve(pluginsStore.fetchPlugins()).then(() => {
-    // A deep-link may point at a plugin tab that is not available (plugin not installed);
-    // fall back to Overview rather than showing an empty tab.
-    if (activeTab.value.startsWith("plugin:") && !pluginTabs.value.some((t) => t.id === activeTab.value)) {
-      activeTab.value = "overview";
-    }
-  });
-  deploymentJob.resume(route.params.name as string);
-  credentialsApi
-    .list()
-    .then((response) => {
-      allCredentials.value = response.data.credentials || [];
-    })
-    .catch(() => {
-      allCredentials.value = [];
+  if (!isRemote.value) {
+    Promise.resolve(pluginsStore.fetchPlugins()).then(() => {
+      if (activeTab.value.startsWith("plugin:") && !pluginTabs.value.some((t) => t.id === activeTab.value)) {
+        activeTab.value = "overview";
+      }
     });
+  }
+  deploymentJob.resume(route.params.name as string);
+  if (!isRemote.value) {
+    credentialsApi
+      .list()
+      .then((response) => {
+        allCredentials.value = response.data.credentials || [];
+      })
+      .catch(() => {
+        allCredentials.value = [];
+      });
+  }
   refreshInterval = window.setInterval(() => {
     if (logsFollow.value && activeTab.value === "logs") {
       fetchLogs();

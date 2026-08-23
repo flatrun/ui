@@ -27,6 +27,7 @@ export interface ServiceMetadata {
   networking: NetworkingConfig;
   ssl: SSLConfig;
   healthcheck: HealthCheckConfig;
+  healthchecks?: HealthCheckConfig[];
   quick_actions?: QuickAction[];
   security?: DeploymentSecurityConfig;
   protected_mode?: ProtectedModeConfig;

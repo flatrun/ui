@@ -2,12 +2,14 @@
   <div class="backups-tab">
     <div class="backups-header">
       <h3>Backups</h3>
-      <div class="backups-actions">
-        <button class="btn btn-primary" :disabled="creatingBackup" @click="createBackup">
-          <i :class="creatingBackup ? 'pi pi-spin pi-spinner' : 'pi pi-plus'" />
-          {{ creatingBackup ? "Creating..." : "Create Backup" }}
-        </button>
-        <button class="btn btn-secondary" @click="showScheduleModal = true">
+      <div v-if="canWrite || canSchedule" class="backups-actions">
+        <template v-if="canWrite">
+          <button class="btn btn-primary" :disabled="creatingBackup" @click="createBackup">
+            <i :class="creatingBackup ? 'pi pi-spin pi-spinner' : 'pi pi-plus'" />
+            {{ creatingBackup ? "Creating..." : "Create Backup" }}
+          </button>
+        </template>
+        <button v-if="canSchedule" class="btn btn-secondary" @click="showScheduleModal = true">
           <i class="pi pi-clock" />
           Schedule Backup
         </button>
@@ -55,6 +57,7 @@
         </div>
         <div class="backup-actions">
           <button
+            v-if="canWrite"
             class="btn btn-sm btn-secondary"
             :disabled="restoringBackup === backup.id"
             @click="confirmRestore(backup)"
@@ -62,11 +65,15 @@
             <i :class="restoringBackup === backup.id ? 'pi pi-spin pi-spinner' : 'pi pi-replay'" />
             Restore
           </button>
-          <a :href="getDownloadUrl(backup.id)" class="btn btn-sm btn-secondary" download>
+          <button
+            class="btn btn-sm btn-secondary"
+            :disabled="downloadingBackup === backup.id"
+            @click="downloadBackup(backup.id)"
+          >
             <i class="pi pi-download" />
             Download
-          </a>
-          <button class="btn btn-sm btn-danger" @click="confirmDeleteBackup(backup.id)">
+          </button>
+          <button v-if="canDelete" class="btn btn-sm btn-danger" @click="confirmDeleteBackup(backup.id)">
             <i class="pi pi-trash" />
           </button>
         </div>
@@ -83,14 +90,14 @@
             <span v-if="task.next_run" class="task-next"> Next: {{ formatDate(task.next_run) }} </span>
           </div>
           <div class="task-actions">
-            <label class="toggle-switch small">
+            <label v-if="canSchedule" class="toggle-switch small">
               <input type="checkbox" :checked="task.enabled" @change="toggleTask(task)" />
               <span class="toggle-slider" />
             </label>
-            <button class="btn btn-sm btn-secondary" @click="runTaskNow(task.id)">
+            <button v-if="canSchedule" class="btn btn-sm btn-secondary" @click="runTaskNow(task.id)">
               <i class="pi pi-play" />
             </button>
-            <button class="btn btn-sm btn-danger" @click="confirmDeleteTask(task.id)">
+            <button v-if="canDeleteSchedule" class="btn btn-sm btn-danger" @click="confirmDeleteTask(task.id)">
               <i class="pi pi-trash" />
             </button>
           </div>
@@ -198,9 +205,16 @@ import type { Backup, ScheduledTask, BackupJob } from "@/services/api";
 import { useNotificationsStore } from "@/stores/notifications";
 import ConfirmModal from "@/components/ConfirmModal.vue";
 
-const props = defineProps<{
-  deploymentName: string;
-}>();
+const props = withDefaults(
+  defineProps<{
+    deploymentName: string;
+    canWrite?: boolean;
+    canDelete?: boolean;
+    canSchedule?: boolean;
+    canDeleteSchedule?: boolean;
+  }>(),
+  { canWrite: true, canDelete: true, canSchedule: true, canDeleteSchedule: true },
+);
 
 const notifications = useNotificationsStore();
 
@@ -208,6 +222,7 @@ const backups = ref<Backup[]>([]);
 const loadingBackups = ref(false);
 const creatingBackup = ref(false);
 const restoringBackup = ref<string | null>(null);
+const downloadingBackup = ref<string | null>(null);
 
 interface TrackedJob extends BackupJob {
   retryCount?: number;
@@ -281,7 +296,7 @@ const pollActiveJobs = async () => {
   const updatedJobs: TrackedJob[] = [];
   for (const job of activeJobs.value) {
     try {
-      const response = await backupsApi.getJob(job.id);
+      const response = await backupsApi.getJob(job.id, props.deploymentName);
       const updatedJob = response.data.job;
 
       if (updatedJob.status === "completed") {
@@ -354,7 +369,7 @@ const confirmDeleteBackup = (backupId: string) => {
 const deleteBackup = async () => {
   if (!backupToDelete.value) return;
   try {
-    await backupsApi.delete(backupToDelete.value);
+    await backupsApi.delete(backupToDelete.value, props.deploymentName);
     notifications.success("Deleted", "Backup has been deleted");
     await fetchBackups();
   } catch (err: any) {
@@ -377,11 +392,15 @@ const restoreBackup = async () => {
   restoringBackup.value = backupId;
   showRestoreModal.value = false;
   try {
-    const response = await backupsApi.restore(backupId, {
-      restore_data: true,
-      restore_db: true,
-      stop_first: true,
-    });
+    const response = await backupsApi.restore(
+      backupId,
+      {
+        restore_data: true,
+        restore_db: true,
+        stop_first: true,
+      },
+      props.deploymentName,
+    );
     const jobId = response.data.job_id;
     activeJobs.value.push({
       id: jobId,
@@ -401,8 +420,21 @@ const restoreBackup = async () => {
   }
 };
 
-const getDownloadUrl = (backupId: string) => {
-  return backupsApi.download(backupId);
+const downloadBackup = async (backupId: string) => {
+  downloadingBackup.value = backupId;
+  try {
+    const response = await backupsApi.download(backupId, props.deploymentName);
+    const url = URL.createObjectURL(response.data);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${backupId}.tar.gz`;
+    link.click();
+    URL.revokeObjectURL(url);
+  } catch (err: any) {
+    notifications.error("Download Failed", err.response?.data?.error || "Failed to download backup");
+  } finally {
+    downloadingBackup.value = null;
+  }
 };
 
 const createScheduledTask = async () => {

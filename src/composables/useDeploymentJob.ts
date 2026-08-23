@@ -134,6 +134,10 @@ export function useDeploymentJob(onSettled?: (state: DeploymentJobState) => void
   }
 
   function openStream(jobId: string) {
+    if (new URLSearchParams(window.location.search).has("server")) {
+      pollUntilDone(jobId);
+      return;
+    }
     let authed = false;
     const token = localStorage.getItem("auth_token");
 

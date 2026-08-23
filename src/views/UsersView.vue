@@ -175,7 +175,7 @@ import { ref, onMounted, computed, watch } from "vue";
 import type { User, UserRole, UserDeploymentAccess, Permission, DeploymentAccessMap } from "@/types";
 import { useUsersStore } from "@/stores/users";
 import { useAuthStore } from "@/stores/auth";
-import { deploymentsApi } from "@/services/api";
+import { clusterApi, deploymentsApi } from "@/services/api";
 import PermissionPicker from "@/components/PermissionPicker.vue";
 import TabbedFormModal, { type TabbedFormModalTab } from "@/components/TabbedFormModal.vue";
 import DeploymentAccessField from "@/components/DeploymentAccessField.vue";
@@ -246,8 +246,21 @@ const loadUsers = async () => {
 
 const loadAllDeployments = async () => {
   try {
-    const response = await deploymentsApi.list();
-    allDeployments.value = response.data.deployments.map((d) => d.name);
+    const [local, fleet, status] = await Promise.all([
+      deploymentsApi.list(),
+      clusterApi.getAggregatedDeployments().catch(() => null),
+      clusterApi.getStatus().catch(() => null),
+    ]);
+    const available = new Set(local.data.deployments.map((deployment) => deployment.name));
+    if (fleet) {
+      for (const [server, result] of Object.entries(fleet.data.servers)) {
+        if (server === status?.data.server_name) continue;
+        for (const deployment of result.data?.deployments || []) {
+          available.add(`${server}/${deployment.name}`);
+        }
+      }
+    }
+    allDeployments.value = [...available].sort((a, b) => a.localeCompare(b));
   } catch {
     // ignore
   }

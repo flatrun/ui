@@ -533,6 +533,12 @@ const capabilityOptions: Array<{ id: ClusterCapability; label: string; descripti
     description: "Start, stop, and restart allowed deployments.",
     icon: "play",
   },
+  {
+    id: "deployments.manage",
+    label: "Manage deployments",
+    description: "Change configuration, files, certificates, backups, and security for allowed deployments.",
+    icon: "settings",
+  },
   { id: "capacity.read", label: "View capacity", description: "Read host headroom and scaling policy.", icon: "gauge" },
   {
     id: "capacity.offer",
@@ -550,7 +556,9 @@ const capabilityOptions: Array<{ id: ClusterCapability; label: string; descripti
 ];
 const hasDeploymentAccess = computed(
   () =>
-    selectedCapabilities.value.includes("deployments.read") || selectedCapabilities.value.includes("deployments.run"),
+    selectedCapabilities.value.includes("deployments.read") ||
+    selectedCapabilities.value.includes("deployments.run") ||
+    selectedCapabilities.value.includes("deployments.manage"),
 );
 
 const fetchAll = async () => {
@@ -744,7 +752,10 @@ const openPolicyModal = async (peer: ClusterPeer) => {
     const { data } = await clusterApi.getPeerPolicy(peer.name);
     selectedCapabilities.value = data.grants.map((grant) => grant.capability);
     const deploymentGrant = data.grants.find(
-      (grant) => grant.capability === "deployments.run" || grant.capability === "deployments.read",
+      (grant) =>
+        grant.capability === "deployments.manage" ||
+        grant.capability === "deployments.run" ||
+        grant.capability === "deployments.read",
     );
     const lendingGrant = data.grants.find((grant) => grant.capability === "capacity.offer");
     policyForm.value = {
@@ -776,7 +787,7 @@ const savePolicy = async () => {
     .map((name) => name.trim())
     .filter(Boolean);
   const grants: ClusterGrant[] = selectedCapabilities.value.map((capability) => {
-    if (capability === "deployments.read" || capability === "deployments.run") {
+    if (capability === "deployments.read" || capability === "deployments.run" || capability === "deployments.manage") {
       return { capability, deployments };
     }
     if (capability === "capacity.offer") {

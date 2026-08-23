@@ -42,7 +42,6 @@ const adminPermissions: string[] = [
   "scheduler:write",
   "scheduler:delete",
   "system:read",
-  "system:write",
   "system:files",
   "dns:read",
   "dns:write",

@@ -10,6 +10,23 @@
     @close="emit('close')"
   >
     <form class="health-form" @submit.prevent="save">
+      <div v-if="configuredChecks.length" class="configured-checks">
+        <div v-for="check in configuredChecks" :key="check.service" class="configured-check">
+          <button type="button" class="configured-check-main" @click="selectCheck(check.service || '')">
+            <strong>{{ check.service }}</strong>
+            <span>{{ checkLabel(check) }}</span>
+          </button>
+          <BaseButton
+            variant="ghost"
+            size="sm"
+            icon="trash-2"
+            :disabled="saving"
+            @click="requestRemoveCheck(check.service || '')"
+          >
+            Remove
+          </BaseButton>
+        </div>
+      </div>
       <div class="target-grid">
         <BaseField label="Check type" hint="Use TCP or a command for services that do not speak HTTP.">
           <BaseSelect v-model="checkType" :disabled="saving">
@@ -72,6 +89,16 @@
       <BaseButton variant="primary" icon="circle-check" :loading="saving" @click="save">Save and check</BaseButton>
     </template>
   </BaseModal>
+  <ConfirmModal
+    :visible="Boolean(checkToRemove)"
+    title="Remove health check"
+    :message="`Remove the health check for ${checkToRemove}?`"
+    variant="warning"
+    confirm-text="Remove"
+    :loading="saving"
+    @confirm="removeCheck"
+    @cancel="checkToRemove = ''"
+  />
 </template>
 
 <script setup lang="ts">
@@ -82,7 +109,10 @@ import BaseSelect from "@/components/base/BaseSelect.vue";
 import BaseInput from "@/components/base/BaseInput.vue";
 import BaseTextarea from "@/components/base/BaseTextarea.vue";
 import BaseButton from "@/components/base/BaseButton.vue";
+import ConfirmModal from "@/components/ConfirmModal.vue";
 import { deploymentsApi, type ServiceMetadata } from "@/services/api";
+
+type HealthCheck = ServiceMetadata["healthcheck"];
 
 const props = defineProps<{
   visible: boolean;
@@ -101,27 +131,58 @@ const responseContains = ref("");
 const command = ref("");
 const saving = ref(false);
 const error = ref("");
+const checkToRemove = ref("");
+
+const configuredChecks = ref<HealthCheck[]>([]);
+
+function legacyChecks(): HealthCheck[] {
+  if (props.metadata?.healthchecks?.length) return props.metadata.healthchecks.map((check) => ({ ...check }));
+  const legacy = props.metadata?.healthcheck;
+  if (legacy && (legacy.type || legacy.path || legacy.command || legacy.port)) return [{ ...legacy }];
+  return [];
+}
+
+function checkLabel(check: HealthCheck) {
+  if (check.type === "exec") return "Container command";
+  if (check.type === "tcp") return `TCP port ${check.port}`;
+  return `HTTP ${check.path || "/"}`;
+}
+
+function loadCheck(name: string) {
+  const configured = configuredChecks.value.find((check) => check.service === name);
+  const check = configured || ({} as HealthCheck);
+  checkType.value = check.type === "tcp" || check.type === "exec" ? check.type : "http";
+  service.value = name;
+  const fallbackPort = name === props.metadata?.networking?.service ? props.metadata.networking.container_port : 0;
+  port.value = check.port ? String(check.port) : fallbackPort ? String(fallbackPort) : "";
+  path.value = check.path || "";
+  statuses.value = check.success_statuses?.join(", ") || "";
+  responseContains.value = check.response_contains || "";
+  command.value = check.command || "";
+}
+
+function selectCheck(name: string) {
+  loadCheck(name);
+}
 
 watch(
   () => props.visible,
   (open) => {
     if (!open) return;
-    const configuredType = props.metadata?.healthcheck?.type;
-    checkType.value = configuredType === "tcp" || configuredType === "exec" ? configuredType : "http";
-    service.value =
-      props.metadata?.healthcheck?.service ||
+    configuredChecks.value = legacyChecks();
+    const initialService =
+      configuredChecks.value[0]?.service ||
       props.metadata?.primary_service ||
       props.metadata?.networking?.service ||
       "";
-    const configuredPort = props.metadata?.healthcheck?.port || props.metadata?.networking?.container_port;
-    port.value = configuredPort ? String(configuredPort) : "";
-    path.value = props.metadata?.healthcheck?.path || "";
-    statuses.value = props.metadata?.healthcheck?.success_statuses?.join(", ") || "";
-    responseContains.value = props.metadata?.healthcheck?.response_contains || "";
-    command.value = props.metadata?.healthcheck?.command || "";
+    loadCheck(initialService);
     error.value = "";
   },
 );
+
+watch(service, (name) => {
+  if (name) loadCheck(name);
+});
 
 function parsedStatuses(): number[] | null {
   if (!statuses.value.trim()) return [];
@@ -157,24 +218,53 @@ async function save() {
   saving.value = true;
   error.value = "";
   try {
-    await deploymentsApi.updateMetadata(props.deploymentName, {
-      healthcheck: {
-        type: checkType.value,
-        service: service.value,
-        port: containerPort,
-        path: checkType.value === "http" ? path.value : "",
-        interval: props.metadata?.healthcheck?.interval || "30s",
-        success_statuses: checkType.value === "http" ? acceptedStatuses || [] : [],
-        response_contains: checkType.value === "http" ? responseContains.value : "",
-        command: checkType.value === "exec" ? command.value.trim() : "",
-      },
-    });
+    const nextCheck: HealthCheck = {
+      type: checkType.value,
+      service: service.value,
+      port: containerPort,
+      path: checkType.value === "http" ? path.value : "",
+      interval:
+        configuredChecks.value.find((check) => check.service === service.value)?.interval ||
+        props.metadata?.healthcheck?.interval ||
+        "30s",
+      success_statuses: checkType.value === "http" ? acceptedStatuses || [] : [],
+      response_contains: checkType.value === "http" ? responseContains.value : "",
+      command: checkType.value === "exec" ? command.value.trim() : "",
+    };
+    const healthchecks = configuredChecks.value.filter((check) => check.service !== service.value);
+    healthchecks.push(nextCheck);
+    await deploymentsApi.updateMetadata(props.deploymentName, { healthcheck: emptyHealthCheck(), healthchecks });
     emit("saved");
   } catch (cause: any) {
     error.value = cause.response?.data?.error || cause.message || "The health check could not be saved.";
   } finally {
     saving.value = false;
   }
+}
+
+function requestRemoveCheck(name: string) {
+  checkToRemove.value = name;
+}
+
+async function removeCheck() {
+  const name = checkToRemove.value;
+  if (!name) return;
+  saving.value = true;
+  error.value = "";
+  try {
+    const healthchecks = configuredChecks.value.filter((check) => check.service !== name);
+    await deploymentsApi.updateMetadata(props.deploymentName, { healthcheck: emptyHealthCheck(), healthchecks });
+    checkToRemove.value = "";
+    emit("saved");
+  } catch (cause: any) {
+    error.value = cause.response?.data?.error || cause.message || "The health check could not be removed.";
+  } finally {
+    saving.value = false;
+  }
+}
+
+function emptyHealthCheck(): HealthCheck {
+  return { path: "", interval: "" };
 }
 </script>
 
@@ -189,6 +279,45 @@ async function save() {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(8rem, 0.55fr);
   gap: var(--space-4);
+}
+
+.configured-checks {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-sunken);
+}
+
+.configured-check {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2);
+  border-bottom: 1px solid var(--border);
+}
+
+.configured-check:last-child {
+  border-bottom: 0;
+}
+
+.configured-check-main {
+  flex: 1;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-2);
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.configured-check-main span {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
 }
 
 .form-error {
