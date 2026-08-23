@@ -21,7 +21,7 @@
             size="sm"
             icon="trash-2"
             :disabled="saving"
-            @click="removeCheck(check.service || '')"
+            @click="requestRemoveCheck(check.service || '')"
           >
             Remove
           </BaseButton>
@@ -89,6 +89,16 @@
       <BaseButton variant="primary" icon="circle-check" :loading="saving" @click="save">Save and check</BaseButton>
     </template>
   </BaseModal>
+  <ConfirmModal
+    :visible="Boolean(checkToRemove)"
+    title="Remove health check"
+    :message="`Remove the health check for ${checkToRemove}?`"
+    variant="warning"
+    confirm-text="Remove"
+    :loading="saving"
+    @confirm="removeCheck"
+    @cancel="checkToRemove = ''"
+  />
 </template>
 
 <script setup lang="ts">
@@ -99,6 +109,7 @@ import BaseSelect from "@/components/base/BaseSelect.vue";
 import BaseInput from "@/components/base/BaseInput.vue";
 import BaseTextarea from "@/components/base/BaseTextarea.vue";
 import BaseButton from "@/components/base/BaseButton.vue";
+import ConfirmModal from "@/components/ConfirmModal.vue";
 import { deploymentsApi, type ServiceMetadata } from "@/services/api";
 
 type HealthCheck = ServiceMetadata["healthcheck"];
@@ -120,6 +131,7 @@ const responseContains = ref("");
 const command = ref("");
 const saving = ref(false);
 const error = ref("");
+const checkToRemove = ref("");
 
 const configuredChecks = ref<HealthCheck[]>([]);
 
@@ -211,7 +223,10 @@ async function save() {
       service: service.value,
       port: containerPort,
       path: checkType.value === "http" ? path.value : "",
-      interval: props.metadata?.healthcheck?.interval || "30s",
+      interval:
+        configuredChecks.value.find((check) => check.service === service.value)?.interval ||
+        props.metadata?.healthcheck?.interval ||
+        "30s",
       success_statuses: checkType.value === "http" ? acceptedStatuses || [] : [],
       response_contains: checkType.value === "http" ? responseContains.value : "",
       command: checkType.value === "exec" ? command.value.trim() : "",
@@ -227,15 +242,20 @@ async function save() {
   }
 }
 
-async function removeCheck(name: string) {
+function requestRemoveCheck(name: string) {
+  checkToRemove.value = name;
+}
+
+async function removeCheck() {
+  const name = checkToRemove.value;
   if (!name) return;
   saving.value = true;
   error.value = "";
   try {
     const healthchecks = configuredChecks.value.filter((check) => check.service !== name);
     await deploymentsApi.updateMetadata(props.deploymentName, { healthcheck: emptyHealthCheck(), healthchecks });
-    configuredChecks.value = healthchecks;
-    loadCheck(healthchecks[0]?.service || props.services[0] || "");
+    checkToRemove.value = "";
+    emit("saved");
   } catch (cause: any) {
     error.value = cause.response?.data?.error || cause.message || "The health check could not be removed.";
   } finally {

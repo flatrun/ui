@@ -142,10 +142,13 @@ describe("DeploymentDetailView", () => {
     vi.useRealTimers();
   });
 
-  const mountView = () => {
+  const mountView = (access: "read" | "admin" = "admin") => {
     const pinia = createTestingPinia({ createSpy: vi.fn });
     const authStore = useAuthStore(pinia);
     (authStore.hasPermission as ReturnType<typeof vi.fn>).mockReturnValue(true);
+    (authStore.canAccessDeployment as ReturnType<typeof vi.fn>).mockImplementation(
+      (_name: string, level: string) => access === "admin" || level === "read",
+    );
     return mount(DeploymentDetailView, {
       global: {
         plugins: [pinia],
@@ -165,6 +168,17 @@ describe("DeploymentDetailView", () => {
       },
     });
   };
+
+  it("hides peer mutation controls for a read-only deployment grant", async () => {
+    mockRoute.query = { server: "prod-2" };
+    const wrapper = mountView("read");
+    await flushPromises();
+
+    expect((wrapper.vm as any).canWrite).toBe(false);
+    (wrapper.vm as any).activeTab = "environment";
+    await wrapper.vm.$nextTick();
+    expect(wrapper.text()).not.toContain("Add Variable");
+  });
 
   describe("View structure", () => {
     it("renders the deployment detail view container", async () => {
@@ -642,6 +656,7 @@ describe("DeploymentDetailView", () => {
       const pinia = createTestingPinia({ createSpy: vi.fn });
       const authStore = useAuthStore(pinia);
       (authStore.hasPermission as ReturnType<typeof vi.fn>).mockReturnValue(true);
+      (authStore.canAccessDeployment as ReturnType<typeof vi.fn>).mockReturnValue(true);
       return mount(DeploymentDetailView, {
         global: {
           plugins: [pinia],

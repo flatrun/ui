@@ -661,7 +661,7 @@
             <h3>Environment Variables</h3>
             <div class="env-header-actions">
               <AssistButton :context="envAssistContext" title="Ask the assistant about these variables" />
-              <button class="btn btn-sm btn-primary" @click="openAddEnvModal">
+              <button v-if="canWrite" class="btn btn-sm btn-primary" @click="openAddEnvModal">
                 <i class="pi pi-plus" /> Add Variable
               </button>
             </div>
@@ -675,7 +675,7 @@
               <div class="env-row header">
                 <span class="env-key">Key</span>
                 <span class="env-value">Value</span>
-                <span class="env-actions">Actions</span>
+                <span v-if="canWrite" class="env-actions">Actions</span>
               </div>
               <div v-for="env in envVars" :key="env.key" class="env-row">
                 <span class="env-key">{{ env.key }}</span>
@@ -686,7 +686,7 @@
                     <i :class="env.hidden ? 'pi pi-eye' : 'pi pi-eye-slash'" />
                   </button>
                 </span>
-                <span class="env-actions">
+                <span v-if="canWrite" class="env-actions">
                   <button class="action-btn" @click="editEnvVar(env)">
                     <i class="pi pi-pencil" />
                   </button>
@@ -705,7 +705,9 @@
               <h3>Quick Actions</h3>
               <p class="subtitle">Execute predefined commands on your deployment</p>
             </div>
-            <button class="btn btn-primary" @click="openAddActionModal"><i class="pi pi-plus" /> Add Action</button>
+            <button v-if="canWrite" class="btn btn-primary" @click="openAddActionModal">
+              <i class="pi pi-plus" /> Add Action
+            </button>
           </div>
 
           <div v-if="!deployment?.metadata?.quick_actions?.length" class="no-actions">
@@ -728,7 +730,7 @@
                   </div>
                   <h4>{{ action.name }}</h4>
                 </div>
-                <div class="action-meta">
+                <div v-if="canWrite" class="action-meta">
                   <button class="action-meta-btn" title="Edit" @click="openEditActionModal(action)">
                     <i class="pi pi-pencil" />
                   </button>
@@ -746,6 +748,7 @@
                 <code class="action-command">{{ action.command }}</code>
               </div>
               <button
+                v-if="canWrite"
                 class="btn btn-primary action-run-btn"
                 :disabled="executingAction !== null || deployment?.status !== 'running'"
                 @click="executeAction(action)"
@@ -769,7 +772,14 @@
           </div>
         </div>
 
-        <BackupsTab v-if="activeTab === 'backups'" :deployment-name="route.params.name as string" />
+        <BackupsTab
+          v-if="activeTab === 'backups'"
+          :deployment-name="route.params.name as string"
+          :can-write="canManageBackups"
+          :can-delete="canDeleteBackups"
+          :can-schedule="canManageSchedules"
+          :can-delete-schedule="canDeleteSchedules"
+        />
 
         <div v-for="pt in pluginTabs" :key="pt.id" v-show="activeTab === pt.id" class="plugin-tab">
           <PluginSlot
@@ -790,7 +800,12 @@
               </span>
             </div>
             <label class="toggle-switch">
-              <input v-model="securityConfig.enabled" type="checkbox" @change="saveSecurityConfig" />
+              <input
+                v-model="securityConfig.enabled"
+                type="checkbox"
+                :disabled="!canManageSecurity"
+                @change="saveSecurityConfig"
+              />
               <span class="toggle-slider" />
             </label>
           </div>
@@ -856,6 +871,7 @@
                       :key="preset.pattern"
                       class="preset-btn"
                       :class="{ active: isPathProtected(preset.pattern) }"
+                      :disabled="!canManageSecurity"
                       @click="toggleProtectedPath(preset.pattern)"
                       :title="preset.pattern"
                     >
@@ -880,12 +896,18 @@
                       <code>{{ path.pattern }}</code>
                       <div class="item-actions">
                         <label class="toggle-switch small">
-                          <input v-model="path.enabled" type="checkbox" @change="saveSecurityConfig" />
+                          <input
+                            v-model="path.enabled"
+                            type="checkbox"
+                            :disabled="!canManageSecurity"
+                            @change="saveSecurityConfig"
+                          />
                           <span class="toggle-slider" />
                         </label>
                         <button
                           class="btn btn-icon btn-sm btn-ghost"
                           title="Remove"
+                          :disabled="!canManageSecurity"
                           @click="removeProtectedPath(index)"
                         >
                           <i class="pi pi-times" />
@@ -900,9 +922,14 @@
                     type="text"
                     class="form-input"
                     placeholder="Custom path (e.g., /storage/*)"
+                    :disabled="!canManageSecurity"
                     @keyup.enter="addProtectedPath"
                   />
-                  <button class="btn btn-sm btn-primary" :disabled="!newProtectedPath" @click="addProtectedPath">
+                  <button
+                    class="btn btn-sm btn-primary"
+                    :disabled="!canManageSecurity || !newProtectedPath"
+                    @click="addProtectedPath"
+                  >
                     <i class="pi pi-plus" /> Add
                   </button>
                 </div>
@@ -940,10 +967,20 @@
                       </div>
                       <div class="item-actions">
                         <label class="toggle-switch small">
-                          <input v-model="limit.enabled" type="checkbox" @change="saveSecurityConfig" />
+                          <input
+                            v-model="limit.enabled"
+                            type="checkbox"
+                            :disabled="!canManageSecurity"
+                            @change="saveSecurityConfig"
+                          />
                           <span class="toggle-slider" />
                         </label>
-                        <button class="btn btn-icon btn-sm btn-ghost" title="Remove" @click="removeRateLimit(index)">
+                        <button
+                          class="btn btn-icon btn-sm btn-ghost"
+                          title="Remove"
+                          :disabled="!canManageSecurity"
+                          @click="removeRateLimit(index)"
+                        >
                           <i class="pi pi-times" />
                         </button>
                       </div>
@@ -951,18 +988,40 @@
                   </div>
                 </div>
                 <div class="add-form rate-form">
-                  <input v-model="newRateLimit.path" type="text" class="form-input" placeholder="Path" />
+                  <input
+                    v-model="newRateLimit.path"
+                    type="text"
+                    class="form-input"
+                    placeholder="Path"
+                    :disabled="!canManageSecurity"
+                  />
                   <div class="rate-inputs">
                     <div class="input-group">
-                      <input v-model.number="newRateLimit.rate" type="number" class="form-input" placeholder="10" />
+                      <input
+                        v-model.number="newRateLimit.rate"
+                        type="number"
+                        class="form-input"
+                        placeholder="10"
+                        :disabled="!canManageSecurity"
+                      />
                       <span class="input-suffix">/min</span>
                     </div>
                     <div class="input-group">
-                      <input v-model.number="newRateLimit.burst" type="number" class="form-input" placeholder="5" />
+                      <input
+                        v-model.number="newRateLimit.burst"
+                        type="number"
+                        class="form-input"
+                        placeholder="5"
+                        :disabled="!canManageSecurity"
+                      />
                       <span class="input-suffix">burst</span>
                     </div>
                   </div>
-                  <button class="btn btn-sm btn-primary" :disabled="!newRateLimit.path" @click="addRateLimit">
+                  <button
+                    class="btn btn-sm btn-primary"
+                    :disabled="!canManageSecurity || !newRateLimit.path"
+                    @click="addRateLimit"
+                  >
                     <i class="pi pi-plus" /> Add
                   </button>
                 </div>
@@ -2025,10 +2084,34 @@ const closeConfigAssist = () => {
   configAssistOpen.value = false;
   assistStore.close();
 };
-const canWrite = authStore.hasPermission("deployments:write");
-const canDelete = authStore.hasPermission("deployments:delete");
 const remoteServer = computed(() => String(route.query.server || ""));
 const isRemote = computed(() => remoteServer.value !== "");
+const deploymentAccessKey = computed(() => {
+  const name = String(route.params.name || "");
+  return isRemote.value ? `${remoteServer.value}/${name}` : name;
+});
+const canRead = computed(
+  () =>
+    Boolean(authStore.hasPermission("deployments:read")) &&
+    Boolean(authStore.canAccessDeployment(deploymentAccessKey.value, "read")),
+);
+const canWrite = computed(
+  () =>
+    Boolean(authStore.hasPermission("deployments:write")) &&
+    Boolean(authStore.canAccessDeployment(deploymentAccessKey.value, "write")),
+);
+const canDelete = computed(
+  () =>
+    Boolean(authStore.hasPermission("deployments:delete")) &&
+    Boolean(authStore.canAccessDeployment(deploymentAccessKey.value, "admin")),
+);
+const canReadBackups = computed(() => canRead.value && authStore.hasPermission("backups:read"));
+const canManageBackups = computed(() => canWrite.value && authStore.hasPermission("backups:write"));
+const canDeleteBackups = computed(() => canDelete.value && authStore.hasPermission("backups:delete"));
+const canManageSchedules = computed(() => canWrite.value && authStore.hasPermission("scheduler:write"));
+const canDeleteSchedules = computed(() => canDelete.value && authStore.hasPermission("scheduler:delete"));
+const canReadSecurity = computed(() => canRead.value && authStore.hasPermission("security:read"));
+const canManageSecurity = computed(() => canWrite.value && authStore.hasPermission("security:write"));
 
 const backPath = computed(() => {
   if (isRemote.value) return { path: "/deployments", query: { server: remoteServer.value } };
@@ -2128,6 +2211,8 @@ const tabBarItems = computed(() => {
   const items: Array<{ id: string; label: string; icon?: string; kind: "native" | "plugin" }> = [];
   for (const tab of tabs) {
     if (isRemote.value && tab.id === "terminal") continue;
+    if (tab.id === "backups" && !canReadBackups.value) continue;
+    if (tab.id === "security" && !canReadSecurity.value) continue;
     items.push({ ...tab, kind: "native" });
     if (tab.id === "actions") {
       for (const pt of pluginTabs.value) items.push({ ...pt, kind: "plugin" });

@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { flushPromises, mount } from "@vue/test-utils";
 import DeploymentHealthCheckModal from "./DeploymentHealthCheckModal.vue";
-import { deploymentsApi } from "@/services/api";
+import { deploymentsApi, type ServiceMetadata } from "@/services/api";
 
 vi.mock("@/services/api", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/services/api")>();
@@ -11,7 +11,7 @@ vi.mock("@/services/api", async (importOriginal) => {
   };
 });
 
-const metadata = {
+const metadata: ServiceMetadata = {
   name: "postgres",
   type: "infrastructure",
   primary_service: "postgres",
@@ -20,10 +20,10 @@ const metadata = {
   healthcheck: { path: "", interval: "30s" },
 };
 
-const mountModal = async (theme: "light" | "dark" = "light") => {
+const mountModal = async (theme: "light" | "dark" = "light", selectedMetadata = metadata) => {
   document.documentElement.dataset.theme = theme;
   const wrapper = mount(DeploymentHealthCheckModal, {
-    props: { visible: false, deploymentName: "postgres", services: ["postgres"], metadata },
+    props: { visible: false, deploymentName: "postgres", services: ["postgres"], metadata: selectedMetadata },
     global: {
       stubs: {
         BaseModal: {
@@ -99,5 +99,45 @@ describe("DeploymentHealthCheckModal", () => {
         ],
       }),
     );
+  });
+
+  it("preserves the selected service interval when editing", async () => {
+    const wrapper = await mountModal("light", {
+      ...metadata,
+      healthchecks: [{ type: "tcp" as const, service: "postgres", port: 5432, path: "", interval: "5s" }],
+    });
+
+    await wrapper
+      .findAll("button")
+      .find((button) => button.text().includes("Save and check"))!
+      .trigger("click");
+    await flushPromises();
+
+    expect(deploymentsApi.updateMetadata).toHaveBeenLastCalledWith(
+      "postgres",
+      expect.objectContaining({ healthchecks: [expect.objectContaining({ service: "postgres", interval: "5s" })] }),
+    );
+  });
+
+  it("confirms removal and refreshes the parent after success", async () => {
+    const wrapper = await mountModal("light", {
+      ...metadata,
+      healthchecks: [{ type: "tcp" as const, service: "postgres", port: 5432, path: "", interval: "5s" }],
+    });
+    await wrapper
+      .findAll("button")
+      .find((button) => button.text() === "Remove")!
+      .trigger("click");
+    await flushPromises();
+
+    const confirm = document.body.querySelector(".confirm-modal .btn-warning") as HTMLButtonElement;
+    confirm.click();
+    await flushPromises();
+
+    expect(deploymentsApi.updateMetadata).toHaveBeenLastCalledWith("postgres", {
+      healthcheck: { path: "", interval: "" },
+      healthchecks: [],
+    });
+    expect(wrapper.emitted("saved")).toHaveLength(1);
   });
 });

@@ -1791,9 +1791,12 @@ export const backupsApi = {
     ),
 
   download: (id: string, deploymentName?: string) =>
-    `${apiClient.defaults.baseURL}${
-      deploymentName ? `/deployments/${deploymentName}/backups/${id}/download` : `/backups/${id}/download`
-    }`,
+    apiClient.get<Blob>(
+      deploymentName ? `/deployments/${deploymentName}/backups/${id}/download` : `/backups/${id}/download`,
+      {
+        responseType: "blob",
+      },
+    ),
 
   getDeploymentBackups: (name: string, limit?: number) =>
     apiClient.get<{ backups: Backup[] }>(`/deployments/${name}/backups`, {
