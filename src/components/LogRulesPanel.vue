@@ -2,7 +2,7 @@
   <section class="lrp">
     <header class="lrp-head">
       <h3><Icon name="file-search" :size="16" /> Log rules</h3>
-      <button class="btn btn-sm btn-primary" @click="openNew">
+      <button v-if="canCreate" class="btn btn-sm btn-primary" @click="openNew">
         <Icon name="plus" :size="14" />
         New rule
       </button>
@@ -25,7 +25,7 @@
 
         <span v-if="!rule.enabled" class="lrp-off">Off</span>
 
-        <div class="lrp-rule-actions">
+        <div v-if="canEditRule(rule)" class="lrp-rule-actions">
           <button class="btn btn-sm btn-icon" title="Edit rule" @click="openEdit(rule)">
             <Icon name="pencil" :size="14" />
           </button>
@@ -51,7 +51,7 @@
           <BaseField label="Deployment">
             <BaseSelect v-model="draft.deployment">
               <option value="" disabled>Pick a deployment</option>
-              <option v-for="d in deployments" :key="d" :value="d">{{ d }}</option>
+              <option v-for="d in writableDeployments" :key="d" :value="d">{{ d }}</option>
             </BaseSelect>
           </BaseField>
 
@@ -95,7 +95,7 @@
               {{ t.name }}
             </label>
           </div>
-          <p v-else class="lrp-muted">No notification targets yet. Add one in Settings to send anywhere.</p>
+          <p v-else class="lrp-muted">No enabled notification targets are available. An administrator can add one.</p>
         </BaseField>
 
         <label class="lrp-check">
@@ -126,24 +126,30 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { observabilityApi } from "@/services/observability";
 import type { LogRule } from "@/services/observability";
 import { notificationsApi, type NotificationTarget } from "@/services/api";
 import { useNotificationsStore } from "@/stores/notifications";
+import { useAuthStore } from "@/stores/auth";
 import Icon from "@/components/base/Icon.vue";
 import BaseModal from "@/components/base/BaseModal.vue";
 import BaseField from "@/components/base/BaseField.vue";
 import BaseInput from "@/components/base/BaseInput.vue";
 import BaseSelect from "@/components/base/BaseSelect.vue";
 
-defineProps<{ deployments: string[] }>();
+const props = defineProps<{ deployments: string[] }>();
 const emit = defineEmits<{ changed: [] }>();
 
 const notifications = useNotificationsStore();
+const auth = useAuthStore();
+const canWrite = computed(() => auth.hasPermission("alerts:write"));
+const writableDeployments = computed(() => props.deployments.filter((name) => auth.canAccessDeployment(name, "write")));
+const canCreate = computed(() => canWrite.value && writableDeployments.value.length > 0);
+const canEditRule = (rule: LogRule) => canWrite.value && auth.canAccessDeployment(rule.deployment, "write");
 
 const rules = ref<LogRule[]>([]);
-const notifyTargets = ref<NotificationTarget[]>([]);
+const notifyTargets = ref<Pick<NotificationTarget, "id" | "name">[]>([]);
 const editing = ref<LogRule | null>(null);
 const saving = ref(false);
 const formError = ref("");
@@ -151,7 +157,7 @@ const formError = ref("");
 const blank = (): LogRule => ({
   name: "",
   enabled: true,
-  deployment: "",
+  deployment: writableDeployments.value[0] ?? "",
   service: "",
   source: "stdout",
   min_level: "error",
@@ -181,7 +187,7 @@ const toggleTarget = (id: string) => {
 const load = async () => {
   const [rulesResult, targetsResult] = await Promise.allSettled([
     observabilityApi.logRules(),
-    notificationsApi.getTargets(),
+    notificationsApi.getAlertTargetOptions(),
   ]);
   if (rulesResult.status === "fulfilled") rules.value = rulesResult.value.data || [];
   if (targetsResult.status === "fulfilled") notifyTargets.value = targetsResult.value.data.targets || [];

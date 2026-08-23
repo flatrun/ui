@@ -53,6 +53,8 @@ const adminPermissions: string[] = [
   "templates:write",
   "traffic:read",
   "traffic:write",
+  "alerts:read",
+  "alerts:write",
 ];
 
 const operatorPermissions: string[] = [
@@ -88,6 +90,8 @@ const operatorPermissions: string[] = [
   "registries:write",
   "templates:read",
   "traffic:read",
+  "alerts:read",
+  "alerts:write",
 ];
 
 const viewerPermissions: string[] = [
@@ -109,6 +113,7 @@ const viewerPermissions: string[] = [
   "registries:read",
   "templates:read",
   "traffic:read",
+  "alerts:read",
 ];
 
 export function getRolePermissions(role: UserRole): string[] {

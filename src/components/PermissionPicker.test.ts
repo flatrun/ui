@@ -11,7 +11,7 @@ describe("PermissionPicker", () => {
     it("renders all permission groups", () => {
       const wrapper = mountPicker({ modelValue: [] });
       const groups = wrapper.findAll(".permission-group");
-      expect(groups.length).toBe(25);
+      expect(groups.length).toBe(26);
     });
 
     it("displays group labels", () => {

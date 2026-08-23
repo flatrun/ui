@@ -211,6 +211,14 @@ const permissionGroups: PermissionGroup[] = [
     ],
   },
   {
+    key: "alerts",
+    label: "Alerts",
+    permissions: [
+      { value: "alerts:read", label: "Read", level: "read" },
+      { value: "alerts:write", label: "Write", level: "write" },
+    ],
+  },
+  {
     key: "notifications",
     label: "Notifications",
     permissions: [

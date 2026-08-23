@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { mount, flushPromises } from "@vue/test-utils";
 import { createTestingPinia } from "@pinia/testing";
 import LogRulesPanel from "./LogRulesPanel.vue";
+import { useAuthStore } from "@/stores/auth";
 
 vi.mock("@/services/observability", () => ({
   observabilityApi: {
@@ -12,21 +13,26 @@ vi.mock("@/services/observability", () => ({
 
 vi.mock("@/services/api", () => ({
   notificationsApi: {
-    getTargets: vi.fn().mockResolvedValue({ data: { targets: [{ id: "t1", name: "Ops chat" }] } }),
+    getAlertTargetOptions: vi.fn().mockResolvedValue({ data: { targets: [{ id: "t1", name: "Ops chat" }] } }),
   },
 }));
 
 describe("LogRulesPanel", () => {
   beforeEach(() => vi.clearAllMocks());
 
-  const mountPanel = () =>
-    mount(LogRulesPanel, {
+  const mountPanel = () => {
+    const pinia = createTestingPinia({ createSpy: vi.fn });
+    const auth = useAuthStore(pinia);
+    vi.mocked(auth.hasPermission).mockReturnValue(true);
+    vi.mocked(auth.canAccessDeployment).mockReturnValue(true);
+    return mount(LogRulesPanel, {
       props: { deployments: ["shop", "blog"] },
       global: {
-        plugins: [createTestingPinia({ createSpy: vi.fn })],
+        plugins: [pinia],
         stubs: { BaseModal: { template: "<div><slot /><slot name='footer' /></div>", props: ["visible", "title"] } },
       },
     });
+  };
 
   const openForm = async (wrapper: ReturnType<typeof mountPanel>) => {
     await wrapper.find("button.btn-primary").trigger("click");

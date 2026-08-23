@@ -568,6 +568,8 @@ export interface NotificationIncident {
 
 export const notificationsApi = {
   getTargets: () => apiClient.get<{ targets: NotificationTarget[] }>("/notifications/targets"),
+  getAlertTargetOptions: () =>
+    apiClient.get<{ targets: Pick<NotificationTarget, "id" | "name">[] }>("/alerts/target-options"),
   updateTargets: (targets: NotificationTarget[]) => apiClient.put("/notifications/targets", { targets }),
   getRules: () => apiClient.get<{ rules: NotificationRule[] }>("/notifications/rules"),
   updateRules: (rules: NotificationRule[]) =>

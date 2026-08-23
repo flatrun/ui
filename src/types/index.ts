@@ -399,6 +399,8 @@ export type Permission =
   | "storage:delete"
   | "notifications:read"
   | "notifications:write"
+  | "alerts:read"
+  | "alerts:write"
   | "users:read"
   | "users:write"
   | "users:delete"

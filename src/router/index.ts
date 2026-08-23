@@ -143,6 +143,7 @@ const routes: RouteRecordRaw[] = [
             path: "alerts",
             name: "alerts",
             component: () => import("@/views/AlertsView.vue"),
+            meta: { permission: "alerts:read" },
           },
           {
             path: "dashboards",
