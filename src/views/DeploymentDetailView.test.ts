@@ -596,6 +596,31 @@ describe("DeploymentDetailView", () => {
       expect((wrapper.vm as any).singleDomainId).toBe("my-domain-id");
     });
 
+    it("shows the service and container port used by a domain", async () => {
+      const { deploymentsApi } = await import("@/services/api");
+      vi.mocked(deploymentsApi.get).mockResolvedValueOnce({
+        data: {
+          deployment: {
+            name: "test-app",
+            status: "running",
+            path: "/deployments/test-app",
+            services: [],
+            created_at: "2024-01-01T00:00:00Z",
+            updated_at: "2024-01-01T00:00:00Z",
+            metadata: {
+              domains: [{ id: "domain-1", domain: "app.example.com", service: "web", container_port: 8080 }],
+            },
+          },
+          proxy_status: { exposed: true, domain: "app.example.com" },
+        },
+      } as any);
+
+      const wrapper = mountView();
+      await flushPromises();
+      expect(wrapper.text()).toContain("Routes to");
+      expect(wrapper.text()).toContain("web:8080");
+    });
+
     it("computes singleDomainId as 'default' for legacy domain", async () => {
       const { deploymentsApi, proxyApi } = await import("@/services/api");
       vi.mocked(deploymentsApi.get).mockResolvedValueOnce({

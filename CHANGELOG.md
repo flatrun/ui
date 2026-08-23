@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.4.0-beta.7] - 2026-08-23
+
+### Fixed
+- Deployment domain summaries show the target service and container port
+
 ## [0.4.0-beta.6] - 2026-08-23
 
 ### Added
