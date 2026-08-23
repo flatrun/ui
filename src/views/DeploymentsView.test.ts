@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { reactive } from "vue";
 import { mount, flushPromises } from "@vue/test-utils";
 import { createTestingPinia } from "@pinia/testing";
 import DeploymentsView from "./DeploymentsView.vue";
@@ -85,7 +86,7 @@ vi.mock("@/services/api", () => ({
 }));
 
 const mockPush = vi.fn();
-const mockRoute = { query: {} as Record<string, string>, name: "deployments" };
+let mockRoute = reactive({ query: {} as Record<string, string>, name: "deployments" });
 vi.mock("vue-router", () => ({
   useRouter: () => ({
     push: mockPush,
@@ -96,7 +97,7 @@ vi.mock("vue-router", () => ({
 describe("DeploymentsView", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockRoute.query = {};
+    mockRoute = reactive({ query: {} as Record<string, string>, name: "deployments" });
   });
 
   const mountView = () => {
@@ -235,6 +236,35 @@ describe("DeploymentsView", () => {
 
       await wrapper.find(".deployment-card").trigger("click");
       expect(mockPush).toHaveBeenCalledWith({ path: "/deployments/remote-app", query: { server: "prod-2" } });
+    });
+
+    it("loads a peer after switching from an empty local server", async () => {
+      const { clusterApi, deploymentsApi } = await import("@/services/api");
+      vi.mocked(deploymentsApi.list).mockResolvedValueOnce({ data: { deployments: [] } } as any);
+      const wrapper = mountView();
+      await flushPromises();
+
+      vi.mocked(clusterApi.getStatus).mockResolvedValueOnce({
+        data: { enabled: true, server_name: "prod-1" },
+      } as any);
+      vi.mocked(clusterApi.getAggregatedDeployments).mockResolvedValueOnce({
+        data: {
+          servers: {
+            "prod-1": { name: "prod-1", online: true, data: { deployments: [] } },
+            "prod-2": {
+              name: "prod-2",
+              online: true,
+              data: { deployments: [{ name: "remote-app", status: "running", services: [] }] },
+            },
+          },
+        },
+      } as any);
+
+      mockRoute.query = { server: "prod-2" };
+      await flushPromises();
+
+      expect(clusterApi.getAggregatedDeployments).toHaveBeenCalledOnce();
+      expect(wrapper.text()).toContain("remote-app");
     });
 
     it("shows stopped local deployments without Fleet checks", async () => {

@@ -302,7 +302,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, onMounted } from "vue";
+import { computed, ref, onMounted, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { clusterApi, deploymentsApi } from "@/services/api";
 import { useNotificationsStore } from "@/stores/notifications";
@@ -732,6 +732,8 @@ onMounted(async () => {
     if (await deploymentJob.resume(d.name)) break;
   }
 });
+
+watch(selectedServer, () => fetchDeployments());
 </script>
 
 <style scoped>
