@@ -11,7 +11,7 @@ describe("PermissionPicker", () => {
     it("renders all permission groups", () => {
       const wrapper = mountPicker({ modelValue: [] });
       const groups = wrapper.findAll(".permission-group");
-      expect(groups.length).toBe(24);
+      expect(groups.length).toBe(25);
     });
 
     it("displays group labels", () => {
@@ -25,6 +25,7 @@ describe("PermissionPicker", () => {
       expect(text).toContain("Notifications");
       expect(text).toContain("Fleet");
       expect(text).toContain("Configuration");
+      expect(text).toContain("Updates");
       expect(text).toContain("DNS");
       expect(text).toContain("Audit");
     });

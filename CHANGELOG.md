@@ -15,6 +15,8 @@
 - Assigned local deployments load without Fleet access or Fleet availability
 - Peer deployment details open for users with read access
 - Object storage and notifications follow their dedicated permissions
+- Operators no longer see Updates unless access is explicitly granted
+- Read-only Settings access is clearly identified and its controls remain legible in dark mode
 
 ## [0.4.0-beta.4] - 2026-08-21
 

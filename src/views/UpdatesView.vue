@@ -81,7 +81,7 @@
           </template>
         </div>
         <div v-else-if="availability.update_available && !canWrite" class="status-action">
-          <p class="no-perm">Updating requires the settings:write permission.</p>
+          <p class="no-perm">Installing updates requires the updates:write permission.</p>
         </div>
       </div>
 
@@ -131,7 +131,7 @@ const loadError = ref("");
 const availability = ref<UpdateAvailability | null>(null);
 const channel = ref<UpdateChannel>(readStoredChannel());
 
-const canWrite = authStore.hasPermission("settings:write");
+const canWrite = authStore.hasPermission("updates:write");
 
 const channelOptions: { value: UpdateChannel; label: string; icon: string }[] = [
   { value: "stable", label: "Stable", icon: "shield-check" },

@@ -407,6 +407,8 @@ export type Permission =
   | "apikeys:delete"
   | "settings:read"
   | "settings:write"
+  | "updates:read"
+  | "updates:write"
   | "config:read"
   | "config:write"
   | "audit:read"

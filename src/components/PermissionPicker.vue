@@ -261,6 +261,14 @@ const permissionGroups: PermissionGroup[] = [
     ],
   },
   {
+    key: "updates",
+    label: "Updates",
+    permissions: [
+      { value: "updates:read", label: "Read", level: "read" },
+      { value: "updates:write", label: "Install", level: "write" },
+    ],
+  },
+  {
     key: "audit",
     label: "Audit",
     permissions: [{ value: "audit:read", label: "Read", level: "read" }],

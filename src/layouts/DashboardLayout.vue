@@ -474,7 +474,7 @@
               Settings
             </router-link>
             <router-link
-              v-if="authStore.hasPermission('settings:read')"
+              v-if="authStore.hasPermission('updates:read')"
               to="/updates"
               class="nav-subitem"
               active-class="active"
