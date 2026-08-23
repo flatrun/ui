@@ -13,7 +13,7 @@
           </span>
         </div>
       </div>
-      <div v-if="!isRemote" class="header-actions">
+      <div class="header-actions">
         <BaseButton icon="stethoscope" variant="secondary" @click="showDiagnostics = true">Diagnose</BaseButton>
         <SplitActionButton
           v-if="canWrite"
@@ -77,13 +77,6 @@
       <p>{{ error }}</p>
       <button class="btn btn-primary" @click="fetchDeployment">Try Again</button>
     </div>
-
-    <RemoteDeploymentOverview
-      v-else-if="deployment && isRemote"
-      :deployment="deployment"
-      :server="remoteServer"
-      :proxy-status="proxyStatus"
-    />
 
     <template v-else-if="deployment">
       <div class="detail-tabs">
@@ -151,7 +144,7 @@
                         {{ registryCredential.name }}
                       </span>
                       <button
-                        v-if="canWrite"
+                        v-if="canWrite && !isRemote"
                         class="btn btn-sm btn-icon"
                         title="Change credential"
                         @click="openCredentialModal"
@@ -161,7 +154,7 @@
                     </template>
                     <template v-else>
                       <span class="public-badge">Public</span>
-                      <button v-if="canWrite" class="btn btn-sm btn-link" @click="openCredentialModal">
+                      <button v-if="canWrite && !isRemote" class="btn btn-sm btn-link" @click="openCredentialModal">
                         Set credential
                       </button>
                     </template>
@@ -180,7 +173,7 @@
                     </span>
                   </span>
                 </div>
-                <div v-if="!isInfrastructure" class="info-row action-row">
+                <div v-if="!isInfrastructure && !isRemote" class="info-row action-row">
                   <button class="btn btn-sm btn-secondary" @click="migrateToInfrastructure">
                     <i class="pi pi-server" />
                     Mark as Infrastructure
@@ -383,7 +376,7 @@
                       >
                         <Icon name="pencil" :size="14" />
                       </button>
-                      <button class="action-btn" title="Terminal" @click="openTerminal(service)">
+                      <button v-if="!isRemote" class="action-btn" title="Terminal" @click="openTerminal(service)">
                         <i class="pi pi-desktop" />
                       </button>
                       <button class="action-btn" title="Logs" @click="viewServiceLogs(service)">
@@ -578,7 +571,12 @@
             @delete="confirmDeleteLogs = true"
           >
             <template #actions>
-              <button class="btn btn-sm" :class="following ? 'btn-primary' : 'btn-secondary'" @click="toggleFollow">
+              <button
+                v-if="!isRemote"
+                class="btn btn-sm"
+                :class="following ? 'btn-primary' : 'btn-secondary'"
+                @click="toggleFollow"
+              >
                 <Icon :name="following ? 'circle-stop' : 'play'" :size="14" />
                 {{ following ? "Following" : "Follow" }}
               </button>
@@ -1952,7 +1950,6 @@ import { yaml } from "@codemirror/lang-yaml";
 import { oneDark } from "@codemirror/theme-one-dark";
 import {
   deploymentsApi,
-  clusterApi,
   proxyApi,
   certificatesApi,
   filesApi,
@@ -2004,7 +2001,6 @@ import InlineAssist from "@/components/ai/InlineAssist.vue";
 import { useAssistStore } from "@/stores/assist";
 import Icon from "@/components/base/Icon.vue";
 import OperationModal from "@/components/OperationModal.vue";
-import RemoteDeploymentOverview from "@/components/RemoteDeploymentOverview.vue";
 import { useDeploymentJob, type DeploymentOperation } from "@/composables/useDeploymentJob";
 import { useServiceJobs } from "@/composables/useServiceJobs";
 
@@ -2120,7 +2116,7 @@ const tabs = [
 
 const pluginsStore = usePluginsStore();
 const pluginTabs = computed(() =>
-  (pluginsStore.getPluginsForSlot("deployment.detail") || []).map((e) => ({
+  (isRemote.value ? [] : pluginsStore.getPluginsForSlot("deployment.detail") || []).map((e) => ({
     id: `plugin:${e.plugin.name}`,
     label: e.extension.title || e.plugin.display_name,
     icon: e.extension.icon,
@@ -2131,6 +2127,7 @@ const pluginTabs = computed(() =>
 const tabBarItems = computed(() => {
   const items: Array<{ id: string; label: string; icon?: string; kind: "native" | "plugin" }> = [];
   for (const tab of tabs) {
+    if (isRemote.value && tab.id === "terminal") continue;
     items.push({ ...tab, kind: "native" });
     if (tab.id === "actions") {
       for (const pt of pluginTabs.value) items.push({ ...pt, kind: "plugin" });
@@ -2522,9 +2519,7 @@ const fetchDeployment = async () => {
   loading.value = true;
   error.value = "";
   try {
-    const response = isRemote.value
-      ? await clusterApi.getDeployment(remoteServer.value, route.params.name as string)
-      : await deploymentsApi.get(route.params.name as string);
+    const response = await deploymentsApi.get(route.params.name as string);
     const data = response.data as any;
     deployment.value = data.deployment || data;
     syncProtectedModeFromDeployment();
@@ -2542,9 +2537,9 @@ const fetchDeployment = async () => {
 
     services.value = deployment.value?.services || [];
 
-    if (isRemote.value) return;
-
-    if (deployment.value?.metadata?.credential_id) {
+    if (isRemote.value) {
+      registryCredential.value = null;
+    } else if (deployment.value?.metadata?.credential_id) {
       try {
         const credResponse = await credentialsApi.get(deployment.value.metadata.credential_id);
         registryCredential.value = credResponse.data.credential;
@@ -2662,7 +2657,11 @@ const handleRequestCertificate = async () => {
 
   requestingCert.value = true;
   try {
-    await certificatesApi.request(proxyStatus.value.domain);
+    if (isRemote.value) {
+      await certificatesApi.renewDeployment(route.params.name as string);
+    } else {
+      await certificatesApi.request(proxyStatus.value.domain);
+    }
     notifications.success(
       "Certificate Requested",
       `SSL certificate for ${proxyStatus.value.domain} has been requested`,
@@ -3583,24 +3582,25 @@ watch(activeTab, (newTab) => {
 
 onMounted(() => {
   fetchDeployment();
-  if (isRemote.value) return;
   if (activeTab.value === "logs") fetchLogSources();
-  Promise.resolve(pluginsStore.fetchPlugins()).then(() => {
-    // A deep-link may point at a plugin tab that is not available (plugin not installed);
-    // fall back to Overview rather than showing an empty tab.
-    if (activeTab.value.startsWith("plugin:") && !pluginTabs.value.some((t) => t.id === activeTab.value)) {
-      activeTab.value = "overview";
-    }
-  });
-  deploymentJob.resume(route.params.name as string);
-  credentialsApi
-    .list()
-    .then((response) => {
-      allCredentials.value = response.data.credentials || [];
-    })
-    .catch(() => {
-      allCredentials.value = [];
+  if (!isRemote.value) {
+    Promise.resolve(pluginsStore.fetchPlugins()).then(() => {
+      if (activeTab.value.startsWith("plugin:") && !pluginTabs.value.some((t) => t.id === activeTab.value)) {
+        activeTab.value = "overview";
+      }
     });
+  }
+  deploymentJob.resume(route.params.name as string);
+  if (!isRemote.value) {
+    credentialsApi
+      .list()
+      .then((response) => {
+        allCredentials.value = response.data.credentials || [];
+      })
+      .catch(() => {
+        allCredentials.value = [];
+      });
+  }
   refreshInterval = window.setInterval(() => {
     if (logsFollow.value && activeTab.value === "logs") {
       fetchLogs();

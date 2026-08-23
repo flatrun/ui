@@ -41,6 +41,22 @@ const isSessionAgnostic = (url: string) => sessionAgnosticPaths.some((p) => url.
 const isUngated = (url: string) => isPublic(url) || isSessionAgnostic(url);
 const onAuthPage = () => window.location.pathname.includes("/login") || window.location.pathname.includes("/setup");
 
+const isPeerDeploymentPath = (url: string, deployment: string) => {
+  const encodedName = encodeURIComponent(deployment);
+  return (
+    url.startsWith(`/deployments/${encodedName}`) ||
+    url.startsWith(`/deployments/${deployment}`) ||
+    url.startsWith(`/containers/`) ||
+    url.startsWith(`/scheduler/`) ||
+    url.startsWith(`/proxy/status/${encodedName}`) ||
+    url.startsWith(`/proxy/status/${deployment}`) ||
+    url.startsWith(`/proxy/setup/${encodedName}`) ||
+    url.startsWith(`/proxy/setup/${deployment}`) ||
+    url.startsWith(`/proxy/${encodedName}`) ||
+    url.startsWith(`/proxy/${deployment}`)
+  );
+};
+
 // A page load fans out into a dozen calls at once. Firing them all against a token the agent
 // has already stopped accepting spends a rejection on each, which the agent counts as a run of
 // authentication failures and blocks the address for. So the first call goes alone and the rest
@@ -85,9 +101,18 @@ export const resetSessionGate = () => {
 };
 
 apiClient.interceptors.request.use(async (config) => {
-  const url = config.url || "";
+  let url = config.url || "";
   if (isPublic(url)) {
     return config;
+  }
+
+  const routeMatch = window.location.pathname.match(/^\/deployments\/([^/]+)/);
+  const peer = new URLSearchParams(window.location.search).get("server");
+  const deployment = routeMatch ? decodeURIComponent(routeMatch[1]) : "";
+  if (peer && deployment && isPeerDeploymentPath(url, deployment)) {
+    url = `/cluster/peers/${encodeURIComponent(peer)}/proxy${url}`;
+    config.url = url;
+    config.headers.set("X-FlatRun-Deployment", deployment);
   }
 
   const token = localStorage.getItem("auth_token");
@@ -189,6 +214,7 @@ export interface ServiceMetadata {
     response_contains?: string;
     command?: string;
   };
+  healthchecks?: Array<ServiceMetadata["healthcheck"]>;
   protected_mode?: ProtectedModeConfig;
   require_plan?: boolean;
   credential_id?: string;
@@ -1749,12 +1775,25 @@ export const backupsApi = {
   create: (deploymentName: string) =>
     apiClient.post<{ job_id: string; message: string }>("/backups", { deployment_name: deploymentName }),
 
-  delete: (id: string) => apiClient.delete<{ message: string }>(`/backups/${id}`),
+  delete: (id: string, deploymentName?: string) =>
+    apiClient.delete<{ message: string }>(
+      deploymentName ? `/deployments/${deploymentName}/backups/${id}` : `/backups/${id}`,
+    ),
 
-  restore: (id: string, options?: { restore_data?: boolean; restore_db?: boolean; stop_first?: boolean }) =>
-    apiClient.post<{ job_id: string; message: string }>(`/backups/${id}/restore`, options),
+  restore: (
+    id: string,
+    options?: { restore_data?: boolean; restore_db?: boolean; stop_first?: boolean },
+    deploymentName?: string,
+  ) =>
+    apiClient.post<{ job_id: string; message: string }>(
+      deploymentName ? `/deployments/${deploymentName}/backups/${id}/restore` : `/backups/${id}/restore`,
+      options,
+    ),
 
-  download: (id: string) => `${apiClient.defaults.baseURL}/backups/${id}/download`,
+  download: (id: string, deploymentName?: string) =>
+    `${apiClient.defaults.baseURL}${
+      deploymentName ? `/deployments/${deploymentName}/backups/${id}/download` : `/backups/${id}/download`
+    }`,
 
   getDeploymentBackups: (name: string, limit?: number) =>
     apiClient.get<{ backups: Backup[] }>(`/deployments/${name}/backups`, {
@@ -1770,7 +1809,10 @@ export const backupsApi = {
   updateDeploymentBackupConfig: (name: string, config: BackupSpec) =>
     apiClient.put<{ backup_config: BackupSpec }>(`/deployments/${name}/backup-config`, config),
 
-  getJob: (jobId: string) => apiClient.get<{ job: BackupJob }>(`/backups/jobs/${jobId}`),
+  getJob: (jobId: string, deploymentName?: string) =>
+    apiClient.get<{ job: BackupJob }>(
+      deploymentName ? `/deployments/${deploymentName}/backups/jobs/${jobId}` : `/backups/jobs/${jobId}`,
+    ),
 
   listJobs: (deployment?: string, limit?: number) =>
     apiClient.get<{ jobs: BackupJob[] }>("/backups/jobs", {
@@ -2048,6 +2090,7 @@ export type ClusterCapability =
   | "fleet.read"
   | "deployments.read"
   | "deployments.run"
+  | "deployments.manage"
   | "capacity.read"
   | "capacity.offer"
   | "events.publish"
@@ -2151,13 +2194,6 @@ export const clusterApi = {
     apiClient.post<ClusterAcceptResult>("/cluster/accept", { invite_token: inviteToken, peer_url: peerUrl }),
   removePeer: (name: string) => apiClient.delete<{ status: string; peer: string }>(`/cluster/peers/${name}`),
   getAggregatedDeployments: () => apiClient.get<ClusterDeployments>("/cluster/deployments"),
-  getDeployment: (server: string, name: string) =>
-    apiClient.get<{
-      deployment: Deployment;
-      compose_content?: string;
-      compose_filename?: string;
-      proxy_status?: unknown;
-    }>(`/cluster/peers/${encodeURIComponent(server)}/proxy/deployments/${encodeURIComponent(name)}`),
   deploymentAction: (server: string, name: string, action: "start" | "stop" | "restart") =>
     apiClient.post<ActionJobResponse>(
       `/cluster/peers/${encodeURIComponent(server)}/proxy/deployments/${encodeURIComponent(name)}/${action}`,

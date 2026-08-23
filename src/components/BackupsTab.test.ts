@@ -295,7 +295,7 @@ describe("BackupsTab", () => {
 
       await vm.deleteBackup();
 
-      expect(mockDeleteBackup).toHaveBeenCalledWith("my-app_20250101_120000");
+      expect(mockDeleteBackup).toHaveBeenCalledWith("my-app_20250101_120000", "my-app");
     });
   });
 
@@ -328,11 +328,15 @@ describe("BackupsTab", () => {
 
       await vm.restoreBackup();
 
-      expect(mockRestoreBackup).toHaveBeenCalledWith("my-app_20250101_120000", {
-        restore_data: true,
-        restore_db: true,
-        stop_first: true,
-      });
+      expect(mockRestoreBackup).toHaveBeenCalledWith(
+        "my-app_20250101_120000",
+        {
+          restore_data: true,
+          restore_db: true,
+          stop_first: true,
+        },
+        "my-app",
+      );
     });
   });
 
@@ -461,7 +465,7 @@ describe("BackupsTab", () => {
       const vm = wrapper.vm as any;
 
       vm.getDownloadUrl("test-backup-id");
-      expect(backupsApi.download).toHaveBeenCalledWith("test-backup-id");
+      expect(backupsApi.download).toHaveBeenCalledWith("test-backup-id", "my-app");
     });
   });
 

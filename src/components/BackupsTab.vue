@@ -281,7 +281,7 @@ const pollActiveJobs = async () => {
   const updatedJobs: TrackedJob[] = [];
   for (const job of activeJobs.value) {
     try {
-      const response = await backupsApi.getJob(job.id);
+      const response = await backupsApi.getJob(job.id, props.deploymentName);
       const updatedJob = response.data.job;
 
       if (updatedJob.status === "completed") {
@@ -354,7 +354,7 @@ const confirmDeleteBackup = (backupId: string) => {
 const deleteBackup = async () => {
   if (!backupToDelete.value) return;
   try {
-    await backupsApi.delete(backupToDelete.value);
+    await backupsApi.delete(backupToDelete.value, props.deploymentName);
     notifications.success("Deleted", "Backup has been deleted");
     await fetchBackups();
   } catch (err: any) {
@@ -377,11 +377,15 @@ const restoreBackup = async () => {
   restoringBackup.value = backupId;
   showRestoreModal.value = false;
   try {
-    const response = await backupsApi.restore(backupId, {
-      restore_data: true,
-      restore_db: true,
-      stop_first: true,
-    });
+    const response = await backupsApi.restore(
+      backupId,
+      {
+        restore_data: true,
+        restore_db: true,
+        stop_first: true,
+      },
+      props.deploymentName,
+    );
     const jobId = response.data.job_id;
     activeJobs.value.push({
       id: jobId,
@@ -402,7 +406,7 @@ const restoreBackup = async () => {
 };
 
 const getDownloadUrl = (backupId: string) => {
-  return backupsApi.download(backupId);
+  return backupsApi.download(backupId, props.deploymentName);
 };
 
 const createScheduledTask = async () => {

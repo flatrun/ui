@@ -60,16 +60,19 @@ describe("DeploymentHealthCheckModal", () => {
     await flushPromises();
 
     expect(deploymentsApi.updateMetadata).toHaveBeenCalledWith("postgres", {
-      healthcheck: {
-        type: "tcp",
-        service: "postgres",
-        port: 5432,
-        path: "",
-        interval: "30s",
-        success_statuses: [],
-        response_contains: "",
-        command: "",
-      },
+      healthcheck: { path: "", interval: "" },
+      healthchecks: [
+        {
+          type: "tcp",
+          service: "postgres",
+          port: 5432,
+          path: "",
+          interval: "30s",
+          success_statuses: [],
+          response_contains: "",
+          command: "",
+        },
+      ],
     });
   });
 
@@ -86,12 +89,14 @@ describe("DeploymentHealthCheckModal", () => {
     expect(deploymentsApi.updateMetadata).toHaveBeenLastCalledWith(
       "postgres",
       expect.objectContaining({
-        healthcheck: expect.objectContaining({
-          type: "exec",
-          service: "postgres",
-          port: 0,
-          command: "pg_isready -U postgres",
-        }),
+        healthchecks: [
+          expect.objectContaining({
+            type: "exec",
+            service: "postgres",
+            port: 0,
+            command: "pg_isready -U postgres",
+          }),
+        ],
       }),
     );
   });

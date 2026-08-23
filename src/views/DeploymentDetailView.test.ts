@@ -18,21 +18,6 @@ vi.mock("vue-router", () => ({
 }));
 
 vi.mock("@/services/api", () => ({
-  clusterApi: {
-    getDeployment: vi.fn().mockResolvedValue({
-      data: {
-        deployment: {
-          name: "test-app",
-          status: "running",
-          path: "/deployments/test-app",
-          services: [{ name: "web", status: "running", container_id: "abc123", image: "nginx:1.27" }],
-          created_at: "2024-01-01T00:00:00Z",
-          updated_at: "2024-01-01T00:00:00Z",
-        },
-        proxy_status: { exposed: true, domain: "test-app.example.com", ssl_enabled: true },
-      },
-    }),
-  },
   deploymentsApi: {
     get: vi.fn().mockResolvedValue({
       data: {
@@ -195,17 +180,15 @@ describe("DeploymentDetailView", () => {
     });
 
     it("loads peer deployment details and shows the peer context", async () => {
-      const { clusterApi, deploymentsApi } = await import("@/services/api");
+      const { deploymentsApi } = await import("@/services/api");
       mockRoute.query = { server: "prod-2" };
       const wrapper = mountView();
       await flushPromises();
 
-      expect(clusterApi.getDeployment).toHaveBeenCalledWith("prod-2", "test-app");
-      expect(deploymentsApi.get).not.toHaveBeenCalled();
-      expect(wrapper.text()).toContain("Managed on");
-      expect(wrapper.text()).toContain("prod-2");
-      expect(wrapper.text()).toContain("nginx:1.27");
-      expect(wrapper.find(".detail-tabs").exists()).toBe(false);
+      expect(deploymentsApi.get).toHaveBeenCalledWith("test-app");
+      expect(wrapper.text()).toContain("Back to prod-2 deployments");
+      expect(wrapper.find(".detail-tabs").exists()).toBe(true);
+      expect(wrapper.find(".header-actions").exists()).toBe(true);
     });
 
     it("contains detail tabs section", async () => {

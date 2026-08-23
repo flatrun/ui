@@ -88,6 +88,10 @@ export function useServiceJobs(getDeployment: () => string, onSettled?: (s: Serv
     const name = getDeployment();
     const c = controllers[service];
     if (!c) return;
+    if (new URLSearchParams(window.location.search).has("server")) {
+      pollUntilDone(service, jobId);
+      return;
+    }
 
     let authed = false;
     const token = localStorage.getItem("auth_token");
