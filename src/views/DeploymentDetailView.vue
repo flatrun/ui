@@ -255,6 +255,10 @@
                       </button>
                     </span>
                   </div>
+                  <div v-if="singleDomainTarget" class="info-row">
+                    <span class="label">Routes to</span>
+                    <span class="value value-mono">{{ singleDomainTarget }}</span>
+                  </div>
                   <div class="info-row">
                     <span class="label">SSL</span>
                     <span class="value value-inline">
@@ -2240,6 +2244,14 @@ const singleDomainId = computed(() => {
     return "default";
   }
   return null;
+});
+
+const singleDomainTarget = computed(() => {
+  const domains = deployment.value?.metadata?.domains;
+  const configured = domains?.length === 1 ? domains[0] : null;
+  const service = configured?.service || deployment.value?.metadata?.networking?.service;
+  const port = configured?.container_port || deployment.value?.metadata?.networking?.container_port;
+  return service && port ? `${service}:${port}` : "";
 });
 
 const deletingDomain = ref(false);
