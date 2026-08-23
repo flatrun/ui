@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.4.0-beta.5] - 2026-08-22
+## [0.4.0-beta.6] - 2026-08-23
 
 ### Added
 - Guided Fleet setup, peer access controls, runtime provider selection, and remote deployment inventories
@@ -10,6 +10,11 @@
 ### Changed
 - Deployments show the selected server in the navigation and remain local by default
 - Deployment configuration keeps scaling beside settings while service image changes remain in the overview
+
+### Fixed
+- Assigned local deployments load without Fleet access or Fleet availability
+- Peer deployment details open for users with read access
+- Object storage and notifications follow their dedicated permissions
 
 ## [0.4.0-beta.4] - 2026-08-21
 
