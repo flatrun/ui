@@ -7,7 +7,7 @@
   </a>
 </p>
 
-# FlatRun UI
+# FlatRun Control Panel
 
 Modern Vue 3 web interface for FlatRun container orchestration.
 
