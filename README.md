@@ -1,3 +1,12 @@
+<p align="center">
+  <a href="https://flatrun.dev">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="https://flatrun.dev/flatrun-logo-white.svg">
+      <img src="https://flatrun.dev/flatrun-logo.svg" alt="FlatRun" width="360">
+    </picture>
+  </a>
+</p>
+
 # FlatRun UI
 
 Modern Vue 3 web interface for FlatRun container orchestration.
