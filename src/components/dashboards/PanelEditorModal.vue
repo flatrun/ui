@@ -79,6 +79,7 @@ const containerSeries = [
   { value: "container.cpu.usage", label: "CPU usage" },
   { value: "container.memory.usage", label: "Memory usage" },
   { value: "container.memory.limit", label: "Memory limit" },
+  { value: "container.memory.utilization", label: "Memory utilization" },
   { value: "container.network.io.rx", label: "Network in" },
   { value: "container.network.io.tx", label: "Network out" },
 ];

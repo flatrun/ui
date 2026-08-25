@@ -5,6 +5,7 @@ export const METRIC = {
   cpu: "container.cpu.usage",
   memUsage: "container.memory.usage",
   memLimit: "container.memory.limit",
+  memUtilization: "container.memory.utilization",
   netRx: "container.network.io.rx",
   netTx: "container.network.io.tx",
   hostCpu: "system.cpu.utilization",
