@@ -1,9 +1,11 @@
 # Changelog
 
-## [0.4.0-beta.7] - 2026-08-23
+## [Unreleased]
 
 ### Added
 - Container memory utilization for percentage-based alert rules and dashboard panels
+
+## [0.4.0-beta.7] - 2026-08-23
 
 ### Fixed
 - Deployment domain summaries show the target service and container port
