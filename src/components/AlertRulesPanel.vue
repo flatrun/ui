@@ -164,9 +164,22 @@ const firingSnapshot = (id?: string): string => {
   return ev.snapshot.map((c) => `${c.container} (${asBytes ? bytes(c.value) : `${c.value.toFixed(1)}%`})`).join(", ");
 };
 
-const allMetricOptions: { value: string; label: string; unit: string; host?: boolean; rate?: boolean }[] = [
+const allMetricOptions: {
+  value: string;
+  label: string;
+  unit: string;
+  hint?: string;
+  host?: boolean;
+  rate?: boolean;
+}[] = [
   { value: METRIC.cpu, label: "Container CPU usage", unit: "percent" },
-  { value: METRIC.memUsage, label: "Container memory usage", unit: "bytes" },
+  {
+    value: METRIC.memUtilization,
+    label: "Container memory utilization (%)",
+    unit: "percent",
+    hint: "A percentage of the container's effective memory limit.",
+  },
+  { value: METRIC.memUsage, label: "Container memory usage (bytes)", unit: "bytes" },
   { value: METRIC.netRx, label: "Container network in (per second)", unit: "bytes", rate: true },
   { value: METRIC.netTx, label: "Container network out (per second)", unit: "bytes", rate: true },
   { value: METRIC.hostCpu, label: "Host CPU", unit: "percent", host: true },
@@ -212,6 +225,7 @@ watch(isHostMetric, (host) => {
 
 const unitHint = computed(() => {
   const opt = metricOptions.value.find((m) => m.value === draft.value.metric);
+  if (opt?.hint) return opt.hint;
   if (opt?.unit !== "bytes") return "A percentage.";
   return opt.rate ? "In bytes per second." : "In bytes.";
 });

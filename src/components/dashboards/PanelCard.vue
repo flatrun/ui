@@ -53,6 +53,7 @@ const series = ref<MetricSeries | null>(null);
 const unit = computed<"percent" | "bytes" | "ms" | "count">(() => {
   if (props.panel.source === "serving") return props.panel.series === "latency" ? "ms" : "count";
   if (props.panel.series.startsWith("container.cpu")) return "percent";
+  if (props.panel.series === "container.memory.utilization") return "percent";
   if (props.panel.series.startsWith("container.memory")) return "bytes";
   if (props.panel.series.startsWith("container.network")) return "bytes";
   return "count";

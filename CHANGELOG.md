@@ -1,5 +1,10 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+- Container memory utilization for percentage-based alert rules and dashboard panels
+
 ## [0.4.0-beta.7] - 2026-08-23
 
 ### Fixed

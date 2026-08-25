@@ -60,6 +60,17 @@ describe("AlertRulesPanel", () => {
     expect(wrapper.text()).toContain("CPU usage above 80% for 60s, on shop");
   });
 
+  it("presents container memory utilization as a percentage", async () => {
+    vi.mocked(observabilityApi.alertRules).mockResolvedValue({
+      data: [{ ...rule, name: "Memory high", metric: "container.memory.utilization", threshold: 90 }],
+    } as any);
+
+    const wrapper = mountPanel();
+    await flushPromises();
+
+    expect(wrapper.text()).toContain("Container memory utilization (%) above 90% for 60s, on shop");
+  });
+
   it("marks a rule that is currently firing", async () => {
     vi.mocked(observabilityApi.firingAlerts).mockResolvedValue({
       data: [{ rule_id: "r1", rule_name: "CPU high", state: "firing" }],
