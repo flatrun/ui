@@ -76,3 +76,34 @@ describe("DomainFormModal static caching", () => {
     expect(saved.static_cache).toBe(true);
   });
 });
+
+describe("DomainFormModal visitor access", () => {
+  it("preserves an email allowlist and session settings", async () => {
+    const wrapper = mountModal({
+      id: "d1",
+      service: "web",
+      container_port: 80,
+      domain: "private.example.com",
+      ssl: { enabled: true, auto_cert: true },
+      access: {
+        enabled: true,
+        mode: "allowlist",
+        allowed_emails: ["person@example.com"],
+        email_target_id: "smtp-primary",
+        session_hours: 48,
+      },
+    });
+
+    document.querySelector<HTMLButtonElement>(".btn-primary")?.click();
+    await wrapper.vm.$nextTick();
+
+    const saved = wrapper.emitted("save")?.[0]?.[0] as DomainConfig;
+    expect(saved.access).toEqual({
+      enabled: true,
+      mode: "allowlist",
+      allowed_emails: ["person@example.com"],
+      email_target_id: "smtp-primary",
+      session_hours: 48,
+    });
+  });
+});
