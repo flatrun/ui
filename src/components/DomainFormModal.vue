@@ -234,7 +234,7 @@ const form = ref<{
   access: { enabled: false, mode: "allowlist", allowed_emails: "", email_target_id: "", session_hours: 24 },
 });
 
-const emailTargets = ref<NotificationTarget[]>([]);
+const emailTargets = ref<Pick<NotificationTarget, "id" | "name">[]>([]);
 
 watch(
   () => props.visible,
@@ -292,8 +292,8 @@ const isValid = computed(() => {
 
 async function loadEmailTargets() {
   try {
-    const response = await notificationsApi.getTargets();
-    emailTargets.value = response.data.targets.filter((target) => target.enabled && target.kind === "email");
+    const response = await notificationsApi.getAccessEmailTargets(props.deploymentName);
+    emailTargets.value = response.data.targets;
   } catch {
     emailTargets.value = [];
   }
