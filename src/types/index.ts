@@ -64,6 +64,15 @@ export interface DomainConfig {
   aliases?: string[];
   route_only_aliases?: string[];
   static_cache?: boolean;
+  access?: DomainAccessConfig;
+}
+
+export interface DomainAccessConfig {
+  enabled: boolean;
+  mode: "allowlist" | "any_verified";
+  allowed_emails?: string[];
+  email_target_id: string;
+  session_hours?: number;
 }
 
 export interface QuickAction {

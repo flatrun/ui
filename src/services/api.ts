@@ -597,6 +597,10 @@ export interface NotificationIncident {
 }
 
 export const notificationsApi = {
+  getAccessEmailTargets: (deployment: string) =>
+    apiClient.get<{ targets: Pick<NotificationTarget, "id" | "name">[] }>(
+      `/deployments/${encodeURIComponent(deployment)}/access/email-targets`,
+    ),
   getTargets: () => apiClient.get<{ targets: NotificationTarget[] }>("/notifications/targets"),
   getAlertTargetOptions: () =>
     apiClient.get<{ targets: Pick<NotificationTarget, "id" | "name">[] }>("/alerts/target-options"),

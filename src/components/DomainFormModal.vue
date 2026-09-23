@@ -84,6 +84,52 @@
               </span>
             </div>
 
+            <div class="form-section">
+              <h4>Visitor Access</h4>
+
+              <div class="form-group checkbox-group">
+                <label class="checkbox-label">
+                  <input v-model="form.access.enabled" type="checkbox" />
+                  <span>Require email verification</span>
+                </label>
+                <span class="hint">Protects this domain and path without changing the application.</span>
+              </div>
+
+              <template v-if="form.access.enabled">
+                <BaseField label="Who can sign in">
+                  <BaseSelect v-model="form.access.mode">
+                    <option value="allowlist">Only listed email addresses</option>
+                    <option value="any_verified">Anyone with a verified email</option>
+                  </BaseSelect>
+                </BaseField>
+
+                <BaseField
+                  v-if="form.access.mode === 'allowlist'"
+                  label="Allowed emails and domains"
+                  hint="Enter an email or @domain on each line, or separate entries with commas."
+                >
+                  <BaseTextarea
+                    v-model="form.access.allowed_emails"
+                    :rows="4"
+                    placeholder="person@example.com&#10;@flatrun.dev"
+                  />
+                </BaseField>
+
+                <BaseField label="Email delivery target" hint="FlatRun sends sign-in links through this SMTP target.">
+                  <BaseSelect v-model="form.access.email_target_id" required>
+                    <option value="" disabled>Select an email target</option>
+                    <option v-for="target in emailTargets" :key="target.id" :value="target.id">
+                      {{ target.name }}
+                    </option>
+                  </BaseSelect>
+                </BaseField>
+
+                <BaseField label="Session length" hint="Hours before a visitor must verify again.">
+                  <BaseInput v-model.number="form.access.session_hours" type="number" min="1" max="720" />
+                </BaseField>
+              </template>
+            </div>
+
             <div class="form-group">
               <label>Domain Aliases</label>
               <div class="aliases-input">
@@ -143,6 +189,11 @@
 <script setup lang="ts">
 import { ref, computed, watch } from "vue";
 import type { DomainConfig, Service } from "@/types";
+import { notificationsApi, type NotificationTarget } from "@/services/api";
+import BaseField from "@/components/base/BaseField.vue";
+import BaseInput from "@/components/base/BaseInput.vue";
+import BaseSelect from "@/components/base/BaseSelect.vue";
+import BaseTextarea from "@/components/base/BaseTextarea.vue";
 
 const props = defineProps<{
   visible: boolean;
@@ -167,6 +218,13 @@ const form = ref<{
   aliases: string[];
   route_only_aliases: string[];
   static_cache: boolean;
+  access: {
+    enabled: boolean;
+    mode: "allowlist" | "any_verified";
+    allowed_emails: string;
+    email_target_id: string;
+    session_hours: number;
+  };
 }>({
   domain: "",
   service: "",
@@ -177,12 +235,16 @@ const form = ref<{
   aliases: [],
   route_only_aliases: [],
   static_cache: false,
+  access: { enabled: false, mode: "allowlist", allowed_emails: "", email_target_id: "", session_hours: 24 },
 });
+
+const emailTargets = ref<Pick<NotificationTarget, "id" | "name">[]>([]);
 
 watch(
   () => props.visible,
   (visible) => {
     if (visible) {
+      void loadEmailTargets();
       if (props.domain) {
         form.value = {
           domain: props.domain.domain || "",
@@ -197,6 +259,13 @@ watch(
           aliases: [...(props.domain.aliases || [])],
           route_only_aliases: [...(props.domain.route_only_aliases || [])],
           static_cache: props.domain.static_cache || false,
+          access: {
+            enabled: props.domain.access?.enabled || false,
+            mode: props.domain.access?.mode || "allowlist",
+            allowed_emails: (props.domain.access?.allowed_emails || []).join("\n"),
+            email_target_id: props.domain.access?.email_target_id || "",
+            session_hours: props.domain.access?.session_hours || 24,
+          },
         };
       } else {
         form.value = {
@@ -209,6 +278,7 @@ watch(
           aliases: [],
           route_only_aliases: [],
           static_cache: false,
+          access: { enabled: false, mode: "allowlist", allowed_emails: "", email_target_id: "", session_hours: 24 },
         };
       }
     }
@@ -217,8 +287,29 @@ watch(
 );
 
 const isValid = computed(() => {
-  return form.value.domain.trim() !== "";
+  if (form.value.domain.trim() === "") return false;
+  if (!form.value.access.enabled) return true;
+  if (!form.value.access.email_target_id) return false;
+  if (form.value.access.session_hours < 1 || form.value.access.session_hours > 720) return false;
+  if (form.value.access.mode === "allowlist") return accessEmails().length > 0;
+  return true;
 });
+
+async function loadEmailTargets() {
+  try {
+    const response = await notificationsApi.getAccessEmailTargets(props.deploymentName);
+    emailTargets.value = response.data.targets || [];
+  } catch {
+    emailTargets.value = [];
+  }
+}
+
+function accessEmails() {
+  return form.value.access.allowed_emails
+    .split(/[\n,]/)
+    .map((email) => email.trim().toLowerCase())
+    .filter(Boolean);
+}
 
 function addAlias() {
   form.value.aliases.push("");
@@ -250,6 +341,15 @@ function handleSubmit() {
     aliases: form.value.aliases.filter((a) => a.trim() !== ""),
     route_only_aliases: form.value.route_only_aliases.filter((a) => a.trim() !== ""),
     static_cache: form.value.static_cache || undefined,
+    access: form.value.access.enabled
+      ? {
+          enabled: true,
+          mode: form.value.access.mode,
+          allowed_emails: form.value.access.mode === "allowlist" ? accessEmails() : undefined,
+          email_target_id: form.value.access.email_target_id,
+          session_hours: form.value.access.session_hours || 24,
+        }
+      : undefined,
   };
 
   emit("save", domainData);
