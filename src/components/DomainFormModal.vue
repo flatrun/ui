@@ -105,10 +105,14 @@
 
                 <BaseField
                   v-if="form.access.mode === 'allowlist'"
-                  label="Allowed email addresses"
-                  hint="Enter email addresses on separate lines or separated by commas."
+                  label="Allowed emails and domains"
+                  hint="Enter an email or @domain on each line, or separate entries with commas."
                 >
-                  <BaseTextarea v-model="form.access.allowed_emails" :rows="4" placeholder="person@example.com" />
+                  <BaseTextarea
+                    v-model="form.access.allowed_emails"
+                    :rows="4"
+                    placeholder="person@example.com&#10;@flatrun.dev"
+                  />
                 </BaseField>
 
                 <BaseField label="Email delivery target" hint="FlatRun sends sign-in links through this SMTP target.">
