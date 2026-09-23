@@ -49,7 +49,7 @@ describe("DomainFormModal routing-only hostnames", () => {
   });
 
   it("emits routing-only hostnames separately from certificate-bearing aliases", async () => {
-    const wrapper = mountModal({
+    mountModal({
       id: "d1",
       service: "web",
       container_port: 80,
@@ -70,7 +70,7 @@ describe("DomainFormModal routing-only hostnames", () => {
 
 describe("DomainFormModal static caching", () => {
   it("emits the static-cache toggle when enabled on the domain", async () => {
-    const wrapper = mountModal({
+    mountModal({
       id: "d1",
       service: "web",
       container_port: 80,
@@ -92,7 +92,7 @@ describe("DomainFormModal visitor access", () => {
     vi.mocked(notificationsApi.getAccessEmailTargets).mockResolvedValue({
       data: { targets: [{ id: "smtp-primary", name: "Primary mail" }] },
     } as Awaited<ReturnType<typeof notificationsApi.getAccessEmailTargets>>);
-    const wrapper = mountModal();
+    mountModal();
     await flushPromises();
     expect(notificationsApi.getAccessEmailTargets).toHaveBeenCalledWith("shop");
     const accessToggle = Array.from(document.querySelectorAll("label")).find((label) =>
@@ -108,7 +108,7 @@ describe("DomainFormModal visitor access", () => {
   });
 
   it("preserves an email allowlist and session settings", async () => {
-    const wrapper = mountModal({
+    mountModal({
       id: "d1",
       service: "web",
       container_port: 80,
@@ -134,5 +134,39 @@ describe("DomainFormModal visitor access", () => {
       email_target_id: "smtp-primary",
       session_hours: 48,
     });
+  });
+
+  it("normalizes allowlist emails and rejects invalid session lengths", async () => {
+    mountModal({
+      id: "d1",
+      service: "web",
+      container_port: 80,
+      domain: "private.example.com",
+      ssl: { enabled: true, auto_cert: true },
+      access: {
+        enabled: true,
+        mode: "allowlist",
+        allowed_emails: ["Person@Example.com"],
+        email_target_id: "smtp-primary",
+        session_hours: 721,
+      },
+    });
+
+    document.querySelector<HTMLButtonElement>(".btn-primary")?.click();
+    await wrapper.vm.$nextTick();
+    expect(wrapper.emitted("save")).toBeUndefined();
+
+    const sessionInput = Array.from(document.querySelectorAll<HTMLInputElement>('input[type="number"]')).find(
+      (input) => input.max === "720",
+    );
+    if (!sessionInput) throw new Error("Session input missing");
+    sessionInput.value = "24";
+    sessionInput.dispatchEvent(new Event("input", { bubbles: true }));
+    await wrapper.vm.$nextTick();
+    document.querySelector<HTMLButtonElement>(".btn-primary")?.click();
+    await wrapper.vm.$nextTick();
+
+    const saved = wrapper.emitted("save")?.[0]?.[0] as DomainConfig;
+    expect(saved.access?.allowed_emails).toEqual(["person@example.com"]);
   });
 });

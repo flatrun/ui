@@ -106,7 +106,7 @@
                 <BaseField
                   v-if="form.access.mode === 'allowlist'"
                   label="Allowed email addresses"
-                  hint="Enter one email address per line."
+                  hint="Enter email addresses on separate lines or separated by commas."
                 >
                   <BaseTextarea v-model="form.access.allowed_emails" :rows="4" placeholder="person@example.com" />
                 </BaseField>
@@ -286,6 +286,7 @@ const isValid = computed(() => {
   if (form.value.domain.trim() === "") return false;
   if (!form.value.access.enabled) return true;
   if (!form.value.access.email_target_id) return false;
+  if (form.value.access.session_hours < 1 || form.value.access.session_hours > 720) return false;
   if (form.value.access.mode === "allowlist") return accessEmails().length > 0;
   return true;
 });
@@ -293,7 +294,7 @@ const isValid = computed(() => {
 async function loadEmailTargets() {
   try {
     const response = await notificationsApi.getAccessEmailTargets(props.deploymentName);
-    emailTargets.value = response.data.targets;
+    emailTargets.value = response.data.targets || [];
   } catch {
     emailTargets.value = [];
   }
@@ -302,7 +303,7 @@ async function loadEmailTargets() {
 function accessEmails() {
   return form.value.access.allowed_emails
     .split(/[\n,]/)
-    .map((email) => email.trim())
+    .map((email) => email.trim().toLowerCase())
     .filter(Boolean);
 }
 
