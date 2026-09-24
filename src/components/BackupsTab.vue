@@ -54,10 +54,36 @@
               {{ comp }}
             </span>
           </div>
+          <div v-if="failedResults(backup).length" class="backup-failures">
+            <div v-for="result in failedResults(backup)" :key="`${result.kind}:${result.name}`">
+              <strong>{{ result.name }}</strong
+              >: {{ result.error || "Failed" }}
+            </div>
+          </div>
+          <div v-if="backup.destination_results?.length" class="destination-results">
+            <span
+              v-for="destination in backup.destination_results"
+              :key="destination.name"
+              class="destination-result"
+              :class="destination.status"
+              :title="destination.error"
+            >
+              {{ destination.name }}: {{ destination.status }}
+            </span>
+          </div>
         </div>
         <div class="backup-actions">
           <button
-            v-if="canWrite"
+            v-if="canWrite && hasFailedDestination(backup)"
+            class="btn btn-sm btn-secondary"
+            :disabled="retryingPublication === backup.id"
+            @click="retryPublication(backup.id)"
+          >
+            <i :class="retryingPublication === backup.id ? 'pi pi-spin pi-spinner' : 'pi pi-cloud-upload'" />
+            Retry publication
+          </button>
+          <button
+            v-if="canWrite && backup.status !== 'failed'"
             class="btn btn-sm btn-secondary"
             :disabled="restoringBackup === backup.id"
             @click="confirmRestore(backup)"
@@ -66,6 +92,7 @@
             Restore
           </button>
           <button
+            v-if="backup.status !== 'failed'"
             class="btn btn-sm btn-secondary"
             :disabled="downloadingBackup === backup.id"
             @click="downloadBackup(backup.id)"
@@ -223,6 +250,33 @@ const loadingBackups = ref(false);
 const creatingBackup = ref(false);
 const restoringBackup = ref<string | null>(null);
 const downloadingBackup = ref<string | null>(null);
+const retryingPublication = ref<string | null>(null);
+
+const failedResults = (backup: Backup) =>
+  [...(backup.component_results || []), ...(backup.cleanup_results || [])].filter(
+    (result) => result.status === "failed",
+  );
+
+const hasFailedDestination = (backup: Backup) =>
+  backup.destination_results?.some((result) => result.status === "failed") ?? false;
+
+const retryPublication = async (backupId: string) => {
+  retryingPublication.value = backupId;
+  try {
+    const response = await backupsApi.retryPublication(props.deploymentName, backupId);
+    const status = response.data.backup.status;
+    if (status === "completed") {
+      notifications.success("Publication Complete", "Backup was published to every destination");
+    } else {
+      notifications.error("Publication Incomplete", "One or more destinations remain unavailable");
+    }
+    await fetchBackups();
+  } catch (err: any) {
+    notifications.error("Publication Failed", err.response?.data?.error || "Failed to publish backup");
+  } finally {
+    retryingPublication.value = null;
+  }
+};
 
 interface TrackedJob extends BackupJob {
   retryCount?: number;
@@ -299,9 +353,13 @@ const pollActiveJobs = async () => {
       const response = await backupsApi.getJob(job.id, props.deploymentName);
       const updatedJob = response.data.job;
 
-      if (updatedJob.status === "completed") {
+      if (["completed", "partial", "local_only"].includes(updatedJob.status)) {
         if (updatedJob.type === "backup") {
-          notifications.success("Backup Complete", "Backup has been created successfully");
+          if (updatedJob.status === "completed") {
+            notifications.success("Backup Complete", "Backup has been created successfully");
+          } else {
+            notifications.error("Backup Protection Incomplete", updatedJob.progress || "Backup is available locally");
+          }
           creatingBackup.value = false;
         } else {
           notifications.success("Restore Complete", "Backup has been restored successfully");
@@ -625,6 +683,38 @@ onUnmounted(() => {
 
 .backup-status.failed {
   background: var(--color-danger-100);
+  color: var(--color-danger-700);
+}
+
+.backup-status.partial,
+.backup-status.local_only {
+  background: var(--color-warning-50);
+  color: var(--color-warning-700);
+}
+
+.backup-failures {
+  margin-top: 0.5rem;
+  color: var(--color-danger-700);
+  font-size: 0.8125rem;
+}
+
+.destination-results {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  margin-top: 0.5rem;
+}
+
+.destination-result {
+  border-radius: 999px;
+  padding: 0.125rem 0.5rem;
+  background: var(--color-success-50);
+  color: var(--color-success-700);
+  font-size: 0.75rem;
+}
+
+.destination-result.failed {
+  background: var(--color-danger-50);
   color: var(--color-danger-700);
 }
 
