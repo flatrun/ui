@@ -2,8 +2,16 @@
 
 ## [Unreleased]
 
+## [0.4.0-beta.8] - 2026-09-26
+
 ### Added
 - Container memory utilization for percentage-based alert rules and dashboard panels
+- Visitor email verification policies for deployment domains
+- Private domain allowlists for verification recipients
+- Backup source, cleanup, and destination outcomes with publication retry
+
+### Changed
+- Partial and local-only backups remain visible and report incomplete protection
 
 ## [0.4.0-beta.7] - 2026-08-23
 
