@@ -14,6 +14,7 @@ vi.mock("@/services/api", () => ({
     getJob: vi.fn().mockResolvedValue({
       data: { job: { id: "job-123", status: "completed", type: "backup" } },
     }),
+    retryPublication: vi.fn().mockResolvedValue({ data: { backup: { status: "completed" } } }),
   },
   schedulerApi: {
     listTasks: vi.fn().mockResolvedValue({ data: { tasks: [] } }),
@@ -28,6 +29,7 @@ const mockGetDeploymentBackups = backupsApi.getDeploymentBackups as ReturnType<t
 const mockCreateDeploymentBackup = backupsApi.createDeploymentBackup as ReturnType<typeof vi.fn>;
 const mockDeleteBackup = backupsApi.delete as ReturnType<typeof vi.fn>;
 const mockRestoreBackup = backupsApi.restore as ReturnType<typeof vi.fn>;
+const mockRetryPublication = backupsApi.retryPublication as ReturnType<typeof vi.fn>;
 const mockListTasks = schedulerApi.listTasks as ReturnType<typeof vi.fn>;
 const mockCreateTask = schedulerApi.createTask as ReturnType<typeof vi.fn>;
 
@@ -178,6 +180,37 @@ describe("BackupsTab", () => {
   });
 
   describe("Backups list", () => {
+    it("shows incomplete protection and retries publication", async () => {
+      const incomplete = [
+        {
+          ...mockBackups[0],
+          status: "local_only",
+          destination_results: [{ name: "archive", status: "failed", error: "upload failed" }],
+        },
+      ];
+      const wrapper = mountBackupsTab({ backups: incomplete as typeof mockBackups });
+      await new Promise((resolve) => setTimeout(resolve, 10));
+      const retry = wrapper.findAll("button").find((button) => button.text().includes("Retry publication"));
+      expect(retry).toBeDefined();
+      expect(wrapper.text()).toContain("archive: failed");
+      await retry!.trigger("click");
+      expect(mockRetryPublication).toHaveBeenCalledWith("my-app", mockBackups[0].id);
+    });
+
+    it("does not offer publication retry for cleanup-only failures", async () => {
+      const cleanupFailure = [
+        {
+          ...mockBackups[0],
+          status: "partial",
+          cleanup_results: [{ name: "post_hooks", kind: "cleanup", required: true, status: "failed" }],
+          destination_results: [{ name: "archive", status: "completed" }],
+        },
+      ];
+      const wrapper = mountBackupsTab({ backups: cleanupFailure as typeof mockBackups });
+      await new Promise((resolve) => setTimeout(resolve, 10));
+      expect(wrapper.text()).not.toContain("Retry publication");
+    });
+
     it("renders backup items when backups exist", async () => {
       const wrapper = mountBackupsTab({ backups: mockBackups });
       await wrapper.vm.$nextTick();
