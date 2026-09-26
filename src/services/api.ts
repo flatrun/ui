@@ -1707,7 +1707,7 @@ export const trafficApi = {
 export interface Backup {
   readonly id: string;
   readonly deployment_name: string;
-  readonly status: "pending" | "in_progress" | "completed" | "failed";
+  readonly status: "pending" | "in_progress" | "completed" | "partial" | "local_only" | "failed";
   readonly size: number;
   readonly path: string;
   readonly components: readonly string[];
@@ -1716,6 +1716,23 @@ export interface Backup {
   readonly completed_at?: string;
   readonly expires_at?: string;
   readonly locations?: readonly string[];
+  readonly component_results?: readonly BackupComponentResult[];
+  readonly cleanup_results?: readonly BackupComponentResult[];
+  readonly destination_results?: readonly BackupDestinationResult[];
+}
+
+export interface BackupComponentResult {
+  readonly name: string;
+  readonly kind: string;
+  readonly required: boolean;
+  readonly status: "completed" | "skipped" | "failed";
+  readonly error?: string;
+}
+
+export interface BackupDestinationResult {
+  readonly name: string;
+  readonly status: "completed" | "skipped" | "failed";
+  readonly error?: string;
 }
 
 export interface BackupSpec {
@@ -1754,7 +1771,7 @@ export interface BackupHookSpec {
 }
 
 export type BackupJobType = "backup" | "restore";
-export type BackupJobStatus = "pending" | "running" | "completed" | "failed";
+export type BackupJobStatus = "pending" | "running" | "completed" | "partial" | "local_only" | "failed";
 
 export interface BackupJob {
   readonly id: string;
@@ -1766,6 +1783,9 @@ export interface BackupJob {
   readonly error?: string;
   readonly started_at: string;
   readonly completed_at?: string;
+  readonly component_results?: readonly BackupComponentResult[];
+  readonly cleanup_results?: readonly BackupComponentResult[];
+  readonly destination_results?: readonly BackupDestinationResult[];
 }
 
 export const backupsApi = {
@@ -1809,6 +1829,9 @@ export const backupsApi = {
 
   createDeploymentBackup: (name: string) =>
     apiClient.post<{ job_id: string; message: string }>(`/deployments/${name}/backups`),
+
+  retryPublication: (name: string, id: string) =>
+    apiClient.post<{ backup: Backup }>(`/deployments/${name}/backups/${id}/retry-publication`),
 
   getDeploymentBackupConfig: (name: string) =>
     apiClient.get<{ backup_config: BackupSpec | null }>(`/deployments/${name}/backup-config`),
