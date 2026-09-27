@@ -303,7 +303,7 @@ describe("BackupsTab", () => {
 
       const restoreButtons = wrapper
         .findAll(".backup-actions .btn-secondary")
-        .filter((btn) => btn.text().includes("Restore"));
+        .filter((btn) => btn.text().trim() === "Restore");
       expect(restoreButtons.length).toBe(2);
     });
 
@@ -415,6 +415,29 @@ describe("BackupsTab", () => {
       expect(mockRestoreBackup).toHaveBeenCalledWith(
         "my-app_20250101_120000",
         {
+          restore_data: true,
+          restore_db: true,
+          stop_first: true,
+        },
+        "my-app",
+      );
+    });
+
+    it("restores into a separate deployment with isolation enabled", async () => {
+      const wrapper = mountBackupsTab({ backups: mockBackups });
+      await wrapper.vm.$nextTick();
+      await new Promise((r) => setTimeout(r, 10));
+      const vm = wrapper.vm as any;
+      vm.backupToRestore = mockBackups[0];
+      vm.isolatedDeploymentName = "my-app-recovery";
+
+      await vm.restoreBackupIsolated();
+
+      expect(mockRestoreBackup).toHaveBeenCalledWith(
+        "my-app_20250101_120000",
+        {
+          deployment_name: "my-app-recovery",
+          isolated: true,
           restore_data: true,
           restore_db: true,
           stop_first: true,

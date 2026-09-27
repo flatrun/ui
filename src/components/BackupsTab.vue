@@ -119,6 +119,15 @@
             Restore
           </button>
           <button
+            v-if="canWrite && backup.status !== 'failed'"
+            class="btn btn-sm btn-secondary"
+            :disabled="restoringBackup === backup.id"
+            @click="confirmIsolatedRestore(backup)"
+          >
+            <i class="pi pi-shield" />
+            Restore isolated
+          </button>
+          <button
             v-if="backup.status !== 'failed'"
             class="btn btn-sm btn-secondary"
             :disabled="downloadingBackup === backup.id"
@@ -228,6 +237,28 @@
       @cancel="showDeleteBackupModal = false"
     />
 
+    <div v-if="showIsolatedRestoreModal" class="modal-overlay" @click.self="showIsolatedRestoreModal = false">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Restore into isolation</h2>
+          <button class="btn-icon" @click="showIsolatedRestoreModal = false"><i class="pi pi-times" /></button>
+        </div>
+        <div class="modal-body">
+          <p>The restored services can communicate with each other, but cannot reach external networks.</p>
+          <div class="form-group">
+            <label for="isolated-deployment-name">New deployment name</label>
+            <BaseInput id="isolated-deployment-name" v-model="isolatedDeploymentName" placeholder="my-app-recovery" />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <BaseButton variant="secondary" @click="showIsolatedRestoreModal = false">Cancel</BaseButton>
+          <BaseButton :disabled="!isolatedDeploymentName.trim()" @click="restoreBackupIsolated"
+            >Restore isolated</BaseButton
+          >
+        </div>
+      </div>
+    </div>
+
     <!-- Delete Task Confirm Modal -->
     <ConfirmModal
       :visible="showDeleteTaskModal"
@@ -260,6 +291,7 @@ import { useNotificationsStore } from "@/stores/notifications";
 import ConfirmModal from "@/components/ConfirmModal.vue";
 import BaseCard from "@/components/base/BaseCard.vue";
 import BaseButton from "@/components/base/BaseButton.vue";
+import BaseInput from "@/components/base/BaseInput.vue";
 
 const props = withDefaults(
   defineProps<{
@@ -374,6 +406,8 @@ const taskToDelete = ref<number | null>(null);
 const showRestoreModal = ref(false);
 const backupToRestore = ref<Backup | null>(null);
 const restoreMessage = ref("");
+const showIsolatedRestoreModal = ref(false);
+const isolatedDeploymentName = ref("");
 
 const fetchBackups = async () => {
   loadingBackups.value = true;
@@ -419,7 +453,7 @@ const pollActiveJobs = async () => {
   const updatedJobs: TrackedJob[] = [];
   for (const job of activeJobs.value) {
     try {
-      const response = await backupsApi.getJob(job.id, props.deploymentName);
+      const response = await backupsApi.getJob(job.id, job.deployment_name || props.deploymentName);
       const updatedJob = response.data.job;
 
       if (["completed", "partial", "local_only"].includes(updatedJob.status)) {
@@ -511,6 +545,48 @@ const confirmRestore = (backup: Backup) => {
   backupToRestore.value = backup;
   restoreMessage.value = `Are you sure you want to restore from backup "${backup.id}"? This will stop the deployment, restore data, and restart it.`;
   showRestoreModal.value = true;
+};
+
+const confirmIsolatedRestore = (backup: Backup) => {
+  backupToRestore.value = backup;
+  isolatedDeploymentName.value = `${props.deploymentName}-recovery`;
+  showIsolatedRestoreModal.value = true;
+};
+
+const restoreBackupIsolated = async () => {
+  if (!backupToRestore.value || !isolatedDeploymentName.value.trim()) return;
+  const backupId = backupToRestore.value.id;
+  const deploymentName = isolatedDeploymentName.value.trim();
+  restoringBackup.value = backupId;
+  showIsolatedRestoreModal.value = false;
+  try {
+    const response = await backupsApi.restore(
+      backupId,
+      {
+        deployment_name: deploymentName,
+        isolated: true,
+        restore_data: true,
+        restore_db: true,
+        stop_first: true,
+      },
+      props.deploymentName,
+    );
+    activeJobs.value.push({
+      id: response.data.job_id,
+      type: "restore",
+      status: "running",
+      deployment_name: deploymentName,
+      backup_id: backupId,
+      started_at: new Date().toISOString(),
+    });
+    notifications.success("Isolated Restore Started", `Restoring into ${deploymentName}`);
+    startJobPolling();
+  } catch (err: any) {
+    notifications.error("Restore Failed", err.response?.data?.error || "Failed to start isolated restore");
+    restoringBackup.value = null;
+  } finally {
+    backupToRestore.value = null;
+  }
 };
 
 const restoreBackup = async () => {

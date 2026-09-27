@@ -1815,7 +1815,13 @@ export const backupsApi = {
 
   restore: (
     id: string,
-    options?: { restore_data?: boolean; restore_db?: boolean; stop_first?: boolean },
+    options?: {
+      deployment_name?: string;
+      isolated?: boolean;
+      restore_data?: boolean;
+      restore_db?: boolean;
+      stop_first?: boolean;
+    },
     deploymentName?: string,
   ) =>
     apiClient.post<{ job_id: string; message: string }>(
