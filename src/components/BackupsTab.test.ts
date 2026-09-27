@@ -50,6 +50,8 @@ const mockRetryPublication = backupsApi.retryPublication as ReturnType<typeof vi
 const mockGetBackupDestinations = backupsApi.getDeploymentBackupDestinations as ReturnType<typeof vi.fn>;
 const mockGetBackupConfig = backupsApi.getDeploymentBackupConfig as ReturnType<typeof vi.fn>;
 const mockUpdateBackupConfig = backupsApi.updateDeploymentBackupConfig as ReturnType<typeof vi.fn>;
+const mockGetBackupPolicy = backupsApi.getDeploymentBackupPolicy as ReturnType<typeof vi.fn>;
+const mockCleanupBackups = backupsApi.cleanupDeploymentBackups as ReturnType<typeof vi.fn>;
 const mockListTasks = schedulerApi.listTasks as ReturnType<typeof vi.fn>;
 const mockCreateTask = schedulerApi.createTask as ReturnType<typeof vi.fn>;
 
@@ -93,6 +95,19 @@ describe("BackupsTab", () => {
     mockListTasks.mockResolvedValue({ data: { tasks: [] } });
     mockGetBackupDestinations.mockResolvedValue({ data: { destinations: [] } });
     mockGetBackupConfig.mockResolvedValue({ data: { backup_config: {} } });
+    mockGetBackupPolicy.mockResolvedValue({
+      data: {
+        policy: {
+          config: {},
+          schedules: [],
+          backup_count: 0,
+          local_bytes: 0,
+          failed_count: 0,
+          size_alert: false,
+          cleanup_preview: { keep_count: 7, delete_ids: [], reclaimed_bytes: 0 },
+        },
+      },
+    });
     vi.stubGlobal("URL", {
       ...URL,
       createObjectURL: vi.fn().mockReturnValue("blob:backup"),
@@ -154,6 +169,31 @@ describe("BackupsTab", () => {
         size_alert_bytes: 0,
         exclude_patterns: [],
       });
+    });
+
+    it("applies the retention value shown in the cleanup preview", async () => {
+      mockGetBackupPolicy.mockResolvedValue({
+        data: {
+          policy: {
+            config: { retention_count: 7 },
+            schedules: [],
+            backup_count: 9,
+            local_bytes: 0,
+            failed_count: 0,
+            size_alert: false,
+            cleanup_preview: { keep_count: 7, delete_ids: ["old"], reclaimed_bytes: 1 },
+          },
+        },
+      });
+      const wrapper = mountBackupsTab();
+      await new Promise((resolve) => setTimeout(resolve, 10));
+      await wrapper.find('input[type="number"]').setValue(1);
+      await wrapper
+        .findAll("button")
+        .find((button) => button.text().includes("Apply cleanup"))!
+        .trigger("click");
+
+      expect(mockCleanupBackups).toHaveBeenCalledWith("my-app", 7);
     });
 
     it("renders the backups tab container", () => {

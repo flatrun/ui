@@ -406,7 +406,11 @@ const savePolicy = async () => {
 
 const applyCleanup = async () => {
   try {
-    const response = await backupsApi.cleanupDeploymentBackups(props.deploymentName, Number(retentionCount.value));
+    if (!policy.value) return;
+    const response = await backupsApi.cleanupDeploymentBackups(
+      props.deploymentName,
+      policy.value.cleanup_preview.keep_count,
+    );
     notifications.success("Cleanup Complete", `${response.data.deleted} local backups removed`);
     await Promise.all([fetchBackups(), fetchBackupDestinations()]);
   } catch (err: any) {
