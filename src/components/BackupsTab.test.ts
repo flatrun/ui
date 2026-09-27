@@ -229,6 +229,18 @@ describe("BackupsTab", () => {
       expect(mockRetryPublication).toHaveBeenCalledWith("my-app", mockBackups[0].id);
     });
 
+    it("shows when a remote copy was verified", async () => {
+      const verified = [
+        {
+          ...mockBackups[0],
+          destination_results: [{ name: "archive", status: "completed", verified: true }],
+        },
+      ];
+      const wrapper = mountBackupsTab({ backups: verified as typeof mockBackups });
+      await new Promise((resolve) => setTimeout(resolve, 10));
+      expect(wrapper.text()).toContain("archive: completed verified");
+    });
+
     it("does not offer publication retry for cleanup-only failures", async () => {
       const cleanupFailure = [
         {

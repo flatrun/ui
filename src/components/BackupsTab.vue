@@ -95,7 +95,7 @@
               :class="destination.status"
               :title="destination.error"
             >
-              {{ destination.name }}: {{ destination.status }}
+              {{ destination.name }}: {{ destination.status }}{{ destination.verified ? " verified" : "" }}
             </span>
           </div>
         </div>

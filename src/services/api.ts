@@ -1709,6 +1709,7 @@ export interface Backup {
   readonly deployment_name: string;
   readonly status: "pending" | "in_progress" | "completed" | "partial" | "local_only" | "failed";
   readonly size: number;
+  readonly checksum?: string;
   readonly path: string;
   readonly components: readonly string[];
   readonly error?: string;
@@ -1733,6 +1734,8 @@ export interface BackupDestinationResult {
   readonly name: string;
   readonly status: "completed" | "skipped" | "failed";
   readonly error?: string;
+  readonly checksum?: string;
+  readonly verified: boolean;
 }
 
 export interface BackupSpec {
