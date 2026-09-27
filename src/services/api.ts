@@ -1741,6 +1741,12 @@ export interface BackupSpec {
   readonly pre_hooks?: readonly BackupHookSpec[];
   readonly post_hooks?: readonly BackupHookSpec[];
   readonly exclude_patterns?: readonly string[];
+  readonly destinations?: readonly string[];
+}
+
+export interface BackupDestinationOption {
+  readonly name: string;
+  readonly kind: string;
 }
 
 export interface ContainerBackupPath {
@@ -1838,6 +1844,9 @@ export const backupsApi = {
 
   updateDeploymentBackupConfig: (name: string, config: BackupSpec) =>
     apiClient.put<{ backup_config: BackupSpec }>(`/deployments/${name}/backup-config`, config),
+
+  getDeploymentBackupDestinations: (name: string) =>
+    apiClient.get<{ destinations: BackupDestinationOption[] }>(`/deployments/${name}/backup-destinations`),
 
   getJob: (jobId: string, deploymentName?: string) =>
     apiClient.get<{ job: BackupJob }>(

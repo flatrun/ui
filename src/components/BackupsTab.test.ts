@@ -15,6 +15,9 @@ vi.mock("@/services/api", () => ({
       data: { job: { id: "job-123", status: "completed", type: "backup" } },
     }),
     retryPublication: vi.fn().mockResolvedValue({ data: { backup: { status: "completed" } } }),
+    getDeploymentBackupDestinations: vi.fn().mockResolvedValue({ data: { destinations: [] } }),
+    getDeploymentBackupConfig: vi.fn().mockResolvedValue({ data: { backup_config: {} } }),
+    updateDeploymentBackupConfig: vi.fn().mockResolvedValue({ data: { backup_config: {} } }),
   },
   schedulerApi: {
     listTasks: vi.fn().mockResolvedValue({ data: { tasks: [] } }),
@@ -30,6 +33,9 @@ const mockCreateDeploymentBackup = backupsApi.createDeploymentBackup as ReturnTy
 const mockDeleteBackup = backupsApi.delete as ReturnType<typeof vi.fn>;
 const mockRestoreBackup = backupsApi.restore as ReturnType<typeof vi.fn>;
 const mockRetryPublication = backupsApi.retryPublication as ReturnType<typeof vi.fn>;
+const mockGetBackupDestinations = backupsApi.getDeploymentBackupDestinations as ReturnType<typeof vi.fn>;
+const mockGetBackupConfig = backupsApi.getDeploymentBackupConfig as ReturnType<typeof vi.fn>;
+const mockUpdateBackupConfig = backupsApi.updateDeploymentBackupConfig as ReturnType<typeof vi.fn>;
 const mockListTasks = schedulerApi.listTasks as ReturnType<typeof vi.fn>;
 const mockCreateTask = schedulerApi.createTask as ReturnType<typeof vi.fn>;
 
@@ -71,6 +77,8 @@ describe("BackupsTab", () => {
     vi.clearAllMocks();
     mockGetDeploymentBackups.mockResolvedValue({ data: { backups: [] } });
     mockListTasks.mockResolvedValue({ data: { tasks: [] } });
+    mockGetBackupDestinations.mockResolvedValue({ data: { destinations: [] } });
+    mockGetBackupConfig.mockResolvedValue({ data: { backup_config: {} } });
     vi.stubGlobal("URL", {
       ...URL,
       createObjectURL: vi.fn().mockReturnValue("blob:backup"),
@@ -105,6 +113,30 @@ describe("BackupsTab", () => {
   };
 
   describe("Component structure", () => {
+    it("saves selected destinations for this deployment", async () => {
+      mockGetBackupDestinations.mockResolvedValue({
+        data: {
+          destinations: [
+            { name: "primary", kind: "external" },
+            { name: "archive", kind: "managed" },
+          ],
+        },
+      });
+      mockGetBackupConfig.mockResolvedValue({ data: { backup_config: { destinations: ["primary"] } } });
+      mockUpdateBackupConfig.mockResolvedValue({ data: { backup_config: { destinations: ["primary", "archive"] } } });
+      const wrapper = mountBackupsTab();
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      const archive = wrapper.findAll(".destination-option").find((option) => option.text().includes("archive"));
+      await archive!.find("input").setValue(true);
+      await wrapper
+        .findAll("button")
+        .find((button) => button.text().includes("Save destinations"))!
+        .trigger("click");
+
+      expect(mockUpdateBackupConfig).toHaveBeenCalledWith("my-app", { destinations: ["primary", "archive"] });
+    });
+
     it("renders the backups tab container", () => {
       const wrapper = mountBackupsTab();
       expect(wrapper.find(".backups-tab").exists()).toBe(true);

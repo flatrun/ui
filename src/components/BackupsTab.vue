@@ -16,6 +16,33 @@
       </div>
     </div>
 
+    <BaseCard v-if="canWrite" title="Backup destinations" class="backup-policy">
+      <p class="policy-copy">Choose every remote store that should receive this application's backups.</p>
+      <p v-if="destinationOptions.length === 0" class="policy-copy">No enabled remote destinations are available.</p>
+      <div v-else class="destination-options">
+        <label v-for="destination in destinationOptions" :key="destination.name" class="destination-option">
+          <input
+            type="checkbox"
+            :checked="selectedDestinations.includes(destination.name)"
+            @change="toggleDestination(destination.name)"
+          />
+          <span>{{ destination.name }}</span>
+          <span class="destination-kind">{{ destination.kind }}</span>
+        </label>
+      </div>
+      <template #footer>
+        <BaseButton
+          variant="primary"
+          size="sm"
+          :loading="savingDestinations"
+          :disabled="destinationOptions.length === 0 || selectedDestinations.length === 0"
+          @click="saveDestinations"
+        >
+          Save destinations
+        </BaseButton>
+      </template>
+    </BaseCard>
+
     <div v-if="loadingBackups" class="loading-state">
       <i class="pi pi-spin pi-spinner" />
       Loading backups...
@@ -228,9 +255,11 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from "vue";
 import { backupsApi, schedulerApi } from "@/services/api";
-import type { Backup, ScheduledTask, BackupJob } from "@/services/api";
+import type { Backup, ScheduledTask, BackupJob, BackupSpec, BackupDestinationOption } from "@/services/api";
 import { useNotificationsStore } from "@/stores/notifications";
 import ConfirmModal from "@/components/ConfirmModal.vue";
+import BaseCard from "@/components/base/BaseCard.vue";
+import BaseButton from "@/components/base/BaseButton.vue";
 
 const props = withDefaults(
   defineProps<{
@@ -251,6 +280,46 @@ const creatingBackup = ref(false);
 const restoringBackup = ref<string | null>(null);
 const downloadingBackup = ref<string | null>(null);
 const retryingPublication = ref<string | null>(null);
+const destinationOptions = ref<BackupDestinationOption[]>([]);
+const selectedDestinations = ref<string[]>([]);
+const backupSpec = ref<BackupSpec>({});
+const savingDestinations = ref(false);
+
+const fetchBackupDestinations = async () => {
+  try {
+    const [optionsResponse, configResponse] = await Promise.all([
+      backupsApi.getDeploymentBackupDestinations(props.deploymentName),
+      backupsApi.getDeploymentBackupConfig(props.deploymentName),
+    ]);
+    destinationOptions.value = optionsResponse.data.destinations || [];
+    backupSpec.value = configResponse.data.backup_config || {};
+    selectedDestinations.value = backupSpec.value.destinations?.length
+      ? [...backupSpec.value.destinations]
+      : destinationOptions.value.map((destination) => destination.name);
+  } catch (err: any) {
+    notifications.error("Backup Policy Failed", err.response?.data?.error || "Failed to load backup destinations");
+  }
+};
+
+const toggleDestination = (name: string) => {
+  selectedDestinations.value = selectedDestinations.value.includes(name)
+    ? selectedDestinations.value.filter((destination) => destination !== name)
+    : [...selectedDestinations.value, name];
+};
+
+const saveDestinations = async () => {
+  savingDestinations.value = true;
+  try {
+    const updated = { ...backupSpec.value, destinations: selectedDestinations.value };
+    const response = await backupsApi.updateDeploymentBackupConfig(props.deploymentName, updated);
+    backupSpec.value = response.data.backup_config;
+    notifications.success("Backup Destinations Saved", "Future backups will use the selected stores");
+  } catch (err: any) {
+    notifications.error("Save Failed", err.response?.data?.error || "Failed to save backup destinations");
+  } finally {
+    savingDestinations.value = false;
+  }
+};
 
 const failedResults = (backup: Backup) =>
   [...(backup.component_results || []), ...(backup.cleanup_results || [])].filter(
@@ -574,6 +643,7 @@ const formatDate = (dateStr: string): string => {
 onMounted(() => {
   fetchBackups();
   fetchScheduledTasks();
+  if (props.canWrite) fetchBackupDestinations();
 });
 
 onUnmounted(() => {
@@ -597,6 +667,33 @@ onUnmounted(() => {
   margin: 0;
   font-size: var(--text-lg);
   font-weight: var(--font-semibold);
+}
+
+.backup-policy {
+  margin-bottom: var(--space-4);
+}
+
+.policy-copy {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+.destination-options {
+  display: grid;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.destination-option {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--text);
+}
+
+.destination-kind {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
 }
 
 .backups-actions {
