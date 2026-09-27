@@ -1765,6 +1765,41 @@ export interface DeploymentBackupPolicy {
   readonly cleanup_preview: BackupCleanupPreview;
 }
 
+export interface MigrationSite {
+  hostname: string;
+  source_path?: string;
+  bytes?: number;
+  transferred: boolean;
+  last_synced_at?: string;
+  resolved?: readonly string[];
+  dns_propagated: boolean;
+}
+
+export interface MigrationPlan {
+  source: string;
+  sites: MigrationSite[];
+  inventory_complete: boolean;
+  initial_transfer_at?: string;
+  last_sync_at?: string;
+  cutover_at?: string;
+  expected_address?: string;
+  notes?: string;
+}
+
+export interface MigrationStatus {
+  plan: MigrationPlan | null;
+  retirement_ready: boolean;
+  blockers: readonly string[];
+}
+
+export const migrationsApi = {
+  get: (name: string) => apiClient.get<{ migration: MigrationStatus }>(`/deployments/${name}/migration`),
+  update: (name: string, plan: MigrationPlan) =>
+    apiClient.put<{ migration: MigrationStatus }>(`/deployments/${name}/migration`, plan),
+  checkDns: (name: string) =>
+    apiClient.post<{ migration: MigrationStatus }>(`/deployments/${name}/migration/check-dns`),
+};
+
 export interface BackupDestinationOption {
   readonly name: string;
   readonly kind: string;
