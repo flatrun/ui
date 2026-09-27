@@ -16,6 +16,58 @@
       </div>
     </div>
 
+    <BaseCard v-if="canWrite" title="Backup destinations" class="backup-policy">
+      <p class="policy-copy">Choose every remote store that should receive this application's backups.</p>
+      <p v-if="destinationOptions.length === 0" class="policy-copy">No enabled remote destinations are available.</p>
+      <div v-else class="destination-options">
+        <label v-for="destination in destinationOptions" :key="destination.name" class="destination-option">
+          <input
+            type="checkbox"
+            :checked="selectedDestinations.includes(destination.name)"
+            @change="toggleDestination(destination.name)"
+          />
+          <span>{{ destination.name }}</span>
+          <span class="destination-kind">{{ destination.kind }}</span>
+        </label>
+      </div>
+      <div class="policy-fields">
+        <label>
+          Keep local backups
+          <BaseInput v-model="retentionCount" type="number" />
+        </label>
+        <label>
+          Alert above MiB
+          <BaseInput v-model="sizeAlertMiB" type="number" />
+        </label>
+        <label class="policy-exclusions">
+          Exclusions, one pattern per line
+          <textarea v-model="excludePatterns" class="form-control" rows="3" placeholder="cache/**" />
+        </label>
+      </div>
+      <div v-if="policy" class="policy-summary" :class="{ warning: policy.size_alert }">
+        {{ policy.backup_count }} backups, {{ formatBytes(policy.local_bytes) }} local,
+        {{ policy.failed_count }} needing attention.
+        <span v-if="policy.cleanup_preview.delete_ids.length">
+          Cleanup would remove {{ policy.cleanup_preview.delete_ids.length }} and reclaim
+          {{ formatBytes(policy.cleanup_preview.reclaimed_bytes) }}.
+        </span>
+      </div>
+      <template #footer>
+        <BaseButton
+          variant="primary"
+          size="sm"
+          :loading="savingDestinations"
+          :disabled="destinationOptions.length === 0 || selectedDestinations.length === 0"
+          @click="savePolicy"
+        >
+          Save policy
+        </BaseButton>
+        <BaseButton v-if="policy?.cleanup_preview.delete_ids.length" variant="secondary" size="sm" @click="applyCleanup"
+          >Apply cleanup</BaseButton
+        >
+      </template>
+    </BaseCard>
+
     <div v-if="loadingBackups" class="loading-state">
       <i class="pi pi-spin pi-spinner" />
       Loading backups...
@@ -68,7 +120,7 @@
               :class="destination.status"
               :title="destination.error"
             >
-              {{ destination.name }}: {{ destination.status }}
+              {{ destination.name }}: {{ destination.status }}{{ destination.verified ? " verified" : "" }}
             </span>
           </div>
         </div>
@@ -90,6 +142,15 @@
           >
             <i :class="restoringBackup === backup.id ? 'pi pi-spin pi-spinner' : 'pi pi-replay'" />
             Restore
+          </button>
+          <button
+            v-if="canWrite && backup.status !== 'failed'"
+            class="btn btn-sm btn-secondary"
+            :disabled="restoringBackup === backup.id"
+            @click="confirmIsolatedRestore(backup)"
+          >
+            <i class="pi pi-shield" />
+            Restore isolated
           </button>
           <button
             v-if="backup.status !== 'failed'"
@@ -201,6 +262,28 @@
       @cancel="showDeleteBackupModal = false"
     />
 
+    <div v-if="showIsolatedRestoreModal" class="modal-overlay" @click.self="showIsolatedRestoreModal = false">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Restore into isolation</h2>
+          <button class="btn-icon" @click="showIsolatedRestoreModal = false"><i class="pi pi-times" /></button>
+        </div>
+        <div class="modal-body">
+          <p>The restored services can communicate with each other, but cannot reach external networks.</p>
+          <div class="form-group">
+            <label for="isolated-deployment-name">New deployment name</label>
+            <BaseInput id="isolated-deployment-name" v-model="isolatedDeploymentName" placeholder="my-app-recovery" />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <BaseButton variant="secondary" @click="showIsolatedRestoreModal = false">Cancel</BaseButton>
+          <BaseButton :disabled="!isolatedDeploymentName.trim()" @click="restoreBackupIsolated"
+            >Restore isolated</BaseButton
+          >
+        </div>
+      </div>
+    </div>
+
     <!-- Delete Task Confirm Modal -->
     <ConfirmModal
       :visible="showDeleteTaskModal"
@@ -228,9 +311,19 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from "vue";
 import { backupsApi, schedulerApi } from "@/services/api";
-import type { Backup, ScheduledTask, BackupJob } from "@/services/api";
+import type {
+  Backup,
+  ScheduledTask,
+  BackupJob,
+  BackupSpec,
+  BackupDestinationOption,
+  DeploymentBackupPolicy,
+} from "@/services/api";
 import { useNotificationsStore } from "@/stores/notifications";
 import ConfirmModal from "@/components/ConfirmModal.vue";
+import BaseCard from "@/components/base/BaseCard.vue";
+import BaseButton from "@/components/base/BaseButton.vue";
+import BaseInput from "@/components/base/BaseInput.vue";
 
 const props = withDefaults(
   defineProps<{
@@ -251,6 +344,79 @@ const creatingBackup = ref(false);
 const restoringBackup = ref<string | null>(null);
 const downloadingBackup = ref<string | null>(null);
 const retryingPublication = ref<string | null>(null);
+const destinationOptions = ref<BackupDestinationOption[]>([]);
+const selectedDestinations = ref<string[]>([]);
+const backupSpec = ref<BackupSpec>({});
+const savingDestinations = ref(false);
+const retentionCount = ref(7);
+const sizeAlertMiB = ref(0);
+const excludePatterns = ref("");
+const policy = ref<DeploymentBackupPolicy | null>(null);
+
+const fetchBackupDestinations = async () => {
+  try {
+    const [optionsResponse, configResponse, policyResponse] = await Promise.all([
+      backupsApi.getDeploymentBackupDestinations(props.deploymentName),
+      backupsApi.getDeploymentBackupConfig(props.deploymentName),
+      backupsApi.getDeploymentBackupPolicy(props.deploymentName),
+    ]);
+    destinationOptions.value = optionsResponse.data.destinations || [];
+    backupSpec.value = configResponse.data.backup_config || {};
+    policy.value = policyResponse.data.policy;
+    retentionCount.value = backupSpec.value.retention_count || 7;
+    sizeAlertMiB.value = Math.round((backupSpec.value.size_alert_bytes || 0) / 1024 / 1024);
+    excludePatterns.value = (backupSpec.value.exclude_patterns || []).join("\n");
+    selectedDestinations.value = backupSpec.value.destinations?.length
+      ? [...backupSpec.value.destinations]
+      : destinationOptions.value.map((destination) => destination.name);
+  } catch (err: any) {
+    notifications.error("Backup Policy Failed", err.response?.data?.error || "Failed to load backup destinations");
+  }
+};
+
+const toggleDestination = (name: string) => {
+  selectedDestinations.value = selectedDestinations.value.includes(name)
+    ? selectedDestinations.value.filter((destination) => destination !== name)
+    : [...selectedDestinations.value, name];
+};
+
+const savePolicy = async () => {
+  savingDestinations.value = true;
+  try {
+    const updated = {
+      ...backupSpec.value,
+      destinations: selectedDestinations.value,
+      retention_count: Number(retentionCount.value),
+      size_alert_bytes: Number(sizeAlertMiB.value) * 1024 * 1024,
+      exclude_patterns: excludePatterns.value
+        .split("\n")
+        .map((pattern) => pattern.trim())
+        .filter(Boolean),
+    };
+    const response = await backupsApi.updateDeploymentBackupConfig(props.deploymentName, updated);
+    backupSpec.value = response.data.backup_config;
+    notifications.success("Backup Policy Saved", "Backup storage policy has been updated");
+    await fetchBackupDestinations();
+  } catch (err: any) {
+    notifications.error("Save Failed", err.response?.data?.error || "Failed to save backup destinations");
+  } finally {
+    savingDestinations.value = false;
+  }
+};
+
+const applyCleanup = async () => {
+  try {
+    if (!policy.value) return;
+    const response = await backupsApi.cleanupDeploymentBackups(
+      props.deploymentName,
+      policy.value.cleanup_preview.keep_count,
+    );
+    notifications.success("Cleanup Complete", `${response.data.deleted} local backups removed`);
+    await Promise.all([fetchBackups(), fetchBackupDestinations()]);
+  } catch (err: any) {
+    notifications.error("Cleanup Failed", err.response?.data?.error || "Failed to clean up backups");
+  }
+};
 
 const failedResults = (backup: Backup) =>
   [...(backup.component_results || []), ...(backup.cleanup_results || [])].filter(
@@ -305,6 +471,8 @@ const taskToDelete = ref<number | null>(null);
 const showRestoreModal = ref(false);
 const backupToRestore = ref<Backup | null>(null);
 const restoreMessage = ref("");
+const showIsolatedRestoreModal = ref(false);
+const isolatedDeploymentName = ref("");
 
 const fetchBackups = async () => {
   loadingBackups.value = true;
@@ -350,7 +518,7 @@ const pollActiveJobs = async () => {
   const updatedJobs: TrackedJob[] = [];
   for (const job of activeJobs.value) {
     try {
-      const response = await backupsApi.getJob(job.id, props.deploymentName);
+      const response = await backupsApi.getJob(job.id, job.deployment_name || props.deploymentName);
       const updatedJob = response.data.job;
 
       if (["completed", "partial", "local_only"].includes(updatedJob.status)) {
@@ -442,6 +610,48 @@ const confirmRestore = (backup: Backup) => {
   backupToRestore.value = backup;
   restoreMessage.value = `Are you sure you want to restore from backup "${backup.id}"? This will stop the deployment, restore data, and restart it.`;
   showRestoreModal.value = true;
+};
+
+const confirmIsolatedRestore = (backup: Backup) => {
+  backupToRestore.value = backup;
+  isolatedDeploymentName.value = `${props.deploymentName}-recovery`;
+  showIsolatedRestoreModal.value = true;
+};
+
+const restoreBackupIsolated = async () => {
+  if (!backupToRestore.value || !isolatedDeploymentName.value.trim()) return;
+  const backupId = backupToRestore.value.id;
+  const deploymentName = isolatedDeploymentName.value.trim();
+  restoringBackup.value = backupId;
+  showIsolatedRestoreModal.value = false;
+  try {
+    const response = await backupsApi.restore(
+      backupId,
+      {
+        deployment_name: deploymentName,
+        isolated: true,
+        restore_data: true,
+        restore_db: true,
+        stop_first: true,
+      },
+      props.deploymentName,
+    );
+    activeJobs.value.push({
+      id: response.data.job_id,
+      type: "restore",
+      status: "running",
+      deployment_name: deploymentName,
+      backup_id: backupId,
+      started_at: new Date().toISOString(),
+    });
+    notifications.success("Isolated Restore Started", `Restoring into ${deploymentName}`);
+    startJobPolling();
+  } catch (err: any) {
+    notifications.error("Restore Failed", err.response?.data?.error || "Failed to start isolated restore");
+    restoringBackup.value = null;
+  } finally {
+    backupToRestore.value = null;
+  }
 };
 
 const restoreBackup = async () => {
@@ -574,6 +784,7 @@ const formatDate = (dateStr: string): string => {
 onMounted(() => {
   fetchBackups();
   fetchScheduledTasks();
+  if (props.canWrite) fetchBackupDestinations();
 });
 
 onUnmounted(() => {
@@ -597,6 +808,33 @@ onUnmounted(() => {
   margin: 0;
   font-size: var(--text-lg);
   font-weight: var(--font-semibold);
+}
+
+.backup-policy {
+  margin-bottom: var(--space-4);
+}
+
+.policy-copy {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+.destination-options {
+  display: grid;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.destination-option {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--text);
+}
+
+.destination-kind {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
 }
 
 .backups-actions {

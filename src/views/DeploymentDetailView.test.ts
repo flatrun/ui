@@ -213,11 +213,11 @@ describe("DeploymentDetailView", () => {
   });
 
   describe("Tab navigation", () => {
-    it("displays all ten tabs", async () => {
+    it("displays all eleven tabs", async () => {
       const wrapper = mountView();
       await flushPromises();
       const tabs = wrapper.findAll(".tab-btn");
-      expect(tabs.length).toBe(10);
+      expect(tabs.length).toBe(11);
     });
 
     it("has Overview tab", async () => {
@@ -341,6 +341,7 @@ describe("DeploymentDetailView", () => {
         { id: "databases", label: "Databases", icon: "pi pi-database" },
         { id: "actions", label: "Quick Actions", icon: "pi pi-bolt" },
         { id: "backups", label: "Backups", icon: "pi pi-history" },
+        { id: "migration", label: "Migration", icon: "pi pi-directions" },
         { id: "security", label: "Security", icon: "pi pi-shield" },
         { id: "config", label: "Configuration", icon: "pi pi-cog" },
       ]);

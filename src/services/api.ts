@@ -1709,6 +1709,7 @@ export interface Backup {
   readonly deployment_name: string;
   readonly status: "pending" | "in_progress" | "completed" | "partial" | "local_only" | "failed";
   readonly size: number;
+  readonly checksum?: string;
   readonly path: string;
   readonly components: readonly string[];
   readonly error?: string;
@@ -1733,6 +1734,8 @@ export interface BackupDestinationResult {
   readonly name: string;
   readonly status: "completed" | "skipped" | "failed";
   readonly error?: string;
+  readonly checksum?: string;
+  readonly verified: boolean;
 }
 
 export interface BackupSpec {
@@ -1741,6 +1744,65 @@ export interface BackupSpec {
   readonly pre_hooks?: readonly BackupHookSpec[];
   readonly post_hooks?: readonly BackupHookSpec[];
   readonly exclude_patterns?: readonly string[];
+  readonly destinations?: readonly string[];
+  readonly retention_count?: number;
+  readonly size_alert_bytes?: number;
+}
+
+export interface BackupCleanupPreview {
+  readonly keep_count: number;
+  readonly delete_ids: readonly string[];
+  readonly reclaimed_bytes: number;
+}
+
+export interface DeploymentBackupPolicy {
+  readonly config: BackupSpec;
+  readonly schedules: readonly ScheduledTask[];
+  readonly backup_count: number;
+  readonly local_bytes: number;
+  readonly failed_count: number;
+  readonly size_alert: boolean;
+  readonly cleanup_preview: BackupCleanupPreview;
+}
+
+export interface MigrationSite {
+  hostname: string;
+  source_path?: string;
+  bytes?: number;
+  transferred: boolean;
+  last_synced_at?: string;
+  resolved?: readonly string[];
+  dns_propagated: boolean;
+}
+
+export interface MigrationPlan {
+  source: string;
+  sites: MigrationSite[];
+  inventory_complete: boolean;
+  initial_transfer_at?: string;
+  last_sync_at?: string;
+  cutover_at?: string;
+  expected_address?: string;
+  notes?: string;
+}
+
+export interface MigrationStatus {
+  plan: MigrationPlan | null;
+  retirement_ready: boolean;
+  blockers: readonly string[];
+}
+
+export const migrationsApi = {
+  get: (name: string) => apiClient.get<{ migration: MigrationStatus }>(`/deployments/${name}/migration`),
+  update: (name: string, plan: MigrationPlan) =>
+    apiClient.put<{ migration: MigrationStatus }>(`/deployments/${name}/migration`, plan),
+  checkDns: (name: string) =>
+    apiClient.post<{ migration: MigrationStatus }>(`/deployments/${name}/migration/check-dns`),
+};
+
+export interface BackupDestinationOption {
+  readonly name: string;
+  readonly kind: string;
 }
 
 export interface ContainerBackupPath {
@@ -1806,7 +1868,13 @@ export const backupsApi = {
 
   restore: (
     id: string,
-    options?: { restore_data?: boolean; restore_db?: boolean; stop_first?: boolean },
+    options?: {
+      deployment_name?: string;
+      isolated?: boolean;
+      restore_data?: boolean;
+      restore_db?: boolean;
+      stop_first?: boolean;
+    },
     deploymentName?: string,
   ) =>
     apiClient.post<{ job_id: string; message: string }>(
@@ -1838,6 +1906,15 @@ export const backupsApi = {
 
   updateDeploymentBackupConfig: (name: string, config: BackupSpec) =>
     apiClient.put<{ backup_config: BackupSpec }>(`/deployments/${name}/backup-config`, config),
+
+  getDeploymentBackupPolicy: (name: string) =>
+    apiClient.get<{ policy: DeploymentBackupPolicy }>(`/deployments/${name}/backup-policy`),
+
+  cleanupDeploymentBackups: (name: string, keep: number) =>
+    apiClient.post<{ deleted: number }>(`/deployments/${name}/backup-cleanup`, { keep }),
+
+  getDeploymentBackupDestinations: (name: string) =>
+    apiClient.get<{ destinations: BackupDestinationOption[] }>(`/deployments/${name}/backup-destinations`),
 
   getJob: (jobId: string, deploymentName?: string) =>
     apiClient.get<{ job: BackupJob }>(

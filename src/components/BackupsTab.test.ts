@@ -15,6 +15,23 @@ vi.mock("@/services/api", () => ({
       data: { job: { id: "job-123", status: "completed", type: "backup" } },
     }),
     retryPublication: vi.fn().mockResolvedValue({ data: { backup: { status: "completed" } } }),
+    getDeploymentBackupDestinations: vi.fn().mockResolvedValue({ data: { destinations: [] } }),
+    getDeploymentBackupConfig: vi.fn().mockResolvedValue({ data: { backup_config: {} } }),
+    updateDeploymentBackupConfig: vi.fn().mockResolvedValue({ data: { backup_config: {} } }),
+    getDeploymentBackupPolicy: vi.fn().mockResolvedValue({
+      data: {
+        policy: {
+          config: {},
+          schedules: [],
+          backup_count: 0,
+          local_bytes: 0,
+          failed_count: 0,
+          size_alert: false,
+          cleanup_preview: { keep_count: 7, delete_ids: [], reclaimed_bytes: 0 },
+        },
+      },
+    }),
+    cleanupDeploymentBackups: vi.fn().mockResolvedValue({ data: { deleted: 0 } }),
   },
   schedulerApi: {
     listTasks: vi.fn().mockResolvedValue({ data: { tasks: [] } }),
@@ -30,6 +47,11 @@ const mockCreateDeploymentBackup = backupsApi.createDeploymentBackup as ReturnTy
 const mockDeleteBackup = backupsApi.delete as ReturnType<typeof vi.fn>;
 const mockRestoreBackup = backupsApi.restore as ReturnType<typeof vi.fn>;
 const mockRetryPublication = backupsApi.retryPublication as ReturnType<typeof vi.fn>;
+const mockGetBackupDestinations = backupsApi.getDeploymentBackupDestinations as ReturnType<typeof vi.fn>;
+const mockGetBackupConfig = backupsApi.getDeploymentBackupConfig as ReturnType<typeof vi.fn>;
+const mockUpdateBackupConfig = backupsApi.updateDeploymentBackupConfig as ReturnType<typeof vi.fn>;
+const mockGetBackupPolicy = backupsApi.getDeploymentBackupPolicy as ReturnType<typeof vi.fn>;
+const mockCleanupBackups = backupsApi.cleanupDeploymentBackups as ReturnType<typeof vi.fn>;
 const mockListTasks = schedulerApi.listTasks as ReturnType<typeof vi.fn>;
 const mockCreateTask = schedulerApi.createTask as ReturnType<typeof vi.fn>;
 
@@ -71,6 +93,21 @@ describe("BackupsTab", () => {
     vi.clearAllMocks();
     mockGetDeploymentBackups.mockResolvedValue({ data: { backups: [] } });
     mockListTasks.mockResolvedValue({ data: { tasks: [] } });
+    mockGetBackupDestinations.mockResolvedValue({ data: { destinations: [] } });
+    mockGetBackupConfig.mockResolvedValue({ data: { backup_config: {} } });
+    mockGetBackupPolicy.mockResolvedValue({
+      data: {
+        policy: {
+          config: {},
+          schedules: [],
+          backup_count: 0,
+          local_bytes: 0,
+          failed_count: 0,
+          size_alert: false,
+          cleanup_preview: { keep_count: 7, delete_ids: [], reclaimed_bytes: 0 },
+        },
+      },
+    });
     vi.stubGlobal("URL", {
       ...URL,
       createObjectURL: vi.fn().mockReturnValue("blob:backup"),
@@ -105,6 +142,60 @@ describe("BackupsTab", () => {
   };
 
   describe("Component structure", () => {
+    it("saves selected destinations for this deployment", async () => {
+      mockGetBackupDestinations.mockResolvedValue({
+        data: {
+          destinations: [
+            { name: "primary", kind: "external" },
+            { name: "archive", kind: "managed" },
+          ],
+        },
+      });
+      mockGetBackupConfig.mockResolvedValue({ data: { backup_config: { destinations: ["primary"] } } });
+      mockUpdateBackupConfig.mockResolvedValue({ data: { backup_config: { destinations: ["primary", "archive"] } } });
+      const wrapper = mountBackupsTab();
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      const archive = wrapper.findAll(".destination-option").find((option) => option.text().includes("archive"));
+      await archive!.find("input").setValue(true);
+      await wrapper
+        .findAll("button")
+        .find((button) => button.text().includes("Save policy"))!
+        .trigger("click");
+
+      expect(mockUpdateBackupConfig).toHaveBeenCalledWith("my-app", {
+        destinations: ["primary", "archive"],
+        retention_count: 7,
+        size_alert_bytes: 0,
+        exclude_patterns: [],
+      });
+    });
+
+    it("applies the retention value shown in the cleanup preview", async () => {
+      mockGetBackupPolicy.mockResolvedValue({
+        data: {
+          policy: {
+            config: { retention_count: 7 },
+            schedules: [],
+            backup_count: 9,
+            local_bytes: 0,
+            failed_count: 0,
+            size_alert: false,
+            cleanup_preview: { keep_count: 7, delete_ids: ["old"], reclaimed_bytes: 1 },
+          },
+        },
+      });
+      const wrapper = mountBackupsTab();
+      await new Promise((resolve) => setTimeout(resolve, 10));
+      await wrapper.find('input[type="number"]').setValue(1);
+      await wrapper
+        .findAll("button")
+        .find((button) => button.text().includes("Apply cleanup"))!
+        .trigger("click");
+
+      expect(mockCleanupBackups).toHaveBeenCalledWith("my-app", 7);
+    });
+
     it("renders the backups tab container", () => {
       const wrapper = mountBackupsTab();
       expect(wrapper.find(".backups-tab").exists()).toBe(true);
@@ -197,6 +288,18 @@ describe("BackupsTab", () => {
       expect(mockRetryPublication).toHaveBeenCalledWith("my-app", mockBackups[0].id);
     });
 
+    it("shows when a remote copy was verified", async () => {
+      const verified = [
+        {
+          ...mockBackups[0],
+          destination_results: [{ name: "archive", status: "completed", verified: true }],
+        },
+      ];
+      const wrapper = mountBackupsTab({ backups: verified as typeof mockBackups });
+      await new Promise((resolve) => setTimeout(resolve, 10));
+      expect(wrapper.text()).toContain("archive: completed verified");
+    });
+
     it("does not offer publication retry for cleanup-only failures", async () => {
       const cleanupFailure = [
         {
@@ -259,7 +362,7 @@ describe("BackupsTab", () => {
 
       const restoreButtons = wrapper
         .findAll(".backup-actions .btn-secondary")
-        .filter((btn) => btn.text().includes("Restore"));
+        .filter((btn) => btn.text().trim() === "Restore");
       expect(restoreButtons.length).toBe(2);
     });
 
@@ -371,6 +474,29 @@ describe("BackupsTab", () => {
       expect(mockRestoreBackup).toHaveBeenCalledWith(
         "my-app_20250101_120000",
         {
+          restore_data: true,
+          restore_db: true,
+          stop_first: true,
+        },
+        "my-app",
+      );
+    });
+
+    it("restores into a separate deployment with isolation enabled", async () => {
+      const wrapper = mountBackupsTab({ backups: mockBackups });
+      await wrapper.vm.$nextTick();
+      await new Promise((r) => setTimeout(r, 10));
+      const vm = wrapper.vm as any;
+      vm.backupToRestore = mockBackups[0];
+      vm.isolatedDeploymentName = "my-app-recovery";
+
+      await vm.restoreBackupIsolated();
+
+      expect(mockRestoreBackup).toHaveBeenCalledWith(
+        "my-app_20250101_120000",
+        {
+          deployment_name: "my-app-recovery",
+          isolated: true,
           restore_data: true,
           restore_db: true,
           stop_first: true,

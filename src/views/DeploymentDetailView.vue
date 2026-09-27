@@ -784,6 +784,7 @@
           :can-schedule="canManageSchedules"
           :can-delete-schedule="canDeleteSchedules"
         />
+        <MigrationTab v-if="activeTab === 'migration'" :deployment-name="route.params.name as string" />
 
         <div v-for="pt in pluginTabs" :key="pt.id" v-show="activeTab === pt.id" class="plugin-tab">
           <PluginSlot
@@ -2043,6 +2044,7 @@ import LogViewer from "@/components/LogViewer.vue";
 import ConfirmModal from "@/components/ConfirmModal.vue";
 import ContainerTerminal from "@/components/ContainerTerminal.vue";
 import BackupsTab from "@/components/BackupsTab.vue";
+import MigrationTab from "@/components/MigrationTab.vue";
 import PluginSlot from "@/components/plugins/PluginSlot.vue";
 import { usePluginsStore } from "@/stores/plugins";
 import DomainsManager from "@/components/DomainsManager.vue";
@@ -2197,6 +2199,7 @@ const tabs = [
   { id: "databases", label: "Databases", icon: "pi pi-database" },
   { id: "actions", label: "Quick Actions", icon: "pi pi-bolt" },
   { id: "backups", label: "Backups", icon: "pi pi-history" },
+  { id: "migration", label: "Migration", icon: "pi pi-directions" },
   { id: "security", label: "Security", icon: "pi pi-shield" },
   { id: "config", label: "Configuration", icon: "pi pi-cog" },
 ];
