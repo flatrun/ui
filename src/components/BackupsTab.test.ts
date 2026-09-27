@@ -18,6 +18,20 @@ vi.mock("@/services/api", () => ({
     getDeploymentBackupDestinations: vi.fn().mockResolvedValue({ data: { destinations: [] } }),
     getDeploymentBackupConfig: vi.fn().mockResolvedValue({ data: { backup_config: {} } }),
     updateDeploymentBackupConfig: vi.fn().mockResolvedValue({ data: { backup_config: {} } }),
+    getDeploymentBackupPolicy: vi.fn().mockResolvedValue({
+      data: {
+        policy: {
+          config: {},
+          schedules: [],
+          backup_count: 0,
+          local_bytes: 0,
+          failed_count: 0,
+          size_alert: false,
+          cleanup_preview: { keep_count: 7, delete_ids: [], reclaimed_bytes: 0 },
+        },
+      },
+    }),
+    cleanupDeploymentBackups: vi.fn().mockResolvedValue({ data: { deleted: 0 } }),
   },
   schedulerApi: {
     listTasks: vi.fn().mockResolvedValue({ data: { tasks: [] } }),
@@ -131,10 +145,15 @@ describe("BackupsTab", () => {
       await archive!.find("input").setValue(true);
       await wrapper
         .findAll("button")
-        .find((button) => button.text().includes("Save destinations"))!
+        .find((button) => button.text().includes("Save policy"))!
         .trigger("click");
 
-      expect(mockUpdateBackupConfig).toHaveBeenCalledWith("my-app", { destinations: ["primary", "archive"] });
+      expect(mockUpdateBackupConfig).toHaveBeenCalledWith("my-app", {
+        destinations: ["primary", "archive"],
+        retention_count: 7,
+        size_alert_bytes: 0,
+        exclude_patterns: [],
+      });
     });
 
     it("renders the backups tab container", () => {

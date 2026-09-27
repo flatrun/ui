@@ -30,16 +30,41 @@
           <span class="destination-kind">{{ destination.kind }}</span>
         </label>
       </div>
+      <div class="policy-fields">
+        <label>
+          Keep local backups
+          <BaseInput v-model="retentionCount" type="number" />
+        </label>
+        <label>
+          Alert above MiB
+          <BaseInput v-model="sizeAlertMiB" type="number" />
+        </label>
+        <label class="policy-exclusions">
+          Exclusions, one pattern per line
+          <textarea v-model="excludePatterns" class="form-control" rows="3" placeholder="cache/**" />
+        </label>
+      </div>
+      <div v-if="policy" class="policy-summary" :class="{ warning: policy.size_alert }">
+        {{ policy.backup_count }} backups, {{ formatBytes(policy.local_bytes) }} local,
+        {{ policy.failed_count }} needing attention.
+        <span v-if="policy.cleanup_preview.delete_ids.length">
+          Cleanup would remove {{ policy.cleanup_preview.delete_ids.length }} and reclaim
+          {{ formatBytes(policy.cleanup_preview.reclaimed_bytes) }}.
+        </span>
+      </div>
       <template #footer>
         <BaseButton
           variant="primary"
           size="sm"
           :loading="savingDestinations"
           :disabled="destinationOptions.length === 0 || selectedDestinations.length === 0"
-          @click="saveDestinations"
+          @click="savePolicy"
         >
-          Save destinations
+          Save policy
         </BaseButton>
+        <BaseButton v-if="policy?.cleanup_preview.delete_ids.length" variant="secondary" size="sm" @click="applyCleanup"
+          >Apply cleanup</BaseButton
+        >
       </template>
     </BaseCard>
 
@@ -286,7 +311,14 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from "vue";
 import { backupsApi, schedulerApi } from "@/services/api";
-import type { Backup, ScheduledTask, BackupJob, BackupSpec, BackupDestinationOption } from "@/services/api";
+import type {
+  Backup,
+  ScheduledTask,
+  BackupJob,
+  BackupSpec,
+  BackupDestinationOption,
+  DeploymentBackupPolicy,
+} from "@/services/api";
 import { useNotificationsStore } from "@/stores/notifications";
 import ConfirmModal from "@/components/ConfirmModal.vue";
 import BaseCard from "@/components/base/BaseCard.vue";
@@ -316,15 +348,24 @@ const destinationOptions = ref<BackupDestinationOption[]>([]);
 const selectedDestinations = ref<string[]>([]);
 const backupSpec = ref<BackupSpec>({});
 const savingDestinations = ref(false);
+const retentionCount = ref(7);
+const sizeAlertMiB = ref(0);
+const excludePatterns = ref("");
+const policy = ref<DeploymentBackupPolicy | null>(null);
 
 const fetchBackupDestinations = async () => {
   try {
-    const [optionsResponse, configResponse] = await Promise.all([
+    const [optionsResponse, configResponse, policyResponse] = await Promise.all([
       backupsApi.getDeploymentBackupDestinations(props.deploymentName),
       backupsApi.getDeploymentBackupConfig(props.deploymentName),
+      backupsApi.getDeploymentBackupPolicy(props.deploymentName),
     ]);
     destinationOptions.value = optionsResponse.data.destinations || [];
     backupSpec.value = configResponse.data.backup_config || {};
+    policy.value = policyResponse.data.policy;
+    retentionCount.value = backupSpec.value.retention_count || 7;
+    sizeAlertMiB.value = Math.round((backupSpec.value.size_alert_bytes || 0) / 1024 / 1024);
+    excludePatterns.value = (backupSpec.value.exclude_patterns || []).join("\n");
     selectedDestinations.value = backupSpec.value.destinations?.length
       ? [...backupSpec.value.destinations]
       : destinationOptions.value.map((destination) => destination.name);
@@ -339,17 +380,37 @@ const toggleDestination = (name: string) => {
     : [...selectedDestinations.value, name];
 };
 
-const saveDestinations = async () => {
+const savePolicy = async () => {
   savingDestinations.value = true;
   try {
-    const updated = { ...backupSpec.value, destinations: selectedDestinations.value };
+    const updated = {
+      ...backupSpec.value,
+      destinations: selectedDestinations.value,
+      retention_count: Number(retentionCount.value),
+      size_alert_bytes: Number(sizeAlertMiB.value) * 1024 * 1024,
+      exclude_patterns: excludePatterns.value
+        .split("\n")
+        .map((pattern) => pattern.trim())
+        .filter(Boolean),
+    };
     const response = await backupsApi.updateDeploymentBackupConfig(props.deploymentName, updated);
     backupSpec.value = response.data.backup_config;
-    notifications.success("Backup Destinations Saved", "Future backups will use the selected stores");
+    notifications.success("Backup Policy Saved", "Backup storage policy has been updated");
+    await fetchBackupDestinations();
   } catch (err: any) {
     notifications.error("Save Failed", err.response?.data?.error || "Failed to save backup destinations");
   } finally {
     savingDestinations.value = false;
+  }
+};
+
+const applyCleanup = async () => {
+  try {
+    const response = await backupsApi.cleanupDeploymentBackups(props.deploymentName, Number(retentionCount.value));
+    notifications.success("Cleanup Complete", `${response.data.deleted} local backups removed`);
+    await Promise.all([fetchBackups(), fetchBackupDestinations()]);
+  } catch (err: any) {
+    notifications.error("Cleanup Failed", err.response?.data?.error || "Failed to clean up backups");
   }
 };
 

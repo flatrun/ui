@@ -1745,6 +1745,24 @@ export interface BackupSpec {
   readonly post_hooks?: readonly BackupHookSpec[];
   readonly exclude_patterns?: readonly string[];
   readonly destinations?: readonly string[];
+  readonly retention_count?: number;
+  readonly size_alert_bytes?: number;
+}
+
+export interface BackupCleanupPreview {
+  readonly keep_count: number;
+  readonly delete_ids: readonly string[];
+  readonly reclaimed_bytes: number;
+}
+
+export interface DeploymentBackupPolicy {
+  readonly config: BackupSpec;
+  readonly schedules: readonly ScheduledTask[];
+  readonly backup_count: number;
+  readonly local_bytes: number;
+  readonly failed_count: number;
+  readonly size_alert: boolean;
+  readonly cleanup_preview: BackupCleanupPreview;
 }
 
 export interface BackupDestinationOption {
@@ -1853,6 +1871,12 @@ export const backupsApi = {
 
   updateDeploymentBackupConfig: (name: string, config: BackupSpec) =>
     apiClient.put<{ backup_config: BackupSpec }>(`/deployments/${name}/backup-config`, config),
+
+  getDeploymentBackupPolicy: (name: string) =>
+    apiClient.get<{ policy: DeploymentBackupPolicy }>(`/deployments/${name}/backup-policy`),
+
+  cleanupDeploymentBackups: (name: string, keep: number) =>
+    apiClient.post<{ deleted: number }>(`/deployments/${name}/backup-cleanup`, { keep }),
 
   getDeploymentBackupDestinations: (name: string) =>
     apiClient.get<{ destinations: BackupDestinationOption[] }>(`/deployments/${name}/backup-destinations`),
