@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+## [0.4.0-beta.9] - 2026-09-28
+
+### Added
+- Backup destination selection, retention, exclusions, storage alerts, and cleanup controls
+- Isolated restore into a separate deployment
+- Migration inventory, synchronization progress, DNS checks, cutover state, and retirement readiness
+
+### Changed
+- Cleanup uses the saved retention value shown in its preview
+
 ## [0.4.0-beta.8] - 2026-09-26
 
 ### Added
