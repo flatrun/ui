@@ -6,15 +6,9 @@
         <span class="icon"><Icon :name="icon" :size="16" /></span>
         <span class="name" :title="service.name">{{ service.name }}</span>
       </div>
-      <a
-        v-if="service.domains[0]"
-        class="domain"
-        :href="`https://${service.domains[0]}`"
-        target="_blank"
-        rel="noopener"
-        @click.stop
-        >{{ service.domains[0] }}</a
-      >
+      <a v-if="domain" class="domain" :href="`https://${domain}`" target="_blank" rel="noopener" @click.stop>{{
+        domain
+      }}</a>
       <div class="status" :class="state">
         <span class="dot" />
         <span>{{ statusText }}</span>
@@ -33,14 +27,17 @@ import { computed } from "vue";
 import { Handle, Position } from "@vue-flow/core";
 import Icon from "@/components/base/Icon.vue";
 import { serviceIcon } from "@/lib/brand";
-import type { ProjectService } from "@/model/project";
+import type { Service } from "@/types";
 
-const props = defineProps<{ data: { service: ProjectService }; selected?: boolean }>();
+const props = defineProps<{ data: { service: Service }; selected?: boolean }>();
 
 const service = computed(() => props.data.service);
-const volumes = computed(() => service.value.mounts.filter((m) => m.type === "volume" || m.source.startsWith("./")));
+const volumes = computed(() =>
+  (service.value.mounts ?? []).filter((m) => m.type === "volume" || m.source.startsWith("./")),
+);
 
 const icon = computed(() => serviceIcon(service.value.image));
+const domain = computed(() => service.value.domains?.[0]);
 
 const state = computed(() => {
   if (service.value.status === "running" && service.value.health !== "unhealthy") return "running";
@@ -59,7 +56,8 @@ const statusText = computed(() => {
         : state.value === "failed"
           ? "Exited"
           : "Not running";
-  return s.replicas > 1 ? `${label} · ${s.running}/${s.replicas} replicas` : label;
+  const replicas = s.replicas ?? 1;
+  return replicas > 1 ? `${label} · ${s.running_replicas ?? 0}/${replicas} replicas` : label;
 });
 </script>
 

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import deploymentsFixture from "./fixtures/deployments.json";
 import deploysFixture from "./fixtures/deploys.json";
-import type { DeployRecord, Deployment } from "@/types";
+import type { DeployRecord, Deployment, Service } from "@/types";
 import logsFixture from "@/components/deploys/fixtures/logs.json";
 import historyFixture from "@/components/deploys/fixtures/history.json";
 import servicesFixture from "./fixtures/services.json";
@@ -10,7 +10,6 @@ import {
   deploysFrom,
   projectsFrom,
   serviceGraph,
-  servicesFrom,
   splitLog,
   variableKind,
   type PhaseStart,
@@ -23,18 +22,11 @@ describe("project model", () => {
     const projects = projectsFrom(deployments);
     expect(projects.map((p) => p.name)).toEqual(["hello-web", "orders-db", "orders-worker", "storefront"]);
     const hello = projects.find((p) => p.name === "hello-web")!;
-    expect(hello.environments.map((e) => [e.name, e.deployment])).toEqual([
+    expect(hello.environments.map((e) => [e.name, e.deployment.name])).toEqual([
       ["production", "hello-web"],
       ["staging", "hello-web-staging"],
     ]);
-    expect(hello.environments[1].branch).toBe("main");
-  });
-
-  it("describes each compose service with its replicas", () => {
-    const hello = projectsFrom(deployments).find((p) => p.name === "hello-web")!;
-    expect(hello.environments[0].services).toEqual([
-      expect.objectContaining({ name: "app", replicas: 1, running: 0, domains: [], mounts: [] }),
-    ]);
+    expect(hello.environments[1].deployment.metadata?.source?.branch).toBe("main");
   });
 
   it("keeps only the requested workspace", () => {
@@ -97,7 +89,7 @@ describe("deploy logs", () => {
 });
 
 describe("service graph", () => {
-  const services = servicesFrom(servicesFixture.services as any);
+  const services = servicesFixture.services as unknown as Service[];
 
   it("puts a service above the ones it depends on", () => {
     expect(serviceGraph(services)).toEqual({
@@ -110,18 +102,11 @@ describe("service graph", () => {
     });
   });
 
-  it("reads replicas and mounts from the agent", () => {
-    const worker = services.find((s) => s.name === "worker")!;
-    const db = services.find((s) => s.name === "db")!;
-    expect([worker.replicas, worker.running]).toEqual([2, 2]);
-    expect(db.mounts).toEqual([{ type: "bind", source: "./data", target: "/var/lib/postgresql/data" }]);
-  });
-
   it("survives a dependency cycle", () => {
-    const cyclic = servicesFrom([
+    const cyclic = [
       { name: "a", depends_on: ["b"] },
       { name: "b", depends_on: ["a"] },
-    ] as any);
+    ] as Service[];
     const graph = serviceGraph(cyclic);
     expect(graph.rows.flat().sort()).toEqual(["a", "b"]);
   });

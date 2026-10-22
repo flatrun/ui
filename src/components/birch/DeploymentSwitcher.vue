@@ -88,14 +88,14 @@
           <ul class="rows">
             <li
               v-for="e in environments"
-              :key="e.deployment"
+              :key="e.deployment.name"
               class="row"
-              :class="{ current: e.deployment === currentName }"
+              :class="{ current: e.deployment.name === currentName }"
             >
-              <button type="button" class="row-main" @click="go(e.deployment, undefined, close)">
-                <span class="dot" :class="e.sleeping ? 'sleeping' : e.status" />
+              <button type="button" class="row-main" @click="go(e.deployment.name, undefined, close)">
+                <span class="dot" :class="statusOf(e.deployment)" />
                 <span class="row-name">{{ e.name }}</span>
-                <span class="env-tag">{{ e.deployment }}</span>
+                <span class="env-tag">{{ e.deployment.name }}</span>
               </button>
             </li>
           </ul>
@@ -162,7 +162,7 @@ const environments = computed(() => {
   return projectsFrom(deployments.value).find((p) => p.name === base)?.environments ?? [];
 });
 
-const currentEnvironment = computed(() => environments.value.find((e) => e.deployment === currentName.value));
+const currentEnvironment = computed(() => environments.value.find((e) => e.deployment.name === currentName.value));
 
 function statusOf(d: Deployment) {
   if (d.metadata?.sleep?.sleeping) return "sleeping";

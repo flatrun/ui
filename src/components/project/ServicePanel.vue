@@ -34,25 +34,25 @@
         </div>
         <div>
           <dt>Replicas</dt>
-          <dd>{{ service.running }} of {{ service.replicas }} running</dd>
+          <dd>{{ service.running_replicas ?? 0 }} of {{ service.replicas ?? 1 }} running</dd>
         </div>
-        <div v-if="service.domains.length">
+        <div v-if="service.domains?.length">
           <dt>Domains</dt>
           <dd>
             <a v-for="d in service.domains" :key="d" :href="`https://${d}`" target="_blank" rel="noopener">{{ d }}</a>
           </dd>
         </div>
-        <div v-if="service.ports.length">
+        <div v-if="service.ports?.length">
           <dt>Ports</dt>
-          <dd class="mono">{{ service.ports.join(", ") }}</dd>
+          <dd class="mono">{{ service.ports?.join(", ") }}</dd>
         </div>
-        <div v-if="service.dependsOn.length">
+        <div v-if="service.depends_on?.length">
           <dt>Waits for</dt>
-          <dd>{{ service.dependsOn.join(", ") }}</dd>
+          <dd>{{ service.depends_on?.join(", ") }}</dd>
         </div>
         <div>
           <dt>Volumes</dt>
-          <dd v-if="!service.mounts.length" class="muted">
+          <dd v-if="!service.mounts?.length" class="muted">
             None. Data written inside the container is lost on redeploy.
           </dd>
           <dd v-else>
@@ -75,9 +75,9 @@ import { ref, watch } from "vue";
 import SlidePanel from "@/components/base/SlidePanel.vue";
 import LogViewer from "@/components/LogViewer.vue";
 import { deploymentsApi } from "@/services/api";
-import type { ProjectService } from "@/model/project";
+import type { Service } from "@/types";
 
-const props = defineProps<{ deploymentName: string; service: ProjectService | null }>();
+const props = defineProps<{ deploymentName: string; service: Service | null }>();
 const emit = defineEmits<{ close: [] }>();
 
 type Tab = "logs" | "settings";

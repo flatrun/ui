@@ -1,32 +1,10 @@
-import type { DeployPhase, DeployRecord, Deployment, Service, ServiceMount } from "@/types";
+import type { DeployPhase, DeployRecord, Deployment, Service } from "@/types";
 import { PRODUCTION, environmentOf } from "@/canvas/layout";
 
-// The platform vocabulary the Birch views speak: a workspace holds projects,
-// a project is one deployment plus its environments, and an environment runs
-// the compose services of one deployment directory.
-
-export interface ProjectService {
-  name: string;
-  image: string;
-  status: string;
-  health?: string;
-  primary: boolean;
-  replicas: number;
-  running: number;
-  domains: string[];
-  mounts: ServiceMount[];
-  ports: string[];
-  dependsOn: string[];
-}
-
+// A project is a deployment together with the environments made from it.
 export interface ProjectEnvironment {
   name: string;
-  deployment: string;
-  status: Deployment["status"];
-  sleeping: boolean;
-  services: ProjectService[];
-  branch?: string;
-  revision?: string;
+  deployment: Deployment;
 }
 
 export interface Project {
@@ -52,41 +30,6 @@ export interface Deploy {
 
 export type VariableKind = "plain" | "reference" | "secret";
 
-function serviceFrom(s: Service): ProjectService {
-  return {
-    name: s.name,
-    image: s.image,
-    status: s.status,
-    health: s.health,
-    primary: !!s.is_primary,
-    replicas: s.replicas ?? 1,
-    running: s.running_replicas ?? 0,
-    domains: s.domains ?? [],
-    mounts: s.mounts ?? [],
-    ports: s.ports ?? [],
-    dependsOn: s.depends_on ?? [],
-  };
-}
-
-export function servicesFrom(services: Service[] | null | undefined): ProjectService[] {
-  return (services ?? []).map(serviceFrom).sort((a, b) => a.name.localeCompare(b.name));
-}
-
-function environmentFrom(d: Deployment): ProjectEnvironment {
-  const source = d.metadata?.source;
-  return {
-    name: environmentOf(d),
-    deployment: d.name,
-    status: d.status,
-    sleeping: !!d.metadata?.sleep?.sleeping,
-    services: (d.services ?? [])
-      .map(serviceFrom)
-      .sort((a, b) => Number(b.primary) - Number(a.primary) || a.name.localeCompare(b.name)),
-    branch: source?.branch,
-    revision: source?.last_revision,
-  };
-}
-
 // projectsFrom groups deployments into projects: an environment joins the
 // project of the deployment it was made from. An environment whose base is
 // not in the list still gets a project, named after the base.
@@ -100,7 +43,7 @@ export function projectsFrom(deployments: Deployment[], workspace?: string): Pro
       project = { name, workspace: d.workspace, environments: [] };
       projects.set(name, project);
     }
-    project.environments.push(environmentFrom(d));
+    project.environments.push({ name: environmentOf(d), deployment: d });
   }
   for (const project of projects.values()) {
     project.environments.sort((a, b) =>
@@ -212,9 +155,10 @@ export interface ServiceGraph {
 // serviceGraph stacks services in rows so that a service sits above the ones
 // it depends on: the entry points on top and the data stores at the bottom.
 // A dependency cycle is cut where it is found.
-export function serviceGraph(services: ProjectService[]): ServiceGraph {
+export function serviceGraph(unsorted: Service[]): ServiceGraph {
+  const services = [...unsorted].sort((a, b) => a.name.localeCompare(b.name));
   const names = new Set(services.map((s) => s.name));
-  const deps = new Map(services.map((s) => [s.name, s.dependsOn.filter((d) => names.has(d))]));
+  const deps = new Map(services.map((s) => [s.name, (s.depends_on ?? []).filter((d) => names.has(d))]));
   const depth = new Map<string, number>();
   const visiting = new Set<string>();
   const measure = (name: string): number => {

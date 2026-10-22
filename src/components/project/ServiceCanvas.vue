@@ -33,14 +33,15 @@ import Icon from "@/components/base/Icon.vue";
 import ServiceNode from "./ServiceNode.vue";
 import ServicePanel from "./ServicePanel.vue";
 import { deploymentsApi } from "@/services/api";
-import { serviceGraph, servicesFrom, type ProjectService } from "@/model/project";
+import { serviceGraph } from "@/model/project";
+import type { Service } from "@/types";
 
 const props = defineProps<{ deploymentName: string }>();
 
 const COLUMN = 260;
 const ROW = 170;
 
-const services = ref<ProjectService[]>([]);
+const services = ref<Service[]>([]);
 const loaded = ref(false);
 const selected = ref<string | null>(null);
 
@@ -72,7 +73,7 @@ const edges = computed<Edge[]>(() =>
 
 async function load() {
   try {
-    services.value = servicesFrom((await deploymentsApi.getServices(props.deploymentName)).data.services);
+    services.value = (await deploymentsApi.getServices(props.deploymentName)).data.services ?? [];
   } catch {
     services.value = [];
   }
