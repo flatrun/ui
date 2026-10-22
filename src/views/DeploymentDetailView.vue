@@ -686,7 +686,10 @@
                 <span class="env-value">
                   <span class="env-value-stack">
                     <span class="env-value-line">
-                      <span v-if="env.resolved !== undefined" class="env-ref-badge" title="References another deployment"
+                      <span
+                        v-if="env.resolved !== undefined"
+                        class="env-ref-badge"
+                        title="References another deployment"
                         >ref</span
                       >
                       <code>{{ env.resolved !== undefined || !env.hidden ? env.value : "••••••••" }}</code>
@@ -2032,7 +2035,7 @@ import { ref, reactive, computed, onMounted, onUnmounted, nextTick, watch } from
 import { useRoute, useRouter } from "vue-router";
 import { Codemirror } from "vue-codemirror";
 import { yaml } from "@codemirror/lang-yaml";
-import { oneDark } from "@codemirror/theme-one-dark";
+import { useEditorTheme } from "@/composables/useEditorTheme";
 import {
   deploymentsApi,
   proxyApi,
@@ -2365,7 +2368,8 @@ const composeFilename = ref("docker-compose.yml");
 const isEditingConfig = ref(false);
 const serviceConfig = ref("");
 const isEditingServiceConfig = ref(false);
-const configExtensions = [yaml(), oneDark];
+const editorTheme = useEditorTheme();
+const configExtensions = computed(() => [yaml(), editorTheme.value]);
 const activeConfigTab = ref<"settings" | "autoscaling" | "compose" | "service">("settings");
 
 const configSubTabs = computed(() => [
@@ -4406,7 +4410,7 @@ onUnmounted(() => {
 }
 
 .form-error {
-  color: var(--color-error-600, #dc2626);
+  color: var(--color-error-600, var(--color-danger-600));
   font-size: var(--text-sm);
   margin: var(--space-2) 0 0;
 }
@@ -4648,7 +4652,7 @@ onUnmounted(() => {
   border: 1px solid #2a2e3d;
   border-radius: var(--radius-sm);
   font-size: var(--text-sm);
-  background: #1a1b26;
+  background: var(--terminal-bg);
   color: #a9b1d6;
 }
 
@@ -5849,12 +5853,12 @@ onUnmounted(() => {
 
 .summary-icon.protected {
   background: rgba(34, 197, 94, 0.1);
-  color: #22c55e;
+  color: var(--color-success-500);
 }
 
 .summary-icon.rate {
   background: rgba(59, 130, 246, 0.1);
-  color: #3b82f6;
+  color: var(--accent);
 }
 
 .summary-icon.events {
@@ -5864,7 +5868,7 @@ onUnmounted(() => {
 
 .summary-icon.link {
   background: rgba(139, 92, 246, 0.1);
-  color: #8b5cf6;
+  color: var(--c-purple);
 }
 
 .summary-content {
@@ -5912,7 +5916,7 @@ onUnmounted(() => {
 }
 
 .enable-bar-left > i.enabled {
-  color: #22c55e;
+  color: var(--color-success-500);
 }
 
 .enable-bar-label {
@@ -6119,9 +6123,9 @@ onUnmounted(() => {
 }
 
 .preset-btn.active {
-  background: var(--color-info-50, #eff6ff);
+  background: var(--color-info-50, var(--accent-subtle));
   border-color: var(--color-primary-300, #93c5fd);
-  color: var(--color-primary-700, #1d4ed8);
+  color: var(--color-primary-700, var(--color-primary-700));
 }
 
 .preset-btn i {
@@ -6173,7 +6177,7 @@ onUnmounted(() => {
 .empty-state.horizontal i {
   margin-bottom: 0;
   font-size: 1.25rem;
-  color: #22c55e;
+  color: var(--color-success-500);
 }
 
 .empty-text {
@@ -6231,7 +6235,7 @@ onUnmounted(() => {
 }
 
 .btn-ghost:hover {
-  color: #ef4444;
+  color: var(--color-danger-500);
   background: rgba(239, 68, 68, 0.1);
 }
 
@@ -6254,8 +6258,8 @@ onUnmounted(() => {
 }
 
 .rate-badge {
-  background: var(--color-info-50, #eff6ff);
-  color: var(--color-primary-700, #1d4ed8);
+  background: var(--color-info-50, var(--accent-subtle));
+  color: var(--color-primary-700, var(--color-primary-700));
 }
 
 .burst-badge {
@@ -6555,8 +6559,8 @@ onUnmounted(() => {
 }
 
 .severity-badge.critical {
-  background: var(--color-danger-50, #fef2f2);
-  color: var(--color-danger-700, #b91c1c);
+  background: var(--color-danger-50, var(--color-danger-50));
+  color: var(--color-danger-700, var(--color-danger-700));
 }
 
 .severity-badge.high {

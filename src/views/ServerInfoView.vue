@@ -280,7 +280,7 @@ onMounted(() => {
 }
 
 .card-header i {
-  color: #3b82f6;
+  color: var(--accent);
   font-size: 1rem;
 }
 
@@ -294,7 +294,7 @@ onMounted(() => {
 .health-pill {
   margin-left: auto;
   padding: 0.25rem 0.75rem;
-  border-radius: 9999px;
+  border-radius: var(--radius-pill);
   font-size: 0.75rem;
   font-weight: 500;
 }

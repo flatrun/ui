@@ -1617,10 +1617,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, watch, computed, shallowRef } from "vue";
+import { ref, reactive, watch, computed } from "vue";
 import { Codemirror } from "vue-codemirror";
 import { yaml } from "@codemirror/lang-yaml";
-import { oneDark } from "@codemirror/theme-one-dark";
+import { useEditorTheme } from "@/composables/useEditorTheme";
 import BaseModal from "@/components/base/BaseModal.vue";
 import AssistButton from "@/components/ai/AssistButton.vue";
 import {
@@ -1700,7 +1700,8 @@ const existingDbContainers = ref<DbContainer[]>([]);
 const loadingDbContainers = ref(false);
 const existingDeployments = ref<string[]>([]);
 
-const extensions = shallowRef([yaml(), oneDark]);
+const editorTheme = useEditorTheme();
+const extensions = computed(() => [yaml(), editorTheme.value]);
 
 const deploymentMode = ref<"" | "easy" | "compose" | "image" | "git">("");
 const templatePreset = ref("");
@@ -4008,10 +4009,10 @@ const handleClose = () => {
   color: var(--color-primary-600);
 }
 .deploy-option-icon.image {
-  color: #3b82f6;
+  color: var(--accent);
 }
 .deploy-option-icon.compose {
-  color: #8b5cf6;
+  color: var(--c-purple);
 }
 .deploy-option-icon.git {
   color: #10b981;

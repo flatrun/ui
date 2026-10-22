@@ -659,7 +659,7 @@ watch(
   border: none;
   background: #eef2ff;
   color: #4338ca;
-  border-radius: 6px;
+  border-radius: var(--radius-lg);
   padding: 0.3rem 0.5rem;
   font-size: 0.72rem;
   cursor: pointer;
@@ -677,7 +677,7 @@ watch(
   padding: 0.45rem 0.6rem;
   background: #0f172a;
   color: #e2e8f0;
-  border-radius: 6px;
+  border-radius: var(--radius-lg);
   font-size: 0.7rem;
   max-height: 160px;
   overflow: auto;
@@ -691,7 +691,7 @@ watch(
 .markdown :deep(pre),
 .markdown :deep(code) {
   background: var(--surface-inset);
-  border-radius: 4px;
+  border-radius: var(--radius-md);
   font-size: 0.76rem;
 }
 .markdown :deep(code) {
@@ -730,7 +730,7 @@ watch(
   margin: 0 0 0.5rem;
   font-size: 0.8rem;
   font-weight: 600;
-  color: #92400e;
+  color: var(--color-warning-700);
 }
 .approval-item {
   display: flex;
@@ -752,7 +752,7 @@ watch(
 .approval-decided {
   font-size: 0.72rem;
   font-weight: 600;
-  color: #92400e;
+  color: var(--color-warning-700);
   flex-shrink: 0;
 }
 .approval-decided.allowed {
@@ -770,7 +770,7 @@ watch(
 }
 
 .suggestions {
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid var(--border);
   padding-top: 0.75rem;
 }
 .suggestions h4 {
@@ -779,7 +779,7 @@ watch(
   gap: 0.4rem;
   margin: 0 0 0.5rem;
   font-size: 0.82rem;
-  color: #111827;
+  color: var(--text);
 }
 .suggestion-card {
   display: grid;
@@ -787,8 +787,8 @@ watch(
   gap: 0.4rem 1rem;
   align-items: center;
   padding: 0.6rem 0.75rem;
-  border: 1px solid #e5e7eb;
-  border-radius: 6px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
 }
 .suggestion-card + .suggestion-card {
   margin-top: 0.4rem;
@@ -808,19 +808,19 @@ watch(
   font-size: 0.74rem;
   background: var(--surface-inset);
   padding: 0.12rem 0.4rem;
-  border-radius: 4px;
+  border-radius: var(--radius-md);
   width: fit-content;
   max-width: 100%;
   overflow-wrap: anywhere;
 }
 .suggestion-command.plain {
   font-family: inherit;
-  background: #eff6ff;
-  color: #1d4ed8;
+  background: var(--accent-subtle);
+  color: var(--color-primary-700);
 }
 .suggestion-reason {
   font-size: 0.74rem;
-  color: #6b7280;
+  color: var(--text-muted);
 }
 .suggestion-output {
   grid-column: 1 / -1;
@@ -828,7 +828,7 @@ watch(
   padding: 0.45rem 0.6rem;
   background: #0f172a;
   color: #e2e8f0;
-  border-radius: 6px;
+  border-radius: var(--radius-lg);
   font-size: 0.7rem;
   max-height: 160px;
   overflow: auto;

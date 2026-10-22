@@ -465,30 +465,30 @@ onMounted(() => {
 }
 
 .btn-primary {
-  background: #3b82f6;
+  background: var(--accent);
   color: white;
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: #2563eb;
+  background: var(--accent-hover);
 }
 
 .btn-success {
-  background: #22c55e;
+  background: var(--color-success-500);
   color: white;
 }
 
 .btn-success:hover:not(:disabled) {
-  background: #16a34a;
+  background: var(--color-success-600);
 }
 
 .btn-warning {
-  background: #f59e0b;
+  background: var(--color-warning-500);
   color: white;
 }
 
 .btn-warning:hover:not(:disabled) {
-  background: #d97706;
+  background: var(--color-warning-600);
 }
 
 .btn-secondary {

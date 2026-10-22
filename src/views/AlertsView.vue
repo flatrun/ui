@@ -386,8 +386,8 @@ onUnmounted(() => {
 }
 
 .av-count.danger {
-  background: var(--color-danger-100, #fee2e2);
-  color: var(--color-danger-700, #b91c1c);
+  background: var(--color-danger-100, var(--color-danger-50));
+  color: var(--color-danger-700, var(--color-danger-700));
 }
 
 .av-scroll {

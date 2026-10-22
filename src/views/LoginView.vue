@@ -176,7 +176,7 @@ const handleAPIKeyLogin = async () => {
 
 .brand p {
   font-size: 1.125rem;
-  color: #94a3b8;
+  color: var(--text-subtle);
   margin-top: 0.75rem;
 }
 
@@ -195,7 +195,7 @@ const handleAPIKeyLogin = async () => {
 }
 
 .feature i {
-  color: #22c55e;
+  color: var(--color-success-500);
   font-size: 1.125rem;
 }
 

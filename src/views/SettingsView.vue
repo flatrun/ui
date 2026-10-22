@@ -1996,7 +1996,7 @@ onMounted(() => {
 .status-badge {
   display: inline-block;
   padding: 0.25rem 0.625rem;
-  border-radius: 9999px;
+  border-radius: var(--radius-pill);
   font-size: 0.6875rem;
   font-weight: 600;
   text-transform: uppercase;
@@ -2004,8 +2004,8 @@ onMounted(() => {
 }
 
 .status-badge.enabled {
-  background: #dcfce7;
-  color: #166534;
+  background: var(--color-success-50);
+  color: var(--color-success-700);
 }
 
 .status-badge.disabled {
@@ -2121,7 +2121,7 @@ onMounted(() => {
 }
 
 .config-note code {
-  background: #dbeafe;
+  background: var(--color-primary-100);
   padding: 0.125rem 0.375rem;
   border-radius: var(--radius-sm);
   font-family: "SF Mono", "Fira Code", monospace;
@@ -2315,7 +2315,7 @@ onMounted(() => {
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: #2563eb;
+  background: var(--accent-hover);
 }
 
 .btn-primary:disabled {
@@ -2454,15 +2454,15 @@ onMounted(() => {
 
 .credential-badge {
   padding: 0.125rem 0.5rem;
-  border-radius: 9999px;
+  border-radius: var(--radius-pill);
   font-size: 0.6875rem;
   font-weight: 600;
   text-transform: uppercase;
 }
 
 .credential-badge.default {
-  background: #dbeafe;
-  color: #1d4ed8;
+  background: var(--color-primary-100);
+  color: var(--color-primary-700);
 }
 
 .credential-actions {
@@ -2473,12 +2473,12 @@ onMounted(() => {
 .btn-danger-ghost {
   background: transparent;
   border: 1px solid transparent;
-  color: #ef4444;
+  color: var(--color-danger-500);
 }
 
 .btn-danger-ghost:hover:not(:disabled) {
   background: var(--color-danger-50);
-  border-color: #fecaca;
+  border-color: var(--color-danger-100);
 }
 
 /* Header action button */
@@ -2600,7 +2600,7 @@ onMounted(() => {
 }
 
 .required {
-  color: #ef4444;
+  color: var(--color-danger-500);
 }
 
 .form-actions {
@@ -2645,7 +2645,7 @@ onMounted(() => {
 
 .confirm-icon.danger {
   background: var(--color-danger-50);
-  color: #ef4444;
+  color: var(--color-danger-500);
 }
 
 .confirm-icon i {
@@ -2673,13 +2673,13 @@ onMounted(() => {
 }
 
 .btn-danger {
-  background: #ef4444;
+  background: var(--color-danger-500);
   color: white;
   border: none;
 }
 
 .btn-danger:hover:not(:disabled) {
-  background: #dc2626;
+  background: var(--color-danger-600);
 }
 
 .btn-danger:disabled {

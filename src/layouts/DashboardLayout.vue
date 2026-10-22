@@ -1188,7 +1188,7 @@ onMounted(() => {
 .nav-count {
   background: rgba(255, 255, 255, 0.1);
   padding: 0.125rem 0.5rem;
-  border-radius: 9999px;
+  border-radius: var(--radius-pill);
   font-size: 0.6875rem;
   font-weight: 600;
   margin-left: auto;

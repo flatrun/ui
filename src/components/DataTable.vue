@@ -359,7 +359,7 @@ watch(selectedItems, () => {
 .search-input {
   padding: 0.5rem 0.75rem 0.5rem 2.5rem;
   border: 1px solid var(--border);
-  border-radius: var(--radius-md, 6px);
+  border-radius: var(--radius-md, var(--radius-lg));
   font-size: var(--text-md, 0.875rem);
   width: 280px;
   background: var(--surface);
@@ -372,7 +372,7 @@ watch(selectedItems, () => {
 
 .search-input:focus {
   outline: none;
-  border-color: var(--color-primary-500, #3b82f6);
+  border-color: var(--color-primary-500, var(--accent));
   box-shadow: 0 0 0 var(--ring-width, 2px) var(--ring-color, rgba(59, 130, 246, 0.1));
 }
 
@@ -380,14 +380,14 @@ watch(selectedItems, () => {
   display: flex;
   background: var(--surface-inset);
   padding: 0.25rem;
-  border-radius: var(--radius-md, 6px);
+  border-radius: var(--radius-md, var(--radius-lg));
 }
 
 .toggle-btn {
   padding: 0.375rem 0.625rem;
   border: none;
   background: transparent;
-  border-radius: var(--radius-sm, 4px);
+  border-radius: var(--radius-sm, var(--radius-md));
   cursor: pointer;
   color: var(--text-muted);
   transition: all var(--transition-base, 200ms ease);
@@ -401,7 +401,7 @@ watch(selectedItems, () => {
 
 .table-wrapper {
   background: var(--surface-raised);
-  border-radius: var(--radius-lg, 8px);
+  border-radius: var(--radius-lg, var(--radius-xl));
   border: 1px solid var(--border);
   overflow: hidden;
 }
@@ -449,7 +449,7 @@ watch(selectedItems, () => {
 }
 
 .data-table tr.selected {
-  background: var(--color-primary-50, #eff6ff);
+  background: var(--color-primary-50, var(--accent-subtle));
 }
 
 .checkbox-col {
@@ -467,7 +467,7 @@ watch(selectedItems, () => {
   justify-content: space-between;
   background: var(--surface-raised);
   padding: 0.75rem 1rem;
-  border-radius: var(--radius-lg, 8px);
+  border-radius: var(--radius-lg, var(--radius-xl));
   border: 1px solid var(--border);
 }
 
@@ -495,7 +495,7 @@ watch(selectedItems, () => {
   justify-content: center;
   border: 1px solid var(--border);
   background: var(--surface);
-  border-radius: var(--radius-sm, 4px);
+  border-radius: var(--radius-sm, var(--radius-md));
   cursor: pointer;
   font-size: var(--text-base, 0.8125rem);
   color: var(--text-muted);
@@ -508,8 +508,8 @@ watch(selectedItems, () => {
 }
 
 .page-btn.active {
-  background: var(--color-primary-500, #3b82f6);
-  border-color: var(--color-primary-500, #3b82f6);
+  background: var(--color-primary-500, var(--accent));
+  border-color: var(--color-primary-500, var(--accent));
   color: white;
 }
 
@@ -526,7 +526,7 @@ watch(selectedItems, () => {
 .page-size-select {
   padding: 0.375rem 0.5rem;
   border: 1px solid var(--border);
-  border-radius: var(--radius-sm, 4px);
+  border-radius: var(--radius-sm, var(--radius-md));
   font-size: var(--text-base, 0.8125rem);
   color: var(--text-muted);
   background: var(--surface);
@@ -541,7 +541,7 @@ watch(selectedItems, () => {
   background: var(--color-gray-800, #1f2937);
   color: white;
   padding: 0.75rem 1.25rem;
-  border-radius: var(--radius-lg, 8px);
+  border-radius: var(--radius-lg, var(--radius-xl));
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -563,7 +563,7 @@ watch(selectedItems, () => {
   padding: 4rem;
   background: var(--surface-raised);
   border: 1px solid var(--border);
-  border-radius: var(--radius-lg, 8px);
+  border-radius: var(--radius-lg, var(--radius-xl));
   text-align: center;
   gap: 1rem;
 }
@@ -590,7 +590,7 @@ watch(selectedItems, () => {
   align-items: center;
   gap: 0.5rem;
   padding: 0.375rem 0.75rem;
-  border-radius: var(--radius-md, 6px);
+  border-radius: var(--radius-md, var(--radius-lg));
   font-weight: var(--font-medium, 500);
   font-size: var(--text-base, 0.8125rem);
   cursor: pointer;
@@ -600,7 +600,7 @@ watch(selectedItems, () => {
 
 .btn-ghost {
   background: transparent;
-  color: var(--color-gray-400, #9ca3af);
+  color: var(--color-gray-400, var(--text-subtle));
 }
 
 .btn-ghost:hover {

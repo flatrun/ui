@@ -722,7 +722,7 @@
 import { ref, reactive, computed, onMounted, onBeforeUnmount, watch } from "vue";
 import { Codemirror } from "vue-codemirror";
 import { yaml } from "@codemirror/lang-yaml";
-import { oneDark } from "@codemirror/theme-one-dark";
+import { useEditorTheme } from "@/composables/useEditorTheme";
 import {
   configApi,
   createDeploymentFileApi,
@@ -941,7 +941,8 @@ const busy = computed(
 );
 const viewOnly = ref(false);
 
-const editorExtensions = [yaml(), oneDark];
+const editorTheme = useEditorTheme();
+const editorExtensions = computed(() => [yaml(), editorTheme.value]);
 
 const fileModified = computed(() => fileContent.value !== originalContent.value);
 

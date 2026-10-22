@@ -36,7 +36,7 @@ defineEmits<{ (e: "update:modelValue", value: string): void }>();
   padding: 0.2rem 0.7rem;
   border: none;
   background: transparent;
-  border-radius: calc(var(--radius-sm) - 2px);
+  border-radius: calc(var(--radius-sm) - var(--radius-xs));
   font-size: var(--text-xs);
   font-weight: var(--font-medium);
   color: var(--text-muted);

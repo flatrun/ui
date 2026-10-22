@@ -437,12 +437,12 @@ onMounted(() => {
 }
 
 .error-state {
-  color: var(--color-danger-600, #dc2626);
+  color: var(--color-danger-600, var(--color-danger-600));
 }
 
 .users-table-container {
   background: var(--surface-raised);
-  border-radius: 8px;
+  border-radius: var(--radius-xl);
   border: 1px solid var(--surface-border);
   overflow: hidden;
 }
@@ -480,15 +480,15 @@ onMounted(() => {
 .role-badge {
   display: inline-block;
   padding: 0.25rem 0.5rem;
-  border-radius: 4px;
+  border-radius: var(--radius-md);
   font-size: 0.75rem;
   font-weight: 500;
   text-transform: capitalize;
 }
 
 .role-badge.admin {
-  background: var(--color-danger-50, #fef2f2);
-  color: var(--color-danger-700, #b91c1c);
+  background: var(--color-danger-50, var(--color-danger-50));
+  color: var(--color-danger-700, var(--color-danger-700));
 }
 
 .role-badge.operator {
@@ -497,14 +497,14 @@ onMounted(() => {
 }
 
 .role-badge.viewer {
-  background: var(--color-info-50, #eff6ff);
-  color: var(--color-info-700, #1d4ed8);
+  background: var(--color-info-50, var(--accent-subtle));
+  color: var(--color-info-700, var(--color-primary-700));
 }
 
 .status-badge {
   display: inline-block;
   padding: 0.25rem 0.5rem;
-  border-radius: 4px;
+  border-radius: var(--radius-md);
   font-size: 0.75rem;
   font-weight: 500;
 }
@@ -515,14 +515,14 @@ onMounted(() => {
 }
 
 .status-badge.inactive {
-  background: var(--color-gray-100, #f3f4f6);
+  background: var(--color-gray-100, var(--surface-inset));
   color: var(--text-muted);
 }
 
 .perm-indicator {
   display: inline-block;
   padding: 0.25rem 0.5rem;
-  border-radius: 4px;
+  border-radius: var(--radius-md);
   font-size: 0.75rem;
   font-weight: 500;
 }
@@ -624,8 +624,8 @@ onMounted(() => {
 }
 
 .tab-btn.active {
-  color: var(--primary, #3b82f6);
-  border-bottom-color: var(--primary, #3b82f6);
+  color: var(--primary, var(--accent));
+  border-bottom-color: var(--primary, var(--accent));
 }
 
 .tab-count {
@@ -635,7 +635,7 @@ onMounted(() => {
   min-width: 1.25rem;
   height: 1.25rem;
   padding: 0 0.375rem;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: var(--surface-sunken);
   font-size: 0.6875rem;
   font-weight: 600;
@@ -644,7 +644,7 @@ onMounted(() => {
 
 .tab-btn.active .tab-count {
   background: rgba(var(--primary-rgb, 59, 130, 246), 0.1);
-  color: var(--primary, #3b82f6);
+  color: var(--primary, var(--accent));
 }
 
 .tab-panel {
@@ -675,7 +675,7 @@ onMounted(() => {
   width: 100%;
   padding: 0.5rem 0.75rem;
   border: 1px solid var(--surface-border);
-  border-radius: 4px;
+  border-radius: var(--radius-md);
   background: var(--surface-sunken);
   color: var(--text-primary);
 }
@@ -694,7 +694,7 @@ onMounted(() => {
 .role-perm-badge {
   display: inline-block;
   padding: 0.125rem 0.375rem;
-  border-radius: 4px;
+  border-radius: var(--radius-md);
   font-size: 0.6875rem;
   font-weight: 500;
   text-transform: capitalize;
@@ -702,8 +702,8 @@ onMounted(() => {
 }
 
 .role-perm-badge.admin {
-  background: var(--color-danger-50, #fef2f2);
-  color: var(--color-danger-700, #b91c1c);
+  background: var(--color-danger-50, var(--color-danger-50));
+  color: var(--color-danger-700, var(--color-danger-700));
 }
 
 .role-perm-badge.operator {
@@ -712,8 +712,8 @@ onMounted(() => {
 }
 
 .role-perm-badge.viewer {
-  background: var(--color-info-50, #eff6ff);
-  color: var(--color-info-700, #1d4ed8);
+  background: var(--color-info-50, var(--accent-subtle));
+  color: var(--color-info-700, var(--color-primary-700));
 }
 
 .modal-actions {
@@ -734,7 +734,7 @@ onMounted(() => {
   flex: 1;
   padding: 0.5rem;
   border: 1px solid var(--surface-border);
-  border-radius: 4px;
+  border-radius: var(--radius-md);
   background: var(--surface-sunken);
 }
 
@@ -750,7 +750,7 @@ onMounted(() => {
   gap: 0.5rem;
   padding: 0.5rem;
   background: var(--surface-sunken);
-  border-radius: 4px;
+  border-radius: var(--radius-md);
 }
 
 .deployment-name {
@@ -761,7 +761,7 @@ onMounted(() => {
 .deployment-item select {
   padding: 0.25rem 0.5rem;
   border: 1px solid var(--surface-border);
-  border-radius: 4px;
+  border-radius: var(--radius-md);
   background: var(--surface-raised);
 }
 
@@ -780,7 +780,7 @@ onMounted(() => {
   gap: 0.5rem;
   padding: 0.5rem 1rem;
   border: none;
-  border-radius: 4px;
+  border-radius: var(--radius-md);
   background: var(--surface-sunken);
   color: var(--text-primary);
   cursor: pointer;
@@ -797,22 +797,22 @@ onMounted(() => {
 }
 
 .btn-primary {
-  background: var(--primary, #3b82f6);
+  background: var(--primary, var(--accent));
   color: white;
   font-weight: 600;
 }
 
 .btn-primary:hover {
-  background: var(--primary-dark, #2563eb);
+  background: var(--primary-dark, var(--accent-hover));
 }
 
 .btn-danger {
-  background: var(--color-danger-500, #ef4444);
+  background: var(--color-danger-500, var(--color-danger-500));
   color: white;
 }
 
 .btn-danger:hover {
-  background: var(--color-danger-600, #dc2626);
+  background: var(--color-danger-600, var(--color-danger-600));
 }
 
 .btn-icon {

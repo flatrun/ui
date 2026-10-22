@@ -208,7 +208,7 @@ defineExpose({ scrollToBottom });
   display: flex;
   flex-direction: column;
   height: 100%;
-  background: #1a1b26;
+  background: var(--terminal-bg);
   overflow: hidden;
 }
 
@@ -227,7 +227,7 @@ defineExpose({ scrollToBottom });
   gap: var(--space-1);
   padding: 2px var(--space-2);
   border: 1px solid #2a2e3d;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: transparent;
   color: #787c99;
   font-size: var(--text-xs);
@@ -381,7 +381,7 @@ defineExpose({ scrollToBottom });
   font-size: 10px;
   color: #7dcfff;
   background: rgba(125, 207, 255, 0.12);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   padding: 1px 6px;
 }
 

@@ -608,12 +608,12 @@ onMounted(() => {
 
 .stat-icon.blue {
   background: rgba(59, 130, 246, 0.1);
-  color: #3b82f6;
+  color: var(--accent);
 }
 
 .stat-icon.green {
   background: rgba(34, 197, 94, 0.1);
-  color: #22c55e;
+  color: var(--color-success-500);
 }
 
 .stat-icon.gray {
@@ -623,7 +623,7 @@ onMounted(() => {
 
 .stat-icon.purple {
   background: rgba(139, 92, 246, 0.1);
-  color: #8b5cf6;
+  color: var(--c-purple);
 }
 
 .dashboard-grid {
@@ -781,7 +781,7 @@ onMounted(() => {
 }
 
 .status-dot.running {
-  background: #22c55e;
+  background: var(--color-success-500);
 }
 
 .status-dot.stopped {
@@ -789,7 +789,7 @@ onMounted(() => {
 }
 
 .status-dot.error {
-  background: #ef4444;
+  background: var(--color-danger-500);
 }
 
 .deployment-name {
@@ -885,27 +885,27 @@ onMounted(() => {
 
 .action-icon.blue {
   background: rgba(59, 130, 246, 0.1);
-  color: #3b82f6;
+  color: var(--accent);
 }
 
 .action-icon.green {
   background: rgba(34, 197, 94, 0.1);
-  color: #22c55e;
+  color: var(--color-success-500);
 }
 
 .action-icon.red {
   background: rgba(239, 68, 68, 0.1);
-  color: #ef4444;
+  color: var(--color-danger-500);
 }
 
 .action-icon.purple {
   background: rgba(139, 92, 246, 0.1);
-  color: #8b5cf6;
+  color: var(--c-purple);
 }
 
 .action-icon.teal {
   background: rgba(20, 184, 166, 0.1);
-  color: #14b8a6;
+  color: var(--c-teal);
 }
 
 .action-icon.orange {
@@ -992,15 +992,15 @@ onMounted(() => {
 }
 
 .resource-fill.normal {
-  background: #22c55e;
+  background: var(--color-success-500);
 }
 
 .resource-fill.warning {
-  background: #f59e0b;
+  background: var(--color-warning-500);
 }
 
 .resource-fill.critical {
-  background: #ef4444;
+  background: var(--color-danger-500);
 }
 
 .docker-grid {
@@ -1049,7 +1049,7 @@ onMounted(() => {
 }
 
 .agent-status.online {
-  color: #22c55e;
+  color: var(--color-success-500);
 }
 
 .agent-status i {
@@ -1166,7 +1166,7 @@ onMounted(() => {
 }
 
 .security-stat-value.warning {
-  color: #ef4444;
+  color: var(--color-danger-500);
 }
 
 .security-stat-label {

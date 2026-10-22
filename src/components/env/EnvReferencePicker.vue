@@ -16,8 +16,9 @@
       </button>
     </div>
     <span class="ref-hint">
-      Inserts <code>{{ preview }}</code>. It is resolved when this deployment starts, so changes to the other deployment
-      flow through on the next restart.
+      Inserts <code>{{ preview }}</code
+      >. It is resolved when this deployment starts, so changes to the other deployment flow through on the next
+      restart.
     </span>
   </div>
 </template>

@@ -60,7 +60,13 @@
         <div v-for="provider in providers" :key="provider.id" class="hook-row">
           <span class="hook-provider">{{ provider.label }}</span>
           <code class="mono">{{ hookUrl(provider.id) }}</code>
-          <BaseButton size="sm" variant="ghost" icon="copy" :aria-label="`Copy ${provider.label} URL`" @click="copy(hookUrl(provider.id))" />
+          <BaseButton
+            size="sm"
+            variant="ghost"
+            icon="copy"
+            :aria-label="`Copy ${provider.label} URL`"
+            @click="copy(hookUrl(provider.id))"
+          />
         </div>
         <p class="hint">
           GitHub signs with the secret (content type <code>application/json</code>). GitLab sends it as the secret
@@ -91,7 +97,9 @@
             <span class="muted">{{ env.status }}</span>
           </li>
         </ul>
-        <p v-else class="hint">No environments yet. An environment is a copy of this deployment that tracks its own branch.</p>
+        <p v-else class="hint">
+          No environments yet. An environment is a copy of this deployment that tracks its own branch.
+        </p>
         <form class="env-form" @submit.prevent="addEnvironment">
           <BaseInput v-model="newEnv.name" placeholder="staging" />
           <BaseInput v-model="newEnv.branch" placeholder="branch (optional)" />
@@ -135,7 +143,9 @@
                 >
                   Roll back
                 </BaseButton>
-                <span v-else-if="deploy.revision && deploy.revision === source.last_revision" class="pill">Running</span>
+                <span v-else-if="deploy.revision && deploy.revision === source.last_revision" class="pill"
+                  >Running</span
+                >
               </td>
             </tr>
           </tbody>
@@ -146,8 +156,8 @@
 
     <BaseCard v-else title="Deploy from git" icon="git-branch">
       <p class="hint">
-        This deployment was not created from a repository, so it has no deploy history, webhooks or environments.
-        Create a deployment from a git repository to get them.
+        This deployment was not created from a repository, so it has no deploy history, webhooks or environments. Create
+        a deployment from a git repository to get them.
       </p>
     </BaseCard>
 

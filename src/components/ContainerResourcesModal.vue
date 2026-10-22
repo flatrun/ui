@@ -402,7 +402,7 @@ watch(
 
 .form-group input:focus {
   outline: none;
-  border-color: #3b82f6;
+  border-color: var(--accent);
   box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
 }
 
@@ -450,12 +450,12 @@ watch(
 }
 
 .btn-primary {
-  background: #3b82f6;
+  background: var(--accent);
   color: white;
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: #2563eb;
+  background: var(--accent-hover);
 }
 
 .btn-primary:disabled {

@@ -128,7 +128,7 @@ const removeEntry = (name: string) => {
   width: 100%;
   padding: 0.4375rem 0.625rem;
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: var(--radius-lg);
   font-size: 0.875rem;
   background: var(--surface);
 }
@@ -151,7 +151,7 @@ const removeEntry = (name: string) => {
   padding: 0.4375rem 0.625rem;
   background: var(--surface-sunken);
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: var(--radius-lg);
 }
 
 .entry-row.readonly {
@@ -161,7 +161,7 @@ const removeEntry = (name: string) => {
 .entry-row select {
   padding: 0.25rem 0.5rem;
   border: 1px solid var(--border);
-  border-radius: 4px;
+  border-radius: var(--radius-md);
   font-size: 0.8125rem;
   background: var(--surface);
 }
@@ -175,7 +175,7 @@ const removeEntry = (name: string) => {
 .entry-level {
   font-size: 0.6875rem;
   padding: 0.125rem 0.5rem;
-  border-radius: 4px;
+  border-radius: var(--radius-md);
   text-transform: uppercase;
   letter-spacing: 0.04em;
   font-weight: 500;
@@ -184,8 +184,8 @@ const removeEntry = (name: string) => {
 }
 
 .entry-level.read {
-  background: var(--color-info-50, #eff6ff);
-  color: var(--color-info-700, #1d4ed8);
+  background: var(--color-info-50, var(--accent-subtle));
+  color: var(--color-info-700, var(--color-primary-700));
 }
 
 .entry-level.write {
@@ -194,8 +194,8 @@ const removeEntry = (name: string) => {
 }
 
 .entry-level.admin {
-  background: var(--color-danger-50, #fef2f2);
-  color: var(--color-danger-700, #b91c1c);
+  background: var(--color-danger-50, var(--color-danger-50));
+  color: var(--color-danger-700, var(--color-danger-700));
 }
 
 .empty-state {
@@ -213,7 +213,7 @@ const removeEntry = (name: string) => {
   gap: 0.25rem;
   padding: 0.4375rem 0.75rem;
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: var(--radius-lg);
   background: var(--surface);
   color: var(--text);
   cursor: pointer;
@@ -240,13 +240,13 @@ const removeEntry = (name: string) => {
 }
 
 .btn-primary {
-  background: var(--color-primary-500, #3b82f6);
+  background: var(--color-primary-500, var(--accent));
   color: white;
-  border-color: var(--color-primary-500, #3b82f6);
+  border-color: var(--color-primary-500, var(--accent));
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: var(--color-primary-600, #2563eb);
-  border-color: var(--color-primary-600, #2563eb);
+  background: var(--color-primary-600, var(--accent-hover));
+  border-color: var(--color-primary-600, var(--accent-hover));
 }
 </style>

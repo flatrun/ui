@@ -275,7 +275,7 @@ onMounted(fetchAvailability);
   border: none;
   background: transparent;
   color: var(--text-muted);
-  border-radius: calc(var(--radius-sm) - 2px);
+  border-radius: calc(var(--radius-sm) - var(--radius-xs));
   font-size: 0.8125rem;
   cursor: pointer;
   transition: all 0.15s;
@@ -323,12 +323,12 @@ onMounted(fetchAvailability);
 }
 
 .btn-primary {
-  background: var(--color-primary-600, #2563eb);
+  background: var(--color-primary-600, var(--accent-hover));
   color: #fff;
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: var(--color-primary-700, #1d4ed8);
+  background: var(--color-primary-700, var(--color-primary-700));
 }
 
 .btn-secondary {
@@ -368,7 +368,7 @@ onMounted(fetchAvailability);
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 9999px;
+  border-radius: var(--radius-pill);
 }
 
 .status-card.current .status-icon {
@@ -377,8 +377,8 @@ onMounted(fetchAvailability);
 }
 
 .status-card.has-update .status-icon {
-  background: var(--color-primary-50, #eff6ff);
-  color: var(--color-primary-700, #1d4ed8);
+  background: var(--color-primary-50, var(--accent-subtle));
+  color: var(--color-primary-700, var(--color-primary-700));
 }
 
 .status-line {
@@ -488,7 +488,7 @@ onMounted(fetchAvailability);
   align-items: center;
   gap: 0.25rem;
   padding: 0.15rem 0.5rem;
-  border-radius: 9999px;
+  border-radius: var(--radius-pill);
   font-size: 0.6875rem;
   font-weight: 500;
 }

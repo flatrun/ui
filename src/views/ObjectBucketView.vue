@@ -438,7 +438,7 @@ function formatTime(iso: string): string {
 }
 
 .icon-action.danger:hover {
-  color: var(--color-danger-600, #dc2626);
+  color: var(--color-danger-600, var(--color-danger-600));
 }
 
 .icon-action:disabled {

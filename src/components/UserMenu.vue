@@ -278,7 +278,7 @@ function selectSignOut() {
 
 .style-swatch[data-swatch="classic"] {
   border-radius: var(--radius-sm);
-  background: linear-gradient(90deg, #0f172a 0 30%, #f8fafc 30%);
+  background: linear-gradient(90deg, #0f172a 0 30%, var(--surface-sunken) 30%);
 }
 
 .user-menu-panel .sign-out {

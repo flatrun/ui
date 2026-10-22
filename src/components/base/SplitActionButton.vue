@@ -94,7 +94,7 @@ onBeforeUnmount(() => document.removeEventListener("click", onDocumentClick));
   min-width: 200px;
   background: var(--surface-raised);
   border: 1px solid var(--border);
-  border-radius: var(--radius-md, 8px);
+  border-radius: var(--radius-md, var(--radius-xl));
   box-shadow:
     0 4px 6px rgba(0, 0, 0, 0.05),
     0 10px 24px rgba(0, 0, 0, 0.1);
@@ -110,7 +110,7 @@ onBeforeUnmount(() => document.removeEventListener("click", onDocumentClick));
   padding: 0.5rem 0.75rem;
   border: none;
   background: none;
-  border-radius: var(--radius-sm, 6px);
+  border-radius: var(--radius-sm, var(--radius-lg));
   font-size: 0.85rem;
   color: var(--text);
   cursor: pointer;

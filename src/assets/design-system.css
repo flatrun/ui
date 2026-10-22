@@ -60,6 +60,7 @@
   --radius-xl: 8px;
   --radius-modal: 14px;
   --radius-full: 4px;
+  --radius-pill: 9999px;
 
   /* Spacing */
   --space-1: 0.25rem;
@@ -164,8 +165,8 @@
   /* Code, terminal and charts */
   --code-bg: var(--surface-sunken);
   --code-text: var(--text);
-  --terminal-bg: #0f172a;
-  --terminal-text: #e2e8f0;
+  --terminal-bg: #1a1b26;
+  --terminal-text: #c0caf5;
   --chart-1: var(--c-blue);
   --chart-2: var(--c-green);
   --chart-3: var(--c-amber);

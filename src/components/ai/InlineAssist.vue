@@ -256,7 +256,7 @@ watch(
 .markdown :deep(pre),
 .markdown :deep(code) {
   background: var(--surface-inset);
-  border-radius: 4px;
+  border-radius: var(--radius-md);
   font-size: 0.74rem;
 }
 .markdown :deep(pre) {

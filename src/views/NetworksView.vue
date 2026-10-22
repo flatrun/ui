@@ -430,12 +430,12 @@ onMounted(() => {
 }
 
 .btn-primary {
-  background: #3b82f6;
+  background: var(--accent);
   color: white;
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: #2563eb;
+  background: var(--accent-hover);
 }
 
 .btn-primary:disabled {
@@ -454,12 +454,12 @@ onMounted(() => {
 }
 
 .btn-danger {
-  background: #ef4444;
+  background: var(--color-danger-500);
   color: white;
 }
 
 .btn-danger:hover:not(:disabled) {
-  background: #dc2626;
+  background: var(--color-danger-600);
 }
 
 .btn-icon {
@@ -522,7 +522,7 @@ onMounted(() => {
 .btn-text {
   background: none;
   border: none;
-  color: #3b82f6;
+  color: var(--accent);
   font-size: 0.75rem;
   font-weight: 500;
   cursor: pointer;
@@ -533,7 +533,7 @@ onMounted(() => {
 }
 
 .btn-text:hover {
-  color: #2563eb;
+  color: var(--accent-hover);
 }
 
 .table-actions {
@@ -746,7 +746,7 @@ onMounted(() => {
 }
 
 .modal-header h3 i {
-  color: #3b82f6;
+  color: var(--accent);
 }
 
 .close-btn {
@@ -807,18 +807,18 @@ onMounted(() => {
 .form-group input:focus,
 .form-group select:focus {
   outline: none;
-  border-color: #3b82f6;
+  border-color: var(--accent);
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 .form-group input.error {
-  border-color: #ef4444;
+  border-color: var(--color-danger-500);
 }
 
 .error-text {
   display: block;
   font-size: 0.8125rem;
-  color: #ef4444;
+  color: var(--color-danger-500);
   margin-top: 0.375rem;
 }
 

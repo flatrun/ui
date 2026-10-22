@@ -370,7 +370,7 @@ onUnmounted(() => {
 }
 
 .filter-tab.active {
-  background: #3b82f6;
+  background: var(--accent);
   color: white;
 }
 
@@ -418,7 +418,7 @@ onUnmounted(() => {
 
 .loading-state i {
   font-size: 2rem;
-  color: #3b82f6;
+  color: var(--accent);
   margin-bottom: 1rem;
 }
 
@@ -469,12 +469,12 @@ onUnmounted(() => {
 }
 
 .template-card:hover {
-  border-color: #3b82f6;
+  border-color: var(--accent);
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
 }
 
 .template-card:hover .deploy-btn {
-  background: #3b82f6;
+  background: var(--accent);
   color: white;
 }
 
@@ -814,11 +814,11 @@ onUnmounted(() => {
 }
 
 .btn-primary {
-  background: #3b82f6;
+  background: var(--accent);
   color: white;
 }
 
 .btn-primary:hover {
-  background: #2563eb;
+  background: var(--accent-hover);
 }
 </style>

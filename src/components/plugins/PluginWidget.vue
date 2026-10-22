@@ -103,7 +103,7 @@ const formatCapability = (cap: string) => {
 }
 
 .widget-title i {
-  color: #3b82f6;
+  color: var(--accent);
 }
 
 .widget-version {
@@ -134,9 +134,9 @@ const formatCapability = (cap: string) => {
 .capability-badge {
   font-size: 0.6875rem;
   padding: 0.125rem 0.5rem;
-  background: #dbeafe;
+  background: var(--color-primary-100);
   color: #1e40af;
-  border-radius: 9999px;
+  border-radius: var(--radius-pill);
   font-weight: 500;
 }
 

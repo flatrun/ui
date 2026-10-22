@@ -329,22 +329,22 @@ const toggleGroup = (group: PermissionGroup) => {
 }
 
 .permission-group {
-  background: var(--surface-ground, #f8fafc);
-  border: 1px solid var(--surface-border, #e2e8f0);
-  border-radius: 6px;
+  background: var(--surface-ground, var(--surface-sunken));
+  border: 1px solid var(--surface-border, var(--border));
+  border-radius: var(--radius-lg);
   padding: 0.625rem 0.75rem;
 }
 
 .group-header {
   margin-bottom: 0.375rem;
   padding-bottom: 0.375rem;
-  border-bottom: 1px solid var(--surface-border, #e2e8f0);
+  border-bottom: 1px solid var(--surface-border, var(--border));
 }
 
 .group-name {
   font-weight: 600;
   font-size: 0.8125rem;
-  color: var(--text-primary, #0f172a);
+  color: var(--text-primary, var(--text));
 }
 
 .group-permissions {
@@ -369,12 +369,12 @@ const toggleGroup = (group: PermissionGroup) => {
   width: 14px;
   height: 14px;
   cursor: pointer;
-  accent-color: var(--primary, #3b82f6);
+  accent-color: var(--primary, var(--accent));
 }
 
 .permission-item {
   padding: 0.125rem 0.375rem;
-  border-radius: 4px;
+  border-radius: var(--radius-md);
 }
 
 .perm-label {
@@ -383,15 +383,15 @@ const toggleGroup = (group: PermissionGroup) => {
 }
 
 .perm-label.read {
-  color: var(--info, #3b82f6);
+  color: var(--info, var(--accent));
 }
 
 .perm-label.write {
-  color: var(--warning, #f59e0b);
+  color: var(--warning, var(--color-warning-500));
 }
 
 .perm-label.delete {
-  color: var(--danger, #ef4444);
+  color: var(--danger, var(--color-danger-500));
 }
 
 .readonly-indicator {
@@ -400,17 +400,17 @@ const toggleGroup = (group: PermissionGroup) => {
   justify-content: center;
   width: 16px;
   height: 16px;
-  border-radius: 3px;
+  border-radius: var(--radius-sm);
   font-size: 0.625rem;
 }
 
 .readonly-indicator.granted {
   background: rgba(34, 197, 94, 0.15);
-  color: #16a34a;
+  color: var(--color-success-600);
 }
 
 .readonly-indicator.denied {
   background: rgba(148, 163, 184, 0.15);
-  color: #94a3b8;
+  color: var(--text-subtle);
 }
 </style>

@@ -248,7 +248,7 @@ onMounted(() => {
 
 .health-title > i:first-child {
   font-size: 1.125rem;
-  color: #3b82f6;
+  color: var(--accent);
 }
 
 .health-title h4 {
@@ -263,7 +263,7 @@ onMounted(() => {
   align-items: center;
   gap: 0.5rem;
   padding: 0.375rem 0.75rem;
-  border-radius: 9999px;
+  border-radius: var(--radius-pill);
   font-size: 0.8125rem;
   font-weight: 600;
 }
@@ -275,7 +275,7 @@ onMounted(() => {
 
 .health-status.degraded {
   background: var(--color-warning-50);
-  color: #d97706;
+  color: var(--color-warning-600);
 }
 
 .health-status.broken {
@@ -366,7 +366,7 @@ onMounted(() => {
 
 .category-status.partial {
   background: var(--color-warning-50);
-  color: #d97706;
+  color: var(--color-warning-600);
 }
 
 .category-status.failed {
@@ -405,7 +405,7 @@ onMounted(() => {
 }
 
 .check-item.passed i {
-  color: #22c55e;
+  color: var(--color-success-500);
 }
 
 .check-item.failed {
@@ -414,7 +414,7 @@ onMounted(() => {
 }
 
 .check-item.failed i {
-  color: #ef4444;
+  color: var(--color-danger-500);
 }
 
 .issues-list,
@@ -444,7 +444,7 @@ onMounted(() => {
 }
 
 .issues-list li i {
-  color: #ef4444;
+  color: var(--color-danger-500);
   flex-shrink: 0;
   margin-top: 0.125rem;
 }
@@ -455,7 +455,7 @@ onMounted(() => {
 }
 
 .recommendations-list li i {
-  color: #3b82f6;
+  color: var(--accent);
   flex-shrink: 0;
   margin-top: 0.125rem;
 }

@@ -385,7 +385,7 @@ onUnmounted(() => {
 }
 
 .stat-dot.bad {
-  background: var(--color-danger-500, #ef4444);
+  background: var(--color-danger-500, var(--color-danger-500));
 }
 
 .stat-dot.warn {
@@ -397,7 +397,7 @@ onUnmounted(() => {
 }
 
 .stat.is-bad .stat-num {
-  color: var(--color-danger-600, #dc2626);
+  color: var(--color-danger-600, var(--color-danger-600));
 }
 
 .charts-controls {
@@ -442,7 +442,7 @@ onUnmounted(() => {
 }
 
 .attention {
-  border-color: var(--color-danger-200, #fecaca);
+  border-color: var(--color-danger-200, var(--color-danger-100));
 }
 
 .attention-row {
@@ -477,7 +477,7 @@ onUnmounted(() => {
 }
 
 .dot--unhealthy {
-  background: var(--color-danger-500, #ef4444);
+  background: var(--color-danger-500, var(--color-danger-500));
 }
 
 .charts-head {
@@ -577,7 +577,7 @@ onUnmounted(() => {
 }
 
 .bar-fill.mem {
-  background: #8b5cf6;
+  background: var(--c-purple);
 }
 
 .recovery-row {
