@@ -575,7 +575,10 @@
                           class="form-input"
                           placeholder="https://github.com/owner/repo.git"
                         />
-                        <span class="field-hint">The repository's compose file becomes the deployment.</span>
+                        <span class="field-hint">
+                          A compose file in the repository is used as is. Without one, the app is built from its
+                          Dockerfile, or detected and built with Railpack.
+                        </span>
                       </div>
 
                       <div class="git-fields-row">
@@ -595,6 +598,19 @@
                           <span class="field-hint">Optional</span>
                         </div>
                       </div>
+
+                      <label class="advanced-option">
+                        <input v-model="form.gitSource.autoDeploy" type="checkbox" />
+                        <div class="option-content">
+                          <span class="option-label">
+                            <Icon name="git-commit-horizontal" :size="14" />
+                            Deploy on push
+                          </span>
+                          <span class="option-desc">
+                            Redeploy when the branch changes, once a webhook is set up on the Deploys tab
+                          </span>
+                        </div>
+                      </label>
 
                       <label class="advanced-option">
                         <input v-model="form.gitSource.isPrivate" type="checkbox" />
@@ -1618,6 +1634,7 @@ import {
   type SourceCredential,
 } from "@/services/api";
 import Icon from "@/components/base/Icon.vue";
+import { rememberDeploymentJob } from "@/composables/useDeploymentJob";
 import type { RegistryCredential } from "@/types";
 import type { AssistContext } from "@/stores/assist";
 import { extractComposeServiceNames } from "@/utils/compose";
@@ -1899,6 +1916,7 @@ const form = reactive({
     token: "",
     saveCredential: false,
     credentialName: "",
+    autoDeploy: true,
   },
   envVars: [] as { key: string; value: string }[],
   autoStart: false,
@@ -2787,6 +2805,7 @@ const handleCreate = async () => {
         ref: form.gitSource.repoUrl.trim(),
         branch: form.gitSource.branch.trim() || undefined,
         subpath: form.gitSource.subpath.trim() || undefined,
+        auto_deploy: form.gitSource.autoDeploy,
       };
       if (form.gitSource.isPrivate) {
         if (form.gitSource.useExisting && form.gitSource.selectedCredentialId) {
@@ -2920,7 +2939,10 @@ const handleCreate = async () => {
       domains: domainsArray.length > 1 ? domainsArray : undefined,
     };
 
-    await deploymentsApi.create(payload);
+    const { data } = await deploymentsApi.create(payload);
+    if (data?.build_job_id) {
+      rememberDeploymentJob(form.name, data.build_job_id, "redeploy");
+    }
     emit("created", form.name);
   } catch (e: any) {
     const msg = e.response?.data?.error || e.message;

@@ -32,6 +32,7 @@
 </template>
 
 <script setup lang="ts">
+import type { DeploymentOperation } from "@/composables/useDeploymentJob";
 import { ref, computed, watch } from "vue";
 import BaseModal from "./base/BaseModal.vue";
 import LogViewer from "./LogViewer.vue";
@@ -40,7 +41,7 @@ import type { AssistContext } from "@/stores/assist";
 
 const props = defineProps<{
   visible: boolean;
-  operation: "start" | "stop" | "restart" | "rebuild";
+  operation: DeploymentOperation;
   deploymentName: string;
   output: string;
   isRunning: boolean;
@@ -68,6 +69,8 @@ const title = computed(() => {
     stop: "Stopping",
     restart: "Restarting",
     rebuild: "Rebuilding",
+    redeploy: "Deploying",
+    rollback: "Rolling back",
   };
   return `${ops[props.operation]} ${props.deploymentName}`;
 });
@@ -187,6 +190,12 @@ const handleClose = () => {
 .operation-badge.restart {
   background: var(--color-info-50);
   color: var(--color-info-700);
+}
+
+.operation-badge.redeploy,
+.operation-badge.rollback {
+  background: var(--accent-subtle);
+  color: var(--accent);
 }
 
 .operation-badge.rebuild {

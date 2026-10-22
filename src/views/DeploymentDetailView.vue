@@ -87,7 +87,7 @@
           :class="{ active: activeTab === item.id }"
           @click="activeTab = item.id"
         >
-          <i v-if="item.kind === 'native'" :class="item.icon" />
+          <i v-if="item.icon?.startsWith('pi ')" :class="item.icon" />
           <Icon v-else :name="item.icon || 'puzzle'" :size="15" />
           {{ item.label }}
         </button>
@@ -785,6 +785,17 @@
           :can-delete-schedule="canDeleteSchedules"
         />
         <MigrationTab v-if="activeTab === 'migration'" :deployment-name="route.params.name as string" />
+        <DeploysTab
+          v-if="activeTab === 'deploys'"
+          :deployment-name="route.params.name as string"
+          :source="deployment.metadata?.source"
+          :sleep="deployment.metadata?.sleep"
+          :job-running="deploymentJob.state.isRunning"
+          @deploy="handleOperation('redeploy')"
+          @rollback="rollbackTo"
+          @changed="fetchDeployment"
+          @environment-created="onEnvironmentCreated"
+        />
 
         <div v-for="pt in pluginTabs" :key="pt.id" v-show="activeTab === pt.id" class="plugin-tab">
           <PluginSlot
@@ -2045,6 +2056,7 @@ import ConfirmModal from "@/components/ConfirmModal.vue";
 import ContainerTerminal from "@/components/ContainerTerminal.vue";
 import BackupsTab from "@/components/BackupsTab.vue";
 import MigrationTab from "@/components/MigrationTab.vue";
+import DeploysTab from "@/components/deploys/DeploysTab.vue";
 import PluginSlot from "@/components/plugins/PluginSlot.vue";
 import { usePluginsStore } from "@/stores/plugins";
 import DomainsManager from "@/components/DomainsManager.vue";
@@ -2192,6 +2204,7 @@ const protectedPathPresets = [
 
 const tabs = [
   { id: "overview", label: "Overview", icon: "pi pi-info-circle" },
+  { id: "deploys", label: "Deploys", icon: "rocket" },
   { id: "files", label: "Files", icon: "pi pi-folder" },
   { id: "logs", label: "Logs", icon: "pi pi-file-edit" },
   { id: "terminal", label: "Terminal", icon: "pi pi-desktop" },
@@ -2945,6 +2958,15 @@ const selectLogFile = (selection: { type: "file" | "container_file"; path: strin
   newLogSource.path = selection.path;
   newLogSource.service = selection.service;
   logSourceError.value = "";
+};
+
+const rollbackTo = (deployId: string) => {
+  const name = route.params.name as string;
+  deploymentJob.track("rollback", name, () => deploymentsApi.rollback(name, deployId));
+};
+
+const onEnvironmentCreated = (name: string, jobId?: string) => {
+  notifications.success("Environment created", jobId ? `${name} is deploying` : name);
 };
 
 const handleOperation = async (operation: string, onlyLatest: boolean = false, opts?: ActionOptions) => {

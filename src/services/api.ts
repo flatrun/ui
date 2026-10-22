@@ -20,6 +20,10 @@ import type {
   ProtectedModeConfig,
   Plan,
   PlanStatus,
+  DeployRecord,
+  SleepConfig,
+  SourceConfig,
+  WebhookPaths,
 } from "@/types";
 import type { LogRecord, LogSource } from "@/types/logs";
 
@@ -264,6 +268,14 @@ export interface DeploymentJob {
   finished_at?: string;
 }
 
+// publicAgentUrl turns an agent path into the address outside services such as
+// GitHub call.
+export const publicAgentUrl = (path: string): string => {
+  const apiUrl = import.meta.env.VITE_API_URL || "";
+  const origin = apiUrl.startsWith("http") ? new URL(apiUrl).origin : window.location.origin;
+  return `${origin}${path}`;
+};
+
 export const deploymentJobWsUrl = (name: string, jobId: string): string => {
   const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
   const apiUrl = import.meta.env.VITE_API_URL || "";
@@ -342,6 +354,23 @@ export const deploymentsApi = {
     apiClient.post<ActionJobResponse>(`/deployments/${name}/restart`, opts),
   rebuild: (name: string, opts?: ActionOptions) =>
     apiClient.post<ActionJobResponse>(`/deployments/${name}/rebuild`, opts),
+  redeploy: (name: string, revision?: string) =>
+    apiClient.post<ActionJobResponse>(`/deployments/${name}/redeploy`, revision ? { revision } : {}),
+  deploys: (name: string) => apiClient.get<{ deploys: DeployRecord[] | null }>(`/deployments/${name}/deploys`),
+  rollback: (name: string, deployId: string) =>
+    apiClient.post<ActionJobResponse>(`/deployments/${name}/deploys/${deployId}/rollback`),
+  updateSource: (name: string, changes: { branch?: string; auto_deploy?: boolean; previews?: boolean }) =>
+    apiClient.put<{ source: SourceConfig }>(`/deployments/${name}/source`, changes),
+  webhook: (name: string) =>
+    apiClient.get<{ paths: WebhookPaths; configured: boolean }>(`/deployments/${name}/webhook`),
+  rotateWebhook: (name: string) =>
+    apiClient.post<{ paths: WebhookPaths; secret: string }>(`/deployments/${name}/webhook/rotate`),
+  environments: (name: string) =>
+    apiClient.get<{ environments: Deployment[] }>(`/deployments/${name}/environments`),
+  createEnvironment: (name: string, env: { name: string; branch?: string }) =>
+    apiClient.post<{ name: string; job_id?: string }>(`/deployments/${name}/environments`, env),
+  updateSleep: (name: string, sleep: { enabled: boolean; idle_minutes: number }) =>
+    apiClient.put<{ sleep: SleepConfig }>(`/deployments/${name}/sleep`, sleep),
   getJob: (name: string, jobId: string) => apiClient.get<DeploymentJob>(`/deployments/${name}/jobs/${jobId}`),
   getActiveJob: (name: string) => apiClient.get<DeploymentJob>(`/deployments/${name}/jobs/active`),
   serviceActionJob: (name: string, service: string, action: string, opts?: ActionOptions) =>

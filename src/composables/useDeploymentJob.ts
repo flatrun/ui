@@ -1,7 +1,13 @@
 import { reactive, onScopeDispose } from "vue";
-import { deploymentsApi, deploymentJobWsUrl, type DeploymentActionStatus, type ActionOptions } from "@/services/api";
+import {
+  deploymentsApi,
+  deploymentJobWsUrl,
+  type ActionJobResponse,
+  type DeploymentActionStatus,
+  type ActionOptions,
+} from "@/services/api";
 
-export type DeploymentOperation = "start" | "stop" | "restart" | "rebuild";
+export type DeploymentOperation = "start" | "stop" | "restart" | "rebuild" | "redeploy" | "rollback";
 
 export interface DeploymentJobState {
   visible: boolean;
@@ -38,6 +44,12 @@ function clearPersisted(name: string) {
   const all = loadPersisted();
   delete all[name];
   localStorage.setItem(STORAGE_KEY, JSON.stringify(all));
+}
+
+// rememberDeploymentJob hands a job started elsewhere, such as the build that
+// follows creating a deployment from source, to the next view that resumes it.
+export function rememberDeploymentJob(name: string, jobId: string, operation: DeploymentOperation) {
+  persist(name, { jobId, operation });
 }
 
 // useDeploymentJob drives one deployment action at a time: it enqueues the
@@ -109,13 +121,27 @@ export function useDeploymentJob(onSettled?: (state: DeploymentJobState) => void
         return deploymentsApi.restart(name, opts);
       case "rebuild":
         return deploymentsApi.rebuild(name, opts);
+      case "redeploy":
+        return deploymentsApi.redeploy(name);
+      case "rollback":
+        throw new Error("Rollback needs a deploy to roll back to");
     }
   }
 
   async function run(operation: DeploymentOperation, name: string, opts?: ActionOptions) {
+    return track(operation, name, () => enqueue(operation, name, opts));
+  }
+
+  // track streams any request that answers with a deployment job, such as a
+  // rollback to a specific deploy.
+  async function track(
+    operation: DeploymentOperation,
+    name: string,
+    request: () => Promise<{ data: Pick<ActionJobResponse, "job_id"> }>,
+  ) {
     begin(operation, name);
     try {
-      const res = await enqueue(operation, name, opts);
+      const res = await request();
       attach(res.data.job_id);
     } catch (e: any) {
       const activeId = e?.response?.data?.active_job_id;
@@ -249,5 +275,5 @@ export function useDeploymentJob(onSettled?: (state: DeploymentJobState) => void
 
   onScopeDispose(teardown);
 
-  return { state, run, resume, close };
+  return { state, run, track, resume, close };
 }

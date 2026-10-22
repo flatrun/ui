@@ -461,9 +461,10 @@ const viewLogs = async (deployment: ManagedDeployment) => {
   }
 };
 
-const onDeploymentCreated = () => {
+const onDeploymentCreated = (name?: string) => {
   showNewDeploymentModal.value = false;
   fetchDeployments();
+  if (name) deploymentJob.resume(name);
   notifications.success("Deployment created", "New deployment folder created successfully");
 };
 

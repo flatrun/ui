@@ -36,6 +36,52 @@ export interface ServiceMetadata {
   service_credentials?: Record<string, string>;
   domains?: DomainConfig[];
   databases?: DatabaseConfig[];
+  source?: SourceConfig;
+  environment?: EnvironmentInfo;
+  sleep?: SleepConfig;
+}
+
+export interface SourceConfig {
+  type: string;
+  ref: string;
+  branch?: string;
+  subpath?: string;
+  credential_id?: string;
+  auto_deploy: boolean;
+  previews: boolean;
+  builder?: "compose" | "dockerfile" | "railpack" | string;
+  last_revision?: string;
+}
+
+export interface EnvironmentInfo {
+  base: string;
+  name: string;
+  pr?: number;
+}
+
+export interface SleepConfig {
+  enabled: boolean;
+  idle_minutes: number;
+  sleeping: boolean;
+}
+
+export type DeployTrigger = "manual" | "push" | "pull_request" | "rollback";
+
+export interface DeployRecord {
+  id: string;
+  revision?: string;
+  branch?: string;
+  trigger: DeployTrigger;
+  status: "running" | "succeeded" | "failed";
+  error?: string;
+  started_at: string;
+  finished_at?: string;
+}
+
+export interface WebhookPaths {
+  github: string;
+  gitlab: string;
+  generic: string;
 }
 
 export interface DatabaseConfig {
