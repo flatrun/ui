@@ -521,7 +521,11 @@ export type Permission =
   | "traffic:read"
   | "traffic:write"
   | "cluster:read"
-  | "cluster:write";
+  | "cluster:write"
+  | "workspaces:read"
+  | "workspaces:write"
+  | "secrets:read"
+  | "secrets:write";
 
 export type WorkspaceRole = "owner" | "admin" | "member";
 

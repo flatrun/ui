@@ -1,0 +1,13 @@
+{
+    "items": [
+        {
+            "id": 1,
+            "invitee": "dana@example.com",
+            "role": "member",
+            "invited_by": 2,
+            "expires_at": "2026-10-29T19:14:19.357015884Z",
+            "created_at": "2026-10-22T19:14:19.357015884Z"
+        }
+    ],
+    "total": 1
+}

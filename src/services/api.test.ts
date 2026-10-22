@@ -139,3 +139,33 @@ describe("api client session gate", () => {
     expect(adapter).toHaveBeenCalledWith(expect.objectContaining({ url: "/users/me" }));
   });
 });
+
+describe("api client workspace scope", () => {
+  const originalAdapter = apiClient.defaults.adapter;
+
+  beforeEach(() => {
+    resetSessionGate();
+    localStorage.clear();
+    localStorage.setItem("auth_token", "good");
+    localStorage.setItem("flatrun.workspace", "acme-shop");
+    Object.defineProperty(window, "location", { value: { pathname: "/", href: "/", search: "" }, writable: true });
+  });
+
+  afterEach(() => {
+    apiClient.defaults.adapter = originalAdapter;
+    document.documentElement.removeAttribute("data-style");
+  });
+
+  it.each([
+    ["modern", "acme-shop"],
+    ["classic", undefined],
+  ])("under %s sends workspace %s", async (style, expected) => {
+    document.documentElement.setAttribute("data-style", style);
+    const adapter = vi.fn(ok);
+    apiClient.defaults.adapter = adapter as AxiosAdapter;
+
+    await apiClient.get("/deployments");
+
+    expect(adapter.mock.calls[0][0].headers.get("X-Workspace") ?? undefined).toBe(expected);
+  });
+});

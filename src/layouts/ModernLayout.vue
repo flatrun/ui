@@ -6,6 +6,10 @@
           <span class="brand-mark" :style="{ '--mark': `url(${markUrl})` }" />
         </RouterLink>
         <span class="sep">/</span>
+        <template v-if="canSeeWorkspaces">
+          <WorkspaceSwitcher />
+          <span class="sep">/</span>
+        </template>
         <Popover v-if="peers.length" v-model:open="serverOpen" width="240px">
           <template #trigger="{ toggle }">
             <button type="button" class="crumb" aria-haspopup="dialog" @click="toggle">
@@ -120,7 +124,7 @@
     </div>
 
     <main class="modern-content" :class="{ 'is-full-height': fullHeight }">
-      <RouterView />
+      <RouterView :key="workspaceStore.slug" />
     </main>
 
     <CommandPalette v-model:open="paletteOpen" :actions="paletteActions" />
@@ -150,6 +154,8 @@ import UserMenu from "@/components/UserMenu.vue";
 import NewDeploymentModal from "@/components/NewDeploymentModal.vue";
 import NewDeploymentPanel from "@/components/modern/NewDeploymentPanel.vue";
 import DeploymentSwitcher from "@/components/modern/DeploymentSwitcher.vue";
+import WorkspaceSwitcher from "@/components/modern/WorkspaceSwitcher.vue";
+import { useWorkspaceStore } from "@/stores/workspace";
 import CommandPalette, { type PaletteAction } from "@/components/modern/CommandPalette.vue";
 import { useShellData } from "@/composables/useShellData";
 import { useTheme } from "@/composables/useTheme";
@@ -171,6 +177,8 @@ const paletteOpen = ref(false);
 const newMode = ref<NewMode | null>(null);
 const wizardMode = ref<NewMode | null>(null);
 
+const workspaceStore = useWorkspaceStore();
+const canSeeWorkspaces = computed(() => authStore.hasPermission("workspaces:read"));
 const fullHeight = computed(() => route.matched.some((r) => Boolean(r.meta?.fullHeight)));
 const canCreate = computed(() => authStore.hasPermission("deployments:write"));
 const items = computed(() => visibleNavItems((p) => authStore.hasPermission(p)));

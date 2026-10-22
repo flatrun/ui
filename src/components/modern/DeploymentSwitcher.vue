@@ -125,6 +125,7 @@ import { useDeploymentJob, type DeploymentOperation } from "@/composables/useDep
 import Popover from "@/components/base/Popover.vue";
 import Icon from "@/components/base/Icon.vue";
 import { projectsFrom } from "@/model/project";
+import { useWorkspaceStore } from "@/stores/workspace";
 import OperationModal from "@/components/OperationModal.vue";
 
 const route = useRoute();
@@ -140,6 +141,7 @@ const loading = ref(false);
 const deployments = ref<Deployment[]>([]);
 const searchInput = ref<HTMLInputElement | null>(null);
 
+const workspaceStore = useWorkspaceStore();
 const job = useDeploymentJob(() => load());
 
 const currentName = computed(() => (route.name === "deployment-detail" ? String(route.params.name) : ""));
@@ -211,6 +213,7 @@ watch(currentName, (name) => {
 });
 
 onMounted(load);
+watch(() => workspaceStore.slug, load);
 </script>
 
 <style scoped>

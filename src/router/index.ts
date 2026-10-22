@@ -191,6 +191,12 @@ const routes: RouteRecordRaw[] = [
         meta: { permission: "deployments:read" },
       },
       {
+        path: "workspace",
+        name: "workspace",
+        component: () => import("@/views/WorkspaceView.vue"),
+        meta: { permission: "workspaces:read" },
+      },
+      {
         path: "settings",
         name: "settings",
         component: () => import("@/views/SettingsView.vue"),

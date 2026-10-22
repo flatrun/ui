@@ -24,8 +24,12 @@ import type {
   SleepConfig,
   SourceConfig,
   WebhookPaths,
+  Workspace,
+  WorkspaceRole,
 } from "@/types";
 import type { LogRecord, LogSource } from "@/types/logs";
+
+import { workspaceHeader } from "./workspaceScope";
 
 export const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_URL || "/api",
@@ -128,6 +132,10 @@ apiClient.interceptors.request.use(async (config) => {
     throw new axios.Cancel("not signed in");
   }
   config.headers.Authorization = `Bearer ${token}`;
+  const workspace = workspaceHeader();
+  if (workspace) {
+    config.headers.set("X-Workspace", workspace);
+  }
 
   if (sessionRejected) {
     throw new axios.Cancel("session already rejected");
@@ -309,6 +317,46 @@ export const deploymentLogsWsUrl = (
   return `${protocol}//${window.location.host}${path}`;
 };
 
+export interface WorkspaceMember {
+  user_id: number;
+  username: string;
+  email?: string;
+  role: WorkspaceRole;
+  created_at: string;
+}
+
+export interface WorkspaceInvitation {
+  id: number;
+  invitee: string;
+  role: WorkspaceRole;
+  invited_by: number;
+  expires_at: string;
+  created_at: string;
+}
+
+type Items<T> = { items: T[] | null; total: number };
+
+export const workspacesApi = {
+  list: () => apiClient.get<Items<Workspace>>("/workspaces"),
+  create: (name: string) => apiClient.post<Workspace>("/workspaces", { name }),
+  rename: (slug: string, name: string) => apiClient.put<Workspace>(`/workspaces/${slug}`, { name }),
+  remove: (slug: string) => apiClient.delete(`/workspaces/${slug}`),
+  members: (slug: string) => apiClient.get<Items<WorkspaceMember>>(`/workspaces/${slug}/members`),
+  addMember: (slug: string, username: string, role: WorkspaceRole) =>
+    apiClient.post<WorkspaceMember>(`/workspaces/${slug}/members`, { username, role }),
+  setRole: (slug: string, userId: number, role: WorkspaceRole) =>
+    apiClient.put<WorkspaceMember>(`/workspaces/${slug}/members/${userId}`, { role }),
+  removeMember: (slug: string, userId: number) => apiClient.delete(`/workspaces/${slug}/members/${userId}`),
+  invitations: (slug: string) => apiClient.get<Items<WorkspaceInvitation>>(`/workspaces/${slug}/invitations`),
+  invite: (slug: string, invitee: string, role: WorkspaceRole) =>
+    apiClient.post<{ invitation: WorkspaceInvitation; token: string }>(`/workspaces/${slug}/invitations`, {
+      invitee,
+      role,
+    }),
+  revokeInvitation: (slug: string, id: number) => apiClient.delete(`/workspaces/${slug}/invitations/${id}`),
+  accept: (token: string) => apiClient.post<WorkspaceMember>("/workspaces/invitations/accept", { token }),
+};
+
 export const deploymentsApi = {
   list: () => apiClient.get<{ deployments: Deployment[] }>("/deployments"),
   get: (name: string) => apiClient.get<Deployment>(`/deployments/${name}`),
@@ -365,8 +413,7 @@ export const deploymentsApi = {
     apiClient.get<{ paths: WebhookPaths; configured: boolean }>(`/deployments/${name}/webhook`),
   rotateWebhook: (name: string) =>
     apiClient.post<{ paths: WebhookPaths; secret: string }>(`/deployments/${name}/webhook/rotate`),
-  environments: (name: string) =>
-    apiClient.get<{ environments: Deployment[] }>(`/deployments/${name}/environments`),
+  environments: (name: string) => apiClient.get<{ environments: Deployment[] }>(`/deployments/${name}/environments`),
   createEnvironment: (name: string, env: { name: string; branch?: string }) =>
     apiClient.post<{ name: string; job_id?: string }>(`/deployments/${name}/environments`, env),
   updateSleep: (name: string, sleep: { enabled: boolean; idle_minutes: number }) =>
