@@ -153,14 +153,14 @@ describe("api client workspace scope", () => {
 
   afterEach(() => {
     apiClient.defaults.adapter = originalAdapter;
-    document.documentElement.removeAttribute("data-style");
+    document.documentElement.removeAttribute("data-layout");
   });
 
   it.each([
-    ["modern", "acme-shop"],
-    ["classic", undefined],
+    ["birch", "acme-shop"],
+    ["oak", undefined],
   ])("under %s sends workspace %s", async (style, expected) => {
-    document.documentElement.setAttribute("data-style", style);
+    document.documentElement.setAttribute("data-layout", style);
     const adapter = vi.fn(ok);
     apiClient.defaults.adapter = adapter as AxiosAdapter;
 

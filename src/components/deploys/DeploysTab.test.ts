@@ -109,7 +109,7 @@ describe("DeploysTab", () => {
     expect(api.updateSleep).toHaveBeenCalledWith("hello-web", { enabled: true, idle_minutes: 20 });
   });
 
-  describe("under Modern", () => {
+  describe("under Birch", () => {
     function mountModern() {
       useTheme().setStyle("modern");
       api.deploys.mockResolvedValue({ data: historyFixture } as any);

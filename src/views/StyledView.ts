@@ -4,15 +4,15 @@ import type { ShellLayout } from "@/themes/registry";
 
 type Loader = () => Promise<Component | { default: Component }>;
 
-// A route whose page differs by style: Classic keeps its page, Modern gets its own.
+// A route whose page differs by layout: Oak keeps its page, Birch gets its own.
 export function styledView(pages: Record<ShellLayout, Loader>) {
-  const classic = defineAsyncComponent(pages.classic);
-  const modern = defineAsyncComponent(pages.modern);
+  const oak = defineAsyncComponent(pages.oak);
+  const birch = defineAsyncComponent(pages.birch);
   return defineComponent({
     name: "StyledView",
     setup() {
       const { current } = useTheme();
-      return () => h(current.value.layout === "modern" ? modern : classic);
+      return () => h(current.value.layout === "birch" ? birch : oak);
     },
   });
 }

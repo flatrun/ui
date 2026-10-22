@@ -1,14 +1,14 @@
 <template>
-  <div class="deployment-detail" :class="{ 'is-modern': modern }">
-    <header v-if="modern" class="modern-header">
-      <div class="modern-title">
+  <div class="deployment-detail" :class="{ 'is-birch': birch }">
+    <header v-if="birch" class="birch-header">
+      <div class="birch-title">
         <h1>{{ deployment?.name || $route.params.name }}</h1>
-        <span class="modern-status" :class="modernStatus">{{ modernStatusLabel }}</span>
-        <a v-if="primaryDomain" :href="`https://${primaryDomain}`" target="_blank" rel="noopener" class="modern-domain">
+        <span class="birch-status" :class="modernStatus">{{ modernStatusLabel }}</span>
+        <a v-if="primaryDomain" :href="`https://${primaryDomain}`" target="_blank" rel="noopener" class="birch-domain">
           {{ primaryDomain }} <Icon name="arrow-up-right" :size="13" />
         </a>
       </div>
-      <div class="modern-actions">
+      <div class="birch-actions">
         <BaseButton size="sm" icon="stethoscope" @click="showDiagnostics = true">Diagnose</BaseButton>
         <template v-if="canWrite && deployment">
           <BaseButton
@@ -45,7 +45,7 @@
             <template #trigger="{ toggle }">
               <button
                 type="button"
-                class="btn btn-secondary btn-sm modern-more"
+                class="btn btn-secondary btn-sm birch-more"
                 aria-label="More actions"
                 @click="toggle"
               >
@@ -53,7 +53,7 @@
               </button>
             </template>
             <template #default="{ close }">
-              <ul class="modern-menu">
+              <ul class="birch-menu">
                 <li v-for="action in modernActions" :key="action.id">
                   <button
                     type="button"
@@ -73,7 +73,7 @@
         </template>
       </div>
     </header>
-    <div v-if="!modern" class="detail-header">
+    <div v-if="!birch" class="detail-header">
       <div class="header-left">
         <router-link :to="backPath" class="back-link">
           <i class="pi pi-arrow-left" />
@@ -152,7 +152,7 @@
     </div>
 
     <template v-else-if="deployment">
-      <div v-if="!modern" class="detail-tabs">
+      <div v-if="!birch" class="detail-tabs">
         <button
           v-for="item in tabBarItems"
           :key="item.id"
@@ -166,8 +166,8 @@
         </button>
       </div>
 
-      <div :class="{ 'modern-body': modern }">
-        <nav v-if="modern" class="section-rail" aria-label="Deployment sections">
+      <div :class="{ 'birch-body': birch }">
+        <nav v-if="birch" class="section-rail" aria-label="Deployment sections">
           <template v-for="group in modernSectionGroups" :key="group.label">
             <span v-if="group.label" class="rail-label">{{ group.label }}</span>
             <button
@@ -185,10 +185,10 @@
           </template>
         </nav>
         <div class="tab-content">
-          <h2 v-if="modern" class="section-title">{{ currentSectionLabel }}</h2>
-          <ServiceCanvas v-if="modern && section === 'architecture'" :deployment-name="route.params.name as string" />
+          <h2 v-if="birch" class="section-title">{{ currentSectionLabel }}</h2>
+          <ServiceCanvas v-if="birch && section === 'architecture'" :deployment-name="route.params.name as string" />
           <DeploymentMetrics
-            v-if="modern && section === 'metrics'"
+            v-if="birch && section === 'metrics'"
             :deployment-name="route.params.name as string"
             :height="200"
           />
@@ -841,7 +841,7 @@
           </div>
 
           <SecretsPanel
-            v-if="modern && shows('environment') && canReadSecrets"
+            v-if="birch && shows('environment') && canReadSecrets"
             class="secrets-block"
             :scope="`deployment:${route.params.name}`"
             :can-write="canWriteSecrets"
@@ -2247,7 +2247,7 @@ import SecretsPanel from "@/components/secrets/SecretsPanel.vue";
 import { useTheme } from "@/composables/useTheme";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { forgetProject } from "@/navigation/projects";
-import { MODERN_SECTIONS, sectionForTab } from "@/views/deploymentSections";
+import { BIRCH_SECTIONS, sectionForTab } from "@/views/deploymentSections";
 import { useDeploymentJob, type DeploymentOperation } from "@/composables/useDeploymentJob";
 import { useServiceJobs } from "@/composables/useServiceJobs";
 
@@ -2400,11 +2400,11 @@ const pluginTabs = computed(() =>
 );
 
 const { current: currentStyle } = useTheme();
-const modern = computed(() => currentStyle.value.layout === "modern");
+const birch = computed(() => currentStyle.value.layout === "birch");
 
 function initialSection(): string {
   const fromQuery = route.query.section as string;
-  if (MODERN_SECTIONS.some((s) => s.id === fromQuery) || fromQuery?.startsWith("plugin:")) return fromQuery;
+  if (BIRCH_SECTIONS.some((s) => s.id === fromQuery) || fromQuery?.startsWith("plugin:")) return fromQuery;
   if (route.query.tab) return sectionForTab(route.query.tab as string);
   return "architecture";
 }
@@ -2414,7 +2414,7 @@ const section = ref<string>(initialSection());
 const availableTabIds = computed(() => new Set(tabBarItems.value.map((t) => t.id)));
 
 const modernSectionGroups = computed(() => {
-  const visible = MODERN_SECTIONS.filter((s) => !s.requiresTab || availableTabIds.value.has(s.requiresTab));
+  const visible = BIRCH_SECTIONS.filter((s) => !s.requiresTab || availableTabIds.value.has(s.requiresTab));
   return [
     { label: "", items: visible.filter((s) => s.group === "main") },
     {
@@ -2432,14 +2432,14 @@ const currentSectionLabel = computed(
 );
 
 function sectionTabs(id: string): string[] {
-  const def = MODERN_SECTIONS.find((s) => s.id === id);
+  const def = BIRCH_SECTIONS.find((s) => s.id === id);
   return def ? def.tabs : [id];
 }
 
-// Classic shows one tab at a time; Modern shows every block that belongs to
+// Oak shows one tab at a time; Birch shows every block that belongs to
 // the selected section, so Settings stacks several former tabs.
 function shows(tab: string): boolean {
-  if (!modern.value) return activeTab.value === tab;
+  if (!birch.value) return activeTab.value === tab;
   return sectionTabs(section.value).includes(tab) && (tab.startsWith("plugin:") || availableTabIds.value.has(tab));
 }
 
@@ -2448,7 +2448,7 @@ function shows(tab: string): boolean {
 watch(
   section,
   (id) => {
-    if (!modern.value) return;
+    if (!birch.value) return;
     const tabs = sectionTabs(id);
     if (!tabs.includes(activeTab.value)) activeTab.value = tabs[0] ?? id;
     if (tabs.includes("security") && canReadSecurity.value) {
@@ -2463,12 +2463,12 @@ watch(
 );
 
 watch(activeTab, (tab) => {
-  if (modern.value && !sectionTabs(section.value).includes(tab)) section.value = sectionForTab(tab);
+  if (birch.value && !sectionTabs(section.value).includes(tab)) section.value = sectionForTab(tab);
 });
 
 onMounted(() => {
   const tabs = sectionTabs(section.value);
-  if (modern.value && !tabs.includes(activeTab.value)) activeTab.value = tabs[0] ?? section.value;
+  if (birch.value && !tabs.includes(activeTab.value)) activeTab.value = tabs[0] ?? section.value;
 });
 
 const primaryDomain = computed<string | undefined>(() => {
@@ -6946,7 +6946,7 @@ onUnmounted(() => {
   font-size: var(--text-xs);
 }
 
-.modern-header {
+.birch-header {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -6955,21 +6955,21 @@ onUnmounted(() => {
   margin-bottom: var(--space-5);
 }
 
-.modern-title {
+.birch-title {
   display: flex;
   min-width: 0;
   align-items: center;
   gap: var(--space-3);
 }
 
-.modern-title h1 {
+.birch-title h1 {
   margin: 0;
   font-size: 1.375rem;
   font-weight: var(--font-semibold);
   letter-spacing: -0.01em;
 }
 
-.modern-status {
+.birch-status {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -6978,7 +6978,7 @@ onUnmounted(() => {
   text-transform: capitalize;
 }
 
-.modern-status::before {
+.birch-status::before {
   width: 7px;
   height: 7px;
   background: var(--status-stopped);
@@ -6986,19 +6986,19 @@ onUnmounted(() => {
   content: "";
 }
 
-.modern-status.running::before {
+.birch-status.running::before {
   background: var(--status-running);
 }
 
-.modern-status.error::before {
+.birch-status.error::before {
   background: var(--status-failed);
 }
 
-.modern-status.sleeping::before {
+.birch-status.sleeping::before {
   background: var(--status-sleeping);
 }
 
-.modern-domain {
+.birch-domain {
   display: inline-flex;
   align-items: center;
   gap: 2px;
@@ -7007,28 +7007,28 @@ onUnmounted(() => {
   text-decoration: none;
 }
 
-.modern-domain:hover {
+.birch-domain:hover {
   color: var(--accent);
 }
 
-.modern-actions {
+.birch-actions {
   display: flex;
   align-items: center;
   gap: var(--space-2);
 }
 
-.modern-more {
+.birch-more {
   width: var(--control-h-sm);
   padding: 0;
 }
 
-.modern-menu {
+.birch-menu {
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-.modern-menu button {
+.birch-menu button {
   display: flex;
   width: 100%;
   align-items: center;
@@ -7044,20 +7044,20 @@ onUnmounted(() => {
   text-align: left;
 }
 
-.modern-menu button:hover:not(:disabled) {
+.birch-menu button:hover:not(:disabled) {
   background: var(--surface-inset);
 }
 
-.modern-menu button:disabled {
+.birch-menu button:disabled {
   opacity: 0.45;
   cursor: not-allowed;
 }
 
-.modern-menu button.danger {
+.birch-menu button.danger {
   color: var(--color-danger-600);
 }
 
-.modern-body {
+.birch-body {
   display: grid;
   grid-template-columns: 184px minmax(0, 1fr);
   align-items: start;
@@ -7108,7 +7108,7 @@ onUnmounted(() => {
   font-weight: var(--font-medium);
 }
 
-.is-modern .tab-content {
+.is-birch .tab-content {
   display: flex;
   min-height: 0;
   flex-direction: column;
@@ -7124,12 +7124,12 @@ onUnmounted(() => {
 }
 
 @media (max-width: 860px) {
-  .modern-body {
+  .birch-body {
     grid-template-columns: minmax(0, 1fr);
     gap: var(--space-4);
   }
 
-  .modern-title {
+  .birch-title {
     flex-wrap: wrap;
   }
 

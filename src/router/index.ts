@@ -31,8 +31,8 @@ const routes: RouteRecordRaw[] = [
         path: "",
         name: "home",
         component: styledView({
-          classic: () => import("@/views/HomeView.vue"),
-          modern: () => import("@/views/DeploymentsView.vue"),
+          oak: () => import("@/views/HomeView.vue"),
+          birch: () => import("@/views/DeploymentsView.vue"),
         }),
       },
       {
@@ -336,7 +336,7 @@ router.beforeEach((to, _from, next) => {
       next({ path: moved, query: to.query, hash: to.hash, replace: true });
       return;
     }
-    if (layout === "modern") {
+    if (layout === "birch") {
       const workspace = useWorkspaceStore().slug;
       if (to.name === "home") {
         const last = lastProject(workspace);

@@ -1,5 +1,5 @@
 <template>
-  <div class="modern-shell" :class="{ 'is-full-height': fullHeight }">
+  <div class="birch-shell" :class="{ 'is-full-height': fullHeight }">
     <header class="topbar">
       <div class="topbar-left">
         <RouterLink to="/" class="brand" aria-label="FlatRun home">
@@ -116,7 +116,7 @@
       </button>
     </div>
 
-    <main class="modern-content" :class="{ 'is-full-height': fullHeight }">
+    <main class="birch-content" :class="{ 'is-full-height': fullHeight }">
       <RouterView :key="workspaceStore.slug" />
     </main>
 
@@ -145,11 +145,11 @@ import Icon from "@/components/base/Icon.vue";
 import Popover from "@/components/base/Popover.vue";
 import UserMenu from "@/components/UserMenu.vue";
 import NewDeploymentModal from "@/components/NewDeploymentModal.vue";
-import NewDeploymentPanel from "@/components/modern/NewDeploymentPanel.vue";
-import DeploymentSwitcher from "@/components/modern/DeploymentSwitcher.vue";
-import WorkspaceSwitcher from "@/components/modern/WorkspaceSwitcher.vue";
+import NewDeploymentPanel from "@/components/birch/NewDeploymentPanel.vue";
+import DeploymentSwitcher from "@/components/birch/DeploymentSwitcher.vue";
+import WorkspaceSwitcher from "@/components/birch/WorkspaceSwitcher.vue";
 import { useWorkspaceStore } from "@/stores/workspace";
-import CommandPalette, { type PaletteAction } from "@/components/modern/CommandPalette.vue";
+import CommandPalette, { type PaletteAction } from "@/components/birch/CommandPalette.vue";
 import { useShellData } from "@/composables/useShellData";
 import { useTheme } from "@/composables/useTheme";
 import { NAV_GROUPS, visibleNavItems } from "@/navigation/items";
@@ -175,7 +175,7 @@ const workspaceStore = useWorkspaceStore();
 const canSeeWorkspaces = computed(() => authStore.hasPermission("workspaces:read"));
 const fullHeight = computed(() => route.matched.some((r) => Boolean(r.meta?.fullHeight)));
 const canCreate = computed(() => authStore.hasPermission("deployments:write"));
-const items = computed(() => visibleNavItems((p) => authStore.hasPermission(p), "modern"));
+const items = computed(() => visibleNavItems((p) => authStore.hasPermission(p), "birch"));
 const primaryItems = computed(() => items.value.filter((i) => i.primary));
 const moreGroups = computed(() =>
   NAV_GROUPS.map((name) => ({ name, items: items.value.filter((i) => !i.primary && i.group === name) })).filter(
@@ -250,7 +250,7 @@ onBeforeUnmount(() => document.removeEventListener("keydown", onKeydown));
 </script>
 
 <style scoped>
-.modern-shell {
+.birch-shell {
   display: flex;
   min-height: 100vh;
   flex-direction: column;
@@ -258,7 +258,7 @@ onBeforeUnmount(() => document.removeEventListener("keydown", onKeydown));
   color: var(--text);
 }
 
-.modern-shell.is-full-height {
+.birch-shell.is-full-height {
   height: 100vh;
 }
 
@@ -486,7 +486,7 @@ onBeforeUnmount(() => document.removeEventListener("keydown", onKeydown));
   cursor: pointer;
 }
 
-.modern-content {
+.birch-content {
   width: 100%;
   max-width: 1400px;
   flex: 1;
@@ -494,7 +494,7 @@ onBeforeUnmount(() => document.removeEventListener("keydown", onKeydown));
   padding: var(--space-6) var(--space-6);
 }
 
-.modern-content.is-full-height {
+.birch-content.is-full-height {
   max-width: none;
   min-height: 0;
   overflow: hidden;
@@ -530,7 +530,7 @@ onBeforeUnmount(() => document.removeEventListener("keydown", onKeydown));
     padding: 0 var(--space-3);
   }
 
-  .modern-content {
+  .birch-content {
     padding: var(--space-4);
   }
 }

@@ -67,10 +67,10 @@ const props = defineProps<{
 
 const { current: currentStyle } = useTheme();
 
-// A deploy that reports phases gets the stepped build and deploy view under Modern.
+// A deploy that reports phases gets the stepped build and deploy view under Birch.
 const staged = computed(
   () =>
-    currentStyle.value.layout === "modern" &&
+    currentStyle.value.layout === "birch" &&
     ((props.phases?.length ?? 0) > 0 || ["redeploy", "rebuild", "rollback"].includes(props.operation)),
 );
 

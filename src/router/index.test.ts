@@ -19,7 +19,7 @@ describe("router", () => {
     await router.push("/login").catch(() => {});
   });
 
-  describe("under Modern", () => {
+  describe("under Birch", () => {
     beforeEach(() => useTheme().setStyle("modern"));
 
     it("serves deployments as projects", async () => {
@@ -40,7 +40,7 @@ describe("router", () => {
     });
 
     it("names the pages in its own words", () => {
-      const labels = visibleNavItems(() => true, "modern").map((i) => `${i.label} ${i.path}`);
+      const labels = visibleNavItems(() => true, "birch").map((i) => `${i.label} ${i.path}`);
       expect(labels).toContain("Projects /projects");
       expect(labels).toContain("Fleet /cluster");
       expect(labels.filter((l) => l.startsWith("Fleet"))).toHaveLength(1);
@@ -48,7 +48,7 @@ describe("router", () => {
     });
   });
 
-  describe("under Classic", () => {
+  describe("under Oak", () => {
     beforeEach(() => useTheme().setStyle("classic"));
 
     it("keeps deployments and the canvas where they were", async () => {

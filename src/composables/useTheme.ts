@@ -25,6 +25,7 @@ const scheme = computed<ColorScheme>(() =>
 function apply() {
   const root = document.documentElement;
   root.setAttribute("data-style", style.value);
+  root.setAttribute("data-layout", (getStyle(style.value) ?? getStyle(DEFAULT_STYLE_ID)!).layout);
   root.setAttribute("data-scheme", scheme.value);
   root.style.colorScheme = scheme.value;
 }

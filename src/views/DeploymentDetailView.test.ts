@@ -800,7 +800,7 @@ describe("DeploymentDetailView", () => {
     });
   });
 
-  describe("Modern style", () => {
+  describe("Birch style", () => {
     beforeEach(() => {
       useTheme().setStyle("modern");
     });
@@ -813,8 +813,8 @@ describe("DeploymentDetailView", () => {
 
       expect(wrapper.find(".detail-tabs").exists()).toBe(false);
       expect(wrapper.find(".detail-header").exists()).toBe(false);
-      expect(wrapper.get(".modern-header h1").text()).toBe("test-app");
-      expect(wrapper.get(".modern-actions .btn-primary").text()).toBe("Restart");
+      expect(wrapper.get(".birch-header h1").text()).toBe("test-app");
+      expect(wrapper.get(".birch-actions .btn-primary").text()).toBe("Restart");
       expect(railLabels(wrapper)).toEqual([
         "Architecture",
         "Deployments",
@@ -857,7 +857,7 @@ describe("DeploymentDetailView", () => {
       expect(deploymentsApi.logSources).toHaveBeenCalledWith("test-app");
     });
 
-    it("opens the section that a Classic tab link points to", async () => {
+    it("opens the section that a Oak tab link points to", async () => {
       mockRoute.query = { tab: "environment" };
       const wrapper = mountView();
       await flushPromises();

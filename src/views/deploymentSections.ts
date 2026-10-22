@@ -1,4 +1,4 @@
-export type ModernSectionId =
+export type BirchSectionId =
   | "architecture"
   | "deploys"
   | "logs"
@@ -9,8 +9,8 @@ export type ModernSectionId =
   | "terminal"
   | "migration";
 
-export interface ModernSection {
-  id: ModernSectionId;
+export interface BirchSection {
+  id: BirchSectionId;
   label: string;
   icon: string;
   group: "main" | "tools";
@@ -20,7 +20,7 @@ export interface ModernSection {
   requiresTab?: string;
 }
 
-export const MODERN_SECTIONS: ModernSection[] = [
+export const BIRCH_SECTIONS: BirchSection[] = [
   { id: "architecture", label: "Architecture", icon: "workflow", group: "main", tabs: [] },
   { id: "deploys", label: "Deployments", icon: "rocket", group: "main", tabs: ["deploys"] },
   { id: "logs", label: "Logs", icon: "scroll-text", group: "main", tabs: ["logs"] },
@@ -38,10 +38,10 @@ export const MODERN_SECTIONS: ModernSection[] = [
   { id: "migration", label: "Migration", icon: "arrow-right-left", group: "tools", tabs: ["migration"] },
 ];
 
-// Maps a Classic tab id (from links such as ?tab=environment) to the Modern
+// Maps an Oak tab id (from links such as ?tab=environment) to the Birch
 // section that shows it. Plugin tabs are their own section.
-export function sectionForTab(tab: string): ModernSectionId | string {
+export function sectionForTab(tab: string): BirchSectionId | string {
   if (tab.startsWith("plugin:")) return tab;
-  if (MODERN_SECTIONS.some((s) => s.id === tab && !s.tabs.length)) return tab;
-  return MODERN_SECTIONS.find((s) => s.tabs.includes(tab))?.id ?? "deploys";
+  if (BIRCH_SECTIONS.some((s) => s.id === tab && !s.tabs.length)) return tab;
+  return BIRCH_SECTIONS.find((s) => s.tabs.includes(tab))?.id ?? "deploys";
 }

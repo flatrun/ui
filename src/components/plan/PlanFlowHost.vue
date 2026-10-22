@@ -1,5 +1,5 @@
 <template>
-  <template v-if="store.plan && modern">
+  <template v-if="store.plan && birch">
     <StagedChangesBar
       :plan="store.plan"
       :applying="store.applying"
@@ -35,7 +35,7 @@ import StagedChangesBar from "./StagedChangesBar.vue";
 
 const store = usePlanFlowStore();
 const { current } = useTheme();
-const modern = computed(() => current.value.layout === "modern");
+const birch = computed(() => current.value.layout === "birch");
 const details = ref(false);
 
 watch(

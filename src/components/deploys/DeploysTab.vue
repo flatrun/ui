@@ -1,7 +1,7 @@
 <template>
   <div class="deploys-tab">
     <template v-if="source">
-      <BaseCard v-if="modern" title="Recent deploys" icon="rocket">
+      <BaseCard v-if="birch" title="Recent deploys" icon="rocket">
         <DeployCards
           :deployment-name="deploymentName"
           :deploys="deploys"
@@ -121,7 +121,7 @@
         </form>
       </BaseCard>
 
-      <BaseCard v-if="!modern" title="History" icon="history">
+      <BaseCard v-if="!birch" title="History" icon="history">
         <table v-if="deploys.length" class="history">
           <thead>
             <tr>
@@ -227,7 +227,7 @@ const emit = defineEmits<{
 
 const notifications = useNotificationsStore();
 const { current: currentStyle } = useTheme();
-const modern = computed(() => currentStyle.value.layout === "modern");
+const birch = computed(() => currentStyle.value.layout === "birch");
 const auth = useAuthStore();
 const canWrite = computed(() => auth.hasPermission("deployments:write"));
 

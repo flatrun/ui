@@ -1,6 +1,7 @@
 export type ColorScheme = "light" | "dark";
 export type SchemePreference = ColorScheme | "system";
-export type ShellLayout = "classic" | "modern";
+// Layouts are named after trees: Oak is the sidebar shell, Birch the top bar shell.
+export type ShellLayout = "oak" | "birch";
 
 export interface StyleDefinition {
   id: string;
@@ -29,5 +30,5 @@ export function getStyle(id: string | null | undefined): StyleDefinition | undef
 export const DEFAULT_STYLE_ID = "modern";
 export const SCHEME_PREFERENCES: SchemePreference[] = ["light", "dark", "system"];
 
-registerStyle({ id: "modern", label: "Modern", description: "Compact, top navigation", layout: "modern" });
-registerStyle({ id: "classic", label: "Classic", description: "Sidebar navigation", layout: "classic" });
+registerStyle({ id: "modern", label: "Modern", description: "Compact, top navigation", layout: "birch" });
+registerStyle({ id: "classic", label: "Classic", description: "Sidebar navigation", layout: "oak" });

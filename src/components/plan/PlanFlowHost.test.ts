@@ -35,7 +35,7 @@ describe("PlanFlowHost", () => {
     vi.mocked(plansApi.discard).mockResolvedValue({ data: {} } as any);
   });
 
-  describe("Modern", () => {
+  describe("Birch", () => {
     beforeEach(() => useTheme().setStyle("modern"));
 
     it("holds a previewed change in a bar until it is applied", async () => {
@@ -96,7 +96,7 @@ describe("PlanFlowHost", () => {
     });
   });
 
-  it("keeps the review dialog under Classic, where closing it discards", async () => {
+  it("keeps the review dialog under Oak, where closing it discards", async () => {
     useTheme().setStyle("classic");
     const wrapper = mount(PlanFlowHost, { global });
     const result = stage();

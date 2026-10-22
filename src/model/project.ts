@@ -1,7 +1,7 @@
 import type { DeployPhase, DeployRecord, Deployment, Service, ServiceMount } from "@/types";
 import { PRODUCTION, environmentOf } from "@/canvas/layout";
 
-// The platform vocabulary the Modern views speak: a workspace holds projects,
+// The platform vocabulary the Birch views speak: a workspace holds projects,
 // a project is one deployment plus its environments, and an environment runs
 // the compose services of one deployment directory.
 

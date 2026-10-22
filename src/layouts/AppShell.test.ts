@@ -11,16 +11,16 @@ describe("AppShell", () => {
     const wrapper = mount(AppShell, {
       global: {
         stubs: {
-          ModernLayout: { template: "<div class='modern' />" },
-          DashboardLayout: { template: "<div class='classic' />" },
+          BirchLayout: { template: "<div class='birch' />" },
+          OakLayout: { template: "<div class='oak' />" },
         },
       },
     });
-    expect(wrapper.find(".modern").exists()).toBe(true);
+    expect(wrapper.find(".birch").exists()).toBe(true);
 
     setStyle("classic");
     await nextTick();
-    expect(wrapper.find(".classic").exists()).toBe(true);
-    expect(wrapper.find(".modern").exists()).toBe(false);
+    expect(wrapper.find(".oak").exists()).toBe(true);
+    expect(wrapper.find(".birch").exists()).toBe(false);
   });
 });

@@ -414,7 +414,7 @@ describe("DeploymentsView", () => {
     });
   });
 
-  describe("Modern style", () => {
+  describe("Birch style", () => {
     beforeEach(() => {
       useTheme().setStyle("modern");
     });
@@ -426,7 +426,7 @@ describe("DeploymentsView", () => {
       expect(wrapper.text()).toContain("Refresh");
     });
 
-    it("keeps cards and the New Deployment button in Classic", () => {
+    it("keeps cards and the New Deployment button in Oak", () => {
       useTheme().setStyle("classic");
       const wrapper = mountView();
       expect(wrapper.get(".data-table").attributes("data-view")).toBe("grid");

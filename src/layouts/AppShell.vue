@@ -1,12 +1,12 @@
 <template>
-  <ModernLayout v-if="current.layout === 'modern'" />
-  <DashboardLayout v-else />
+  <BirchLayout v-if="current.layout === 'birch'" />
+  <OakLayout v-else />
 </template>
 
 <script setup lang="ts">
 import { useTheme } from "@/composables/useTheme";
-import DashboardLayout from "./DashboardLayout.vue";
-import ModernLayout from "./ModernLayout.vue";
+import OakLayout from "./OakLayout.vue";
+import BirchLayout from "./BirchLayout.vue";
 
 const { current } = useTheme();
 </script>

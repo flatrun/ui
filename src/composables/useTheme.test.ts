@@ -50,7 +50,8 @@ describe("useTheme", () => {
     setScheme("dark");
     expect(root().getAttribute("data-style")).toBe("classic");
     expect(root().getAttribute("data-scheme")).toBe("dark");
-    expect(current.value.layout).toBe("classic");
+    expect(current.value.layout).toBe("oak");
+    expect(root().getAttribute("data-layout")).toBe("oak");
     expect(localStorage.getItem("flatrun-style")).toBe("classic");
     expect(localStorage.getItem("flatrun-scheme")).toBe("dark");
 

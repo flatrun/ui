@@ -79,7 +79,7 @@ export function useSearchIndex() {
       sources.map(async (s): Promise<SearchItem[]> => {
         try {
           const labels = await s.fetch();
-          const group = current.value.layout === "modern" ? (s.modernGroup ?? s.group) : s.group;
+          const group = current.value.layout === "birch" ? (s.modernGroup ?? s.group) : s.group;
           return labels.map((label) => ({
             key: `${s.group}:${label}`,
             label,

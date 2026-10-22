@@ -8,10 +8,10 @@ export interface NavItem {
   icon: string;
   group: string;
   permission?: Permission;
-  // Shown directly in the Modern top bar; everything else sits under "More".
+  // Shown directly in the Birch top bar; everything else sits under "More".
   primary?: boolean;
-  // How Modern names this page, or false when Modern has no such page.
-  modern?: { label: string; path: string } | false;
+  // How Birch names this page, or false when Birch has no such page.
+  birch?: { label: string; path: string } | false;
 }
 
 export const NAV_GROUPS = ["Projects", "Docker", "Storage", "Monitoring", "Apps", "System", "DNS", "Administration"];
@@ -25,7 +25,7 @@ export const NAV_ITEMS: NavItem[] = [
     group: "Projects",
     permission: "deployments:read",
     primary: true,
-    modern: false,
+    birch: false,
   },
   {
     id: "deployments",
@@ -35,7 +35,7 @@ export const NAV_ITEMS: NavItem[] = [
     group: "Projects",
     permission: "deployments:read",
     primary: true,
-    modern: { label: "Projects", path: "/projects" },
+    birch: { label: "Projects", path: "/projects" },
   },
   { id: "home", label: "Overview", path: "/overview", icon: "layout-dashboard", group: "Projects" },
   { id: "agents", label: "Agents", path: "/agents", icon: "bot", group: "Projects", permission: "deployments:read" },
@@ -224,10 +224,8 @@ export const NAV_ITEMS: NavItem[] = [
   },
 ];
 
-export function visibleNavItems(can: (p: Permission) => boolean, layout: ShellLayout = "classic"): NavItem[] {
+export function visibleNavItems(can: (p: Permission) => boolean, layout: ShellLayout = "oak"): NavItem[] {
   const items = NAV_ITEMS.filter((item) => !item.permission || can(item.permission));
-  if (layout !== "modern") return items;
-  return items
-    .filter((item) => item.modern !== false)
-    .map((item) => (item.modern ? { ...item, ...item.modern } : item));
+  if (layout !== "birch") return items;
+  return items.filter((item) => item.birch !== false).map((item) => (item.birch ? { ...item, ...item.birch } : item));
 }

@@ -37,7 +37,7 @@ async function mountSwitcher() {
 describe("WorkspaceSwitcher", () => {
   beforeEach(() => {
     localStorage.clear();
-    document.documentElement.setAttribute("data-style", "modern");
+    document.documentElement.setAttribute("data-layout", "birch");
     vi.mocked(workspacesApi.list).mockResolvedValue({ data: workspacesFixture } as any);
   });
 
@@ -62,10 +62,10 @@ describe("WorkspaceSwitcher", () => {
     wrapper.unmount();
   });
 
-  it("sends no workspace under Classic", async () => {
+  it("sends no workspace under Oak", async () => {
     const wrapper = await mountSwitcher();
     useWorkspaceStore().select("default");
-    document.documentElement.setAttribute("data-style", "classic");
+    document.documentElement.setAttribute("data-layout", "oak");
     expect(workspaceHeader()).toBe("");
     wrapper.unmount();
   });

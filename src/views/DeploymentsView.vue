@@ -18,11 +18,11 @@
       :loading-text="`Loading ${noun}s...`"
       :default-page-size="12"
       :toggleable="true"
-      :default-view-mode="modern ? 'table' : 'grid'"
+      :default-view-mode="birch ? 'table' : 'grid'"
     >
       <template #actions>
         <button
-          v-if="canWrite && !viewingRemoteServer && !modern"
+          v-if="canWrite && !viewingRemoteServer && !birch"
           class="btn btn-primary"
           @click="showNewDeploymentModal = true"
         >
@@ -348,8 +348,8 @@ const route = useRoute();
 const notifications = useNotificationsStore();
 const authStore = useAuthStore();
 const { current: currentStyle } = useTheme();
-const modern = computed(() => currentStyle.value.layout === "modern");
-const noun = computed(() => (modern.value ? "project" : "deployment"));
+const birch = computed(() => currentStyle.value.layout === "birch");
+const noun = computed(() => (birch.value ? "project" : "deployment"));
 const canWrite = authStore.hasPermission("deployments:write");
 const canReadCluster = authStore.hasPermission("cluster:read");
 type ManagedDeployment = Deployment & { server: string; local: boolean; clusterKey: string };
@@ -382,7 +382,7 @@ const logsModal = ref({
 
 const columns = computed(() => [
   { key: "status", label: "", width: "40px" },
-  { key: "name", label: modern.value ? "Project" : "Deployment", sortable: true },
+  { key: "name", label: birch.value ? "Project" : "Deployment", sortable: true },
   { key: "services", label: "Services", width: "180px" },
   { key: "ports", label: "Ports", width: "140px" },
   { key: "updated", label: "Updated", sortable: true, width: "120px" },
