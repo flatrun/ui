@@ -6,7 +6,17 @@ import deploymentsFixture from "./fixtures/deployments.json";
 import templatesFixture from "./fixtures/templates.json";
 import settingsFixture from "./fixtures/settings.json";
 import generateGhostFixture from "./fixtures/generate-ghost.json";
-import { deploymentsApi, settingsApi, templatesApi } from "@/services/api";
+import credentialsFixture from "./fixtures/credentials.json";
+import sourceCredentialsFixture from "./fixtures/source-credentials.json";
+import containersFixture from "./fixtures/containers.json";
+import {
+  containersApi,
+  credentialsApi,
+  sourceCredentialsApi,
+  deploymentsApi,
+  settingsApi,
+  templatesApi,
+} from "@/services/api";
 
 vi.mock("@/services/api", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/services/api")>();
@@ -15,6 +25,9 @@ vi.mock("@/services/api", async (importOriginal) => {
     deploymentsApi: { list: vi.fn(), create: vi.fn() },
     settingsApi: { get: vi.fn(), generateSubdomain: vi.fn() },
     templatesApi: { list: vi.fn(), generateCompose: vi.fn() },
+    sourceCredentialsApi: { list: vi.fn() },
+    credentialsApi: { list: vi.fn() },
+    containersApi: { list: vi.fn() },
   };
 });
 
@@ -44,6 +57,9 @@ describe("NewDeploymentPanel", () => {
     vi.mocked(settingsApi.get).mockResolvedValue({ data: settingsFixture } as any);
     vi.mocked(templatesApi.list).mockResolvedValue({ data: templatesFixture } as any);
     vi.mocked(templatesApi.generateCompose).mockResolvedValue({ data: generateGhostFixture } as any);
+    vi.mocked(sourceCredentialsApi.list).mockResolvedValue({ data: { credentials: [] } } as any);
+    vi.mocked(credentialsApi.list).mockResolvedValue({ data: credentialsFixture } as any);
+    vi.mocked(containersApi.list).mockResolvedValue({ data: containersFixture } as any);
   });
 
   it("names a git deployment after its repository and starts it from the source", async () => {
@@ -146,5 +162,62 @@ describe("NewDeploymentPanel", () => {
     await fill(wrapper, "image", "nginx:alpine");
 
     expect((wrapper.get('[name="name"]').element as HTMLInputElement).value).toBe("front");
+  });
+
+  it("sets up a database, more domains and a registry login without the full wizard", async () => {
+    const wrapper = mountPanel("image");
+    await flushPromises();
+    expect(wrapper.text()).not.toContain("Open the full setup");
+
+    await fill(wrapper, "image", "ghcr.io/acme/shop:1.4");
+    await fill(wrapper, "domain", "shop.example.com");
+    await wrapper
+      .findAll(".link-button")
+      .find((b) => b.text().includes("Add a domain"))!
+      .trigger("click");
+    await fill(wrapper, "extra-domain-0", "admin.example.com");
+    await fill(wrapper, "extra-service-0", "admin");
+    await fill(wrapper, "extra-port-0", "8080");
+
+    await wrapper.get('[name="db-mode"]').setValue("existing");
+    expect(wrapper.findAll('[name="db-container"] option').map((o) => o.text())).toEqual([
+      "infra-postgres-1 (postgres:16-alpine)",
+      "api-db-1 (mysql:8)",
+    ]);
+    await wrapper.get('[name="db-container"]').setValue("api-db-1");
+    await fill(wrapper, "db-name", "shop");
+
+    await wrapper.get('[name="registry-mode"]').setValue("4ab0d1c38614d900");
+    await deploy(wrapper);
+
+    const payload = vi.mocked(deploymentsApi.create).mock.calls[0][0] as Record<string, any>;
+    expect(payload.existing_database_container).toBe("api-db-1");
+    expect(payload.databases).toEqual([
+      expect.objectContaining({
+        type: "mysql",
+        mode: "existing",
+        existing_container: "api-db-1",
+        database_name: "shop",
+      }),
+    ]);
+    expect(payload.registry_credential).toEqual({ credential_id: "4ab0d1c38614d900" });
+    expect(payload.metadata.domains.map((d: any) => [d.domain, d.service, d.container_port])).toEqual([
+      ["shop.example.com", "shop", 80],
+      ["admin.example.com", "admin", 8080],
+    ]);
+  });
+
+  it("clones with a saved repository credential instead of a token", async () => {
+    vi.mocked(sourceCredentialsApi.list).mockResolvedValue({ data: sourceCredentialsFixture } as any);
+    const wrapper = mountPanel("git");
+    await flushPromises();
+
+    await fill(wrapper, "repo", "https://github.com/acme/shop.git");
+    await wrapper.get('[name="git-credential"]').setValue("2ab200de5551fc4b");
+    expect(wrapper.find('[name="token"]').exists()).toBe(false);
+    await deploy(wrapper);
+
+    const payload = vi.mocked(deploymentsApi.create).mock.calls[0][0] as Record<string, any>;
+    expect(payload.source.credential_id).toBe("2ab200de5551fc4b");
   });
 });

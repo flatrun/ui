@@ -85,7 +85,17 @@
             <BaseField label="Subdirectory">
               <BaseInput v-model="subpath" name="subpath" placeholder="apps/web" />
             </BaseField>
-            <BaseField label="Access token" hint="For a private repository. Used once to clone, not stored.">
+            <BaseField v-if="sourceCredentials.length" label="Repository access">
+              <select v-model="gitCredentialId" name="git-credential" class="form-input">
+                <option value="">Public, or a token below</option>
+                <option v-for="c in sourceCredentials" :key="c.id" :value="c.id">{{ c.name }}</option>
+              </select>
+            </BaseField>
+            <BaseField
+              v-if="!gitCredentialId"
+              label="Access token"
+              hint="For a private repository. Used once to clone, not stored."
+            >
               <BaseInput v-model="token" name="token" type="password" autocomplete="off" />
             </BaseField>
             <label class="check">
@@ -107,9 +117,74 @@
             <input v-model="autoStart" type="checkbox" name="auto-start" />
             Start after creating
           </label>
-          <button type="button" class="link-button" @click="emit('wizard', mode)">
-            Databases, volumes or registry login? Open the full setup.
-          </button>
+          <fieldset class="section">
+            <legend>More domains</legend>
+            <div v-for="(d, i) in extraDomains" :key="i" class="row-fields">
+              <BaseInput v-model="d.domain" :name="`extra-domain-${i}`" placeholder="admin.example.com" />
+              <BaseInput v-model="d.service" :name="`extra-service-${i}`" placeholder="service" />
+              <BaseInput
+                v-model="d.containerPort"
+                class="port-field"
+                :name="`extra-port-${i}`"
+                type="number"
+                placeholder="80"
+              />
+              <button type="button" class="icon-button" aria-label="Remove domain" @click="extraDomains.splice(i, 1)">
+                <Icon name="x" :size="14" />
+              </button>
+            </div>
+            <button
+              type="button"
+              class="link-button"
+              @click="extraDomains.push({ domain: '', service: '', containerPort: 80 })"
+            >
+              <Icon name="plus" :size="13" />Add a domain
+            </button>
+          </fieldset>
+
+          <fieldset class="section">
+            <legend>Database</legend>
+            <select v-model="dbMode" name="db-mode" class="form-input" aria-label="Database">
+              <option value="none">None</option>
+              <option value="shared">A database on the shared server</option>
+              <option value="existing" :disabled="!dbContainers.length">An existing database container</option>
+            </select>
+            <template v-if="dbMode === 'existing'">
+              <select v-model="dbContainer" name="db-container" class="form-input" aria-label="Database container">
+                <option v-for="c in dbContainers" :key="c.name" :value="c.name">{{ c.name }} ({{ c.image }})</option>
+              </select>
+              <div class="row-fields">
+                <BaseInput v-model="dbName" name="db-name" placeholder="database" />
+                <BaseInput v-model="dbUser" name="db-user" placeholder="user" />
+                <BaseInput v-model="dbPassword" name="db-password" type="password" placeholder="password" />
+              </div>
+            </template>
+          </fieldset>
+
+          <fieldset v-if="mode !== 'git'" class="section">
+            <legend>Registry login</legend>
+            <select v-model="registryMode" name="registry-mode" class="form-input" aria-label="Registry login">
+              <option value="">Public image</option>
+              <option v-for="c in registryCredentials" :key="c.id" :value="c.id">
+                {{ c.name }} ({{ c.username }})
+              </option>
+              <option value="new">Sign in with a username and token</option>
+            </select>
+            <div v-if="registryMode === 'new'" class="row-fields">
+              <BaseInput v-model="registryUser" name="registry-user" placeholder="username" autocomplete="off" />
+              <BaseInput
+                v-model="registryPassword"
+                name="registry-password"
+                type="password"
+                placeholder="token"
+                autocomplete="off"
+              />
+            </div>
+            <label v-if="registryMode === 'new'" class="check">
+              <input v-model="registrySave" type="checkbox" name="registry-save" />
+              Save this login for later deployments
+            </label>
+          </fieldset>
         </div>
       </details>
     </form>
@@ -139,7 +214,16 @@ import BaseField from "@/components/base/BaseField.vue";
 import BaseInput from "@/components/base/BaseInput.vue";
 import BaseButton from "@/components/base/BaseButton.vue";
 import Icon from "@/components/base/Icon.vue";
-import { deploymentsApi, settingsApi, templatesApi } from "@/services/api";
+import {
+  containersApi,
+  credentialsApi,
+  deploymentsApi,
+  settingsApi,
+  sourceCredentialsApi,
+  templatesApi,
+  type SourceCredential,
+} from "@/services/api";
+import type { RegistryCredential } from "@/types";
 import { rememberDeploymentJob } from "@/composables/useDeploymentJob";
 import { useNotificationsStore } from "@/stores/notifications";
 import {
@@ -148,6 +232,9 @@ import {
   composeFromImage,
   suggestName,
   type CreateMode,
+  type DatabaseChoice,
+  type ExtraDomain,
+  type RegistryLogin,
 } from "@/deploy/createPayload";
 
 interface TemplateSummary {
@@ -198,6 +285,52 @@ const envText = ref("");
 const autoStart = ref(true);
 const existingNames = ref<string[]>([]);
 const creating = ref(false);
+const gitCredentialId = ref("");
+const sourceCredentials = ref<SourceCredential[]>([]);
+const extraDomains = ref<ExtraDomain[]>([]);
+const dbMode = ref<"none" | "shared" | "existing">("none");
+const dbContainers = ref<{ name: string; image: string; type: string }[]>([]);
+const dbContainer = ref("");
+const dbName = ref("");
+const dbUser = ref("");
+const dbPassword = ref("");
+const registryCredentials = ref<RegistryCredential[]>([]);
+const registryMode = ref("");
+const registryUser = ref("");
+const registryPassword = ref("");
+const registrySave = ref(false);
+
+function databaseType(image: string): string {
+  const i = image.toLowerCase();
+  if (i.includes("mariadb")) return "mariadb";
+  if (i.includes("mysql")) return "mysql";
+  if (i.includes("postgres")) return "postgres";
+  if (i.includes("mongo")) return "mongodb";
+  return "";
+}
+
+const database = computed<DatabaseChoice>(() => {
+  if (dbMode.value === "shared") return { mode: "shared" };
+  const container = dbContainers.value.find((c) => c.name === dbContainer.value);
+  if (dbMode.value === "existing" && container) {
+    return {
+      mode: "existing",
+      type: container.type,
+      container: container.name,
+      dbName: dbName.value.trim(),
+      dbUser: dbUser.value.trim(),
+      dbPassword: dbPassword.value,
+    };
+  }
+  return { mode: "none" };
+});
+
+const registry = computed<RegistryLogin | undefined>(() => {
+  if (mode.value === "git" || !registryMode.value) return undefined;
+  if (registryMode.value !== "new") return { credentialId: registryMode.value };
+  if (!registryUser.value.trim() || !registryPassword.value) return undefined;
+  return { username: registryUser.value.trim(), password: registryPassword.value, save: registrySave.value };
+});
 
 const selectedTemplate = computed(() => templates.value.find((t) => t.id === templateId.value));
 
@@ -249,11 +382,22 @@ function parseEnv(text: string) {
 }
 
 async function load() {
-  const [deployments, settings, tpl] = await Promise.allSettled([
+  const [deployments, settings, tpl, sourceCreds, registryCreds, containers] = await Promise.allSettled([
     deploymentsApi.list(),
     settingsApi.get(),
     templatesApi.list(),
+    sourceCredentialsApi.list(),
+    credentialsApi.list(),
+    containersApi.list(),
   ]);
+  if (sourceCreds.status === "fulfilled") sourceCredentials.value = sourceCreds.value.data.credentials || [];
+  if (registryCreds.status === "fulfilled") registryCredentials.value = registryCreds.value.data.credentials || [];
+  if (containers.status === "fulfilled") {
+    dbContainers.value = (containers.value.data.containers || [])
+      .map((c: { name: string; image: string }) => ({ name: c.name, image: c.image, type: databaseType(c.image) }))
+      .filter((c: { type: string }) => c.type);
+    if (!dbContainer.value && dbContainers.value.length) dbContainer.value = dbContainers.value[0].name;
+  }
   if (deployments.status === "fulfilled") {
     existingNames.value = (deployments.value.data.deployments || []).map((d: { name: string }) => d.name);
   }
@@ -323,9 +467,13 @@ async function create() {
               branch: branch.value,
               subpath: subpath.value,
               autoDeploy: autoDeploy.value,
-              token: token.value || undefined,
+              token: gitCredentialId.value ? undefined : token.value || undefined,
+              credentialId: gitCredentialId.value || undefined,
             }
           : undefined,
+      extraDomains: extraDomains.value,
+      database: database.value,
+      registry: registry.value,
     });
     const { data } = await deploymentsApi.create(payload);
     if (data?.build_job_id) rememberDeploymentJob(name.value, data.build_job_id, "redeploy");
@@ -492,5 +640,53 @@ async function create() {
   justify-content: flex-end;
   align-items: center;
   gap: var(--space-2);
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: var(--space-3) 0 0;
+  border: 0;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.section legend {
+  padding: 0;
+  color: var(--text);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+}
+
+.row-fields {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.row-fields > * {
+  min-width: 0;
+  flex: 1;
+}
+
+.row-fields > .port-field {
+  flex: 0 0 88px;
+}
+
+.icon-button {
+  display: inline-grid;
+  width: var(--control-h);
+  flex: 0 0 auto;
+  place-items: center;
+  background: none;
+  border: 0;
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.icon-button:hover {
+  background: var(--surface-inset);
+  color: var(--text);
 }
 </style>

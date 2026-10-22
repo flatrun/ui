@@ -17,11 +17,37 @@ export interface CreateDeploymentInput {
     autoDeploy: boolean;
     username?: string;
     token?: string;
+    credentialId?: string;
   };
+  extraDomains?: ExtraDomain[];
+  database?: DatabaseChoice;
+  registry?: RegistryLogin;
 }
 
-// The body POST /deployments expects, in the same shape the Classic wizard
-// sends for a deployment without databases, extra domains or registry login.
+export interface ExtraDomain {
+  domain: string;
+  service: string;
+  containerPort: number;
+  pathPrefix?: string;
+}
+
+export type DatabaseChoice =
+  | { mode: "none" }
+  | { mode: "shared" }
+  | {
+      mode: "existing";
+      type: string;
+      container: string;
+      dbName?: string;
+      dbUser?: string;
+      dbPassword?: string;
+    };
+
+export type RegistryLogin =
+  | { credentialId: string }
+  | { username: string; password: string; save: boolean; credentialName?: string };
+
+// The body POST /deployments expects, in the same shape the Classic wizard sends.
 export function buildCreatePayload(input: CreateDeploymentInput): Record<string, any> {
   const isGit = input.mode === "git";
   const payload: Record<string, any> = {
@@ -30,9 +56,36 @@ export function buildCreatePayload(input: CreateDeploymentInput): Record<string,
     template_id: input.templateId || undefined,
     env_vars: input.envVars.filter((e) => e.key),
     auto_start: input.autoStart,
-    use_shared_database: false,
-    existing_database_container: undefined,
+    use_shared_database: input.database?.mode === "shared",
+    existing_database_container: input.database?.mode === "existing" ? input.database.container : undefined,
   };
+
+  if (input.database?.mode === "existing" && input.database.container) {
+    payload.databases = [
+      {
+        alias: "primary",
+        type: input.database.type,
+        mode: "existing",
+        existing_container: input.database.container,
+        database_name: input.database.dbName || undefined,
+        username: input.database.dbUser || undefined,
+        password: input.database.dbPassword || undefined,
+        env_prefix: "primary",
+      },
+    ];
+  }
+
+  if (input.registry) {
+    payload.registry_credential =
+      "credentialId" in input.registry
+        ? { credential_id: input.registry.credentialId }
+        : {
+            username: input.registry.username,
+            password: input.registry.password,
+            save_credential: input.registry.save,
+            credential_name: input.registry.credentialName || `${input.name}-registry`,
+          };
+  }
 
   if (isGit && input.git) {
     const source: Record<string, any> = {
@@ -42,7 +95,9 @@ export function buildCreatePayload(input: CreateDeploymentInput): Record<string,
       subpath: input.git.subpath.trim() || undefined,
       auto_deploy: input.git.autoDeploy,
     };
-    if (input.git.token) {
+    if (input.git.credentialId) {
+      source.credential_id = input.git.credentialId;
+    } else if (input.git.token) {
       source.username = input.git.username?.trim() || undefined;
       source.token = input.git.token;
     }
@@ -62,6 +117,22 @@ export function buildCreatePayload(input: CreateDeploymentInput): Record<string,
     healthcheck: { path: "/health", interval: "30s" },
     domains: undefined,
   };
+
+  const extra = (input.extraDomains ?? []).filter((d) => d.domain.trim());
+  if (input.domain && extra.length) {
+    const ssl = { enabled: input.ssl, auto_cert: input.ssl };
+    payload.metadata.domains = [
+      { id: "primary", domain: input.domain, service: input.name, container_port: input.containerPort, ssl },
+      ...extra.map((d, i) => ({
+        id: `domain-${i + 1}`,
+        domain: d.domain.trim(),
+        service: d.service || input.name,
+        container_port: Number(d.containerPort) || 80,
+        path_prefix: d.pathPrefix || undefined,
+        ssl,
+      })),
+    ];
+  }
 
   return payload;
 }
