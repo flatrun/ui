@@ -24,6 +24,7 @@ import { computed } from "vue";
 import { Handle, Position } from "@vue-flow/core";
 import type { Deployment } from "@/types";
 import Icon from "@/components/base/Icon.vue";
+import { projectIcon } from "@/lib/brand";
 
 const props = defineProps<{ data: { deployment: Deployment }; selected?: boolean }>();
 
@@ -32,12 +33,7 @@ const source = computed(() => deployment.value.metadata?.source);
 const sleeping = computed(() => !!deployment.value.metadata?.sleep?.sleeping);
 const revision = computed(() => source.value?.last_revision?.slice(0, 7));
 const domain = computed(() => deployment.value.metadata?.networking?.domain);
-const icon = computed(() => {
-  if (sleeping.value) return "moon";
-  if (source.value) return "git-branch";
-  if (deployment.value.metadata?.type === "database") return "database";
-  return "box";
-});
+const icon = computed(() => (sleeping.value ? "moon" : projectIcon(deployment.value)));
 </script>
 
 <style scoped>

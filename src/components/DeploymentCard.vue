@@ -2,7 +2,10 @@
   <div class="deployment-card" :class="[status, { clickable: clickable }]" @click="$emit('click')">
     <div class="card-header" :class="status">
       <div class="header-content">
-        <div v-if="logo || icon" class="service-icon" :class="iconClass">
+        <div v-if="brand" class="service-icon brand-tile">
+          <Icon :name="brand" :size="20" />
+        </div>
+        <div v-else-if="logo || icon" class="service-icon" :class="iconClass">
           <img v-if="logo" :src="logo" :alt="name" class="service-logo" />
           <i v-else :class="icon" />
         </div>
@@ -31,12 +34,15 @@
 </template>
 
 <script setup lang="ts">
+import Icon from "@/components/base/Icon.vue";
 defineProps<{
   name: string;
   status: "running" | "paused" | "stopped" | "error" | "unknown" | "external";
   subtitle?: string;
   icon?: string;
   iconClass?: string;
+  // A logo or lucide name from the bundled icon sets, shown on a neutral tile.
+  brand?: string;
   logo?: string;
   external?: boolean;
   clickable?: boolean;
@@ -127,6 +133,11 @@ defineEmits<{
 .service-icon i {
   font-size: 0.875rem;
   color: white;
+}
+
+.brand-tile {
+  background: var(--surface-sunken);
+  border: 1px solid var(--border-subtle);
 }
 
 .service-logo {

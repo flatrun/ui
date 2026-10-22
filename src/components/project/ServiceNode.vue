@@ -32,6 +32,7 @@
 import { computed } from "vue";
 import { Handle, Position } from "@vue-flow/core";
 import Icon from "@/components/base/Icon.vue";
+import { serviceIcon } from "@/lib/brand";
 import type { ProjectService } from "@/model/project";
 
 const props = defineProps<{ data: { service: ProjectService }; selected?: boolean }>();
@@ -39,13 +40,7 @@ const props = defineProps<{ data: { service: ProjectService }; selected?: boolea
 const service = computed(() => props.data.service);
 const volumes = computed(() => service.value.mounts.filter((m) => m.type === "volume" || m.source.startsWith("./")));
 
-const icon = computed(() => {
-  const image = service.value.image.toLowerCase();
-  if (/postgres|mysql|mariadb|mongo|redis|valkey/.test(image)) return "database";
-  if (/nginx|caddy|traefik|httpd/.test(image)) return "globe";
-  if (service.value.domains.length) return "globe";
-  return "box";
-});
+const icon = computed(() => serviceIcon(service.value.image));
 
 const state = computed(() => {
   if (service.value.status === "running" && service.value.health !== "unhealthy") return "running";

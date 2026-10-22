@@ -1,6 +1,7 @@
 import { addCollection } from "@iconify/vue";
 import { icons } from "@iconify-json/lucide";
 import { solarSubset } from "./solar-icons";
+import { logosSubset } from "./logo-icons";
 
 // Register the full lucide set once, offline, so <Icon> never hits the Iconify
 // API (this panel may run without internet). The set is ~85KB gzipped; it can
@@ -11,3 +12,6 @@ addCollection(icons);
 // Only the icons the app renders are compiled in: importing the published set would put its
 // whole 6MB of JSON in the bundle. See scripts/build-solar-icons.mjs.
 addCollection(solarSubset);
+
+// Brand logos for project and service cards, subset the same way. See scripts/build-logo-icons.mjs.
+addCollection(logosSubset);

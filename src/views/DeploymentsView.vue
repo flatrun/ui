@@ -41,7 +41,7 @@
 
       <template #cell-name="{ item }">
         <div class="deployment-info clickable" @click="goToDeployment(item)">
-          <span class="deployment-name">{{ item.name }}</span>
+          <span class="deployment-name"><Icon :name="projectIcon(item)" :size="16" />{{ item.name }}</span>
           <span class="server-badge">{{ item.server }}</span>
           <span v-if="item.metadata?.networking?.domain" class="deployment-domain">
             {{ item.metadata.networking.domain }}
@@ -131,9 +131,7 @@
             :key="deployment.clusterKey"
             :name="deployment.name"
             :status="deployment.status"
-            :logo="getDeploymentLogo(deployment)"
-            :icon="getDeploymentIcon(deployment)"
-            :icon-class="getDeploymentIconClass(deployment)"
+            :brand="projectIcon(deployment)"
             :clickable="true"
             @click="goToDeployment(deployment)"
           >
@@ -316,6 +314,8 @@ import { useAuthStore } from "@/stores/auth";
 import type { Deployment } from "@/types";
 import DataTable from "@/components/DataTable.vue";
 import DeploymentCard from "@/components/DeploymentCard.vue";
+import Icon from "@/components/base/Icon.vue";
+import { projectIcon } from "@/lib/brand";
 import { useTheme } from "@/composables/useTheme";
 import OperationModal from "@/components/OperationModal.vue";
 import { useDeploymentJob } from "@/composables/useDeploymentJob";
@@ -495,97 +495,6 @@ const getServiceClass = (service: Service) => {
   return "app";
 };
 
-const appLogos: Record<string, string> = {
-  wordpress: "https://cdn.simpleicons.org/wordpress/ffffff",
-  node: "https://cdn.simpleicons.org/nodedotjs/ffffff",
-  ghost: "https://cdn.simpleicons.org/ghost/ffffff",
-  nextcloud: "https://cdn.simpleicons.org/nextcloud/ffffff",
-  grafana: "https://cdn.simpleicons.org/grafana/ffffff",
-  prometheus: "https://cdn.simpleicons.org/prometheus/ffffff",
-  redis: "https://cdn.simpleicons.org/redis/ffffff",
-  postgres: "https://cdn.simpleicons.org/postgresql/ffffff",
-  mysql: "https://cdn.simpleicons.org/mysql/ffffff",
-  mariadb: "https://cdn.simpleicons.org/mariadb/ffffff",
-  mongo: "https://cdn.simpleicons.org/mongodb/ffffff",
-  nginx: "https://cdn.simpleicons.org/nginx/ffffff",
-  python: "https://cdn.simpleicons.org/python/ffffff",
-  django: "https://cdn.simpleicons.org/django/ffffff",
-  php: "https://cdn.simpleicons.org/php/ffffff",
-  laravel: "https://cdn.simpleicons.org/laravel/ffffff",
-  astro: "https://cdn.simpleicons.org/astro/ffffff",
-  nextjs: "https://cdn.simpleicons.org/nextdotjs/ffffff",
-  html: "https://cdn.simpleicons.org/html5/ffffff",
-};
-
-const getDeploymentLogo = (deployment: Deployment) => {
-  const mainImage = getMainImage(deployment)?.toLowerCase() || "";
-  const firstServiceImage = deployment.services?.[0]?.image?.toLowerCase() || "";
-  const name = deployment.name.toLowerCase();
-
-  // Check name first for custom app logos
-  if (appLogos[name]) {
-    return appLogos[name];
-  }
-
-  // Then check images
-  for (const [key, url] of Object.entries(appLogos)) {
-    if (mainImage.includes(key) || firstServiceImage.includes(key)) {
-      return url;
-    }
-  }
-  return undefined;
-};
-
-const getDeploymentIcon = (deployment: Deployment) => {
-  const mainImage = getMainImage(deployment)?.toLowerCase() || "";
-  const type = deployment.metadata?.type?.toLowerCase() || "";
-  const firstServiceImage = deployment.services?.[0]?.image?.toLowerCase() || "";
-
-  if (mainImage.includes("nginx") || type === "nginx") return "pi pi-server";
-  if (mainImage.includes("node") || mainImage.includes("express")) return "pi pi-code";
-  if (mainImage.includes("php") || mainImage.includes("laravel")) return "pi pi-code";
-  if (mainImage.includes("python") || mainImage.includes("django") || mainImage.includes("flask")) return "pi pi-code";
-  if (mainImage.includes("wordpress")) return "pi pi-pencil";
-  if (mainImage.includes("ghost")) return "pi pi-pencil";
-  if (mainImage.includes("nextcloud")) return "pi pi-cloud";
-  if (mainImage.includes("grafana")) return "pi pi-chart-bar";
-  if (mainImage.includes("prometheus")) return "pi pi-chart-line";
-  if (firstServiceImage.includes("redis")) return "pi pi-bolt";
-  if (
-    firstServiceImage.includes("postgres") ||
-    firstServiceImage.includes("mysql") ||
-    firstServiceImage.includes("mongo")
-  )
-    return "pi pi-database";
-  if (hasDatabase(deployment)) return "pi pi-database";
-  return "pi pi-box";
-};
-
-const getDeploymentIconClass = (deployment: Deployment) => {
-  const mainImage = getMainImage(deployment)?.toLowerCase() || "";
-  const type = deployment.metadata?.type?.toLowerCase() || "";
-  const firstServiceImage = deployment.services?.[0]?.image?.toLowerCase() || "";
-
-  if (mainImage.includes("nginx") || type === "nginx") return "icon-nginx";
-  if (mainImage.includes("node") || mainImage.includes("express")) return "icon-node";
-  if (mainImage.includes("php") || mainImage.includes("laravel")) return "icon-php";
-  if (mainImage.includes("python") || mainImage.includes("django") || mainImage.includes("flask")) return "icon-python";
-  if (mainImage.includes("wordpress")) return "icon-wordpress";
-  if (mainImage.includes("ghost")) return "icon-ghost";
-  if (mainImage.includes("nextcloud")) return "icon-nextcloud";
-  if (mainImage.includes("grafana")) return "icon-grafana";
-  if (mainImage.includes("prometheus")) return "icon-prometheus";
-  if (firstServiceImage.includes("redis")) return "icon-redis";
-  if (
-    firstServiceImage.includes("postgres") ||
-    firstServiceImage.includes("mysql") ||
-    firstServiceImage.includes("mongo")
-  )
-    return "icon-database";
-  if (hasDatabase(deployment)) return "icon-database";
-  return "icon-default";
-};
-
 const hasDatabase = (deployment: Deployment) => {
   return deployment.services?.some((s) => {
     const image = s.image?.toLowerCase() || "";
@@ -761,6 +670,9 @@ watch(selectedServer, () => fetchDeployments());
 }
 
 .deployment-name {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
   font-weight: var(--font-medium);
   color: var(--text);
 }
