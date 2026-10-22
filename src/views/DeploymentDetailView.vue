@@ -5793,7 +5793,7 @@ onUnmounted(() => {
 }
 
 .summary-card.summary-link:hover {
-  border-color: #3b82f6;
+  border-color: var(--accent);
   box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
 }
 
@@ -5932,7 +5932,7 @@ onUnmounted(() => {
 }
 
 .row-title i {
-  color: #3b82f6;
+  color: var(--accent);
   font-size: 1rem;
   margin-top: 0.15rem;
 }
@@ -5998,7 +5998,7 @@ onUnmounted(() => {
 }
 
 .section-title i {
-  color: #3b82f6;
+  color: var(--accent);
   font-size: 1rem;
 }
 
@@ -6020,7 +6020,7 @@ onUnmounted(() => {
 
 .view-all-btn {
   font-size: 0.8125rem;
-  color: #3b82f6;
+  color: var(--accent);
   text-decoration: none;
   display: flex;
   align-items: center;
@@ -6031,8 +6031,8 @@ onUnmounted(() => {
 }
 
 .view-all-btn:hover {
-  background: rgba(59, 130, 246, 0.1);
-  color: #2563eb;
+  background: var(--accent-subtle);
+  color: var(--accent-hover);
 }
 
 .view-all-btn i {
@@ -6422,7 +6422,7 @@ onUnmounted(() => {
 }
 
 .toggle-switch input:checked + .toggle-slider {
-  background-color: #3b82f6;
+  background-color: var(--accent);
 }
 
 .toggle-switch input:checked + .toggle-slider::before {

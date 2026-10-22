@@ -585,7 +585,8 @@
             :username="authStore.currentUser?.username"
             :role="authStore.currentUser?.role"
             :theme="theme"
-            @toggle-theme="toggleTheme"
+            :themes="themes"
+            @select-theme="setTheme"
             @sign-out="handleLogout"
           />
         </div>
@@ -620,7 +621,7 @@ import GlobalSearch from "@/components/GlobalSearch.vue";
 import UserMenu from "@/components/UserMenu.vue";
 import { useTheme } from "@/composables/useTheme";
 
-const { theme, toggleTheme } = useTheme();
+const { theme, themes, setTheme } = useTheme();
 
 const route = useRoute();
 const router = useRouter();

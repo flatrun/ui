@@ -1,22 +1,30 @@
-import { ref } from "vue";
-
-export type Theme = "light" | "dark";
+import { computed, ref } from "vue";
+import { DEFAULT_THEME_ID, getTheme, listThemes, type ThemeDefinition } from "@/themes/registry";
 
 const STORAGE_KEY = "flatrun-theme";
 
 // Module-level singleton so every caller shares one reactive theme.
-const theme = ref<Theme>("light");
+const theme = ref<string>(DEFAULT_THEME_ID);
 
-function apply(value: Theme) {
-  document.documentElement.setAttribute("data-theme", value);
+function apply(id: string) {
+  const definition = getTheme(id) ?? getTheme(DEFAULT_THEME_ID)!;
+  const root = document.documentElement;
+  root.setAttribute("data-theme", definition.id);
+  root.setAttribute("data-scheme", definition.scheme);
+  root.style.colorScheme = definition.scheme;
 }
 
-function resolveInitial(): Theme {
-  const stored = localStorage.getItem(STORAGE_KEY);
-  if (stored === "light" || stored === "dark") {
-    return stored;
+function readStored(): string | null {
+  try {
+    return localStorage.getItem(STORAGE_KEY);
+  } catch {
+    return null;
   }
-  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+}
+
+function resolveInitial(): string {
+  const stored = readStored();
+  return getTheme(stored) ? stored! : DEFAULT_THEME_ID;
 }
 
 // Call once before mount so the first paint already has the right theme.
@@ -26,15 +34,18 @@ export function initTheme() {
 }
 
 export function useTheme() {
-  function setTheme(value: Theme) {
-    theme.value = value;
-    localStorage.setItem(STORAGE_KEY, value);
-    apply(value);
+  const current = computed<ThemeDefinition>(() => getTheme(theme.value) ?? getTheme(DEFAULT_THEME_ID)!);
+
+  function setTheme(id: string) {
+    if (!getTheme(id)) return;
+    theme.value = id;
+    try {
+      localStorage.setItem(STORAGE_KEY, id);
+    } catch {
+      // Storage can be unavailable (private mode); the choice still applies.
+    }
+    apply(id);
   }
 
-  function toggleTheme() {
-    setTheme(theme.value === "dark" ? "light" : "dark");
-  }
-
-  return { theme, setTheme, toggleTheme };
+  return { theme, current, themes: listThemes(), setTheme };
 }

@@ -526,12 +526,12 @@ onMounted(() => {
 }
 
 .btn-primary {
-  background: #3b82f6;
-  color: white;
+  background: var(--accent);
+  color: var(--accent-contrast);
 }
 
 .btn-primary:hover {
-  background: #2563eb;
+  background: var(--accent-hover);
 }
 
 .btn-secondary {
@@ -683,12 +683,12 @@ onMounted(() => {
   gap: 0.25rem;
   font-size: 0.75rem;
   font-weight: 500;
-  color: #3b82f6;
+  color: var(--accent);
   text-decoration: none;
 }
 
 .view-all-link:hover {
-  color: #2563eb;
+  color: var(--accent-hover);
 }
 
 .view-all-link i {
@@ -813,7 +813,7 @@ onMounted(() => {
 
 .status-badge.stopped {
   background: var(--surface-inset);
-  color: #4b5563;
+  color: var(--text-muted);
 }
 
 .status-badge.paused {

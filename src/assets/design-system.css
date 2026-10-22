@@ -113,7 +113,7 @@
   --z-modal: 1000;
   --z-toast: 1100;
 
-  /* Semantic surface/text tokens (themeable: see [data-theme="dark"]) */
+  /* Semantic surface/text tokens (themeable: see [data-scheme="dark"] and assets/themes) */
   --app-bg: #f8fafc;
   --surface: #ffffff;
   --surface-raised: #ffffff;
@@ -144,9 +144,14 @@
   --c-red: #ef4444;
   --c-purple: #8b5cf6;
   --c-teal: #14b8a6;
+
+  /* Project canvas */
+  --canvas-bg: var(--app-bg);
+  --canvas-dot: rgba(15, 23, 42, 0.14);
 }
 
-[data-theme="dark"] {
+[data-scheme="dark"] {
+  --canvas-dot: rgba(255, 255, 255, 0.07);
   --app-bg: #0a0f1a;
   --surface: #111827;
   --surface-raised: #161f30;

@@ -13,10 +13,22 @@
         <strong>{{ username || "Account" }}</strong>
         <span v-if="role">{{ role }}</span>
       </div>
-      <button type="button" @click="selectTheme">
-        <Icon :name="theme === 'dark' ? 'sun' : 'moon'" :size="16" />
-        {{ theme === "dark" ? "Use light theme" : "Use dark theme" }}
-      </button>
+      <div class="user-menu-themes" role="radiogroup" aria-label="Theme">
+        <span class="user-menu-label">Theme</span>
+        <button
+          v-for="option in themes"
+          :key="option.id"
+          type="button"
+          role="radio"
+          :aria-checked="option.id === theme"
+          :class="{ active: option.id === theme }"
+          @click="selectTheme(option.id)"
+        >
+          <span class="theme-swatch" :data-swatch="option.id" />
+          {{ option.label }}
+          <Icon v-if="option.id === theme" name="check" :size="14" class="theme-check" />
+        </button>
+      </div>
       <button type="button" class="sign-out" @click="selectSignOut">
         <Icon name="log-out" :size="16" />
         Sign out
@@ -28,15 +40,17 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import Icon from "@/components/base/Icon.vue";
+import type { ThemeDefinition } from "@/themes/registry";
 
 const props = defineProps<{
   username?: string;
   role?: string;
-  theme: "light" | "dark";
+  theme: string;
+  themes: ThemeDefinition[];
 }>();
 
 const emit = defineEmits<{
-  "toggle-theme": [];
+  "select-theme": [id: string];
   "sign-out": [];
 }>();
 
@@ -47,8 +61,8 @@ function close() {
   if (menu.value) menu.value.open = false;
 }
 
-function selectTheme() {
-  emit("toggle-theme");
+function selectTheme(id: string) {
+  emit("select-theme", id);
   close();
 }
 
@@ -165,6 +179,49 @@ function selectSignOut() {
 .user-menu-panel button:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: -2px;
+}
+
+.user-menu-themes {
+  padding: var(--space-1) 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.user-menu-label {
+  display: block;
+  padding: var(--space-2) var(--space-2) 0;
+  color: var(--text-subtle);
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.user-menu-panel .user-menu-themes button.active {
+  background: var(--accent-subtle);
+}
+
+.theme-check {
+  margin-left: auto;
+  color: var(--accent);
+}
+
+.theme-swatch {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+}
+
+.theme-swatch[data-swatch="flatrun"] {
+  background: linear-gradient(135deg, #0b0d12 50%, #5b8cff 50%);
+}
+
+.theme-swatch[data-swatch="light"] {
+  background: linear-gradient(135deg, #ffffff 50%, #3b82f6 50%);
+}
+
+.theme-swatch[data-swatch="dark"] {
+  background: linear-gradient(135deg, #111827 50%, #60a5fa 50%);
 }
 
 .user-menu-panel .sign-out {

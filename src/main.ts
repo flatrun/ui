@@ -5,6 +5,7 @@ import router from "./router";
 
 import "primeicons/primeicons.css";
 import "./assets/design-system.css";
+import "./assets/themes/flatrun.css";
 import "./lib/icons";
 import { initTheme } from "./composables/useTheme";
 

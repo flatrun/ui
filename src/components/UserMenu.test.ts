@@ -1,15 +1,22 @@
 import { mount } from "@vue/test-utils";
 import { describe, expect, it } from "vitest";
 import UserMenu from "./UserMenu.vue";
+import { listThemes } from "@/themes/registry";
 
 describe("UserMenu", () => {
-  it("moves theme and sign out actions into the account menu", async () => {
-    const wrapper = mount(UserMenu, { props: { username: "admin", role: "admin", theme: "dark" } });
+  it("lists every registered theme and emits the one picked", async () => {
+    const wrapper = mount(UserMenu, {
+      props: { username: "admin", role: "admin", theme: "flatrun", themes: listThemes() },
+    });
 
     await wrapper.get("summary").trigger("click");
-    await wrapper.get(".user-menu-panel button").trigger("click");
+    const options = wrapper.findAll("[role=radio]");
+    expect(options.map((o) => o.text())).toEqual(["FlatRun", "Light", "Dark"]);
+    expect(options[0].attributes("aria-checked")).toBe("true");
 
-    expect(wrapper.emitted("toggle-theme")).toHaveLength(1);
+    await options[1].trigger("click");
+
+    expect(wrapper.emitted("select-theme")).toEqual([["light"]]);
     expect(wrapper.get("details").attributes("open")).toBeUndefined();
     expect(wrapper.text()).toContain("Sign out");
   });
