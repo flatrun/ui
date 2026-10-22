@@ -1,0 +1,32 @@
+{
+  "logs": "phase-demo-db  | 2026-10-22T19:44:29.886570225Z 2026-10-22 19:44:29.886 UTC [1] LOG:  listening on IPv6 address \"::\", port 5432\nphase-demo-db  | 2026-10-22T19:44:29.888719884Z 2026-10-22 19:44:29.888 UTC [1] LOG:  listening on Unix socket \"/var/run/postgresql/.s.PGSQL.5432\"\nphase-demo-db  | 2026-10-22T19:44:29.892623704Z 2026-10-22 19:44:29.892 UTC [69] LOG:  database system was shut down at 2026-10-22 19:44:29 UTC\nphase-demo-db  | 2026-10-22T19:44:29.897856993Z 2026-10-22 19:44:29.897 UTC [1] LOG:  database system is ready to accept connections\n",
+  "name": "phase-demo",
+  "records": [
+    {
+      "timestamp": "2026-10-22T19:44:29.886570225Z",
+      "service": "phase-demo-db",
+      "message": "2026-10-22 19:44:29.886 UTC [1] LOG:  listening on IPv6 address \"::\", port 5432",
+      "raw": "phase-demo-db  | 2026-10-22T19:44:29.886570225Z 2026-10-22 19:44:29.886 UTC [1] LOG:  listening on IPv6 address \"::\", port 5432"
+    },
+    {
+      "timestamp": "2026-10-22T19:44:29.888719884Z",
+      "service": "phase-demo-db",
+      "message": "2026-10-22 19:44:29.888 UTC [1] LOG:  listening on Unix socket \"/var/run/postgresql/.s.PGSQL.5432\"",
+      "raw": "phase-demo-db  | 2026-10-22T19:44:29.888719884Z 2026-10-22 19:44:29.888 UTC [1] LOG:  listening on Unix socket \"/var/run/postgresql/.s.PGSQL.5432\""
+    },
+    {
+      "timestamp": "2026-10-22T19:44:29.892623704Z",
+      "service": "phase-demo-db",
+      "message": "2026-10-22 19:44:29.892 UTC [69] LOG:  database system was shut down at 2026-10-22 19:44:29 UTC",
+      "raw": "phase-demo-db  | 2026-10-22T19:44:29.892623704Z 2026-10-22 19:44:29.892 UTC [69] LOG:  database system was shut down at 2026-10-22 19:44:29 UTC"
+    },
+    {
+      "timestamp": "2026-10-22T19:44:29.897856993Z",
+      "service": "phase-demo-db",
+      "message": "2026-10-22 19:44:29.897 UTC [1] LOG:  database system is ready to accept connections",
+      "raw": "phase-demo-db  | 2026-10-22T19:44:29.897856993Z 2026-10-22 19:44:29.897 UTC [1] LOG:  database system is ready to accept connections"
+    }
+  ],
+  "service": "db",
+  "source": "stdout"
+}

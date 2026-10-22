@@ -15,6 +15,8 @@ export interface ProjectService {
   running: number;
   domains: string[];
   mounts: ServiceMount[];
+  ports: string[];
+  dependsOn: string[];
 }
 
 export interface ProjectEnvironment {
@@ -61,7 +63,13 @@ function serviceFrom(s: Service): ProjectService {
     running: s.running_replicas ?? 0,
     domains: s.domains ?? [],
     mounts: s.mounts ?? [],
+    ports: s.ports ?? [],
+    dependsOn: s.depends_on ?? [],
   };
+}
+
+export function servicesFrom(services: Service[] | null | undefined): ProjectService[] {
+  return (services ?? []).map(serviceFrom).sort((a, b) => a.name.localeCompare(b.name));
 }
 
 function environmentFrom(d: Deployment): ProjectEnvironment {
@@ -189,4 +197,40 @@ export function deploySteps(phase: DeployPhase | undefined, phases: PhaseStart[]
     }
     return { ...s, state };
   });
+}
+
+export interface ServiceLink {
+  from: string;
+  to: string;
+}
+
+export interface ServiceGraph {
+  rows: string[][];
+  links: ServiceLink[];
+}
+
+// serviceGraph stacks services in rows so that a service sits above the ones
+// it depends on: the entry points on top and the data stores at the bottom.
+// A dependency cycle is cut where it is found.
+export function serviceGraph(services: ProjectService[]): ServiceGraph {
+  const names = new Set(services.map((s) => s.name));
+  const deps = new Map(services.map((s) => [s.name, s.dependsOn.filter((d) => names.has(d))]));
+  const depth = new Map<string, number>();
+  const visiting = new Set<string>();
+  const measure = (name: string): number => {
+    if (depth.has(name)) return depth.get(name)!;
+    if (visiting.has(name)) return 0;
+    visiting.add(name);
+    const d = Math.max(-1, ...(deps.get(name) ?? []).map(measure)) + 1;
+    visiting.delete(name);
+    depth.set(name, d);
+    return d;
+  };
+  services.forEach((s) => measure(s.name));
+  const top = Math.max(0, ...depth.values());
+  const rows: string[][] = Array.from({ length: top + 1 }, () => []);
+  for (const s of services) rows[top - depth.get(s.name)!].push(s.name);
+  rows.forEach((r) => r.sort());
+  const links = services.flatMap((s) => (deps.get(s.name) ?? []).map((to) => ({ from: s.name, to })));
+  return { rows: rows.filter((r) => r.length), links };
 }

@@ -16,7 +16,7 @@ export const NAV_GROUPS = ["Projects", "Docker", "Storage", "Monitoring", "Apps"
 export const NAV_ITEMS: NavItem[] = [
   {
     id: "canvas",
-    label: "Canvas",
+    label: "Fleet",
     path: "/canvas",
     icon: "workflow",
     group: "Projects",

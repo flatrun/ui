@@ -1,6 +1,10 @@
 <template>
   <div class="canvas-view">
     <header class="canvas-bar">
+      <div v-if="modern" class="fleet-title">
+        <strong>Fleet</strong>
+        <span>{{ scopeText }}</span>
+      </div>
       <div class="env-switch" role="tablist" aria-label="Environment">
         <button
           v-for="env in environments"
@@ -64,6 +68,16 @@ import BaseButton from "@/components/base/BaseButton.vue";
 import Icon from "@/components/base/Icon.vue";
 import DeploymentNode from "@/components/canvas/DeploymentNode.vue";
 import DeploymentPanel from "@/components/canvas/DeploymentPanel.vue";
+import { useTheme } from "@/composables/useTheme";
+import { useWorkspaceStore } from "@/stores/workspace";
+
+const { current: currentStyle } = useTheme();
+const modern = computed(() => currentStyle.value.layout === "modern");
+const workspaceStore = useWorkspaceStore();
+const scopeText = computed(() => {
+  const name = workspaceStore.current?.name;
+  return name ? `Every deployment in ${name}` : "Every deployment on this server";
+});
 
 const ENV_KEY = "flatrun-canvas-environment";
 
@@ -278,5 +292,17 @@ onMounted(load);
   padding: 0;
   background: transparent;
   border: 0;
+}
+
+.fleet-title {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  margin-right: auto;
+  font-size: var(--text-sm);
+}
+
+.fleet-title span {
+  color: var(--text-muted);
 }
 </style>

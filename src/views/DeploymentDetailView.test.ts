@@ -808,6 +808,7 @@ describe("DeploymentDetailView", () => {
       expect(wrapper.get(".modern-header h1").text()).toBe("test-app");
       expect(wrapper.get(".modern-actions .btn-primary").text()).toBe("Restart");
       expect(railLabels(wrapper)).toEqual([
+        "Architecture",
         "Deploys",
         "Logs",
         "Variables",
@@ -817,7 +818,8 @@ describe("DeploymentDetailView", () => {
         "Terminal",
         "Migration",
       ]);
-      expect(wrapper.get(".rail-item.active").text()).toBe("Deploys");
+      expect(wrapper.get(".rail-item.active").text()).toBe("Architecture");
+      expect(wrapper.findComponent({ name: "ServiceCanvas" }).exists()).toBe(true);
     });
 
     it("stacks overview, databases and configuration under Settings", async () => {

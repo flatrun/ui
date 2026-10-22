@@ -4,7 +4,17 @@ import deploysFixture from "./fixtures/deploys.json";
 import type { DeployRecord, Deployment } from "@/types";
 import logsFixture from "@/components/deploys/fixtures/logs.json";
 import historyFixture from "@/components/deploys/fixtures/history.json";
-import { deploySteps, deploysFrom, projectsFrom, splitLog, variableKind, type PhaseStart } from "./project";
+import servicesFixture from "./fixtures/services.json";
+import {
+  deploySteps,
+  deploysFrom,
+  projectsFrom,
+  serviceGraph,
+  servicesFrom,
+  splitLog,
+  variableKind,
+  type PhaseStart,
+} from "./project";
 
 const deployments = deploymentsFixture.items as unknown as Deployment[];
 
@@ -83,5 +93,36 @@ describe("deploy logs", () => {
     ).toEqual(["done", "failed", "pending", "pending"]);
     const failed = historyFixture.deploys[1];
     expect(states(failed.phase, [])).toEqual(["failed", "pending", "pending", "pending"]);
+  });
+});
+
+describe("service graph", () => {
+  const services = servicesFrom(servicesFixture.services as any);
+
+  it("puts a service above the ones it depends on", () => {
+    expect(serviceGraph(services)).toEqual({
+      rows: [["web"], ["api", "worker"], ["db"]],
+      links: [
+        { from: "api", to: "db" },
+        { from: "web", to: "api" },
+        { from: "worker", to: "db" },
+      ],
+    });
+  });
+
+  it("reads replicas and mounts from the agent", () => {
+    const worker = services.find((s) => s.name === "worker")!;
+    const db = services.find((s) => s.name === "db")!;
+    expect([worker.replicas, worker.running]).toEqual([2, 2]);
+    expect(db.mounts).toEqual([{ type: "bind", source: "./data", target: "/var/lib/postgresql/data" }]);
+  });
+
+  it("survives a dependency cycle", () => {
+    const cyclic = servicesFrom([
+      { name: "a", depends_on: ["b"] },
+      { name: "b", depends_on: ["a"] },
+    ] as any);
+    const graph = serviceGraph(cyclic);
+    expect(graph.rows.flat().sort()).toEqual(["a", "b"]);
   });
 });

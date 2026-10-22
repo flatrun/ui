@@ -186,6 +186,7 @@
         </nav>
         <div class="tab-content">
           <h2 v-if="modern" class="section-title">{{ currentSectionLabel }}</h2>
+          <ServiceCanvas v-if="modern && section === 'architecture'" :deployment-name="route.params.name as string" />
           <DeploymentMetrics
             v-if="modern && section === 'metrics'"
             :deployment-name="route.params.name as string"
@@ -2234,6 +2235,7 @@ import Icon from "@/components/base/Icon.vue";
 import OperationModal from "@/components/OperationModal.vue";
 import Popover from "@/components/base/Popover.vue";
 import DeploymentMetrics from "@/components/deployment/DeploymentMetrics.vue";
+import ServiceCanvas from "@/components/project/ServiceCanvas.vue";
 import { useTheme } from "@/composables/useTheme";
 import { MODERN_SECTIONS, sectionForTab } from "@/views/deploymentSections";
 import { useDeploymentJob, type DeploymentOperation } from "@/composables/useDeploymentJob";
@@ -2392,7 +2394,7 @@ function initialSection(): string {
   const fromQuery = route.query.section as string;
   if (MODERN_SECTIONS.some((s) => s.id === fromQuery) || fromQuery?.startsWith("plugin:")) return fromQuery;
   if (route.query.tab) return sectionForTab(route.query.tab as string);
-  return "deploys";
+  return "architecture";
 }
 
 const section = ref<string>(initialSection());

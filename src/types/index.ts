@@ -30,6 +30,7 @@ export interface Service {
   replicas?: number;
   running_replicas?: number;
   domains?: string[];
+  depends_on?: string[];
 }
 
 export interface ServiceMetadata {

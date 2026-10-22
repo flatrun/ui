@@ -1,4 +1,5 @@
 export type ModernSectionId =
+  | "architecture"
   | "deploys"
   | "logs"
   | "variables"
@@ -20,6 +21,7 @@ export interface ModernSection {
 }
 
 export const MODERN_SECTIONS: ModernSection[] = [
+  { id: "architecture", label: "Architecture", icon: "workflow", group: "main", tabs: [] },
   { id: "deploys", label: "Deploys", icon: "rocket", group: "main", tabs: ["deploys"] },
   { id: "logs", label: "Logs", icon: "scroll-text", group: "main", tabs: ["logs"] },
   { id: "variables", label: "Variables", icon: "braces", group: "main", tabs: ["environment"] },
@@ -40,5 +42,6 @@ export const MODERN_SECTIONS: ModernSection[] = [
 // section that shows it. Plugin tabs are their own section.
 export function sectionForTab(tab: string): ModernSectionId | string {
   if (tab.startsWith("plugin:")) return tab;
+  if (MODERN_SECTIONS.some((s) => s.id === tab && !s.tabs.length)) return tab;
   return MODERN_SECTIONS.find((s) => s.tabs.includes(tab))?.id ?? "deploys";
 }
