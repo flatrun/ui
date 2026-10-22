@@ -38,8 +38,8 @@ import type { Service } from "@/types";
 
 const props = defineProps<{ deploymentName: string }>();
 
-const COLUMN = 260;
-const ROW = 170;
+const COLUMN = 330;
+const ROW = 240;
 
 const services = ref<Service[]>([]);
 const loaded = ref(false);

@@ -1,7 +1,7 @@
 <template>
   <div class="deployments-view">
     <DataTable
-      :items="visibleDeployments"
+      :items="listed"
       :columns="columns"
       :loading="loading"
       :searchable="true"
@@ -18,8 +18,17 @@
       :loading-text="`Loading ${noun}s...`"
       :default-page-size="12"
       :toggleable="true"
-      :default-view-mode="birch ? 'table' : 'grid'"
+      :view-modes="birch ? ['canvas', 'grid', 'table'] : undefined"
+      :default-view-mode="birch ? 'canvas' : 'grid'"
+      :view-key="birch ? 'projects' : undefined"
     >
+      <template #canvas="{ items }">
+        <ProjectCanvas
+          :projects="items.map((i: ProjectRow) => i.project)"
+          @open="goToDeployment($event as ManagedDeployment)"
+        />
+      </template>
+
       <template #actions>
         <button
           v-if="canWrite && !viewingRemoteServer && !birch"
@@ -41,7 +50,10 @@
 
       <template #cell-name="{ item }">
         <div class="deployment-info clickable" @click="goToDeployment(item)">
-          <span class="deployment-name"><Icon :name="projectIcon(item)" :size="16" />{{ item.name }}</span>
+          <span class="deployment-name">
+            <Icon :name="projectIcon(item)" :size="16" />{{ item.name }}
+            <span v-for="env in otherEnvironments(item)" :key="env" class="env-chip">{{ env }}</span>
+          </span>
           <span class="server-badge">{{ item.server }}</span>
           <span v-if="item.metadata?.networking?.domain" class="deployment-domain">
             {{ item.metadata.networking.domain }}
@@ -135,6 +147,10 @@
             :clickable="true"
             @click="goToDeployment(deployment)"
           >
+            <div v-if="otherEnvironments(deployment).length" class="env-chips">
+              <Icon name="git-branch" :size="12" />
+              <span v-for="env in otherEnvironments(deployment)" :key="env" class="env-chip">{{ env }}</span>
+            </div>
             <!-- Domain Link -->
             <div
               v-if="deployment.metadata?.networking?.expose && deployment.metadata?.networking?.domain"
@@ -316,6 +332,8 @@ import DataTable from "@/components/DataTable.vue";
 import DeploymentCard from "@/components/DeploymentCard.vue";
 import Icon from "@/components/base/Icon.vue";
 import { projectIcon } from "@/lib/brand";
+import { projectsFrom, type Project } from "@/model/project";
+import ProjectCanvas from "@/components/project/ProjectCanvas.vue";
 import { useTheme } from "@/composables/useTheme";
 import OperationModal from "@/components/OperationModal.vue";
 import { useDeploymentJob } from "@/composables/useDeploymentJob";
@@ -362,6 +380,19 @@ const viewingRemoteServer = computed(() => Boolean(selectedServer.value) && sele
 const visibleDeployments = computed(() =>
   deployments.value.filter((deployment) => deployment.server === (selectedServer.value || localServer.value)),
 );
+
+// Birch lists a project once, with its environments folded into it.
+type ProjectRow = ManagedDeployment & { project: Project };
+const listed = computed<ManagedDeployment[]>(() =>
+  birch.value
+    ? projectsFrom(visibleDeployments.value).map(
+        (project): ProjectRow => ({ ...(project.environments[0].deployment as ManagedDeployment), project }),
+      )
+    : visibleDeployments.value,
+);
+
+const otherEnvironments = (d: ManagedDeployment) =>
+  ((d as ProjectRow).project?.environments ?? []).slice(1).map((e) => e.name);
 
 const deploymentJob = useDeploymentJob((state) => {
   const op = state.operation;
@@ -667,6 +698,24 @@ watch(selectedServer, () => fetchDeployments());
   display: flex;
   flex-direction: column;
   gap: 0.125rem;
+}
+
+.env-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--text-muted);
+}
+
+.env-chip {
+  padding: 0 6px;
+  background: var(--surface-inset);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  font-weight: var(--font-normal);
+  text-transform: capitalize;
 }
 
 .deployment-name {

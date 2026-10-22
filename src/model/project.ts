@@ -178,3 +178,28 @@ export function serviceGraph(unsorted: Service[]): ServiceGraph {
   const links = services.flatMap((s) => (deps.get(s.name) ?? []).map((to) => ({ from: s.name, to })));
   return { rows: rows.filter((r) => r.length), links };
 }
+
+export type CardState = "online" | "degraded" | "crashed" | "offline" | "asleep";
+
+// projectState says in one word how a project is doing: online when every
+// service runs, degraded when only some do, crashed when one exited with an
+// error and nothing runs, offline when it was stopped, asleep while sleeping.
+export function projectState(d: Deployment): { state: CardState; label: string } {
+  if (d.metadata?.sleep?.sleeping) return { state: "asleep", label: "Asleep" };
+  const services = d.services ?? [];
+  const running = services.filter((s) => s.status === "running").length;
+  if (d.status === "error") return { state: "crashed", label: "Crashed" };
+  if (services.length && running === services.length) return { state: "online", label: "Online" };
+  if (running > 0) return { state: "degraded", label: `${running} of ${services.length} running` };
+  if (d.status === "running") return { state: "online", label: "Online" };
+  if (services.some((s) => s.status === "exited" || s.status === "dead")) return { state: "crashed", label: "Crashed" };
+  return { state: "offline", label: "Offline" };
+}
+
+// serviceState is the same reading for one compose service.
+export function serviceState(s: Service): { state: CardState; label: string } {
+  if (s.status === "running" && s.health === "unhealthy") return { state: "degraded", label: "Unhealthy" };
+  if (s.status === "running") return { state: "online", label: "Online" };
+  if (s.status === "exited" || s.status === "dead") return { state: "crashed", label: "Crashed" };
+  return { state: "offline", label: "Offline" };
+}

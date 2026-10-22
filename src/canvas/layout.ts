@@ -11,19 +11,19 @@ const GAP_X = 180;
 const GAP_Y = 70;
 const STORAGE_KEY = "flatrun-canvas-positions";
 
-export function readSavedPositions(): Record<string, Point> {
+export function readSavedPositions(key = STORAGE_KEY): Record<string, Point> {
   try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+    return JSON.parse(localStorage.getItem(key) || "{}");
   } catch {
     return {};
   }
 }
 
-export function savePosition(name: string, point: Point) {
+export function savePosition(name: string, point: Point, key = STORAGE_KEY) {
   try {
-    const all = readSavedPositions();
+    const all = readSavedPositions(key);
     all[name] = point;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(all));
+    localStorage.setItem(key, JSON.stringify(all));
   } catch {
     // Storage can be unavailable; positions then last for this visit only.
   }
@@ -36,6 +36,7 @@ export function layoutDeployments(
   deployments: Deployment[],
   dependencies: { source: string; target: string }[] = [],
   saved: Record<string, Point> = readSavedPositions(),
+  size: { width: number; height: number } = { width: NODE_WIDTH, height: NODE_HEIGHT },
 ) {
   const column = new Map(deployments.map((d) => [d.name, 0]));
   // Bounded relaxation: a cycle simply stops deepening after n passes.
@@ -60,10 +61,10 @@ export function layoutDeployments(
     return {
       name: d.name,
       position: saved[d.name] ?? {
-        x: col * (NODE_WIDTH + GAP_X),
+        x: col * (size.width + GAP_X),
         // Odd columns drop by a full row so an edge that skips a column passes
         // between that column's cards instead of through them.
-        y: row * (NODE_HEIGHT + GAP_Y) + (col % 2) * (NODE_HEIGHT + GAP_Y / 2),
+        y: row * (size.height + GAP_Y) + (col % 2) * (size.height + GAP_Y / 2),
       },
     };
   });

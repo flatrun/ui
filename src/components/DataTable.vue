@@ -10,12 +10,19 @@
       </div>
       <div class="header-right">
         <slot name="actions" />
-        <div v-if="toggleable" class="view-toggle">
-          <button class="toggle-btn" :class="{ active: viewMode === 'grid' }" @click="viewMode = 'grid'">
-            <Grid3x3 :size="16" />
-          </button>
-          <button class="toggle-btn" :class="{ active: viewMode === 'table' }" @click="viewMode = 'table'">
-            <List :size="16" />
+        <div v-if="modes.length > 1" class="view-toggle" role="group" aria-label="View">
+          <button
+            v-for="mode in modes"
+            :key="mode"
+            type="button"
+            class="toggle-btn"
+            :class="{ active: viewMode === mode }"
+            :title="VIEW_LABELS[mode]"
+            :aria-label="VIEW_LABELS[mode]"
+            :aria-pressed="viewMode === mode"
+            @click="viewMode = mode"
+          >
+            <component :is="VIEW_ICONS[mode]" :size="16" />
           </button>
         </div>
       </div>
@@ -82,11 +89,15 @@
         </table>
       </div>
 
+      <div v-else-if="viewMode === 'canvas'" class="canvas-view">
+        <slot name="canvas" :items="filteredItems" />
+      </div>
+
       <div v-else class="grid-view">
         <slot name="grid" :items="paginatedItems" :selected-items="selectedItems" :toggle-select="toggleSelect" />
       </div>
 
-      <div v-if="totalPages > 1" class="pagination">
+      <div v-if="totalPages > 1 && viewMode !== 'canvas'" class="pagination">
         <div class="pagination-info">
           Showing {{ startIndex + 1 }}-{{ endIndex }} of {{ filteredItems.length }} items
         </div>
@@ -147,7 +158,10 @@ import {
   ArrowUp,
   ArrowDown,
   Loader2,
+  Workflow,
 } from "lucide-vue-next";
+
+type ViewMode = "canvas" | "grid" | "table";
 
 interface Column {
   key: string;
@@ -172,7 +186,11 @@ const props = withDefaults(
     emptyText?: string;
     loadingText?: string;
     defaultPageSize?: number;
-    defaultViewMode?: "table" | "grid";
+    defaultViewMode?: ViewMode;
+    // The views offered, in toggle order. A toggleable table offers grid and table.
+    viewModes?: ViewMode[];
+    // Remembers the chosen view for this viewer under this key.
+    viewKey?: string;
   }>(),
   {
     itemKey: "id",
@@ -188,6 +206,8 @@ const props = withDefaults(
     loadingText: "Loading...",
     defaultPageSize: 25,
     defaultViewMode: "table",
+    viewModes: undefined,
+    viewKey: undefined,
   },
 );
 
@@ -198,7 +218,32 @@ const currentPage = ref(1);
 const pageSize = ref(props.defaultPageSize);
 const selectedItems = ref<any[]>([]);
 const selectAll = ref(false);
-const viewMode = ref<"table" | "grid">(props.defaultViewMode);
+const VIEW_LABELS: Record<ViewMode, string> = { canvas: "Canvas", grid: "Cards", table: "Table" };
+const VIEW_ICONS: Record<ViewMode, unknown> = { canvas: Workflow, grid: Grid3x3, table: List };
+const modes = computed<ViewMode[]>(() => props.viewModes ?? (props.toggleable ? ["grid", "table"] : []));
+
+function savedView(): ViewMode | null {
+  if (!props.viewKey) return null;
+  try {
+    return localStorage.getItem(`flatrun-view:${props.viewKey}`) as ViewMode | null;
+  } catch {
+    return null;
+  }
+}
+
+const initialView = savedView();
+const viewMode = ref<ViewMode>(
+  initialView && (props.viewModes ?? ["grid", "table"]).includes(initialView) ? initialView : props.defaultViewMode,
+);
+
+watch(viewMode, (mode) => {
+  if (!props.viewKey) return;
+  try {
+    localStorage.setItem(`flatrun-view:${props.viewKey}`, mode);
+  } catch {
+    // The view choice is a convenience; without storage it resets on the next visit.
+  }
+});
 const sortKey = ref("");
 const sortDirection = ref<"asc" | "desc">("asc");
 

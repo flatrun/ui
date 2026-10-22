@@ -3,8 +3,11 @@ import { reactive } from "vue";
 import { mount, flushPromises } from "@vue/test-utils";
 import { createTestingPinia } from "@pinia/testing";
 import DeploymentsView from "./DeploymentsView.vue";
+import ProjectCanvas from "@/components/project/ProjectCanvas.vue";
 import { useAuthStore } from "@/stores/auth";
 import { useTheme } from "@/composables/useTheme";
+import { deploymentsApi } from "@/services/api";
+import deploymentsFixture from "@/model/fixtures/deployments.json";
 
 vi.mock("@/services/api", () => ({
   clusterApi: {
@@ -419,11 +422,48 @@ describe("DeploymentsView", () => {
       useTheme().setStyle("modern");
     });
 
-    it("opens as a table and leaves creating to the top bar", () => {
-      const wrapper = mountView();
-      expect(wrapper.get(".data-table").attributes("data-view")).toBe("table");
+    const mountProjects = async () => {
+      vi.mocked(deploymentsApi.list).mockResolvedValueOnce({ data: { deployments: deploymentsFixture.items } } as any);
+      const pinia = createTestingPinia({ createSpy: vi.fn });
+      vi.mocked(useAuthStore(pinia).hasPermission).mockReturnValue(true);
+      const wrapper = mount(DeploymentsView, {
+        global: {
+          plugins: [pinia],
+          stubs: {
+            ProjectCanvas: { template: "<div class='canvas-stub' />", props: ["projects"] },
+            OperationModal: true,
+            LogsModal: true,
+            NewDeploymentModal: true,
+          },
+        },
+      });
+      await flushPromises();
+      return wrapper;
+    };
+
+    it("opens on the canvas, one card per project, and leaves creating to the top bar", async () => {
+      const wrapper = await mountProjects();
+      const views = wrapper.findAll(".view-toggle button").map((b) => b.attributes("aria-label"));
+      expect(views).toEqual(["Canvas", "Cards", "Table"]);
+
+      const projects = wrapper.getComponent(ProjectCanvas).props("projects") as any[];
+      const hello = projects.find((p) => p.name === "hello-web");
+      expect(hello.environments.map((e: any) => [e.name, e.deployment.name])).toEqual([
+        ["production", "hello-web"],
+        ["staging", "hello-web-staging"],
+      ]);
+      expect(projects.some((p) => p.name === "hello-web-staging")).toBe(false);
       expect(wrapper.text()).not.toContain("New Deployment");
-      expect(wrapper.text()).toContain("Refresh");
+    });
+
+    it("folds environments into a project's card", async () => {
+      const wrapper = await mountProjects();
+      await wrapper.get('[aria-label="Cards"]').trigger("click");
+      const names = wrapper.findAll(".deployment-card h3").map((h) => h.text());
+      expect(names).toContain("hello-web");
+      expect(names).not.toContain("hello-web-staging");
+      const hello = wrapper.findAll(".deployment-card").find((c) => c.get("h3").text() === "hello-web")!;
+      expect(hello.find(".env-chip").text()).toBe("staging");
     });
 
     it("keeps cards and the New Deployment button in Oak", () => {

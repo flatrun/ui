@@ -6,8 +6,7 @@ import { useSetupStore } from "@/stores/setup";
 import AppShell from "@/layouts/AppShell.vue";
 import { styledView } from "@/views/StyledView";
 import { useTheme } from "@/composables/useTheme";
-import { useWorkspaceStore } from "@/stores/workspace";
-import { lastProject, pathForLayout, projectPath, rememberProject } from "@/navigation/projects";
+import { pathForLayout, projectPath } from "@/navigation/projects";
 
 const routes: RouteRecordRaw[] = [
   {
@@ -336,14 +335,9 @@ router.beforeEach((to, _from, next) => {
       next({ path: moved, query: to.query, hash: to.hash, replace: true });
       return;
     }
-    if (layout === "birch") {
-      const workspace = useWorkspaceStore().slug;
-      if (to.name === "home") {
-        const last = lastProject(workspace);
-        next({ path: projectPath(last || undefined), replace: true });
-        return;
-      }
-      if (to.name === "deployment-detail") rememberProject(workspace, String(to.params.name));
+    if (layout === "birch" && to.name === "home") {
+      next({ path: projectPath(), replace: true });
+      return;
     }
   }
 

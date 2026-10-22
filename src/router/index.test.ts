@@ -32,11 +32,9 @@ describe("router", () => {
       expect(await visit("/canvas")).toBe("/projects");
     });
 
-    it("lands on the last project opened, or the project list", async () => {
-      expect(await visit("/")).toBe("/projects");
+    it("lands on the project list", async () => {
       await visit("/projects/shop");
-      await visit("/settings").catch(() => {});
-      expect(await visit("/")).toBe("/projects/shop");
+      expect(await visit("/")).toBe("/projects");
     });
 
     it("names the pages in its own words", () => {
