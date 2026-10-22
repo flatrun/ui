@@ -130,3 +130,63 @@ export function variableKind(value: string): VariableKind {
   if (anyRef.test(value)) return "reference";
   return "plain";
 }
+
+export interface PhaseStart {
+  phase: DeployPhase;
+  from: number;
+}
+
+export interface DeployLog {
+  build: string;
+  deploy: string;
+}
+
+// splitLog divides a deploy's output into what ran before the deploying phase
+// (fetching and building) and what ran from it on. Output without phase marks
+// counts as deploy output.
+export function splitLog(output: string, phases: PhaseStart[] | null | undefined): DeployLog {
+  const lines = output.replace(/\n$/, "").split("\n");
+  const deployFrom = phases?.find((p) => p.phase === "deploying")?.from;
+  const hasBuild = phases?.some((p) => p.phase === "building");
+  if (!output) return { build: "", deploy: "" };
+  if (deployFrom === undefined) {
+    return hasBuild ? { build: lines.join("\n"), deploy: "" } : { build: "", deploy: lines.join("\n") };
+  }
+  return { build: lines.slice(0, deployFrom).join("\n"), deploy: lines.slice(deployFrom).join("\n") };
+}
+
+export type StepState = "done" | "current" | "failed" | "pending";
+
+export interface DeployStep {
+  id: "queued" | "building" | "deploying" | "active";
+  label: string;
+  state: StepState;
+}
+
+const STEPS: { id: DeployStep["id"]; label: string }[] = [
+  { id: "queued", label: "Initialize" },
+  { id: "building", label: "Build" },
+  { id: "deploying", label: "Deploy" },
+  { id: "active", label: "Active" },
+];
+
+// deploySteps lays out the stepper for a deploy. A failed deploy marks the step
+// it reached last as failed.
+export function deploySteps(phase: DeployPhase | undefined, phases: PhaseStart[] | null | undefined): DeployStep[] {
+  const reached = (phases ?? []).map((p) => p.phase).filter((p) => p !== "failed" && p !== "removed");
+  const order = STEPS.map((s) => s.id) as string[];
+  const effective = phase === "removed" ? "active" : phase;
+  let last = effective && order.includes(effective) ? order.indexOf(effective) : -1;
+  if (effective === "failed") {
+    last = Math.max(0, ...reached.map((p) => order.indexOf(p)));
+  }
+  return STEPS.map((s, i) => {
+    let state: StepState = "pending";
+    if (i < last) state = "done";
+    else if (i === last) {
+      if (effective === "failed") state = "failed";
+      else state = s.id === "active" ? "done" : "current";
+    }
+    return { ...s, state };
+  });
+}

@@ -118,6 +118,7 @@ const props = withDefaults(
     lineHeight?: number;
     assistContext?: AssistContext | null;
     deletable?: boolean;
+    initialMode?: "structured" | "raw";
   }>(),
   {
     logs: "",
@@ -130,6 +131,7 @@ const props = withDefaults(
     lineHeight: 1.4,
     assistContext: null,
     deletable: false,
+    initialMode: "structured",
   },
 );
 
@@ -181,7 +183,7 @@ const debugEntry = (entry: LogEntry) => {
 
 const terminalContainer = ref<HTMLElement | null>(null);
 const structuredView = ref<InstanceType<typeof StructuredLogView> | null>(null);
-const viewMode = ref<"structured" | "raw">("structured");
+const viewMode = ref<"structured" | "raw">(props.initialMode);
 const autoScroll = ref(true);
 const showSearch = ref(false);
 

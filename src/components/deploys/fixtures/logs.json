@@ -1,0 +1,25 @@
+{
+  "deploy": {
+    "id": "d27c0fa31dcaa44b",
+    "action": "redeploy",
+    "revision": "59c64a8f744a1a4437df46a18d19bbee18ab864d",
+    "branch": "main",
+    "message": "Add web and worker",
+    "trigger": "manual",
+    "status": "succeeded",
+    "phase": "active",
+    "started_at": "2026-10-22T19:24:59.752179326Z",
+    "finished_at": "2026-10-22T19:25:00.761845176Z"
+  },
+  "output": "Fetching file:///srv/repos/phase-demo (branch main)\nCloning into '/tmp/flatrun-source-1584798957/src'...\nSource 59c64a8 synced, rebuilding\n Network phase-demo_default Creating \n Network phase-demo_default Created \n Container phase-demo-worker-2 Creating \n Container phase-demo-worker-1 Creating \n Container phase-demo Creating \n Container phase-demo-worker-2 Created \n Container phase-demo-worker-1 Created \n Container phase-demo Created \n Container phase-demo Starting \n Container phase-demo-worker-2 Starting \n Container phase-demo Started \n Container phase-demo-worker-2 Started \n Container phase-demo-worker-1 Starting \n Container phase-demo-worker-1 Started \n",
+  "phases": [
+    {
+      "phase": "building",
+      "from": 0
+    },
+    {
+      "phase": "deploying",
+      "from": 3
+    }
+  ]
+}

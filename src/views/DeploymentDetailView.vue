@@ -928,6 +928,7 @@
             :sleep="deployment.metadata?.sleep"
             :job-running="deploymentJob.state.isRunning"
             @deploy="handleOperation('redeploy')"
+            @restart="handleOperation('restart')"
             @rollback="rollbackTo"
             @changed="fetchDeployment"
             @environment-created="onEnvironmentCreated"
@@ -1523,6 +1524,8 @@
       :output="deploymentJob.state.output"
       :is-running="deploymentJob.state.isRunning"
       :is-success="deploymentJob.state.isSuccess"
+      :phase="deploymentJob.state.phase"
+      :phases="deploymentJob.state.phases"
       @close="deploymentJob.close()"
     />
 

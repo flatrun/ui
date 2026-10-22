@@ -1,0 +1,29 @@
+{
+  "deploys": [
+    {
+      "id": "d27c0fa31dcaa44b",
+      "action": "redeploy",
+      "revision": "59c64a8f744a1a4437df46a18d19bbee18ab864d",
+      "branch": "main",
+      "message": "Add web and worker",
+      "trigger": "manual",
+      "status": "succeeded",
+      "phase": "active",
+      "started_at": "2026-10-22T19:24:59.752179326Z",
+      "finished_at": "2026-10-22T19:25:00.761845176Z"
+    },
+    {
+      "id": "55942c4e29c39277",
+      "action": "redeploy",
+      "revision": "59c64a8f744a1a4437df46a18d19bbee18ab864d",
+      "branch": "main",
+      "message": "Add web and worker",
+      "trigger": "manual",
+      "status": "failed",
+      "phase": "failed",
+      "error": "exit status 1: services.deploy.replicas: can't set container_name and worker as container name must be unique: invalid compose project\n",
+      "started_at": "2026-10-22T19:22:00.045265704Z",
+      "finished_at": "2026-10-22T19:22:00.432163397Z"
+    }
+  ]
+}

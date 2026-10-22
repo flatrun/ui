@@ -287,6 +287,8 @@
       :output="operationModal.output"
       :is-running="operationModal.isRunning"
       :is-success="operationModal.isSuccess"
+      :phase="operationModal.phase"
+      :phases="operationModal.phases"
       @close="closeOperationModal"
     />
 

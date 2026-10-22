@@ -26,10 +26,12 @@ import type {
   WebhookPaths,
   Workspace,
   WorkspaceRole,
+  DeployPhase,
 } from "@/types";
 import type { LogRecord, LogSource } from "@/types/logs";
 
 import { workspaceHeader } from "./workspaceScope";
+import type { PhaseStart } from "@/model/project";
 
 export const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_URL || "/api",
@@ -269,6 +271,9 @@ export interface DeploymentJob {
   deployment: string;
   action: string;
   status: DeploymentActionStatus;
+  phase?: DeployPhase;
+  phases?: PhaseStart[];
+  deploy_id?: string;
   output: string;
   lines: string[];
   error?: string;
@@ -405,6 +410,10 @@ export const deploymentsApi = {
   redeploy: (name: string, revision?: string) =>
     apiClient.post<ActionJobResponse>(`/deployments/${name}/redeploy`, revision ? { revision } : {}),
   deploys: (name: string) => apiClient.get<{ deploys: DeployRecord[] | null }>(`/deployments/${name}/deploys`),
+  deployLogs: (name: string, deployId: string) =>
+    apiClient.get<{ deploy: DeployRecord; output: string; phases: PhaseStart[] }>(
+      `/deployments/${name}/deploys/${deployId}/logs`,
+    ),
   rollback: (name: string, deployId: string) =>
     apiClient.post<ActionJobResponse>(`/deployments/${name}/deploys/${deployId}/rollback`),
   updateSource: (name: string, changes: { branch?: string; auto_deploy?: boolean; previews?: boolean }) =>

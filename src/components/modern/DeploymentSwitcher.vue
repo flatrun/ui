@@ -110,6 +110,8 @@
       :output="job.state.output"
       :is-running="job.state.isRunning"
       :is-success="job.state.isSuccess"
+      :phase="job.state.phase"
+      :phases="job.state.phases"
       @close="job.close()"
     />
   </div>

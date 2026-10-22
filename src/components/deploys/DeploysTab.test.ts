@@ -6,7 +6,11 @@ import deploysFixture from "./fixtures/deploys.json";
 import webhookFixture from "./fixtures/webhook.json";
 import rotateFixture from "./fixtures/rotate.json";
 import sourceFixture from "./fixtures/source.json";
+import historyFixture from "./fixtures/history.json";
+import logsFixture from "./fixtures/logs.json";
 import { deploymentsApi, publicAgentUrl } from "@/services/api";
+import { useTheme } from "@/composables/useTheme";
+import { useAuthStore } from "@/stores/auth";
 
 vi.mock("@/services/api", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/services/api")>();
@@ -20,6 +24,7 @@ vi.mock("@/services/api", async (importOriginal) => {
       updateSource: vi.fn(),
       updateSleep: vi.fn(),
       createEnvironment: vi.fn(),
+      deployLogs: vi.fn(),
     },
   };
 });
@@ -36,6 +41,7 @@ function mountTab(props: Record<string, unknown> = {}) {
 describe("DeploysTab", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    useTheme().setStyle("classic");
     api.deploys.mockResolvedValue({ data: deploysFixture } as any);
     api.environments.mockResolvedValue({ data: { environments: [] } } as any);
     api.webhook.mockResolvedValue({ data: webhookFixture } as any);
@@ -101,5 +107,66 @@ describe("DeploysTab", () => {
     await flushPromises();
 
     expect(api.updateSleep).toHaveBeenCalledWith("hello-web", { enabled: true, idle_minutes: 20 });
+  });
+
+  describe("under Modern", () => {
+    function mountModern() {
+      useTheme().setStyle("modern");
+      api.deploys.mockResolvedValue({ data: historyFixture } as any);
+      const pinia = createTestingPinia({ createSpy: vi.fn });
+      vi.mocked(useAuthStore(pinia).hasPermission).mockReturnValue(true);
+      return mount(DeploysTab, {
+        props: { deploymentName: "phase-demo", source: sourceFixture, jobRunning: false },
+        global: { plugins: [pinia], stubs: { RouterLink: RouterLinkStub, teleport: true } },
+      });
+    }
+
+    it("leads with the active deploy and lists the rest as history", async () => {
+      const wrapper = mountModern();
+      await flushPromises();
+
+      const cards = wrapper.findAll(".deploy-cards .card");
+      expect(cards).toHaveLength(2);
+      expect(cards[0].classes()).toContain("lead");
+      expect(cards[0].get(".badge").text()).toBe("Active");
+      expect(cards[0].get(".message").text()).toBe("Add web and worker");
+      expect(cards[0].get(".meta").text()).toContain("main@59c64a8");
+      expect(cards[0].get(".card-foot").text()).toBe("Deploy successful");
+      expect(cards[1].get(".badge").text()).toBe("Failed");
+      expect(wrapper.find("table.history").exists()).toBe(false);
+    });
+
+    it("restarts or redeploys from the active deploy's menu", async () => {
+      const wrapper = mountModern();
+      await flushPromises();
+
+      const lead = wrapper.get(".card.lead");
+      await lead.get(".more").trigger("click");
+      const items = lead.findAll(".menu button");
+      expect(items.map((b) => b.text())).toEqual(["Redeploy", "Restart"]);
+      await items[1].trigger("click");
+      expect(wrapper.emitted("restart")).toHaveLength(1);
+    });
+
+    it("opens a deploy's stored logs split into build and deploy", async () => {
+      api.deployLogs.mockResolvedValue({ data: logsFixture } as any);
+      const wrapper = mountModern();
+      await flushPromises();
+
+      await wrapper
+        .get(".card.lead")
+        .findAll("button")
+        .find((b) => b.text() === "View logs")!
+        .trigger("click");
+      await flushPromises();
+
+      expect(api.deployLogs).toHaveBeenCalledWith("phase-demo", "d27c0fa31dcaa44b");
+      const panel = wrapper.get(".deploy-logs");
+      expect(panel.findAll(".step").map((s) => s.classes().includes("done"))).toEqual([true, true, true, true]);
+      expect(panel.get(".log-tab.active").text()).toBe("Deploy logs");
+      expect(panel.text()).toContain("Container phase-demo-worker-2 Started");
+      await panel.findAll(".log-tab")[0].trigger("click");
+      expect(panel.text()).toContain("Source 59c64a8 synced, rebuilding");
+    });
   });
 });

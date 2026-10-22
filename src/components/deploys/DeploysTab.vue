@@ -1,6 +1,18 @@
 <template>
   <div class="deploys-tab">
     <template v-if="source">
+      <BaseCard v-if="modern" title="Recent deploys" icon="rocket">
+        <DeployCards
+          :deployment-name="deploymentName"
+          :deploys="deploys"
+          :job-running="jobRunning"
+          :can-write="canWrite"
+          @redeploy="emit('deploy')"
+          @restart="emit('restart')"
+          @rollback="(id: string) => emit('rollback', id)"
+        />
+      </BaseCard>
+
       <BaseCard title="Source" icon="git-branch">
         <template #actions>
           <BaseButton variant="primary" size="sm" icon="rocket" :disabled="jobRunning" @click="emit('deploy')">
@@ -109,7 +121,7 @@
         </form>
       </BaseCard>
 
-      <BaseCard title="History" icon="history">
+      <BaseCard v-if="!modern" title="History" icon="history">
         <table v-if="deploys.length" class="history">
           <thead>
             <tr>
@@ -194,6 +206,9 @@ import BaseCard from "@/components/base/BaseCard.vue";
 import BaseField from "@/components/base/BaseField.vue";
 import BaseInput from "@/components/base/BaseInput.vue";
 import Icon from "@/components/base/Icon.vue";
+import DeployCards from "./DeployCards.vue";
+import { useTheme } from "@/composables/useTheme";
+import { useAuthStore } from "@/stores/auth";
 
 const props = defineProps<{
   deploymentName: string;
@@ -204,12 +219,17 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   deploy: [];
+  restart: [];
   rollback: [deployId: string];
   changed: [];
   "environment-created": [name: string, jobId?: string];
 }>();
 
 const notifications = useNotificationsStore();
+const { current: currentStyle } = useTheme();
+const modern = computed(() => currentStyle.value.layout === "modern");
+const auth = useAuthStore();
+const canWrite = computed(() => auth.hasPermission("deployments:write"));
 
 const providers = [
   { id: "github", label: "GitHub" },

@@ -6,6 +6,8 @@ import {
   type DeploymentActionStatus,
   type ActionOptions,
 } from "@/services/api";
+import type { DeployPhase } from "@/types";
+import type { PhaseStart } from "@/model/project";
 
 export type DeploymentOperation = "start" | "stop" | "restart" | "rebuild" | "redeploy" | "rollback";
 
@@ -14,6 +16,8 @@ export interface DeploymentJobState {
   operation: DeploymentOperation;
   deploymentName: string;
   jobId: string;
+  phase?: DeployPhase;
+  phases: PhaseStart[];
   output: string;
   isRunning: boolean;
   isSuccess: boolean | null;
@@ -61,6 +65,8 @@ export function useDeploymentJob(onSettled?: (state: DeploymentJobState) => void
     operation: "start",
     deploymentName: "",
     jobId: "",
+    phase: undefined,
+    phases: [],
     output: "",
     isRunning: false,
     isSuccess: null,
@@ -89,9 +95,25 @@ export function useDeploymentJob(onSettled?: (state: DeploymentJobState) => void
     state.operation = operation;
     state.deploymentName = name;
     state.jobId = "";
+    state.phase = undefined;
+    state.phases = [];
     state.output = "";
     state.isRunning = true;
     state.isSuccess = null;
+  }
+
+  function lineCount() {
+    return state.output ? state.output.split("\n").length : 0;
+  }
+
+  function enterPhase(phase: DeployPhase) {
+    if (phase !== state.phase) state.phases = [...state.phases, { phase, from: lineCount() }];
+    state.phase = phase;
+  }
+
+  function adopt(data: { phase?: DeployPhase; phases?: PhaseStart[] }) {
+    if (data.phases) state.phases = data.phases;
+    if (data.phase) state.phase = data.phase;
   }
 
   function appendLine(line: string) {
@@ -204,6 +226,8 @@ export function useDeploymentJob(onSettled?: (state: DeploymentJobState) => void
 
       if (frame.type === "line") {
         appendLine(frame.data ?? "");
+      } else if (frame.type === "phase") {
+        enterPhase(frame.phase);
       } else if (frame.type === "result") {
         settle(frame.status, frame.error);
       } else if (frame.type === "error") {
@@ -228,6 +252,7 @@ export function useDeploymentJob(onSettled?: (state: DeploymentJobState) => void
         if (data.output) {
           state.output = data.output;
         }
+        adopt(data);
         if (data.status === "succeeded" || data.status === "failed") {
           settle(data.status, data.error);
           return;
@@ -254,6 +279,7 @@ export function useDeploymentJob(onSettled?: (state: DeploymentJobState) => void
     try {
       const { data } = await deploymentsApi.getJob(name, persisted.jobId);
       state.output = data.output || "";
+      adopt(data);
       if (data.status === "succeeded" || data.status === "failed") {
         settle(data.status, data.error);
         return true;

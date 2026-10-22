@@ -8,6 +8,7 @@ vi.mock("@/services/api", () => ({
     stop: vi.fn(),
     restart: vi.fn(),
     rebuild: vi.fn(),
+    redeploy: vi.fn(),
     getJob: vi.fn(),
   },
   deploymentJobWsUrl: vi.fn().mockReturnValue("ws://localhost/stream"),
@@ -101,5 +102,51 @@ describe("useDeploymentJob", () => {
   it("reports no job to resume when none was persisted", async () => {
     const { resume } = withScope(() => useDeploymentJob());
     expect(await resume("app")).toBe(false);
+  });
+
+  it("records where each phase starts from the job stream", async () => {
+    // The frames the agent sends for a redeploy, in its order: phase changes
+    // arrive between the output lines they separate.
+    const frames = [
+      { type: "phase", phase: "queued" },
+      { type: "phase", phase: "building" },
+      { type: "line", data: "Fetching" },
+      { type: "line", data: "Source 59c64a8 synced, rebuilding" },
+      { type: "phase", phase: "deploying" },
+      { type: "line", data: "Container phase-demo Started" },
+      { type: "phase", phase: "active" },
+      { type: "result", status: "succeeded" },
+    ];
+    vi.stubGlobal(
+      "WebSocket",
+      class {
+        onopen: (() => void) | null = null;
+        onmessage: ((ev: { data: string }) => void) | null = null;
+        onclose: (() => void) | null = null;
+        constructor() {
+          setTimeout(() => {
+            this.onopen?.();
+            for (const f of frames) this.onmessage?.({ data: JSON.stringify(f) });
+          });
+        }
+        send() {}
+        close() {}
+      },
+    );
+    (deploymentsApi.redeploy as ReturnType<typeof vi.fn>).mockResolvedValue({ data: { job_id: "job-9" } });
+
+    const { state, run } = withScope(() => useDeploymentJob());
+    await run("redeploy", "phase-demo");
+    await new Promise((r) => setTimeout(r));
+    await flushPromises();
+
+    expect(state.isSuccess).toBe(true);
+    expect(state.phase).toBe("active");
+    expect(state.phases).toEqual([
+      { phase: "queued", from: 0 },
+      { phase: "building", from: 0 },
+      { phase: "deploying", from: 2 },
+      { phase: "active", from: 3 },
+    ]);
   });
 });

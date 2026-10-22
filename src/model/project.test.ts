@@ -2,7 +2,9 @@ import { describe, expect, it } from "vitest";
 import deploymentsFixture from "./fixtures/deployments.json";
 import deploysFixture from "./fixtures/deploys.json";
 import type { DeployRecord, Deployment } from "@/types";
-import { deploysFrom, projectsFrom, variableKind } from "./project";
+import logsFixture from "@/components/deploys/fixtures/logs.json";
+import historyFixture from "@/components/deploys/fixtures/history.json";
+import { deploySteps, deploysFrom, projectsFrom, splitLog, variableKind, type PhaseStart } from "./project";
 
 const deployments = deploymentsFixture.items as unknown as Deployment[];
 
@@ -48,5 +50,38 @@ describe("project model", () => {
     expect(variableKind("${{ secret.DB_PASSWORD }}")).toBe("secret");
     expect(variableKind("postgres://${{ orders-db.DB_USER }}@db")).toBe("reference");
     expect(variableKind("8080")).toBe("plain");
+  });
+});
+
+describe("deploy logs", () => {
+  it("splits a stored log into build and deploy output", () => {
+    const log = splitLog(logsFixture.output, logsFixture.phases as PhaseStart[]);
+    expect(log.build.split("\n")).toHaveLength(3);
+    expect(log.build).toContain("Source 59c64a8 synced, rebuilding");
+    expect(log.deploy.split("\n")[0]).toContain("Network phase-demo_default Creating");
+    expect(log.deploy).toContain("Container phase-demo-worker-2 Started");
+  });
+
+  it("treats output without phases as deploy output", () => {
+    expect(splitLog("Started", [])).toEqual({ build: "", deploy: "Started" });
+  });
+
+  it("lays out the steps of a finished, running and failed deploy", () => {
+    const states = (phase: any, phases: PhaseStart[]) => deploySteps(phase, phases).map((s) => s.state);
+    expect(states("active", logsFixture.phases as PhaseStart[])).toEqual(["done", "done", "done", "done"]);
+    expect(
+      states("building", [
+        { phase: "queued", from: 0 },
+        { phase: "building", from: 0 },
+      ]),
+    ).toEqual(["done", "current", "pending", "pending"]);
+    expect(
+      states("failed", [
+        { phase: "queued", from: 0 },
+        { phase: "building", from: 0 },
+      ]),
+    ).toEqual(["done", "failed", "pending", "pending"]);
+    const failed = historyFixture.deploys[1];
+    expect(states(failed.phase, [])).toEqual(["failed", "pending", "pending", "pending"]);
   });
 });

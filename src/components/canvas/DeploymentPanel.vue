@@ -71,6 +71,7 @@
             :sleep="deployment.metadata?.sleep"
             :job-running="job.state.isRunning"
             @deploy="job.run('redeploy', deployment.name)"
+            @restart="job.run('restart', deployment.name)"
             @rollback="
               (id: string) =>
                 job.track('rollback', deployment!.name, () => deploymentsApi.rollback(deployment!.name, id))
@@ -107,6 +108,8 @@
       :output="job.state.output"
       :is-running="job.state.isRunning"
       :is-success="job.state.isSuccess"
+      :phase="job.state.phase"
+      :phases="job.state.phases"
       @close="job.close()"
     />
   </SlidePanel>
