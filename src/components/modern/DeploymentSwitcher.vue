@@ -420,4 +420,18 @@ watch(() => workspaceStore.slug, load);
   color: var(--accent);
   text-decoration: none;
 }
+
+.switcher > :deep(.popover:first-child) {
+  min-width: 0;
+}
+
+.switcher > :deep(.popover:first-child) .crumb {
+  min-width: 0;
+}
+
+.switcher > :deep(.popover:first-child) .crumb-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 </style>

@@ -244,4 +244,10 @@ onMounted(() => {
 .link:hover {
   color: var(--text);
 }
+
+@media (max-width: 600px) {
+  .crumb-label {
+    display: none;
+  }
+}
 </style>
