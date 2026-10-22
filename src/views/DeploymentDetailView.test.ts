@@ -808,7 +808,7 @@ describe("DeploymentDetailView", () => {
       expect(wrapper.get(".modern-header h1").text()).toBe("test-app");
       expect(wrapper.get(".modern-actions .btn-primary").text()).toBe("Restart");
       expect(railLabels(wrapper)).toEqual([
-        "Deployments",
+        "Deploys",
         "Logs",
         "Variables",
         "Metrics",
@@ -817,7 +817,7 @@ describe("DeploymentDetailView", () => {
         "Terminal",
         "Migration",
       ]);
-      expect(wrapper.get(".rail-item.active").text()).toBe("Deployments");
+      expect(wrapper.get(".rail-item.active").text()).toBe("Deploys");
     });
 
     it("stacks overview, databases and configuration under Settings", async () => {

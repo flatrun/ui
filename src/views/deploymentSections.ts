@@ -20,7 +20,7 @@ export interface ModernSection {
 }
 
 export const MODERN_SECTIONS: ModernSection[] = [
-  { id: "deploys", label: "Deployments", icon: "rocket", group: "main", tabs: ["deploys"] },
+  { id: "deploys", label: "Deploys", icon: "rocket", group: "main", tabs: ["deploys"] },
   { id: "logs", label: "Logs", icon: "scroll-text", group: "main", tabs: ["logs"] },
   { id: "variables", label: "Variables", icon: "braces", group: "main", tabs: ["environment"] },
   { id: "metrics", label: "Metrics", icon: "chart-line", group: "main", tabs: [] },
