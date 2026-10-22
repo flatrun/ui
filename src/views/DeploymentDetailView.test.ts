@@ -110,6 +110,14 @@ vi.mock("@/services/api", () => ({
     series: vi.fn().mockResolvedValue({ data: { deployment: "test-app", since: "1h", points: [] } }),
   },
   deploymentLogsWsUrl: vi.fn(() => "ws://localhost/api/deployments/test-app/logs/stream"),
+  secretsApi: {
+    list: vi.fn(async () => ({ data: (await import("@/components/secrets/fixtures/list.json")).default })),
+    bindings: vi.fn(async () => ({ data: (await import("@/components/secrets/fixtures/bindings.json")).default })),
+    connections: vi.fn(async () => ({
+      data: (await import("@/components/secrets/fixtures/connections.json")).default,
+    })),
+    providers: vi.fn(async () => ({ data: (await import("@/components/secrets/fixtures/providers.json")).default })),
+  },
 }));
 
 vi.mock("@/services/observability", async (importOriginal) => {

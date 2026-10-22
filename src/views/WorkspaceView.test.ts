@@ -40,7 +40,7 @@ async function mountAs(role: Workspace["role"]) {
   const store = useWorkspaceStore();
   store.workspaces = [{ ...acme, role }];
   store.select("acme-shop");
-  const wrapper = mount(WorkspaceView);
+  const wrapper = mount(WorkspaceView, { global: { stubs: { RouterLink: { template: "<a><slot /></a>" } } } });
   await flushPromises();
   return wrapper;
 }
