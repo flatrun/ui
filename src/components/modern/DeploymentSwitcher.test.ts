@@ -29,8 +29,8 @@ async function mountAt(path: string) {
   const router = createRouter({
     history: createMemoryHistory(),
     routes: [
-      { path: "/deployments", name: "deployments", component: Page },
-      { path: "/deployments/:name", name: "deployment-detail", component: Page },
+      { path: "/deployments", alias: "/projects", name: "deployments", component: Page },
+      { path: "/deployments/:name", alias: "/projects/:name", name: "deployment-detail", component: Page },
     ],
   });
   router.push(path);
@@ -52,7 +52,7 @@ describe("DeploymentSwitcher", () => {
   });
 
   it("names the open deployment and finds others by typing", async () => {
-    const { wrapper, router } = await mountAt("/deployments/hello-web-staging");
+    const { wrapper, router } = await mountAt("/projects/hello-web-staging");
     const crumb = wrapper.findAll(".crumb")[0];
     expect(crumb.text()).toBe("hello-web-staging");
 
@@ -71,13 +71,13 @@ describe("DeploymentSwitcher", () => {
     await wrapper.get("input").trigger("keydown", { key: "Enter" });
     await flushPromises();
 
-    expect(router.currentRoute.value.fullPath).toBe("/deployments/orders-worker");
+    expect(router.currentRoute.value.fullPath).toBe("/projects/orders-worker");
     wrapper.unmount();
   });
 
   it("opens a section or runs an action from a row", async () => {
-    const { wrapper, router } = await mountAt("/deployments");
-    expect(wrapper.get(".crumb").text()).toBe("Deployments");
+    const { wrapper, router } = await mountAt("/projects");
+    expect(wrapper.get(".crumb").text()).toBe("Projects");
     await wrapper.get(".crumb").trigger("click");
     await flushPromises();
 
@@ -92,12 +92,12 @@ describe("DeploymentSwitcher", () => {
     await flushPromises();
     await wrapper.findAll(".row")[0].get("[aria-label='Logs']").trigger("click");
     await flushPromises();
-    expect(router.currentRoute.value.fullPath).toBe("/deployments/hello-web?section=logs");
+    expect(router.currentRoute.value.fullPath).toBe("/projects/hello-web?section=logs");
     wrapper.unmount();
   });
 
   it("switches between a deployment's environments", async () => {
-    const { wrapper, router } = await mountAt("/deployments/hello-web");
+    const { wrapper, router } = await mountAt("/projects/hello-web");
     const envCrumb = wrapper.findAll(".crumb")[1];
     expect(envCrumb.text()).toBe("production");
 
@@ -107,7 +107,7 @@ describe("DeploymentSwitcher", () => {
     await options[1].trigger("click");
     await flushPromises();
 
-    expect(router.currentRoute.value.fullPath).toBe("/deployments/hello-web-staging");
+    expect(router.currentRoute.value.fullPath).toBe("/projects/hello-web-staging");
     wrapper.unmount();
   });
 
@@ -116,9 +116,9 @@ describe("DeploymentSwitcher", () => {
     vi.mocked(deploymentsApi.list)
       .mockResolvedValueOnce({ data: { deployments: all.filter((d) => d.name !== "orders-worker") } } as any)
       .mockResolvedValue({ data: deploymentsFixture } as any);
-    const { wrapper, router } = await mountAt("/deployments/hello-web");
+    const { wrapper, router } = await mountAt("/projects/hello-web");
 
-    await router.push("/deployments/orders-worker");
+    await router.push("/projects/orders-worker");
     await flushPromises();
 
     expect(wrapper.findAll(".crumb")[0].text()).toBe("orders-worker");

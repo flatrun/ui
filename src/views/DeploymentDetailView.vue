@@ -2245,6 +2245,8 @@ import DeploymentMetrics from "@/components/deployment/DeploymentMetrics.vue";
 import ServiceCanvas from "@/components/project/ServiceCanvas.vue";
 import SecretsPanel from "@/components/secrets/SecretsPanel.vue";
 import { useTheme } from "@/composables/useTheme";
+import { useWorkspaceStore } from "@/stores/workspace";
+import { forgetProject } from "@/navigation/projects";
 import { MODERN_SECTIONS, sectionForTab } from "@/views/deploymentSections";
 import { useDeploymentJob, type DeploymentOperation } from "@/composables/useDeploymentJob";
 import { useServiceJobs } from "@/composables/useServiceJobs";
@@ -2987,6 +2989,7 @@ const fetchDeployment = async () => {
     }
   } catch (err: any) {
     error.value = err.response?.data?.error || err.message || "Failed to load deployment";
+    if (err.response?.status === 404) forgetProject(useWorkspaceStore().slug, route.params.name as string);
   } finally {
     loading.value = false;
   }
@@ -3454,6 +3457,7 @@ const deleteDeployment = async () => {
     if (result === false) return;
     showDeleteDeploymentModal.value = false;
     notifications.success("Deleted", `Deployment "${deployment.value?.name}" has been deleted`);
+    forgetProject(useWorkspaceStore().slug, route.params.name as string);
     router.push(backPath.value);
   } finally {
     deletingDeployment.value = false;

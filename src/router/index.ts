@@ -5,6 +5,9 @@ import { useAuthStore } from "@/stores/auth";
 import { useSetupStore } from "@/stores/setup";
 import AppShell from "@/layouts/AppShell.vue";
 import { styledView } from "@/views/StyledView";
+import { useTheme } from "@/composables/useTheme";
+import { useWorkspaceStore } from "@/stores/workspace";
+import { lastProject, pathForLayout, projectPath, rememberProject } from "@/navigation/projects";
 
 const routes: RouteRecordRaw[] = [
   {
@@ -29,7 +32,7 @@ const routes: RouteRecordRaw[] = [
         name: "home",
         component: styledView({
           classic: () => import("@/views/HomeView.vue"),
-          modern: () => import("@/views/CanvasView.vue"),
+          modern: () => import("@/views/DeploymentsView.vue"),
         }),
       },
       {
@@ -39,6 +42,7 @@ const routes: RouteRecordRaw[] = [
       },
       {
         path: "deployments",
+        alias: "projects",
         name: "deployments",
         component: () => import("@/views/DeploymentsView.vue"),
         meta: { permission: "deployments:read" },
@@ -51,6 +55,7 @@ const routes: RouteRecordRaw[] = [
       },
       {
         path: "deployments/:name",
+        alias: "projects/:name",
         name: "deployment-detail",
         component: () => import("@/views/DeploymentDetailView.vue"),
         meta: { permission: "deployments:read" },
@@ -321,6 +326,24 @@ router.beforeEach((to, _from, next) => {
     if (!auth.hasPermission(permission)) {
       next("/");
       return;
+    }
+  }
+
+  if (token) {
+    const layout = useTheme().current.value.layout;
+    const moved = pathForLayout(to.path, layout);
+    if (moved) {
+      next({ path: moved, query: to.query, hash: to.hash, replace: true });
+      return;
+    }
+    if (layout === "modern") {
+      const workspace = useWorkspaceStore().slug;
+      if (to.name === "home") {
+        const last = lastProject(workspace);
+        next({ path: projectPath(last || undefined), replace: true });
+        return;
+      }
+      if (to.name === "deployment-detail") rememberProject(workspace, String(to.params.name));
     }
   }
 

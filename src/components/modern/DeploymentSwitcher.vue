@@ -4,7 +4,7 @@
       <template #trigger="{ toggle }">
         <button type="button" class="crumb" :aria-expanded="open" aria-haspopup="dialog" @click="toggle">
           <span v-if="current" class="dot" :class="statusOf(current)" />
-          <span class="crumb-label">{{ current?.name ?? "Deployments" }}</span>
+          <span class="crumb-label">{{ current?.name ?? "Projects" }}</span>
           <Icon name="chevrons-up-down" :size="14" />
         </button>
       </template>
@@ -14,15 +14,15 @@
           <input
             ref="searchInput"
             v-model="query"
-            placeholder="Find a deployment..."
-            aria-label="Find a deployment"
+            placeholder="Find a project..."
+            aria-label="Find a project"
             @keydown.down.prevent="move(1)"
             @keydown.up.prevent="move(-1)"
             @keydown.enter.prevent="openActive(close)"
           />
         </div>
         <ul class="rows" role="listbox">
-          <li v-if="!filtered.length" class="empty">{{ loading ? "Loading..." : "No deployments match." }}</li>
+          <li v-if="!filtered.length" class="empty">{{ loading ? "Loading..." : "No projects match." }}</li>
           <li
             v-for="(d, i) in filtered"
             :key="d.name"
@@ -68,7 +68,7 @@
           </li>
         </ul>
         <div class="footer">
-          <RouterLink to="/deployments" @click="close">All deployments</RouterLink>
+          <RouterLink :to="projectPath()" @click="close">All projects</RouterLink>
           <span>{{ deployments.length }} total</span>
         </div>
       </template>
@@ -127,6 +127,7 @@ import { useDeploymentJob, type DeploymentOperation } from "@/composables/useDep
 import Popover from "@/components/base/Popover.vue";
 import Icon from "@/components/base/Icon.vue";
 import { projectsFrom } from "@/model/project";
+import { projectPath } from "@/navigation/projects";
 import { useWorkspaceStore } from "@/stores/workspace";
 import OperationModal from "@/components/OperationModal.vue";
 
@@ -186,7 +187,7 @@ function move(delta: number) {
 
 function go(name: string, section: string | undefined, close: () => void) {
   close();
-  router.push({ path: `/deployments/${encodeURIComponent(name)}`, query: section ? { section } : {} });
+  router.push({ path: projectPath(name), query: section ? { section } : {} });
 }
 
 function openActive(close: () => void) {

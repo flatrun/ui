@@ -5,17 +5,17 @@
       :columns="columns"
       :loading="loading"
       :searchable="true"
-      search-placeholder="Search deployments..."
+      :search-placeholder="`Search ${noun}s...`"
       :search-fields="['name', 'path', 'status']"
       item-key="clusterKey"
       :empty-icon="Inbox"
-      :empty-title="selectedServer ? `No deployments on ${selectedServer}` : 'No deployments found'"
+      :empty-title="selectedServer ? `No ${noun}s on ${selectedServer}` : `No ${noun}s found`"
       :empty-text="
         selectedServer
           ? 'Choose another Fleet server or refresh this view.'
-          : 'Create your first deployment to get started.'
+          : `Create your first ${noun} to get started.`
       "
-      loading-text="Loading deployments..."
+      :loading-text="`Loading ${noun}s...`"
       :default-page-size="12"
       :toggleable="true"
       :default-view-mode="modern ? 'table' : 'grid'"
@@ -349,6 +349,7 @@ const notifications = useNotificationsStore();
 const authStore = useAuthStore();
 const { current: currentStyle } = useTheme();
 const modern = computed(() => currentStyle.value.layout === "modern");
+const noun = computed(() => (modern.value ? "project" : "deployment"));
 const canWrite = authStore.hasPermission("deployments:write");
 const canReadCluster = authStore.hasPermission("cluster:read");
 type ManagedDeployment = Deployment & { server: string; local: boolean; clusterKey: string };
@@ -379,14 +380,14 @@ const logsModal = ref({
   logs: "",
 });
 
-const columns = [
+const columns = computed(() => [
   { key: "status", label: "", width: "40px" },
-  { key: "name", label: "Deployment", sortable: true },
+  { key: "name", label: modern.value ? "Project" : "Deployment", sortable: true },
   { key: "services", label: "Services", width: "180px" },
   { key: "ports", label: "Ports", width: "140px" },
   { key: "updated", label: "Updated", sortable: true, width: "120px" },
   { key: "actions", label: "", width: "140px" },
-];
+]);
 
 const fetchDeployments = async () => {
   loading.value = true;

@@ -817,7 +817,7 @@ describe("DeploymentDetailView", () => {
       expect(wrapper.get(".modern-actions .btn-primary").text()).toBe("Restart");
       expect(railLabels(wrapper)).toEqual([
         "Architecture",
-        "Deploys",
+        "Deployments",
         "Logs",
         "Variables",
         "Metrics",

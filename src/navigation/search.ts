@@ -1,5 +1,6 @@
 import { computed, ref } from "vue";
 import { useAuthStore } from "@/stores/auth";
+import { useTheme } from "@/composables/useTheme";
 import { deploymentsApi, containersApi, imagesApi, volumesApi, networksApi } from "@/services/api";
 import type { Permission } from "@/types";
 import { visibleNavItems } from "./items";
@@ -14,6 +15,7 @@ export interface SearchItem {
 
 interface EntitySource {
   group: string;
+  modernGroup?: string;
   icon: string;
   perm: Permission;
   path: (name: string) => string;
@@ -26,6 +28,7 @@ interface EntitySource {
 const ENTITY_SOURCES: EntitySource[] = [
   {
     group: "Deployment",
+    modernGroup: "Project",
     icon: "box",
     perm: "deployments:read",
     path: (n) => `/deployments/${n}`,
@@ -63,6 +66,7 @@ const ENTITY_SOURCES: EntitySource[] = [
 
 export function useSearchIndex() {
   const authStore = useAuthStore();
+  const { current } = useTheme();
   const entities = ref<SearchItem[]>([]);
   const loaded = ref(false);
   const loading = ref(false);
@@ -75,12 +79,13 @@ export function useSearchIndex() {
       sources.map(async (s): Promise<SearchItem[]> => {
         try {
           const labels = await s.fetch();
+          const group = current.value.layout === "modern" ? (s.modernGroup ?? s.group) : s.group;
           return labels.map((label) => ({
             key: `${s.group}:${label}`,
             label,
             path: s.path(label),
             icon: s.icon,
-            group: s.group,
+            group,
           }));
         } catch {
           return [];
@@ -98,7 +103,7 @@ export function useSearchIndex() {
   }
 
   const pages = computed<SearchItem[]>(() =>
-    visibleNavItems((p) => authStore.hasPermission(p)).map((item) => ({
+    visibleNavItems((p) => authStore.hasPermission(p), current.value.layout).map((item) => ({
       key: item.path,
       label: item.label,
       path: item.path,

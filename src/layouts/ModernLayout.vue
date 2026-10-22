@@ -40,14 +40,7 @@
       </div>
 
       <nav class="topbar-nav" aria-label="Main">
-        <RouterLink
-          v-for="item in primaryItems"
-          :key="item.id"
-          :to="item.path"
-          class="nav-link"
-          active-class="active"
-          :class="{ active: item.id === 'canvas' && route.name === 'home' }"
-        >
+        <RouterLink v-for="item in primaryItems" :key="item.id" :to="item.path" class="nav-link" active-class="active">
           {{ item.label }}
         </RouterLink>
         <Popover v-model:open="moreOpen" align="right" width="460px">
@@ -160,6 +153,7 @@ import CommandPalette, { type PaletteAction } from "@/components/modern/CommandP
 import { useShellData } from "@/composables/useShellData";
 import { useTheme } from "@/composables/useTheme";
 import { NAV_GROUPS, visibleNavItems } from "@/navigation/items";
+import { projectPath } from "@/navigation/projects";
 import markUrl from "@/assets/flatrun-icon.svg";
 import type { CreateMode } from "@/deploy/createPayload";
 
@@ -181,7 +175,7 @@ const workspaceStore = useWorkspaceStore();
 const canSeeWorkspaces = computed(() => authStore.hasPermission("workspaces:read"));
 const fullHeight = computed(() => route.matched.some((r) => Boolean(r.meta?.fullHeight)));
 const canCreate = computed(() => authStore.hasPermission("deployments:write"));
-const items = computed(() => visibleNavItems((p) => authStore.hasPermission(p)));
+const items = computed(() => visibleNavItems((p) => authStore.hasPermission(p), "modern"));
 const primaryItems = computed(() => items.value.filter((i) => i.primary));
 const moreGroups = computed(() =>
   NAV_GROUPS.map((name) => ({ name, items: items.value.filter((i) => !i.primary && i.group === name) })).filter(
@@ -218,12 +212,12 @@ function openWizard(mode: NewMode) {
 function onCreated(name?: string) {
   newMode.value = null;
   wizardMode.value = null;
-  if (name) router.push(`/deployments/${encodeURIComponent(name)}`);
+  if (name) router.push(projectPath(name));
 }
 
 function openServer(server: string, close: () => void) {
   close();
-  router.push({ path: "/deployments", query: server ? { server } : {} });
+  router.push({ path: projectPath(), query: server ? { server } : {} });
 }
 
 const paletteActions = computed<PaletteAction[]>(() => [

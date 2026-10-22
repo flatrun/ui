@@ -1,4 +1,5 @@
 import type { Permission } from "@/types";
+import type { ShellLayout } from "@/themes/registry";
 
 export interface NavItem {
   id: string;
@@ -9,6 +10,8 @@ export interface NavItem {
   permission?: Permission;
   // Shown directly in the Modern top bar; everything else sits under "More".
   primary?: boolean;
+  // How Modern names this page, or false when Modern has no such page.
+  modern?: { label: string; path: string } | false;
 }
 
 export const NAV_GROUPS = ["Projects", "Docker", "Storage", "Monitoring", "Apps", "System", "DNS", "Administration"];
@@ -16,12 +19,13 @@ export const NAV_GROUPS = ["Projects", "Docker", "Storage", "Monitoring", "Apps"
 export const NAV_ITEMS: NavItem[] = [
   {
     id: "canvas",
-    label: "Fleet",
+    label: "Canvas",
     path: "/canvas",
     icon: "workflow",
     group: "Projects",
     permission: "deployments:read",
     primary: true,
+    modern: false,
   },
   {
     id: "deployments",
@@ -31,6 +35,7 @@ export const NAV_ITEMS: NavItem[] = [
     group: "Projects",
     permission: "deployments:read",
     primary: true,
+    modern: { label: "Projects", path: "/projects" },
   },
   { id: "home", label: "Overview", path: "/overview", icon: "layout-dashboard", group: "Projects" },
   { id: "agents", label: "Agents", path: "/agents", icon: "bot", group: "Projects", permission: "deployments:read" },
@@ -219,6 +224,10 @@ export const NAV_ITEMS: NavItem[] = [
   },
 ];
 
-export function visibleNavItems(can: (p: Permission) => boolean): NavItem[] {
-  return NAV_ITEMS.filter((item) => !item.permission || can(item.permission));
+export function visibleNavItems(can: (p: Permission) => boolean, layout: ShellLayout = "classic"): NavItem[] {
+  const items = NAV_ITEMS.filter((item) => !item.permission || can(item.permission));
+  if (layout !== "modern") return items;
+  return items
+    .filter((item) => item.modern !== false)
+    .map((item) => (item.modern ? { ...item, ...item.modern } : item));
 }
