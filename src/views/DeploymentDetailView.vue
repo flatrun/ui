@@ -684,8 +684,17 @@
               <div v-for="env in envVars" :key="env.key" class="env-row">
                 <span class="env-key">{{ env.key }}</span>
                 <span class="env-value">
-                  <code v-if="!env.hidden">{{ env.value }}</code>
-                  <code v-else>••••••••</code>
+                  <span class="env-value-stack">
+                    <span class="env-value-line">
+                      <span v-if="env.resolved !== undefined" class="env-ref-badge" title="References another deployment"
+                        >ref</span
+                      >
+                      <code>{{ env.resolved !== undefined || !env.hidden ? env.value : "••••••••" }}</code>
+                    </span>
+                    <code v-if="env.resolved !== undefined" class="env-resolved"
+                      >= {{ env.hidden ? "••••••••" : env.resolved }}</code
+                    >
+                  </span>
                   <button class="toggle-btn" @click="env.hidden = !env.hidden">
                     <i :class="env.hidden ? 'pi pi-eye' : 'pi pi-eye-slash'" />
                   </button>
@@ -1856,6 +1865,7 @@
               <input v-model="newEnvValue" type="text" placeholder="value" class="form-input" />
               <span class="hint">The value for this variable</span>
             </div>
+            <EnvReferencePicker :self="route.params.name as string" @insert="newEnvValue += $event" />
           </div>
           <div class="modal-footer">
             <button class="btn btn-secondary" @click="showAddEnvModal = false">Cancel</button>
@@ -2057,6 +2067,7 @@ import ContainerTerminal from "@/components/ContainerTerminal.vue";
 import BackupsTab from "@/components/BackupsTab.vue";
 import MigrationTab from "@/components/MigrationTab.vue";
 import DeploysTab from "@/components/deploys/DeploysTab.vue";
+import EnvReferencePicker from "@/components/env/EnvReferencePicker.vue";
 import PluginSlot from "@/components/plugins/PluginSlot.vue";
 import { usePluginsStore } from "@/stores/plugins";
 import DomainsManager from "@/components/DomainsManager.vue";
@@ -2342,7 +2353,7 @@ const logSourceError = ref("");
 
 const terminalService = ref("");
 
-const envVars = ref<Array<{ key: string; value: string; hidden: boolean }>>([]);
+const envVars = ref<Array<{ key: string; value: string; hidden: boolean; resolved?: string }>>([]);
 const showAddEnvModal = ref(false);
 const editingEnvVar = ref<{ key: string; value: string } | null>(null);
 const newEnvKey = ref("");
@@ -2663,15 +2674,7 @@ const fetchDeployment = async () => {
       registryCredential.value = null;
     }
 
-    try {
-      const envResponse = await deploymentsApi.getEnvVars(route.params.name as string);
-      envVars.value = (envResponse.data.env_vars || []).map((e: EnvVar) => ({
-        ...e,
-        hidden: /password|secret|key|token/i.test(e.key),
-      }));
-    } catch {
-      envVars.value = [];
-    }
+    await loadEnvVars();
 
     try {
       const composeResponse = await deploymentsApi.getComposeFile(route.params.name as string);
@@ -3350,6 +3353,20 @@ const onTerminalError = (message: string) => {
   notifications.error("Connection Error", message);
 };
 
+const loadEnvVars = async () => {
+  try {
+    const envResponse = await deploymentsApi.getEnvVars(route.params.name as string);
+    const resolved = envResponse.data.resolved || {};
+    envVars.value = (envResponse.data.env_vars || []).map((e: EnvVar) => ({
+      ...e,
+      hidden: /password|secret|key|token/i.test(e.key),
+      resolved: e.key in resolved ? resolved[e.key] : undefined,
+    }));
+  } catch {
+    envVars.value = [];
+  }
+};
+
 const saveEnvVarsToServer = async () => {
   savingEnvVars.value = true;
   try {
@@ -3359,6 +3376,7 @@ const saveEnvVarsToServer = async () => {
       () => deploymentsApi.updateEnvVars(route.params.name as string, envData, { plan: true }),
       "Save Failed",
     );
+    await loadEnvVars();
     return result !== false;
   } finally {
     savingEnvVars.value = false;
@@ -6605,5 +6623,33 @@ onUnmounted(() => {
   .col-ip {
     display: none;
   }
+}
+
+.env-value-stack {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.env-value-line {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.env-ref-badge {
+  padding: 0 var(--space-1);
+  background: var(--accent-subtle);
+  border-radius: var(--radius-xs);
+  color: var(--accent);
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  text-transform: uppercase;
+}
+
+.env-resolved {
+  color: var(--text-muted);
+  font-size: var(--text-xs);
 }
 </style>

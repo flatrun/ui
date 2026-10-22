@@ -1,0 +1,12 @@
+{
+  "deployments": [
+    {
+      "name": "hello-web",
+      "status": "running"
+    },
+    {
+      "name": "orders-db",
+      "status": "stopped"
+    }
+  ]
+}

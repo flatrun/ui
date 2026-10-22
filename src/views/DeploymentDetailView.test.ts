@@ -461,6 +461,27 @@ describe("DeploymentDetailView", () => {
       await flushPromises();
       expect(deploymentsApi.getEnvVars).toHaveBeenCalledWith("test-app");
     });
+
+    it("shows a reference's template next to the value it resolves to", async () => {
+      const { deploymentsApi } = await import("@/services/api");
+      const envFixture = (await import("@/components/env/fixtures/env.json")).default;
+      vi.mocked(deploymentsApi.getEnvVars).mockResolvedValueOnce({ data: envFixture } as any);
+      const wrapper = mountView();
+      await flushPromises();
+      await wrapper
+        .findAll(".tab-btn")
+        .find((b) => b.text().includes("Environment"))!
+        .trigger("click");
+
+      const rows = wrapper.findAll(".env-row:not(.header)");
+      const dbRow = rows.find((r) => r.text().includes("DATABASE_URL"))!;
+      expect(dbRow.find(".env-ref-badge").exists()).toBe(true);
+      expect(dbRow.text()).toContain("${{ orders-db.DB_PASSWORD }}");
+      expect(dbRow.find(".env-resolved").text()).toBe("= postgres://orders:example-password@orders-db/orders");
+
+      const portRow = rows.find((r) => r.text().includes("PORT"))!;
+      expect(portRow.find(".env-ref-badge").exists()).toBe(false);
+    });
   });
 
   describe("Permission gates", () => {

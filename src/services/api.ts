@@ -461,7 +461,8 @@ export const deploymentsApi = {
         memory_limit: number;
       };
     }>(`/deployments/${name}/stats`),
-  getEnvVars: (name: string) => apiClient.get<{ env_vars: EnvVar[] }>(`/deployments/${name}/env`),
+  getEnvVars: (name: string) =>
+    apiClient.get<{ env_vars: EnvVar[]; resolved?: Record<string, string> }>(`/deployments/${name}/env`),
   updateEnvVars: (name: string, envVars: EnvVar[], opts?: PlanOpts) =>
     apiClient.put(withPlanQuery(`/deployments/${name}/env`, opts), { env_vars: envVars }),
   disableSSL: (name: string) => apiClient.post<{ message: string; name: string }>(`/deployments/${name}/ssl/disable`),
