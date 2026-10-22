@@ -3,7 +3,8 @@ import type { RouteRecordRaw } from "vue-router";
 import type { Permission } from "@/types";
 import { useAuthStore } from "@/stores/auth";
 import { useSetupStore } from "@/stores/setup";
-import DashboardLayout from "@/layouts/DashboardLayout.vue";
+import AppShell from "@/layouts/AppShell.vue";
+import { styledView } from "@/views/StyledView";
 
 const routes: RouteRecordRaw[] = [
   {
@@ -20,12 +21,20 @@ const routes: RouteRecordRaw[] = [
   },
   {
     path: "/",
-    component: DashboardLayout,
+    component: AppShell,
     meta: { requiresAuth: true },
     children: [
       {
         path: "",
         name: "home",
+        component: styledView({
+          classic: () => import("@/views/HomeView.vue"),
+          modern: () => import("@/views/CanvasView.vue"),
+        }),
+      },
+      {
+        path: "overview",
+        name: "overview",
         component: () => import("@/views/HomeView.vue"),
       },
       {
