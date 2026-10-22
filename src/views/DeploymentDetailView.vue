@@ -1,6 +1,79 @@
 <template>
-  <div class="deployment-detail">
-    <div class="detail-header">
+  <div class="deployment-detail" :class="{ 'is-modern': modern }">
+    <header v-if="modern" class="modern-header">
+      <div class="modern-title">
+        <h1>{{ deployment?.name || $route.params.name }}</h1>
+        <span class="modern-status" :class="modernStatus">{{ modernStatusLabel }}</span>
+        <a v-if="primaryDomain" :href="`https://${primaryDomain}`" target="_blank" rel="noopener" class="modern-domain">
+          {{ primaryDomain }} <Icon name="arrow-up-right" :size="13" />
+        </a>
+      </div>
+      <div class="modern-actions">
+        <BaseButton size="sm" icon="stethoscope" @click="showDiagnostics = true">Diagnose</BaseButton>
+        <template v-if="canWrite && deployment">
+          <BaseButton
+            v-if="deployment.metadata?.source"
+            size="sm"
+            variant="primary"
+            icon="rocket"
+            :disabled="loading || deploymentJob.state.isRunning"
+            @click="handleOperation('redeploy')"
+          >
+            Deploy latest
+          </BaseButton>
+          <BaseButton
+            v-else-if="deployment.status !== 'running'"
+            size="sm"
+            variant="primary"
+            icon="play"
+            :disabled="loading"
+            @click="handleScopedAction('start', 'deployment')"
+          >
+            Start
+          </BaseButton>
+          <BaseButton
+            v-else
+            size="sm"
+            variant="primary"
+            icon="rotate-cw"
+            :disabled="loading"
+            @click="handleScopedAction('restart', 'deployment')"
+          >
+            Restart
+          </BaseButton>
+          <Popover align="right" width="200px">
+            <template #trigger="{ toggle }">
+              <button
+                type="button"
+                class="btn btn-secondary btn-sm modern-more"
+                aria-label="More actions"
+                @click="toggle"
+              >
+                <Icon name="ellipsis" :size="16" />
+              </button>
+            </template>
+            <template #default="{ close }">
+              <ul class="modern-menu">
+                <li v-for="action in modernActions" :key="action.id">
+                  <button
+                    type="button"
+                    :class="{ danger: action.id === 'delete' }"
+                    :disabled="action.disabled"
+                    @click="
+                      close();
+                      action.run();
+                    "
+                  >
+                    <Icon :name="action.icon" :size="14" />{{ action.label }}
+                  </button>
+                </li>
+              </ul>
+            </template>
+          </Popover>
+        </template>
+      </div>
+    </header>
+    <div v-if="!modern" class="detail-header">
       <div class="header-left">
         <router-link :to="backPath" class="back-link">
           <i class="pi pi-arrow-left" />
@@ -79,7 +152,7 @@
     </div>
 
     <template v-else-if="deployment">
-      <div class="detail-tabs">
+      <div v-if="!modern" class="detail-tabs">
         <button
           v-for="item in tabBarItems"
           :key="item.id"
@@ -93,1288 +166,1352 @@
         </button>
       </div>
 
-      <div class="tab-content">
-        <div v-if="activeTab === 'overview'" class="overview-tab">
-          <DeploymentHealthSummary
-            class="overview-summary"
+      <div :class="{ 'modern-body': modern }">
+        <nav v-if="modern" class="section-rail" aria-label="Deployment sections">
+          <template v-for="group in modernSectionGroups" :key="group.label">
+            <span v-if="group.label" class="rail-label">{{ group.label }}</span>
+            <button
+              v-for="item in group.items"
+              :key="item.id"
+              type="button"
+              class="rail-item"
+              :class="{ active: section === item.id }"
+              :aria-current="section === item.id ? 'page' : undefined"
+              @click="section = item.id"
+            >
+              <Icon :name="item.icon" :size="15" />
+              {{ item.label }}
+            </button>
+          </template>
+        </nav>
+        <div class="tab-content">
+          <h2 v-if="modern" class="section-title">{{ currentSectionLabel }}</h2>
+          <DeploymentMetrics
+            v-if="modern && section === 'metrics'"
             :deployment-name="route.params.name as string"
-            :status="deployment?.status"
-            @open="showDiagnostics = true"
+            :height="200"
           />
-          <div class="info-cards">
-            <div class="info-card general-overview-card">
-              <div class="card-header">
-                <i class="pi pi-info-circle" />
-                <h3>General Information</h3>
-              </div>
-              <div class="card-body">
-                <div class="info-row">
-                  <span class="label">Name</span>
-                  <span class="value">{{ deployment.name }}</span>
+          <div v-if="shows('overview')" class="overview-tab">
+            <DeploymentHealthSummary
+              class="overview-summary"
+              :deployment-name="route.params.name as string"
+              :status="deployment?.status"
+              @open="showDiagnostics = true"
+            />
+            <div class="info-cards">
+              <div class="info-card general-overview-card">
+                <div class="card-header">
+                  <i class="pi pi-info-circle" />
+                  <h3>General Information</h3>
                 </div>
-                <div class="info-row">
-                  <span class="label">Status</span>
-                  <span class="value">
-                    <span class="status-indicator" :class="deployment.status" />
-                    {{ deployment.status }}
-                  </span>
-                </div>
-                <div class="info-row">
-                  <span class="label">Path</span>
-                  <code class="value path">{{ deployment.path }}</code>
-                </div>
-                <div class="info-row">
-                  <span class="label">Created</span>
-                  <span class="value">{{ formatDateTime(deployment.created_at) }}</span>
-                </div>
-                <div class="info-row">
-                  <span class="label">Last Updated</span>
-                  <span class="value">{{ formatDateTime(deployment.updated_at) }}</span>
-                </div>
-                <div v-if="deployment.metadata?.type" class="info-row">
-                  <span class="label">Type</span>
-                  <span class="value type-badge">{{ deployment.metadata.type }}</span>
-                </div>
-                <div class="info-row">
-                  <span class="label">Registry</span>
-                  <span class="value value-inline">
-                    <template v-if="registryCredential">
-                      <span class="credential-badge">
-                        <i class="pi pi-lock" />
-                        {{ registryCredential.name }}
-                      </span>
-                      <button
-                        v-if="canWrite && !isRemote"
-                        class="btn btn-sm btn-icon"
-                        title="Change credential"
-                        @click="openCredentialModal"
-                      >
-                        <i class="pi pi-pencil" />
-                      </button>
-                    </template>
-                    <template v-else>
-                      <span class="public-badge">Public</span>
-                      <button v-if="canWrite && !isRemote" class="btn btn-sm btn-link" @click="openCredentialModal">
-                        Set credential
-                      </button>
-                    </template>
-                  </span>
-                </div>
-                <div v-if="hasServiceCredentials" class="info-row">
-                  <span class="label">Per-service</span>
-                  <span class="value service-credentials-summary">
-                    <span
-                      v-for="(credId, svc) in deployment.metadata?.service_credentials || {}"
-                      :key="svc"
-                      class="credential-badge"
-                    >
-                      <i class="pi pi-lock" />
-                      {{ svc }} → {{ credentialNameFor(credId) }}
-                    </span>
-                  </span>
-                </div>
-                <div v-if="!isInfrastructure && !isRemote" class="info-row action-row">
-                  <button class="btn btn-sm btn-secondary" @click="migrateToInfrastructure">
-                    <i class="pi pi-server" />
-                    Mark as Infrastructure
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <div class="info-card domain-overview-card">
-              <div class="card-header">
-                <i class="pi pi-globe" />
-                <h3>Domain & SSL</h3>
-                <button
-                  v-if="canWrite"
-                  class="btn btn-sm btn-icon"
-                  title="Edit Domain Settings"
-                  @click="openDomainSettings"
-                >
-                  <i class="pi pi-pencil" />
-                </button>
-              </div>
-              <div class="card-body">
-                <template v-if="hasMultipleDomains">
-                  <DomainsManager
-                    :deployment-name="route.params.name as string"
-                    :services="services"
-                    :proxy-status="proxyStatus"
-                    :can-edit="canWrite"
-                    :setting-up-proxy="settingUpProxy"
-                    @updated="fetchProxyStatus"
-                    @setup-proxy="handleSetupProxy"
-                  />
-                </template>
-                <template v-else-if="proxyStatus && proxyStatus.exposed">
+                <div class="card-body">
                   <div class="info-row">
-                    <span class="label">Domain</span>
-                    <span class="value value-inline domain-link">
-                      <a
-                        :href="(proxyStatus.ssl_enabled ? 'https://' : 'http://') + proxyStatus.domain"
-                        target="_blank"
-                      >
-                        {{ proxyStatus.domain }}
-                        <i class="pi pi-external-link" />
-                      </a>
-                      <button
-                        v-if="canWrite"
-                        class="btn btn-sm btn-icon"
-                        title="Add another domain to this deployment"
-                        @click="showAddDomainModal = true"
-                      >
-                        <i class="pi pi-plus" />
-                      </button>
-                      <button
-                        v-if="canWrite && singleDomainId"
-                        class="btn btn-sm btn-icon btn-icon-danger"
-                        title="Delete this domain"
-                        :disabled="deletingDomain"
-                        @click="handleDeleteDomain(singleDomainId!)"
-                      >
-                        <i :class="deletingDomain ? 'pi pi-spin pi-spinner' : 'pi pi-trash'" />
-                      </button>
+                    <span class="label">Name</span>
+                    <span class="value">{{ deployment.name }}</span>
+                  </div>
+                  <div class="info-row">
+                    <span class="label">Status</span>
+                    <span class="value">
+                      <span class="status-indicator" :class="deployment.status" />
+                      {{ deployment.status }}
                     </span>
                   </div>
                   <div class="info-row">
-                    <span class="label">Virtual Host</span>
+                    <span class="label">Path</span>
+                    <code class="value path">{{ deployment.path }}</code>
+                  </div>
+                  <div class="info-row">
+                    <span class="label">Created</span>
+                    <span class="value">{{ formatDateTime(deployment.created_at) }}</span>
+                  </div>
+                  <div class="info-row">
+                    <span class="label">Last Updated</span>
+                    <span class="value">{{ formatDateTime(deployment.updated_at) }}</span>
+                  </div>
+                  <div v-if="deployment.metadata?.type" class="info-row">
+                    <span class="label">Type</span>
+                    <span class="value type-badge">{{ deployment.metadata.type }}</span>
+                  </div>
+                  <div class="info-row">
+                    <span class="label">Registry</span>
                     <span class="value value-inline">
-                      <span class="status-badge" :class="proxyStatus.virtual_host_exists ? 'running' : 'stopped'">
-                        {{ proxyStatus.virtual_host_exists ? "Configured" : "Not Configured" }}
-                      </span>
-                      <button
-                        v-if="!proxyStatus.virtual_host_exists"
-                        class="btn btn-sm btn-primary"
-                        :disabled="settingUpProxy"
-                        title="Create nginx virtual host configuration"
-                        @click="handleSetupProxy"
-                      >
-                        <i :class="settingUpProxy ? 'pi pi-spin pi-spinner' : 'pi pi-cog'" />
-                        Setup
-                      </button>
-                    </span>
-                  </div>
-                  <div v-if="singleDomainTarget" class="info-row">
-                    <span class="label">Routes to</span>
-                    <span class="value value-mono">{{ singleDomainTarget }}</span>
-                  </div>
-                  <div class="info-row">
-                    <span class="label">SSL</span>
-                    <span class="value value-inline">
-                      <span class="status-badge" :class="proxyStatus.ssl_enabled ? 'running' : 'stopped'">
-                        {{ proxyStatus.ssl_enabled ? "Enabled" : "Disabled" }}
-                      </span>
-                      <button
-                        v-if="proxyStatus.ssl_enabled && !proxyStatus.certificate_exists"
-                        class="btn btn-sm btn-success"
-                        :disabled="requestingCert"
-                        title="Request Let's Encrypt certificate"
-                        @click="handleRequestCertificate"
-                      >
-                        <i :class="requestingCert ? 'pi pi-spin pi-spinner' : 'pi pi-shield'" />
-                        Request
-                      </button>
-                      <button
-                        v-if="proxyStatus.ssl_enabled && proxyStatus.certificate_exists"
-                        class="btn btn-sm btn-secondary"
-                        :disabled="renewingSSL"
-                        title="Renew SSL certificates for this deployment"
-                        @click="handleRenewDeploymentSSL"
-                      >
-                        <i :class="renewingSSL ? 'pi pi-spin pi-spinner' : 'pi pi-sync'" />
-                        Renew
-                      </button>
-                      <button
-                        v-if="proxyStatus.ssl_enabled"
-                        class="btn btn-sm btn-warning"
-                        :disabled="disablingSSL"
-                        title="Disable SSL and revert to HTTP"
-                        @click="handleDisableSSL"
-                      >
-                        <i :class="disablingSSL ? 'pi pi-spin pi-spinner' : 'pi pi-lock-open'" />
-                        Disable
-                      </button>
-                    </span>
-                  </div>
-                  <template v-if="proxyStatus.ssl_enabled && proxyStatus.certificate">
-                    <div class="info-row">
-                      <span class="label">Certificate</span>
-                      <span class="value">
-                        <span class="status-badge" :class="proxyStatus.certificate.status">
-                          {{ proxyStatus.certificate.status }}
-                        </span>
-                      </span>
-                    </div>
-                    <div class="info-row">
-                      <span class="label">Expires</span>
-                      <span class="value" :class="{ 'text-warning': proxyStatus.certificate.days_left <= 30 }">
-                        {{ proxyStatus.certificate.days_left }} days ({{
-                          formatDateTime(proxyStatus.certificate.not_after)
-                        }})
-                      </span>
-                    </div>
-                  </template>
-                </template>
-                <template v-else>
-                  <div class="empty-proxy">
-                    <i class="pi pi-globe" />
-                    <p>No domain configured</p>
-                    <span class="hint">Click the edit button to configure domain exposure</span>
-                  </div>
-                </template>
-              </div>
-            </div>
-
-            <div class="info-card service-overview-card">
-              <div class="card-header">
-                <i class="pi pi-box" />
-                <h3>Services</h3>
-              </div>
-              <div class="card-body">
-                <div v-if="services.length === 0" class="empty-services">No services configured</div>
-                <div v-else class="services-list">
-                  <div
-                    v-for="service in services"
-                    :key="service.name"
-                    class="service-item"
-                    :class="{ 'service-item--active': serviceJobs.states[service.name]?.isRunning }"
-                  >
-                    <div class="service-header">
-                      <span class="service-name">{{ service.name }}</span>
-                      <span v-if="service.is_primary" class="service-primary-badge" title="Primary service">
-                        <Icon name="star" :size="12" />
-                        Primary
-                      </span>
-                      <span class="service-status" :class="service.status">{{ service.status }}</span>
-                    </div>
-                    <div class="service-details">
-                      <span class="detail-item">
-                        <i class="pi pi-image" />
-                        {{ service.image }}
-                      </span>
-                      <span v-if="service.ports?.length" class="detail-item">
-                        <i class="pi pi-sitemap" />
-                        {{ service.ports.join(", ") }}
-                      </span>
-                    </div>
-                    <div class="service-actions">
-                      <button
-                        v-if="services.length > 1"
-                        class="action-btn"
-                        :class="{ 'action-btn--primary': service.is_primary }"
-                        :title="service.is_primary ? 'Primary service (click to auto-detect)' : 'Make primary service'"
-                        :disabled="savingPrimaryService"
-                        @click="togglePrimaryService(service)"
-                      >
-                        <Icon :name="service.is_primary ? 'star' : 'star-off'" :size="14" />
-                      </button>
-                      <button class="action-btn" title="Resources" @click="openServiceResources(service)">
-                        <i class="pi pi-sliders-h" />
-                      </button>
-                      <button
-                        v-if="canWrite"
-                        class="action-btn"
-                        title="Edit image"
-                        @click="openServiceImageEditor(service)"
-                      >
-                        <Icon name="pencil" :size="14" />
-                      </button>
-                      <button v-if="!isRemote" class="action-btn" title="Terminal" @click="openTerminal(service)">
-                        <i class="pi pi-desktop" />
-                      </button>
-                      <button class="action-btn" title="Logs" @click="viewServiceLogs(service)">
-                        <i class="pi pi-file-edit" />
-                      </button>
-                      <button
-                        v-if="service.status !== 'running'"
-                        class="action-btn"
-                        title="Start"
-                        :disabled="serviceJobs.states[service.name]?.isRunning"
-                        @click="serviceJobs.run(service.name, 'start')"
-                      >
-                        <Icon v-if="serviceJobs.states[service.name]?.isRunning" name="loader-circle" spin :size="14" />
-                        <i v-else class="pi pi-play" />
-                      </button>
-                      <button
-                        v-else
-                        class="action-btn"
-                        title="Stop"
-                        :disabled="serviceJobs.states[service.name]?.isRunning"
-                        @click="serviceJobs.run(service.name, 'stop')"
-                      >
-                        <Icon v-if="serviceJobs.states[service.name]?.isRunning" name="loader-circle" spin :size="14" />
-                        <i v-else class="pi pi-stop" />
-                      </button>
-                      <button
-                        class="action-btn"
-                        title="Restart"
-                        :disabled="serviceJobs.states[service.name]?.isRunning"
-                        @click="serviceJobs.run(service.name, 'restart')"
-                      >
-                        <Icon v-if="serviceJobs.states[service.name]?.isRunning" name="loader-circle" spin :size="14" />
-                        <i v-else class="pi pi-refresh" />
-                      </button>
-                      <button
-                        class="action-btn"
-                        title="Rebuild"
-                        :disabled="serviceJobs.states[service.name]?.isRunning"
-                        @click="serviceJobs.run(service.name, 'rebuild')"
-                      >
-                        <Icon v-if="serviceJobs.states[service.name]?.isRunning" name="loader-circle" spin :size="14" />
-                        <i v-else class="pi pi-sync" />
-                      </button>
-                    </div>
-
-                    <div
-                      v-if="serviceJobs.states[service.name]"
-                      class="service-progress"
-                      :class="{
-                        running: serviceJobs.states[service.name].isRunning,
-                        success: serviceJobs.states[service.name].isSuccess === true,
-                        error: serviceJobs.states[service.name].isSuccess === false,
-                      }"
-                    >
-                      <div class="service-progress-head">
-                        <Icon v-if="serviceJobs.states[service.name].isRunning" name="loader-circle" spin :size="16" />
-                        <Icon v-else-if="serviceJobs.states[service.name].isSuccess" name="circle-check" :size="16" />
-                        <Icon v-else name="circle-x" :size="16" />
-                        <span class="service-progress-label">
-                          {{ serviceJobLabel(serviceJobs.states[service.name]) }}
+                      <template v-if="registryCredential">
+                        <span class="credential-badge">
+                          <i class="pi pi-lock" />
+                          {{ registryCredential.name }}
                         </span>
                         <button
-                          v-if="!serviceJobs.states[service.name].isRunning"
-                          class="service-progress-dismiss"
-                          @click="serviceJobs.dismiss(service.name)"
+                          v-if="canWrite && !isRemote"
+                          class="btn btn-sm btn-icon"
+                          title="Change credential"
+                          @click="openCredentialModal"
                         >
-                          Dismiss
+                          <i class="pi pi-pencil" />
                         </button>
-                      </div>
-                      <div v-if="serviceJobs.states[service.name].isRunning" class="service-progress-bar">
-                        <span />
-                      </div>
-                      <pre v-if="serviceJobs.states[service.name].output" class="service-progress-output">{{
-                        serviceJobs.states[service.name].output
-                      }}</pre>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div v-if="activeTab === 'databases'" class="databases-tab">
-          <div class="databases-tab-header">
-            <div>
-              <h2>Databases</h2>
-              <p class="databases-tab-sub">Database servers this deployment is wired to.</p>
-            </div>
-            <router-link :to="{ name: 'databases' }" class="btn btn-secondary btn-sm">
-              <i class="pi pi-external-link" />
-              Manage database servers
-            </router-link>
-          </div>
-
-          <div v-if="deployment.metadata?.databases?.length" class="databases-grid">
-            <div v-for="db in deployment.metadata.databases" :key="db.id" class="database-card">
-              <div class="database-card-top">
-                <div class="database-icon" :class="db.type">
-                  <i class="pi pi-database" />
-                </div>
-                <div class="database-title">
-                  <span class="database-alias">{{ db.alias }}</span>
-                  <span class="database-meta">{{ db.type }} · {{ db.mode }}</span>
-                </div>
-              </div>
-              <dl class="database-details">
-                <template v-if="db.host">
-                  <dt>Host</dt>
-                  <dd>
-                    <code>{{ db.host }}{{ db.port ? `:${db.port}` : "" }}</code>
-                  </dd>
-                </template>
-                <template v-if="db.database_name">
-                  <dt>Database</dt>
-                  <dd>
-                    <code>{{ db.database_name }}</code>
-                  </dd>
-                </template>
-                <template v-if="db.username">
-                  <dt>User</dt>
-                  <dd>
-                    <code>{{ db.username }}</code>
-                  </dd>
-                </template>
-                <template v-if="db.env_prefix">
-                  <dt>Env prefix</dt>
-                  <dd>
-                    <code>{{ db.env_prefix }}_*</code>
-                  </dd>
-                </template>
-              </dl>
-            </div>
-          </div>
-
-          <div v-else class="databases-empty">
-            <i class="pi pi-database" />
-            <h3>No databases attached</h3>
-            <p>
-              Databases are attached when a deployment is created. Manage standalone database servers from the databases
-              area.
-            </p>
-            <router-link :to="{ name: 'databases' }" class="btn btn-primary btn-sm"> Go to databases </router-link>
-          </div>
-        </div>
-
-        <div v-if="activeTab === 'files'" class="files-tab">
-          <div class="files-source" role="tablist" aria-label="File source">
-            <button
-              v-for="source in fileSources"
-              :key="source.id"
-              class="files-source-btn"
-              :class="{ active: filesSource === source.id }"
-              role="tab"
-              :aria-selected="filesSource === source.id"
-              @click="filesSource = source.id"
-            >
-              <Icon :name="source.icon" :size="14" />
-              {{ source.label }}
-            </button>
-          </div>
-
-          <FileBrowser
-            v-if="filesSource === 'host'"
-            class="files-pane"
-            :deployment-name="route.params.name as string"
-            :service-names="composeServiceNames"
-            :mounts="composeMounts"
-            :enable-mount="true"
-            @mount-compose="handleComposeMount"
-            @unmounted="fetchDeployment"
-          />
-          <ContainerFilesPanel
-            v-else
-            class="files-pane"
-            :deployment-name="route.params.name as string"
-            :service-names="composeServiceNames"
-            @materialized="handleMaterialized"
-          />
-        </div>
-
-        <div v-if="activeTab === 'logs'" class="logs-tab">
-          <LogViewer
-            :logs="logs"
-            :records="logRecords"
-            :loading="logsLoading"
-            :file-name="`${deployment?.name || 'deployment'}-logs.txt`"
-            empty-message="No logs available"
-            :assist-context="logsAssistContext"
-            deletable
-            @refresh="fetchLogs"
-            @delete="confirmDeleteLogs = true"
-          >
-            <template #actions>
-              <button
-                v-if="!isRemote"
-                class="btn btn-sm"
-                :class="following ? 'btn-primary' : 'btn-secondary'"
-                @click="toggleFollow"
-              >
-                <Icon :name="following ? 'circle-stop' : 'play'" :size="14" />
-                {{ following ? "Following" : "Follow" }}
-              </button>
-            </template>
-
-            <template #filters>
-              <select v-model="logSource" class="form-select" @change="onLogSourceChange">
-                <option v-for="src in logSources" :key="src.id" :value="src.id">
-                  {{ src.name }}{{ src.path ? ` (${src.path})` : "" }}
-                </option>
-              </select>
-              <select
-                v-model="logsService"
-                class="form-select"
-                :disabled="!serviceFilterAvailable"
-                :title="
-                  serviceFilterAvailable
-                    ? 'Show one service\'s output'
-                    : 'A file source is written by the deployment, not per service'
-                "
-                @change="onLogSourceChange"
-              >
-                <option value="all">All services</option>
-                <option v-for="name in serviceNames" :key="name" :value="name">{{ name }}</option>
-              </select>
-              <button
-                class="btn btn-sm btn-secondary"
-                title="Read logs from a file this app writes"
-                @click="openAddLogSource"
-              >
-                <Icon name="file-plus" :size="14" />
-                Point at a file
-              </button>
-              <select v-model="logsTail" class="form-select">
-                <option :value="100">Last 100 lines</option>
-                <option :value="500">Last 500 lines</option>
-                <option :value="1000">Last 1000 lines</option>
-                <option :value="0">All logs</option>
-              </select>
-            </template>
-          </LogViewer>
-        </div>
-
-        <div v-if="activeTab === 'terminal'" class="terminal-tab">
-          <div class="terminal-header">
-            <div class="terminal-selector">
-              <label>Service:</label>
-              <select v-model="terminalService" class="form-select">
-                <option v-for="service in services" :key="service.name" :value="service.container_id">
-                  {{ service.name }}
-                </option>
-              </select>
-            </div>
-            <div class="terminal-actions">
-              <button class="btn btn-sm btn-primary" :disabled="services.length === 0" @click="connectTerminal">
-                <i class="pi pi-play" /> Connect
-              </button>
-              <button class="btn btn-sm btn-secondary" :disabled="services.length === 0" @click="reconnectTerminal">
-                <i class="pi pi-refresh" /> Reconnect
-              </button>
-            </div>
-          </div>
-          <div class="terminal-container">
-            <ContainerTerminal
-              v-if="services.length > 0"
-              ref="terminalRef"
-              :container-id="terminalService || services[0]?.container_id || ''"
-              @connected="onTerminalConnected"
-              @disconnected="onTerminalDisconnected"
-              @error="onTerminalError"
-            />
-            <div v-else class="terminal-placeholder">
-              <i class="pi pi-desktop" />
-              <h3>Terminal Access</h3>
-              <p>No services available</p>
-            </div>
-          </div>
-        </div>
-
-        <div v-if="activeTab === 'environment'" class="env-tab">
-          <div class="env-header">
-            <h3>Environment Variables</h3>
-            <div class="env-header-actions">
-              <AssistButton :context="envAssistContext" title="Ask the assistant about these variables" />
-              <button v-if="canWrite" class="btn btn-sm btn-primary" @click="openAddEnvModal">
-                <i class="pi pi-plus" /> Add Variable
-              </button>
-            </div>
-          </div>
-          <div class="env-list">
-            <div v-if="envVars.length === 0" class="empty-env">
-              <i class="pi pi-list" />
-              <p>No environment variables configured</p>
-            </div>
-            <div v-else class="env-table">
-              <div class="env-row header">
-                <span class="env-key">Key</span>
-                <span class="env-value">Value</span>
-                <span v-if="canWrite" class="env-actions">Actions</span>
-              </div>
-              <div v-for="env in envVars" :key="env.key" class="env-row">
-                <span class="env-key">{{ env.key }}</span>
-                <span class="env-value">
-                  <span class="env-value-stack">
-                    <span class="env-value-line">
-                      <span
-                        v-if="env.resolved !== undefined"
-                        class="env-ref-badge"
-                        title="References another deployment"
-                        >ref</span
-                      >
-                      <code>{{ env.resolved !== undefined || !env.hidden ? env.value : "••••••••" }}</code>
+                      </template>
+                      <template v-else>
+                        <span class="public-badge">Public</span>
+                        <button v-if="canWrite && !isRemote" class="btn btn-sm btn-link" @click="openCredentialModal">
+                          Set credential
+                        </button>
+                      </template>
                     </span>
-                    <code v-if="env.resolved !== undefined" class="env-resolved"
-                      >= {{ env.hidden ? "••••••••" : env.resolved }}</code
-                    >
-                  </span>
-                  <button class="toggle-btn" @click="env.hidden = !env.hidden">
-                    <i :class="env.hidden ? 'pi pi-eye' : 'pi pi-eye-slash'" />
-                  </button>
-                </span>
-                <span v-if="canWrite" class="env-actions">
-                  <button class="action-btn" @click="editEnvVar(env)">
-                    <i class="pi pi-pencil" />
-                  </button>
-                  <button class="action-btn delete" @click="confirmDeleteEnv(env.key)">
-                    <i class="pi pi-trash" />
-                  </button>
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div v-if="activeTab === 'actions'" class="actions-tab">
-          <div class="quick-actions-header">
-            <div class="header-text">
-              <h3>Quick Actions</h3>
-              <p class="subtitle">Execute predefined commands on your deployment</p>
-            </div>
-            <button v-if="canWrite" class="btn btn-primary" @click="openAddActionModal">
-              <i class="pi pi-plus" /> Add Action
-            </button>
-          </div>
-
-          <div v-if="!deployment?.metadata?.quick_actions?.length" class="no-actions">
-            <i class="pi pi-bolt" />
-            <p>No quick actions configured for this deployment.</p>
-            <span class="hint">Click "Add Action" to create your first quick action.</span>
-          </div>
-
-          <div v-else class="actions-grid">
-            <div
-              v-for="action in deployment.metadata.quick_actions"
-              :key="action.id"
-              class="action-card"
-              :class="{ executing: executingAction === action.id }"
-            >
-              <div class="action-card-header">
-                <div class="action-title">
-                  <div class="action-icon">
-                    <i :class="action.icon || 'pi pi-play'" />
                   </div>
-                  <h4>{{ action.name }}</h4>
-                </div>
-                <div v-if="canWrite" class="action-meta">
-                  <button class="action-meta-btn" title="Edit" @click="openEditActionModal(action)">
-                    <i class="pi pi-pencil" />
-                  </button>
-                  <button
-                    class="action-meta-btn action-meta-btn-danger"
-                    title="Delete"
-                    @click="deleteAction(action.id)"
-                  >
-                    <i class="pi pi-trash" />
-                  </button>
-                </div>
-              </div>
-              <div class="action-info">
-                <p v-if="action.description">{{ action.description }}</p>
-                <code class="action-command">{{ action.command }}</code>
-              </div>
-              <button
-                v-if="canWrite"
-                class="btn btn-primary action-run-btn"
-                :disabled="executingAction !== null || deployment?.status !== 'running'"
-                @click="executeAction(action)"
-              >
-                <i v-if="executingAction === action.id" class="pi pi-spin pi-spinner" />
-                <i v-else class="pi pi-play" />
-                {{ executingAction === action.id ? "Running..." : "Run" }}
-              </button>
-            </div>
-          </div>
-
-          <div v-if="actionOutput" class="action-output">
-            <div class="output-header">
-              <h4>
-                <i class="pi pi-code" />
-                Output
-              </h4>
-              <button class="btn btn-sm btn-secondary" @click="actionOutput = ''">Clear</button>
-            </div>
-            <pre class="output-content">{{ actionOutput }}</pre>
-          </div>
-        </div>
-
-        <BackupsTab
-          v-if="activeTab === 'backups'"
-          :deployment-name="route.params.name as string"
-          :can-write="canManageBackups"
-          :can-delete="canDeleteBackups"
-          :can-schedule="canManageSchedules"
-          :can-delete-schedule="canDeleteSchedules"
-        />
-        <MigrationTab v-if="activeTab === 'migration'" :deployment-name="route.params.name as string" />
-        <DeploysTab
-          v-if="activeTab === 'deploys'"
-          :deployment-name="route.params.name as string"
-          :source="deployment.metadata?.source"
-          :sleep="deployment.metadata?.sleep"
-          :job-running="deploymentJob.state.isRunning"
-          @deploy="handleOperation('redeploy')"
-          @rollback="rollbackTo"
-          @changed="fetchDeployment"
-          @environment-created="onEnvironmentCreated"
-        />
-
-        <div v-for="pt in pluginTabs" :key="pt.id" v-show="activeTab === pt.id" class="plugin-tab">
-          <PluginSlot
-            v-if="activeTab === pt.id"
-            slot-name="deployment.detail"
-            :plugin-name="pt.plugin"
-            :context="{ deployment: route.params.name as string }"
-          />
-        </div>
-
-        <div v-if="activeTab === 'security'" class="security-tab">
-          <div class="security-enable-bar">
-            <div class="enable-bar-left">
-              <i class="pi pi-shield" :class="{ enabled: securityConfig.enabled }" />
-              <span class="enable-bar-label">Security Protection</span>
-              <span class="enable-bar-status" :class="{ active: securityConfig.enabled }">
-                {{ securityConfig.enabled ? "Enabled" : "Disabled" }}
-              </span>
-            </div>
-            <label class="toggle-switch">
-              <input
-                v-model="securityConfig.enabled"
-                type="checkbox"
-                :disabled="!canManageSecurity"
-                @change="saveSecurityConfig"
-              />
-              <span class="toggle-slider" />
-            </label>
-          </div>
-
-          <div class="security-summary">
-            <div class="summary-card">
-              <div class="summary-icon protected">
-                <i class="pi pi-lock" />
-              </div>
-              <div class="summary-content">
-                <span class="summary-value">{{
-                  (securityConfig.protected_paths || []).filter((p) => p.enabled).length
-                }}</span>
-                <span class="summary-label">Protected Paths</span>
-              </div>
-            </div>
-            <div class="summary-card">
-              <div class="summary-icon rate">
-                <i class="pi pi-gauge" />
-              </div>
-              <div class="summary-content">
-                <span class="summary-value">{{
-                  (securityConfig.rate_limits || []).filter((r) => r.enabled).length
-                }}</span>
-                <span class="summary-label">Rate Limits</span>
-              </div>
-            </div>
-            <div class="summary-card">
-              <div class="summary-icon events">
-                <i class="pi pi-exclamation-triangle" />
-              </div>
-              <div class="summary-content">
-                <span class="summary-value">{{ securityEvents.length }}</span>
-                <span class="summary-label">Recent Events</span>
-              </div>
-            </div>
-            <router-link :to="`/security?deployment=${deployment?.name}`" class="summary-card summary-link">
-              <div class="summary-icon link">
-                <i class="pi pi-external-link" />
-              </div>
-              <div class="summary-content">
-                <span class="summary-label">View All Events</span>
-                <span class="summary-hint">Global security dashboard</span>
-              </div>
-            </router-link>
-          </div>
-
-          <div class="security-grid">
-            <div class="security-section">
-              <div class="section-header">
-                <div class="section-title">
-                  <i class="pi pi-lock" />
-                  <h3>Protected Paths</h3>
-                </div>
-                <span class="section-hint">Block access to sensitive files</span>
-              </div>
-              <div class="section-body">
-                <div class="presets-section">
-                  <span class="presets-label">Quick Add:</span>
-                  <div class="presets-row">
-                    <button
-                      v-for="preset in protectedPathPresets"
-                      :key="preset.pattern"
-                      class="preset-btn"
-                      :class="{ active: isPathProtected(preset.pattern) }"
-                      :disabled="!canManageSecurity"
-                      @click="toggleProtectedPath(preset.pattern)"
-                      :title="preset.pattern"
-                    >
-                      <i :class="isPathProtected(preset.pattern) ? 'pi pi-check' : 'pi pi-plus'" />
-                      {{ preset.label }}
+                  <div v-if="hasServiceCredentials" class="info-row">
+                    <span class="label">Per-service</span>
+                    <span class="value service-credentials-summary">
+                      <span
+                        v-for="(credId, svc) in deployment.metadata?.service_credentials || {}"
+                        :key="svc"
+                        class="credential-badge"
+                      >
+                        <i class="pi pi-lock" />
+                        {{ svc }} → {{ credentialNameFor(credId) }}
+                      </span>
+                    </span>
+                  </div>
+                  <div v-if="!isInfrastructure && !isRemote" class="info-row action-row">
+                    <button class="btn btn-sm btn-secondary" @click="migrateToInfrastructure">
+                      <i class="pi pi-server" />
+                      Mark as Infrastructure
                     </button>
                   </div>
                 </div>
-                <div class="paths-list">
-                  <div v-if="(securityConfig.protected_paths || []).length === 0" class="empty-state">
-                    <i class="pi pi-shield" />
-                    <p>No protected paths</p>
-                    <span>Click presets above or add custom paths</span>
-                  </div>
-                  <div v-else class="items-list">
-                    <div
-                      v-for="(path, index) in securityConfig.protected_paths || []"
-                      :key="index"
-                      class="list-item"
-                      :class="{ disabled: !path.enabled }"
-                    >
-                      <code>{{ path.pattern }}</code>
-                      <div class="item-actions">
-                        <label class="toggle-switch small">
-                          <input
-                            v-model="path.enabled"
-                            type="checkbox"
-                            :disabled="!canManageSecurity"
-                            @change="saveSecurityConfig"
-                          />
-                          <span class="toggle-slider" />
-                        </label>
-                        <button
-                          class="btn btn-icon btn-sm btn-ghost"
-                          title="Remove"
-                          :disabled="!canManageSecurity"
-                          @click="removeProtectedPath(index)"
-                        >
-                          <i class="pi pi-times" />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div class="add-form">
-                  <input
-                    v-model="newProtectedPath"
-                    type="text"
-                    class="form-input"
-                    placeholder="Custom path (e.g., /storage/*)"
-                    :disabled="!canManageSecurity"
-                    @keyup.enter="addProtectedPath"
-                  />
+              </div>
+
+              <div class="info-card domain-overview-card">
+                <div class="card-header">
+                  <i class="pi pi-globe" />
+                  <h3>Domain & SSL</h3>
                   <button
-                    class="btn btn-sm btn-primary"
-                    :disabled="!canManageSecurity || !newProtectedPath"
-                    @click="addProtectedPath"
+                    v-if="canWrite"
+                    class="btn btn-sm btn-icon"
+                    title="Edit Domain Settings"
+                    @click="openDomainSettings"
                   >
-                    <i class="pi pi-plus" /> Add
+                    <i class="pi pi-pencil" />
                   </button>
                 </div>
-              </div>
-            </div>
-
-            <div class="security-section">
-              <div class="section-header">
-                <div class="section-title">
-                  <i class="pi pi-gauge" />
-                  <h3>Rate Limiting</h3>
-                </div>
-                <span class="section-hint">Limit requests per path</span>
-              </div>
-              <div class="section-body">
-                <div class="rates-list">
-                  <div v-if="(securityConfig.rate_limits || []).length === 0" class="empty-state">
-                    <i class="pi pi-gauge" />
-                    <p>No rate limits</p>
-                    <span>Add limits to protect against abuse</span>
-                  </div>
-                  <div v-else class="items-list">
-                    <div
-                      v-for="(limit, index) in securityConfig.rate_limits || []"
-                      :key="index"
-                      class="list-item"
-                      :class="{ disabled: !limit.enabled }"
-                    >
-                      <div class="rate-info">
-                        <code>{{ limit.path }}</code>
-                        <span class="rate-config">
-                          <span class="rate-badge">{{ limit.rate }}/min</span>
-                          <span class="burst-badge">burst: {{ limit.burst }}</span>
+                <div class="card-body">
+                  <template v-if="hasMultipleDomains">
+                    <DomainsManager
+                      :deployment-name="route.params.name as string"
+                      :services="services"
+                      :proxy-status="proxyStatus"
+                      :can-edit="canWrite"
+                      :setting-up-proxy="settingUpProxy"
+                      @updated="fetchProxyStatus"
+                      @setup-proxy="handleSetupProxy"
+                    />
+                  </template>
+                  <template v-else-if="proxyStatus && proxyStatus.exposed">
+                    <div class="info-row">
+                      <span class="label">Domain</span>
+                      <span class="value value-inline domain-link">
+                        <a
+                          :href="(proxyStatus.ssl_enabled ? 'https://' : 'http://') + proxyStatus.domain"
+                          target="_blank"
+                        >
+                          {{ proxyStatus.domain }}
+                          <i class="pi pi-external-link" />
+                        </a>
+                        <button
+                          v-if="canWrite"
+                          class="btn btn-sm btn-icon"
+                          title="Add another domain to this deployment"
+                          @click="showAddDomainModal = true"
+                        >
+                          <i class="pi pi-plus" />
+                        </button>
+                        <button
+                          v-if="canWrite && singleDomainId"
+                          class="btn btn-sm btn-icon btn-icon-danger"
+                          title="Delete this domain"
+                          :disabled="deletingDomain"
+                          @click="handleDeleteDomain(singleDomainId!)"
+                        >
+                          <i :class="deletingDomain ? 'pi pi-spin pi-spinner' : 'pi pi-trash'" />
+                        </button>
+                      </span>
+                    </div>
+                    <div class="info-row">
+                      <span class="label">Virtual Host</span>
+                      <span class="value value-inline">
+                        <span class="status-badge" :class="proxyStatus.virtual_host_exists ? 'running' : 'stopped'">
+                          {{ proxyStatus.virtual_host_exists ? "Configured" : "Not Configured" }}
+                        </span>
+                        <button
+                          v-if="!proxyStatus.virtual_host_exists"
+                          class="btn btn-sm btn-primary"
+                          :disabled="settingUpProxy"
+                          title="Create nginx virtual host configuration"
+                          @click="handleSetupProxy"
+                        >
+                          <i :class="settingUpProxy ? 'pi pi-spin pi-spinner' : 'pi pi-cog'" />
+                          Setup
+                        </button>
+                      </span>
+                    </div>
+                    <div v-if="singleDomainTarget" class="info-row">
+                      <span class="label">Routes to</span>
+                      <span class="value value-mono">{{ singleDomainTarget }}</span>
+                    </div>
+                    <div class="info-row">
+                      <span class="label">SSL</span>
+                      <span class="value value-inline">
+                        <span class="status-badge" :class="proxyStatus.ssl_enabled ? 'running' : 'stopped'">
+                          {{ proxyStatus.ssl_enabled ? "Enabled" : "Disabled" }}
+                        </span>
+                        <button
+                          v-if="proxyStatus.ssl_enabled && !proxyStatus.certificate_exists"
+                          class="btn btn-sm btn-success"
+                          :disabled="requestingCert"
+                          title="Request Let's Encrypt certificate"
+                          @click="handleRequestCertificate"
+                        >
+                          <i :class="requestingCert ? 'pi pi-spin pi-spinner' : 'pi pi-shield'" />
+                          Request
+                        </button>
+                        <button
+                          v-if="proxyStatus.ssl_enabled && proxyStatus.certificate_exists"
+                          class="btn btn-sm btn-secondary"
+                          :disabled="renewingSSL"
+                          title="Renew SSL certificates for this deployment"
+                          @click="handleRenewDeploymentSSL"
+                        >
+                          <i :class="renewingSSL ? 'pi pi-spin pi-spinner' : 'pi pi-sync'" />
+                          Renew
+                        </button>
+                        <button
+                          v-if="proxyStatus.ssl_enabled"
+                          class="btn btn-sm btn-warning"
+                          :disabled="disablingSSL"
+                          title="Disable SSL and revert to HTTP"
+                          @click="handleDisableSSL"
+                        >
+                          <i :class="disablingSSL ? 'pi pi-spin pi-spinner' : 'pi pi-lock-open'" />
+                          Disable
+                        </button>
+                      </span>
+                    </div>
+                    <template v-if="proxyStatus.ssl_enabled && proxyStatus.certificate">
+                      <div class="info-row">
+                        <span class="label">Certificate</span>
+                        <span class="value">
+                          <span class="status-badge" :class="proxyStatus.certificate.status">
+                            {{ proxyStatus.certificate.status }}
+                          </span>
                         </span>
                       </div>
-                      <div class="item-actions">
-                        <label class="toggle-switch small">
-                          <input
-                            v-model="limit.enabled"
-                            type="checkbox"
-                            :disabled="!canManageSecurity"
-                            @change="saveSecurityConfig"
-                          />
-                          <span class="toggle-slider" />
-                        </label>
+                      <div class="info-row">
+                        <span class="label">Expires</span>
+                        <span class="value" :class="{ 'text-warning': proxyStatus.certificate.days_left <= 30 }">
+                          {{ proxyStatus.certificate.days_left }} days ({{
+                            formatDateTime(proxyStatus.certificate.not_after)
+                          }})
+                        </span>
+                      </div>
+                    </template>
+                  </template>
+                  <template v-else>
+                    <div class="empty-proxy">
+                      <i class="pi pi-globe" />
+                      <p>No domain configured</p>
+                      <span class="hint">Click the edit button to configure domain exposure</span>
+                    </div>
+                  </template>
+                </div>
+              </div>
+
+              <div class="info-card service-overview-card">
+                <div class="card-header">
+                  <i class="pi pi-box" />
+                  <h3>Services</h3>
+                </div>
+                <div class="card-body">
+                  <div v-if="services.length === 0" class="empty-services">No services configured</div>
+                  <div v-else class="services-list">
+                    <div
+                      v-for="service in services"
+                      :key="service.name"
+                      class="service-item"
+                      :class="{ 'service-item--active': serviceJobs.states[service.name]?.isRunning }"
+                    >
+                      <div class="service-header">
+                        <span class="service-name">{{ service.name }}</span>
+                        <span v-if="service.is_primary" class="service-primary-badge" title="Primary service">
+                          <Icon name="star" :size="12" />
+                          Primary
+                        </span>
+                        <span class="service-status" :class="service.status">{{ service.status }}</span>
+                      </div>
+                      <div class="service-details">
+                        <span class="detail-item">
+                          <i class="pi pi-image" />
+                          {{ service.image }}
+                        </span>
+                        <span v-if="service.ports?.length" class="detail-item">
+                          <i class="pi pi-sitemap" />
+                          {{ service.ports.join(", ") }}
+                        </span>
+                      </div>
+                      <div class="service-actions">
                         <button
-                          class="btn btn-icon btn-sm btn-ghost"
-                          title="Remove"
-                          :disabled="!canManageSecurity"
-                          @click="removeRateLimit(index)"
+                          v-if="services.length > 1"
+                          class="action-btn"
+                          :class="{ 'action-btn--primary': service.is_primary }"
+                          :title="
+                            service.is_primary ? 'Primary service (click to auto-detect)' : 'Make primary service'
+                          "
+                          :disabled="savingPrimaryService"
+                          @click="togglePrimaryService(service)"
                         >
-                          <i class="pi pi-times" />
+                          <Icon :name="service.is_primary ? 'star' : 'star-off'" :size="14" />
+                        </button>
+                        <button class="action-btn" title="Resources" @click="openServiceResources(service)">
+                          <i class="pi pi-sliders-h" />
+                        </button>
+                        <button
+                          v-if="canWrite"
+                          class="action-btn"
+                          title="Edit image"
+                          @click="openServiceImageEditor(service)"
+                        >
+                          <Icon name="pencil" :size="14" />
+                        </button>
+                        <button v-if="!isRemote" class="action-btn" title="Terminal" @click="openTerminal(service)">
+                          <i class="pi pi-desktop" />
+                        </button>
+                        <button class="action-btn" title="Logs" @click="viewServiceLogs(service)">
+                          <i class="pi pi-file-edit" />
+                        </button>
+                        <button
+                          v-if="service.status !== 'running'"
+                          class="action-btn"
+                          title="Start"
+                          :disabled="serviceJobs.states[service.name]?.isRunning"
+                          @click="serviceJobs.run(service.name, 'start')"
+                        >
+                          <Icon
+                            v-if="serviceJobs.states[service.name]?.isRunning"
+                            name="loader-circle"
+                            spin
+                            :size="14"
+                          />
+                          <i v-else class="pi pi-play" />
+                        </button>
+                        <button
+                          v-else
+                          class="action-btn"
+                          title="Stop"
+                          :disabled="serviceJobs.states[service.name]?.isRunning"
+                          @click="serviceJobs.run(service.name, 'stop')"
+                        >
+                          <Icon
+                            v-if="serviceJobs.states[service.name]?.isRunning"
+                            name="loader-circle"
+                            spin
+                            :size="14"
+                          />
+                          <i v-else class="pi pi-stop" />
+                        </button>
+                        <button
+                          class="action-btn"
+                          title="Restart"
+                          :disabled="serviceJobs.states[service.name]?.isRunning"
+                          @click="serviceJobs.run(service.name, 'restart')"
+                        >
+                          <Icon
+                            v-if="serviceJobs.states[service.name]?.isRunning"
+                            name="loader-circle"
+                            spin
+                            :size="14"
+                          />
+                          <i v-else class="pi pi-refresh" />
+                        </button>
+                        <button
+                          class="action-btn"
+                          title="Rebuild"
+                          :disabled="serviceJobs.states[service.name]?.isRunning"
+                          @click="serviceJobs.run(service.name, 'rebuild')"
+                        >
+                          <Icon
+                            v-if="serviceJobs.states[service.name]?.isRunning"
+                            name="loader-circle"
+                            spin
+                            :size="14"
+                          />
+                          <i v-else class="pi pi-sync" />
                         </button>
                       </div>
-                    </div>
-                  </div>
-                </div>
-                <div class="add-form rate-form">
-                  <input
-                    v-model="newRateLimit.path"
-                    type="text"
-                    class="form-input"
-                    placeholder="Path"
-                    :disabled="!canManageSecurity"
-                  />
-                  <div class="rate-inputs">
-                    <div class="input-group">
-                      <input
-                        v-model.number="newRateLimit.rate"
-                        type="number"
-                        class="form-input"
-                        placeholder="10"
-                        :disabled="!canManageSecurity"
-                      />
-                      <span class="input-suffix">/min</span>
-                    </div>
-                    <div class="input-group">
-                      <input
-                        v-model.number="newRateLimit.burst"
-                        type="number"
-                        class="form-input"
-                        placeholder="5"
-                        :disabled="!canManageSecurity"
-                      />
-                      <span class="input-suffix">burst</span>
-                    </div>
-                  </div>
-                  <button
-                    class="btn btn-sm btn-primary"
-                    :disabled="!canManageSecurity || !newRateLimit.path"
-                    @click="addRateLimit"
-                  >
-                    <i class="pi pi-plus" /> Add
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
 
-          <div class="security-section events-section">
-            <div class="section-header">
-              <div class="section-title">
-                <i class="pi pi-history" />
-                <h3>Recent Security Events</h3>
-              </div>
-              <router-link :to="`/security?deployment=${deployment?.name}`" class="view-all-btn">
-                View all <i class="pi pi-arrow-right" />
-              </router-link>
-            </div>
-            <div class="section-body">
-              <div v-if="securityEvents.length === 0" class="empty-state horizontal">
-                <i class="pi pi-check-circle" />
-                <div class="empty-text">
-                  <p>No security events</p>
-                  <span>Security events for this deployment will appear here</span>
-                </div>
-              </div>
-              <div v-else class="events-table">
-                <div class="events-header">
-                  <span class="col-severity">Severity</span>
-                  <span class="col-type">Event</span>
-                  <span class="col-ip">Source IP</span>
-                  <span class="col-path">Path</span>
-                  <span class="col-time">Time</span>
-                </div>
-                <div class="events-body">
-                  <div v-for="event in securityEvents" :key="event.id" class="event-row">
-                    <span class="col-severity">
-                      <span class="severity-badge" :class="event.severity">{{ event.severity }}</span>
-                    </span>
-                    <span class="col-type">{{ formatEventType(event.event_type) }}</span>
-                    <code class="col-ip">{{ event.source_ip }}</code>
-                    <code class="col-path">{{ event.request_path || "-" }}</code>
-                    <span class="col-time">{{ formatTimeAgo(event.created_at) }}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div v-if="activeTab === 'config'" class="config-tab">
-          <SubTabs v-model="activeConfigTab" :tabs="configSubTabs">
-            <div v-if="activeConfigTab === 'settings'" class="settings-tab">
-              <div class="settings-list">
-                <div class="settings-row">
-                  <div class="settings-row-header" @click="toggleSettingsSection('protected')">
-                    <div class="row-title">
-                      <i class="pi pi-lock" />
-                      <div class="row-text">
-                        <h4>Protected Mode</h4>
-                        <p>Refuse the selected destructive actions while enabled</p>
+                      <div
+                        v-if="serviceJobs.states[service.name]"
+                        class="service-progress"
+                        :class="{
+                          running: serviceJobs.states[service.name].isRunning,
+                          success: serviceJobs.states[service.name].isSuccess === true,
+                          error: serviceJobs.states[service.name].isSuccess === false,
+                        }"
+                      >
+                        <div class="service-progress-head">
+                          <Icon
+                            v-if="serviceJobs.states[service.name].isRunning"
+                            name="loader-circle"
+                            spin
+                            :size="16"
+                          />
+                          <Icon v-else-if="serviceJobs.states[service.name].isSuccess" name="circle-check" :size="16" />
+                          <Icon v-else name="circle-x" :size="16" />
+                          <span class="service-progress-label">
+                            {{ serviceJobLabel(serviceJobs.states[service.name]) }}
+                          </span>
+                          <button
+                            v-if="!serviceJobs.states[service.name].isRunning"
+                            class="service-progress-dismiss"
+                            @click="serviceJobs.dismiss(service.name)"
+                          >
+                            Dismiss
+                          </button>
+                        </div>
+                        <div v-if="serviceJobs.states[service.name].isRunning" class="service-progress-bar">
+                          <span />
+                        </div>
+                        <pre v-if="serviceJobs.states[service.name].output" class="service-progress-output">{{
+                          serviceJobs.states[service.name].output
+                        }}</pre>
                       </div>
                     </div>
-                    <div class="row-controls" @click.stop>
-                      <label class="toggle-switch">
-                        <input
-                          v-model="protectedMode.enabled"
-                          type="checkbox"
-                          :disabled="savingProtectedMode"
-                          @change="saveProtectedMode"
-                        />
-                        <span class="toggle-slider" />
-                      </label>
-                      <button class="chevron-btn" @click="toggleSettingsSection('protected')">
-                        <i
-                          class="pi"
-                          :class="openSettingsSection === 'protected' ? 'pi-chevron-up' : 'pi-chevron-down'"
-                        />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div v-if="shows('databases')" class="databases-tab">
+            <div class="databases-tab-header">
+              <div>
+                <h2>Databases</h2>
+                <p class="databases-tab-sub">Database servers this deployment is wired to.</p>
+              </div>
+              <router-link :to="{ name: 'databases' }" class="btn btn-secondary btn-sm">
+                <i class="pi pi-external-link" />
+                Manage database servers
+              </router-link>
+            </div>
+
+            <div v-if="deployment.metadata?.databases?.length" class="databases-grid">
+              <div v-for="db in deployment.metadata.databases" :key="db.id" class="database-card">
+                <div class="database-card-top">
+                  <div class="database-icon" :class="db.type">
+                    <i class="pi pi-database" />
+                  </div>
+                  <div class="database-title">
+                    <span class="database-alias">{{ db.alias }}</span>
+                    <span class="database-meta">{{ db.type }} · {{ db.mode }}</span>
+                  </div>
+                </div>
+                <dl class="database-details">
+                  <template v-if="db.host">
+                    <dt>Host</dt>
+                    <dd>
+                      <code>{{ db.host }}{{ db.port ? `:${db.port}` : "" }}</code>
+                    </dd>
+                  </template>
+                  <template v-if="db.database_name">
+                    <dt>Database</dt>
+                    <dd>
+                      <code>{{ db.database_name }}</code>
+                    </dd>
+                  </template>
+                  <template v-if="db.username">
+                    <dt>User</dt>
+                    <dd>
+                      <code>{{ db.username }}</code>
+                    </dd>
+                  </template>
+                  <template v-if="db.env_prefix">
+                    <dt>Env prefix</dt>
+                    <dd>
+                      <code>{{ db.env_prefix }}_*</code>
+                    </dd>
+                  </template>
+                </dl>
+              </div>
+            </div>
+
+            <div v-else class="databases-empty">
+              <i class="pi pi-database" />
+              <h3>No databases attached</h3>
+              <p>
+                Databases are attached when a deployment is created. Manage standalone database servers from the
+                databases area.
+              </p>
+              <router-link :to="{ name: 'databases' }" class="btn btn-primary btn-sm"> Go to databases </router-link>
+            </div>
+          </div>
+
+          <div v-if="shows('files')" class="files-tab">
+            <div class="files-source" role="tablist" aria-label="File source">
+              <button
+                v-for="source in fileSources"
+                :key="source.id"
+                class="files-source-btn"
+                :class="{ active: filesSource === source.id }"
+                role="tab"
+                :aria-selected="filesSource === source.id"
+                @click="filesSource = source.id"
+              >
+                <Icon :name="source.icon" :size="14" />
+                {{ source.label }}
+              </button>
+            </div>
+
+            <FileBrowser
+              v-if="filesSource === 'host'"
+              class="files-pane"
+              :deployment-name="route.params.name as string"
+              :service-names="composeServiceNames"
+              :mounts="composeMounts"
+              :enable-mount="true"
+              @mount-compose="handleComposeMount"
+              @unmounted="fetchDeployment"
+            />
+            <ContainerFilesPanel
+              v-else
+              class="files-pane"
+              :deployment-name="route.params.name as string"
+              :service-names="composeServiceNames"
+              @materialized="handleMaterialized"
+            />
+          </div>
+
+          <div v-if="shows('logs')" class="logs-tab">
+            <LogViewer
+              :logs="logs"
+              :records="logRecords"
+              :loading="logsLoading"
+              :file-name="`${deployment?.name || 'deployment'}-logs.txt`"
+              empty-message="No logs available"
+              :assist-context="logsAssistContext"
+              deletable
+              @refresh="fetchLogs"
+              @delete="confirmDeleteLogs = true"
+            >
+              <template #actions>
+                <button
+                  v-if="!isRemote"
+                  class="btn btn-sm"
+                  :class="following ? 'btn-primary' : 'btn-secondary'"
+                  @click="toggleFollow"
+                >
+                  <Icon :name="following ? 'circle-stop' : 'play'" :size="14" />
+                  {{ following ? "Following" : "Follow" }}
+                </button>
+              </template>
+
+              <template #filters>
+                <select v-model="logSource" class="form-select" @change="onLogSourceChange">
+                  <option v-for="src in logSources" :key="src.id" :value="src.id">
+                    {{ src.name }}{{ src.path ? ` (${src.path})` : "" }}
+                  </option>
+                </select>
+                <select
+                  v-model="logsService"
+                  class="form-select"
+                  :disabled="!serviceFilterAvailable"
+                  :title="
+                    serviceFilterAvailable
+                      ? 'Show one service\'s output'
+                      : 'A file source is written by the deployment, not per service'
+                  "
+                  @change="onLogSourceChange"
+                >
+                  <option value="all">All services</option>
+                  <option v-for="name in serviceNames" :key="name" :value="name">{{ name }}</option>
+                </select>
+                <button
+                  class="btn btn-sm btn-secondary"
+                  title="Read logs from a file this app writes"
+                  @click="openAddLogSource"
+                >
+                  <Icon name="file-plus" :size="14" />
+                  Point at a file
+                </button>
+                <select v-model="logsTail" class="form-select">
+                  <option :value="100">Last 100 lines</option>
+                  <option :value="500">Last 500 lines</option>
+                  <option :value="1000">Last 1000 lines</option>
+                  <option :value="0">All logs</option>
+                </select>
+              </template>
+            </LogViewer>
+          </div>
+
+          <div v-if="shows('terminal')" class="terminal-tab">
+            <div class="terminal-header">
+              <div class="terminal-selector">
+                <label>Service:</label>
+                <select v-model="terminalService" class="form-select">
+                  <option v-for="service in services" :key="service.name" :value="service.container_id">
+                    {{ service.name }}
+                  </option>
+                </select>
+              </div>
+              <div class="terminal-actions">
+                <button class="btn btn-sm btn-primary" :disabled="services.length === 0" @click="connectTerminal">
+                  <i class="pi pi-play" /> Connect
+                </button>
+                <button class="btn btn-sm btn-secondary" :disabled="services.length === 0" @click="reconnectTerminal">
+                  <i class="pi pi-refresh" /> Reconnect
+                </button>
+              </div>
+            </div>
+            <div class="terminal-container">
+              <ContainerTerminal
+                v-if="services.length > 0"
+                ref="terminalRef"
+                :container-id="terminalService || services[0]?.container_id || ''"
+                @connected="onTerminalConnected"
+                @disconnected="onTerminalDisconnected"
+                @error="onTerminalError"
+              />
+              <div v-else class="terminal-placeholder">
+                <i class="pi pi-desktop" />
+                <h3>Terminal Access</h3>
+                <p>No services available</p>
+              </div>
+            </div>
+          </div>
+
+          <div v-if="shows('environment')" class="env-tab">
+            <div class="env-header">
+              <h3>Environment Variables</h3>
+              <div class="env-header-actions">
+                <AssistButton :context="envAssistContext" title="Ask the assistant about these variables" />
+                <button v-if="canWrite" class="btn btn-sm btn-primary" @click="openAddEnvModal">
+                  <i class="pi pi-plus" /> Add Variable
+                </button>
+              </div>
+            </div>
+            <div class="env-list">
+              <div v-if="envVars.length === 0" class="empty-env">
+                <i class="pi pi-list" />
+                <p>No environment variables configured</p>
+              </div>
+              <div v-else class="env-table">
+                <div class="env-row header">
+                  <span class="env-key">Key</span>
+                  <span class="env-value">Value</span>
+                  <span v-if="canWrite" class="env-actions">Actions</span>
+                </div>
+                <div v-for="env in envVars" :key="env.key" class="env-row">
+                  <span class="env-key">{{ env.key }}</span>
+                  <span class="env-value">
+                    <span class="env-value-stack">
+                      <span class="env-value-line">
+                        <span
+                          v-if="env.resolved !== undefined"
+                          class="env-ref-badge"
+                          title="References another deployment"
+                          >ref</span
+                        >
+                        <code>{{ env.resolved !== undefined || !env.hidden ? env.value : "••••••••" }}</code>
+                      </span>
+                      <code v-if="env.resolved !== undefined" class="env-resolved"
+                        >= {{ env.hidden ? "••••••••" : env.resolved }}</code
+                      >
+                    </span>
+                    <button class="toggle-btn" @click="env.hidden = !env.hidden">
+                      <i :class="env.hidden ? 'pi pi-eye' : 'pi pi-eye-slash'" />
+                    </button>
+                  </span>
+                  <span v-if="canWrite" class="env-actions">
+                    <button class="action-btn" @click="editEnvVar(env)">
+                      <i class="pi pi-pencil" />
+                    </button>
+                    <button class="action-btn delete" @click="confirmDeleteEnv(env.key)">
+                      <i class="pi pi-trash" />
+                    </button>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div v-if="shows('actions')" class="actions-tab">
+            <div class="quick-actions-header">
+              <div class="header-text">
+                <h3>Quick Actions</h3>
+                <p class="subtitle">Execute predefined commands on your deployment</p>
+              </div>
+              <button v-if="canWrite" class="btn btn-primary" @click="openAddActionModal">
+                <i class="pi pi-plus" /> Add Action
+              </button>
+            </div>
+
+            <div v-if="!deployment?.metadata?.quick_actions?.length" class="no-actions">
+              <i class="pi pi-bolt" />
+              <p>No quick actions configured for this deployment.</p>
+              <span class="hint">Click "Add Action" to create your first quick action.</span>
+            </div>
+
+            <div v-else class="actions-grid">
+              <div
+                v-for="action in deployment.metadata.quick_actions"
+                :key="action.id"
+                class="action-card"
+                :class="{ executing: executingAction === action.id }"
+              >
+                <div class="action-card-header">
+                  <div class="action-title">
+                    <div class="action-icon">
+                      <i :class="action.icon || 'pi pi-play'" />
+                    </div>
+                    <h4>{{ action.name }}</h4>
+                  </div>
+                  <div v-if="canWrite" class="action-meta">
+                    <button class="action-meta-btn" title="Edit" @click="openEditActionModal(action)">
+                      <i class="pi pi-pencil" />
+                    </button>
+                    <button
+                      class="action-meta-btn action-meta-btn-danger"
+                      title="Delete"
+                      @click="deleteAction(action.id)"
+                    >
+                      <i class="pi pi-trash" />
+                    </button>
+                  </div>
+                </div>
+                <div class="action-info">
+                  <p v-if="action.description">{{ action.description }}</p>
+                  <code class="action-command">{{ action.command }}</code>
+                </div>
+                <button
+                  v-if="canWrite"
+                  class="btn btn-primary action-run-btn"
+                  :disabled="executingAction !== null || deployment?.status !== 'running'"
+                  @click="executeAction(action)"
+                >
+                  <i v-if="executingAction === action.id" class="pi pi-spin pi-spinner" />
+                  <i v-else class="pi pi-play" />
+                  {{ executingAction === action.id ? "Running..." : "Run" }}
+                </button>
+              </div>
+            </div>
+
+            <div v-if="actionOutput" class="action-output">
+              <div class="output-header">
+                <h4>
+                  <i class="pi pi-code" />
+                  Output
+                </h4>
+                <button class="btn btn-sm btn-secondary" @click="actionOutput = ''">Clear</button>
+              </div>
+              <pre class="output-content">{{ actionOutput }}</pre>
+            </div>
+          </div>
+
+          <BackupsTab
+            v-if="shows('backups')"
+            :deployment-name="route.params.name as string"
+            :can-write="canManageBackups"
+            :can-delete="canDeleteBackups"
+            :can-schedule="canManageSchedules"
+            :can-delete-schedule="canDeleteSchedules"
+          />
+          <MigrationTab v-if="shows('migration')" :deployment-name="route.params.name as string" />
+          <DeploysTab
+            v-if="shows('deploys')"
+            :deployment-name="route.params.name as string"
+            :source="deployment.metadata?.source"
+            :sleep="deployment.metadata?.sleep"
+            :job-running="deploymentJob.state.isRunning"
+            @deploy="handleOperation('redeploy')"
+            @rollback="rollbackTo"
+            @changed="fetchDeployment"
+            @environment-created="onEnvironmentCreated"
+          />
+
+          <div v-for="pt in pluginTabs" :key="pt.id" v-show="shows(pt.id)" class="plugin-tab">
+            <PluginSlot
+              v-if="shows(pt.id)"
+              slot-name="deployment.detail"
+              :plugin-name="pt.plugin"
+              :context="{ deployment: route.params.name as string }"
+            />
+          </div>
+
+          <div v-if="shows('security')" class="security-tab">
+            <div class="security-enable-bar">
+              <div class="enable-bar-left">
+                <i class="pi pi-shield" :class="{ enabled: securityConfig.enabled }" />
+                <span class="enable-bar-label">Security Protection</span>
+                <span class="enable-bar-status" :class="{ active: securityConfig.enabled }">
+                  {{ securityConfig.enabled ? "Enabled" : "Disabled" }}
+                </span>
+              </div>
+              <label class="toggle-switch">
+                <input
+                  v-model="securityConfig.enabled"
+                  type="checkbox"
+                  :disabled="!canManageSecurity"
+                  @change="saveSecurityConfig"
+                />
+                <span class="toggle-slider" />
+              </label>
+            </div>
+
+            <div class="security-summary">
+              <div class="summary-card">
+                <div class="summary-icon protected">
+                  <i class="pi pi-lock" />
+                </div>
+                <div class="summary-content">
+                  <span class="summary-value">{{
+                    (securityConfig.protected_paths || []).filter((p) => p.enabled).length
+                  }}</span>
+                  <span class="summary-label">Protected Paths</span>
+                </div>
+              </div>
+              <div class="summary-card">
+                <div class="summary-icon rate">
+                  <i class="pi pi-gauge" />
+                </div>
+                <div class="summary-content">
+                  <span class="summary-value">{{
+                    (securityConfig.rate_limits || []).filter((r) => r.enabled).length
+                  }}</span>
+                  <span class="summary-label">Rate Limits</span>
+                </div>
+              </div>
+              <div class="summary-card">
+                <div class="summary-icon events">
+                  <i class="pi pi-exclamation-triangle" />
+                </div>
+                <div class="summary-content">
+                  <span class="summary-value">{{ securityEvents.length }}</span>
+                  <span class="summary-label">Recent Events</span>
+                </div>
+              </div>
+              <router-link :to="`/security?deployment=${deployment?.name}`" class="summary-card summary-link">
+                <div class="summary-icon link">
+                  <i class="pi pi-external-link" />
+                </div>
+                <div class="summary-content">
+                  <span class="summary-label">View All Events</span>
+                  <span class="summary-hint">Global security dashboard</span>
+                </div>
+              </router-link>
+            </div>
+
+            <div class="security-grid">
+              <div class="security-section">
+                <div class="section-header">
+                  <div class="section-title">
+                    <i class="pi pi-lock" />
+                    <h3>Protected Paths</h3>
+                  </div>
+                  <span class="section-hint">Block access to sensitive files</span>
+                </div>
+                <div class="section-body">
+                  <div class="presets-section">
+                    <span class="presets-label">Quick Add:</span>
+                    <div class="presets-row">
+                      <button
+                        v-for="preset in protectedPathPresets"
+                        :key="preset.pattern"
+                        class="preset-btn"
+                        :class="{ active: isPathProtected(preset.pattern) }"
+                        :disabled="!canManageSecurity"
+                        @click="toggleProtectedPath(preset.pattern)"
+                        :title="preset.pattern"
+                      >
+                        <i :class="isPathProtected(preset.pattern) ? 'pi pi-check' : 'pi pi-plus'" />
+                        {{ preset.label }}
                       </button>
                     </div>
                   </div>
-                  <div v-if="openSettingsSection === 'protected'" class="settings-row-body">
-                    <p class="row-description">
-                      When enabled, the actions selected below are refused with a 423 Locked status. Use this on
-                      production deployments to prevent accidental destructive operations.
-                    </p>
-                    <div class="protected-mode-grid">
-                      <label class="delete-option compact">
-                        <input
-                          v-model="protectedMode.disable_terminal"
-                          type="checkbox"
-                          :disabled="!protectedMode.enabled || savingProtectedMode"
-                          @change="saveProtectedMode"
-                        />
-                        <span class="option-content">
-                          <span class="option-label">Disable terminal</span>
-                          <span class="option-hint">Block interactive shell sessions</span>
-                        </span>
-                      </label>
-                      <div class="blocked-actions">
-                        <span class="field-label">Blocked actions</span>
-                        <span class="field-help"
-                          >Click an action to toggle whether it is refused while protected mode is on.</span
-                        >
-                        <div class="action-chips">
+                  <div class="paths-list">
+                    <div v-if="(securityConfig.protected_paths || []).length === 0" class="empty-state">
+                      <i class="pi pi-shield" />
+                      <p>No protected paths</p>
+                      <span>Click presets above or add custom paths</span>
+                    </div>
+                    <div v-else class="items-list">
+                      <div
+                        v-for="(path, index) in securityConfig.protected_paths || []"
+                        :key="index"
+                        class="list-item"
+                        :class="{ disabled: !path.enabled }"
+                      >
+                        <code>{{ path.pattern }}</code>
+                        <div class="item-actions">
+                          <label class="toggle-switch small">
+                            <input
+                              v-model="path.enabled"
+                              type="checkbox"
+                              :disabled="!canManageSecurity"
+                              @change="saveSecurityConfig"
+                            />
+                            <span class="toggle-slider" />
+                          </label>
                           <button
-                            v-for="action in protectedActionOptions"
-                            :key="action.value"
-                            class="preset-btn"
-                            :class="{ active: isProtectedActionBlocked(action.value) }"
-                            :disabled="!protectedMode.enabled || savingProtectedMode"
-                            :title="action.hint"
-                            @click="toggleProtectedAction(action.value)"
+                            class="btn btn-icon btn-sm btn-ghost"
+                            title="Remove"
+                            :disabled="!canManageSecurity"
+                            @click="removeProtectedPath(index)"
                           >
-                            <i :class="isProtectedActionBlocked(action.value) ? 'pi pi-check' : 'pi pi-plus'" />
-                            {{ action.label }}
+                            <i class="pi pi-times" />
                           </button>
                         </div>
                       </div>
                     </div>
+                  </div>
+                  <div class="add-form">
+                    <input
+                      v-model="newProtectedPath"
+                      type="text"
+                      class="form-input"
+                      placeholder="Custom path (e.g., /storage/*)"
+                      :disabled="!canManageSecurity"
+                      @keyup.enter="addProtectedPath"
+                    />
+                    <button
+                      class="btn btn-sm btn-primary"
+                      :disabled="!canManageSecurity || !newProtectedPath"
+                      @click="addProtectedPath"
+                    >
+                      <i class="pi pi-plus" /> Add
+                    </button>
+                  </div>
+                </div>
+              </div>
 
-                    <div class="command-rules">
-                      <div class="rules-header">
-                        <span class="field-label">Blocked commands</span>
-                        <span class="enable-bar-status" :class="{ active: protectedMode.enabled }">
-                          {{ protectedMode.blocked_command_rules?.length || 0 }}
-                        </span>
-                      </div>
-                      <p class="field-help">
-                        Each rule refuses terminal commands and quick actions whose command string matches the pattern.
-                        Rules apply only while protected mode is on.
-                      </p>
-                      <div v-if="!(protectedMode.blocked_command_rules || []).length" class="empty-state horizontal">
-                        <i class="pi pi-code" />
-                        <div class="empty-text">
-                          <p>No command rules yet</p>
-                          <span>Add a pattern below (e.g. contains "rm -rf") to start blocking commands.</span>
+              <div class="security-section">
+                <div class="section-header">
+                  <div class="section-title">
+                    <i class="pi pi-gauge" />
+                    <h3>Rate Limiting</h3>
+                  </div>
+                  <span class="section-hint">Limit requests per path</span>
+                </div>
+                <div class="section-body">
+                  <div class="rates-list">
+                    <div v-if="(securityConfig.rate_limits || []).length === 0" class="empty-state">
+                      <i class="pi pi-gauge" />
+                      <p>No rate limits</p>
+                      <span>Add limits to protect against abuse</span>
+                    </div>
+                    <div v-else class="items-list">
+                      <div
+                        v-for="(limit, index) in securityConfig.rate_limits || []"
+                        :key="index"
+                        class="list-item"
+                        :class="{ disabled: !limit.enabled }"
+                      >
+                        <div class="rate-info">
+                          <code>{{ limit.path }}</code>
+                          <span class="rate-config">
+                            <span class="rate-badge">{{ limit.rate }}/min</span>
+                            <span class="burst-badge">burst: {{ limit.burst }}</span>
+                          </span>
+                        </div>
+                        <div class="item-actions">
+                          <label class="toggle-switch small">
+                            <input
+                              v-model="limit.enabled"
+                              type="checkbox"
+                              :disabled="!canManageSecurity"
+                              @change="saveSecurityConfig"
+                            />
+                            <span class="toggle-slider" />
+                          </label>
+                          <button
+                            class="btn btn-icon btn-sm btn-ghost"
+                            title="Remove"
+                            :disabled="!canManageSecurity"
+                            @click="removeRateLimit(index)"
+                          >
+                            <i class="pi pi-times" />
+                          </button>
                         </div>
                       </div>
-                      <div v-else class="items-list">
-                        <div
-                          v-for="(rule, index) in protectedMode.blocked_command_rules"
-                          :key="rule.id || index"
-                          class="list-item command-rule-item"
-                        >
-                          <div class="rule-summary">
-                            <code class="rule-pattern">{{ rule.pattern }}</code>
-                            <div class="rule-meta">
-                              <span class="rule-badge">{{ rule.match }}</span>
-                              <span v-if="rule.case_sensitive" class="rule-badge subtle">case sensitive</span>
-                            </div>
-                            <p class="rule-explanation">{{ describeBlockedRule(rule) }}</p>
-                          </div>
-                          <div class="item-actions">
+                    </div>
+                  </div>
+                  <div class="add-form rate-form">
+                    <input
+                      v-model="newRateLimit.path"
+                      type="text"
+                      class="form-input"
+                      placeholder="Path"
+                      :disabled="!canManageSecurity"
+                    />
+                    <div class="rate-inputs">
+                      <div class="input-group">
+                        <input
+                          v-model.number="newRateLimit.rate"
+                          type="number"
+                          class="form-input"
+                          placeholder="10"
+                          :disabled="!canManageSecurity"
+                        />
+                        <span class="input-suffix">/min</span>
+                      </div>
+                      <div class="input-group">
+                        <input
+                          v-model.number="newRateLimit.burst"
+                          type="number"
+                          class="form-input"
+                          placeholder="5"
+                          :disabled="!canManageSecurity"
+                        />
+                        <span class="input-suffix">burst</span>
+                      </div>
+                    </div>
+                    <button
+                      class="btn btn-sm btn-primary"
+                      :disabled="!canManageSecurity || !newRateLimit.path"
+                      @click="addRateLimit"
+                    >
+                      <i class="pi pi-plus" /> Add
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="security-section events-section">
+              <div class="section-header">
+                <div class="section-title">
+                  <i class="pi pi-history" />
+                  <h3>Recent Security Events</h3>
+                </div>
+                <router-link :to="`/security?deployment=${deployment?.name}`" class="view-all-btn">
+                  View all <i class="pi pi-arrow-right" />
+                </router-link>
+              </div>
+              <div class="section-body">
+                <div v-if="securityEvents.length === 0" class="empty-state horizontal">
+                  <i class="pi pi-check-circle" />
+                  <div class="empty-text">
+                    <p>No security events</p>
+                    <span>Security events for this deployment will appear here</span>
+                  </div>
+                </div>
+                <div v-else class="events-table">
+                  <div class="events-header">
+                    <span class="col-severity">Severity</span>
+                    <span class="col-type">Event</span>
+                    <span class="col-ip">Source IP</span>
+                    <span class="col-path">Path</span>
+                    <span class="col-time">Time</span>
+                  </div>
+                  <div class="events-body">
+                    <div v-for="event in securityEvents" :key="event.id" class="event-row">
+                      <span class="col-severity">
+                        <span class="severity-badge" :class="event.severity">{{ event.severity }}</span>
+                      </span>
+                      <span class="col-type">{{ formatEventType(event.event_type) }}</span>
+                      <code class="col-ip">{{ event.source_ip }}</code>
+                      <code class="col-path">{{ event.request_path || "-" }}</code>
+                      <span class="col-time">{{ formatTimeAgo(event.created_at) }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div v-if="shows('config')" class="config-tab">
+            <SubTabs v-model="activeConfigTab" :tabs="configSubTabs">
+              <div v-if="activeConfigTab === 'settings'" class="settings-tab">
+                <div class="settings-list">
+                  <div class="settings-row">
+                    <div class="settings-row-header" @click="toggleSettingsSection('protected')">
+                      <div class="row-title">
+                        <i class="pi pi-lock" />
+                        <div class="row-text">
+                          <h4>Protected Mode</h4>
+                          <p>Refuse the selected destructive actions while enabled</p>
+                        </div>
+                      </div>
+                      <div class="row-controls" @click.stop>
+                        <label class="toggle-switch">
+                          <input
+                            v-model="protectedMode.enabled"
+                            type="checkbox"
+                            :disabled="savingProtectedMode"
+                            @change="saveProtectedMode"
+                          />
+                          <span class="toggle-slider" />
+                        </label>
+                        <button class="chevron-btn" @click="toggleSettingsSection('protected')">
+                          <i
+                            class="pi"
+                            :class="openSettingsSection === 'protected' ? 'pi-chevron-up' : 'pi-chevron-down'"
+                          />
+                        </button>
+                      </div>
+                    </div>
+                    <div v-if="openSettingsSection === 'protected'" class="settings-row-body">
+                      <p class="row-description">
+                        When enabled, the actions selected below are refused with a 423 Locked status. Use this on
+                        production deployments to prevent accidental destructive operations.
+                      </p>
+                      <div class="protected-mode-grid">
+                        <label class="delete-option compact">
+                          <input
+                            v-model="protectedMode.disable_terminal"
+                            type="checkbox"
+                            :disabled="!protectedMode.enabled || savingProtectedMode"
+                            @change="saveProtectedMode"
+                          />
+                          <span class="option-content">
+                            <span class="option-label">Disable terminal</span>
+                            <span class="option-hint">Block interactive shell sessions</span>
+                          </span>
+                        </label>
+                        <div class="blocked-actions">
+                          <span class="field-label">Blocked actions</span>
+                          <span class="field-help"
+                            >Click an action to toggle whether it is refused while protected mode is on.</span
+                          >
+                          <div class="action-chips">
                             <button
-                              class="btn btn-icon btn-sm btn-ghost"
-                              :disabled="savingProtectedMode"
-                              title="Remove"
-                              @click="removeProtectedCommandRule(index)"
+                              v-for="action in protectedActionOptions"
+                              :key="action.value"
+                              class="preset-btn"
+                              :class="{ active: isProtectedActionBlocked(action.value) }"
+                              :disabled="!protectedMode.enabled || savingProtectedMode"
+                              :title="action.hint"
+                              @click="toggleProtectedAction(action.value)"
                             >
-                              <i class="pi pi-times" />
+                              <i :class="isProtectedActionBlocked(action.value) ? 'pi pi-check' : 'pi pi-plus'" />
+                              {{ action.label }}
                             </button>
                           </div>
                         </div>
                       </div>
-                      <div class="add-form command-rule-form">
-                        <div class="command-rule-form-row">
-                          <select v-model="newCommandRule.match" class="form-select" :disabled="!protectedMode.enabled">
-                            <option value="contains">Contains</option>
-                            <option value="equals">Equals</option>
-                            <option value="prefix">Prefix</option>
-                            <option value="suffix">Suffix</option>
-                            <option value="matches">Regex</option>
-                          </select>
-                          <input
-                            v-model="newCommandRule.pattern"
-                            type="text"
-                            class="form-input"
-                            placeholder="Command pattern (e.g. rm -rf)"
-                            :disabled="!protectedMode.enabled"
-                            @keyup.enter="addProtectedCommandRule"
-                          />
-                          <label class="case-toggle">
-                            <input
-                              v-model="newCommandRule.case_sensitive"
-                              type="checkbox"
-                              :disabled="!protectedMode.enabled"
-                            />
-                            <span>Case</span>
-                          </label>
-                          <button
-                            class="btn btn-sm btn-primary"
-                            :disabled="!protectedMode.enabled || !newCommandRule.pattern"
-                            @click="addProtectedCommandRule"
-                          >
-                            <i class="pi pi-plus" /> Add
-                          </button>
-                        </div>
-                        <p class="rule-preview">
-                          <i class="pi pi-info-circle" />
-                          {{ matchTypeHints[newCommandRule.match] }}.
-                          <span v-if="newCommandRule.pattern" class="rule-preview-sentence">
-                            Preview: {{ describeBlockedRule(newCommandRule) }}.
+
+                      <div class="command-rules">
+                        <div class="rules-header">
+                          <span class="field-label">Blocked commands</span>
+                          <span class="enable-bar-status" :class="{ active: protectedMode.enabled }">
+                            {{ protectedMode.blocked_command_rules?.length || 0 }}
                           </span>
+                        </div>
+                        <p class="field-help">
+                          Each rule refuses terminal commands and quick actions whose command string matches the
+                          pattern. Rules apply only while protected mode is on.
                         </p>
+                        <div v-if="!(protectedMode.blocked_command_rules || []).length" class="empty-state horizontal">
+                          <i class="pi pi-code" />
+                          <div class="empty-text">
+                            <p>No command rules yet</p>
+                            <span>Add a pattern below (e.g. contains "rm -rf") to start blocking commands.</span>
+                          </div>
+                        </div>
+                        <div v-else class="items-list">
+                          <div
+                            v-for="(rule, index) in protectedMode.blocked_command_rules"
+                            :key="rule.id || index"
+                            class="list-item command-rule-item"
+                          >
+                            <div class="rule-summary">
+                              <code class="rule-pattern">{{ rule.pattern }}</code>
+                              <div class="rule-meta">
+                                <span class="rule-badge">{{ rule.match }}</span>
+                                <span v-if="rule.case_sensitive" class="rule-badge subtle">case sensitive</span>
+                              </div>
+                              <p class="rule-explanation">{{ describeBlockedRule(rule) }}</p>
+                            </div>
+                            <div class="item-actions">
+                              <button
+                                class="btn btn-icon btn-sm btn-ghost"
+                                :disabled="savingProtectedMode"
+                                title="Remove"
+                                @click="removeProtectedCommandRule(index)"
+                              >
+                                <i class="pi pi-times" />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="add-form command-rule-form">
+                          <div class="command-rule-form-row">
+                            <select
+                              v-model="newCommandRule.match"
+                              class="form-select"
+                              :disabled="!protectedMode.enabled"
+                            >
+                              <option value="contains">Contains</option>
+                              <option value="equals">Equals</option>
+                              <option value="prefix">Prefix</option>
+                              <option value="suffix">Suffix</option>
+                              <option value="matches">Regex</option>
+                            </select>
+                            <input
+                              v-model="newCommandRule.pattern"
+                              type="text"
+                              class="form-input"
+                              placeholder="Command pattern (e.g. rm -rf)"
+                              :disabled="!protectedMode.enabled"
+                              @keyup.enter="addProtectedCommandRule"
+                            />
+                            <label class="case-toggle">
+                              <input
+                                v-model="newCommandRule.case_sensitive"
+                                type="checkbox"
+                                :disabled="!protectedMode.enabled"
+                              />
+                              <span>Case</span>
+                            </label>
+                            <button
+                              class="btn btn-sm btn-primary"
+                              :disabled="!protectedMode.enabled || !newCommandRule.pattern"
+                              @click="addProtectedCommandRule"
+                            >
+                              <i class="pi pi-plus" /> Add
+                            </button>
+                          </div>
+                          <p class="rule-preview">
+                            <i class="pi pi-info-circle" />
+                            {{ matchTypeHints[newCommandRule.match] }}.
+                            <span v-if="newCommandRule.pattern" class="rule-preview-sentence">
+                              Preview: {{ describeBlockedRule(newCommandRule) }}.
+                            </span>
+                          </p>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
 
-                <div class="settings-row">
-                  <div class="settings-row-header" @click="toggleSettingsSection('plans')">
-                    <div class="row-title">
-                      <i class="pi pi-eye" />
-                      <div class="row-text">
-                        <h4>Require Plan Review</h4>
-                        <p>Preview every change as a plan and apply it explicitly</p>
+                  <div class="settings-row">
+                    <div class="settings-row-header" @click="toggleSettingsSection('plans')">
+                      <div class="row-title">
+                        <i class="pi pi-eye" />
+                        <div class="row-text">
+                          <h4>Require Plan Review</h4>
+                          <p>Preview every change as a plan and apply it explicitly</p>
+                        </div>
+                      </div>
+                      <div class="row-controls" @click.stop>
+                        <label class="toggle-switch">
+                          <input
+                            v-model="requirePlan"
+                            type="checkbox"
+                            :disabled="savingRequirePlan"
+                            @change="saveRequirePlan"
+                          />
+                          <span class="toggle-slider" />
+                        </label>
+                        <button class="chevron-btn" @click="toggleSettingsSection('plans')">
+                          <i
+                            class="pi"
+                            :class="openSettingsSection === 'plans' ? 'pi-chevron-up' : 'pi-chevron-down'"
+                          />
+                        </button>
                       </div>
                     </div>
-                    <div class="row-controls" @click.stop>
-                      <label class="toggle-switch">
-                        <input
-                          v-model="requirePlan"
-                          type="checkbox"
-                          :disabled="savingRequirePlan"
-                          @change="saveRequirePlan"
-                        />
-                        <span class="toggle-slider" />
-                      </label>
-                      <button class="chevron-btn" @click="toggleSettingsSection('plans')">
-                        <i class="pi" :class="openSettingsSection === 'plans' ? 'pi-chevron-up' : 'pi-chevron-down'" />
-                      </button>
+                    <div v-if="openSettingsSection === 'plans'" class="settings-row-body">
+                      <p class="row-description">
+                        When enabled, changes to this deployment (environment, compose, domains, deletion, service
+                        actions) are refused unless they go through a reviewed plan: you see a preview of every file
+                        diff and affected container before applying. API callers and AI agents are held to the same
+                        rule.
+                      </p>
                     </div>
                   </div>
-                  <div v-if="openSettingsSection === 'plans'" class="settings-row-body">
-                    <p class="row-description">
-                      When enabled, changes to this deployment (environment, compose, domains, deletion, service
-                      actions) are refused unless they go through a reviewed plan: you see a preview of every file diff
-                      and affected container before applying. API callers and AI agents are held to the same rule.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <DeploymentAutoscaleCard
-              v-if="activeConfigTab === 'autoscaling'"
-              class="config-autoscaling"
-              :deployment="route.params.name as string"
-              :can-write="canWrite"
-            />
-
-            <div v-if="activeConfigTab === 'compose' || activeConfigTab === 'service'" class="config-sections">
-              <div v-if="activeConfigTab === 'compose'" class="config-section">
-                <div class="config-header">
-                  <h3>Docker Compose Configuration</h3>
-                  <div class="config-actions">
-                    <button
-                      class="assist-toggle"
-                      :class="{ active: configAssistOpen }"
-                      @click="toggleConfigAssist(composeConfigAssistContext)"
-                    >
-                      <Icon name="bot" :size="15" /> Ask the assistant
-                    </button>
-                    <button class="btn btn-sm btn-secondary" @click="copyConfig"><i class="pi pi-copy" /> Copy</button>
-                    <button v-if="!isEditingConfig" class="btn btn-sm btn-primary" @click="startConfigEdit">
-                      <i class="pi pi-pencil" /> Edit
-                    </button>
-                    <template v-else>
-                      <button class="btn btn-sm btn-secondary" @click="cancelConfigEdit">Cancel</button>
-                      <button class="btn btn-sm btn-success" @click="saveConfig"><i class="pi pi-check" /> Save</button>
-                    </template>
-                  </div>
-                </div>
-                <div class="config-editor" :class="{ 'with-assist': configAssistOpen }">
-                  <Codemirror
-                    v-model="composeConfig"
-                    :extensions="configExtensions"
-                    :disabled="!isEditingConfig"
-                    :style="{ height: '500px' }"
-                  />
-                  <InlineAssist v-if="configAssistOpen" class="config-assist-pane" @close="closeConfigAssist" />
                 </div>
               </div>
 
-              <div v-if="activeConfigTab === 'service'" class="config-section">
-                <div class="config-header">
-                  <h3>Service Configuration</h3>
-                  <div class="config-actions">
-                    <button
-                      class="assist-toggle"
-                      :class="{ active: configAssistOpen }"
-                      @click="toggleConfigAssist(serviceConfigAssistContext)"
-                    >
-                      <Icon name="bot" :size="15" /> Ask the assistant
-                    </button>
-                    <button class="btn btn-sm btn-secondary" @click="copyServiceConfig">
-                      <i class="pi pi-copy" /> Copy
-                    </button>
-                    <button
-                      v-if="!isEditingServiceConfig"
-                      class="btn btn-sm btn-primary"
-                      @click="isEditingServiceConfig = true"
-                    >
-                      <i class="pi pi-pencil" /> Edit
-                    </button>
-                    <template v-else>
-                      <button class="btn btn-sm btn-secondary" @click="cancelServiceConfigEdit">Cancel</button>
-                      <button class="btn btn-sm btn-success" @click="saveServiceConfig">
-                        <i class="pi pi-check" /> Save
+              <DeploymentAutoscaleCard
+                v-if="activeConfigTab === 'autoscaling'"
+                class="config-autoscaling"
+                :deployment="route.params.name as string"
+                :can-write="canWrite"
+              />
+
+              <div v-if="activeConfigTab === 'compose' || activeConfigTab === 'service'" class="config-sections">
+                <div v-if="activeConfigTab === 'compose'" class="config-section">
+                  <div class="config-header">
+                    <h3>Docker Compose Configuration</h3>
+                    <div class="config-actions">
+                      <button
+                        class="assist-toggle"
+                        :class="{ active: configAssistOpen }"
+                        @click="toggleConfigAssist(composeConfigAssistContext)"
+                      >
+                        <Icon name="bot" :size="15" /> Ask the assistant
                       </button>
-                    </template>
+                      <button class="btn btn-sm btn-secondary" @click="copyConfig">
+                        <i class="pi pi-copy" /> Copy
+                      </button>
+                      <button v-if="!isEditingConfig" class="btn btn-sm btn-primary" @click="startConfigEdit">
+                        <i class="pi pi-pencil" /> Edit
+                      </button>
+                      <template v-else>
+                        <button class="btn btn-sm btn-secondary" @click="cancelConfigEdit">Cancel</button>
+                        <button class="btn btn-sm btn-success" @click="saveConfig">
+                          <i class="pi pi-check" /> Save
+                        </button>
+                      </template>
+                    </div>
+                  </div>
+                  <div class="config-editor" :class="{ 'with-assist': configAssistOpen }">
+                    <Codemirror
+                      v-model="composeConfig"
+                      :extensions="configExtensions"
+                      :disabled="!isEditingConfig"
+                      :style="{ height: '500px' }"
+                    />
+                    <InlineAssist v-if="configAssistOpen" class="config-assist-pane" @close="closeConfigAssist" />
                   </div>
                 </div>
-                <div class="config-editor" :class="{ 'with-assist': configAssistOpen }">
-                  <Codemirror
-                    v-model="serviceConfig"
-                    :extensions="configExtensions"
-                    :disabled="!isEditingServiceConfig"
-                    :style="{ height: '500px' }"
-                  />
-                  <InlineAssist v-if="configAssistOpen" class="config-assist-pane" @close="closeConfigAssist" />
+
+                <div v-if="activeConfigTab === 'service'" class="config-section">
+                  <div class="config-header">
+                    <h3>Service Configuration</h3>
+                    <div class="config-actions">
+                      <button
+                        class="assist-toggle"
+                        :class="{ active: configAssistOpen }"
+                        @click="toggleConfigAssist(serviceConfigAssistContext)"
+                      >
+                        <Icon name="bot" :size="15" /> Ask the assistant
+                      </button>
+                      <button class="btn btn-sm btn-secondary" @click="copyServiceConfig">
+                        <i class="pi pi-copy" /> Copy
+                      </button>
+                      <button
+                        v-if="!isEditingServiceConfig"
+                        class="btn btn-sm btn-primary"
+                        @click="isEditingServiceConfig = true"
+                      >
+                        <i class="pi pi-pencil" /> Edit
+                      </button>
+                      <template v-else>
+                        <button class="btn btn-sm btn-secondary" @click="cancelServiceConfigEdit">Cancel</button>
+                        <button class="btn btn-sm btn-success" @click="saveServiceConfig">
+                          <i class="pi pi-check" /> Save
+                        </button>
+                      </template>
+                    </div>
+                  </div>
+                  <div class="config-editor" :class="{ 'with-assist': configAssistOpen }">
+                    <Codemirror
+                      v-model="serviceConfig"
+                      :extensions="configExtensions"
+                      :disabled="!isEditingServiceConfig"
+                      :style="{ height: '500px' }"
+                    />
+                    <InlineAssist v-if="configAssistOpen" class="config-assist-pane" @close="closeConfigAssist" />
+                  </div>
                 </div>
               </div>
-            </div>
-          </SubTabs>
+            </SubTabs>
+          </div>
         </div>
       </div>
     </template>
@@ -2092,6 +2229,10 @@ import InlineAssist from "@/components/ai/InlineAssist.vue";
 import { useAssistStore } from "@/stores/assist";
 import Icon from "@/components/base/Icon.vue";
 import OperationModal from "@/components/OperationModal.vue";
+import Popover from "@/components/base/Popover.vue";
+import DeploymentMetrics from "@/components/deployment/DeploymentMetrics.vue";
+import { useTheme } from "@/composables/useTheme";
+import { MODERN_SECTIONS, sectionForTab } from "@/views/deploymentSections";
 import { useDeploymentJob, type DeploymentOperation } from "@/composables/useDeploymentJob";
 import { useServiceJobs } from "@/composables/useServiceJobs";
 
@@ -2240,6 +2381,135 @@ const pluginTabs = computed(() =>
     plugin: e.plugin.name,
   })),
 );
+
+const { current: currentStyle } = useTheme();
+const modern = computed(() => currentStyle.value.layout === "modern");
+
+function initialSection(): string {
+  const fromQuery = route.query.section as string;
+  if (MODERN_SECTIONS.some((s) => s.id === fromQuery) || fromQuery?.startsWith("plugin:")) return fromQuery;
+  if (route.query.tab) return sectionForTab(route.query.tab as string);
+  return "deploys";
+}
+
+const section = ref<string>(initialSection());
+
+const availableTabIds = computed(() => new Set(tabBarItems.value.map((t) => t.id)));
+
+const modernSectionGroups = computed(() => {
+  const visible = MODERN_SECTIONS.filter((s) => !s.requiresTab || availableTabIds.value.has(s.requiresTab));
+  return [
+    { label: "", items: visible.filter((s) => s.group === "main") },
+    {
+      label: "Tools",
+      items: [
+        ...visible.filter((s) => s.group === "tools"),
+        ...pluginTabs.value.map((pt) => ({ id: pt.id, label: pt.label, icon: pt.icon || "puzzle" })),
+      ],
+    },
+  ].filter((g) => g.items.length);
+});
+
+const currentSectionLabel = computed(
+  () => modernSectionGroups.value.flatMap((g) => g.items).find((i) => i.id === section.value)?.label ?? "",
+);
+
+function sectionTabs(id: string): string[] {
+  const def = MODERN_SECTIONS.find((s) => s.id === id);
+  return def ? def.tabs : [id];
+}
+
+// Classic shows one tab at a time; Modern shows every block that belongs to
+// the selected section, so Settings stacks several former tabs.
+function shows(tab: string): boolean {
+  if (!modern.value) return activeTab.value === tab;
+  return sectionTabs(section.value).includes(tab) && (tab.startsWith("plugin:") || availableTabIds.value.has(tab));
+}
+
+// Data for each block loads when its tab becomes active, so the selected
+// section drives activeTab and programmatic tab changes move the section.
+watch(
+  section,
+  (id) => {
+    if (!modern.value) return;
+    const tabs = sectionTabs(id);
+    if (!tabs.includes(activeTab.value)) activeTab.value = tabs[0] ?? id;
+    if (tabs.includes("security") && canReadSecurity.value) {
+      fetchSecurityConfig();
+      fetchSecurityEvents();
+    }
+    if (route.query.section !== id) {
+      router.replace({ query: { ...route.query, section: id, tab: undefined } });
+    }
+  },
+  { immediate: false },
+);
+
+watch(activeTab, (tab) => {
+  if (modern.value && !sectionTabs(section.value).includes(tab)) section.value = sectionForTab(tab);
+});
+
+onMounted(() => {
+  const tabs = sectionTabs(section.value);
+  if (modern.value && !tabs.includes(activeTab.value)) activeTab.value = tabs[0] ?? section.value;
+});
+
+const primaryDomain = computed<string | undefined>(() => {
+  const meta = deployment.value?.metadata;
+  return meta?.domains?.[0]?.domain || meta?.networking?.domain || undefined;
+});
+
+const modernStatus = computed(() =>
+  deployment.value?.metadata?.sleep?.sleeping ? "sleeping" : deployment.value?.status,
+);
+const modernStatusLabel = computed(() =>
+  deployment.value?.metadata?.sleep?.sleeping ? "asleep" : deployment.value?.status || "loading",
+);
+
+const modernActions = computed(() => {
+  const status = deployment.value?.status;
+  const actions = [
+    {
+      id: "start",
+      label: "Start",
+      icon: "play",
+      disabled: status === "running",
+      run: () => handleScopedAction("start", "deployment"),
+    },
+    {
+      id: "stop",
+      label: "Stop",
+      icon: "square",
+      disabled: status === "stopped",
+      run: () => handleScopedAction("stop", "deployment"),
+    },
+    {
+      id: "restart",
+      label: "Restart",
+      icon: "rotate-cw",
+      disabled: status === "stopped",
+      run: () => handleScopedAction("restart", "deployment"),
+    },
+    {
+      id: "rebuild",
+      label: "Rebuild",
+      icon: "hammer",
+      disabled: false,
+      run: () => handleScopedAction("rebuild", "deployment"),
+    },
+    {
+      id: "pull",
+      label: "Pull image",
+      icon: "download",
+      disabled: false,
+      run: () => handleScopedAction("pull", "deployment"),
+    },
+  ];
+  if (canDelete.value) {
+    actions.push({ id: "delete", label: "Delete", icon: "trash-2", disabled: false, run: () => confirmDelete() });
+  }
+  return actions.map((a) => ({ ...a, disabled: a.disabled || loading.value }));
+});
 
 const tabBarItems = computed(() => {
   const items: Array<{ id: string; label: string; icon?: string; kind: "native" | "plugin" }> = [];
@@ -6655,5 +6925,198 @@ onUnmounted(() => {
 .env-resolved {
   color: var(--text-muted);
   font-size: var(--text-xs);
+}
+
+.modern-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
+}
+
+.modern-title {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.modern-title h1 {
+  margin: 0;
+  font-size: 1.375rem;
+  font-weight: var(--font-semibold);
+  letter-spacing: -0.01em;
+}
+
+.modern-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  text-transform: capitalize;
+}
+
+.modern-status::before {
+  width: 7px;
+  height: 7px;
+  background: var(--status-stopped);
+  border-radius: 50%;
+  content: "";
+}
+
+.modern-status.running::before {
+  background: var(--status-running);
+}
+
+.modern-status.error::before {
+  background: var(--status-failed);
+}
+
+.modern-status.sleeping::before {
+  background: var(--status-sleeping);
+}
+
+.modern-domain {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  text-decoration: none;
+}
+
+.modern-domain:hover {
+  color: var(--accent);
+}
+
+.modern-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.modern-more {
+  width: var(--control-h-sm);
+  padding: 0;
+}
+
+.modern-menu {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.modern-menu button {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 7px var(--space-2);
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  cursor: pointer;
+  font: inherit;
+  font-size: var(--text-base);
+  text-align: left;
+}
+
+.modern-menu button:hover:not(:disabled) {
+  background: var(--surface-inset);
+}
+
+.modern-menu button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.modern-menu button.danger {
+  color: var(--color-danger-600);
+}
+
+.modern-body {
+  display: grid;
+  grid-template-columns: 184px minmax(0, 1fr);
+  align-items: start;
+  gap: var(--space-6);
+}
+
+.section-rail {
+  position: sticky;
+  top: 64px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.rail-label {
+  margin: var(--space-4) 0 var(--space-1);
+  padding: 0 var(--space-2);
+  color: var(--text-subtle);
+  font-size: var(--text-xs);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.rail-item {
+  display: flex;
+  height: var(--control-h-sm);
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0 var(--space-2);
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  cursor: pointer;
+  font: inherit;
+  font-size: var(--text-base);
+  text-align: left;
+}
+
+.rail-item:hover {
+  background: var(--surface-inset);
+  color: var(--text);
+}
+
+.rail-item.active {
+  background: var(--surface-inset);
+  color: var(--text);
+  font-weight: var(--font-medium);
+}
+
+.is-modern .tab-content {
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+  gap: var(--space-5);
+  background: transparent;
+  border: 0;
+}
+
+.section-title {
+  margin: 0;
+  font-size: var(--text-xl);
+  font-weight: var(--font-semibold);
+}
+
+@media (max-width: 860px) {
+  .modern-body {
+    grid-template-columns: 1fr;
+  }
+
+  .section-rail {
+    position: static;
+    flex-direction: row;
+    overflow-x: auto;
+  }
+
+  .rail-label {
+    display: none;
+  }
 }
 </style>

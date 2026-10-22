@@ -3,18 +3,18 @@ import { mount, flushPromises } from "@vue/test-utils";
 import { createTestingPinia } from "@pinia/testing";
 import DeploymentDetailView from "./DeploymentDetailView.vue";
 import { useAuthStore } from "@/stores/auth";
+import { useTheme } from "@/composables/useTheme";
 
 const mockRoute = {
   params: { name: "test-app" },
   query: {} as Record<string, string>,
 };
 
+const mockRouter = { push: vi.fn(), back: vi.fn(), replace: vi.fn() };
+
 vi.mock("vue-router", () => ({
   useRoute: vi.fn(() => mockRoute),
-  useRouter: vi.fn(() => ({
-    push: vi.fn(),
-    back: vi.fn(),
-  })),
+  useRouter: vi.fn(() => mockRouter),
 }));
 
 vi.mock("@/services/api", () => ({
@@ -136,6 +136,7 @@ describe("DeploymentDetailView", () => {
     vi.clearAllMocks();
     vi.useFakeTimers();
     mockRoute.query = {};
+    useTheme().setStyle("classic");
   });
 
   afterEach(() => {
@@ -788,6 +789,72 @@ describe("DeploymentDetailView", () => {
       await wrapper.find('button[title="Edit image"]').trigger("click");
 
       expect(wrapper.find("#overview-service-image").exists()).toBe(true);
+    });
+  });
+
+  describe("Modern style", () => {
+    beforeEach(() => {
+      useTheme().setStyle("modern");
+    });
+
+    const railLabels = (wrapper: ReturnType<typeof mountView>) => wrapper.findAll(".rail-item").map((b) => b.text());
+
+    it("replaces the tab bar with one primary action and a section rail", async () => {
+      const wrapper = mountView();
+      await flushPromises();
+
+      expect(wrapper.find(".detail-tabs").exists()).toBe(false);
+      expect(wrapper.find(".detail-header").exists()).toBe(false);
+      expect(wrapper.get(".modern-header h1").text()).toBe("test-app");
+      expect(wrapper.get(".modern-actions .btn-primary").text()).toBe("Restart");
+      expect(railLabels(wrapper)).toEqual([
+        "Deployments",
+        "Logs",
+        "Variables",
+        "Metrics",
+        "Settings",
+        "Files",
+        "Terminal",
+        "Migration",
+      ]);
+      expect(wrapper.get(".rail-item.active").text()).toBe("Deployments");
+    });
+
+    it("stacks overview, databases and configuration under Settings", async () => {
+      const wrapper = mountView();
+      await flushPromises();
+
+      const settings = wrapper.findAll(".rail-item").find((b) => b.text() === "Settings")!;
+      await settings.trigger("click");
+      await flushPromises();
+
+      expect(wrapper.find(".overview-tab").exists()).toBe(true);
+      expect(wrapper.find(".databases-tab").exists()).toBe(true);
+      expect(wrapper.find(".config-tab").exists()).toBe(true);
+      expect(wrapper.find(".env-tab").exists()).toBe(false);
+      expect(wrapper.get(".section-title").text()).toBe("Settings");
+      expect(mockRouter.replace).toHaveBeenLastCalledWith({ query: { section: "settings", tab: undefined } });
+    });
+
+    it("loads logs when the page opens on the Logs section", async () => {
+      const { deploymentsApi } = await import("@/services/api");
+      mockRoute.query = { section: "logs" };
+      const wrapper = mountView();
+      await flushPromises();
+
+      expect(wrapper.get(".rail-item.active").text()).toBe("Logs");
+      expect(wrapper.find(".logs-tab").exists()).toBe(true);
+      expect(deploymentsApi.logSources).toHaveBeenCalledWith("test-app");
+    });
+
+    it("opens the section that a Classic tab link points to", async () => {
+      mockRoute.query = { tab: "environment" };
+      const wrapper = mountView();
+      await flushPromises();
+
+      expect(wrapper.get(".rail-item.active").text()).toBe("Variables");
+      expect(wrapper.find(".env-tab").exists()).toBe(true);
+      expect(wrapper.find(".overview-tab").exists()).toBe(false);
     });
   });
 });

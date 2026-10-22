@@ -95,27 +95,7 @@
         </div>
 
         <div v-else-if="tab === 'metrics'" class="panel-section">
-          <p v-if="!samples.timestamps.length" class="muted">Collecting samples...</p>
-          <template v-else>
-            <h4>CPU</h4>
-            <TimeSeriesChart
-              :containers="[deployment.name]"
-              :timestamps="samples.timestamps"
-              :values="[samples.cpu]"
-              unit="percent"
-              :height="140"
-              area
-            />
-            <h4>Memory</h4>
-            <TimeSeriesChart
-              :containers="[deployment.name]"
-              :timestamps="samples.timestamps"
-              :values="[samples.memory]"
-              unit="bytes"
-              :height="140"
-              area
-            />
-          </template>
+          <DeploymentMetrics :deployment-name="deployment.name" />
         </div>
       </SubTabs>
     </div>
@@ -133,7 +113,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, reactive, ref, watch } from "vue";
+import { computed, ref, watch } from "vue";
 import { RouterLink } from "vue-router";
 import type { Deployment } from "@/types";
 import { deploymentsApi } from "@/services/api";
@@ -144,7 +124,7 @@ import BaseButton from "@/components/base/BaseButton.vue";
 import Icon from "@/components/base/Icon.vue";
 import DeploysTab from "@/components/deploys/DeploysTab.vue";
 import OperationModal from "@/components/OperationModal.vue";
-import TimeSeriesChart from "@/components/charts/TimeSeriesChart.vue";
+import DeploymentMetrics from "@/components/deployment/DeploymentMetrics.vue";
 
 const props = defineProps<{ deployment: Deployment | null }>();
 const emit = defineEmits<{ close: []; changed: [] }>();
@@ -176,50 +156,13 @@ async function loadVars(name: string) {
   }
 }
 
-const MAX_SAMPLES = 60;
-const samples = reactive({ timestamps: [] as number[], cpu: [] as (number | null)[], memory: [] as (number | null)[] });
-let timer: ReturnType<typeof setInterval> | null = null;
-
-async function sample(name: string) {
-  try {
-    const { data } = await deploymentsApi.getStats(name);
-    samples.timestamps.push(Math.floor(Date.now() / 1000));
-    samples.cpu.push(data.summary.cpu_percent);
-    samples.memory.push(data.summary.memory_usage);
-    if (samples.timestamps.length > MAX_SAMPLES) {
-      samples.timestamps.shift();
-      samples.cpu.shift();
-      samples.memory.shift();
-    }
-  } catch {
-    // A stopped deployment has no stats; keep what was collected.
-  }
-}
-
-function stopSampling() {
-  if (timer) clearInterval(timer);
-  timer = null;
-}
-
 watch(
-  () => [props.deployment?.name, tab.value] as const,
-  ([name, current], previous) => {
-    if (name !== previous?.[0]) {
-      samples.timestamps = [];
-      samples.cpu = [];
-      samples.memory = [];
-      if (name) loadVars(name);
-    }
-    stopSampling();
-    if (name && current === "metrics") {
-      sample(name);
-      timer = setInterval(() => sample(name), 5000);
-    }
+  () => props.deployment?.name,
+  (name) => {
+    if (name) loadVars(name);
   },
   { immediate: true },
 );
-
-onBeforeUnmount(stopSampling);
 </script>
 
 <style scoped>
@@ -334,12 +277,5 @@ onBeforeUnmount(stopSampling);
 .resolved {
   color: var(--text-muted);
   font-size: var(--text-xs);
-}
-
-h4 {
-  margin: var(--space-2) 0 0;
-  color: var(--text-muted);
-  font-size: var(--text-sm);
-  font-weight: var(--font-medium);
 }
 </style>
