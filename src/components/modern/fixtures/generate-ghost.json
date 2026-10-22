@@ -1,0 +1,8 @@
+{
+  "container_port": 2368,
+  "content": "name: ghost\nnetworks:\n    proxy:\n        external: true\nservices:\n    ghost:\n        container_name: ghost\n        environment:\n            database__client: mysql\n            database__connection__database: ${DB_DATABASE:-ghost}\n            database__connection__host: ${DB_HOST:-db}\n            database__connection__password: ${DB_PASSWORD:-changeme}\n            database__connection__user: ${DB_USERNAME:-ghost}\n            url: https://${DOMAIN:-localhost}\n        expose:\n            - \"2368\"\n        image: ghost:5-alpine\n        networks:\n            - proxy\n        restart: unless-stopped\n        volumes:\n            - ./data:/var/lib/ghost/content\n",
+  "host_port": "",
+  "map_ports": false,
+  "name": "ghost",
+  "template_id": "ghost"
+}

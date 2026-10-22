@@ -110,4 +110,18 @@ describe("DeploymentSwitcher", () => {
     expect(router.currentRoute.value.fullPath).toBe("/deployments/hello-web-staging");
     wrapper.unmount();
   });
+
+  it("names a deployment created after the list was loaded", async () => {
+    const all = deploymentsFixture.deployments;
+    vi.mocked(deploymentsApi.list)
+      .mockResolvedValueOnce({ data: { deployments: all.filter((d) => d.name !== "orders-worker") } } as any)
+      .mockResolvedValue({ data: deploymentsFixture } as any);
+    const { wrapper, router } = await mountAt("/deployments/hello-web");
+
+    await router.push("/deployments/orders-worker");
+    await flushPromises();
+
+    expect(wrapper.findAll(".crumb")[0].text()).toBe("orders-worker");
+    wrapper.unmount();
+  });
 });

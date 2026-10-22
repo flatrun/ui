@@ -1,0 +1,314 @@
+{
+  "templates": [
+    {
+      "id": "static",
+      "name": "Static Site",
+      "description": "Simple static HTML/CSS/JS site",
+      "icon": "pi pi-file",
+      "logo": "https://cdn.simpleicons.org/html5",
+      "category": "basic",
+      "priority": 100,
+      "container_port": 80,
+      "mounts": [
+        {
+          "id": "html",
+          "name": "Web Root",
+          "container_path": "/usr/share/nginx/html",
+          "description": "Static HTML, CSS, and JavaScript files",
+          "type": "file",
+          "required": true
+        }
+      ],
+      "files": [
+        {
+          "path": "html/index.html",
+          "content": "\u003c!DOCTYPE html\u003e\n\u003chtml lang=\"en\"\u003e\n\u003chead\u003e\n  \u003cmeta charset=\"UTF-8\"\u003e\n  \u003cmeta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"\u003e\n  \u003ctitle\u003e${NAME}\u003c/title\u003e\n  \u003cstyle\u003e\n    * { margin: 0; padding: 0; box-sizing: border-box; }\n    body {\n      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;\n      min-height: 100vh;\n      display: flex;\n      align-items: center;\n      justify-content: center;\n      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);\n      color: #fff;\n    }\n    .container { text-align: center; padding: 2rem; }\n    h1 { font-size: 3rem; margin-bottom: 1rem; }\n    p { font-size: 1.2rem; opacity: 0.9; }\n    .powered {\n      margin-top: 2rem;\n      display: flex;\n      align-items: center;\n      justify-content: center;\n      gap: 0.5rem;\n      font-size: 0.9rem;\n      opacity: 0.7;\n    }\n    .powered a { display: flex; }\n    .powered img { height: 24px; }\n  \u003c/style\u003e\n\u003c/head\u003e\n\u003cbody\u003e\n  \u003cdiv class=\"container\"\u003e\n    \u003ch1\u003e${NAME}\u003c/h1\u003e\n    \u003cp\u003eYour static site is ready!\u003c/p\u003e\n    \u003cdiv class=\"powered\"\u003e\n      \u003cspan\u003ePowered by\u003c/span\u003e\n      \u003ca href=\"https://flatrun.dev\" target=\"_blank\" rel=\"noopener\"\u003e\u003cimg src=\"https://flatrun.dev/flatrun-logo-white.svg\" alt=\"FlatRun\"\u003e\u003c/a\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\n\u003c/html\u003e\n"
+        }
+      ],
+      "content": "name: ${NAME}\nservices:\n  app:\n    image: nginx:alpine\n    container_name: ${NAME}\n    volumes:\n      - ./html:/usr/share/nginx/html:ro\n    expose:\n      - \"80\"\n    networks:\n      - proxy\n    restart: unless-stopped\n\nnetworks:\n  proxy:\n    external: true\n"
+    },
+    {
+      "id": "wordpress",
+      "name": "WordPress",
+      "description": "Popular content management system",
+      "icon": "pi pi-globe",
+      "logo": "https://cdn.simpleicons.org/wordpress",
+      "category": "application",
+      "priority": 100,
+      "container_port": 80,
+      "mounts": [
+        {
+          "id": "app",
+          "name": "Application Data",
+          "container_path": "/var/www/html",
+          "description": "Bind mount for entire WordPress installation (advanced)",
+          "type": "file",
+          "required": false,
+          "user": "33:33"
+        },
+        {
+          "id": "uploads",
+          "name": "Media Uploads",
+          "container_path": "/var/www/html/wp-content/uploads",
+          "description": "Bind mount for media uploads only",
+          "type": "file",
+          "required": false,
+          "user": "33:33"
+        },
+        {
+          "id": "plugins",
+          "name": "Plugins",
+          "container_path": "/var/www/html/wp-content/plugins",
+          "description": "Bind mount for WordPress plugins",
+          "type": "file",
+          "required": false,
+          "user": "33:33"
+        }
+      ],
+      "files": null,
+      "content": "name: ${NAME}\nservices:\n  wordpress:\n    image: wordpress:latest\n    container_name: ${NAME}\n    environment:\n      WORDPRESS_DB_HOST: ${DB_HOST:-db}\n      WORDPRESS_DB_USER: ${DB_USERNAME:-wordpress}\n      WORDPRESS_DB_PASSWORD: ${DB_PASSWORD:-changeme}\n      WORDPRESS_DB_NAME: ${DB_DATABASE:-wordpress}\n      WORDPRESS_CONFIG_EXTRA: |\n        /* Handle HTTPS behind reverse proxy */\n        if (isset($$_SERVER['HTTP_X_FORWARDED_PROTO']) \u0026\u0026 $$_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') {\n            $$_SERVER['HTTPS'] = 'on';\n        }\n    volumes:\n      - ./data:/var/www/html\n    expose:\n      - \"80\"\n    networks:\n      - proxy\n    restart: unless-stopped\n\nnetworks:\n  proxy:\n    external: true\n"
+    },
+    {
+      "id": "nextcloud",
+      "name": "Nextcloud",
+      "description": "Self-hosted productivity platform",
+      "icon": "pi pi-cloud",
+      "logo": "https://cdn.simpleicons.org/nextcloud",
+      "category": "application",
+      "priority": 85,
+      "container_port": 80,
+      "mounts": [
+        {
+          "id": "data",
+          "name": "User Data",
+          "container_path": "/var/www/html/data",
+          "description": "User files and data storage",
+          "type": "file",
+          "required": true,
+          "user": "33:33"
+        },
+        {
+          "id": "config",
+          "name": "Configuration",
+          "container_path": "/var/www/html/config",
+          "description": "Nextcloud configuration files",
+          "type": "file",
+          "required": true,
+          "user": "33:33"
+        },
+        {
+          "id": "apps",
+          "name": "Custom Apps",
+          "container_path": "/var/www/html/custom_apps",
+          "description": "Custom Nextcloud applications",
+          "type": "file",
+          "required": false,
+          "user": "33:33"
+        }
+      ],
+      "files": null,
+      "content": "name: ${NAME}\nservices:\n  app:\n    image: nextcloud:latest\n    container_name: ${NAME}\n    restart: unless-stopped\n    expose:\n      - \"80\"\n    volumes:\n      - ./data:/var/www/html/data\n      - ./config:/var/www/html/config\n      - ./apps:/var/www/html/custom_apps\n    environment:\n      - MYSQL_HOST=${DB_HOST:-db}\n      - MYSQL_DATABASE=${DB_DATABASE:-nextcloud}\n      - MYSQL_USER=${DB_USERNAME:-nextcloud}\n      - MYSQL_PASSWORD=${DB_PASSWORD:-nextcloud}\n      - NEXTCLOUD_ADMIN_USER=${ADMIN_USER:-admin}\n      - NEXTCLOUD_ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin}\n      - NEXTCLOUD_TRUSTED_DOMAINS=${TRUSTED_DOMAINS:-localhost}\n    networks:\n      - proxy\n      - database\n\nnetworks:\n  proxy:\n    external: true\n  database:\n    external: true\n"
+    },
+    {
+      "id": "laravel",
+      "name": "Laravel",
+      "description": "PHP framework for web artisans",
+      "icon": "pi pi-code",
+      "logo": "https://cdn.simpleicons.org/laravel",
+      "category": "framework",
+      "priority": 80,
+      "container_port": 8000,
+      "mounts": [
+        {
+          "id": "app",
+          "name": "Application",
+          "container_path": "/app",
+          "description": "Laravel application source code",
+          "type": "file",
+          "required": false,
+          "user": "1000:1000"
+        },
+        {
+          "id": "env",
+          "name": "Environment Config",
+          "host_path": "./.env",
+          "container_path": "/app/.env",
+          "description": "Laravel environment configuration file",
+          "type": "file",
+          "required": true,
+          "user": "1000:1000"
+        },
+        {
+          "id": "storage",
+          "name": "Storage",
+          "container_path": "/app/storage",
+          "description": "Logs, cache, and file uploads",
+          "type": "file",
+          "required": true,
+          "user": "1000:1000",
+          "subdirectories": [
+            "app/public",
+            "app/private",
+            "framework/cache",
+            "framework/sessions",
+            "framework/testing",
+            "framework/views",
+            "logs"
+          ]
+        },
+        {
+          "id": "bootstrap-cache",
+          "name": "Bootstrap Cache",
+          "host_path": "./bootstrap/cache",
+          "container_path": "/app/bootstrap/cache",
+          "description": "Compiled framework files",
+          "type": "file",
+          "required": true,
+          "user": "1000:1000"
+        }
+      ],
+      "files": null,
+      "content": "name: ${NAME}\nservices:\n  app:\n    image: bitnami/laravel:latest\n    container_name: ${NAME}\n    expose:\n      - \"8000\"\n    networks:\n      - proxy\n    restart: unless-stopped\n\nnetworks:\n  proxy:\n    external: true\n"
+    },
+    {
+      "id": "ghost",
+      "name": "Ghost",
+      "description": "Professional publishing platform",
+      "icon": "pi pi-book",
+      "logo": "https://cdn.simpleicons.org/ghost",
+      "category": "application",
+      "priority": 70,
+      "container_port": 2368,
+      "mounts": [
+        {
+          "id": "content",
+          "name": "Content",
+          "container_path": "/var/lib/ghost/content",
+          "description": "Ghost content, themes, and images",
+          "type": "file",
+          "required": true,
+          "user": "1000:1000"
+        }
+      ],
+      "files": null,
+      "content": "name: ${NAME}\nservices:\n  ghost:\n    image: ghost:5-alpine\n    container_name: ${NAME}\n    environment:\n      url: https://${DOMAIN:-localhost}\n      database__client: mysql\n      database__connection__host: ${DB_HOST:-db}\n      database__connection__user: ${DB_USERNAME:-ghost}\n      database__connection__password: ${DB_PASSWORD:-changeme}\n      database__connection__database: ${DB_DATABASE:-ghost}\n    volumes:\n      - ./data:/var/lib/ghost/content\n    expose:\n      - \"2368\"\n    networks:\n      - proxy\n    restart: unless-stopped\n\nnetworks:\n  proxy:\n    external: true\n"
+    },
+    {
+      "id": "minio",
+      "name": "MinIO",
+      "description": "S3-compatible object storage you host yourself",
+      "icon": "pi pi-database",
+      "logo": "https://cdn.simpleicons.org/minio",
+      "category": "storage",
+      "object_store": {
+        "access_key_env": "MINIO_ROOT_USER",
+        "secret_key_env": "MINIO_ROOT_PASSWORD",
+        "api_port": 9000,
+        "region": "us-east-1",
+        "use_path_style": true
+      },
+      "priority": 68,
+      "container_port": 9000,
+      "mounts": [
+        {
+          "id": "data",
+          "name": "Data",
+          "container_path": "/data",
+          "description": "Buckets and objects",
+          "type": "file",
+          "required": true
+        }
+      ],
+      "files": null,
+      "content": "name: ${NAME}\nservices:\n  minio:\n    image: minio/minio:latest\n    container_name: ${NAME}\n    user: \"${FLATRUN_UID:-1000}:${FLATRUN_GID:-1000}\"\n    command: server /data --console-address \":9001\"\n    environment:\n      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-flatrun}\n      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-changeme}\n    volumes:\n      - ./data:/data\n    expose:\n      - \"9000\"\n      - \"9001\"\n    networks:\n      - objstore\n    restart: unless-stopped\n\nnetworks:\n  objstore:\n    external: true\n    name: ${FLATRUN_OBJECT_NETWORK:-database}\n"
+    },
+    {
+      "id": "nextjs",
+      "name": "Next.js",
+      "description": "React framework for production",
+      "icon": "pi pi-globe",
+      "logo": "https://cdn.simpleicons.org/nextdotjs",
+      "category": "framework",
+      "priority": 60,
+      "container_port": 3000,
+      "mounts": [
+        {
+          "id": "app",
+          "name": "Application",
+          "container_path": "/app",
+          "description": "Next.js application source code",
+          "type": "file",
+          "required": true
+        }
+      ],
+      "files": null,
+      "content": "name: ${NAME}\nservices:\n  app:\n    image: node:20-alpine\n    container_name: ${NAME}\n    working_dir: /app\n    expose:\n      - \"3000\"\n    command: sh -c \"npm install \u0026\u0026 npm run build \u0026\u0026 npm start\"\n    networks:\n      - proxy\n    restart: unless-stopped\n\nnetworks:\n  proxy:\n    external: true\n"
+    },
+    {
+      "id": "astro",
+      "name": "Astro",
+      "description": "The web framework for content-driven websites",
+      "icon": "pi pi-star",
+      "logo": "https://cdn.simpleicons.org/astro",
+      "category": "framework",
+      "priority": 50,
+      "container_port": 4321,
+      "mounts": [
+        {
+          "id": "app",
+          "name": "Application",
+          "container_path": "/app",
+          "description": "Astro application source code",
+          "type": "file",
+          "required": true
+        }
+      ],
+      "files": null,
+      "content": "name: ${NAME}\nservices:\n  app:\n    image: node:20-alpine\n    container_name: ${NAME}\n    working_dir: /app\n    expose:\n      - \"4321\"\n    command: sh -c \"npm install \u0026\u0026 npm run build \u0026\u0026 npm run preview -- --host\"\n    networks:\n      - proxy\n    restart: unless-stopped\n\nnetworks:\n  proxy:\n    external: true\n"
+    },
+    {
+      "id": "node",
+      "name": "Node.js",
+      "description": "JavaScript runtime for web applications",
+      "icon": "pi pi-code",
+      "logo": "https://cdn.simpleicons.org/nodedotjs",
+      "category": "runtime",
+      "priority": 40,
+      "container_port": 3000,
+      "mounts": [
+        {
+          "id": "app",
+          "name": "Application",
+          "container_path": "/app",
+          "description": "Node.js application source code",
+          "type": "file",
+          "required": true
+        }
+      ],
+      "files": null,
+      "content": "name: ${NAME}\nservices:\n  app:\n    image: node:20-alpine\n    container_name: ${NAME}\n    working_dir: /app\n    expose:\n      - \"3000\"\n    command: npm start\n    networks:\n      - proxy\n    restart: unless-stopped\n\nnetworks:\n  proxy:\n    external: true\n"
+    },
+    {
+      "id": "php",
+      "name": "PHP",
+      "description": "PHP with Apache web server",
+      "icon": "pi pi-code",
+      "logo": "https://cdn.simpleicons.org/php",
+      "category": "runtime",
+      "priority": 30,
+      "container_port": 80,
+      "mounts": [
+        {
+          "id": "html",
+          "name": "Web Root",
+          "container_path": "/var/www/html",
+          "description": "PHP application files",
+          "type": "file",
+          "required": true
+        }
+      ],
+      "files": null,
+      "content": "name: ${NAME}\nservices:\n  app:\n    image: php:8.3-apache\n    container_name: ${NAME}\n    expose:\n      - \"80\"\n    networks:\n      - proxy\n    restart: unless-stopped\n\nnetworks:\n  proxy:\n    external: true\n"
+    }
+  ]
+}

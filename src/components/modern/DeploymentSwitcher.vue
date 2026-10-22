@@ -204,6 +204,10 @@ watch(open, async (isOpen) => {
 
 watch(query, () => (active.value = 0));
 
+watch(currentName, (name) => {
+  if (name && !loading.value && !deployments.value.some((d) => d.name === name)) load();
+});
+
 onMounted(load);
 </script>
 

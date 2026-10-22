@@ -1,0 +1,6 @@
+{
+  "settings": {
+    "domain": { "auto_ssl": false, "auto_subdomain": false, "default_domain": "", "subdomain_style": "words" },
+    "infrastructure": { "default_proxy_network": "proxy" }
+  }
+}

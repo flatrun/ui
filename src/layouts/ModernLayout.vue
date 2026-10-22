@@ -118,11 +118,18 @@
     </main>
 
     <CommandPalette v-model:open="paletteOpen" :actions="paletteActions" />
-    <NewDeploymentModal
-      v-if="newMode"
+    <NewDeploymentPanel
       :visible="!!newMode"
-      :initial-mode="newMode"
+      :initial-mode="newMode ?? undefined"
       @close="newMode = null"
+      @created="onCreated"
+      @wizard="openWizard"
+    />
+    <NewDeploymentModal
+      v-if="wizardMode"
+      :visible="!!wizardMode"
+      :initial-mode="wizardMode"
+      @close="wizardMode = null"
       @created="onCreated"
     />
   </div>
@@ -135,14 +142,16 @@ import Icon from "@/components/base/Icon.vue";
 import Popover from "@/components/base/Popover.vue";
 import UserMenu from "@/components/UserMenu.vue";
 import NewDeploymentModal from "@/components/NewDeploymentModal.vue";
+import NewDeploymentPanel from "@/components/modern/NewDeploymentPanel.vue";
 import DeploymentSwitcher from "@/components/modern/DeploymentSwitcher.vue";
 import CommandPalette, { type PaletteAction } from "@/components/modern/CommandPalette.vue";
 import { useShellData } from "@/composables/useShellData";
 import { useTheme } from "@/composables/useTheme";
 import { NAV_GROUPS, visibleNavItems } from "@/navigation/items";
 import markUrl from "@/assets/flatrun-icon.svg";
+import type { CreateMode } from "@/deploy/createPayload";
 
-type NewMode = "git" | "image" | "easy" | "compose";
+type NewMode = CreateMode;
 
 const route = useRoute();
 const router = useRouter();
@@ -154,6 +163,7 @@ const moreOpen = ref(false);
 const newOpen = ref(false);
 const paletteOpen = ref(false);
 const newMode = ref<NewMode | null>(null);
+const wizardMode = ref<NewMode | null>(null);
 
 const fullHeight = computed(() => route.matched.some((r) => Boolean(r.meta?.fullHeight)));
 const canCreate = computed(() => authStore.hasPermission("deployments:write"));
@@ -186,8 +196,14 @@ function startNew(mode: NewMode, close: () => void) {
   newMode.value = mode;
 }
 
+function openWizard(mode: NewMode) {
+  newMode.value = null;
+  wizardMode.value = mode;
+}
+
 function onCreated(name?: string) {
   newMode.value = null;
+  wizardMode.value = null;
   if (name) router.push(`/deployments/${encodeURIComponent(name)}`);
 }
 
