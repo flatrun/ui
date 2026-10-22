@@ -113,7 +113,7 @@
   --z-modal: 1000;
   --z-toast: 1100;
 
-  /* Semantic surface/text tokens (themeable: see [data-scheme="dark"] and assets/themes) */
+  /* Semantic surface/text tokens (themeable: see [data-scheme="dark"] and assets/styles) */
   --app-bg: #f8fafc;
   --surface: #ffffff;
   --surface-raised: #ffffff;
@@ -148,6 +148,30 @@
   /* Project canvas */
   --canvas-bg: var(--app-bg);
   --canvas-dot: rgba(15, 23, 42, 0.14);
+
+  /* Sizing shared by buttons, inputs and selects */
+  --control-h: 36px;
+  --control-h-sm: 30px;
+  --font-ui: var(--font-sans);
+
+  /* Status colours */
+  --status-running: var(--color-success-500);
+  --status-stopped: var(--color-gray-400);
+  --status-failed: var(--color-danger-500);
+  --status-warning: var(--color-warning-500);
+  --status-sleeping: var(--c-purple);
+
+  /* Code, terminal and charts */
+  --code-bg: var(--surface-sunken);
+  --code-text: var(--text);
+  --terminal-bg: #0f172a;
+  --terminal-text: #e2e8f0;
+  --chart-1: var(--c-blue);
+  --chart-2: var(--c-green);
+  --chart-3: var(--c-amber);
+  --chart-4: var(--c-purple);
+  --chart-5: var(--c-teal);
+  --chart-6: var(--c-red);
 }
 
 [data-scheme="dark"] {

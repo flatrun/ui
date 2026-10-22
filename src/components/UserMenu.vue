@@ -13,21 +13,42 @@
         <strong>{{ username || "Account" }}</strong>
         <span v-if="role">{{ role }}</span>
       </div>
-      <div class="user-menu-themes" role="radiogroup" aria-label="Theme">
-        <span class="user-menu-label">Theme</span>
+      <div class="user-menu-group" role="radiogroup" aria-label="Style">
+        <span class="user-menu-label">Style</span>
         <button
-          v-for="option in themes"
+          v-for="option in styles"
           :key="option.id"
           type="button"
           role="radio"
-          :aria-checked="option.id === theme"
-          :class="{ active: option.id === theme }"
-          @click="selectTheme(option.id)"
+          :aria-checked="option.id === styleId"
+          :class="{ active: option.id === styleId }"
+          @click="emit('select-style', option.id)"
         >
-          <span class="theme-swatch" :data-swatch="option.id" />
-          {{ option.label }}
-          <Icon v-if="option.id === theme" name="check" :size="14" class="theme-check" />
+          <span class="style-swatch" :data-swatch="option.id" />
+          <span class="style-copy">
+            {{ option.label }}
+            <small>{{ option.description }}</small>
+          </span>
+          <Icon v-if="option.id === styleId" name="check" :size="14" class="theme-check" />
         </button>
+      </div>
+      <div class="user-menu-group">
+        <span class="user-menu-label">Appearance</span>
+        <div class="scheme-switch" role="radiogroup" aria-label="Appearance">
+          <button
+            v-for="option in schemeOptions"
+            :key="option.id"
+            type="button"
+            role="radio"
+            :aria-checked="option.id === scheme"
+            :class="{ active: option.id === scheme }"
+            :title="option.label"
+            @click="emit('select-scheme', option.id)"
+          >
+            <Icon :name="option.icon" :size="14" />
+            {{ option.label }}
+          </button>
+        </div>
       </div>
       <button type="button" class="sign-out" @click="selectSignOut">
         <Icon name="log-out" :size="16" />
@@ -40,30 +61,33 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import Icon from "@/components/base/Icon.vue";
-import type { ThemeDefinition } from "@/themes/registry";
+import type { SchemePreference, StyleDefinition } from "@/themes/registry";
 
 const props = defineProps<{
   username?: string;
   role?: string;
-  theme: string;
-  themes: ThemeDefinition[];
+  styleId: string;
+  styles: StyleDefinition[];
+  scheme: SchemePreference;
 }>();
 
 const emit = defineEmits<{
-  "select-theme": [id: string];
+  "select-style": [id: string];
+  "select-scheme": [preference: SchemePreference];
   "sign-out": [];
 }>();
 
 const menu = ref<HTMLDetailsElement | null>(null);
+const schemeOptions: { id: SchemePreference; label: string; icon: string }[] = [
+  { id: "light", label: "Light", icon: "sun" },
+  { id: "dark", label: "Dark", icon: "moon" },
+  { id: "system", label: "Auto", icon: "monitor" },
+];
+
 const initial = computed(() => (props.username || "A").trim().charAt(0).toUpperCase());
 
 function close() {
   if (menu.value) menu.value.open = false;
-}
-
-function selectTheme(id: string) {
-  emit("select-theme", id);
-  close();
 }
 
 function selectSignOut() {
@@ -140,7 +164,7 @@ function selectSignOut() {
   top: calc(100% + var(--space-2));
   right: 0;
   z-index: 60;
-  width: 210px;
+  width: 230px;
   padding: var(--space-2);
   background: var(--surface-raised);
   border: 1px solid var(--border);
@@ -181,7 +205,7 @@ function selectSignOut() {
   outline-offset: -2px;
 }
 
-.user-menu-themes {
+.user-menu-group {
   padding: var(--space-1) 0;
   border-bottom: 1px solid var(--border-subtle);
 }
@@ -195,8 +219,44 @@ function selectSignOut() {
   letter-spacing: 0.04em;
 }
 
-.user-menu-panel .user-menu-themes button.active {
+.user-menu-panel .user-menu-group button.active {
   background: var(--accent-subtle);
+}
+
+.style-copy {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.style-copy small {
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+}
+
+.scheme-switch {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+  margin: var(--space-1) var(--space-2) var(--space-1);
+  padding: 2px;
+  background: var(--surface-sunken);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.user-menu-panel .scheme-switch button {
+  justify-content: center;
+  gap: 4px;
+  margin: 0;
+  padding: var(--space-1);
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+}
+
+.user-menu-panel .scheme-switch button.active {
+  background: var(--surface-raised);
+  color: var(--text);
 }
 
 .theme-check {
@@ -204,7 +264,7 @@ function selectSignOut() {
   color: var(--accent);
 }
 
-.theme-swatch {
+.style-swatch {
   width: 14px;
   height: 14px;
   flex-shrink: 0;
@@ -212,16 +272,13 @@ function selectSignOut() {
   border-radius: var(--radius-xs);
 }
 
-.theme-swatch[data-swatch="flatrun"] {
-  background: linear-gradient(135deg, #0b0d12 50%, #5b8cff 50%);
+.style-swatch[data-swatch="modern"] {
+  background: linear-gradient(90deg, #0f0f10 0 30%, #fafafa 30%);
 }
 
-.theme-swatch[data-swatch="light"] {
-  background: linear-gradient(135deg, #ffffff 50%, #3b82f6 50%);
-}
-
-.theme-swatch[data-swatch="dark"] {
-  background: linear-gradient(135deg, #111827 50%, #60a5fa 50%);
+.style-swatch[data-swatch="classic"] {
+  border-radius: var(--radius-sm);
+  background: linear-gradient(90deg, #0f172a 0 30%, #f8fafc 30%);
 }
 
 .user-menu-panel .sign-out {

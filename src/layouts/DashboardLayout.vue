@@ -588,9 +588,11 @@
           <UserMenu
             :username="authStore.currentUser?.username"
             :role="authStore.currentUser?.role"
-            :theme="theme"
-            :themes="themes"
-            @select-theme="setTheme"
+            :style-id="style"
+            :styles="styles"
+            :scheme="schemePreference"
+            @select-style="setStyle"
+            @select-scheme="setScheme"
             @sign-out="handleLogout"
           />
         </div>
@@ -625,7 +627,7 @@ import GlobalSearch from "@/components/GlobalSearch.vue";
 import UserMenu from "@/components/UserMenu.vue";
 import { useTheme } from "@/composables/useTheme";
 
-const { theme, themes, setTheme } = useTheme();
+const { style, styles, schemePreference, setStyle, setScheme } = useTheme();
 
 const route = useRoute();
 const router = useRouter();

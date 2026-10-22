@@ -1,29 +1,33 @@
 export type ColorScheme = "light" | "dark";
+export type SchemePreference = ColorScheme | "system";
+export type ShellLayout = "classic" | "modern";
 
-export interface ThemeDefinition {
+export interface StyleDefinition {
   id: string;
   label: string;
-  scheme: ColorScheme;
+  description: string;
+  layout: ShellLayout;
 }
 
-const themes = new Map<string, ThemeDefinition>();
+const styles = new Map<string, StyleDefinition>();
 
-// A theme is a registry entry plus a stylesheet scoped to [data-theme="<id>"].
-// Tokens it leaves alone fall back to its scheme's defaults.
-export function registerTheme(theme: ThemeDefinition) {
-  themes.set(theme.id, theme);
+// A style is a registry entry plus a stylesheet scoped to [data-style="<id>"],
+// with [data-scheme] selecting its light or dark tokens. Tokens a style leaves
+// alone fall back to the defaults in design-system.css.
+export function registerStyle(style: StyleDefinition) {
+  styles.set(style.id, style);
 }
 
-export function listThemes(): ThemeDefinition[] {
-  return [...themes.values()];
+export function listStyles(): StyleDefinition[] {
+  return [...styles.values()];
 }
 
-export function getTheme(id: string | null | undefined): ThemeDefinition | undefined {
-  return id ? themes.get(id) : undefined;
+export function getStyle(id: string | null | undefined): StyleDefinition | undefined {
+  return id ? styles.get(id) : undefined;
 }
 
-export const DEFAULT_THEME_ID = "flatrun";
+export const DEFAULT_STYLE_ID = "modern";
+export const SCHEME_PREFERENCES: SchemePreference[] = ["light", "dark", "system"];
 
-registerTheme({ id: "flatrun", label: "FlatRun", scheme: "dark" });
-registerTheme({ id: "light", label: "Light", scheme: "light" });
-registerTheme({ id: "dark", label: "Dark", scheme: "dark" });
+registerStyle({ id: "modern", label: "Modern", description: "Compact, top navigation", layout: "modern" });
+registerStyle({ id: "classic", label: "Classic", description: "Sidebar navigation", layout: "classic" });

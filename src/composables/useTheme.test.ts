@@ -1,44 +1,71 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { initTheme, useTheme } from "./useTheme";
-import { registerTheme } from "@/themes/registry";
 
 const root = () => document.documentElement;
+
+function systemPrefersDark(dark: boolean) {
+  vi.stubGlobal(
+    "matchMedia",
+    vi.fn(() => ({ matches: dark, addEventListener: vi.fn() })),
+  );
+}
 
 describe("useTheme", () => {
   beforeEach(() => {
     localStorage.clear();
+    vi.unstubAllGlobals();
+    systemPrefersDark(false);
   });
 
-  it("starts new users on the FlatRun theme", () => {
+  it("starts new users on the Modern style following the system scheme", () => {
+    systemPrefersDark(true);
     initTheme();
-    expect(root().getAttribute("data-theme")).toBe("flatrun");
+    expect(root().getAttribute("data-style")).toBe("modern");
     expect(root().getAttribute("data-scheme")).toBe("dark");
+    expect(useTheme().schemePreference.value).toBe("system");
   });
 
-  it("keeps a previously stored light or dark choice", () => {
+  it.each([
+    ["light", "classic", "light"],
+    ["dark", "classic", "dark"],
+    ["flatrun", "modern", "dark"],
+  ])("carries an earlier %s theme over as %s %s", (legacy, style, scheme) => {
+    localStorage.setItem("flatrun-theme", legacy);
+    initTheme();
+    expect(root().getAttribute("data-style")).toBe(style);
+    expect(root().getAttribute("data-scheme")).toBe(scheme);
+  });
+
+  it("falls back to the default for an unknown stored style", () => {
+    localStorage.setItem("flatrun-style", "removed-style");
+    initTheme();
+    expect(root().getAttribute("data-style")).toBe("modern");
+  });
+
+  it("applies and remembers a style and a scheme, ignoring unknown values", () => {
+    initTheme();
+    const { setStyle, setScheme, current, scheme } = useTheme();
+
+    setStyle("classic");
+    setScheme("dark");
+    expect(root().getAttribute("data-style")).toBe("classic");
+    expect(root().getAttribute("data-scheme")).toBe("dark");
+    expect(current.value.layout).toBe("classic");
+    expect(localStorage.getItem("flatrun-style")).toBe("classic");
+    expect(localStorage.getItem("flatrun-scheme")).toBe("dark");
+
+    setStyle("nope");
+    setScheme("sepia" as never);
+    expect(root().getAttribute("data-style")).toBe("classic");
+    expect(scheme.value).toBe("dark");
+  });
+
+  it("prefers a stored style over an earlier theme", () => {
     localStorage.setItem("flatrun-theme", "light");
+    localStorage.setItem("flatrun-style", "modern");
+    localStorage.setItem("flatrun-scheme", "dark");
     initTheme();
-    expect(root().getAttribute("data-theme")).toBe("light");
-    expect(root().getAttribute("data-scheme")).toBe("light");
-  });
-
-  it("falls back to the default for an unknown stored theme", () => {
-    localStorage.setItem("flatrun-theme", "removed-theme");
-    initTheme();
-    expect(root().getAttribute("data-theme")).toBe("flatrun");
-  });
-
-  it("applies and remembers a registered theme, ignoring unknown ids", () => {
-    registerTheme({ id: "test-ocean", label: "Ocean", scheme: "light" });
-    const { setTheme, current } = useTheme();
-
-    setTheme("test-ocean");
-    expect(root().getAttribute("data-theme")).toBe("test-ocean");
-    expect(root().getAttribute("data-scheme")).toBe("light");
-    expect(localStorage.getItem("flatrun-theme")).toBe("test-ocean");
-    expect(current.value.label).toBe("Ocean");
-
-    setTheme("nope");
-    expect(root().getAttribute("data-theme")).toBe("test-ocean");
+    expect(root().getAttribute("data-style")).toBe("modern");
+    expect(root().getAttribute("data-scheme")).toBe("dark");
   });
 });
