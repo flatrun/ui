@@ -3,7 +3,7 @@ import listFixture from "@/components/env/fixtures/list.json";
 import envFixture from "@/components/env/fixtures/env.json";
 import type { Deployment } from "@/types";
 import { networkEdges, referenceEdges } from "./edges";
-import { environmentNames, environmentOf, layoutDeployments } from "./layout";
+import { NODE_HEIGHT, environmentNames, environmentOf, layoutDeployments } from "./layout";
 
 const deployments = listFixture.deployments as unknown as Deployment[];
 
@@ -47,6 +47,18 @@ describe("canvas layout", () => {
     const x = Object.fromEntries(placed.map((p) => [p.name, p.position.x]));
     expect(x["orders-db"]).toBe(0);
     expect(x["hello-web"]).toBeGreaterThan(0);
+  });
+
+  it("keeps an edge that skips a column clear of the cards in that column", () => {
+    const three = [{ name: "db" }, { name: "web" }, { name: "worker" }] as unknown as Deployment[];
+    const deps = [
+      { source: "db", target: "web" },
+      { source: "web", target: "worker" },
+      { source: "db", target: "worker" },
+    ];
+    const at = Object.fromEntries(layoutDeployments(three, deps, {}).map((p) => [p.name, p.position]));
+    expect(at.db.y).toBe(at.worker.y);
+    expect(Math.abs(at.web.y - at.db.y)).toBeGreaterThanOrEqual(NODE_HEIGHT);
   });
 
   it("survives a reference cycle and keeps saved positions", () => {

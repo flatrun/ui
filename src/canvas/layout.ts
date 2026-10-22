@@ -59,7 +59,12 @@ export function layoutDeployments(
     rows.set(col, row + 1);
     return {
       name: d.name,
-      position: saved[d.name] ?? { x: col * (NODE_WIDTH + GAP_X), y: row * (NODE_HEIGHT + GAP_Y) },
+      position: saved[d.name] ?? {
+        x: col * (NODE_WIDTH + GAP_X),
+        // Odd columns drop by a full row so an edge that skips a column passes
+        // between that column's cards instead of through them.
+        y: row * (NODE_HEIGHT + GAP_Y) + (col % 2) * (NODE_HEIGHT + GAP_Y / 2),
+      },
     };
   });
 }
