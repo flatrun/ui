@@ -4,6 +4,7 @@ import { mount, flushPromises } from "@vue/test-utils";
 import { createTestingPinia } from "@pinia/testing";
 import DeploymentsView from "./DeploymentsView.vue";
 import { useAuthStore } from "@/stores/auth";
+import { useTheme } from "@/composables/useTheme";
 
 vi.mock("@/services/api", () => ({
   clusterApi: {
@@ -98,6 +99,7 @@ describe("DeploymentsView", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockRoute = reactive({ query: {} as Record<string, string>, name: "deployments" });
+    useTheme().setStyle("classic");
   });
 
   const mountView = () => {
@@ -110,14 +112,14 @@ describe("DeploymentsView", () => {
         stubs: {
           DataTable: {
             template: `
-              <div class="data-table">
+              <div class="data-table" :data-view="defaultViewMode">
                 <slot name="actions" />
                 <div class="items">
                   <slot name="grid" :items="items" />
                 </div>
               </div>
             `,
-            props: ["items", "columns", "loading"],
+            props: ["items", "columns", "loading", "defaultViewMode"],
           },
           OperationModal: true,
           LogsModal: true,
@@ -409,6 +411,26 @@ describe("DeploymentsView", () => {
     it("still shows Refresh button without write permission", () => {
       const wrapper = mountViewDenied();
       expect(wrapper.text()).toContain("Refresh");
+    });
+  });
+
+  describe("Modern style", () => {
+    beforeEach(() => {
+      useTheme().setStyle("modern");
+    });
+
+    it("opens as a table and leaves creating to the top bar", () => {
+      const wrapper = mountView();
+      expect(wrapper.get(".data-table").attributes("data-view")).toBe("table");
+      expect(wrapper.text()).not.toContain("New Deployment");
+      expect(wrapper.text()).toContain("Refresh");
+    });
+
+    it("keeps cards and the New Deployment button in Classic", () => {
+      useTheme().setStyle("classic");
+      const wrapper = mountView();
+      expect(wrapper.get(".data-table").attributes("data-view")).toBe("grid");
+      expect(wrapper.text()).toContain("New Deployment");
     });
   });
 });

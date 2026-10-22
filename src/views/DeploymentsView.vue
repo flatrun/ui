@@ -18,10 +18,14 @@
       loading-text="Loading deployments..."
       :default-page-size="12"
       :toggleable="true"
-      default-view-mode="grid"
+      :default-view-mode="modern ? 'table' : 'grid'"
     >
       <template #actions>
-        <button v-if="canWrite && !viewingRemoteServer" class="btn btn-primary" @click="showNewDeploymentModal = true">
+        <button
+          v-if="canWrite && !viewingRemoteServer && !modern"
+          class="btn btn-primary"
+          @click="showNewDeploymentModal = true"
+        >
           <Plus :size="16" />
           New Deployment
         </button>
@@ -310,6 +314,7 @@ import { useAuthStore } from "@/stores/auth";
 import type { Deployment } from "@/types";
 import DataTable from "@/components/DataTable.vue";
 import DeploymentCard from "@/components/DeploymentCard.vue";
+import { useTheme } from "@/composables/useTheme";
 import OperationModal from "@/components/OperationModal.vue";
 import { useDeploymentJob } from "@/composables/useDeploymentJob";
 import LogsModal from "@/components/LogsModal.vue";
@@ -340,6 +345,8 @@ const router = useRouter();
 const route = useRoute();
 const notifications = useNotificationsStore();
 const authStore = useAuthStore();
+const { current: currentStyle } = useTheme();
+const modern = computed(() => currentStyle.value.layout === "modern");
 const canWrite = authStore.hasPermission("deployments:write");
 const canReadCluster = authStore.hasPermission("cluster:read");
 type ManagedDeployment = Deployment & { server: string; local: boolean; clusterKey: string };

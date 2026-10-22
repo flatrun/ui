@@ -7106,7 +7106,12 @@ onUnmounted(() => {
 
 @media (max-width: 860px) {
   .modern-body {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-4);
+  }
+
+  .modern-title {
+    flex-wrap: wrap;
   }
 
   .section-rail {

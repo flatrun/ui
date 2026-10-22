@@ -74,7 +74,7 @@
       </template>
     </Popover>
 
-    <template v-if="environments.length > 1">
+    <span v-if="environments.length > 1" class="env-part">
       <span class="sep">/</span>
       <Popover v-model:open="envOpen" width="220px">
         <template #trigger="{ toggle }">
@@ -96,7 +96,7 @@
           </ul>
         </template>
       </Popover>
-    </template>
+    </span>
 
     <OperationModal
       :visible="job.state.visible"
@@ -212,6 +212,23 @@ onMounted(load);
 </script>
 
 <style scoped>
+.env-part {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+@media (max-width: 600px) {
+  .env-part {
+    display: none;
+  }
+
+  .crumb {
+    max-width: 150px;
+  }
+}
+
 .switcher {
   display: flex;
   min-width: 0;

@@ -119,3 +119,55 @@
   box-shadow: none;
   border-color: var(--text-subtle);
 }
+
+:root[data-style="modern"] .view-header:has(> .tabs) {
+  padding: 0;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  border-radius: 0;
+}
+
+:root[data-style="modern"] .tabs {
+  gap: var(--space-1);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+:root[data-style="modern"] .tabs .tab {
+  flex-shrink: 0;
+  margin-bottom: -1px;
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  font-size: var(--text-base);
+}
+
+:root[data-style="modern"] .tabs .tab:hover {
+  background: transparent;
+}
+
+:root[data-style="modern"] .tabs .tab.active {
+  background: transparent;
+  border-bottom-color: var(--text);
+  color: var(--text);
+}
+
+:root[data-style="modern"] .user-chip {
+  min-height: 0;
+  padding: 2px;
+  background: transparent;
+  border-color: transparent;
+}
+
+:root[data-style="modern"] .user-chip-copy,
+:root[data-style="modern"] .user-chip > .app-icon {
+  display: none;
+}
+
+:root[data-style="modern"] .user-chip-avatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  font-size: var(--text-xs);
+}

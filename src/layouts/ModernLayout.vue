@@ -54,6 +54,12 @@
           </template>
           <template #default="{ close }">
             <div class="more-grid">
+              <section class="more-primary">
+                <h4>Main</h4>
+                <RouterLink v-for="item in primaryItems" :key="item.id" :to="item.path" @click="close">
+                  <Icon :name="item.icon" :size="14" />{{ item.label }}
+                </RouterLink>
+              </section>
               <section v-for="group in moreGroups" :key="group.name">
                 <h4>{{ group.name }}</h4>
                 <RouterLink v-for="item in group.items" :key="item.id" :to="item.path" @click="close">
@@ -504,13 +510,32 @@ onBeforeUnmount(() => document.removeEventListener("keydown", onKeydown));
   }
 }
 
+.more-primary {
+  display: none;
+}
+
 @media (max-width: 860px) {
   .topbar-nav .nav-link:not(:last-child) {
     display: none;
   }
 
+  .more-primary {
+    display: block;
+  }
+
+  .topbar {
+    gap: var(--space-2);
+    padding: 0 var(--space-3);
+  }
+
   .modern-content {
     padding: var(--space-4);
+  }
+}
+
+@media (max-width: 600px) {
+  .agent-dot {
+    display: none;
   }
 }
 </style>
