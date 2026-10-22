@@ -35,6 +35,12 @@ const routes: RouteRecordRaw[] = [
         meta: { permission: "deployments:read" },
       },
       {
+        path: "canvas",
+        name: "canvas",
+        component: () => import("@/views/CanvasView.vue"),
+        meta: { permission: "deployments:read" },
+      },
+      {
         path: "deployments/:name",
         name: "deployment-detail",
         component: () => import("@/views/DeploymentDetailView.vue"),

@@ -104,6 +104,10 @@
               Deployments
               <span class="nav-count">{{ stats.deployments }}</span>
             </router-link>
+            <router-link to="/canvas" class="nav-subitem" :class="{ active: route.name === 'canvas' }">
+              <Icon name="workflow" :size="15" />
+              Canvas
+            </router-link>
             <template v-if="clusterPeers.length">
               <router-link
                 :to="serverDeploymentRoute(currentServerName)"
@@ -702,6 +706,7 @@ const currentPageTitle = computed(() => {
     "dashboard-detail": "Dashboard",
     deployments: selectedDeploymentServer.value ? `${selectedDeploymentServer.value} deployments` : "Deployments",
     "deployment-detail": "Deployment Details",
+    canvas: "Canvas",
     containers: "Containers",
     images: "Images",
     volumes: "Volumes",
