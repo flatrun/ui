@@ -840,6 +840,13 @@
             </div>
           </div>
 
+          <SecretsPanel
+            v-if="modern && shows('environment') && canReadSecrets"
+            class="secrets-block"
+            :scope="`deployment:${route.params.name}`"
+            :can-write="canWriteSecrets"
+          />
+
           <div v-if="shows('actions')" class="actions-tab">
             <div class="quick-actions-header">
               <div class="header-text">
@@ -2236,6 +2243,7 @@ import OperationModal from "@/components/OperationModal.vue";
 import Popover from "@/components/base/Popover.vue";
 import DeploymentMetrics from "@/components/deployment/DeploymentMetrics.vue";
 import ServiceCanvas from "@/components/project/ServiceCanvas.vue";
+import SecretsPanel from "@/components/secrets/SecretsPanel.vue";
 import { useTheme } from "@/composables/useTheme";
 import { MODERN_SECTIONS, sectionForTab } from "@/views/deploymentSections";
 import { useDeploymentJob, type DeploymentOperation } from "@/composables/useDeploymentJob";
@@ -2290,6 +2298,8 @@ const canManageSchedules = computed(() => canWrite.value && authStore.hasPermiss
 const canDeleteSchedules = computed(() => canDelete.value && authStore.hasPermission("scheduler:delete"));
 const canReadSecurity = computed(() => canRead.value && authStore.hasPermission("security:read"));
 const canManageSecurity = computed(() => canWrite.value && authStore.hasPermission("security:write"));
+const canReadSecrets = computed(() => canRead.value && authStore.hasPermission("secrets:read"));
+const canWriteSecrets = computed(() => canWrite.value && authStore.hasPermission("secrets:write"));
 
 const backPath = computed(() => {
   if (isRemote.value) return { path: "/deployments", query: { server: remoteServer.value } };
@@ -7128,5 +7138,11 @@ onUnmounted(() => {
   .rail-label {
     display: none;
   }
+}
+
+.secrets-block {
+  margin-top: var(--space-6);
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--border);
 }
 </style>

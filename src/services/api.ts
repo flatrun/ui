@@ -341,6 +341,108 @@ export interface WorkspaceInvitation {
 
 type Items<T> = { items: T[] | null; total: number };
 
+export interface SecretScope {
+  type: "workspace" | "deployment" | "service";
+  id: string;
+}
+
+export interface SecretGenerator {
+  length: number;
+  charset: "alphanumeric" | "hex" | "symbols";
+}
+
+export interface SecretRotation extends SecretGenerator {
+  schedule: string;
+}
+
+export interface StoredSecret {
+  name: string;
+  scope: SecretScope;
+  version: number;
+  rotation?: SecretRotation;
+  last_rotated_at?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SecretField {
+  key: string;
+  label: string;
+  secret?: boolean;
+  required?: boolean;
+  default?: string;
+}
+
+export interface SecretProvider {
+  type: string;
+  label: string;
+  connection_fields: SecretField[];
+  binding_fields: SecretField[];
+}
+
+export interface SecretConnection {
+  id: string;
+  name: string;
+  provider: string;
+  settings: Record<string, string>;
+  workspace?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SecretBinding {
+  id: string;
+  scope: SecretScope;
+  provider: string;
+  connection_id: string;
+  options?: Record<string, string>;
+  created_at: string;
+}
+
+export interface SecretChange {
+  refreshed: string[];
+  restarted?: string[];
+  failed: Record<string, string>;
+}
+
+const scopeParam = (scope: string) => ({ params: { scope } });
+
+export const secretsApi = {
+  list: (scope: string) => apiClient.get<{ items: StoredSecret[]; total: number }>("/secrets", scopeParam(scope)),
+  set: (scope: string, name: string, body: { value: string } | { generate: SecretGenerator }) =>
+    apiClient.put<SecretChange & { secret: StoredSecret }>(
+      `/secrets/${encodeURIComponent(name)}`,
+      body,
+      scopeParam(scope),
+    ),
+  remove: (scope: string, name: string) => apiClient.delete(`/secrets/${encodeURIComponent(name)}`, scopeParam(scope)),
+  rotate: (scope: string, name: string) =>
+    apiClient.post<SecretChange & { secret: StoredSecret }>(
+      `/secrets/${encodeURIComponent(name)}/rotate`,
+      undefined,
+      scopeParam(scope),
+    ),
+  setRotation: (scope: string, name: string, rotation: SecretRotation) =>
+    apiClient.put<StoredSecret>(`/secrets/${encodeURIComponent(name)}/rotation`, rotation, scopeParam(scope)),
+  clearRotation: (scope: string, name: string) =>
+    apiClient.delete<StoredSecret>(`/secrets/${encodeURIComponent(name)}/rotation`, scopeParam(scope)),
+  providers: () => apiClient.get<{ items: SecretProvider[]; total: number }>("/secret-providers"),
+  connections: () => apiClient.get<{ items: SecretConnection[]; total: number }>("/secret-connections"),
+  createConnection: (body: { name: string; provider: string; settings: Record<string, string> }) =>
+    apiClient.post<SecretConnection>("/secret-connections", body),
+  removeConnection: (id: string) => apiClient.delete(`/secret-connections/${id}`),
+  bindings: (scope: string) =>
+    apiClient.get<{ items: SecretBinding[]; total: number }>("/secret-bindings", scopeParam(scope)),
+  bind: (scope: string, connectionId: string, options: Record<string, string>) =>
+    apiClient.post<{ binding: SecretBinding; keys: string[] }>(
+      "/secret-bindings",
+      { connection_id: connectionId, options },
+      scopeParam(scope),
+    ),
+  unbind: (id: string) => apiClient.delete(`/secret-bindings/${id}`),
+  sync: (id: string) => apiClient.post<SecretChange & { keys: string[] }>(`/secret-bindings/${id}/sync`),
+};
+
 export const workspacesApi = {
   list: () => apiClient.get<Items<Workspace>>("/workspaces"),
   create: (name: string) => apiClient.post<Workspace>("/workspaces", { name }),

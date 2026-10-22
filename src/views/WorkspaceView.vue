@@ -57,6 +57,17 @@
         </form>
       </section>
 
+      <section class="block">
+        <SecretsPanel :scope="`workspace:${workspace.slug}`" :can-write="canManage" />
+      </section>
+
+      <section class="block">
+        <div class="block-head">
+          <h2>Secret managers</h2>
+        </div>
+        <SecretConnections :can-write="canManage" />
+      </section>
+
       <section v-if="canManage" class="block">
         <div class="block-head">
           <h2>Invitations</h2>
@@ -105,6 +116,8 @@
 </template>
 
 <script setup lang="ts">
+import SecretsPanel from "@/components/secrets/SecretsPanel.vue";
+import SecretConnections from "@/components/secrets/SecretConnections.vue";
 import { computed, ref, watch } from "vue";
 import Icon from "@/components/base/Icon.vue";
 import { workspacesApi, type WorkspaceInvitation, type WorkspaceMember } from "@/services/api";
