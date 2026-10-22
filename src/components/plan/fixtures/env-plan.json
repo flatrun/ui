@@ -1,0 +1,87 @@
+{
+  "plan": {
+    "format_version": 1,
+    "id": "pln_4e16a205-ffbb-4c56-93e8-1860be39a8c9",
+    "action": "deployment.env.update",
+    "status": "available",
+    "resource": {
+      "type": "deployment",
+      "id": "phase-demo"
+    },
+    "created_at": "2026-10-22T19:58:37.679023584Z",
+    "expires_at": "2026-10-23T19:58:37.679023584Z",
+    "created_by": {
+      "id": "2",
+      "name": "shots",
+      "type": "user"
+    },
+    "request": {
+      "method": "PUT",
+      "path": "/api/deployments/phase-demo/env",
+      "params": {
+        "name": "phase-demo"
+      },
+      "body": "[redacted]"
+    },
+    "snapshot": {
+      "files": {
+        "phase-demo/.env": "absent",
+        "phase-demo/.env.flatrun": "absent"
+      }
+    },
+    "changes": [
+      {
+        "type": "file",
+        "id": ".env",
+        "actions": ["create"],
+        "reason": "2 variable(s) added, 0 changed, 0 removed",
+        "before": null,
+        "after": "[redacted]",
+        "sensitive": true
+      },
+      {
+        "type": "container",
+        "id": "worker",
+        "actions": ["delete", "create"],
+        "reason": "env file change requires recreating containers; takes effect on the next start or deploy, not on apply",
+        "before": null,
+        "after": null,
+        "sensitive": false
+      },
+      {
+        "type": "container",
+        "id": "db",
+        "actions": ["delete", "create"],
+        "reason": "env file change requires recreating containers; takes effect on the next start or deploy, not on apply",
+        "before": null,
+        "after": null,
+        "sensitive": false
+      },
+      {
+        "type": "container",
+        "id": "web",
+        "actions": ["delete", "create"],
+        "reason": "env file change requires recreating containers; takes effect on the next start or deploy, not on apply",
+        "before": null,
+        "after": null,
+        "sensitive": false
+      },
+      {
+        "type": "container",
+        "id": "api",
+        "actions": ["delete", "create"],
+        "reason": "env file change requires recreating containers; takes effect on the next start or deploy, not on apply",
+        "before": null,
+        "after": null,
+        "sensitive": false
+      }
+    ],
+    "summary": {
+      "create": 1,
+      "update": 0,
+      "replace": 4,
+      "delete": 0,
+      "no-op": 0
+    }
+  }
+}
