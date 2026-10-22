@@ -1,0 +1,227 @@
+{
+  "items": [
+    {
+      "name": "hello-web",
+      "status": "running",
+      "created_at": "2026-10-22T17:36:05.266541516+01:00",
+      "updated_at": "2026-10-22T17:36:05.266541516+01:00",
+      "services": [
+        {
+          "name": "app",
+          "container_id": "",
+          "image": "flatrun/hello-web:26fd8038ac73",
+          "status": "unknown",
+          "ports": ["8080"],
+          "networks": ["proxy"],
+          "is_primary": false,
+          "created_at": "0001-01-01T00:00:00Z",
+          "replicas": 1,
+          "running_replicas": 0
+        }
+      ],
+      "metadata": {
+        "name": "hello-web",
+        "type": "",
+        "networking": {
+          "expose": false,
+          "domain": "",
+          "service": "app",
+          "container_port": 8080,
+          "protocol": "http",
+          "proxy_type": "http"
+        },
+        "ssl": {
+          "enabled": false,
+          "auto_cert": false
+        },
+        "healthcheck": {
+          "path": "/",
+          "interval": "30s"
+        },
+        "source": {
+          "type": "git",
+          "ref": "https://github.com/acme/hello-web.git",
+          "branch": "main",
+          "auto_deploy": true,
+          "previews": false,
+          "builder": "dockerfile",
+          "last_revision": "26fd8038ac732fd98bf59508a58803fc635b26e1"
+        }
+      },
+      "workspace": "default"
+    },
+    {
+      "name": "hello-web-staging",
+      "status": "running",
+      "created_at": "2026-10-22T17:36:05.266704943+01:00",
+      "updated_at": "2026-10-22T17:36:05.266704943+01:00",
+      "services": [
+        {
+          "name": "app",
+          "container_id": "",
+          "image": "flatrun/hello-web-staging:5d89c151148c",
+          "status": "unknown",
+          "ports": ["8080"],
+          "networks": ["proxy"],
+          "is_primary": false,
+          "created_at": "0001-01-01T00:00:00Z",
+          "replicas": 1,
+          "running_replicas": 0
+        }
+      ],
+      "metadata": {
+        "name": "hello-web-staging",
+        "type": "",
+        "networking": {
+          "expose": false,
+          "domain": "",
+          "service": "app",
+          "container_port": 8080,
+          "protocol": "http",
+          "proxy_type": "http"
+        },
+        "ssl": {
+          "enabled": false,
+          "auto_cert": false
+        },
+        "healthcheck": {
+          "path": "/",
+          "interval": "30s"
+        },
+        "source": {
+          "type": "git",
+          "ref": "https://github.com/acme/hello-web.git",
+          "branch": "main",
+          "auto_deploy": true,
+          "previews": false,
+          "builder": "dockerfile",
+          "last_revision": "5d89c151148ca8baea62ab5c4b3b78c35e5be8ed"
+        },
+        "environment": {
+          "base": "hello-web",
+          "name": "staging"
+        }
+      },
+      "workspace": "default"
+    },
+    {
+      "name": "orders-db",
+      "status": "running",
+      "created_at": "2026-10-22T17:20:59.047439143+01:00",
+      "updated_at": "2026-10-22T17:20:59.047439143+01:00",
+      "services": [
+        {
+          "name": "orders-db",
+          "container_id": "",
+          "image": "busybox:latest",
+          "status": "unknown",
+          "is_primary": false,
+          "created_at": "0001-01-01T00:00:00Z",
+          "replicas": 1,
+          "running_replicas": 0
+        }
+      ],
+      "metadata": {
+        "name": "orders-db",
+        "type": "",
+        "networking": {
+          "expose": false,
+          "domain": "",
+          "service": "orders-db",
+          "container_port": 0,
+          "protocol": "http",
+          "proxy_type": "http"
+        },
+        "ssl": {
+          "enabled": false,
+          "auto_cert": false
+        },
+        "healthcheck": {
+          "path": "/",
+          "interval": "30s"
+        }
+      },
+      "workspace": "default"
+    },
+    {
+      "name": "orders-worker",
+      "status": "stopped",
+      "created_at": "2026-10-22T17:28:15.328123431+01:00",
+      "updated_at": "2026-10-22T17:28:15.328123431+01:00",
+      "services": [
+        {
+          "name": "orders-worker",
+          "container_id": "",
+          "image": "busybox:latest",
+          "status": "unknown",
+          "is_primary": false,
+          "created_at": "0001-01-01T00:00:00Z",
+          "replicas": 1,
+          "running_replicas": 0
+        }
+      ],
+      "metadata": {
+        "name": "orders-worker",
+        "type": "",
+        "networking": {
+          "expose": false,
+          "domain": "",
+          "service": "orders-worker",
+          "container_port": 0,
+          "protocol": "http",
+          "proxy_type": "http"
+        },
+        "ssl": {
+          "enabled": false,
+          "auto_cert": false
+        },
+        "healthcheck": {
+          "path": "/",
+          "interval": "30s"
+        }
+      },
+      "workspace": "default"
+    },
+    {
+      "name": "storefront",
+      "status": "running",
+      "created_at": "2026-10-22T19:08:30.226321189+01:00",
+      "updated_at": "2026-10-22T19:08:30.226321189+01:00",
+      "services": [
+        {
+          "name": "app",
+          "container_id": "",
+          "image": "nginx:alpine",
+          "status": "unknown",
+          "ports": ["80"],
+          "networks": ["proxy"],
+          "is_primary": false,
+          "created_at": "0001-01-01T00:00:00Z",
+          "replicas": 1,
+          "running_replicas": 0
+        }
+      ],
+      "metadata": {
+        "name": "storefront",
+        "type": "web",
+        "networking": {
+          "expose": false,
+          "domain": "",
+          "container_port": 80,
+          "protocol": "http",
+          "proxy_type": ""
+        },
+        "ssl": {
+          "enabled": false,
+          "auto_cert": false
+        },
+        "healthcheck": {
+          "path": "/health",
+          "interval": "30s"
+        }
+      },
+      "workspace": "default"
+    }
+  ],
+  "total": 5
+}

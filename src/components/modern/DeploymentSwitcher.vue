@@ -80,17 +80,22 @@
         <template #trigger="{ toggle }">
           <button type="button" class="crumb" aria-haspopup="dialog" @click="toggle">
             <Icon name="git-branch" :size="14" />
-            <span class="crumb-label">{{ environmentLabel(current!) }}</span>
+            <span class="crumb-label">{{ currentEnvironment?.name }}</span>
             <Icon name="chevrons-up-down" :size="14" />
           </button>
         </template>
         <template #default="{ close }">
           <ul class="rows">
-            <li v-for="d in environments" :key="d.name" class="row" :class="{ current: d.name === currentName }">
-              <button type="button" class="row-main" @click="go(d.name, undefined, close)">
-                <span class="dot" :class="statusOf(d)" />
-                <span class="row-name">{{ environmentLabel(d) }}</span>
-                <span class="env-tag">{{ d.name }}</span>
+            <li
+              v-for="e in environments"
+              :key="e.deployment"
+              class="row"
+              :class="{ current: e.deployment === currentName }"
+            >
+              <button type="button" class="row-main" @click="go(e.deployment, undefined, close)">
+                <span class="dot" :class="e.sleeping ? 'sleeping' : e.status" />
+                <span class="row-name">{{ e.name }}</span>
+                <span class="env-tag">{{ e.deployment }}</span>
               </button>
             </li>
           </ul>
@@ -119,6 +124,7 @@ import { useAuthStore } from "@/stores/auth";
 import { useDeploymentJob, type DeploymentOperation } from "@/composables/useDeploymentJob";
 import Popover from "@/components/base/Popover.vue";
 import Icon from "@/components/base/Icon.vue";
+import { projectsFrom } from "@/model/project";
 import OperationModal from "@/components/OperationModal.vue";
 
 const route = useRoute();
@@ -148,14 +154,10 @@ const filtered = computed(() => {
 const environments = computed(() => {
   if (!current.value) return [];
   const base = current.value.metadata?.environment?.base ?? current.value.name;
-  return deployments.value
-    .filter((d) => d.name === base || d.metadata?.environment?.base === base)
-    .sort((a, b) => (a.name === base ? -1 : b.name === base ? 1 : a.name.localeCompare(b.name)));
+  return projectsFrom(deployments.value).find((p) => p.name === base)?.environments ?? [];
 });
 
-function environmentLabel(d: Deployment) {
-  return d.metadata?.environment?.name ?? "production";
-}
+const currentEnvironment = computed(() => environments.value.find((e) => e.deployment === currentName.value));
 
 function statusOf(d: Deployment) {
   if (d.metadata?.sleep?.sleeping) return "sleeping";

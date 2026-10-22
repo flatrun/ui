@@ -6,6 +6,14 @@ export interface Deployment {
   updated_at: string;
   services?: Service[];
   metadata?: ServiceMetadata;
+  workspace?: string;
+}
+
+export interface ServiceMount {
+  type: "bind" | "volume" | string;
+  source: string;
+  target: string;
+  read_only?: boolean;
 }
 
 export interface Service {
@@ -18,6 +26,10 @@ export interface Service {
   networks?: string[];
   is_primary?: boolean;
   created_at: string;
+  mounts?: ServiceMount[];
+  replicas?: number;
+  running_replicas?: number;
+  domains?: string[];
 }
 
 export interface ServiceMetadata {
@@ -67,12 +79,17 @@ export interface SleepConfig {
 
 export type DeployTrigger = "manual" | "push" | "pull_request" | "rollback";
 
+export type DeployPhase = "queued" | "building" | "deploying" | "active" | "failed" | "removed";
+
 export interface DeployRecord {
   id: string;
+  action?: string;
   revision?: string;
   branch?: string;
+  message?: string;
   trigger: DeployTrigger;
   status: "running" | "succeeded" | "failed";
+  phase?: DeployPhase;
   error?: string;
   started_at: string;
   finished_at?: string;
@@ -505,3 +522,14 @@ export type Permission =
   | "traffic:write"
   | "cluster:read"
   | "cluster:write";
+
+export type WorkspaceRole = "owner" | "admin" | "member";
+
+export interface Workspace {
+  id: number;
+  slug: string;
+  name: string;
+  personal: boolean;
+  created_at: string;
+  role?: WorkspaceRole;
+}
