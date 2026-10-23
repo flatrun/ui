@@ -128,3 +128,37 @@ tours:
         - goto: /deployments
         - wait: .deployment-card
         - shot: { name: oak-deployments, caption: "The Oak layout with its sidebar" }
+
+    ops-light:
+      account: birch-light
+      steps: &ops
+        - goto: /cron-jobs
+        - wait: 3500
+        - shot: { name: ops-cron-jobs, caption: "Scheduled tasks, with a monthly secret rotation" }
+        - goto: /dns/zones
+        - wait: 3500
+        - shot: { name: ops-dns, caption: "Host your own authoritative DNS" }
+        - goto: /security
+        - wait: 6500
+        - shot: { name: ops-security, caption: "Security events, blocked IPs and rate limits" }
+        - goto: /observability/alerts
+        - wait: 3500
+        - shot: { name: ops-alerts, caption: "Alert rules on metrics and logs" }
+        - goto: /notifications
+        - wait: 3500
+        - shot: { name: ops-notifications, caption: "Incidents grouped before delivery" }
+        - goto: /users
+        - wait: 3500
+        - shot: { name: ops-users, caption: "Users with their roles" }
+        - goto: /apps
+        - wait: 3500
+        - shot: { name: ops-plugins, caption: "Apps that extend the agent" }
+        - goto: /cluster
+        - wait: 3500
+        - shot: { name: ops-cluster, caption: "Manage every server from one place" }
+        - goto: /storage/object-stores
+        - wait: 3500
+        - shot: { name: ops-object-stores, caption: "S3 compatible object stores" }
+    ops-dark:
+      account: birch-dark
+      steps: *ops
