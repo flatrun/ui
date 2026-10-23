@@ -28,6 +28,7 @@ describe("serviceIcon", () => {
     ["ghcr.io/trakli/webservice:latest", "apps:trakli"],
     ["ghcr.io/gitroomhq/postiz-app:latest", "apps:postiz"],
     ["ghcr.io/sourceant/sourceant:latest", "apps:sourceant"],
+    ["ghcr.io/plausible/community-edition:v2.1.5", "apps:plausible"],
     ["ghcr.io/acme/webservice:latest", "box"],
   ])("shows the app logo for %s", (image, icon) => {
     expect(serviceIcon(image)).toBe(icon);

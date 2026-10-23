@@ -38,7 +38,7 @@ const LOGOS: [RegExp, string][] = [
   [/^ruby/, "logos:ruby"],
   [/^grafana/, "logos:grafana"],
   [/^prometheus/, "logos:prometheus"],
-  [/^n8n/, "logos:n8n"],
+  [/^n8n/, "logos:n8n-icon"],
   [/^vault|^openbao/, "logos:vault-icon"],
   [/^consul/, "logos:consul"],
   [/^strapi/, "logos:strapi-icon"],
@@ -51,6 +51,7 @@ const APPS: [RegExp, string][] = [
   [/(^|\/)trakli\//, "apps:trakli"],
   [/(^|\/)gitroomhq\/postiz/, "apps:postiz"],
   [/(^|\/)sourceant\//, "apps:sourceant"],
+  [/(^|\/)plausible\/(community-edition|analytics)/, "apps:plausible"],
 ];
 
 // Images with no brand logo still say what they do.

@@ -48,7 +48,7 @@ const used = [
   "rails",
   "grafana",
   "prometheus",
-  "n8n",
+  "n8n-icon",
   "valkey",
   "vault-icon",
   "consul",
