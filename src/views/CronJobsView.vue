@@ -1053,7 +1053,7 @@ onMounted(() => {
   align-items: center;
   gap: 0.375rem;
   padding: 0.25rem 0.75rem;
-  border-radius: 9999px;
+  border-radius: var(--radius-pill);
   font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
@@ -1107,7 +1107,7 @@ onMounted(() => {
 }
 
 input:checked + .slider {
-  background-color: #22c55e;
+  background-color: var(--color-success-500);
 }
 
 input:checked + .slider:before {
@@ -1241,15 +1241,15 @@ input:checked + .slider:before {
 }
 
 .execution-item.completed .exec-status i {
-  color: #22c55e;
+  color: var(--color-success-500);
 }
 
 .execution-item.failed .exec-status i {
-  color: #ef4444;
+  color: var(--color-danger-500);
 }
 
 .execution-item.running .exec-status i {
-  color: #3b82f6;
+  color: var(--accent);
 }
 
 .exec-info {
@@ -1432,7 +1432,7 @@ input:checked + .slider:before {
 
 .exec-status-badge {
   padding: 0.25rem 0.75rem;
-  border-radius: 9999px;
+  border-radius: var(--radius-pill);
   font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
@@ -1483,7 +1483,7 @@ input:checked + .slider:before {
 
 .error-block pre {
   background: #7f1d1d;
-  color: #fecaca;
+  color: var(--color-danger-100);
 }
 
 .no-output,
@@ -1516,11 +1516,11 @@ input:checked + .slider:before {
 }
 
 .history-item.completed .history-status i {
-  color: #22c55e;
+  color: var(--color-success-500);
 }
 
 .history-item.failed .history-status i {
-  color: #ef4444;
+  color: var(--color-danger-500);
 }
 
 .history-time {

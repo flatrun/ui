@@ -8,7 +8,7 @@
     size="lg"
     :close-disabled="loading"
     :close-on-overlay="false"
-    @close="emit('discard')"
+    @close="emit('close')"
   >
     <div class="summary-chips">
       <span v-for="chip in summaryChips" :key="chip.key" class="summary-chip" :class="`chip-${chip.key}`">
@@ -72,6 +72,7 @@ const props = withDefaults(
 const emit = defineEmits<{
   apply: [];
   discard: [];
+  close: [];
 }>();
 
 const notifications = useNotificationsStore();

@@ -2,7 +2,7 @@
   <div class="login-page">
     <div class="login-left">
       <div class="brand">
-        <Logo variant="full" size="lg" />
+        <span class="wordmark" role="img" aria-label="FlatRun" :style="{ '--mark': `url(${wordmarkUrl})` }" />
         <p>Containerized apps and server management</p>
       </div>
 
@@ -127,7 +127,7 @@
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
-import Logo from "@/components/base/Logo.vue";
+import wordmarkUrl from "@/assets/flatrun.svg";
 
 const router = useRouter();
 const auth = useAuthStore();
@@ -161,22 +161,48 @@ const handleAPIKeyLogin = async () => {
 }
 
 .login-left {
+  position: relative;
   flex: 0 0 30%;
-  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
   display: flex;
   flex-direction: column;
   justify-content: center;
   padding: 3rem;
-  color: white;
+  overflow: hidden;
+  background: var(--app-bg);
+  border-right: 1px solid var(--border-subtle);
+  color: var(--text);
+}
+
+.login-left::before {
+  position: absolute;
+  inset: -20% auto auto -30%;
+  width: 120%;
+  aspect-ratio: 1;
+  background: radial-gradient(circle, var(--accent-subtle), transparent 60%);
+  content: "";
+  pointer-events: none;
+}
+
+.login-left > * {
+  position: relative;
 }
 
 .brand {
   margin-bottom: 3rem;
 }
 
+.wordmark {
+  display: block;
+  width: 168px;
+  aspect-ratio: 804 / 244;
+  background: var(--text);
+  mask: var(--mark) left center / contain no-repeat;
+  -webkit-mask: var(--mark) left center / contain no-repeat;
+}
+
 .brand p {
   font-size: 1.125rem;
-  color: #94a3b8;
+  color: var(--text-muted);
   margin-top: 0.75rem;
 }
 
@@ -191,11 +217,11 @@ const handleAPIKeyLogin = async () => {
   align-items: center;
   gap: 0.75rem;
   font-size: 1rem;
-  color: #cbd5e1;
+  color: var(--text-muted);
 }
 
 .feature i {
-  color: #22c55e;
+  color: var(--accent);
   font-size: 1.125rem;
 }
 

@@ -1,5 +1,5 @@
 <template>
-  <div class="data-table-container">
+  <div class="data-table-container" :data-view="viewMode">
     <div class="table-header">
       <div class="header-left">
         <div v-if="searchable" class="search-box">
@@ -10,12 +10,19 @@
       </div>
       <div class="header-right">
         <slot name="actions" />
-        <div v-if="toggleable" class="view-toggle">
-          <button class="toggle-btn" :class="{ active: viewMode === 'grid' }" @click="viewMode = 'grid'">
-            <Grid3x3 :size="16" />
-          </button>
-          <button class="toggle-btn" :class="{ active: viewMode === 'table' }" @click="viewMode = 'table'">
-            <List :size="16" />
+        <div v-if="modes.length > 1" class="view-toggle" role="group" aria-label="View">
+          <button
+            v-for="mode in modes"
+            :key="mode"
+            type="button"
+            class="toggle-btn"
+            :class="{ active: viewMode === mode }"
+            :title="VIEW_LABELS[mode]"
+            :aria-label="VIEW_LABELS[mode]"
+            :aria-pressed="viewMode === mode"
+            @click="viewMode = mode"
+          >
+            <component :is="VIEW_ICONS[mode]" :size="16" />
           </button>
         </div>
       </div>
@@ -82,11 +89,15 @@
         </table>
       </div>
 
+      <div v-else-if="viewMode === 'canvas'" class="canvas-view">
+        <slot name="canvas" :items="filteredItems" />
+      </div>
+
       <div v-else class="grid-view">
         <slot name="grid" :items="paginatedItems" :selected-items="selectedItems" :toggle-select="toggleSelect" />
       </div>
 
-      <div v-if="totalPages > 1" class="pagination">
+      <div v-if="totalPages > 1 && viewMode !== 'canvas'" class="pagination">
         <div class="pagination-info">
           Showing {{ startIndex + 1 }}-{{ endIndex }} of {{ filteredItems.length }} items
         </div>
@@ -147,7 +158,10 @@ import {
   ArrowUp,
   ArrowDown,
   Loader2,
+  Workflow,
 } from "lucide-vue-next";
+
+type ViewMode = "canvas" | "grid" | "table";
 
 interface Column {
   key: string;
@@ -172,7 +186,11 @@ const props = withDefaults(
     emptyText?: string;
     loadingText?: string;
     defaultPageSize?: number;
-    defaultViewMode?: "table" | "grid";
+    defaultViewMode?: ViewMode;
+    // The views offered, in toggle order. A toggleable table offers grid and table.
+    viewModes?: ViewMode[];
+    // Remembers the chosen view for this viewer under this key.
+    viewKey?: string;
   }>(),
   {
     itemKey: "id",
@@ -188,6 +206,8 @@ const props = withDefaults(
     loadingText: "Loading...",
     defaultPageSize: 25,
     defaultViewMode: "table",
+    viewModes: undefined,
+    viewKey: undefined,
   },
 );
 
@@ -198,7 +218,32 @@ const currentPage = ref(1);
 const pageSize = ref(props.defaultPageSize);
 const selectedItems = ref<any[]>([]);
 const selectAll = ref(false);
-const viewMode = ref<"table" | "grid">(props.defaultViewMode);
+const VIEW_LABELS: Record<ViewMode, string> = { canvas: "Canvas", grid: "Cards", table: "Table" };
+const VIEW_ICONS: Record<ViewMode, unknown> = { canvas: Workflow, grid: Grid3x3, table: List };
+const modes = computed<ViewMode[]>(() => props.viewModes ?? (props.toggleable ? ["grid", "table"] : []));
+
+function savedView(): ViewMode | null {
+  if (!props.viewKey) return null;
+  try {
+    return localStorage.getItem(`flatrun-view:${props.viewKey}`) as ViewMode | null;
+  } catch {
+    return null;
+  }
+}
+
+const initialView = savedView();
+const viewMode = ref<ViewMode>(
+  initialView && (props.viewModes ?? ["grid", "table"]).includes(initialView) ? initialView : props.defaultViewMode,
+);
+
+watch(viewMode, (mode) => {
+  if (!props.viewKey) return;
+  try {
+    localStorage.setItem(`flatrun-view:${props.viewKey}`, mode);
+  } catch {
+    // The view choice is a convenience; without storage it resets on the next visit.
+  }
+});
 const sortKey = ref("");
 const sortDirection = ref<"asc" | "desc">("asc");
 
@@ -359,7 +404,7 @@ watch(selectedItems, () => {
 .search-input {
   padding: 0.5rem 0.75rem 0.5rem 2.5rem;
   border: 1px solid var(--border);
-  border-radius: var(--radius-md, 6px);
+  border-radius: var(--radius-md, var(--radius-lg));
   font-size: var(--text-md, 0.875rem);
   width: 280px;
   background: var(--surface);
@@ -372,7 +417,7 @@ watch(selectedItems, () => {
 
 .search-input:focus {
   outline: none;
-  border-color: var(--color-primary-500, #3b82f6);
+  border-color: var(--color-primary-500, var(--accent));
   box-shadow: 0 0 0 var(--ring-width, 2px) var(--ring-color, rgba(59, 130, 246, 0.1));
 }
 
@@ -380,14 +425,14 @@ watch(selectedItems, () => {
   display: flex;
   background: var(--surface-inset);
   padding: 0.25rem;
-  border-radius: var(--radius-md, 6px);
+  border-radius: var(--radius-md, var(--radius-lg));
 }
 
 .toggle-btn {
   padding: 0.375rem 0.625rem;
   border: none;
   background: transparent;
-  border-radius: var(--radius-sm, 4px);
+  border-radius: var(--radius-sm, var(--radius-md));
   cursor: pointer;
   color: var(--text-muted);
   transition: all var(--transition-base, 200ms ease);
@@ -401,7 +446,7 @@ watch(selectedItems, () => {
 
 .table-wrapper {
   background: var(--surface-raised);
-  border-radius: var(--radius-lg, 8px);
+  border-radius: var(--radius-lg, var(--radius-xl));
   border: 1px solid var(--border);
   overflow: hidden;
 }
@@ -449,7 +494,7 @@ watch(selectedItems, () => {
 }
 
 .data-table tr.selected {
-  background: var(--color-primary-50, #eff6ff);
+  background: var(--color-primary-50, var(--accent-subtle));
 }
 
 .checkbox-col {
@@ -467,7 +512,7 @@ watch(selectedItems, () => {
   justify-content: space-between;
   background: var(--surface-raised);
   padding: 0.75rem 1rem;
-  border-radius: var(--radius-lg, 8px);
+  border-radius: var(--radius-lg, var(--radius-xl));
   border: 1px solid var(--border);
 }
 
@@ -495,7 +540,7 @@ watch(selectedItems, () => {
   justify-content: center;
   border: 1px solid var(--border);
   background: var(--surface);
-  border-radius: var(--radius-sm, 4px);
+  border-radius: var(--radius-sm, var(--radius-md));
   cursor: pointer;
   font-size: var(--text-base, 0.8125rem);
   color: var(--text-muted);
@@ -508,8 +553,8 @@ watch(selectedItems, () => {
 }
 
 .page-btn.active {
-  background: var(--color-primary-500, #3b82f6);
-  border-color: var(--color-primary-500, #3b82f6);
+  background: var(--color-primary-500, var(--accent));
+  border-color: var(--color-primary-500, var(--accent));
   color: white;
 }
 
@@ -526,7 +571,7 @@ watch(selectedItems, () => {
 .page-size-select {
   padding: 0.375rem 0.5rem;
   border: 1px solid var(--border);
-  border-radius: var(--radius-sm, 4px);
+  border-radius: var(--radius-sm, var(--radius-md));
   font-size: var(--text-base, 0.8125rem);
   color: var(--text-muted);
   background: var(--surface);
@@ -541,7 +586,7 @@ watch(selectedItems, () => {
   background: var(--color-gray-800, #1f2937);
   color: white;
   padding: 0.75rem 1.25rem;
-  border-radius: var(--radius-lg, 8px);
+  border-radius: var(--radius-lg, var(--radius-xl));
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -563,7 +608,7 @@ watch(selectedItems, () => {
   padding: 4rem;
   background: var(--surface-raised);
   border: 1px solid var(--border);
-  border-radius: var(--radius-lg, 8px);
+  border-radius: var(--radius-lg, var(--radius-xl));
   text-align: center;
   gap: 1rem;
 }
@@ -590,7 +635,7 @@ watch(selectedItems, () => {
   align-items: center;
   gap: 0.5rem;
   padding: 0.375rem 0.75rem;
-  border-radius: var(--radius-md, 6px);
+  border-radius: var(--radius-md, var(--radius-lg));
   font-weight: var(--font-medium, 500);
   font-size: var(--text-base, 0.8125rem);
   cursor: pointer;
@@ -600,7 +645,7 @@ watch(selectedItems, () => {
 
 .btn-ghost {
   background: transparent;
-  color: var(--color-gray-400, #9ca3af);
+  color: var(--color-gray-400, var(--text-subtle));
 }
 
 .btn-ghost:hover {

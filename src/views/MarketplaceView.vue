@@ -229,7 +229,7 @@ async function onDeployed(name: string) {
 }
 
 .marketplace-banner {
-  background: linear-gradient(135deg, var(--color-primary-500) 0%, #8b5cf6 100%);
+  background: linear-gradient(135deg, var(--color-primary-500) 0%, var(--c-purple) 100%);
   border-radius: var(--radius-md);
   padding: var(--space-3) var(--space-5);
   display: flex;
@@ -377,8 +377,8 @@ async function onDeployed(name: string) {
 }
 
 .badge--official {
-  background: var(--color-info-50, #eff6ff);
-  color: var(--color-primary-700, #1d4ed8);
+  background: var(--color-info-50, var(--accent-subtle));
+  color: var(--color-primary-700, var(--color-primary-700));
 }
 
 .badge--verified {
@@ -506,13 +506,13 @@ async function onDeployed(name: string) {
 }
 
 .state-art--empty {
-  background: var(--color-info-50, #eff6ff);
+  background: var(--color-info-50, var(--accent-subtle));
   color: var(--color-primary-500);
 }
 
 .state-art--error {
-  background: var(--color-danger-50, #fef2f2);
-  color: var(--color-danger-500, #ef4444);
+  background: var(--color-danger-50, var(--color-danger-50));
+  color: var(--color-danger-500, var(--color-danger-500));
 }
 
 .state-panel h3 {

@@ -6,6 +6,14 @@ export interface Deployment {
   updated_at: string;
   services?: Service[];
   metadata?: ServiceMetadata;
+  workspace?: string;
+}
+
+export interface ServiceMount {
+  type: "bind" | "volume" | string;
+  source: string;
+  target: string;
+  read_only?: boolean;
 }
 
 export interface Service {
@@ -18,6 +26,11 @@ export interface Service {
   networks?: string[];
   is_primary?: boolean;
   created_at: string;
+  mounts?: ServiceMount[];
+  replicas?: number;
+  running_replicas?: number;
+  domains?: string[];
+  depends_on?: string[];
 }
 
 export interface ServiceMetadata {
@@ -36,6 +49,57 @@ export interface ServiceMetadata {
   service_credentials?: Record<string, string>;
   domains?: DomainConfig[];
   databases?: DatabaseConfig[];
+  source?: SourceConfig;
+  environment?: EnvironmentInfo;
+  sleep?: SleepConfig;
+}
+
+export interface SourceConfig {
+  type: string;
+  ref: string;
+  branch?: string;
+  subpath?: string;
+  credential_id?: string;
+  auto_deploy: boolean;
+  previews: boolean;
+  builder?: "compose" | "dockerfile" | "railpack" | string;
+  last_revision?: string;
+}
+
+export interface EnvironmentInfo {
+  base: string;
+  name: string;
+  pr?: number;
+}
+
+export interface SleepConfig {
+  enabled: boolean;
+  idle_minutes: number;
+  sleeping: boolean;
+}
+
+export type DeployTrigger = "manual" | "push" | "pull_request" | "rollback";
+
+export type DeployPhase = "queued" | "building" | "deploying" | "active" | "failed" | "removed";
+
+export interface DeployRecord {
+  id: string;
+  action?: string;
+  revision?: string;
+  branch?: string;
+  message?: string;
+  trigger: DeployTrigger;
+  status: "running" | "succeeded" | "failed";
+  phase?: DeployPhase;
+  error?: string;
+  started_at: string;
+  finished_at?: string;
+}
+
+export interface WebhookPaths {
+  github: string;
+  gitlab: string;
+  generic: string;
 }
 
 export interface DatabaseConfig {
@@ -458,4 +522,20 @@ export type Permission =
   | "traffic:read"
   | "traffic:write"
   | "cluster:read"
-  | "cluster:write";
+  | "cluster:write"
+  | "workspaces:read"
+  | "workspaces:write"
+  | "secrets:read"
+  | "secrets:write";
+
+export type WorkspaceRole = "owner" | "admin" | "member";
+
+export interface Workspace {
+  id: number;
+  slug: string;
+  name: string;
+  personal: boolean;
+  created_at: string;
+  logo?: string;
+  role?: WorkspaceRole;
+}

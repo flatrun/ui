@@ -180,7 +180,7 @@ function save() {
 }
 .form-error {
   margin: 0;
-  color: var(--danger, #ef4444);
+  color: var(--danger, var(--color-danger-500));
   font-size: 0.8rem;
 }
 .modal-footer {

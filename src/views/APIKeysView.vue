@@ -610,7 +610,7 @@ onMounted(() => {
 
 .apikeys-table-container {
   background: var(--surface-raised);
-  border-radius: 8px;
+  border-radius: var(--radius-xl);
   border: 1px solid var(--surface-border);
   overflow: hidden;
 }
@@ -662,7 +662,7 @@ onMounted(() => {
 code {
   padding: 0.25rem 0.5rem;
   background: var(--surface-sunken);
-  border-radius: 4px;
+  border-radius: var(--radius-md);
   font-family: monospace;
   font-size: 0.8125rem;
 }
@@ -670,7 +670,7 @@ code {
 .role-badge {
   display: inline-block;
   padding: 0.25rem 0.5rem;
-  border-radius: 4px;
+  border-radius: var(--radius-md);
   font-size: 0.75rem;
   font-weight: 500;
   text-transform: capitalize;
@@ -699,7 +699,7 @@ code {
 .status-badge {
   display: inline-block;
   padding: 0.25rem 0.5rem;
-  border-radius: 4px;
+  border-radius: var(--radius-md);
   font-size: 0.75rem;
   font-weight: 500;
 }
@@ -797,7 +797,7 @@ code {
   width: 100%;
   padding: 0.5rem 0.75rem;
   border: 1px solid var(--surface-border);
-  border-radius: 4px;
+  border-radius: var(--radius-md);
   background: var(--surface-sunken);
   color: var(--text-primary);
 }
@@ -839,7 +839,7 @@ code {
   padding: 0.75rem 1rem;
   background: rgba(var(--warning-rgb), 0.1);
   border: 1px solid var(--warning);
-  border-radius: 4px;
+  border-radius: var(--radius-md);
   color: var(--warning);
   margin-bottom: 1rem;
 }
@@ -850,7 +850,7 @@ code {
   gap: 0.5rem;
   padding: 0.75rem;
   background: var(--surface-sunken);
-  border-radius: 4px;
+  border-radius: var(--radius-md);
 }
 
 .key-display code {
@@ -866,7 +866,7 @@ code {
   gap: 0.5rem;
   padding: 0.5rem 1rem;
   border: none;
-  border-radius: 4px;
+  border-radius: var(--radius-md);
   background: var(--surface-sunken);
   color: var(--text-primary);
   cursor: pointer;
@@ -883,22 +883,22 @@ code {
 }
 
 .btn-primary {
-  background: var(--primary, #3b82f6);
+  background: var(--primary, var(--accent));
   color: white;
   font-weight: 600;
 }
 
 .btn-primary:hover {
-  background: var(--primary-dark, #2563eb);
+  background: var(--primary-dark, var(--accent-hover));
 }
 
 .btn-danger {
-  background: var(--color-danger-500, #ef4444);
+  background: var(--color-danger-500, var(--color-danger-500));
   color: white;
 }
 
 .btn-danger:hover {
-  background: var(--color-danger-600, #dc2626);
+  background: var(--color-danger-600, var(--color-danger-600));
 }
 
 .btn-icon {

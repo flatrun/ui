@@ -944,7 +944,7 @@ onUnmounted(() => {
 }
 
 .destination-result {
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   padding: 0.125rem 0.5rem;
   background: var(--color-success-50);
   color: var(--color-success-700);

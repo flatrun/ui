@@ -317,9 +317,9 @@
       </div>
     </div>
 
-    <div v-if="filesInfo" class="browser-footer">
-      <span>{{ filesInfo.file_count }} items</span>
-      <span>{{ formatSize(filesInfo.total_size) }} total</span>
+    <div class="browser-footer">
+      <span>{{ files.length }} items</span>
+      <span v-if="typeof filesInfo?.disk_usage === 'number'">{{ formatSize(filesInfo.disk_usage) }} total</span>
     </div>
 
     <Teleport to="body">
@@ -722,7 +722,7 @@
 import { ref, reactive, computed, onMounted, onBeforeUnmount, watch } from "vue";
 import { Codemirror } from "vue-codemirror";
 import { yaml } from "@codemirror/lang-yaml";
-import { oneDark } from "@codemirror/theme-one-dark";
+import { useEditorTheme } from "@/composables/useEditorTheme";
 import {
   configApi,
   createDeploymentFileApi,
@@ -730,6 +730,7 @@ import {
   type ArchiveEntry,
   type FileBrowserApi,
   type FileInfo,
+  type FilesInfo,
 } from "@/services/api";
 import { useNotificationsStore } from "@/stores/notifications";
 import { toComposeRelativePath, type ComposeMount } from "@/utils/compose";
@@ -783,7 +784,7 @@ const notifications = useNotificationsStore();
 
 const currentPath = ref(props.initialPath || "/");
 const files = ref<FileInfo[]>([]);
-const filesInfo = ref<{ total_size: number; file_count: number } | null>(null);
+const filesInfo = ref<FilesInfo | null>(null);
 const loading = ref(true);
 const error = ref("");
 const selectedFiles = ref<string[]>([]);
@@ -941,7 +942,8 @@ const busy = computed(
 );
 const viewOnly = ref(false);
 
-const editorExtensions = [yaml(), oneDark];
+const editorTheme = useEditorTheme();
+const editorExtensions = computed(() => [yaml(), editorTheme.value]);
 
 const fileModified = computed(() => fileContent.value !== originalContent.value);
 

@@ -1,0 +1,13 @@
+{
+  "deployments": [
+    {
+      "id": "120ff8396f039140",
+      "action": "rebuild",
+      "trigger": "manual",
+      "status": "succeeded",
+      "phase": "active",
+      "started_at": "2026-10-23T01:43:46.535879184Z",
+      "finished_at": "2026-10-23T01:43:47.484834195Z"
+    }
+  ]
+}

@@ -1,40 +1,109 @@
-import { ref } from "vue";
+import { computed, ref } from "vue";
+import {
+  DEFAULT_STYLE_ID,
+  SCHEME_PREFERENCES,
+  getStyle,
+  listStyles,
+  type ColorScheme,
+  type SchemePreference,
+  type StyleDefinition,
+} from "@/themes/registry";
 
-export type Theme = "light" | "dark";
+const STYLE_KEY = "flatrun-style";
+const SCHEME_KEY = "flatrun-scheme";
+const LEGACY_KEY = "flatrun-theme";
 
-const STORAGE_KEY = "flatrun-theme";
+// Module-level singletons so every caller shares one reactive choice.
+const style = ref<string>(DEFAULT_STYLE_ID);
+const schemePreference = ref<SchemePreference>("system");
+const systemScheme = ref<ColorScheme>("light");
 
-// Module-level singleton so every caller shares one reactive theme.
-const theme = ref<Theme>("light");
+const scheme = computed<ColorScheme>(() =>
+  schemePreference.value === "system" ? systemScheme.value : schemePreference.value,
+);
 
-function apply(value: Theme) {
-  document.documentElement.setAttribute("data-theme", value);
+function apply() {
+  const root = document.documentElement;
+  root.setAttribute("data-style", style.value);
+  root.setAttribute("data-layout", (getStyle(style.value) ?? getStyle(DEFAULT_STYLE_ID)!).layout);
+  root.setAttribute("data-scheme", scheme.value);
+  root.style.colorScheme = scheme.value;
 }
 
-function resolveInitial(): Theme {
-  const stored = localStorage.getItem(STORAGE_KEY);
-  if (stored === "light" || stored === "dark") {
-    return stored;
+function read(key: string): string | null {
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return null;
   }
-  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
 }
 
-// Call once before mount so the first paint already has the right theme.
+function write(key: string, value: string) {
+  try {
+    localStorage.setItem(key, value);
+  } catch {
+    // Storage can be unavailable (private mode); the choice still applies.
+  }
+}
+
+// Before styles existed a single theme id held both look and scheme.
+const LEGACY_THEMES: Record<string, { style: string; scheme: SchemePreference }> = {
+  light: { style: "oak", scheme: "light" },
+  dark: { style: "oak", scheme: "dark" },
+  flatrun: { style: "birch", scheme: "dark" },
+};
+
+const RENAMED_STYLES: Record<string, string> = { modern: "birch", classic: "oak" };
+
+function resolveInitial(): { style: string; scheme: SchemePreference } {
+  const legacy = LEGACY_THEMES[read(LEGACY_KEY) ?? ""];
+  let storedStyle = read(STYLE_KEY);
+  if (storedStyle && RENAMED_STYLES[storedStyle]) {
+    storedStyle = RENAMED_STYLES[storedStyle];
+    write(STYLE_KEY, storedStyle);
+  }
+  const storedScheme = read(SCHEME_KEY) as SchemePreference | null;
+  return {
+    style: getStyle(storedStyle) ? storedStyle! : (legacy?.style ?? DEFAULT_STYLE_ID),
+    scheme: storedScheme && SCHEME_PREFERENCES.includes(storedScheme) ? storedScheme : (legacy?.scheme ?? "system"),
+  };
+}
+
+function watchSystemScheme() {
+  if (typeof window === "undefined" || !window.matchMedia) return;
+  const query = window.matchMedia("(prefers-color-scheme: dark)");
+  systemScheme.value = query.matches ? "dark" : "light";
+  query.addEventListener?.("change", (e) => {
+    systemScheme.value = e.matches ? "dark" : "light";
+    apply();
+  });
+}
+
+// Call once before mount so the first paint already has the right look.
 export function initTheme() {
-  theme.value = resolveInitial();
-  apply(theme.value);
+  watchSystemScheme();
+  const initial = resolveInitial();
+  style.value = initial.style;
+  schemePreference.value = initial.scheme;
+  apply();
 }
 
 export function useTheme() {
-  function setTheme(value: Theme) {
-    theme.value = value;
-    localStorage.setItem(STORAGE_KEY, value);
-    apply(value);
+  const current = computed<StyleDefinition>(() => getStyle(style.value) ?? getStyle(DEFAULT_STYLE_ID)!);
+
+  function setStyle(id: string) {
+    if (!getStyle(id)) return;
+    style.value = id;
+    write(STYLE_KEY, id);
+    apply();
   }
 
-  function toggleTheme() {
-    setTheme(theme.value === "dark" ? "light" : "dark");
+  function setScheme(preference: SchemePreference) {
+    if (!SCHEME_PREFERENCES.includes(preference)) return;
+    schemePreference.value = preference;
+    write(SCHEME_KEY, preference);
+    apply();
   }
 
-  return { theme, setTheme, toggleTheme };
+  return { style, schemePreference, scheme, current, styles: listStyles(), setStyle, setScheme };
 }

@@ -436,7 +436,7 @@ onMounted(() => {
   padding: 0.3rem 0.8rem;
   border: none;
   background: transparent;
-  border-radius: calc(var(--radius-sm) - 2px);
+  border-radius: calc(var(--radius-sm) - var(--radius-xs));
   font-size: var(--text-sm);
   color: var(--text-muted);
   cursor: pointer;

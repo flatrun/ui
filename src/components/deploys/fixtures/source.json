@@ -1,0 +1,9 @@
+{
+  "type": "git",
+  "ref": "https://github.com/example/hello.git",
+  "branch": "main",
+  "auto_deploy": true,
+  "previews": false,
+  "builder": "dockerfile",
+  "last_revision": "26fd8038ac732fd98bf59508a58803fc635b26e1"
+}

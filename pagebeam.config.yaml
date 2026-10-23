@@ -1,0 +1,180 @@
+# Screenshots for the READMEs, the docs and flatrun.dev, taken from an agent
+# filled by scripts/demo-seed.mjs with DEMO_BRAND=1. Run `npm run shots`.
+docs: { root: ., include: [README.md] }
+tours:
+  targets:
+    local: { url: http://127.0.0.1:5174 }
+
+  accounts:
+    birch-light:
+      purpose: the Trakli demo owner, Birch layout in the light scheme
+      login:
+        usernameEnv: DEMO_USER
+        passwordEnv: DEMO_PASSWORD
+        form: &form { url: /login, username: "#username", password: "#password", submit: "button[type=submit]" }
+        script: scripts/pagebeam/birch-light.mjs
+      confirm: .user-chip
+      seed: &seed { command: node scripts/demo-seed.mjs }
+      requires: &requires
+        - goto: /projects
+          count: { selector: .vue-flow__node, min: 9 }
+    birch-dark:
+      purpose: the Trakli demo owner, Birch layout in the dark scheme
+      confirm: .user-chip
+      seed: *seed
+      requires: *requires
+      login:
+        usernameEnv: DEMO_USER
+        passwordEnv: DEMO_PASSWORD
+        form: *form
+        script: scripts/pagebeam/birch-dark.mjs
+    oak-light:
+      purpose: the Trakli demo owner, Oak layout in the light scheme
+      confirm: .user-menu
+      seed: *seed
+      login:
+        usernameEnv: DEMO_USER
+        passwordEnv: DEMO_PASSWORD
+        form: *form
+        script: scripts/pagebeam/oak-light.mjs
+    oak-dark:
+      purpose: the Trakli demo owner, Oak layout in the dark scheme
+      confirm: .user-menu
+      seed: *seed
+      login:
+        usernameEnv: DEMO_USER
+        passwordEnv: DEMO_PASSWORD
+        form: *form
+        script: scripts/pagebeam/oak-dark.mjs
+
+  journeys:
+    projects-light:
+      account: birch-light
+      steps: &projects
+        - goto: /projects
+        - wait: .vue-flow__node
+        - wait: 800
+        - shot: { name: projects-canvas, caption: "Every project on one canvas" }
+        - click: '[aria-label="Cards"]'
+        - wait: .deployment-card
+        - shot: { name: projects-cards, caption: "Projects as cards" }
+        - click: '[aria-label="Table"]'
+        - wait: table
+        - shot: { name: projects-table, caption: "Projects as a table" }
+        - click: '[aria-label="Canvas"]'
+        - click: .search-btn
+        - wait: .palette
+        - shot: { name: search, caption: "Search jumps to any project, page or action" }
+    projects-dark:
+      account: birch-dark
+      steps: *projects
+
+    project-light:
+      account: birch-light
+      steps: &project
+        - goto: /projects/shop
+        - wait: .vue-flow__node
+        - wait: 800
+        - shot: { name: project-architecture, caption: "A project's services and how they connect" }
+        - goto: /projects/postiz
+        - wait: .vue-flow__node
+        - wait: 800
+        - shot: { name: postiz-architecture, caption: "Postiz with its Temporal workers, Postgres and Redis" }
+        - goto: /projects/insights?section=deploys
+        - wait: .deploys-tab
+        - shot: { name: project-deployments, caption: "Every deploy with its commit and phase" }
+        - goto: /projects/shop?section=variables
+        - wait: 1500
+        - shot: { name: project-variables, caption: "Variables, references and sealed secrets" }
+        - goto: /projects/postiz?section=logs
+        - wait: 2500
+        - shot: { name: project-logs, caption: "Logs from every service of Postiz" }
+        - goto: /projects/postiz?section=metrics
+        - wait: 40000
+        - shot: { name: project-metrics, caption: "CPU, memory and network per service" }
+        - goto: /projects/shop?section=files
+        - wait: 1500
+        - shot: { name: project-files, caption: "The project directory, as files" }
+        - goto: /projects/postiz?section=terminal
+        - click: 'button:text-is("Connect")'
+        - wait: .xterm-rows
+        - wait: 7000
+        - shot: { name: project-terminal, caption: "A shell in any container" }
+    project-dark:
+      account: birch-dark
+      steps: *project
+
+    create-light:
+      account: birch-light
+      steps: &create
+        - goto: /projects
+        - click: .topbar-right .btn-primary
+        - click: "text=Git repository"
+        - wait: .source-list
+        - fill: { selector: '[name="repo"]', value: https://github.com/trakli/storefront.git }
+        - shot:
+            { name: new-project, caption: "Create a project from a repository, an image, a template or a compose file" }
+        - click: '.source-list button:has-text("GitHub")'
+        - wait: .gh-connect
+        - shot: { name: new-project-github, caption: "Connect GitHub to pick a repository and preview pull requests" }
+    create-dark:
+      account: birch-dark
+      steps: *create
+
+    workspace-light:
+      account: birch-light
+      steps: &workspace
+        - goto: /workspace
+        - wait: .workspace-settings
+        - shot: { name: workspace, caption: "Members, secrets and settings of a workspace" }
+    workspace-dark:
+      account: birch-dark
+      steps: *workspace
+
+    oak-light:
+      account: oak-light
+      steps: &oak
+        - goto: /deployments
+        - wait: .deployment-card
+        - shot: { name: oak-deployments, caption: "The Oak layout with its sidebar" }
+        - goto: /deployments/shop?tab=environment
+        - wait: .deployment-detail
+        - wait: 2000
+        - shot: { name: oak-variables, caption: "Variables in the Oak layout" }
+    oak-dark:
+      account: oak-dark
+      steps: *oak
+
+    ops-light:
+      account: birch-light
+      steps: &ops
+        - goto: /cron-jobs
+        - wait: 3500
+        - shot: { name: ops-cron-jobs, caption: "Scheduled tasks, with a monthly secret rotation" }
+        - goto: /dns/zones
+        - wait: 3500
+        - shot: { name: ops-dns, caption: "Host your own authoritative DNS" }
+        - goto: /security
+        - wait: 6500
+        - shot: { name: ops-security, caption: "Security events, blocked IPs and rate limits" }
+        - goto: /observability/alerts
+        - wait: 3500
+        - shot: { name: ops-alerts, caption: "Alert rules on metrics and logs" }
+        - goto: /notifications
+        - wait: 3500
+        - shot: { name: ops-notifications, caption: "Incidents grouped before delivery" }
+        - goto: /users
+        - wait: 3500
+        - shot: { name: ops-users, caption: "Users with their roles" }
+        - goto: /apps
+        - wait: 3500
+        - shot: { name: ops-plugins, caption: "Apps that extend the agent" }
+        - goto: /cluster
+        - wait: 3500
+        - shot: { name: ops-cluster, caption: "Manage every server from one place" }
+        - goto: /storage/object-stores
+        - wait: 3500
+        - shot: { name: ops-object-stores, caption: "S3 compatible object stores" }
+    ops-dark:
+      account: birch-dark
+      steps: *ops

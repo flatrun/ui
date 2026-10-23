@@ -1,0 +1,205 @@
+import type { DeployPhase, DeployRecord, Deployment, Service } from "@/types";
+import { PRODUCTION, environmentOf } from "@/canvas/layout";
+
+// A project is a deployment together with the environments made from it.
+export interface ProjectEnvironment {
+  name: string;
+  deployment: Deployment;
+}
+
+export interface Project {
+  name: string;
+  workspace?: string;
+  environments: ProjectEnvironment[];
+}
+
+export interface Deploy {
+  id: string;
+  action: string;
+  phase: DeployPhase;
+  message: string;
+  revision?: string;
+  shortRevision?: string;
+  branch?: string;
+  trigger: DeployRecord["trigger"];
+  error?: string;
+  startedAt: string;
+  finishedAt?: string;
+  durationMs?: number;
+}
+
+export type VariableKind = "plain" | "reference" | "secret";
+
+// projectsFrom groups deployments into projects: an environment joins the
+// project of the deployment it was made from. An environment whose base is
+// not in the list still gets a project, named after the base.
+export function projectsFrom(deployments: Deployment[], workspace?: string): Project[] {
+  const scoped = workspace ? deployments.filter((d) => !d.workspace || d.workspace === workspace) : deployments;
+  const projects = new Map<string, Project>();
+  for (const d of scoped) {
+    const name = d.metadata?.environment?.base || d.name;
+    let project = projects.get(name);
+    if (!project) {
+      project = { name, workspace: d.workspace, environments: [] };
+      projects.set(name, project);
+    }
+    project.environments.push({ name: environmentOf(d), deployment: d });
+  }
+  for (const project of projects.values()) {
+    project.environments.sort((a, b) =>
+      a.name === PRODUCTION ? -1 : b.name === PRODUCTION ? 1 : a.name.localeCompare(b.name),
+    );
+  }
+  return [...projects.values()].sort((a, b) => a.name.localeCompare(b.name));
+}
+
+export function deploysFrom(records: DeployRecord[] | null | undefined): Deploy[] {
+  return (records ?? []).map((r) => {
+    const finished = r.finished_at ? Date.parse(r.finished_at) : undefined;
+    return {
+      id: r.id,
+      action: r.action || "redeploy",
+      phase: r.phase ?? (r.status === "failed" ? "failed" : r.status === "running" ? "queued" : "active"),
+      message: r.message || r.error || "",
+      revision: r.revision,
+      shortRevision: r.revision?.slice(0, 7),
+      branch: r.branch,
+      trigger: r.trigger,
+      error: r.error,
+      startedAt: r.started_at,
+      finishedAt: r.finished_at,
+      durationMs: finished !== undefined ? finished - Date.parse(r.started_at) : undefined,
+    };
+  });
+}
+
+const secretRef = /\$\{\{\s*secret\.[A-Za-z_][A-Za-z0-9_]*\s*\}\}/;
+const anyRef = /\$\{\{\s*[a-zA-Z0-9][a-zA-Z0-9_-]*\.[A-Za-z_][A-Za-z0-9_]*\s*\}\}/;
+
+export function variableKind(value: string): VariableKind {
+  if (secretRef.test(value)) return "secret";
+  if (anyRef.test(value)) return "reference";
+  return "plain";
+}
+
+export interface PhaseStart {
+  phase: DeployPhase;
+  from: number;
+}
+
+export interface DeployLog {
+  build: string;
+  deploy: string;
+}
+
+// splitLog divides a deploy's output into what ran before the deploying phase
+// (fetching and building) and what ran from it on. Output without phase marks
+// counts as deploy output.
+export function splitLog(output: string, phases: PhaseStart[] | null | undefined): DeployLog {
+  const lines = output.replace(/\n$/, "").split("\n");
+  const deployFrom = phases?.find((p) => p.phase === "deploying")?.from;
+  const hasBuild = phases?.some((p) => p.phase === "building");
+  if (!output) return { build: "", deploy: "" };
+  if (deployFrom === undefined) {
+    return hasBuild ? { build: lines.join("\n"), deploy: "" } : { build: "", deploy: lines.join("\n") };
+  }
+  return { build: lines.slice(0, deployFrom).join("\n"), deploy: lines.slice(deployFrom).join("\n") };
+}
+
+export type StepState = "done" | "current" | "failed" | "pending";
+
+export interface DeployStep {
+  id: "queued" | "building" | "deploying" | "active";
+  label: string;
+  state: StepState;
+}
+
+const STEPS: { id: DeployStep["id"]; label: string }[] = [
+  { id: "queued", label: "Initialize" },
+  { id: "building", label: "Build" },
+  { id: "deploying", label: "Deploy" },
+  { id: "active", label: "Active" },
+];
+
+// deploySteps lays out the stepper for a deploy. A failed deploy marks the step
+// it reached last as failed.
+export function deploySteps(phase: DeployPhase | undefined, phases: PhaseStart[] | null | undefined): DeployStep[] {
+  const reached = (phases ?? []).map((p) => p.phase).filter((p) => p !== "failed" && p !== "removed");
+  const order = STEPS.map((s) => s.id) as string[];
+  const effective = phase === "removed" ? "active" : phase;
+  let last = effective && order.includes(effective) ? order.indexOf(effective) : -1;
+  if (effective === "failed") {
+    last = Math.max(0, ...reached.map((p) => order.indexOf(p)));
+  }
+  return STEPS.map((s, i) => {
+    let state: StepState = "pending";
+    if (i < last) state = "done";
+    else if (i === last) {
+      if (effective === "failed") state = "failed";
+      else state = s.id === "active" ? "done" : "current";
+    }
+    return { ...s, state };
+  });
+}
+
+export interface ServiceLink {
+  from: string;
+  to: string;
+}
+
+export interface ServiceGraph {
+  rows: string[][];
+  links: ServiceLink[];
+}
+
+// serviceGraph stacks services in rows so that a service sits above the ones
+// it depends on: the entry points on top and the data stores at the bottom.
+// A dependency cycle is cut where it is found.
+export function serviceGraph(unsorted: Service[]): ServiceGraph {
+  const services = [...unsorted].sort((a, b) => a.name.localeCompare(b.name));
+  const names = new Set(services.map((s) => s.name));
+  const deps = new Map(services.map((s) => [s.name, (s.depends_on ?? []).filter((d) => names.has(d))]));
+  const depth = new Map<string, number>();
+  const visiting = new Set<string>();
+  const measure = (name: string): number => {
+    if (depth.has(name)) return depth.get(name)!;
+    if (visiting.has(name)) return 0;
+    visiting.add(name);
+    const d = Math.max(-1, ...(deps.get(name) ?? []).map(measure)) + 1;
+    visiting.delete(name);
+    depth.set(name, d);
+    return d;
+  };
+  services.forEach((s) => measure(s.name));
+  const top = Math.max(0, ...depth.values());
+  const rows: string[][] = Array.from({ length: top + 1 }, () => []);
+  for (const s of services) rows[top - depth.get(s.name)!].push(s.name);
+  rows.forEach((r) => r.sort());
+  const links = services.flatMap((s) => (deps.get(s.name) ?? []).map((to) => ({ from: s.name, to })));
+  return { rows: rows.filter((r) => r.length), links };
+}
+
+export type CardState = "online" | "degraded" | "crashed" | "offline" | "asleep";
+
+// projectState says in one word how a project is doing: online when every
+// service runs, degraded when only some do, crashed when one exited with an
+// error and nothing runs, offline when it was stopped, asleep while sleeping.
+export function projectState(d: Deployment): { state: CardState; label: string } {
+  if (d.metadata?.sleep?.sleeping) return { state: "asleep", label: "Asleep" };
+  const services = d.services ?? [];
+  const running = services.filter((s) => s.status === "running").length;
+  if (d.status === "error") return { state: "crashed", label: "Crashed" };
+  if (services.length && running === services.length) return { state: "online", label: "Online" };
+  if (running > 0) return { state: "degraded", label: `${running} of ${services.length} running` };
+  if (d.status === "running") return { state: "online", label: "Online" };
+  if (services.some((s) => s.status === "exited" || s.status === "dead")) return { state: "crashed", label: "Crashed" };
+  return { state: "offline", label: "Offline" };
+}
+
+// serviceState is the same reading for one compose service.
+export function serviceState(s: Service): { state: CardState; label: string } {
+  if (s.status === "running" && s.health === "unhealthy") return { state: "degraded", label: "Unhealthy" };
+  if (s.status === "running") return { state: "online", label: "Online" };
+  if (s.status === "exited" || s.status === "dead") return { state: "crashed", label: "Crashed" };
+  return { state: "offline", label: "Offline" };
+}

@@ -1,0 +1,8 @@
+{
+  "env": {
+    "SITE_URL": "https://blog.trakli.test",
+    "DB_PASSWORD": "${{ secret.DB_PASSWORD }}"
+  },
+  "secrets": { "DB_PASSWORD": { "length": 24, "charset": "alphanumeric" } },
+  "domains": [["blog.trakli.test", "wordpress", 80]]
+}

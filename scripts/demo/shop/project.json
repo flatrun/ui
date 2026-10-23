@@ -1,0 +1,25 @@
+{
+  "env": {
+    "API_URL": "http://shop-api:3000",
+    "ANALYTICS_URL": "${{ plausible.BASE_URL }}",
+    "STRIPE_KEY": "${{ secret.STRIPE_KEY }}"
+  },
+  "secrets": {
+    "STRIPE_KEY": {
+      "length": 32,
+      "charset": "alphanumeric"
+    }
+  },
+  "domains": [
+    [
+      "shop.trakli.test",
+      "web",
+      80
+    ],
+    [
+      "api.shop.trakli.test",
+      "api",
+      3000
+    ]
+  ]
+}

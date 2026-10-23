@@ -503,7 +503,7 @@ onMounted(init);
 
 .brand p {
   font-size: 1.125rem;
-  color: #94a3b8;
+  color: var(--text-subtle);
   margin-top: 0.75rem;
 }
 
@@ -522,7 +522,7 @@ onMounted(init);
 }
 
 .feature i {
-  color: #22c55e;
+  color: var(--color-success-500);
   font-size: 1.125rem;
 }
 
@@ -639,7 +639,7 @@ onMounted(init);
   background: linear-gradient(90deg, var(--border) 25%, var(--surface-inset) 50%, var(--border) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
-  border-radius: 4px;
+  border-radius: var(--radius-md);
 }
 
 @keyframes shimmer {

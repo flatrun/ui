@@ -780,7 +780,7 @@ onMounted(() => {
 }
 
 .feature-item i {
-  color: #22c55e;
+  color: var(--color-success-500);
   font-size: 1.25rem;
   flex-shrink: 0;
 }
@@ -841,11 +841,11 @@ onMounted(() => {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #ef4444;
+  background: var(--color-danger-500);
 }
 
 .status-dot.online {
-  background: #22c55e;
+  background: var(--color-success-500);
   box-shadow: 0 0 8px rgba(34, 197, 94, 0.5);
 }
 
@@ -864,7 +864,7 @@ onMounted(() => {
 .zone-type {
   padding: 0.125rem 0.5rem;
   background: var(--border);
-  border-radius: 9999px;
+  border-radius: var(--radius-pill);
   font-weight: 500;
 }
 
@@ -954,7 +954,7 @@ onMounted(() => {
 
 .status-badge {
   padding: 0.25rem 0.5rem;
-  border-radius: 9999px;
+  border-radius: var(--radius-pill);
   font-size: 0.75rem;
   font-weight: 600;
 }

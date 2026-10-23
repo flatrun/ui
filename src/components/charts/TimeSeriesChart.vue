@@ -6,6 +6,7 @@
 import { ref, onMounted, onUnmounted, watch, nextTick } from "vue";
 import uPlot from "uplot";
 import "uplot/dist/uPlot.min.css";
+import { timeRange } from "./timeRange";
 
 const props = withDefaults(
   defineProps<{
@@ -62,7 +63,7 @@ function options(width: number): uPlot.Options {
     padding: [8, 8, 0, 0],
     cursor: { points: { size: 5 }, focus: { prox: 24 } },
     legend: { live: true },
-    scales: { x: { time: true } },
+    scales: { x: { time: true, range: (_u, min, max) => timeRange(min, max) } },
     series: [
       {},
       ...props.containers.map((label, i) => ({

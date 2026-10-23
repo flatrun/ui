@@ -39,146 +39,10 @@
 import { ref, computed, watch, onMounted, onBeforeUnmount } from "vue";
 import { useRouter } from "vue-router";
 import Icon from "@/components/base/Icon.vue";
-import { useAuthStore } from "@/stores/auth";
-import { deploymentsApi, containersApi, imagesApi, volumesApi, networksApi } from "@/services/api";
-import type { Permission } from "@/types";
-
-interface Destination {
-  label: string;
-  path: string;
-  icon: string;
-  group: string;
-  perm?: Permission;
-}
-
-const DESTINATIONS: Destination[] = [
-  { label: "Dashboard", path: "/", icon: "layout-dashboard", group: "" },
-  { label: "Deployments", path: "/deployments", icon: "layers", group: "Stacks", perm: "deployments:read" },
-  { label: "Containers", path: "/containers", icon: "box", group: "Docker", perm: "containers:read" },
-  { label: "Images", path: "/images", icon: "disc", group: "Docker", perm: "images:read" },
-  { label: "Volumes", path: "/volumes", icon: "hard-drive", group: "Docker", perm: "volumes:read" },
-  { label: "Networks", path: "/networks", icon: "network", group: "Docker", perm: "networks:read" },
-  { label: "Port Mappings", path: "/docker-ports", icon: "plug", group: "Docker", perm: "containers:read" },
-  { label: "Server Info", path: "/server-info", icon: "server", group: "System", perm: "system:read" },
-  { label: "Terminal", path: "/system-terminal", icon: "terminal", group: "System", perm: "system:write" },
-  { label: "Files", path: "/system/files", icon: "folder", group: "System", perm: "system:files" },
-  { label: "Fleet", path: "/cluster", icon: "boxes", group: "Services", perm: "cluster:read" },
-  { label: "Notifications", path: "/notifications", icon: "bell", group: "Services", perm: "settings:read" },
-  {
-    label: "Infrastructure",
-    path: "/infrastructure",
-    icon: "server-cog",
-    group: "System",
-    perm: "infrastructure:read",
-  },
-  { label: "Ports", path: "/system-ports", icon: "ethernet-port", group: "System", perm: "system:read" },
-  { label: "Services", path: "/services", icon: "cog", group: "System", perm: "system:read" },
-  { label: "Cron Jobs", path: "/cron-jobs", icon: "clock", group: "System", perm: "scheduler:read" },
-  { label: "Database Servers", path: "/databases", icon: "database", group: "Databases", perm: "databases:read" },
-  { label: "DNS Zones", path: "/dns/zones", icon: "globe", group: "DNS", perm: "dns:read" },
-  { label: "External Providers", path: "/dns/external", icon: "globe", group: "DNS", perm: "dns:read" },
-  { label: "Security & Monitoring", path: "/security", icon: "shield", group: "Security", perm: "security:read" },
-  { label: "Certificates", path: "/certificates", icon: "shield-check", group: "Security", perm: "certificates:read" },
-  { label: "Installed Apps", path: "/apps", icon: "layout-grid", group: "Apps", perm: "templates:read" },
-  { label: "Marketplace", path: "/marketplace", icon: "store", group: "Apps", perm: "templates:read" },
-  { label: "Settings", path: "/settings", icon: "settings", group: "Administration", perm: "settings:read" },
-  { label: "Users", path: "/users", icon: "users", group: "Administration", perm: "users:read" },
-  { label: "API Keys", path: "/api-keys", icon: "key", group: "Administration", perm: "apikeys:read" },
-];
+import { useSearchIndex, type SearchItem } from "@/navigation/search";
 
 const router = useRouter();
-const authStore = useAuthStore();
-
-interface SearchItem {
-  key: string;
-  label: string;
-  path: string;
-  icon: string;
-  group: string;
-}
-
-interface EntitySource {
-  group: string;
-  icon: string;
-  perm: Permission;
-  path: (name: string) => string;
-  fetch: () => Promise<string[]>;
-}
-
-// Searchable resources across the dashboard. Each fetches its list and maps to
-// labels; results navigate to the resource (deployments to their detail page,
-// others to the relevant list page).
-const ENTITY_SOURCES: EntitySource[] = [
-  {
-    group: "Deployment",
-    icon: "box",
-    perm: "deployments:read",
-    path: (n) => `/deployments/${n}`,
-    fetch: async () => (await deploymentsApi.list()).data.deployments.map((d) => d.name),
-  },
-  {
-    group: "Container",
-    icon: "container",
-    perm: "containers:read",
-    path: () => "/containers",
-    fetch: async () => (await containersApi.list()).data.containers.map((c) => c.name).filter(Boolean),
-  },
-  {
-    group: "Image",
-    icon: "disc",
-    perm: "images:read",
-    path: () => "/images",
-    fetch: async () => (await imagesApi.list()).data.images.flatMap((i) => i.tags ?? []).filter(Boolean),
-  },
-  {
-    group: "Volume",
-    icon: "hard-drive",
-    perm: "volumes:read",
-    path: () => "/volumes",
-    fetch: async () => (await volumesApi.list()).data.volumes.map((v) => v.name).filter(Boolean),
-  },
-  {
-    group: "Network",
-    icon: "network",
-    perm: "networks:read",
-    path: () => "/networks",
-    fetch: async () => (await networksApi.list()).data.networks.map((n) => n.name).filter(Boolean),
-  },
-];
-
-const entities = ref<SearchItem[]>([]);
-const entitiesLoaded = ref(false);
-const entitiesLoading = ref(false);
-
-async function loadEntities() {
-  if (entitiesLoaded.value || entitiesLoading.value) return;
-  entitiesLoading.value = true;
-  const sources = ENTITY_SOURCES.filter((s) => authStore.hasPermission(s.perm));
-  const lists = await Promise.all(
-    sources.map(async (s): Promise<SearchItem[]> => {
-      try {
-        const labels = await s.fetch();
-        return labels.map((label) => ({
-          key: `${s.group}:${label}`,
-          label,
-          path: s.path(label),
-          icon: s.icon,
-          group: s.group,
-        }));
-      } catch {
-        return [];
-      }
-    }),
-  );
-  const seen = new Set<string>();
-  entities.value = lists.flat().filter((e) => {
-    if (seen.has(e.key)) return false;
-    seen.add(e.key);
-    return true;
-  });
-  entitiesLoaded.value = true;
-  entitiesLoading.value = false;
-}
+const index = useSearchIndex();
 
 const rootEl = ref<HTMLElement | null>(null);
 const inputEl = ref<HTMLInputElement | null>(null);
@@ -194,24 +58,7 @@ watch(query, () => {
 const isMac = typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.platform);
 const kbdHint = computed(() => (isMac ? "⌘K" : "Ctrl K"));
 
-const allowedPages = computed<SearchItem[]>(() =>
-  DESTINATIONS.filter((d) => !d.perm || authStore.hasPermission(d.perm)).map((d) => ({
-    key: d.path,
-    label: d.label,
-    path: d.path,
-    icon: d.icon,
-    group: d.group,
-  })),
-);
-
-const results = computed<SearchItem[]>(() => {
-  const q = query.value.trim().toLowerCase();
-  if (!q) return allowedPages.value.slice(0, 8);
-  const ents = entities.value.filter((e) => e.label.toLowerCase().includes(q));
-  const pages = allowedPages.value.filter((d) => d.label.toLowerCase().includes(q));
-  // Resources first: you're usually searching for a specific deployment/container/etc.
-  return [...ents, ...pages].slice(0, 10);
-});
+const results = computed<SearchItem[]>(() => index.search(query.value));
 
 const move = (delta: number) => {
   if (!results.value.length) return;
@@ -228,7 +75,7 @@ const go = (dest: SearchItem) => {
 
 const onFocus = () => {
   open.value = true;
-  loadEntities();
+  index.load();
 };
 
 const choose = () => {

@@ -703,7 +703,7 @@ onMounted(() => {
 }
 
 .domain-cell i {
-  color: #22c55e;
+  color: var(--color-success-500);
 }
 
 .status-badge {
@@ -711,7 +711,7 @@ onMounted(() => {
   align-items: center;
   gap: 0.375rem;
   padding: 0.25rem 0.75rem;
-  border-radius: 9999px;
+  border-radius: var(--radius-pill);
   font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
@@ -738,7 +738,7 @@ onMounted(() => {
 }
 
 .days-left.warning {
-  color: #d97706;
+  color: var(--color-warning-600);
   font-weight: 500;
 }
 
@@ -771,7 +771,7 @@ onMounted(() => {
 }
 
 .cert-card.expired {
-  border-color: #ef4444;
+  border-color: var(--color-danger-500);
 }
 
 .cert-header {
@@ -794,7 +794,7 @@ onMounted(() => {
 }
 
 .cert-domain i {
-  color: #22c55e;
+  color: var(--color-success-500);
 }
 
 .cert-body {
@@ -884,7 +884,7 @@ onMounted(() => {
 
 .summary-icon.expiring {
   background: var(--color-warning-50);
-  color: #d97706;
+  color: var(--color-warning-600);
 }
 
 .summary-icon.expired {
@@ -948,7 +948,7 @@ onMounted(() => {
   align-items: center;
   gap: 0.25rem;
   padding: 0.125rem 0.5rem;
-  border-radius: 9999px;
+  border-radius: var(--radius-pill);
   background: #eef2ff;
   color: #4338ca;
   font-size: 0.6875rem;
@@ -1034,7 +1034,7 @@ onMounted(() => {
   right: 0;
   bottom: 0;
   background-color: var(--border);
-  border-radius: 9999px;
+  border-radius: var(--radius-pill);
   transition: 0.2s;
 }
 

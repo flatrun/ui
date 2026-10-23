@@ -1334,7 +1334,7 @@ onMounted(() => {
 }
 
 .tab.active {
-  background: #3b82f6;
+  background: var(--accent);
   color: white;
 }
 
@@ -1723,7 +1723,7 @@ onMounted(() => {
 }
 
 .toggle-switch input:checked + .toggle-slider {
-  background-color: #3b82f6;
+  background-color: var(--accent);
 }
 
 .toggle-switch input:checked + .toggle-slider::before {
@@ -1773,7 +1773,7 @@ onMounted(() => {
 }
 
 .preset-btn i {
-  color: #3b82f6;
+  color: var(--accent);
 }
 
 .btn {
@@ -1806,12 +1806,12 @@ onMounted(() => {
 }
 
 .btn-primary {
-  background: #3b82f6;
+  background: var(--accent);
   color: white;
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: #2563eb;
+  background: var(--accent-hover);
 }
 
 .btn-primary:disabled {
@@ -1835,23 +1835,23 @@ onMounted(() => {
 }
 
 .btn-danger {
-  background: #ef4444;
+  background: var(--color-danger-500);
   color: white;
 }
 
 .btn-danger:hover:not(:disabled) {
-  background: #dc2626;
+  background: var(--color-danger-600);
 }
 
 .btn-danger-ghost {
   background: transparent;
-  color: #ef4444;
+  color: var(--color-danger-500);
   border: 1px solid transparent;
 }
 
 .btn-danger-ghost:hover:not(:disabled) {
   background: var(--color-danger-50);
-  border-color: #fecaca;
+  border-color: var(--color-danger-100);
 }
 
 .modal-overlay {
@@ -2013,7 +2013,7 @@ onMounted(() => {
 
 .form-input:focus {
   outline: none;
-  border-color: #3b82f6;
+  border-color: var(--accent);
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
@@ -2052,7 +2052,7 @@ onMounted(() => {
 
 .confirm-icon.danger {
   background: var(--color-danger-50);
-  color: #ef4444;
+  color: var(--color-danger-500);
 }
 
 .confirm-icon i {
@@ -2168,7 +2168,7 @@ onMounted(() => {
   display: inline-flex;
   align-items: center;
   padding: 0.25rem 0.75rem;
-  border-radius: 9999px;
+  border-radius: var(--radius-pill);
   font-size: 0.75rem;
   font-weight: 600;
   background: var(--surface-inset);
@@ -2202,7 +2202,7 @@ onMounted(() => {
 }
 
 .setting-note.info i {
-  color: #3b82f6;
+  color: var(--accent);
 }
 
 .setting-note.warning {
@@ -2211,7 +2211,7 @@ onMounted(() => {
 }
 
 .setting-note.warning i {
-  color: #f59e0b;
+  color: var(--color-warning-500);
 }
 
 /* Dashboard Tab Styles */
@@ -2250,12 +2250,12 @@ onMounted(() => {
 
 .stat-icon.total {
   background: var(--color-info-50);
-  color: #3b82f6;
+  color: var(--accent);
 }
 
 .stat-icon.day {
   background: var(--color-success-50);
-  color: #22c55e;
+  color: var(--color-success-500);
 }
 
 .stat-icon.week {
@@ -2265,12 +2265,12 @@ onMounted(() => {
 
 .stat-icon.blocked {
   background: var(--color-danger-50);
-  color: #ef4444;
+  color: var(--color-danger-500);
 }
 
 .stat-icon.routes {
   background: var(--color-warning-50);
-  color: #f59e0b;
+  color: var(--color-warning-500);
 }
 
 .stat-content {
@@ -2343,7 +2343,7 @@ onMounted(() => {
 }
 
 .severity-dot.critical {
-  background: #dc2626;
+  background: var(--color-danger-600);
 }
 
 .severity-dot.high {
@@ -2351,7 +2351,7 @@ onMounted(() => {
 }
 
 .severity-dot.medium {
-  background: #d97706;
+  background: var(--color-warning-600);
 }
 
 .severity-dot.low {
@@ -2372,7 +2372,7 @@ onMounted(() => {
 }
 
 .severity-bar-fill.critical {
-  background: #dc2626;
+  background: var(--color-danger-600);
 }
 
 .severity-bar-fill.high {
@@ -2380,7 +2380,7 @@ onMounted(() => {
 }
 
 .severity-bar-fill.medium {
-  background: #d97706;
+  background: var(--color-warning-600);
 }
 
 .severity-bar-fill.low {
@@ -2421,8 +2421,8 @@ onMounted(() => {
 .trend-bar {
   width: 100%;
   max-width: 40px;
-  background: linear-gradient(180deg, #3b82f6 0%, #60a5fa 100%);
-  border-radius: var(--radius-sm) 4px 0 0;
+  background: linear-gradient(180deg, var(--accent) 0%, #60a5fa 100%);
+  border-radius: var(--radius-sm) var(--radius-md) 0 0;
   min-height: 4px;
   margin-top: auto;
   transition: height 0.3s ease;
@@ -2535,7 +2535,7 @@ onMounted(() => {
   padding: 0.75rem 1rem;
   background: var(--color-danger-50);
   border-radius: var(--radius-sm);
-  border-left: 3px solid #dc2626;
+  border-left: 3px solid var(--color-danger-600);
 }
 
 .critical-event-time {

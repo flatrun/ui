@@ -1,0 +1,44 @@
+{
+  "env_files": [
+    {
+      "path": ".env",
+      "principal": true,
+      "env_vars": [
+        {
+          "key": "DB_PASSWORD",
+          "value": "example-password"
+        },
+        {
+          "key": "DB_USER",
+          "value": "orders"
+        }
+      ]
+    },
+    {
+      "path": ".env.flatrun",
+      "principal": false,
+      "env_vars": [
+        {
+          "key": "DB_PASSWORD",
+          "value": "example-password"
+        },
+        {
+          "key": "DB_USER",
+          "value": "orders"
+        }
+      ]
+    }
+  ],
+  "env_vars": [
+    {
+      "key": "DB_PASSWORD",
+      "value": "example-password"
+    },
+    {
+      "key": "DB_USER",
+      "value": "orders"
+    }
+  ],
+  "principal_file": ".env",
+  "resolved": {}
+}

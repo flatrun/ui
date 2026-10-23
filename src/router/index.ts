@@ -3,7 +3,10 @@ import type { RouteRecordRaw } from "vue-router";
 import type { Permission } from "@/types";
 import { useAuthStore } from "@/stores/auth";
 import { useSetupStore } from "@/stores/setup";
-import DashboardLayout from "@/layouts/DashboardLayout.vue";
+import AppShell from "@/layouts/AppShell.vue";
+import { styledView } from "@/views/StyledView";
+import { useTheme } from "@/composables/useTheme";
+import { pathForLayout, projectPath } from "@/navigation/projects";
 
 const routes: RouteRecordRaw[] = [
   {
@@ -20,25 +23,41 @@ const routes: RouteRecordRaw[] = [
   },
   {
     path: "/",
-    component: DashboardLayout,
+    component: AppShell,
     meta: { requiresAuth: true },
     children: [
       {
         path: "",
         name: "home",
+        component: styledView({
+          oak: () => import("@/views/HomeView.vue"),
+          birch: () => import("@/views/DeploymentsView.vue"),
+        }),
+      },
+      {
+        path: "overview",
+        name: "overview",
         component: () => import("@/views/HomeView.vue"),
       },
       {
         path: "deployments",
+        alias: "projects",
         name: "deployments",
         component: () => import("@/views/DeploymentsView.vue"),
+        meta: { permission: "deployments:read", birchFullHeight: true },
+      },
+      {
+        path: "canvas",
+        name: "canvas",
+        component: () => import("@/views/CanvasView.vue"),
         meta: { permission: "deployments:read" },
       },
       {
         path: "deployments/:name",
+        alias: "projects/:name",
         name: "deployment-detail",
         component: () => import("@/views/DeploymentDetailView.vue"),
-        meta: { permission: "deployments:read" },
+        meta: { permission: "deployments:read", birchFullHeight: true },
       },
       {
         path: "containers",
@@ -176,6 +195,12 @@ const routes: RouteRecordRaw[] = [
         meta: { permission: "deployments:read" },
       },
       {
+        path: "workspace",
+        name: "workspace",
+        component: () => import("@/views/WorkspaceView.vue"),
+        meta: { permission: "workspaces:read" },
+      },
+      {
         path: "settings",
         name: "settings",
         component: () => import("@/views/SettingsView.vue"),
@@ -299,6 +324,19 @@ router.beforeEach((to, _from, next) => {
     const auth = useAuthStore();
     if (!auth.hasPermission(permission)) {
       next("/");
+      return;
+    }
+  }
+
+  if (token) {
+    const layout = useTheme().current.value.layout;
+    const moved = pathForLayout(to.path, layout);
+    if (moved) {
+      next({ path: moved, query: to.query, hash: to.hash, replace: true });
+      return;
+    }
+    if (layout === "birch" && to.name === "home") {
+      next({ path: projectPath(), replace: true });
       return;
     }
   }

@@ -51,7 +51,7 @@ const emit = defineEmits<{
   padding: 0.55rem 1rem;
   border: 1px solid transparent;
   border-bottom: none;
-  border-radius: var(--radius-md, 8px) var(--radius-md, 8px) 0 0;
+  border-radius: var(--radius-md, var(--radius-xl)) var(--radius-md, var(--radius-xl)) 0 0;
   background: transparent;
   font-size: 0.8rem;
   font-weight: 500;
@@ -74,7 +74,7 @@ const emit = defineEmits<{
 }
 
 .sub-tab.active {
-  color: var(--color-primary-600, #2563eb);
+  color: var(--color-primary-600, var(--accent-hover));
   background: var(--surface-raised);
   border-color: var(--border);
   z-index: 1;
@@ -87,7 +87,7 @@ const emit = defineEmits<{
 .sub-tabs-panel {
   background: var(--surface-raised);
   border: 1px solid var(--border);
-  border-radius: var(--radius-md, 8px);
+  border-radius: var(--radius-md, var(--radius-xl));
   padding: 1rem 1.25rem;
 }
 </style>

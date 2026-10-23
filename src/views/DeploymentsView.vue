@@ -1,27 +1,40 @@
 <template>
-  <div class="deployments-view">
+  <div class="deployments-view" :class="{ 'is-full-bleed': birch }">
     <DataTable
-      :items="visibleDeployments"
+      :items="listed"
       :columns="columns"
       :loading="loading"
-      :searchable="true"
-      search-placeholder="Search deployments..."
+      :searchable="!birch"
+      :search-placeholder="`Search ${noun}s...`"
       :search-fields="['name', 'path', 'status']"
       item-key="clusterKey"
       :empty-icon="Inbox"
-      :empty-title="selectedServer ? `No deployments on ${selectedServer}` : 'No deployments found'"
+      :empty-title="selectedServer ? `No ${noun}s on ${selectedServer}` : `No ${noun}s found`"
       :empty-text="
         selectedServer
           ? 'Choose another Fleet server or refresh this view.'
-          : 'Create your first deployment to get started.'
+          : `Create your first ${noun} to get started.`
       "
-      loading-text="Loading deployments..."
+      :loading-text="`Loading ${noun}s...`"
       :default-page-size="12"
       :toggleable="true"
-      default-view-mode="grid"
+      :view-modes="birch ? ['canvas', 'grid', 'table'] : undefined"
+      :default-view-mode="birch ? 'canvas' : 'grid'"
+      :view-key="birch ? 'projects' : undefined"
     >
+      <template #canvas="{ items }">
+        <ProjectCanvas
+          :projects="items.map((i: ProjectRow) => i.project)"
+          @open="goToDeployment($event as ManagedDeployment)"
+        />
+      </template>
+
       <template #actions>
-        <button v-if="canWrite && !viewingRemoteServer" class="btn btn-primary" @click="showNewDeploymentModal = true">
+        <button
+          v-if="canWrite && !viewingRemoteServer && !birch"
+          class="btn btn-primary"
+          @click="showNewDeploymentModal = true"
+        >
           <Plus :size="16" />
           New Deployment
         </button>
@@ -37,7 +50,10 @@
 
       <template #cell-name="{ item }">
         <div class="deployment-info clickable" @click="goToDeployment(item)">
-          <span class="deployment-name">{{ item.name }}</span>
+          <span class="deployment-name">
+            <Icon :name="projectIcon(item)" :size="16" />{{ item.name }}
+            <span v-for="env in otherEnvironments(item)" :key="env" class="env-chip">{{ env }}</span>
+          </span>
           <span class="server-badge">{{ item.server }}</span>
           <span v-if="item.metadata?.networking?.domain" class="deployment-domain">
             {{ item.metadata.networking.domain }}
@@ -127,12 +143,14 @@
             :key="deployment.clusterKey"
             :name="deployment.name"
             :status="deployment.status"
-            :logo="getDeploymentLogo(deployment)"
-            :icon="getDeploymentIcon(deployment)"
-            :icon-class="getDeploymentIconClass(deployment)"
+            :brand="projectIcon(deployment)"
             :clickable="true"
             @click="goToDeployment(deployment)"
           >
+            <div v-if="otherEnvironments(deployment).length" class="env-chips">
+              <Icon name="git-branch" :size="12" />
+              <span v-for="env in otherEnvironments(deployment)" :key="env" class="env-chip">{{ env }}</span>
+            </div>
             <!-- Domain Link -->
             <div
               v-if="deployment.metadata?.networking?.expose && deployment.metadata?.networking?.domain"
@@ -228,7 +246,9 @@
               </div>
               <div class="meta-item">
                 <Layers :size="12" />
-                <span class="meta-value">{{ deployment.services?.length || 0 }} services</span>
+                <span class="meta-value">{{
+                  deployment.services?.length === 1 ? "1 service" : `${deployment.services?.length || 0} services`
+                }}</span>
               </div>
               <div class="meta-item">
                 <Clock :size="12" />
@@ -283,6 +303,8 @@
       :output="operationModal.output"
       :is-running="operationModal.isRunning"
       :is-success="operationModal.isSuccess"
+      :phase="operationModal.phase"
+      :phases="operationModal.phases"
       @close="closeOperationModal"
     />
 
@@ -310,6 +332,11 @@ import { useAuthStore } from "@/stores/auth";
 import type { Deployment } from "@/types";
 import DataTable from "@/components/DataTable.vue";
 import DeploymentCard from "@/components/DeploymentCard.vue";
+import Icon from "@/components/base/Icon.vue";
+import { projectIcon } from "@/lib/brand";
+import { projectsFrom, type Project } from "@/model/project";
+import ProjectCanvas from "@/components/project/ProjectCanvas.vue";
+import { useTheme } from "@/composables/useTheme";
 import OperationModal from "@/components/OperationModal.vue";
 import { useDeploymentJob } from "@/composables/useDeploymentJob";
 import LogsModal from "@/components/LogsModal.vue";
@@ -340,6 +367,9 @@ const router = useRouter();
 const route = useRoute();
 const notifications = useNotificationsStore();
 const authStore = useAuthStore();
+const { current: currentStyle } = useTheme();
+const birch = computed(() => currentStyle.value.layout === "birch");
+const noun = computed(() => (birch.value ? "project" : "deployment"));
 const canWrite = authStore.hasPermission("deployments:write");
 const canReadCluster = authStore.hasPermission("cluster:read");
 type ManagedDeployment = Deployment & { server: string; local: boolean; clusterKey: string };
@@ -352,6 +382,19 @@ const viewingRemoteServer = computed(() => Boolean(selectedServer.value) && sele
 const visibleDeployments = computed(() =>
   deployments.value.filter((deployment) => deployment.server === (selectedServer.value || localServer.value)),
 );
+
+// Birch lists a project once, with its environments folded into it.
+type ProjectRow = ManagedDeployment & { project: Project };
+const listed = computed<ManagedDeployment[]>(() =>
+  birch.value
+    ? projectsFrom(visibleDeployments.value).map(
+        (project): ProjectRow => ({ ...(project.environments[0].deployment as ManagedDeployment), project }),
+      )
+    : visibleDeployments.value,
+);
+
+const otherEnvironments = (d: ManagedDeployment) =>
+  ((d as ProjectRow).project?.environments ?? []).slice(1).map((e) => e.name);
 
 const deploymentJob = useDeploymentJob((state) => {
   const op = state.operation;
@@ -370,14 +413,14 @@ const logsModal = ref({
   logs: "",
 });
 
-const columns = [
+const columns = computed(() => [
   { key: "status", label: "", width: "40px" },
-  { key: "name", label: "Deployment", sortable: true },
+  { key: "name", label: birch.value ? "Project" : "Deployment", sortable: true },
   { key: "services", label: "Services", width: "180px" },
   { key: "ports", label: "Ports", width: "140px" },
   { key: "updated", label: "Updated", sortable: true, width: "120px" },
   { key: "actions", label: "", width: "140px" },
-];
+]);
 
 const fetchDeployments = async () => {
   loading.value = true;
@@ -461,9 +504,10 @@ const viewLogs = async (deployment: ManagedDeployment) => {
   }
 };
 
-const onDeploymentCreated = () => {
+const onDeploymentCreated = (name?: string) => {
   showNewDeploymentModal.value = false;
   fetchDeployments();
+  if (name) deploymentJob.resume(name);
   notifications.success("Deployment created", "New deployment folder created successfully");
 };
 
@@ -484,97 +528,6 @@ const getServiceClass = (service: Service) => {
   return "app";
 };
 
-const appLogos: Record<string, string> = {
-  wordpress: "https://cdn.simpleicons.org/wordpress/ffffff",
-  node: "https://cdn.simpleicons.org/nodedotjs/ffffff",
-  ghost: "https://cdn.simpleicons.org/ghost/ffffff",
-  nextcloud: "https://cdn.simpleicons.org/nextcloud/ffffff",
-  grafana: "https://cdn.simpleicons.org/grafana/ffffff",
-  prometheus: "https://cdn.simpleicons.org/prometheus/ffffff",
-  redis: "https://cdn.simpleicons.org/redis/ffffff",
-  postgres: "https://cdn.simpleicons.org/postgresql/ffffff",
-  mysql: "https://cdn.simpleicons.org/mysql/ffffff",
-  mariadb: "https://cdn.simpleicons.org/mariadb/ffffff",
-  mongo: "https://cdn.simpleicons.org/mongodb/ffffff",
-  nginx: "https://cdn.simpleicons.org/nginx/ffffff",
-  python: "https://cdn.simpleicons.org/python/ffffff",
-  django: "https://cdn.simpleicons.org/django/ffffff",
-  php: "https://cdn.simpleicons.org/php/ffffff",
-  laravel: "https://cdn.simpleicons.org/laravel/ffffff",
-  astro: "https://cdn.simpleicons.org/astro/ffffff",
-  nextjs: "https://cdn.simpleicons.org/nextdotjs/ffffff",
-  html: "https://cdn.simpleicons.org/html5/ffffff",
-};
-
-const getDeploymentLogo = (deployment: Deployment) => {
-  const mainImage = getMainImage(deployment)?.toLowerCase() || "";
-  const firstServiceImage = deployment.services?.[0]?.image?.toLowerCase() || "";
-  const name = deployment.name.toLowerCase();
-
-  // Check name first for custom app logos
-  if (appLogos[name]) {
-    return appLogos[name];
-  }
-
-  // Then check images
-  for (const [key, url] of Object.entries(appLogos)) {
-    if (mainImage.includes(key) || firstServiceImage.includes(key)) {
-      return url;
-    }
-  }
-  return undefined;
-};
-
-const getDeploymentIcon = (deployment: Deployment) => {
-  const mainImage = getMainImage(deployment)?.toLowerCase() || "";
-  const type = deployment.metadata?.type?.toLowerCase() || "";
-  const firstServiceImage = deployment.services?.[0]?.image?.toLowerCase() || "";
-
-  if (mainImage.includes("nginx") || type === "nginx") return "pi pi-server";
-  if (mainImage.includes("node") || mainImage.includes("express")) return "pi pi-code";
-  if (mainImage.includes("php") || mainImage.includes("laravel")) return "pi pi-code";
-  if (mainImage.includes("python") || mainImage.includes("django") || mainImage.includes("flask")) return "pi pi-code";
-  if (mainImage.includes("wordpress")) return "pi pi-pencil";
-  if (mainImage.includes("ghost")) return "pi pi-pencil";
-  if (mainImage.includes("nextcloud")) return "pi pi-cloud";
-  if (mainImage.includes("grafana")) return "pi pi-chart-bar";
-  if (mainImage.includes("prometheus")) return "pi pi-chart-line";
-  if (firstServiceImage.includes("redis")) return "pi pi-bolt";
-  if (
-    firstServiceImage.includes("postgres") ||
-    firstServiceImage.includes("mysql") ||
-    firstServiceImage.includes("mongo")
-  )
-    return "pi pi-database";
-  if (hasDatabase(deployment)) return "pi pi-database";
-  return "pi pi-box";
-};
-
-const getDeploymentIconClass = (deployment: Deployment) => {
-  const mainImage = getMainImage(deployment)?.toLowerCase() || "";
-  const type = deployment.metadata?.type?.toLowerCase() || "";
-  const firstServiceImage = deployment.services?.[0]?.image?.toLowerCase() || "";
-
-  if (mainImage.includes("nginx") || type === "nginx") return "icon-nginx";
-  if (mainImage.includes("node") || mainImage.includes("express")) return "icon-node";
-  if (mainImage.includes("php") || mainImage.includes("laravel")) return "icon-php";
-  if (mainImage.includes("python") || mainImage.includes("django") || mainImage.includes("flask")) return "icon-python";
-  if (mainImage.includes("wordpress")) return "icon-wordpress";
-  if (mainImage.includes("ghost")) return "icon-ghost";
-  if (mainImage.includes("nextcloud")) return "icon-nextcloud";
-  if (mainImage.includes("grafana")) return "icon-grafana";
-  if (mainImage.includes("prometheus")) return "icon-prometheus";
-  if (firstServiceImage.includes("redis")) return "icon-redis";
-  if (
-    firstServiceImage.includes("postgres") ||
-    firstServiceImage.includes("mysql") ||
-    firstServiceImage.includes("mongo")
-  )
-    return "icon-database";
-  if (hasDatabase(deployment)) return "icon-database";
-  return "icon-default";
-};
-
 const hasDatabase = (deployment: Deployment) => {
   return deployment.services?.some((s) => {
     const image = s.image?.toLowerCase() || "";
@@ -588,20 +541,18 @@ const hasDatabase = (deployment: Deployment) => {
   });
 };
 
+const DATABASE_TYPES: [string, string][] = [
+  ["mysql", "MySQL"],
+  ["mariadb", "MariaDB"],
+  ["postgres", "PostgreSQL"],
+  ["mongo", "MongoDB"],
+  ["redis", "Redis"],
+];
+
+// A database outranks a cache, so a project with both is named by its database.
 const getDatabaseType = (deployment: Deployment) => {
-  const dbService = deployment.services?.find((s) => {
-    const image = s.image?.toLowerCase() || "";
-    return (
-      image.includes("mysql") || image.includes("mariadb") || image.includes("postgres") || image.includes("mongo")
-    );
-  });
-  if (!dbService) return "";
-  const image = dbService.image?.toLowerCase() || "";
-  if (image.includes("mysql")) return "MySQL";
-  if (image.includes("mariadb")) return "MariaDB";
-  if (image.includes("postgres")) return "PostgreSQL";
-  if (image.includes("mongo")) return "MongoDB";
-  return "Database";
+  const images = (deployment.services ?? []).map((s) => s.image?.toLowerCase() || "");
+  return DATABASE_TYPES.find(([match]) => images.some((image) => image.includes(match)))?.[1] ?? "";
 };
 
 const getNetworks = (deployment: Deployment) => {
@@ -737,6 +688,53 @@ watch(selectedServer, () => fetchDeployments());
 </script>
 
 <style scoped>
+.deployments-view.is-full-bleed {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.is-full-bleed :deep(.data-table-container) {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+}
+
+.is-full-bleed :deep(.data-table-container:not([data-view="canvas"])) {
+  overflow: auto;
+  padding: var(--space-5) var(--space-6);
+}
+
+.is-full-bleed :deep(.data-table-container[data-view="canvas"]) {
+  gap: 0;
+}
+
+.is-full-bleed :deep(.data-table-container[data-view="canvas"] > .table-header) {
+  position: absolute;
+  z-index: 6;
+  top: var(--space-3);
+  right: var(--space-3);
+  left: var(--space-3);
+  pointer-events: none;
+}
+
+.is-full-bleed :deep(.data-table-container[data-view="canvas"] > .table-header > *) {
+  pointer-events: auto;
+}
+
+.is-full-bleed :deep(.canvas-view) {
+  flex: 1;
+  min-height: 0;
+}
+
+.is-full-bleed :deep(.project-canvas) {
+  height: 100%;
+  min-height: 0;
+  border: 0;
+  border-radius: 0;
+}
+
 .deployments-view {
   display: flex;
   flex-direction: column;
@@ -749,7 +747,28 @@ watch(selectedServer, () => fetchDeployments());
   gap: 0.125rem;
 }
 
+.env-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--text-muted);
+}
+
+.env-chip {
+  padding: 0 6px;
+  background: var(--surface-inset);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  font-weight: var(--font-normal);
+  text-transform: capitalize;
+}
+
 .deployment-name {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
   font-weight: var(--font-medium);
   color: var(--text);
 }

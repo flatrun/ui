@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import type { AxiosAdapter } from "axios";
-import { apiClient, resetSessionGate } from "./api";
+import { apiClient, deploymentsApi, resetSessionGate } from "./api";
+import projectDeployments from "@/components/deploys/fixtures/project-deployments.json";
 
 const ok = (config: Parameters<AxiosAdapter>[0]) =>
   Promise.resolve({ data: {}, status: 200, statusText: "OK", headers: {}, config });
@@ -137,5 +138,54 @@ describe("api client session gate", () => {
     await apiClient.get("/users/me");
 
     expect(adapter).toHaveBeenCalledWith(expect.objectContaining({ url: "/users/me" }));
+  });
+});
+
+describe("api client workspace scope", () => {
+  const originalAdapter = apiClient.defaults.adapter;
+
+  beforeEach(() => {
+    resetSessionGate();
+    localStorage.clear();
+    localStorage.setItem("auth_token", "good");
+    localStorage.setItem("flatrun.workspace", "acme-shop");
+    Object.defineProperty(window, "location", { value: { pathname: "/", href: "/", search: "" }, writable: true });
+  });
+
+  afterEach(() => {
+    apiClient.defaults.adapter = originalAdapter;
+    document.documentElement.removeAttribute("data-layout");
+  });
+
+  it.each([
+    ["birch", "acme-shop"],
+    ["oak", undefined],
+  ])("under %s sends workspace %s", async (style, expected) => {
+    document.documentElement.setAttribute("data-layout", style);
+    const adapter = vi.fn(ok);
+    apiClient.defaults.adapter = adapter as AxiosAdapter;
+
+    await apiClient.get("/deployments");
+
+    expect(adapter.mock.calls[0][0].headers.get("X-Workspace") ?? undefined).toBe(expected);
+  });
+});
+
+describe("project deployments", () => {
+  const originalAdapter = apiClient.defaults.adapter;
+  afterEach(() => {
+    apiClient.defaults.adapter = originalAdapter;
+  });
+
+  it("reads a project's deploy history from its deployments path", async () => {
+    const adapter = vi.fn((config: Parameters<AxiosAdapter>[0]) =>
+      Promise.resolve({ data: projectDeployments, status: 200, statusText: "OK", headers: {}, config }),
+    );
+    apiClient.defaults.adapter = adapter as AxiosAdapter;
+
+    const { data } = await deploymentsApi.deploys("up-single");
+
+    expect(adapter.mock.calls[0][0].url).toBe("/projects/up-single/deployments");
+    expect(data.deploys?.map((d) => d.id)).toEqual(projectDeployments.deployments.map((d) => d.id));
   });
 });

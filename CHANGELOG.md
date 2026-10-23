@@ -2,6 +2,28 @@
 
 ## [Unreleased]
 
+## [0.4.0-beta.12] - 2026-10-23
+
+The version follows the agent's, so the installer pairs this dashboard with agent 0.4.0-beta.12.
+
+### Added
+- Birch, a new default layout with a top bar and a workspace switcher; the previous layout stays available as Oak
+- Projects on a canvas of cards with their logo, domain, state and services, with cards and table views one click away
+- A project page that draws its services as an architecture graph
+- New projects from a modal with a list of sources, including a private repository's token
+- A project's source, deploy history with build and deploy logs, and auto-deploy settings
+- Variable references to other projects, and sealed secrets with rotation and external secret managers
+- Workspaces: switch between them, manage members, and rename one or give it a logo
+- Themes split into a style and a light or dark scheme
+
+### Changed
+- Deployments are called projects and are read through the project paths
+
+### Fixed
+- The top bar no longer overlaps on phones
+- The file browser shows the real size and item count
+- A chart with a single sample keeps a five-minute window
+
 ## [0.4.0-beta.9] - 2026-09-28
 
 ### Added

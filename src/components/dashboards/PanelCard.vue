@@ -185,7 +185,7 @@ watch(() => [props.panel.source, props.panel.series, props.panel.deployment, pro
   text-align: center;
 }
 .panel-msg.error {
-  color: var(--danger, #ef4444);
+  color: var(--danger, var(--color-danger-500));
 }
 .stat-value {
   font-size: 2.25rem;

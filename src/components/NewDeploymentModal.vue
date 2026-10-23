@@ -575,7 +575,10 @@
                           class="form-input"
                           placeholder="https://github.com/owner/repo.git"
                         />
-                        <span class="field-hint">The repository's compose file becomes the deployment.</span>
+                        <span class="field-hint">
+                          A compose file in the repository is used as is. Without one, the app is built from its
+                          Dockerfile, or detected and built with Railpack.
+                        </span>
                       </div>
 
                       <div class="git-fields-row">
@@ -595,6 +598,19 @@
                           <span class="field-hint">Optional</span>
                         </div>
                       </div>
+
+                      <label class="advanced-option">
+                        <input v-model="form.gitSource.autoDeploy" type="checkbox" />
+                        <div class="option-content">
+                          <span class="option-label">
+                            <Icon name="git-commit-horizontal" :size="14" />
+                            Deploy on push
+                          </span>
+                          <span class="option-desc">
+                            Redeploy when the branch changes, once a webhook is set up on the Deploys tab
+                          </span>
+                        </div>
+                      </label>
 
                       <label class="advanced-option">
                         <input v-model="form.gitSource.isPrivate" type="checkbox" />
@@ -1601,10 +1617,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, watch, computed, shallowRef } from "vue";
+import { ref, reactive, watch, computed } from "vue";
 import { Codemirror } from "vue-codemirror";
 import { yaml } from "@codemirror/lang-yaml";
-import { oneDark } from "@codemirror/theme-one-dark";
+import { useEditorTheme } from "@/composables/useEditorTheme";
 import BaseModal from "@/components/base/BaseModal.vue";
 import AssistButton from "@/components/ai/AssistButton.vue";
 import {
@@ -1618,6 +1634,7 @@ import {
   type SourceCredential,
 } from "@/services/api";
 import Icon from "@/components/base/Icon.vue";
+import { rememberDeploymentJob } from "@/composables/useDeploymentJob";
 import type { RegistryCredential } from "@/types";
 import type { AssistContext } from "@/stores/assist";
 import { extractComposeServiceNames } from "@/utils/compose";
@@ -1683,7 +1700,8 @@ const existingDbContainers = ref<DbContainer[]>([]);
 const loadingDbContainers = ref(false);
 const existingDeployments = ref<string[]>([]);
 
-const extensions = shallowRef([yaml(), oneDark]);
+const editorTheme = useEditorTheme();
+const extensions = computed(() => [yaml(), editorTheme.value]);
 
 const deploymentMode = ref<"" | "easy" | "compose" | "image" | "git">("");
 const templatePreset = ref("");
@@ -1899,6 +1917,7 @@ const form = reactive({
     token: "",
     saveCredential: false,
     credentialName: "",
+    autoDeploy: true,
   },
   envVars: [] as { key: string; value: string }[],
   autoStart: false,
@@ -2787,6 +2806,7 @@ const handleCreate = async () => {
         ref: form.gitSource.repoUrl.trim(),
         branch: form.gitSource.branch.trim() || undefined,
         subpath: form.gitSource.subpath.trim() || undefined,
+        auto_deploy: form.gitSource.autoDeploy,
       };
       if (form.gitSource.isPrivate) {
         if (form.gitSource.useExisting && form.gitSource.selectedCredentialId) {
@@ -2920,7 +2940,10 @@ const handleCreate = async () => {
       domains: domainsArray.length > 1 ? domainsArray : undefined,
     };
 
-    await deploymentsApi.create(payload);
+    const { data } = await deploymentsApi.create(payload);
+    if (data?.build_job_id) {
+      rememberDeploymentJob(form.name, data.build_job_id, "redeploy");
+    }
     emit("created", form.name);
   } catch (e: any) {
     const msg = e.response?.data?.error || e.message;
@@ -3986,10 +4009,10 @@ const handleClose = () => {
   color: var(--color-primary-600);
 }
 .deploy-option-icon.image {
-  color: #3b82f6;
+  color: var(--accent);
 }
 .deploy-option-icon.compose {
-  color: #8b5cf6;
+  color: var(--c-purple);
 }
 .deploy-option-icon.git {
   color: #10b981;

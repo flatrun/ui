@@ -185,7 +185,7 @@ onMounted(() => {
 }
 
 .traffic-title i {
-  color: #3b82f6;
+  color: var(--accent);
 }
 
 .traffic-title h4 {
@@ -269,19 +269,19 @@ onMounted(() => {
 }
 
 .status-bar.status-2xx {
-  background: #22c55e;
+  background: var(--color-success-500);
 }
 
 .status-bar.status-3xx {
-  background: #3b82f6;
+  background: var(--accent);
 }
 
 .status-bar.status-4xx {
-  background: #f59e0b;
+  background: var(--color-warning-500);
 }
 
 .status-bar.status-5xx {
-  background: #ef4444;
+  background: var(--color-danger-500);
 }
 
 .status-legend {
@@ -306,19 +306,19 @@ onMounted(() => {
 }
 
 .legend-dot.status-2xx {
-  background: #22c55e;
+  background: var(--color-success-500);
 }
 
 .legend-dot.status-3xx {
-  background: #3b82f6;
+  background: var(--accent);
 }
 
 .legend-dot.status-4xx {
-  background: #f59e0b;
+  background: var(--color-warning-500);
 }
 
 .legend-dot.status-5xx {
-  background: #ef4444;
+  background: var(--color-danger-500);
 }
 
 .top-paths {

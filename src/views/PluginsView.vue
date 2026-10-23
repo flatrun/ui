@@ -360,8 +360,8 @@ onMounted(fetchPlugins);
   padding: 0.125rem 0.5rem;
   border-radius: var(--radius-full);
   font-weight: var(--font-medium);
-  background: var(--color-info-50, #eff6ff);
-  color: var(--color-primary-700, #1d4ed8);
+  background: var(--color-info-50, var(--accent-subtle));
+  color: var(--color-primary-700, var(--color-primary-700));
 }
 
 .chip--muted {
@@ -509,13 +509,13 @@ onMounted(fetchPlugins);
 
 .api-method.post,
 .api-method.put {
-  background: var(--color-info-50, #eff6ff);
-  color: var(--color-primary-700, #1d4ed8);
+  background: var(--color-info-50, var(--accent-subtle));
+  color: var(--color-primary-700, var(--color-primary-700));
 }
 
 .api-method.delete {
-  background: var(--color-danger-50, #fef2f2);
-  color: var(--color-danger-600, #dc2626);
+  background: var(--color-danger-50, var(--color-danger-50));
+  color: var(--color-danger-600, var(--color-danger-600));
 }
 
 .setting-row {

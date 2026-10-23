@@ -149,22 +149,22 @@ const visibleTabs = computed(() => props.tabs.filter((t) => t.visible !== false)
 }
 
 .tab-btn.active {
-  color: var(--color-primary-600, #2563eb);
-  border-bottom-color: var(--color-primary-500, #3b82f6);
+  color: var(--color-primary-600, var(--accent-hover));
+  border-bottom-color: var(--color-primary-500, var(--accent));
 }
 
 .tab-count {
   font-size: 0.6875rem;
   padding: 0.0625rem 0.375rem;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: var(--surface-inset);
   color: var(--text);
   font-weight: 500;
 }
 
 .tab-btn.active .tab-count {
-  background: var(--color-primary-50, #dbeafe);
-  color: var(--color-primary-700, #1d4ed8);
+  background: var(--color-primary-50, var(--color-primary-100));
+  color: var(--color-primary-700, var(--color-primary-700));
 }
 
 .tab-panel {
@@ -187,7 +187,7 @@ const visibleTabs = computed(() => props.tabs.filter((t) => t.visible !== false)
   gap: 0.375rem;
   padding: 0.5rem 0.875rem;
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: var(--radius-lg);
   background: var(--surface-raised);
   color: var(--text);
   cursor: pointer;
@@ -215,14 +215,14 @@ const visibleTabs = computed(() => props.tabs.filter((t) => t.visible !== false)
 }
 
 .btn-primary {
-  background: var(--color-primary-500, #3b82f6);
+  background: var(--color-primary-500, var(--accent));
   color: white;
-  border-color: var(--color-primary-500, #3b82f6);
+  border-color: var(--color-primary-500, var(--accent));
   font-weight: 600;
 }
 
 .btn-primary:hover {
-  background: var(--color-primary-600, #2563eb);
-  border-color: var(--color-primary-600, #2563eb);
+  background: var(--color-primary-600, var(--accent-hover));
+  border-color: var(--color-primary-600, var(--accent-hover));
 }
 </style>

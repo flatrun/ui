@@ -179,7 +179,7 @@ errors you find, and propose a fix for each.</code></pre>
 import { ref, computed, onMounted } from "vue";
 import { Codemirror } from "vue-codemirror";
 import { yaml } from "@codemirror/lang-yaml";
-import { oneDark } from "@codemirror/theme-one-dark";
+import { useEditorTheme } from "@/composables/useEditorTheme";
 import { agentsApi, aiApi, type AgentDefinition, type AISessionSummary } from "@/services/api";
 import { useAssistStore } from "@/stores/assist";
 import { useAuthStore } from "@/stores/auth";
@@ -200,7 +200,8 @@ const notifications = useNotificationsStore();
 const authStore = useAuthStore();
 const canWrite = computed(() => authStore.hasPermission("settings:write"));
 
-const editorExtensions = [yaml(), oneDark];
+const editorTheme = useEditorTheme();
+const editorExtensions = computed(() => [yaml(), editorTheme.value]);
 const editorOpen = ref(false);
 const editingName = ref<string | null>(null);
 const nameInput = ref("");
@@ -429,7 +430,7 @@ onMounted(fetchAgents);
   text-align: left;
   background: var(--surface-sunken);
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: var(--radius-xl);
   padding: var(--space-4);
   font-size: 0.82rem;
   max-width: 480px;
@@ -550,7 +551,7 @@ onMounted(fetchAgents);
   padding: 0.5rem 0.75rem;
   background: var(--surface-sunken);
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: var(--radius-xl);
   color: var(--text);
 }
 
@@ -568,12 +569,12 @@ onMounted(fetchAgents);
 
 .btn-danger {
   background: transparent;
-  border: 1px solid color-mix(in srgb, #ef4444 45%, transparent);
-  color: #ef4444;
+  border: 1px solid color-mix(in srgb, var(--color-danger-500) 45%, transparent);
+  color: var(--color-danger-500);
 }
 
 .btn-danger:hover:not(:disabled) {
-  background: color-mix(in srgb, #ef4444 12%, transparent);
+  background: color-mix(in srgb, var(--color-danger-500) 12%, transparent);
 }
 </style>
 

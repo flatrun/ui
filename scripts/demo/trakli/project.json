@@ -1,0 +1,44 @@
+{
+  "env": {
+    "APP_URL": "https://app.trakli.test",
+    "APP_KEY": "${{ secret.APP_KEY }}",
+    "DB_PASSWORD": "${{ secret.DB_PASSWORD }}",
+    "REVERB_APP_SECRET": "${{ secret.REVERB_APP_SECRET }}",
+    "GEMINI_API_KEY": "${{ secret.GEMINI_API_KEY }}"
+  },
+  "secrets": {
+    "APP_KEY": {
+      "length": 32,
+      "charset": "alphanumeric"
+    },
+    "DB_PASSWORD": {
+      "length": 24,
+      "charset": "alphanumeric"
+    },
+    "REVERB_APP_SECRET": {
+      "length": 32,
+      "charset": "alphanumeric"
+    },
+    "GEMINI_API_KEY": {
+      "length": 39,
+      "charset": "alphanumeric"
+    }
+  },
+  "domains": [
+    [
+      "app.trakli.test",
+      "app",
+      80
+    ],
+    [
+      "ws.trakli.test",
+      "reverb",
+      8080
+    ],
+    [
+      "db.trakli.test",
+      "phpmyadmin",
+      80
+    ]
+  ]
+}

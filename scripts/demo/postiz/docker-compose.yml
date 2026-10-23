@@ -1,0 +1,134 @@
+services:
+  postiz:
+    image: ghcr.io/gitroomhq/postiz-app:latest
+    restart: always
+    environment:
+      MAIN_URL: https://social.trakli.test
+      FRONTEND_URL: https://social.trakli.test
+      NEXT_PUBLIC_BACKEND_URL: https://social.trakli.test/api
+      BACKEND_INTERNAL_URL: http://localhost:3000
+      JWT_SECRET: ${JWT_SECRET}
+      DATABASE_URL: postgresql://postiz:postiz@postgres:5432/postiz
+      REDIS_URL: redis://redis:6379
+      TEMPORAL_ADDRESS: temporal:7233
+      IS_GENERAL: "true"
+      DISABLE_REGISTRATION: "false"
+      RUN_CRON: "true"
+      STORAGE_PROVIDER: local
+      UPLOAD_DIRECTORY: /uploads
+      NEXT_PUBLIC_UPLOAD_DIRECTORY: /uploads
+      MASTODON_URL: https://mastodon.social
+      API_LIMIT: 30
+    volumes:
+      - ./data/config:/config
+      - ./data/uploads:/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      temporal:
+        condition: service_healthy
+  postgres:
+    image: postgres:17-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: postiz
+      POSTGRES_PASSWORD: postiz
+      POSTGRES_DB: postiz
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postiz -d postiz"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  redis:
+    image: redis:7.2
+    restart: always
+    volumes:
+      - ./data/redis:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep -q PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  temporal-elasticsearch:
+    image: elasticsearch:7.17.27
+    restart: always
+    environment:
+      - discovery.type=single-node
+      - ES_JAVA_OPTS=-Xms256m -Xmx256m
+      - xpack.security.enabled=false
+      - cluster.routing.allocation.disk.threshold_enabled=true
+      - cluster.routing.allocation.disk.watermark.low=512mb
+      - cluster.routing.allocation.disk.watermark.high=256mb
+      - cluster.routing.allocation.disk.watermark.flood_stage=128mb
+    volumes:
+      - ./data/elasticsearch:/usr/share/elasticsearch/data
+    healthcheck:
+      test:
+        ["CMD-SHELL", "curl -fsS 'http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=5s' || exit 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
+  temporal-postgresql:
+    image: postgres:16
+    restart: always
+    environment:
+      POSTGRES_USER: temporal
+      POSTGRES_PASSWORD: temporal
+    volumes:
+      - ./data/temporal-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U temporal"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  temporal:
+    image: temporalio/auto-setup:1.28.1
+    restart: always
+    environment:
+      - DB=postgres12
+      - DB_PORT=5432
+      - POSTGRES_USER=temporal
+      - POSTGRES_PWD=temporal
+      - POSTGRES_SEEDS=temporal-postgresql
+      - DYNAMIC_CONFIG_FILE_PATH=config/dynamicconfig/development-sql.yaml
+      - ENABLE_ES=true
+      - ES_SEEDS=temporal-elasticsearch
+      - ES_VERSION=v7
+      - TEMPORAL_NAMESPACE=default
+    volumes:
+      - ./dynamicconfig:/etc/temporal/config/dynamicconfig
+    depends_on:
+      temporal-postgresql:
+        condition: service_healthy
+      temporal-elasticsearch:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "temporal", "operator", "cluster", "health", "--address", "temporal:7233"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+  temporal-admin-tools:
+    image: temporalio/admin-tools:1.28.1-tctl-1.18.4-cli-1.4.1
+    restart: on-failure
+    environment:
+      - TEMPORAL_ADDRESS=temporal:7233
+      - TEMPORAL_CLI_ADDRESS=temporal:7233
+    stdin_open: true
+    tty: true
+    depends_on:
+      temporal:
+        condition: service_healthy
+  temporal-ui:
+    image: temporalio/ui:2.34.0
+    restart: always
+    environment:
+      - TEMPORAL_ADDRESS=temporal:7233
+    depends_on:
+      temporal:
+        condition: service_healthy

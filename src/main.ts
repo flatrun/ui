@@ -5,6 +5,7 @@ import router from "./router";
 
 import "primeicons/primeicons.css";
 import "./assets/design-system.css";
+import "./assets/styles/birch.css";
 import "./lib/icons";
 import { initTheme } from "./composables/useTheme";
 

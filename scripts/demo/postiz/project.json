@@ -1,0 +1,8 @@
+{
+  "env": { "JWT_SECRET": "${{ secret.JWT_SECRET }}" },
+  "secrets": { "JWT_SECRET": { "length": 48, "charset": "alphanumeric" } },
+  "domains": [
+    ["social.trakli.test", "postiz", 5000],
+    ["workflows.social.trakli.test", "temporal-ui", 8080]
+  ]
+}

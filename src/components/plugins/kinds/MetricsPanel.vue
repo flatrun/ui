@@ -177,11 +177,11 @@ onUnmounted(() => {
 }
 
 .hchip--unhealthy {
-  color: var(--color-danger-600, #dc2626);
+  color: var(--color-danger-600, var(--color-danger-600));
 }
 
 .hchip--unhealthy .hdot {
-  background: var(--color-danger-500, #ef4444);
+  background: var(--color-danger-500, var(--color-danger-500));
 }
 
 .hchip--starting .hdot {

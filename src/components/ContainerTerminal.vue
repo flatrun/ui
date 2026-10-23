@@ -21,6 +21,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch } from "vue";
+import { cssVar } from "@/composables/useEditorTheme";
 import { Terminal } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
 import { WebLinksAddon } from "@xterm/addon-web-links";
@@ -192,9 +193,9 @@ const initTerminal = () => {
     fontSize: 14,
     fontFamily: '"Fira Code", "Cascadia Code", Menlo, Monaco, "Courier New", monospace',
     theme: {
-      background: "#1a1b26",
-      foreground: "#c0caf5",
-      cursor: "#c0caf5",
+      background: cssVar("--terminal-bg", "#1a1b26"),
+      foreground: cssVar("--terminal-text", "#c0caf5"),
+      cursor: cssVar("--terminal-text", "#c0caf5"),
       selectionBackground: "#33467c",
       black: "#15161e",
       red: "#f7768e",
@@ -298,7 +299,7 @@ defineExpose({
   width: 100%;
   height: 100%;
   min-height: 400px;
-  background: #1a1b26;
+  background: var(--terminal-bg);
   border-radius: var(--radius-sm);
   overflow: hidden;
 }

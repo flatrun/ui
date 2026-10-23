@@ -14,7 +14,18 @@
       </div>
     </template>
 
-    <div class="output-section">
+    <div v-if="staged" class="output-section">
+      <DeployLogsPanel
+        :output="output"
+        :phase="phase"
+        :phases="phases"
+        :running="isRunning"
+        :file-name="`${deploymentName}-${operation}`"
+        :max-height="320"
+        :assist-context="assistContext"
+      />
+    </div>
+    <div v-else class="output-section">
       <LogViewer
         :logs="output"
         :loading="isRunning && !output"
@@ -32,20 +43,36 @@
 </template>
 
 <script setup lang="ts">
+import type { DeploymentOperation } from "@/composables/useDeploymentJob";
 import { ref, computed, watch } from "vue";
 import BaseModal from "./base/BaseModal.vue";
 import LogViewer from "./LogViewer.vue";
+import DeployLogsPanel from "./deploys/DeployLogsPanel.vue";
+import { useTheme } from "@/composables/useTheme";
+import type { DeployPhase } from "@/types";
+import type { PhaseStart } from "@/model/project";
 import Icon from "./base/Icon.vue";
 import type { AssistContext } from "@/stores/assist";
 
 const props = defineProps<{
   visible: boolean;
-  operation: "start" | "stop" | "restart" | "rebuild";
+  operation: DeploymentOperation;
   deploymentName: string;
   output: string;
   isRunning: boolean;
   isSuccess: boolean | null;
+  phase?: DeployPhase;
+  phases?: PhaseStart[];
 }>();
+
+const { current: currentStyle } = useTheme();
+
+// A deploy that reports phases gets the stepped build and deploy view under Birch.
+const staged = computed(
+  () =>
+    currentStyle.value.layout === "birch" &&
+    ((props.phases?.length ?? 0) > 0 || ["redeploy", "rebuild", "rollback"].includes(props.operation)),
+);
 
 const emit = defineEmits(["close"]);
 
@@ -68,6 +95,8 @@ const title = computed(() => {
     stop: "Stopping",
     restart: "Restarting",
     rebuild: "Rebuilding",
+    redeploy: "Deploying",
+    rollback: "Rolling back",
   };
   return `${ops[props.operation]} ${props.deploymentName}`;
 });
@@ -187,6 +216,12 @@ const handleClose = () => {
 .operation-badge.restart {
   background: var(--color-info-50);
   color: var(--color-info-700);
+}
+
+.operation-badge.redeploy,
+.operation-badge.rollback {
+  background: var(--accent-subtle);
+  color: var(--accent);
 }
 
 .operation-badge.rebuild {

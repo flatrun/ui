@@ -20,8 +20,18 @@ import type {
   ProtectedModeConfig,
   Plan,
   PlanStatus,
+  DeployRecord,
+  SleepConfig,
+  SourceConfig,
+  WebhookPaths,
+  Workspace,
+  WorkspaceRole,
+  DeployPhase,
 } from "@/types";
 import type { LogRecord, LogSource } from "@/types/logs";
+
+import { workspaceHeader } from "./workspaceScope";
+import type { PhaseStart } from "@/model/project";
 
 export const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_URL || "/api",
@@ -124,6 +134,10 @@ apiClient.interceptors.request.use(async (config) => {
     throw new axios.Cancel("not signed in");
   }
   config.headers.Authorization = `Bearer ${token}`;
+  const workspace = workspaceHeader();
+  if (workspace) {
+    config.headers.set("X-Workspace", workspace);
+  }
 
   if (sessionRejected) {
     throw new axios.Cancel("session already rejected");
@@ -257,12 +271,23 @@ export interface DeploymentJob {
   deployment: string;
   action: string;
   status: DeploymentActionStatus;
+  phase?: DeployPhase;
+  phases?: PhaseStart[];
+  deploy_id?: string;
   output: string;
   lines: string[];
   error?: string;
   started_at: string;
   finished_at?: string;
 }
+
+// publicAgentUrl turns an agent path into the address outside services such as
+// GitHub call.
+export const publicAgentUrl = (path: string): string => {
+  const apiUrl = import.meta.env.VITE_API_URL || "";
+  const origin = apiUrl.startsWith("http") ? new URL(apiUrl).origin : window.location.origin;
+  return `${origin}${path}`;
+};
 
 export const deploymentJobWsUrl = (name: string, jobId: string): string => {
   const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
@@ -295,6 +320,155 @@ export const deploymentLogsWsUrl = (
     return `${protocol}//${url.host}${path}`;
   }
   return `${protocol}//${window.location.host}${path}`;
+};
+
+export interface WorkspaceMember {
+  user_id: number;
+  username: string;
+  email?: string;
+  role: WorkspaceRole;
+  created_at: string;
+}
+
+export interface WorkspaceInvitation {
+  id: number;
+  invitee: string;
+  role: WorkspaceRole;
+  invited_by: number;
+  expires_at: string;
+  created_at: string;
+}
+
+type Items<T> = { items: T[] | null; total: number };
+
+export interface SecretScope {
+  type: "workspace" | "deployment" | "service";
+  id: string;
+}
+
+export interface SecretGenerator {
+  length: number;
+  charset: "alphanumeric" | "hex" | "symbols";
+}
+
+export interface SecretRotation extends SecretGenerator {
+  schedule: string;
+}
+
+export interface StoredSecret {
+  name: string;
+  scope: SecretScope;
+  version: number;
+  rotation?: SecretRotation;
+  last_rotated_at?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SecretField {
+  key: string;
+  label: string;
+  secret?: boolean;
+  required?: boolean;
+  default?: string;
+}
+
+export interface SecretProvider {
+  type: string;
+  label: string;
+  connection_fields: SecretField[];
+  binding_fields: SecretField[];
+}
+
+export interface SecretConnection {
+  id: string;
+  name: string;
+  provider: string;
+  settings: Record<string, string>;
+  workspace?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SecretBinding {
+  id: string;
+  scope: SecretScope;
+  provider: string;
+  connection_id: string;
+  options?: Record<string, string>;
+  created_at: string;
+}
+
+export interface SecretChange {
+  refreshed: string[];
+  restarted?: string[];
+  failed: Record<string, string>;
+}
+
+const scopeParam = (scope: string) => ({ params: { scope } });
+
+export const secretsApi = {
+  list: (scope: string) => apiClient.get<{ items: StoredSecret[]; total: number }>("/secrets", scopeParam(scope)),
+  set: (scope: string, name: string, body: { value: string } | { generate: SecretGenerator }) =>
+    apiClient.put<SecretChange & { secret: StoredSecret }>(
+      `/secrets/${encodeURIComponent(name)}`,
+      body,
+      scopeParam(scope),
+    ),
+  remove: (scope: string, name: string) => apiClient.delete(`/secrets/${encodeURIComponent(name)}`, scopeParam(scope)),
+  rotate: (scope: string, name: string) =>
+    apiClient.post<SecretChange & { secret: StoredSecret }>(
+      `/secrets/${encodeURIComponent(name)}/rotate`,
+      undefined,
+      scopeParam(scope),
+    ),
+  setRotation: (scope: string, name: string, rotation: SecretRotation) =>
+    apiClient.put<StoredSecret>(`/secrets/${encodeURIComponent(name)}/rotation`, rotation, scopeParam(scope)),
+  clearRotation: (scope: string, name: string) =>
+    apiClient.delete<StoredSecret>(`/secrets/${encodeURIComponent(name)}/rotation`, scopeParam(scope)),
+  providers: () => apiClient.get<{ items: SecretProvider[]; total: number }>("/secret-providers"),
+  connections: () => apiClient.get<{ items: SecretConnection[]; total: number }>("/secret-connections"),
+  createConnection: (body: { name: string; provider: string; settings: Record<string, string> }) =>
+    apiClient.post<SecretConnection>("/secret-connections", body),
+  removeConnection: (id: string) => apiClient.delete(`/secret-connections/${id}`),
+  bindings: (scope: string) =>
+    apiClient.get<{ items: SecretBinding[]; total: number }>("/secret-bindings", scopeParam(scope)),
+  bind: (scope: string, connectionId: string, options: Record<string, string>) =>
+    apiClient.post<{ binding: SecretBinding; keys: string[] }>(
+      "/secret-bindings",
+      { connection_id: connectionId, options },
+      scopeParam(scope),
+    ),
+  unbind: (id: string) => apiClient.delete(`/secret-bindings/${id}`),
+  sync: (id: string) => apiClient.post<SecretChange & { keys: string[] }>(`/secret-bindings/${id}/sync`),
+};
+
+export const workspacesApi = {
+  list: () => apiClient.get<Items<Workspace>>("/workspaces"),
+  create: (name: string) => apiClient.post<Workspace>("/workspaces", { name }),
+  rename: (slug: string, name: string) => apiClient.put<Workspace>(`/workspaces/${slug}`, { name }),
+  remove: (slug: string) => apiClient.delete(`/workspaces/${slug}`),
+  logo: (slug: string) => apiClient.get<Blob>(`/workspaces/${slug}/logo`, { responseType: "blob" }),
+  uploadLogo: (slug: string, file: File) => {
+    const form = new FormData();
+    form.append("file", file);
+    return apiClient.put<Workspace>(`/workspaces/${slug}/logo`, form);
+  },
+  removeLogo: (slug: string) => apiClient.delete(`/workspaces/${slug}/logo`),
+  members: (slug: string) => apiClient.get<Items<WorkspaceMember>>(`/workspaces/${slug}/members`),
+  addMember: (slug: string, username: string, role: WorkspaceRole) =>
+    apiClient.post<WorkspaceMember>(`/workspaces/${slug}/members`, { username, role }),
+  setRole: (slug: string, userId: number, role: WorkspaceRole) =>
+    apiClient.put<WorkspaceMember>(`/workspaces/${slug}/members/${userId}`, { role }),
+  removeMember: (slug: string, userId: number) => apiClient.delete(`/workspaces/${slug}/members/${userId}`),
+  invitations: (slug: string) => apiClient.get<Items<WorkspaceInvitation>>(`/workspaces/${slug}/invitations`),
+  invite: (slug: string, invitee: string, role: WorkspaceRole) =>
+    apiClient.post<{ invitation: WorkspaceInvitation; token: string }>(`/workspaces/${slug}/invitations`, {
+      invitee,
+      role,
+    }),
+  revokeInvitation: (slug: string, id: number) => apiClient.delete(`/workspaces/${slug}/invitations/${id}`),
+  accept: (token: string) => apiClient.post<WorkspaceMember>("/workspaces/invitations/accept", { token }),
 };
 
 export const deploymentsApi = {
@@ -342,6 +516,29 @@ export const deploymentsApi = {
     apiClient.post<ActionJobResponse>(`/deployments/${name}/restart`, opts),
   rebuild: (name: string, opts?: ActionOptions) =>
     apiClient.post<ActionJobResponse>(`/deployments/${name}/rebuild`, opts),
+  redeploy: (name: string, revision?: string) =>
+    apiClient.post<ActionJobResponse>(`/deployments/${name}/redeploy`, revision ? { revision } : {}),
+  deploys: async (name: string) => {
+    const res = await apiClient.get<{ deployments: DeployRecord[] | null }>(`/projects/${name}/deployments`);
+    return { ...res, data: { deploys: res.data.deployments } };
+  },
+  deployLogs: (name: string, deployId: string) =>
+    apiClient.get<{ deploy: DeployRecord; output: string; phases: PhaseStart[] }>(
+      `/projects/${name}/deployments/${deployId}/logs`,
+    ),
+  rollback: (name: string, deployId: string) =>
+    apiClient.post<ActionJobResponse>(`/projects/${name}/deployments/${deployId}/rollback`),
+  updateSource: (name: string, changes: { branch?: string; auto_deploy?: boolean; previews?: boolean }) =>
+    apiClient.put<{ source: SourceConfig }>(`/deployments/${name}/source`, changes),
+  webhook: (name: string) =>
+    apiClient.get<{ paths: WebhookPaths; configured: boolean }>(`/deployments/${name}/webhook`),
+  rotateWebhook: (name: string) =>
+    apiClient.post<{ paths: WebhookPaths; secret: string }>(`/deployments/${name}/webhook/rotate`),
+  environments: (name: string) => apiClient.get<{ environments: Deployment[] }>(`/deployments/${name}/environments`),
+  createEnvironment: (name: string, env: { name: string; branch?: string }) =>
+    apiClient.post<{ name: string; job_id?: string }>(`/deployments/${name}/environments`, env),
+  updateSleep: (name: string, sleep: { enabled: boolean; idle_minutes: number }) =>
+    apiClient.put<{ sleep: SleepConfig }>(`/deployments/${name}/sleep`, sleep),
   getJob: (name: string, jobId: string) => apiClient.get<DeploymentJob>(`/deployments/${name}/jobs/${jobId}`),
   getActiveJob: (name: string) => apiClient.get<DeploymentJob>(`/deployments/${name}/jobs/active`),
   serviceActionJob: (name: string, service: string, action: string, opts?: ActionOptions) =>
@@ -432,7 +629,8 @@ export const deploymentsApi = {
         memory_limit: number;
       };
     }>(`/deployments/${name}/stats`),
-  getEnvVars: (name: string) => apiClient.get<{ env_vars: EnvVar[] }>(`/deployments/${name}/env`),
+  getEnvVars: (name: string) =>
+    apiClient.get<{ env_vars: EnvVar[]; resolved?: Record<string, string> }>(`/deployments/${name}/env`),
   updateEnvVars: (name: string, envVars: EnvVar[], opts?: PlanOpts) =>
     apiClient.put(withPlanQuery(`/deployments/${name}/env`, opts), { env_vars: envVars }),
   disableSSL: (name: string) => apiClient.post<{ message: string; name: string }>(`/deployments/${name}/ssl/disable`),
@@ -939,8 +1137,7 @@ export interface FileInfo {
 }
 
 export interface FilesInfo {
-  total_size: number;
-  file_count: number;
+  disk_usage?: number;
 }
 
 // How a deployment is serving its users, measured at the proxy every request already

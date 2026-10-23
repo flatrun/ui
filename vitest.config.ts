@@ -11,6 +11,7 @@ export default defineConfig({
     environment: "happy-dom",
     globals: true,
     setupFiles: ["./vitest.setup.ts"],
+    css: { include: [/birch\.css/] },
   },
   resolve: {
     alias: {

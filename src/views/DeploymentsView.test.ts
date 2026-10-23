@@ -3,7 +3,12 @@ import { reactive } from "vue";
 import { mount, flushPromises } from "@vue/test-utils";
 import { createTestingPinia } from "@pinia/testing";
 import DeploymentsView from "./DeploymentsView.vue";
+import ProjectCanvas from "@/components/project/ProjectCanvas.vue";
 import { useAuthStore } from "@/stores/auth";
+import { useTheme } from "@/composables/useTheme";
+import { deploymentsApi } from "@/services/api";
+import deploymentsFixture from "@/model/fixtures/deployments.json";
+import lumenFixture from "@/model/fixtures/lumen-deployments.json";
 
 vi.mock("@/services/api", () => ({
   clusterApi: {
@@ -98,6 +103,7 @@ describe("DeploymentsView", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockRoute = reactive({ query: {} as Record<string, string>, name: "deployments" });
+    useTheme().setStyle("oak");
   });
 
   const mountView = () => {
@@ -110,14 +116,14 @@ describe("DeploymentsView", () => {
         stubs: {
           DataTable: {
             template: `
-              <div class="data-table">
+              <div class="data-table" :data-view="defaultViewMode">
                 <slot name="actions" />
                 <div class="items">
                   <slot name="grid" :items="items" />
                 </div>
               </div>
             `,
-            props: ["items", "columns", "loading"],
+            props: ["items", "columns", "loading", "defaultViewMode"],
           },
           OperationModal: true,
           LogsModal: true,
@@ -179,6 +185,25 @@ describe("DeploymentsView", () => {
       const refreshBtn = wrapper.find("button.btn-secondary");
       expect(refreshBtn.exists()).toBe(true);
       expect(refreshBtn.text()).toContain("Refresh");
+    });
+  });
+
+  describe("Cards", () => {
+    it("counts one service in the singular and names a Redis store", async () => {
+      vi.mocked(deploymentsApi.list).mockResolvedValueOnce({ data: lumenFixture } as any);
+      const wrapper = mountView();
+      await flushPromises();
+
+      const cards = wrapper.findAll(".deployment-card");
+      const docs = cards.find((c) => c.text().includes("docs"))!;
+      const notifications = cards.find((c) => c.text().includes("notifications"))!;
+      expect(docs.text()).toContain("1 service");
+      expect(docs.text()).not.toContain("1 services");
+      expect(notifications.text()).toContain("3 services");
+      expect(notifications.get(".info-pill.database").text()).toBe("Redis");
+
+      const shop = cards.find((c) => c.text().includes("shop"))!;
+      expect(shop.get(".info-pill.database").text()).toBe("PostgreSQL");
     });
   });
 
@@ -409,6 +434,72 @@ describe("DeploymentsView", () => {
     it("still shows Refresh button without write permission", () => {
       const wrapper = mountViewDenied();
       expect(wrapper.text()).toContain("Refresh");
+    });
+  });
+
+  describe("Birch style", () => {
+    beforeEach(() => {
+      useTheme().setStyle("birch");
+    });
+
+    const mountProjects = async () => {
+      vi.mocked(deploymentsApi.list).mockResolvedValueOnce({ data: { deployments: deploymentsFixture.items } } as any);
+      const pinia = createTestingPinia({ createSpy: vi.fn });
+      vi.mocked(useAuthStore(pinia).hasPermission).mockReturnValue(true);
+      const wrapper = mount(DeploymentsView, {
+        global: {
+          plugins: [pinia],
+          stubs: {
+            ProjectCanvas: { template: "<div class='canvas-stub' />", props: ["projects"] },
+            OperationModal: true,
+            LogsModal: true,
+            NewDeploymentModal: true,
+          },
+        },
+      });
+      await flushPromises();
+      return wrapper;
+    };
+
+    it("opens on the canvas, one card per project, and leaves creating to the top bar", async () => {
+      const wrapper = await mountProjects();
+      const views = wrapper.findAll(".view-toggle button").map((b) => b.attributes("aria-label"));
+      expect(views).toEqual(["Canvas", "Cards", "Table"]);
+
+      const projects = wrapper.getComponent(ProjectCanvas).props("projects") as any[];
+      const hello = projects.find((p) => p.name === "hello-web");
+      expect(hello.environments.map((e: any) => [e.name, e.deployment.name])).toEqual([
+        ["production", "hello-web"],
+        ["staging", "hello-web-staging"],
+      ]);
+      expect(projects.some((p) => p.name === "hello-web-staging")).toBe(false);
+      expect(wrapper.text()).not.toContain("New Deployment");
+    });
+
+    it("fills the page and floats its toolbar over the canvas", async () => {
+      const wrapper = await mountProjects();
+      expect(wrapper.classes()).toContain("is-full-bleed");
+      expect(wrapper.find(".search-box").exists()).toBe(false);
+      expect(wrapper.get(".data-table-container").attributes("data-view")).toBe("canvas");
+      await wrapper.get('[aria-label="Cards"]').trigger("click");
+      expect(wrapper.get(".data-table-container").attributes("data-view")).toBe("grid");
+    });
+
+    it("folds environments into a project's card", async () => {
+      const wrapper = await mountProjects();
+      await wrapper.get('[aria-label="Cards"]').trigger("click");
+      const names = wrapper.findAll(".deployment-card h3").map((h) => h.text());
+      expect(names).toContain("hello-web");
+      expect(names).not.toContain("hello-web-staging");
+      const hello = wrapper.findAll(".deployment-card").find((c) => c.get("h3").text() === "hello-web")!;
+      expect(hello.find(".env-chip").text()).toBe("staging");
+    });
+
+    it("keeps cards and the New Deployment button in Oak", () => {
+      useTheme().setStyle("oak");
+      const wrapper = mountView();
+      expect(wrapper.get(".data-table").attributes("data-view")).toBe("grid");
+      expect(wrapper.text()).toContain("New Deployment");
     });
   });
 });

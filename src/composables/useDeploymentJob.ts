@@ -1,13 +1,23 @@
 import { reactive, onScopeDispose } from "vue";
-import { deploymentsApi, deploymentJobWsUrl, type DeploymentActionStatus, type ActionOptions } from "@/services/api";
+import {
+  deploymentsApi,
+  deploymentJobWsUrl,
+  type ActionJobResponse,
+  type DeploymentActionStatus,
+  type ActionOptions,
+} from "@/services/api";
+import type { DeployPhase } from "@/types";
+import type { PhaseStart } from "@/model/project";
 
-export type DeploymentOperation = "start" | "stop" | "restart" | "rebuild";
+export type DeploymentOperation = "start" | "stop" | "restart" | "rebuild" | "redeploy" | "rollback";
 
 export interface DeploymentJobState {
   visible: boolean;
   operation: DeploymentOperation;
   deploymentName: string;
   jobId: string;
+  phase?: DeployPhase;
+  phases: PhaseStart[];
   output: string;
   isRunning: boolean;
   isSuccess: boolean | null;
@@ -40,6 +50,12 @@ function clearPersisted(name: string) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(all));
 }
 
+// rememberDeploymentJob hands a job started elsewhere, such as the build that
+// follows creating a deployment from source, to the next view that resumes it.
+export function rememberDeploymentJob(name: string, jobId: string, operation: DeploymentOperation) {
+  persist(name, { jobId, operation });
+}
+
 // useDeploymentJob drives one deployment action at a time: it enqueues the
 // action, streams output over a websocket, falls back to polling if the socket
 // drops, and can resume a job left running across a page reload.
@@ -49,6 +65,8 @@ export function useDeploymentJob(onSettled?: (state: DeploymentJobState) => void
     operation: "start",
     deploymentName: "",
     jobId: "",
+    phase: undefined,
+    phases: [],
     output: "",
     isRunning: false,
     isSuccess: null,
@@ -77,9 +95,25 @@ export function useDeploymentJob(onSettled?: (state: DeploymentJobState) => void
     state.operation = operation;
     state.deploymentName = name;
     state.jobId = "";
+    state.phase = undefined;
+    state.phases = [];
     state.output = "";
     state.isRunning = true;
     state.isSuccess = null;
+  }
+
+  function lineCount() {
+    return state.output ? state.output.split("\n").length : 0;
+  }
+
+  function enterPhase(phase: DeployPhase) {
+    if (phase !== state.phase) state.phases = [...state.phases, { phase, from: lineCount() }];
+    state.phase = phase;
+  }
+
+  function adopt(data: { phase?: DeployPhase; phases?: PhaseStart[] }) {
+    if (data.phases) state.phases = data.phases;
+    if (data.phase) state.phase = data.phase;
   }
 
   function appendLine(line: string) {
@@ -109,13 +143,27 @@ export function useDeploymentJob(onSettled?: (state: DeploymentJobState) => void
         return deploymentsApi.restart(name, opts);
       case "rebuild":
         return deploymentsApi.rebuild(name, opts);
+      case "redeploy":
+        return deploymentsApi.redeploy(name);
+      case "rollback":
+        throw new Error("Rollback needs a deploy to roll back to");
     }
   }
 
   async function run(operation: DeploymentOperation, name: string, opts?: ActionOptions) {
+    return track(operation, name, () => enqueue(operation, name, opts));
+  }
+
+  // track streams any request that answers with a deployment job, such as a
+  // rollback to a specific deploy.
+  async function track(
+    operation: DeploymentOperation,
+    name: string,
+    request: () => Promise<{ data: Pick<ActionJobResponse, "job_id"> }>,
+  ) {
     begin(operation, name);
     try {
-      const res = await enqueue(operation, name, opts);
+      const res = await request();
       attach(res.data.job_id);
     } catch (e: any) {
       const activeId = e?.response?.data?.active_job_id;
@@ -178,6 +226,8 @@ export function useDeploymentJob(onSettled?: (state: DeploymentJobState) => void
 
       if (frame.type === "line") {
         appendLine(frame.data ?? "");
+      } else if (frame.type === "phase") {
+        enterPhase(frame.phase);
       } else if (frame.type === "result") {
         settle(frame.status, frame.error);
       } else if (frame.type === "error") {
@@ -202,6 +252,7 @@ export function useDeploymentJob(onSettled?: (state: DeploymentJobState) => void
         if (data.output) {
           state.output = data.output;
         }
+        adopt(data);
         if (data.status === "succeeded" || data.status === "failed") {
           settle(data.status, data.error);
           return;
@@ -228,6 +279,7 @@ export function useDeploymentJob(onSettled?: (state: DeploymentJobState) => void
     try {
       const { data } = await deploymentsApi.getJob(name, persisted.jobId);
       state.output = data.output || "";
+      adopt(data);
       if (data.status === "succeeded" || data.status === "failed") {
         settle(data.status, data.error);
         return true;
@@ -249,5 +301,5 @@ export function useDeploymentJob(onSettled?: (state: DeploymentJobState) => void
 
   onScopeDispose(teardown);
 
-  return { state, run, resume, close };
+  return { state, run, track, resume, close };
 }

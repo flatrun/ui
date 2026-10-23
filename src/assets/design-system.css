@@ -60,6 +60,7 @@
   --radius-xl: 8px;
   --radius-modal: 14px;
   --radius-full: 4px;
+  --radius-pill: 9999px;
 
   /* Spacing */
   --space-1: 0.25rem;
@@ -113,7 +114,7 @@
   --z-modal: 1000;
   --z-toast: 1100;
 
-  /* Semantic surface/text tokens (themeable: see [data-theme="dark"]) */
+  /* Semantic surface/text tokens (themeable: see [data-scheme="dark"] and assets/styles) */
   --app-bg: #f8fafc;
   --surface: #ffffff;
   --surface-raised: #ffffff;
@@ -144,9 +145,38 @@
   --c-red: #ef4444;
   --c-purple: #8b5cf6;
   --c-teal: #14b8a6;
+
+  /* Project canvas */
+  --canvas-bg: var(--app-bg);
+  --canvas-dot: rgba(15, 23, 42, 0.14);
+
+  /* Sizing shared by buttons, inputs and selects */
+  --control-h: 36px;
+  --control-h-sm: 30px;
+  --font-ui: var(--font-sans);
+
+  /* Status colours */
+  --status-running: var(--color-success-500);
+  --status-stopped: var(--color-gray-400);
+  --status-failed: var(--color-danger-500);
+  --status-warning: var(--color-warning-500);
+  --status-sleeping: var(--c-purple);
+
+  /* Code, terminal and charts */
+  --code-bg: var(--surface-sunken);
+  --code-text: var(--text);
+  --terminal-bg: #1a1b26;
+  --terminal-text: #c0caf5;
+  --chart-1: var(--c-blue);
+  --chart-2: var(--c-green);
+  --chart-3: var(--c-amber);
+  --chart-4: var(--c-purple);
+  --chart-5: var(--c-teal);
+  --chart-6: var(--c-red);
 }
 
-[data-theme="dark"] {
+[data-scheme="dark"] {
+  --canvas-dot: rgba(255, 255, 255, 0.07);
   --app-bg: #0a0f1a;
   --surface: #111827;
   --surface-raised: #161f30;

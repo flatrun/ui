@@ -1,0 +1,8 @@
+{
+  "paths": {
+    "generic": "/api/hooks/generic/hello-web",
+    "github": "/api/hooks/github/hello-web",
+    "gitlab": "/api/hooks/gitlab/hello-web"
+  },
+  "secret": "your-webhook-secret-here"
+}

@@ -1,0 +1,17 @@
+{
+  "env": {
+    "APP_KEY": "${{ secret.APP_KEY }}",
+    "DB_PASSWORD": "${{ secret.DB_PASSWORD }}",
+    "JWT_SECRET": "${{ secret.JWT_SECRET }}",
+    "GEMINI_API_KEY": "${{ secret.GEMINI_API_KEY }}",
+    "TRAKLI_API": "${{ trakli.APP_URL }}"
+  },
+  "secrets": {
+    "DB_PASSWORD": { "length": 24, "charset": "alphanumeric" },
+    "JWT_SECRET": { "length": 48, "charset": "alphanumeric" },
+    "GEMINI_API_KEY": { "length": 39, "charset": "alphanumeric" }
+  },
+  "domains": [
+    ["agent.review.trakli.test", "agent", 8000]
+  ]
+}

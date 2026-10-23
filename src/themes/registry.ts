@@ -1,0 +1,34 @@
+export type ColorScheme = "light" | "dark";
+export type SchemePreference = ColorScheme | "system";
+// Layouts are named after trees: Oak is the sidebar shell, Birch the top bar shell.
+export type ShellLayout = "oak" | "birch";
+
+export interface StyleDefinition {
+  id: string;
+  label: string;
+  description: string;
+  layout: ShellLayout;
+}
+
+const styles = new Map<string, StyleDefinition>();
+
+// A style is a registry entry plus a stylesheet scoped to [data-style="<id>"],
+// with [data-scheme] selecting its light or dark tokens. Tokens a style leaves
+// alone fall back to the defaults in design-system.css.
+export function registerStyle(style: StyleDefinition) {
+  styles.set(style.id, style);
+}
+
+export function listStyles(): StyleDefinition[] {
+  return [...styles.values()];
+}
+
+export function getStyle(id: string | null | undefined): StyleDefinition | undefined {
+  return id ? styles.get(id) : undefined;
+}
+
+export const DEFAULT_STYLE_ID = "birch";
+export const SCHEME_PREFERENCES: SchemePreference[] = ["light", "dark", "system"];
+
+registerStyle({ id: "birch", label: "Birch", description: "Top bar, projects on a canvas", layout: "birch" });
+registerStyle({ id: "oak", label: "Oak", description: "Sidebar navigation", layout: "oak" });

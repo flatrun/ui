@@ -202,7 +202,7 @@ onMounted(fetchDashboards);
   text-align: center;
 }
 .empty-state.error {
-  color: var(--danger, #ef4444);
+  color: var(--danger, var(--color-danger-500));
 }
 .icon-btn {
   display: inline-flex;

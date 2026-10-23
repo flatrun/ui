@@ -13,10 +13,43 @@
         <strong>{{ username || "Account" }}</strong>
         <span v-if="role">{{ role }}</span>
       </div>
-      <button type="button" @click="selectTheme">
-        <Icon :name="theme === 'dark' ? 'sun' : 'moon'" :size="16" />
-        {{ theme === "dark" ? "Use light theme" : "Use dark theme" }}
-      </button>
+      <div class="user-menu-group" role="radiogroup" aria-label="Style">
+        <span class="user-menu-label">Style</span>
+        <button
+          v-for="option in styles"
+          :key="option.id"
+          type="button"
+          role="radio"
+          :aria-checked="option.id === styleId"
+          :class="{ active: option.id === styleId }"
+          @click="emit('select-style', option.id)"
+        >
+          <span class="style-swatch" :data-swatch="option.id" />
+          <span class="style-copy">
+            {{ option.label }}
+            <small>{{ option.description }}</small>
+          </span>
+          <Icon v-if="option.id === styleId" name="check" :size="14" class="theme-check" />
+        </button>
+      </div>
+      <div class="user-menu-group">
+        <span class="user-menu-label">Appearance</span>
+        <div class="scheme-switch" role="radiogroup" aria-label="Appearance">
+          <button
+            v-for="option in schemeOptions"
+            :key="option.id"
+            type="button"
+            role="radio"
+            :aria-checked="option.id === scheme"
+            :class="{ active: option.id === scheme }"
+            :title="option.label"
+            @click="emit('select-scheme', option.id)"
+          >
+            <Icon :name="option.icon" :size="14" />
+            {{ option.label }}
+          </button>
+        </div>
+      </div>
       <button type="button" class="sign-out" @click="selectSignOut">
         <Icon name="log-out" :size="16" />
         Sign out
@@ -28,28 +61,33 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import Icon from "@/components/base/Icon.vue";
+import type { SchemePreference, StyleDefinition } from "@/themes/registry";
 
 const props = defineProps<{
   username?: string;
   role?: string;
-  theme: "light" | "dark";
+  styleId: string;
+  styles: StyleDefinition[];
+  scheme: SchemePreference;
 }>();
 
 const emit = defineEmits<{
-  "toggle-theme": [];
+  "select-style": [id: string];
+  "select-scheme": [preference: SchemePreference];
   "sign-out": [];
 }>();
 
 const menu = ref<HTMLDetailsElement | null>(null);
+const schemeOptions: { id: SchemePreference; label: string; icon: string }[] = [
+  { id: "light", label: "Light", icon: "sun" },
+  { id: "dark", label: "Dark", icon: "moon" },
+  { id: "system", label: "Auto", icon: "monitor" },
+];
+
 const initial = computed(() => (props.username || "A").trim().charAt(0).toUpperCase());
 
 function close() {
   if (menu.value) menu.value.open = false;
-}
-
-function selectTheme() {
-  emit("toggle-theme");
-  close();
 }
 
 function selectSignOut() {
@@ -126,7 +164,7 @@ function selectSignOut() {
   top: calc(100% + var(--space-2));
   right: 0;
   z-index: 60;
-  width: 210px;
+  width: 230px;
   padding: var(--space-2);
   background: var(--surface-raised);
   border: 1px solid var(--border);
@@ -165,6 +203,82 @@ function selectSignOut() {
 .user-menu-panel button:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: -2px;
+}
+
+.user-menu-group {
+  padding: var(--space-1) 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.user-menu-label {
+  display: block;
+  padding: var(--space-2) var(--space-2) 0;
+  color: var(--text-subtle);
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.user-menu-panel .user-menu-group button.active {
+  background: var(--accent-subtle);
+}
+
+.style-copy {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.style-copy small {
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+}
+
+.scheme-switch {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+  margin: var(--space-1) var(--space-2) var(--space-1);
+  padding: 2px;
+  background: var(--surface-sunken);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.user-menu-panel .scheme-switch button {
+  justify-content: center;
+  gap: 4px;
+  margin: 0;
+  padding: var(--space-1);
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+}
+
+.user-menu-panel .scheme-switch button.active {
+  background: var(--surface-raised);
+  color: var(--text);
+}
+
+.theme-check {
+  margin-left: auto;
+  color: var(--accent);
+}
+
+.style-swatch {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+}
+
+.style-swatch[data-swatch="birch"] {
+  background: linear-gradient(90deg, #0f0f10 0 30%, #fafafa 30%);
+}
+
+.style-swatch[data-swatch="oak"] {
+  border-radius: var(--radius-sm);
+  background: linear-gradient(90deg, #0f172a 0 30%, var(--surface-sunken) 30%);
 }
 
 .user-menu-panel .sign-out {

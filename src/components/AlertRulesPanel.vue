@@ -404,7 +404,7 @@ onMounted(load);
 .arp-rule-top {
   margin: 3px 0 0;
   font-size: var(--text-xs);
-  color: var(--color-danger-600, #dc2626);
+  color: var(--color-danger-600, var(--color-danger-600));
 }
 
 .arp-targets {

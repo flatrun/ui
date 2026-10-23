@@ -1,0 +1,29 @@
+{
+  "items": [
+    {
+      "id": 2,
+      "slug": "shots",
+      "name": "shots's workspace",
+      "personal": true,
+      "created_at": "2026-10-22T19:08:21.928549155Z",
+      "role": "owner"
+    },
+    {
+      "id": 1,
+      "slug": "default",
+      "name": "Default",
+      "personal": false,
+      "created_at": "2026-10-22T19:08:21.927307383Z",
+      "role": "owner"
+    },
+    {
+      "id": 3,
+      "slug": "admin",
+      "name": "admin's workspace",
+      "personal": true,
+      "created_at": "2026-10-22T19:08:21.929221252Z",
+      "role": "owner"
+    }
+  ],
+  "total": 3
+}

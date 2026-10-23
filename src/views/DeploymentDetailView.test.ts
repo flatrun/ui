@@ -3,18 +3,18 @@ import { mount, flushPromises } from "@vue/test-utils";
 import { createTestingPinia } from "@pinia/testing";
 import DeploymentDetailView from "./DeploymentDetailView.vue";
 import { useAuthStore } from "@/stores/auth";
+import { useTheme } from "@/composables/useTheme";
 
 const mockRoute = {
   params: { name: "test-app" },
   query: {} as Record<string, string>,
 };
 
+const mockRouter = { push: vi.fn(), back: vi.fn(), replace: vi.fn() };
+
 vi.mock("vue-router", () => ({
   useRoute: vi.fn(() => mockRoute),
-  useRouter: vi.fn(() => ({
-    push: vi.fn(),
-    back: vi.fn(),
-  })),
+  useRouter: vi.fn(() => mockRouter),
 }));
 
 vi.mock("@/services/api", () => ({
@@ -110,6 +110,14 @@ vi.mock("@/services/api", () => ({
     series: vi.fn().mockResolvedValue({ data: { deployment: "test-app", since: "1h", points: [] } }),
   },
   deploymentLogsWsUrl: vi.fn(() => "ws://localhost/api/deployments/test-app/logs/stream"),
+  secretsApi: {
+    list: vi.fn(async () => ({ data: (await import("@/components/secrets/fixtures/list.json")).default })),
+    bindings: vi.fn(async () => ({ data: (await import("@/components/secrets/fixtures/bindings.json")).default })),
+    connections: vi.fn(async () => ({
+      data: (await import("@/components/secrets/fixtures/connections.json")).default,
+    })),
+    providers: vi.fn(async () => ({ data: (await import("@/components/secrets/fixtures/providers.json")).default })),
+  },
 }));
 
 vi.mock("@/services/observability", async (importOriginal) => {
@@ -136,6 +144,7 @@ describe("DeploymentDetailView", () => {
     vi.clearAllMocks();
     vi.useFakeTimers();
     mockRoute.query = {};
+    useTheme().setStyle("oak");
   });
 
   afterEach(() => {
@@ -213,11 +222,11 @@ describe("DeploymentDetailView", () => {
   });
 
   describe("Tab navigation", () => {
-    it("displays all eleven tabs", async () => {
+    it("displays all twelve tabs", async () => {
       const wrapper = mountView();
       await flushPromises();
       const tabs = wrapper.findAll(".tab-btn");
-      expect(tabs.length).toBe(11);
+      expect(tabs.length).toBe(12);
     });
 
     it("has Overview tab", async () => {
@@ -334,6 +343,7 @@ describe("DeploymentDetailView", () => {
       await flushPromises();
       expect((wrapper.vm as any).tabs).toEqual([
         { id: "overview", label: "Overview", icon: "pi pi-info-circle" },
+        { id: "deploys", label: "Deploys", icon: "rocket" },
         { id: "files", label: "Files", icon: "pi pi-folder" },
         { id: "logs", label: "Logs", icon: "pi pi-file-edit" },
         { id: "terminal", label: "Terminal", icon: "pi pi-desktop" },
@@ -459,6 +469,27 @@ describe("DeploymentDetailView", () => {
       mountView();
       await flushPromises();
       expect(deploymentsApi.getEnvVars).toHaveBeenCalledWith("test-app");
+    });
+
+    it("shows a reference's template next to the value it resolves to", async () => {
+      const { deploymentsApi } = await import("@/services/api");
+      const envFixture = (await import("@/components/env/fixtures/env.json")).default;
+      vi.mocked(deploymentsApi.getEnvVars).mockResolvedValueOnce({ data: envFixture } as any);
+      const wrapper = mountView();
+      await flushPromises();
+      await wrapper
+        .findAll(".tab-btn")
+        .find((b) => b.text().includes("Environment"))!
+        .trigger("click");
+
+      const rows = wrapper.findAll(".env-row:not(.header)");
+      const dbRow = rows.find((r) => r.text().includes("DATABASE_URL"))!;
+      expect(dbRow.find(".env-ref-badge").exists()).toBe(true);
+      expect(dbRow.text()).toContain("${{ orders-db.DB_PASSWORD }}");
+      expect(dbRow.find(".env-resolved").text()).toBe("= postgres://orders:example-password@orders-db/orders");
+
+      const portRow = rows.find((r) => r.text().includes("PORT"))!;
+      expect(portRow.find(".env-ref-badge").exists()).toBe(false);
     });
   });
 
@@ -766,6 +797,96 @@ describe("DeploymentDetailView", () => {
       await wrapper.find('button[title="Edit image"]').trigger("click");
 
       expect(wrapper.find("#overview-service-image").exists()).toBe(true);
+    });
+  });
+
+  describe("Birch style", () => {
+    beforeEach(() => {
+      useTheme().setStyle("birch");
+    });
+
+    const railLabels = (wrapper: ReturnType<typeof mountView>) =>
+      wrapper.findAll(".rail-item").map((b) => b.attributes("aria-label"));
+    const activeRail = (wrapper: ReturnType<typeof mountView>) =>
+      wrapper.get(".rail-item.active").attributes("aria-label");
+
+    it("opens on the architecture canvas with an icon rail and floating actions", async () => {
+      const wrapper = mountView();
+      await flushPromises();
+
+      expect(wrapper.find(".detail-tabs").exists()).toBe(false);
+      expect(wrapper.find(".detail-header").exists()).toBe(false);
+      expect(wrapper.get(".birch-header").classes()).toContain("floating");
+      expect(wrapper.find(".birch-header h1").exists()).toBe(false);
+      expect(wrapper.get(".birch-actions .btn-primary").text()).toBe("Restart");
+      expect(wrapper.get(".birch-actions").text()).toContain("Add");
+      expect(railLabels(wrapper)).toEqual([
+        "Architecture",
+        "Deployments",
+        "Logs",
+        "Variables",
+        "Metrics",
+        "Settings",
+        "Files",
+        "Terminal",
+        "Migration",
+      ]);
+      expect(activeRail(wrapper)).toBe("Architecture");
+      expect(wrapper.findComponent({ name: "ServiceCanvas" }).exists()).toBe(true);
+    });
+
+    it("stacks overview, databases and configuration under Settings", async () => {
+      const wrapper = mountView();
+      await flushPromises();
+
+      await wrapper.get('.rail-item[aria-label="Settings"]').trigger("click");
+      await flushPromises();
+
+      expect(wrapper.find(".overview-tab").exists()).toBe(true);
+      expect(wrapper.find(".databases-tab").exists()).toBe(true);
+      expect(wrapper.find(".config-tab").exists()).toBe(true);
+      expect(wrapper.find(".env-tab").exists()).toBe(false);
+      expect(wrapper.get(".birch-header h1").text()).toBe("Settings");
+      expect(wrapper.get(".birch-header").classes()).not.toContain("floating");
+      expect(mockRouter.replace).toHaveBeenLastCalledWith({ query: { section: "settings", tab: undefined } });
+    });
+
+    it("loads logs when the page opens on the Logs section", async () => {
+      const { deploymentsApi } = await import("@/services/api");
+      mockRoute.query = { section: "logs" };
+      const wrapper = mountView();
+      await flushPromises();
+
+      expect(activeRail(wrapper)).toBe("Logs");
+      expect(wrapper.find(".logs-tab").exists()).toBe(true);
+      expect(deploymentsApi.logSources).toHaveBeenCalledWith("test-app");
+    });
+
+    it("opens the section that an Oak tab link points to", async () => {
+      mockRoute.query = { tab: "environment" };
+      const wrapper = mountView();
+      await flushPromises();
+
+      expect(activeRail(wrapper)).toBe("Variables");
+      expect(wrapper.find(".env-tab").exists()).toBe(true);
+      expect(wrapper.find(".overview-tab").exists()).toBe(false);
+    });
+
+    it("adds to a project from the canvas", async () => {
+      const wrapper = mountView();
+      await flushPromises();
+
+      const vm = wrapper.vm as any;
+      expect(vm.addOptions.map((o: any) => o.label)).toEqual(["Service", "Database", "Domain", "Volume"]);
+
+      vm.addOptions.find((o: any) => o.id === "database").run();
+      await flushPromises();
+      expect(activeRail(wrapper)).toBe("Settings");
+      expect(wrapper.find(".databases-tab").exists()).toBe(true);
+
+      vm.addOptions.find((o: any) => o.id === "domain").run();
+      await flushPromises();
+      expect(wrapper.findComponent({ name: "DomainFormModal" }).props("visible")).toBe(true);
     });
   });
 });

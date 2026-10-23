@@ -619,7 +619,7 @@ onMounted(() => {
 /* Cloudflare Proxy Badge */
 .proxied-badge {
   padding: 0.25rem 0.5rem;
-  border-radius: 9999px;
+  border-radius: var(--radius-pill);
   font-size: 0.7rem;
   font-weight: 600;
   background: var(--surface-inset);

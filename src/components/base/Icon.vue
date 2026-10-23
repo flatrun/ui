@@ -30,7 +30,7 @@ const props = withDefaults(
 );
 
 // Bare names resolve to the lucide set; an explicit "set:name" passes through
-// (only lucide is registered offline today).
+// (lucide, the Solar subset and the brand logos subset are registered offline).
 const resolvedName = computed(() => (props.name.includes(":") ? props.name : `lucide:${props.name}`));
 </script>
 

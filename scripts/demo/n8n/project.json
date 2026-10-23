@@ -1,0 +1,8 @@
+{
+  "env": {
+    "N8N_ENCRYPTION_KEY": "${{ secret.N8N_ENCRYPTION_KEY }}",
+    "SHOP_API": "${{ shop.API_URL }}"
+  },
+  "secrets": { "N8N_ENCRYPTION_KEY": { "length": 32, "charset": "alphanumeric" } },
+  "domains": [["automations.trakli.test", "n8n", 5678]]
+}

@@ -104,6 +104,10 @@
               Deployments
               <span class="nav-count">{{ stats.deployments }}</span>
             </router-link>
+            <router-link to="/canvas" class="nav-subitem" :class="{ active: route.name === 'canvas' }">
+              <Icon name="workflow" :size="15" />
+              Canvas
+            </router-link>
             <template v-if="clusterPeers.length">
               <router-link
                 :to="serverDeploymentRoute(currentServerName)"
@@ -584,8 +588,11 @@
           <UserMenu
             :username="authStore.currentUser?.username"
             :role="authStore.currentUser?.role"
-            :theme="theme"
-            @toggle-theme="toggleTheme"
+            :style-id="style"
+            :styles="styles"
+            :scheme="schemePreference"
+            @select-style="setStyle"
+            @select-scheme="setScheme"
             @sign-out="handleLogout"
           />
         </div>
@@ -620,7 +627,7 @@ import GlobalSearch from "@/components/GlobalSearch.vue";
 import UserMenu from "@/components/UserMenu.vue";
 import { useTheme } from "@/composables/useTheme";
 
-const { theme, toggleTheme } = useTheme();
+const { style, styles, schemePreference, setStyle, setScheme } = useTheme();
 
 const route = useRoute();
 const router = useRouter();
@@ -701,6 +708,7 @@ const currentPageTitle = computed(() => {
     "dashboard-detail": "Dashboard",
     deployments: selectedDeploymentServer.value ? `${selectedDeploymentServer.value} deployments` : "Deployments",
     "deployment-detail": "Deployment Details",
+    canvas: "Canvas",
     containers: "Containers",
     images: "Images",
     volumes: "Volumes",
@@ -1180,7 +1188,7 @@ onMounted(() => {
 .nav-count {
   background: rgba(255, 255, 255, 0.1);
   padding: 0.125rem 0.5rem;
-  border-radius: 9999px;
+  border-radius: var(--radius-pill);
   font-size: 0.6875rem;
   font-weight: 600;
   margin-left: auto;

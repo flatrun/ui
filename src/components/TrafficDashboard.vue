@@ -1249,18 +1249,18 @@ onMounted(() => {
   background: var(--surface-inset);
 }
 .tab.active {
-  background: #3b82f6;
+  background: var(--accent);
   color: #fff;
 }
 .tab i {
   font-size: 0.75rem;
 }
 .tab-badge {
-  background: #ef4444;
+  background: var(--color-danger-500);
   color: #fff;
   font-size: 0.625rem;
   padding: 0 0.375rem;
-  border-radius: 9999px;
+  border-radius: var(--radius-pill);
   margin-left: 0.25rem;
 }
 
@@ -1457,7 +1457,7 @@ onMounted(() => {
 
 .spark-bar {
   flex: 1;
-  background: #3b82f6;
+  background: var(--accent);
   border-radius: 1px;
   opacity: 0.6;
 }
@@ -1524,14 +1524,14 @@ onMounted(() => {
 }
 
 .panel-header h3 i {
-  color: #f59e0b;
+  color: var(--color-warning-500);
 }
 
 .count {
   font-size: 0.625rem;
   background: var(--surface-inset);
   padding: 0.125rem 0.375rem;
-  border-radius: 9999px;
+  border-radius: var(--radius-pill);
   color: var(--text-muted);
 }
 
@@ -1557,10 +1557,10 @@ onMounted(() => {
   border-bottom: none;
 }
 .deployment-row.warning {
-  border-left: 2px solid #f59e0b;
+  border-left: 2px solid var(--color-warning-500);
 }
 .deployment-row.critical {
-  border-left: 2px solid #ef4444;
+  border-left: 2px solid var(--color-danger-500);
 }
 
 .dep-main {
@@ -1591,10 +1591,10 @@ onMounted(() => {
   height: 100%;
 }
 .bar-fill.success {
-  background: #22c55e;
+  background: var(--color-success-500);
 }
 .bar-fill.error {
-  background: #ef4444;
+  background: var(--color-danger-500);
 }
 
 .dep-stats {
@@ -1807,7 +1807,7 @@ onMounted(() => {
 
 .dist-fill {
   height: 100%;
-  background: #3b82f6;
+  background: var(--accent);
   border-radius: var(--radius-xs);
 }
 
@@ -2135,7 +2135,7 @@ onMounted(() => {
   background: var(--color-danger-50);
 }
 .alert-row.warning i {
-  color: #d97706;
+  color: var(--color-warning-600);
 }
 .alert-row.critical i {
   color: var(--color-danger-700);
@@ -2168,14 +2168,14 @@ onMounted(() => {
 
 .hour-bar {
   flex: 1;
-  background: #3b82f6;
+  background: var(--accent);
   border-radius: 1px 1px 0 0;
   min-height: 2px;
   opacity: 0.7;
 }
 
 .hour-bar.highlight {
-  background: #1d4ed8;
+  background: var(--color-primary-700);
   opacity: 1;
 }
 
@@ -2198,12 +2198,12 @@ onMounted(() => {
 }
 
 .empty-state-sm i {
-  color: #22c55e;
+  color: var(--color-success-500);
 }
 
 .btn-primary {
   padding: 0.5rem 1rem;
-  background: #3b82f6;
+  background: var(--accent);
   color: #fff;
   border: none;
   border-radius: var(--radius-sm);
@@ -2211,7 +2211,7 @@ onMounted(() => {
   cursor: pointer;
 }
 .btn-primary:hover {
-  background: #2563eb;
+  background: var(--accent-hover);
 }
 
 .unknown-domains-list {

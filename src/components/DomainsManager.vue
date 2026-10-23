@@ -334,7 +334,7 @@ defineExpose({ fetchDomains });
   gap: 3px;
   padding: 1px 5px;
   font-size: 9px;
-  border-radius: 3px;
+  border-radius: var(--radius-sm);
   white-space: nowrap;
 }
 
@@ -365,7 +365,7 @@ defineExpose({ fetchDomains });
   background: transparent;
   color: var(--text-subtle);
   cursor: pointer;
-  border-radius: 3px;
+  border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;

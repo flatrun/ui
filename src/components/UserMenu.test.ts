@@ -1,16 +1,31 @@
 import { mount } from "@vue/test-utils";
 import { describe, expect, it } from "vitest";
 import UserMenu from "./UserMenu.vue";
+import { listStyles } from "@/themes/registry";
 
 describe("UserMenu", () => {
-  it("moves theme and sign out actions into the account menu", async () => {
-    const wrapper = mount(UserMenu, { props: { username: "admin", role: "admin", theme: "dark" } });
+  it("lists every style and appearance and emits the one picked", async () => {
+    const wrapper = mount(UserMenu, {
+      props: { username: "admin", role: "admin", styleId: "birch", styles: listStyles(), scheme: "system" },
+    });
 
     await wrapper.get("summary").trigger("click");
-    await wrapper.get(".user-menu-panel button").trigger("click");
+    const styleOptions = wrapper.findAll("[aria-label=Style] [role=radio]");
+    expect(styleOptions.map((o) => o.find(".style-copy").element.firstChild?.textContent?.trim())).toEqual([
+      "Birch",
+      "Oak",
+    ]);
+    expect(styleOptions[0].attributes("aria-checked")).toBe("true");
 
-    expect(wrapper.emitted("toggle-theme")).toHaveLength(1);
-    expect(wrapper.get("details").attributes("open")).toBeUndefined();
+    const schemeOptions = wrapper.findAll("[aria-label=Appearance] [role=radio]");
+    expect(schemeOptions.map((o) => o.text())).toEqual(["Light", "Dark", "Auto"]);
+    expect(schemeOptions[2].attributes("aria-checked")).toBe("true");
+
+    await styleOptions[1].trigger("click");
+    await schemeOptions[1].trigger("click");
+
+    expect(wrapper.emitted("select-style")).toEqual([["oak"]]);
+    expect(wrapper.emitted("select-scheme")).toEqual([["dark"]]);
     expect(wrapper.text()).toContain("Sign out");
   });
 });

@@ -100,6 +100,7 @@ import { FitAddon } from "@xterm/addon-fit";
 import { SearchAddon } from "@xterm/addon-search";
 import { WebLinksAddon } from "@xterm/addon-web-links";
 import "@xterm/xterm/css/xterm.css";
+import { cssVar } from "@/composables/useEditorTheme";
 import { Sparkles } from "lucide-vue-next";
 import { useAssistStore, type AssistContext } from "@/stores/assist";
 import StructuredLogView from "@/components/StructuredLogView.vue";
@@ -117,6 +118,7 @@ const props = withDefaults(
     lineHeight?: number;
     assistContext?: AssistContext | null;
     deletable?: boolean;
+    initialMode?: "structured" | "raw";
   }>(),
   {
     logs: "",
@@ -129,6 +131,7 @@ const props = withDefaults(
     lineHeight: 1.4,
     assistContext: null,
     deletable: false,
+    initialMode: "structured",
   },
 );
 
@@ -180,7 +183,7 @@ const debugEntry = (entry: LogEntry) => {
 
 const terminalContainer = ref<HTMLElement | null>(null);
 const structuredView = ref<InstanceType<typeof StructuredLogView> | null>(null);
-const viewMode = ref<"structured" | "raw">("structured");
+const viewMode = ref<"structured" | "raw">(props.initialMode);
 const autoScroll = ref(true);
 const showSearch = ref(false);
 
@@ -204,10 +207,10 @@ let currentLogs = "";
 
 const themeConfig = {
   dark: {
-    background: "#1a1b26",
+    background: cssVar("--terminal-bg", "#1a1b26"),
     foreground: "#a9b1d6",
     cursor: "#c0caf5",
-    cursorAccent: "#1a1b26",
+    cursorAccent: cssVar("--terminal-bg", "#1a1b26"),
     selectionBackground: "#33467c",
     black: "#32344a",
     red: "#f7768e",
@@ -453,7 +456,7 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  background: #1a1b26;
+  background: var(--terminal-bg);
   border: 1px solid #2a2e3d;
   border-radius: var(--radius-sm);
   padding: var(--space-1) var(--space-2);
@@ -559,12 +562,12 @@ onUnmounted(() => {
   border: 1px solid #2a2e3d;
   border-radius: var(--radius-sm);
   font-size: var(--text-sm);
-  background: #1a1b26;
+  background: var(--terminal-bg);
   color: #a9b1d6;
 }
 
 .log-toolbar :deep(.form-select option) {
-  background: #1a1b26;
+  background: var(--terminal-bg);
   color: #a9b1d6;
 }
 
@@ -610,7 +613,7 @@ onUnmounted(() => {
 }
 
 .terminal-container :deep(.xterm-viewport::-webkit-scrollbar-track) {
-  background: #1a1b26;
+  background: var(--terminal-bg);
 }
 
 .terminal-container :deep(.xterm-viewport::-webkit-scrollbar-thumb) {
