@@ -17,6 +17,8 @@ describe("serviceIcon", () => {
     ["minio/minio:latest", "container"],
     ["mailhog/mailhog:latest", "mail"],
     ["busybox:latest", "terminal"],
+    ["phpmyadmin/phpmyadmin:latest", "table"],
+    ["php:8.3-fpm", "logos:php"],
     [undefined, "box"],
   ])("shows %s as %s", (image, icon) => {
     expect(serviceIcon(image)).toBe(icon);
@@ -50,6 +52,13 @@ describe("projectIcon", () => {
 
   it("prefers what the project serves over its database", () => {
     expect(projectIcon({ services: [svc("db", "mysql:8"), svc("site", "wordpress")] })).toBe("logos:wordpress-icon");
+  });
+
+  it("prefers the service its domain points at over a database tool", () => {
+    const site = { ...svc("wordpress", "wordpress:latest"), domains: ["blog.example.com"] } as Service;
+    expect(
+      projectIcon({ services: [svc("mysql", "mysql:8.0"), svc("phpmyadmin", "phpmyadmin/phpmyadmin"), site] }),
+    ).toBe("logos:wordpress-icon");
   });
 
   it("falls back to a database when that is all it runs", () => {

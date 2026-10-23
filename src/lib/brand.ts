@@ -25,7 +25,7 @@ const LOGOS: [RegExp, string][] = [
   [/^django/, "logos:django-icon"],
   [/^(python|pypy)/, "logos:python"],
   [/^laravel/, "logos:laravel"],
-  [/^(php|composer)/, "logos:php"],
+  [/^(php(?!myadmin)|composer)/, "logos:php"],
   [/^wordpress/, "logos:wordpress-icon"],
   [/^ghost/, "logos:ghost"],
   [/^nextjs|^next$/, "logos:nextjs-icon"],
@@ -73,10 +73,14 @@ export function isDataService(image: string | undefined): boolean {
   return DATA.test(imageName(image));
 }
 
-// A project shows the logo of what it serves: its primary service, else the first
-// service that is not a database or queue, else whatever it runs.
+// A project shows the logo of what it serves: its primary service, else the one a domain
+// points at, else the first that is not a database or queue, else whatever it runs.
 export function projectIcon(deployment: Pick<Deployment, "services">): string {
   const services: Service[] = deployment.services ?? [];
-  const lead = services.find((s) => s.is_primary) ?? services.find((s) => !isDataService(s.image)) ?? services[0];
+  const lead =
+    services.find((s) => s.is_primary) ??
+    services.find((s) => s.domains?.length) ??
+    services.find((s) => !isDataService(s.image)) ??
+    services[0];
   return serviceIcon(lead?.image);
 }
