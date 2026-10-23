@@ -9,6 +9,7 @@ import generateGhostFixture from "./fixtures/generate-ghost.json";
 import credentialsFixture from "./fixtures/credentials.json";
 import sourceCredentialsFixture from "./fixtures/source-credentials.json";
 import containersFixture from "./fixtures/containers.json";
+import sourceCredentialCreated from "./fixtures/source-credential-created.json";
 import {
   containersApi,
   credentialsApi,
@@ -25,7 +26,7 @@ vi.mock("@/services/api", async (importOriginal) => {
     deploymentsApi: { list: vi.fn(), create: vi.fn() },
     settingsApi: { get: vi.fn(), generateSubdomain: vi.fn() },
     templatesApi: { list: vi.fn(), generateCompose: vi.fn() },
-    sourceCredentialsApi: { list: vi.fn() },
+    sourceCredentialsApi: { list: vi.fn(), create: vi.fn() },
     credentialsApi: { list: vi.fn() },
     containersApi: { list: vi.fn() },
   };
@@ -252,6 +253,37 @@ describe("NewProjectModal", () => {
 
     await wrapper.get(".gh-missing .link-button").trigger("click");
     expect(wrapper.find('[name="repo"]').exists()).toBe(true);
+  });
+
+  it("saves a private repository's token so later deploys can fetch it", async () => {
+    vi.mocked(sourceCredentialsApi.create).mockResolvedValue({ data: sourceCredentialCreated } as any);
+    const wrapper = mountModal("git");
+    await flushPromises();
+    await fill(wrapper, "repo", "https://github.com/acme/shop.git");
+    await fill(wrapper, "token", "github_pat_example");
+    expect((wrapper.get('[name="save-token"]').element as HTMLInputElement).checked).toBe(true);
+
+    await deploy(wrapper);
+
+    expect(sourceCredentialsApi.create).toHaveBeenCalledWith({ name: "acme/shop", token: "github_pat_example" });
+    const payload = vi.mocked(deploymentsApi.create).mock.calls[0][0] as Record<string, any>;
+    expect(payload.source.credential_id).toBe(sourceCredentialCreated.credential.id);
+    expect(payload.source.token).toBeUndefined();
+  });
+
+  it("uses a token once when it is not saved", async () => {
+    const wrapper = mountModal("git");
+    await flushPromises();
+    await fill(wrapper, "repo", "https://github.com/acme/shop.git");
+    await fill(wrapper, "token", "github_pat_example");
+    await wrapper.get('[name="save-token"]').setValue(false);
+
+    await deploy(wrapper);
+
+    expect(sourceCredentialsApi.create).not.toHaveBeenCalled();
+    const payload = vi.mocked(deploymentsApi.create).mock.calls[0][0] as Record<string, any>;
+    expect(payload.source.token).toBe("github_pat_example");
+    expect(payload.source.credential_id).toBeUndefined();
   });
 
   it("sums up what will be deployed next to the button", async () => {

@@ -151,10 +151,18 @@
                 <BaseField
                   v-if="!gitCredentialId"
                   label="Access token"
-                  hint="For a private repository. Used once to clone, not stored."
+                  :hint="
+                    saveToken
+                      ? 'For a private repository.'
+                      : 'For a private repository. Used once to clone, not stored.'
+                  "
                 >
                   <BaseInput v-model="token" name="token" type="password" autocomplete="off" />
                 </BaseField>
+                <label v-if="!gitCredentialId && token" class="check">
+                  <input v-model="saveToken" type="checkbox" name="save-token" />
+                  Save this token for later deploys
+                </label>
                 <label class="check">
                   <input v-model="autoDeploy" type="checkbox" name="auto-deploy" />
                   Deploy on every push
@@ -372,6 +380,7 @@ const autoStart = ref(true);
 const existingNames = ref<string[]>([]);
 const creating = ref(false);
 const gitCredentialId = ref("");
+const saveToken = ref(true);
 const sourceCredentials = ref<SourceCredential[]>([]);
 const extraDomains = ref<ExtraDomain[]>([]);
 const dbMode = ref<"none" | "shared" | "existing">("none");
@@ -541,12 +550,26 @@ async function composeFor(containerPort: number): Promise<string> {
   return "";
 }
 
+function repoLabel(url: string): string {
+  const parts = url
+    .trim()
+    .replace(/\.git$/, "")
+    .split(/[/:]/)
+    .filter(Boolean);
+  return parts.slice(-2).join("/") || name.value;
+}
+
 async function create() {
   if (!canSubmit.value) return;
   creating.value = true;
   try {
     const containerPort = Number(port.value) || 80;
     const domain = customDomain.value.trim() || generatedDomain.value;
+    let credentialId = gitCredentialId.value;
+    if (mode.value === "git" && !credentialId && token.value && saveToken.value) {
+      const { data: saved } = await sourceCredentialsApi.create({ name: repoLabel(repoUrl.value), token: token.value });
+      credentialId = saved.credential.id;
+    }
     const payload = buildCreatePayload({
       mode: mode.value,
       name: name.value,
@@ -564,8 +587,8 @@ async function create() {
               branch: branch.value,
               subpath: subpath.value,
               autoDeploy: autoDeploy.value,
-              token: gitCredentialId.value ? undefined : token.value || undefined,
-              credentialId: gitCredentialId.value || undefined,
+              token: credentialId ? undefined : token.value || undefined,
+              credentialId: credentialId || undefined,
             }
           : undefined,
       extraDomains: extraDomains.value,
