@@ -1,11 +1,10 @@
 <template>
   <div class="workspace-view">
     <header class="page-head">
+      <WorkspaceLogo v-if="workspace" :workspace="workspace" class="head-logo" />
       <div>
         <h1>{{ workspace?.name ?? "Workspace" }}</h1>
-        <p v-if="workspace" class="sub">
-          {{ workspace.personal ? "Personal workspace" : "Shared workspace" }} · you are {{ workspace.role }}
-        </p>
+        <p v-if="workspace" class="sub">You are {{ workspace.role }}</p>
       </div>
     </header>
 
@@ -13,6 +12,33 @@
 
     <template v-else>
       <p v-if="error" class="error" role="alert">{{ error }}</p>
+
+      <section v-if="canManage" class="block">
+        <div class="block-head">
+          <h2>Settings</h2>
+        </div>
+        <form class="workspace-settings" @submit.prevent="rename">
+          <input v-model="newName" name="workspace-name" class="form-input" aria-label="Workspace name" />
+          <button
+            type="submit"
+            class="btn btn-secondary"
+            :disabled="!newName.trim() || newName.trim() === workspace.name"
+          >
+            Rename
+          </button>
+        </form>
+        <div class="logo-row">
+          <WorkspaceLogo :workspace="workspace" class="logo-preview" />
+          <label class="btn btn-secondary btn-sm">
+            {{ workspace.logo ? "Replace logo" : "Upload logo" }}
+            <input type="file" accept="image/png,image/webp,image/svg+xml" hidden @change="uploadLogo" />
+          </label>
+          <button v-if="workspace.logo" type="button" class="btn btn-secondary btn-sm" @click="removeLogo">
+            Remove logo
+          </button>
+          <small class="hint">PNG, WebP or SVG, up to 512 KB.</small>
+        </div>
+      </section>
 
       <section class="block">
         <div class="block-head">
@@ -120,6 +146,7 @@ import SecretsPanel from "@/components/secrets/SecretsPanel.vue";
 import SecretConnections from "@/components/secrets/SecretConnections.vue";
 import { computed, ref, watch } from "vue";
 import Icon from "@/components/base/Icon.vue";
+import WorkspaceLogo from "@/components/workspace/WorkspaceLogo.vue";
 import { workspacesApi, type WorkspaceInvitation, type WorkspaceMember } from "@/services/api";
 import { useWorkspaceStore } from "@/stores/workspace";
 import type { WorkspaceRole } from "@/types";
@@ -141,6 +168,48 @@ const acceptToken = ref("");
 
 const workspace = computed(() => store.current);
 const canManage = computed(() => workspace.value?.role === "owner" || workspace.value?.role === "admin");
+const newName = ref("");
+
+watch(
+  () => workspace.value?.name,
+  (name) => (newName.value = name ?? ""),
+  { immediate: true },
+);
+
+async function rename() {
+  const slug = workspace.value!.slug;
+  error.value = "";
+  try {
+    store.update((await workspacesApi.rename(slug, newName.value.trim())).data);
+  } catch (e) {
+    error.value = message(e, "Could not rename the workspace");
+  }
+}
+
+async function uploadLogo(event: Event) {
+  const input = event.target as HTMLInputElement;
+  const file = input.files?.[0];
+  if (!file) return;
+  const slug = workspace.value!.slug;
+  error.value = "";
+  try {
+    store.update((await workspacesApi.uploadLogo(slug, file)).data);
+  } catch (e) {
+    error.value = message(e, "Could not upload the logo");
+  }
+  input.value = "";
+}
+
+async function removeLogo() {
+  const slug = workspace.value!.slug;
+  error.value = "";
+  try {
+    await workspacesApi.removeLogo(slug);
+    store.update({ ...workspace.value!, logo: undefined });
+  } catch (e) {
+    error.value = message(e, "Could not remove the logo");
+  }
+}
 
 function message(e: any, fallback: string) {
   return e?.response?.data?.error || fallback;
@@ -247,6 +316,37 @@ watch(() => workspace.value?.slug, load, { immediate: true });
   gap: var(--space-5);
   margin: 0 auto;
   padding: var(--space-6) var(--space-4);
+}
+
+.page-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.head-logo,
+.logo-preview {
+  display: inline-grid;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  place-items: center;
+  background: var(--accent);
+  border-radius: var(--radius-md);
+  color: var(--accent-contrast);
+  font-weight: var(--font-semibold);
+}
+
+.logo-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.logo-row .hint {
+  margin: 0;
 }
 
 .page-head h1 {
@@ -377,13 +477,15 @@ watch(() => workspace.value?.slug, load, { immediate: true });
   color: var(--text);
 }
 
-.add {
+.add,
+.workspace-settings {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-2);
 }
 
-.add input {
+.add input,
+.workspace-settings input {
   min-width: 180px;
   flex: 1;
 }

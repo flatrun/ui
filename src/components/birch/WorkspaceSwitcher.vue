@@ -2,7 +2,8 @@
   <Popover v-model:open="open" width="280px">
     <template #trigger="{ toggle }">
       <button type="button" class="crumb" :aria-expanded="open" aria-haspopup="dialog" @click="toggle">
-        <span class="avatar" aria-hidden="true">{{ initial }}</span>
+        <WorkspaceLogo v-if="store.current" :workspace="store.current" class="avatar" />
+        <span v-else class="avatar" aria-hidden="true">{{ initial }}</span>
         <span class="crumb-label">{{ store.current?.name ?? "All workspaces" }}</span>
         <Icon name="chevrons-up-down" :size="14" />
       </button>
@@ -17,7 +18,7 @@
         </li>
         <li v-for="w in store.workspaces" :key="w.slug" class="row" :class="{ current: w.slug === store.slug }">
           <button type="button" class="row-main" @click="pick(w.slug, close)">
-            <span class="avatar small" aria-hidden="true">{{ w.name.charAt(0).toUpperCase() }}</span>
+            <WorkspaceLogo :workspace="w" class="avatar small" />
             <span class="row-name">{{ w.name }}</span>
             <span v-if="w.role" class="role">{{ w.role }}</span>
           </button>
@@ -51,6 +52,7 @@ import { computed, nextTick, onMounted, ref } from "vue";
 import { RouterLink } from "vue-router";
 import Popover from "@/components/base/Popover.vue";
 import Icon from "@/components/base/Icon.vue";
+import WorkspaceLogo from "@/components/workspace/WorkspaceLogo.vue";
 import { useWorkspaceStore } from "@/stores/workspace";
 import { useAuthStore } from "@/stores/auth";
 

@@ -448,6 +448,13 @@ export const workspacesApi = {
   create: (name: string) => apiClient.post<Workspace>("/workspaces", { name }),
   rename: (slug: string, name: string) => apiClient.put<Workspace>(`/workspaces/${slug}`, { name }),
   remove: (slug: string) => apiClient.delete(`/workspaces/${slug}`),
+  logo: (slug: string) => apiClient.get<Blob>(`/workspaces/${slug}/logo`, { responseType: "blob" }),
+  uploadLogo: (slug: string, file: File) => {
+    const form = new FormData();
+    form.append("file", file);
+    return apiClient.put<Workspace>(`/workspaces/${slug}/logo`, form);
+  },
+  removeLogo: (slug: string) => apiClient.delete(`/workspaces/${slug}/logo`),
   members: (slug: string) => apiClient.get<Items<WorkspaceMember>>(`/workspaces/${slug}/members`),
   addMember: (slug: string, username: string, role: WorkspaceRole) =>
     apiClient.post<WorkspaceMember>(`/workspaces/${slug}/members`, { username, role }),

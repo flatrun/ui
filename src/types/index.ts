@@ -536,5 +536,6 @@ export interface Workspace {
   name: string;
   personal: boolean;
   created_at: string;
+  logo?: string;
   role?: WorkspaceRole;
 }

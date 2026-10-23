@@ -3,6 +3,7 @@ import { createPinia, setActivePinia } from "pinia";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import WorkspaceView from "./WorkspaceView.vue";
 import membersFixture from "@/model/fixtures/members.json";
+import workspacesLogoFixture from "@/model/fixtures/workspaces-logo.json";
 import invitationsFixture from "@/model/fixtures/invitations.json";
 import { workspacesApi } from "@/services/api";
 import { useWorkspaceStore } from "@/stores/workspace";
@@ -22,6 +23,10 @@ vi.mock("@/services/api", async (importOriginal) => {
       invite: vi.fn(),
       revokeInvitation: vi.fn(),
       accept: vi.fn(),
+      rename: vi.fn(),
+      uploadLogo: vi.fn(),
+      removeLogo: vi.fn(),
+      logo: vi.fn(),
     },
   };
 });
@@ -92,5 +97,40 @@ describe("WorkspaceView", () => {
     await wrapper.get(".icon-btn").trigger("click");
     await flushPromises();
     expect(wrapper.get(".error").text()).toBe("a workspace needs at least one owner");
+  });
+
+  it("lets an owner rename the workspace and set its logo", async () => {
+    const renamed = { ...workspacesLogoFixture.items[0], slug: "acme-shop" };
+    vi.mocked(workspacesApi.rename).mockResolvedValue({ data: renamed } as any);
+    vi.mocked(workspacesApi.uploadLogo).mockResolvedValue({ data: renamed } as any);
+    vi.mocked(workspacesApi.removeLogo).mockResolvedValue({ data: {} } as any);
+    vi.mocked(workspacesApi.list).mockResolvedValue({ data: workspacesLogoFixture } as any);
+    vi.mocked(workspacesApi.logo).mockResolvedValue({ data: new Blob(["png"], { type: "image/png" }) } as any);
+    const wrapper = await mountAs("owner");
+
+    const settings = wrapper.get("form.workspace-settings");
+    await settings.get('[name="workspace-name"]').setValue("Lumen Labs");
+    await settings.trigger("submit");
+    await flushPromises();
+    expect(workspacesApi.rename).toHaveBeenCalledWith("acme-shop", "Lumen Labs");
+
+    const file = new File(["png"], "logo.png", { type: "image/png" });
+    const input = wrapper.get('input[type="file"]');
+    Object.defineProperty(input.element, "files", { value: [file] });
+    await input.trigger("change");
+    await flushPromises();
+    expect(workspacesApi.uploadLogo).toHaveBeenCalledWith("acme-shop", file);
+
+    await wrapper
+      .findAll("button")
+      .find((b) => b.text() === "Remove logo")!
+      .trigger("click");
+    await flushPromises();
+    expect(workspacesApi.removeLogo).toHaveBeenCalledWith("acme-shop");
+  });
+
+  it("hides workspace settings from a member", async () => {
+    const wrapper = await mountAs("member");
+    expect(wrapper.find("form.workspace-settings").exists()).toBe(false);
   });
 });

@@ -33,5 +33,9 @@ export const useWorkspaceStore = defineStore("workspace", () => {
     return ws;
   }
 
-  return { workspaces, slug, current, loaded, load, select, create };
+  function update(ws: Workspace) {
+    workspaces.value = workspaces.value.map((w) => (w.slug === ws.slug ? { ...w, ...ws, logo: ws.logo } : w));
+  }
+
+  return { workspaces, slug, current, loaded, load, select, create, update };
 });
