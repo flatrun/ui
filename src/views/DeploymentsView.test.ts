@@ -8,6 +8,7 @@ import { useAuthStore } from "@/stores/auth";
 import { useTheme } from "@/composables/useTheme";
 import { deploymentsApi } from "@/services/api";
 import deploymentsFixture from "@/model/fixtures/deployments.json";
+import lumenFixture from "@/model/fixtures/lumen-deployments.json";
 
 vi.mock("@/services/api", () => ({
   clusterApi: {
@@ -184,6 +185,25 @@ describe("DeploymentsView", () => {
       const refreshBtn = wrapper.find("button.btn-secondary");
       expect(refreshBtn.exists()).toBe(true);
       expect(refreshBtn.text()).toContain("Refresh");
+    });
+  });
+
+  describe("Cards", () => {
+    it("counts one service in the singular and names a Redis store", async () => {
+      vi.mocked(deploymentsApi.list).mockResolvedValueOnce({ data: lumenFixture } as any);
+      const wrapper = mountView();
+      await flushPromises();
+
+      const cards = wrapper.findAll(".deployment-card");
+      const docs = cards.find((c) => c.text().includes("docs"))!;
+      const notifications = cards.find((c) => c.text().includes("notifications"))!;
+      expect(docs.text()).toContain("1 service");
+      expect(docs.text()).not.toContain("1 services");
+      expect(notifications.text()).toContain("3 services");
+      expect(notifications.get(".info-pill.database").text()).toBe("Redis");
+
+      const shop = cards.find((c) => c.text().includes("shop"))!;
+      expect(shop.get(".info-pill.database").text()).toBe("PostgreSQL");
     });
   });
 

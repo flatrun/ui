@@ -246,7 +246,9 @@
               </div>
               <div class="meta-item">
                 <Layers :size="12" />
-                <span class="meta-value">{{ deployment.services?.length || 0 }} services</span>
+                <span class="meta-value">{{
+                  deployment.services?.length === 1 ? "1 service" : `${deployment.services?.length || 0} services`
+                }}</span>
               </div>
               <div class="meta-item">
                 <Clock :size="12" />
@@ -539,20 +541,18 @@ const hasDatabase = (deployment: Deployment) => {
   });
 };
 
+const DATABASE_TYPES: [string, string][] = [
+  ["mysql", "MySQL"],
+  ["mariadb", "MariaDB"],
+  ["postgres", "PostgreSQL"],
+  ["mongo", "MongoDB"],
+  ["redis", "Redis"],
+];
+
+// A database outranks a cache, so a project with both is named by its database.
 const getDatabaseType = (deployment: Deployment) => {
-  const dbService = deployment.services?.find((s) => {
-    const image = s.image?.toLowerCase() || "";
-    return (
-      image.includes("mysql") || image.includes("mariadb") || image.includes("postgres") || image.includes("mongo")
-    );
-  });
-  if (!dbService) return "";
-  const image = dbService.image?.toLowerCase() || "";
-  if (image.includes("mysql")) return "MySQL";
-  if (image.includes("mariadb")) return "MariaDB";
-  if (image.includes("postgres")) return "PostgreSQL";
-  if (image.includes("mongo")) return "MongoDB";
-  return "Database";
+  const images = (deployment.services ?? []).map((s) => s.image?.toLowerCase() || "");
+  return DATABASE_TYPES.find(([match]) => images.some((image) => image.includes(match)))?.[1] ?? "";
 };
 
 const getNetworks = (deployment: Deployment) => {

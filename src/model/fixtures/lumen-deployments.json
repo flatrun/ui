@@ -1,0 +1,284 @@
+{
+  "deployments": [
+    {
+      "name": "docs",
+      "path": "/deployments/docs",
+      "status": "running",
+      "created_at": "2026-10-23T01:06:34.002110315+01:00",
+      "updated_at": "2026-10-23T01:06:34.002110315+01:00",
+      "services": [
+        {
+          "name": "site",
+          "container_id": "8b3d431eaf41",
+          "image": "caddy:2",
+          "status": "running",
+          "networks": ["proxy"],
+          "is_primary": false,
+          "created_at": "0001-01-01T00:00:00Z",
+          "mounts": [
+            {
+              "type": "bind",
+              "source": "./site",
+              "target": "/usr/share/caddy"
+            }
+          ],
+          "replicas": 1,
+          "running_replicas": 1,
+          "domains": ["docs.lumen.test"]
+        }
+      ],
+      "metadata": {
+        "name": "docs",
+        "type": "web",
+        "networking": {
+          "expose": true,
+          "domain": "docs.lumen.test",
+          "container_port": 80,
+          "protocol": "http",
+          "proxy_type": ""
+        },
+        "ssl": {
+          "enabled": true,
+          "auto_cert": true
+        },
+        "healthcheck": {
+          "path": "/",
+          "interval": "30s"
+        },
+        "domains": [
+          {
+            "id": "d0",
+            "service": "site",
+            "container_port": 80,
+            "domain": "docs.lumen.test",
+            "ssl": {
+              "enabled": true,
+              "auto_cert": true
+            }
+          }
+        ]
+      },
+      "workspace": "lumen"
+    },
+    {
+      "name": "notifications",
+      "path": "/deployments/notifications",
+      "status": "running",
+      "created_at": "2026-10-23T01:06:20.037968871+01:00",
+      "updated_at": "2026-10-23T01:06:20.037968871+01:00",
+      "services": [
+        {
+          "name": "api",
+          "container_id": "400beae4d068",
+          "image": "python:3.12-slim",
+          "status": "running",
+          "networks": ["proxy"],
+          "is_primary": false,
+          "created_at": "0001-01-01T00:00:00Z",
+          "replicas": 1,
+          "running_replicas": 1,
+          "domains": ["notify.lumen.test"],
+          "depends_on": ["mail", "queue"]
+        },
+        {
+          "name": "mail",
+          "container_id": "c302b169c4e7",
+          "image": "mailhog/mailhog:latest",
+          "status": "running",
+          "is_primary": false,
+          "created_at": "0001-01-01T00:00:00Z",
+          "replicas": 1,
+          "running_replicas": 1
+        },
+        {
+          "name": "queue",
+          "container_id": "14472243bc10",
+          "image": "redis:alpine",
+          "status": "running",
+          "is_primary": false,
+          "created_at": "0001-01-01T00:00:00Z",
+          "mounts": [
+            {
+              "type": "bind",
+              "source": "./data/queue",
+              "target": "/data"
+            }
+          ],
+          "replicas": 1,
+          "running_replicas": 1
+        }
+      ],
+      "metadata": {
+        "name": "notifications",
+        "type": "web",
+        "networking": {
+          "expose": true,
+          "domain": "notify.lumen.test",
+          "container_port": 8000,
+          "protocol": "http",
+          "proxy_type": ""
+        },
+        "ssl": {
+          "enabled": true,
+          "auto_cert": true
+        },
+        "healthcheck": {
+          "path": "/",
+          "interval": "30s"
+        },
+        "domains": [
+          {
+            "id": "d0",
+            "service": "api",
+            "container_port": 8000,
+            "domain": "notify.lumen.test",
+            "ssl": {
+              "enabled": true,
+              "auto_cert": true
+            }
+          }
+        ]
+      },
+      "workspace": "lumen"
+    },
+    {
+      "name": "shop",
+      "path": "/deployments/shop",
+      "status": "running",
+      "created_at": "2026-10-23T01:08:19.958183571+01:00",
+      "updated_at": "2026-10-23T01:08:19.958183571+01:00",
+      "services": [
+        {
+          "name": "api",
+          "container_id": "dde8ab8c00bc",
+          "image": "node:22-alpine",
+          "status": "running",
+          "networks": ["proxy"],
+          "is_primary": false,
+          "created_at": "0001-01-01T00:00:00Z",
+          "replicas": 1,
+          "running_replicas": 1,
+          "domains": ["api.shop.lumen.test"],
+          "depends_on": ["cache", "db", "storage"]
+        },
+        {
+          "name": "cache",
+          "container_id": "f9ac7a0b6128",
+          "image": "redis:7-alpine",
+          "status": "running",
+          "is_primary": false,
+          "created_at": "0001-01-01T00:00:00Z",
+          "mounts": [
+            {
+              "type": "bind",
+              "source": "./data/redis",
+              "target": "/data"
+            }
+          ],
+          "replicas": 1,
+          "running_replicas": 1
+        },
+        {
+          "name": "db",
+          "container_id": "bc55e630614b",
+          "image": "postgres:16-alpine",
+          "status": "running",
+          "is_primary": false,
+          "created_at": "0001-01-01T00:00:00Z",
+          "mounts": [
+            {
+              "type": "bind",
+              "source": "./data/postgres",
+              "target": "/var/lib/postgresql/data"
+            }
+          ],
+          "replicas": 1,
+          "running_replicas": 1
+        },
+        {
+          "name": "storage",
+          "container_id": "6bb496b3b733",
+          "image": "minio/minio:latest",
+          "status": "running",
+          "is_primary": false,
+          "created_at": "0001-01-01T00:00:00Z",
+          "mounts": [
+            {
+              "type": "bind",
+              "source": "./data/minio",
+              "target": "/data"
+            }
+          ],
+          "replicas": 1,
+          "running_replicas": 1
+        },
+        {
+          "name": "web",
+          "container_id": "62a4bb16f75b",
+          "image": "nginx:alpine",
+          "status": "running",
+          "networks": ["proxy"],
+          "is_primary": false,
+          "created_at": "0001-01-01T00:00:00Z",
+          "replicas": 1,
+          "running_replicas": 1,
+          "domains": ["shop.lumen.test"],
+          "depends_on": ["api"]
+        },
+        {
+          "name": "worker",
+          "container_id": "c2658f247713",
+          "image": "node:22-alpine",
+          "status": "running",
+          "is_primary": false,
+          "created_at": "0001-01-01T00:00:00Z",
+          "replicas": 2,
+          "running_replicas": 2,
+          "depends_on": ["cache", "db"]
+        }
+      ],
+      "metadata": {
+        "name": "shop",
+        "type": "web",
+        "networking": {
+          "expose": true,
+          "domain": "shop.lumen.test",
+          "container_port": 0,
+          "protocol": "http",
+          "proxy_type": ""
+        },
+        "ssl": {
+          "enabled": true,
+          "auto_cert": true
+        },
+        "healthcheck": {
+          "path": "/",
+          "interval": "30s"
+        },
+        "domains": [
+          {
+            "id": "d0",
+            "service": "web",
+            "container_port": 80,
+            "domain": "shop.lumen.test",
+            "ssl": {
+              "enabled": true,
+              "auto_cert": true
+            }
+          },
+          {
+            "id": "d1",
+            "service": "api",
+            "container_port": 3000,
+            "domain": "api.shop.lumen.test",
+            "ssl": {
+              "enabled": true,
+              "auto_cert": true
+            }
+          }
+        ]
+      },
+      "workspace": "lumen"
+    }
+  ]
+}
