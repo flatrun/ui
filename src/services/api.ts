@@ -518,13 +518,16 @@ export const deploymentsApi = {
     apiClient.post<ActionJobResponse>(`/deployments/${name}/rebuild`, opts),
   redeploy: (name: string, revision?: string) =>
     apiClient.post<ActionJobResponse>(`/deployments/${name}/redeploy`, revision ? { revision } : {}),
-  deploys: (name: string) => apiClient.get<{ deploys: DeployRecord[] | null }>(`/deployments/${name}/deploys`),
+  deploys: async (name: string) => {
+    const res = await apiClient.get<{ deployments: DeployRecord[] | null }>(`/projects/${name}/deployments`);
+    return { ...res, data: { deploys: res.data.deployments } };
+  },
   deployLogs: (name: string, deployId: string) =>
     apiClient.get<{ deploy: DeployRecord; output: string; phases: PhaseStart[] }>(
-      `/deployments/${name}/deploys/${deployId}/logs`,
+      `/projects/${name}/deployments/${deployId}/logs`,
     ),
   rollback: (name: string, deployId: string) =>
-    apiClient.post<ActionJobResponse>(`/deployments/${name}/deploys/${deployId}/rollback`),
+    apiClient.post<ActionJobResponse>(`/projects/${name}/deployments/${deployId}/rollback`),
   updateSource: (name: string, changes: { branch?: string; auto_deploy?: boolean; previews?: boolean }) =>
     apiClient.put<{ source: SourceConfig }>(`/deployments/${name}/source`, changes),
   webhook: (name: string) =>
