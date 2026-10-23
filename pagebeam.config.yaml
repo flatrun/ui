@@ -105,6 +105,9 @@ tours:
         - fill: { selector: '[name="repo"]', value: https://github.com/lumen-labs/storefront.git }
         - shot:
             { name: new-project, caption: "Create a project from a repository, an image, a template or a compose file" }
+        - click: '.source-list button:has-text("GitHub")'
+        - wait: .gh-connect
+        - shot: { name: new-project-github, caption: "Connect GitHub to pick a repository and preview pull requests" }
     create-dark:
       account: birch-dark
       steps: *create
