@@ -1,0 +1,8 @@
+{
+  "env": {
+    "GRAFANA_ADMIN_PASSWORD": "${{ secret.GRAFANA_ADMIN_PASSWORD }}",
+    "SHOP_API": "${{ shop.API_URL }}"
+  },
+  "secrets": { "GRAFANA_ADMIN_PASSWORD": { "length": 24, "charset": "alphanumeric" } },
+  "domains": [["metrics.trakli.test", "grafana", 3000]]
+}

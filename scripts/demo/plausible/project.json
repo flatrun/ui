@@ -1,5 +1,19 @@
 {
-  "env": { "SECRET_KEY_BASE": "${{ secret.SECRET_KEY_BASE }}" },
-  "secrets": { "SECRET_KEY_BASE": { "length": 64, "charset": "alphanumeric" } },
-  "domains": [["stats.lumen.test", "plausible", 8000]]
+  "env": {
+    "BASE_URL": "https://stats.trakli.test",
+    "SECRET_KEY_BASE": "${{ secret.SECRET_KEY_BASE }}"
+  },
+  "secrets": {
+    "SECRET_KEY_BASE": {
+      "length": 64,
+      "charset": "alphanumeric"
+    }
+  },
+  "domains": [
+    [
+      "stats.trakli.test",
+      "plausible",
+      8000
+    ]
+  ]
 }

@@ -1,8 +1,8 @@
 #!/usr/bin/env node
-// Fills an agent with the Lumen Labs demo: a named workspace with a logo, a demo
-// user, the projects in scripts/demo (some referencing each other, some with
-// sealed secrets), and a git project with several deploys and a staging
-// environment.
+// Fills an agent with the demo: a demo user, the projects in scripts/demo (some
+// referencing each other, some with sealed secrets), and a git project with
+// several deploys and a staging environment. The workspace stays "Default";
+// DEMO_BRAND=1 names it Trakli with its logo, for screenshots.
 //
 //   FLATRUN_URL=http://127.0.0.1:8080 FLATRUN_TOKEN=<api key> DEMO_PASSWORD=<password> node scripts/demo-seed.mjs
 //
@@ -22,6 +22,7 @@ const DEMO_PASSWORD = process.env.DEMO_PASSWORD;
 const NETWORK = process.env.DEMO_NETWORK || "";
 const GIT_REPO = process.env.DEMO_GIT_REPO || "https://github.com/docker/awesome-compose.git";
 const GIT_SUBPATH = process.env.DEMO_GIT_SUBPATH ?? "flask/app";
+const BRAND = Boolean(process.env.DEMO_BRAND);
 
 if (!TOKEN || !DEMO_PASSWORD) {
   console.error("Set FLATRUN_TOKEN (an admin API key) and DEMO_PASSWORD.");
@@ -65,7 +66,7 @@ function withNetwork(compose) {
 // files it mounts. Projects that reference another project's variables come
 // after it.
 const DEMO = path.join(path.dirname(fileURLToPath(import.meta.url)), "demo");
-const FIRST = ["notifications", "shop"];
+const FIRST = ["plausible", "shop", "trakli"];
 
 async function readProjects() {
   const names = (await readdir(DEMO, { withFileTypes: true })).filter((e) => e.isDirectory()).map((e) => e.name);
@@ -111,19 +112,20 @@ function metadata(name, domains) {
   };
 }
 
-const LOGO = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <rect width="64" height="64" rx="14" fill="#2f6bff"/>
-  <circle cx="32" cy="30" r="12" fill="#fff"/>
-  <rect x="26" y="44" width="12" height="6" rx="2" fill="#fff"/>
-</svg>
-`;
+const LOGO = path.join(path.dirname(fileURLToPath(import.meta.url)), "demo-logo.svg");
 
 async function workspace() {
-  await must("PUT", "/workspaces/default", { name: "Lumen Labs" });
+  if (!BRAND) {
+    await must("PUT", "/workspaces/default", { name: "Default" });
+    await call("DELETE", "/workspaces/default/logo");
+    log("workspace Default");
+    return;
+  }
+  await must("PUT", "/workspaces/default", { name: "Trakli" });
   const form = new FormData();
-  form.append("file", new Blob([LOGO], { type: "image/svg+xml" }), "logo.svg");
+  form.append("file", new Blob([await readFile(LOGO)], { type: "image/svg+xml" }), "logo.svg");
   await must("PUT", "/workspaces/default/logo", undefined, { form });
-  log("workspace Lumen Labs with its logo");
+  log("workspace Trakli with its logo");
 }
 
 async function demoUser() {
@@ -132,7 +134,7 @@ async function demoUser() {
   if (!list.some((u) => u.username === DEMO_USER)) {
     await must("POST", "/users", {
       username: DEMO_USER,
-      email: `${DEMO_USER}@lumen.test`,
+      email: `${DEMO_USER}@trakli.test`,
       password: DEMO_PASSWORD,
       role: "admin",
     });
@@ -151,27 +153,30 @@ async function existing() {
 
 async function projects(list, have) {
   for (const p of list) {
-    if (have.has(p.name)) {
-      if (p.env.length) await must("PUT", `/projects/${p.name}/env`, { env_vars: p.env });
-      log(`${p.name} exists`);
-      continue;
+    const exists = have.has(p.name);
+    if (exists) {
+      await must("PUT", `/projects/${p.name}`, { compose_content: withNetwork(p.compose) });
+    } else {
+      await must("POST", "/projects", {
+        name: p.name,
+        compose_content: withNetwork(p.compose),
+        auto_start: false,
+        metadata: metadata(p.name, p.domains),
+      });
     }
-    await must("POST", "/projects", {
-      name: p.name,
-      compose_content: withNetwork(p.compose),
-      auto_start: false,
-      metadata: metadata(p.name, p.domains),
-    });
     for (const file of p.files) {
       const form = new FormData();
       form.append("file", new Blob([await readFile(path.join(p.dir, file))]), path.basename(file));
       await must("POST", `/projects/${p.name}/files/${file}`, undefined, { form });
     }
+    const { items } = await must("GET", `/secrets?scope=deployment:${p.name}`);
+    const sealed = new Set((items ?? []).map((s) => s.name));
     for (const [key, opts] of Object.entries(p.secrets)) {
+      if (sealed.has(key)) continue;
       await must("PUT", `/secrets/${key}?scope=deployment:${p.name}`, { generate: opts });
     }
     if (p.env.length) await must("PUT", `/projects/${p.name}/env`, { env_vars: p.env });
-    log(`${p.name} created`);
+    log(`${p.name} ${exists ? "updated" : "created"}`);
   }
 }
 
@@ -212,7 +217,7 @@ async function gitProject(have) {
       name: "insights",
       auto_start: true,
       source: { type: "git", ref: GIT_REPO, branch: "master", subpath: GIT_SUBPATH },
-      metadata: metadata("insights", [["insights.lumen.test", "app", 8000]]),
+      metadata: metadata("insights", [["insights.trakli.test", "app", 8000]]),
     });
     const job = created.build_job_id ?? created.job_id;
     if (job) log(`insights first deploy ${await waitForJob("insights", job)}`);

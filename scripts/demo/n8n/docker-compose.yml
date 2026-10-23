@@ -8,9 +8,9 @@ services:
       DB_POSTGRESDB_DATABASE: n8n
       DB_POSTGRESDB_USER: n8n
       DB_POSTGRESDB_PASSWORD: n8n
-      N8N_HOST: automations.lumen.test
+      N8N_HOST: automations.trakli.test
       N8N_PROTOCOL: https
-      WEBHOOK_URL: https://automations.lumen.test/
+      WEBHOOK_URL: https://automations.trakli.test/
       N8N_ENCRYPTION_KEY: ${N8N_ENCRYPTION_KEY}
       GENERIC_TIMEZONE: Europe/Berlin
     volumes:

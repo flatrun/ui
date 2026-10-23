@@ -4,7 +4,7 @@ services:
     restart: always
     command: sh -c "/entrypoint.sh db createdb && /entrypoint.sh db migrate && /entrypoint.sh run"
     environment:
-      BASE_URL: https://stats.lumen.test
+      BASE_URL: ${BASE_URL}
       SECRET_KEY_BASE: ${SECRET_KEY_BASE}
       TMPDIR: /var/lib/plausible/tmp
       DATABASE_URL: postgres://postgres:postgres@plausible_db:5432/plausible_db
@@ -30,6 +30,8 @@ services:
       start_period: 1m
   plausible_events_db:
     image: clickhouse/clickhouse-server:24.3-alpine
+    environment:
+      CLICKHOUSE_SKIP_USER_SETUP: "1"
     restart: always
     volumes:
       - ./data/clickhouse:/var/lib/clickhouse

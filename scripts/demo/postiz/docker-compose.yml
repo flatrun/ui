@@ -3,9 +3,9 @@ services:
     image: ghcr.io/gitroomhq/postiz-app:latest
     restart: always
     environment:
-      MAIN_URL: https://social.lumen.test
-      FRONTEND_URL: https://social.lumen.test
-      NEXT_PUBLIC_BACKEND_URL: https://social.lumen.test/api
+      MAIN_URL: https://social.trakli.test
+      FRONTEND_URL: https://social.trakli.test
+      NEXT_PUBLIC_BACKEND_URL: https://social.trakli.test/api
       BACKEND_INTERNAL_URL: http://localhost:3000
       JWT_SECRET: ${JWT_SECRET}
       DATABASE_URL: postgresql://postiz:postiz@postgres:5432/postiz

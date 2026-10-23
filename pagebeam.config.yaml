@@ -1,5 +1,5 @@
 # Screenshots for the READMEs, the docs and flatrun.dev, taken from an agent
-# filled by scripts/demo-seed.mjs. Run `npm run shots`.
+# filled by scripts/demo-seed.mjs with DEMO_BRAND=1. Run `npm run shots`.
 docs: { root: ., include: [README.md] }
 tours:
   targets:
@@ -7,7 +7,7 @@ tours:
 
   accounts:
     birch-light:
-      purpose: the Lumen Labs demo owner, Birch layout in the light scheme
+      purpose: the Trakli demo owner, Birch layout in the light scheme
       login:
         usernameEnv: DEMO_USER
         passwordEnv: DEMO_PASSWORD
@@ -17,9 +17,9 @@ tours:
       seed: &seed { command: node scripts/demo-seed.mjs }
       requires: &requires
         - goto: /projects
-          count: { selector: .vue-flow__node, min: 12 }
+          count: { selector: .vue-flow__node, min: 9 }
     birch-dark:
-      purpose: the Lumen Labs demo owner, Birch layout in the dark scheme
+      purpose: the Trakli demo owner, Birch layout in the dark scheme
       confirm: .user-chip
       seed: *seed
       requires: *requires
@@ -29,7 +29,7 @@ tours:
         form: *form
         script: scripts/pagebeam/birch-dark.mjs
     oak-light:
-      purpose: the Lumen Labs demo owner, Oak layout in the light scheme
+      purpose: the Trakli demo owner, Oak layout in the light scheme
       confirm: .user-menu
       seed: *seed
       login:
@@ -83,7 +83,7 @@ tours:
         - goto: /projects/postiz?section=metrics
         - wait: 40000
         - shot: { name: project-metrics, caption: "CPU, memory and network per service" }
-        - goto: /projects/docs?section=files
+        - goto: /projects/shop?section=files
         - wait: 1500
         - shot: { name: project-files, caption: "The project directory, as files" }
         - goto: /projects/postiz?section=terminal
@@ -102,7 +102,7 @@ tours:
         - click: .topbar-right .btn-primary
         - click: "text=Git repository"
         - wait: .source-list
-        - fill: { selector: '[name="repo"]', value: https://github.com/lumen-labs/storefront.git }
+        - fill: { selector: '[name="repo"]', value: https://github.com/trakli/storefront.git }
         - shot:
             { name: new-project, caption: "Create a project from a repository, an image, a template or a compose file" }
         - click: '.source-list button:has-text("GitHub")'

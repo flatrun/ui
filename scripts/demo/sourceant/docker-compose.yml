@@ -1,0 +1,44 @@
+services:
+  agent:
+    image: ghcr.io/sourceant/sourceant:latest
+    restart: unless-stopped
+    environment:
+      APP_ENV: production
+      DATABASE_URL: postgresql://sourceant:${DB_PASSWORD}@db:5432/sourceant
+      LLM_MODEL: gemini/gemini-2.5-flash
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      JWT_SECRET: ${JWT_SECRET}
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      QUEUE_MODE: redis
+      LOG_DRIVER: console
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: sourceant
+      POSTGRES_USER: sourceant
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "sourceant"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+  redis:
+    image: redis:7.2
+    restart: unless-stopped
+    volumes:
+      - ./data/redis:/data
+  memgraph:
+    image: memgraph/memgraph:3.11.0
+    restart: unless-stopped
+    command: ["--data-directory=/var/lib/memgraph-data/db"]
+    volumes:
+      - ./data/memgraph:/var/lib/memgraph-data
