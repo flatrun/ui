@@ -9,28 +9,66 @@
 
 # FlatRun Control Panel
 
-Modern Vue 3 web interface for FlatRun container orchestration.
+The web dashboard for FlatRun. It runs your Docker Compose projects from a canvas: every project, every service and how they connect, with the logs, variables and settings one click away.
 
-![FlatRun Deployments View](docs/screenshots/deployments-view.png)
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/projects-canvas-dark.png">
+  <img alt="Projects on a canvas, each card showing its logo, domain, state and services" src="docs/screenshots/projects-canvas-light.png">
+</picture>
 
-## Overview
+## A tour
 
-FlatRun UI provides a user-friendly dashboard for managing Docker deployments through the FlatRun Agent. It offers real-time monitoring, container management, and a streamlined deployment workflow.
+### Projects
+
+A project is one Compose directory. The projects page opens on a canvas: each card shows what the project serves, its domain, whether it is online, and the services inside it. An arrow means one project reads a variable from another. Switch to cards or a table from the icons at the top right; the choice is remembered.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/projects-cards-dark.png">
+  <img alt="The same projects as cards, with domains, services, databases and quick actions" src="docs/screenshots/projects-cards-light.png">
+</picture>
+
+### Inside a project
+
+Opening a project shows its services as a graph, drawn from the Compose file: what depends on what, which domain points where, how many replicas are up, and which folder each one stores its data in. The rail on the left holds deployments, logs, variables, metrics, settings, files and a terminal. **Add** opens the place where a new service, database, domain or volume is set up.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/project-architecture-dark.png">
+  <img alt="A shop project: web, api and worker services above Redis, PostgreSQL and MinIO, each with its state and storage" src="docs/screenshots/project-architecture-light.png">
+</picture>
+
+### Variables, references and secrets
+
+A variable can point at another project's variable with `${{ notifications.API_URL }}`, and the page shows what it resolves to. Secrets are sealed: they can be replaced or rotated but never read back, and are used as `${{ secret.NAME }}`. Secrets can also come from Infisical, HashiCorp Vault or OpenBao, Doppler, or 1Password Connect, fetched again on every deploy.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/project-variables-dark.png">
+  <img alt="A variable that references another project, shown with its resolved value, above the secrets and sources sections" src="docs/screenshots/project-variables-light.png">
+</picture>
+
+### Two layouts
+
+Pick a layout from the user menu. **Birch** is the canvas-first layout shown above, with a top bar and the workspace switcher. **Oak** keeps the sidebar and the full set of operator screens:
+
+![The Oak layout](docs/screenshots/deployments-view.png)
+
+Layouts are named after trees, so the next one has a name waiting.
 
 ## Features
 
-- **Deployment Management**: Create, start, stop, and delete Docker Compose deployments
-- **Container Monitoring**: Real-time status, resource usage, and health checks
-- **Log Viewer**: Live streaming logs with search and filtering
-- **Docker Resource Management**: Images, volumes, and networks overview
-- **SSL Certificate Tracking**: Monitor certificate expiration and status
-- **Quick App Templates**: Deploy common applications with pre-configured templates
-- **System Health Dashboard**: CPU, memory, and disk usage monitoring
-- **JWT Authentication**: Secure API key-based authentication
-- **Fleet Management**: Connect servers, scope peer access, and open each server's deployments from one dashboard
-- **Managed Scaling**: Configure compatible workloads and activate Docker Swarm or k3s scaling
-- **Notification Service**: Review grouped incidents and configure delivery rules, email, webhooks, and custom targets
-- **File Operations**: Upload folders, copy or move files, browse archives, and extract them in place
+- **Projects on a canvas**: projects, their services and the links between them, in canvas, card and table views
+- **Workspaces**: teams with owners, admins and members, invitations, and projects that belong to a workspace
+- **Environments**: staging and preview copies of a project, switched from the canvas
+- **Deploy history**: each deploy with its commit, phase and logs, plus redeploy and rollback
+- **Variables and secrets**: references between projects, sealed secrets with rotation, and external secret managers
+- **Live logs**: streaming logs with search and filtering
+- **Monitoring**: container status, resource usage, health checks, and CPU, memory and disk on the host
+- **Docker resources**: images, volumes and networks
+- **SSL certificates**: expiry and status for every domain
+- **Templates**: deploy common applications from ready-made templates
+- **Fleet management**: connect servers, scope peer access, and open each server's projects from one dashboard
+- **Managed scaling**: configure compatible workloads and activate Docker Swarm or k3s scaling
+- **Notifications**: grouped incidents and delivery rules for email, webhooks and custom targets
+- **Files**: upload folders, copy or move files, browse archives and extract them in place
 
 ## Tech Stack
 
@@ -182,9 +220,9 @@ EXPOSE 80
 - Check browser console for specific error messages
 - Ensure JWT secret is properly set in agent config
 
-### UI shows no deployments
+### UI shows no projects
 - Confirm the agent's `deployments_path` is accessible
-- Check that deployments have valid `docker-compose.yml` files
+- Check that each project directory has a valid `docker-compose.yml`
 
 ## License
 
