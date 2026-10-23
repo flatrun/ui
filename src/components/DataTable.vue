@@ -1,5 +1,5 @@
 <template>
-  <div class="data-table-container">
+  <div class="data-table-container" :data-view="viewMode">
     <div class="table-header">
       <div class="header-left">
         <div v-if="searchable" class="search-box">

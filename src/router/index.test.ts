@@ -28,6 +28,13 @@ describe("router", () => {
       expect(router.currentRoute.value.name).toBe("deployment-detail");
     });
 
+    it("gives the project list and a project the whole window", async () => {
+      for (const path of ["/projects", "/projects/shop"]) {
+        await visit(path);
+        expect(router.currentRoute.value.matched.some((r) => r.meta.birchFullHeight)).toBe(true);
+      }
+    });
+
     it("has no separate canvas page", async () => {
       expect(await visit("/canvas")).toBe("/projects");
     });

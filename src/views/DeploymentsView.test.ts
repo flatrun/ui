@@ -476,6 +476,14 @@ describe("DeploymentsView", () => {
       expect(wrapper.text()).not.toContain("New Deployment");
     });
 
+    it("fills the page and floats its toolbar over the canvas", async () => {
+      const wrapper = await mountProjects();
+      expect(wrapper.classes()).toContain("is-full-bleed");
+      expect(wrapper.get(".data-table-container").attributes("data-view")).toBe("canvas");
+      await wrapper.get('[aria-label="Cards"]').trigger("click");
+      expect(wrapper.get(".data-table-container").attributes("data-view")).toBe("grid");
+    });
+
     it("folds environments into a project's card", async () => {
       const wrapper = await mountProjects();
       await wrapper.get('[aria-label="Cards"]').trigger("click");

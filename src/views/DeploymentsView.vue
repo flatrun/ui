@@ -1,5 +1,5 @@
 <template>
-  <div class="deployments-view">
+  <div class="deployments-view" :class="{ 'is-full-bleed': birch }">
     <DataTable
       :items="listed"
       :columns="columns"
@@ -688,6 +688,57 @@ watch(selectedServer, () => fetchDeployments());
 </script>
 
 <style scoped>
+.deployments-view.is-full-bleed {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.is-full-bleed :deep(.data-table-container) {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+}
+
+.is-full-bleed :deep(.data-table-container:not([data-view="canvas"])) {
+  overflow: auto;
+  padding: var(--space-5) var(--space-6);
+}
+
+.is-full-bleed :deep(.data-table-container[data-view="canvas"]) {
+  gap: 0;
+}
+
+.is-full-bleed :deep(.data-table-container[data-view="canvas"] > .table-header) {
+  position: absolute;
+  z-index: 6;
+  top: var(--space-3);
+  right: var(--space-3);
+  left: var(--space-3);
+  pointer-events: none;
+}
+
+.is-full-bleed :deep(.data-table-container[data-view="canvas"] > .table-header > *) {
+  pointer-events: auto;
+}
+
+.is-full-bleed :deep(.canvas-view) {
+  flex: 1;
+  min-height: 0;
+}
+
+.is-full-bleed :deep(.project-canvas) {
+  height: 100%;
+  min-height: 0;
+  border: 0;
+  border-radius: 0;
+}
+
+.is-full-bleed :deep(.project-canvas .env-switch) {
+  top: calc(var(--space-3) + var(--control-h, 36px) + var(--space-3));
+}
+
 .deployments-view {
   display: flex;
   flex-direction: column;
