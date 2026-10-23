@@ -19,11 +19,13 @@ describe("WorkspaceLogo", () => {
     await flushPromises();
     expect(workspacesApi.logo).toHaveBeenCalledWith("default");
     expect(withLogo.get("img").attributes("src")).toBe("blob:logo");
+    expect(withLogo.classes()).toContain("has-image");
 
     const plain = mount(WorkspaceLogo, { props: { workspace: { ...workspace, logo: undefined } } });
     await flushPromises();
     expect(plain.find("img").exists()).toBe(false);
     expect(plain.text()).toBe("L");
+    expect(plain.classes()).not.toContain("has-image");
     vi.unstubAllGlobals();
   });
 });

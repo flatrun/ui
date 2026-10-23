@@ -1,5 +1,0 @@
-services:
-  site:
-    image: caddy:2
-    volumes:
-      - ./site:/usr/share/caddy

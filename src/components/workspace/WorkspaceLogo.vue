@@ -1,5 +1,5 @@
 <template>
-  <span class="workspace-logo" aria-hidden="true">
+  <span class="workspace-logo" :class="{ 'has-image': src }" aria-hidden="true">
     <img v-if="src" :src="src" alt="" />
     <template v-else>{{ initial }}</template>
   </span>
@@ -46,10 +46,14 @@ watch(
   overflow: hidden;
 }
 
+.workspace-logo.has-image {
+  background: transparent;
+}
+
 .workspace-logo img {
   display: block;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
 }
 </style>
