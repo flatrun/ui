@@ -37,6 +37,15 @@ tours:
         passwordEnv: DEMO_PASSWORD
         form: *form
         script: scripts/pagebeam/oak-light.mjs
+    oak-dark:
+      purpose: the Trakli demo owner, Oak layout in the dark scheme
+      confirm: .user-menu
+      seed: *seed
+      login:
+        usernameEnv: DEMO_USER
+        passwordEnv: DEMO_PASSWORD
+        form: *form
+        script: scripts/pagebeam/oak-dark.mjs
 
   journeys:
     projects-light:
@@ -122,12 +131,15 @@ tours:
       account: birch-dark
       steps: *workspace
 
-    oak:
+    oak-light:
       account: oak-light
-      steps:
+      steps: &oak
         - goto: /deployments
         - wait: .deployment-card
         - shot: { name: oak-deployments, caption: "The Oak layout with its sidebar" }
+    oak-dark:
+      account: oak-dark
+      steps: *oak
 
     ops-light:
       account: birch-light

@@ -7,9 +7,11 @@
   </a>
 </p>
 
-# FlatRun Control Panel
+**Open source, self-hosted alternative to Railway and Render.** Deploy Docker Compose projects on your own servers.
 
-The web dashboard for FlatRun. It runs your Docker Compose projects from a canvas: every project, every service and how they connect, with the logs, variables and settings one click away.
+FlatRun brings the Railway workflow to a server you control: projects made of services, environments, deployments you can roll back, variables shared between projects, and templates for common apps. Each project is a directory with a standard Compose file, so it keeps running under plain `docker compose` if you stop using FlatRun.
+
+This repository is the **dashboard**: a Vue app that draws every project and service on a canvas and talks to the [agent](https://github.com/flatrun/agent) API.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/projects-canvas-dark.png">
@@ -38,18 +40,21 @@ Opening a project shows its services as a graph, drawn from the Compose file: wh
 
 ### Variables, references and secrets
 
-A variable can point at another project's variable with `${{ notifications.API_URL }}`, and the page shows what it resolves to. Secrets are sealed: they can be replaced or rotated but never read back, and are used as `${{ secret.NAME }}`. Secrets can also come from Infisical, HashiCorp Vault or OpenBao, Doppler, or 1Password Connect, fetched again on every deploy.
+A variable can point at another project's variable with `${{ plausible.BASE_URL }}`, and the page shows what it resolves to. Secrets are sealed: they can be replaced or rotated but never read back, and are used as `${{ secret.NAME }}`. Secrets can also come from Infisical, HashiCorp Vault or OpenBao, Doppler, or 1Password Connect, fetched again on every deploy.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/project-variables-dark.png">
   <img alt="A variable that references another project, shown with its resolved value, above the secrets and sources sections" src="docs/screenshots/project-variables-light.png">
 </picture>
 
-### Two layouts
+## Layouts
 
-Pick a layout from the user menu. **Birch** is the canvas-first layout shown above, with a top bar and the workspace switcher. **Oak** keeps the sidebar and the full set of operator screens:
+The tour above uses **Birch**, the default: a top bar, the workspace switcher, and projects on a canvas. **Oak** keeps a sidebar and the full set of operator screens. Switch between them from the user menu.
 
-![The Oak layout](docs/screenshots/oak-deployments-light.png)
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/oak-deployments-dark.png">
+  <img alt="The Oak layout: a sidebar beside every project as a card with its domain, services and actions" src="docs/screenshots/oak-deployments-light.png">
+</picture>
 
 Layouts are named after trees, so the next one has a name waiting.
 
