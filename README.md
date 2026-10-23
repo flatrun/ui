@@ -49,7 +49,7 @@ A variable can point at another project's variable with `${{ notifications.API_U
 
 Pick a layout from the user menu. **Birch** is the canvas-first layout shown above, with a top bar and the workspace switcher. **Oak** keeps the sidebar and the full set of operator screens:
 
-![The Oak layout](docs/screenshots/deployments-view.png)
+![The Oak layout](docs/screenshots/oak-deployments-light.png)
 
 Layouts are named after trees, so the next one has a name waiting.
 
