@@ -174,3 +174,16 @@
   border-radius: 50%;
   font-size: var(--text-xs);
 }
+
+:root[data-style="birch"] .modal-overlay {
+  background: rgba(0, 0, 0, 0.45);
+}
+
+:root[data-style="birch"][data-scheme="dark"] .modal-overlay {
+  background: rgba(0, 0, 0, 0.65);
+}
+
+:root[data-style="birch"] .modal-header:not(.header-accent),
+:root[data-style="birch"] .modal-footer {
+  background: var(--surface-raised);
+}

@@ -22,19 +22,53 @@
             <span class="source-label">{{ s.label }}</span>
             <small>{{ s.hint }}</small>
           </span>
-          <span v-if="s.soon" class="soon">Soon</span>
         </button>
       </nav>
 
       <div class="source-pane">
         <div v-if="selectedSource === 'github'" class="github-pane">
-          <Icon name="github" :size="28" />
-          <h4>Deploy from GitHub</h4>
-          <p>
-            A GitHub App connected to this server will let you pick a repository, deploy on every push and preview pull
-            requests. Until it is connected, deploy any repository from its URL, with a token for a private one.
-          </p>
-          <BaseButton icon="git-branch" @click="selectSource('git')">Use a repository URL</BaseButton>
+          <div class="gh-toolbar">
+            <span class="gh-account">
+              <Icon name="github" :size="16" />
+              <span>No account connected</span>
+            </span>
+            <BaseInput
+              v-model="repoQuery"
+              name="github-search"
+              placeholder="Search repositories"
+              aria-label="Search repositories"
+              disabled
+            />
+          </div>
+
+          <div class="gh-repos">
+            <ul class="gh-placeholder" aria-hidden="true">
+              <li v-for="n in 5" :key="n">
+                <span class="bar" :style="{ width: `${28 + ((n * 17) % 30)}%` }" />
+                <span class="bar short" />
+              </li>
+            </ul>
+            <div class="gh-connect">
+              <span class="gh-badge"><Icon name="github" :size="22" /></span>
+              <h4>Connect GitHub</h4>
+              <p>Pick a repository, deploy on every push and preview each pull request in its own environment.</p>
+              <BaseButton variant="primary" icon="github" @click="connectGithub">Connect GitHub</BaseButton>
+              <p v-if="githubMissing" class="gh-missing" role="alert">
+                No GitHub App is connected to this server.
+                <a href="https://flatrun.dev/docs/configuration/github" target="_blank" rel="noopener"
+                  >Connect GitHub with a token and webhook</a
+                >, or
+                <button type="button" class="link-button" @click="selectSource('git')">
+                  deploy from a repository URL</button
+                >.
+              </p>
+            </div>
+          </div>
+
+          <div class="gh-options">
+            <label class="check"><input type="checkbox" checked disabled /> Deploy on every push</label>
+            <label class="check"><input type="checkbox" disabled /> Preview pull requests</label>
+          </div>
         </div>
 
         <form v-else id="new-deployment-form" class="new-panel" @submit.prevent="create">
@@ -291,8 +325,8 @@ const emit = defineEmits<{
 
 type SourceId = CreateMode | "github";
 
-const SOURCES: { id: SourceId; label: string; hint: string; icon: string; soon?: boolean }[] = [
-  { id: "github", label: "GitHub", hint: "Pick a repository", icon: "github", soon: true },
+const SOURCES: { id: SourceId; label: string; hint: string; icon: string }[] = [
+  { id: "github", label: "GitHub", hint: "Pick a repository", icon: "github" },
   { id: "git", label: "Git repository", hint: "Any repository URL", icon: "git-branch" },
   { id: "image", label: "Docker image", hint: "From a registry", icon: "box" },
   { id: "easy", label: "Template", hint: "A ready-made app", icon: "layout-template" },
@@ -308,6 +342,13 @@ const selectedSource = computed<SourceId>(() => (githubSelected.value ? "github"
 function selectSource(id: SourceId) {
   githubSelected.value = id === "github";
   if (id !== "github") mode.value = id;
+}
+
+const repoQuery = ref("");
+const githubMissing = ref(false);
+
+function connectGithub() {
+  githubMissing.value = true;
 }
 const repoUrl = ref("");
 const branch = ref("");
@@ -563,17 +604,17 @@ async function create() {
   gap: 2px;
   padding: var(--space-3);
   overflow-y: auto;
-  background: var(--surface-sunken);
-  border-right: 1px solid var(--border);
+  border-right: 1px solid var(--border-subtle);
 }
 
 .source-list button {
+  position: relative;
   display: flex;
   align-items: center;
   gap: var(--space-3);
   padding: var(--space-2) var(--space-3);
   background: transparent;
-  border: 1px solid transparent;
+  border: 0;
   border-radius: var(--radius-md);
   color: var(--text-muted);
   cursor: pointer;
@@ -587,8 +628,22 @@ async function create() {
 }
 
 .source-list button.active {
-  background: var(--surface-raised);
-  border-color: var(--border);
+  background: var(--accent-subtle);
+  color: var(--accent);
+}
+
+.source-list button.active::before {
+  position: absolute;
+  top: 6px;
+  bottom: 6px;
+  left: 0;
+  width: 2px;
+  border-radius: 2px;
+  background: var(--accent);
+  content: "";
+}
+
+.source-list button.active .source-label {
   color: var(--text);
 }
 
@@ -609,14 +664,6 @@ async function create() {
   font-size: var(--text-xs);
 }
 
-.soon {
-  padding: 1px 6px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  color: var(--text-subtle);
-  font-size: var(--text-xs);
-}
-
 .source-pane {
   min-width: 0;
   overflow-y: auto;
@@ -624,23 +671,114 @@ async function create() {
 
 .github-pane {
   display: flex;
-  max-width: 440px;
   flex-direction: column;
-  align-items: flex-start;
-  gap: var(--space-3);
-  padding: var(--space-6) var(--space-5);
-  color: var(--text-muted);
+  gap: var(--space-4);
+  padding: var(--space-5);
 }
 
-.github-pane h4 {
+.gh-toolbar {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.gh-account {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  height: var(--control-h);
+  padding: 0 var(--space-3);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+.gh-repos {
+  position: relative;
+  min-height: 300px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.gh-placeholder {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  opacity: 0.6;
+}
+
+.gh-placeholder li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.gh-placeholder .bar {
+  height: 8px;
+  border-radius: 4px;
+  background: var(--surface-inset);
+}
+
+.gh-placeholder .bar.short {
+  width: 56px;
+}
+
+.gh-connect {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  padding: var(--space-5) var(--space-5) var(--space-6);
+  background: linear-gradient(to bottom, transparent 10%, var(--surface-raised) 55%);
+  text-align: center;
+}
+
+.gh-badge {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border-radius: var(--radius-xl);
+  background: var(--accent-subtle);
+  color: var(--accent);
+}
+
+.gh-connect h4 {
   margin: 0;
   color: var(--text);
   font-size: var(--text-lg);
 }
 
-.github-pane p {
+.gh-connect p {
+  max-width: 380px;
   margin: 0;
+  color: var(--text-muted);
   line-height: 1.5;
+}
+
+.gh-connect .gh-missing {
+  color: var(--text);
+  font-size: var(--text-sm);
+}
+
+.gh-missing a {
+  color: var(--accent);
+}
+
+.gh-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-5);
+  color: var(--text-subtle);
 }
 
 .deploy-summary {

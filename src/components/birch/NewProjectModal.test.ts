@@ -221,7 +221,7 @@ describe("NewProjectModal", () => {
     expect(payload.source.credential_id).toBe("2ab200de5551fc4b");
   });
 
-  it("opens as a dialog with every source listed and GitHub marked for later", async () => {
+  it("opens as a dialog with every source listed", async () => {
     const wrapper = mountModal("image");
     await flushPromises();
 
@@ -235,14 +235,22 @@ describe("NewProjectModal", () => {
       "Compose file",
     ]);
     expect(wrapper.get('.source-list [aria-current="true"]').text()).toContain("Docker image");
+  });
 
-    await sources[0].trigger("click");
-    expect(wrapper.text()).toContain("GitHub App");
+  it("says no GitHub App is set up when Connect GitHub is clicked, and offers a repository URL", async () => {
+    const wrapper = mountModal("git");
+    await flushPromises();
+    await wrapper.findAll(".source-list button")[0].trigger("click");
+
+    expect(wrapper.find(".gh-missing").exists()).toBe(false);
     expect(wrapper.get('button[type="submit"]').attributes("disabled")).toBeDefined();
     await wrapper
       .findAll("button")
-      .find((b) => b.text() === "Use a repository URL")!
+      .find((b) => b.text() === "Connect GitHub")!
       .trigger("click");
+    expect(wrapper.get(".gh-missing").text()).toContain("No GitHub App is connected");
+
+    await wrapper.get(".gh-missing .link-button").trigger("click");
     expect(wrapper.find('[name="repo"]').exists()).toBe(true);
   });
 
