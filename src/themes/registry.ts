@@ -30,5 +30,5 @@ export function getStyle(id: string | null | undefined): StyleDefinition | undef
 export const DEFAULT_STYLE_ID = "modern";
 export const SCHEME_PREFERENCES: SchemePreference[] = ["light", "dark", "system"];
 
-registerStyle({ id: "modern", label: "Modern", description: "Compact, top navigation", layout: "birch" });
-registerStyle({ id: "classic", label: "Classic", description: "Sidebar navigation", layout: "oak" });
+registerStyle({ id: "modern", label: "Birch", description: "Top bar, projects on a canvas", layout: "birch" });
+registerStyle({ id: "classic", label: "Oak", description: "Sidebar navigation", layout: "oak" });

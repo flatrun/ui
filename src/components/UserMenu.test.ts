@@ -12,8 +12,8 @@ describe("UserMenu", () => {
     await wrapper.get("summary").trigger("click");
     const styleOptions = wrapper.findAll("[aria-label=Style] [role=radio]");
     expect(styleOptions.map((o) => o.find(".style-copy").element.firstChild?.textContent?.trim())).toEqual([
-      "Modern",
-      "Classic",
+      "Birch",
+      "Oak",
     ]);
     expect(styleOptions[0].attributes("aria-checked")).toBe("true");
 

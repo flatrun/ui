@@ -17,7 +17,7 @@ describe("useTheme", () => {
     systemPrefersDark(false);
   });
 
-  it("starts new users on the Modern style following the system scheme", () => {
+  it("starts new users on Birch following the system scheme", () => {
     systemPrefersDark(true);
     initTheme();
     expect(root().getAttribute("data-style")).toBe("modern");
