@@ -39,41 +39,49 @@
         <DeploymentSwitcher />
       </div>
 
-      <nav class="topbar-nav" aria-label="Main">
-        <RouterLink v-for="item in primaryItems" :key="item.id" :to="item.path" class="nav-link" active-class="active">
-          {{ item.label }}
-        </RouterLink>
-        <Popover v-model:open="moreOpen" align="right" width="460px">
-          <template #trigger="{ toggle }">
-            <button type="button" class="nav-link" :class="{ active: moreActive }" @click="toggle">
-              More <Icon name="chevron-down" :size="13" />
-            </button>
-          </template>
-          <template #default="{ close }">
-            <div class="more-grid">
-              <section class="more-primary">
-                <h4>Main</h4>
-                <RouterLink v-for="item in primaryItems" :key="item.id" :to="item.path" @click="close">
-                  <Icon :name="item.icon" :size="14" />{{ item.label }}
-                </RouterLink>
-              </section>
-              <section v-for="group in moreGroups" :key="group.name">
-                <h4>{{ group.name }}</h4>
-                <RouterLink v-for="item in group.items" :key="item.id" :to="item.path" @click="close">
-                  <Icon :name="item.icon" :size="14" />{{ item.label }}
-                </RouterLink>
-              </section>
-            </div>
-          </template>
-        </Popover>
-      </nav>
-
-      <div class="topbar-right">
+      <div class="topbar-center">
         <button type="button" class="search-btn" aria-label="Search" @click="paletteOpen = true">
           <Icon name="search" :size="14" />
           <span>Search</span>
           <kbd>{{ kbdHint }}</kbd>
         </button>
+      </div>
+
+      <div class="topbar-right">
+        <nav class="topbar-nav" aria-label="Main">
+          <RouterLink
+            v-for="item in primaryItems"
+            :key="item.id"
+            :to="item.path"
+            class="nav-link"
+            active-class="active"
+          >
+            {{ item.label }}
+          </RouterLink>
+          <Popover v-model:open="moreOpen" align="right" width="460px">
+            <template #trigger="{ toggle }">
+              <button type="button" class="nav-link" :class="{ active: moreActive }" @click="toggle">
+                More <Icon name="chevron-down" :size="13" />
+              </button>
+            </template>
+            <template #default="{ close }">
+              <div class="more-grid">
+                <section class="more-primary">
+                  <h4>Main</h4>
+                  <RouterLink v-for="item in primaryItems" :key="item.id" :to="item.path" @click="close">
+                    <Icon :name="item.icon" :size="14" />{{ item.label }}
+                  </RouterLink>
+                </section>
+                <section v-for="group in moreGroups" :key="group.name">
+                  <h4>{{ group.name }}</h4>
+                  <RouterLink v-for="item in group.items" :key="item.id" :to="item.path" @click="close">
+                    <Icon :name="item.icon" :size="14" />{{ item.label }}
+                  </RouterLink>
+                </section>
+              </div>
+            </template>
+          </Popover>
+        </nav>
         <Popover v-if="canCreate" v-model:open="newOpen" align="right" width="260px">
           <template #trigger="{ toggle }">
             <button type="button" class="btn btn-primary btn-sm" @click="toggle">
@@ -266,10 +274,11 @@ onBeforeUnmount(() => document.removeEventListener("keydown", onKeydown));
   position: sticky;
   top: 0;
   z-index: var(--z-sticky);
-  display: flex;
+  display: grid;
   height: 48px;
   flex-shrink: 0;
   align-items: center;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   gap: var(--space-4);
   padding: 0 var(--space-4);
   background: var(--app-bg);
@@ -285,11 +294,8 @@ onBeforeUnmount(() => document.removeEventListener("keydown", onKeydown));
   gap: var(--space-1);
 }
 
-.topbar-left {
-  flex: 1;
-}
-
 .topbar-right {
+  justify-content: flex-end;
   gap: var(--space-2);
 }
 
@@ -349,7 +355,7 @@ onBeforeUnmount(() => document.removeEventListener("keydown", onKeydown));
 
 .search-btn {
   display: inline-flex;
-  width: 200px;
+  width: 320px;
   height: var(--control-h-sm);
   align-items: center;
   gap: var(--space-2);

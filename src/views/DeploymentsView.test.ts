@@ -479,6 +479,7 @@ describe("DeploymentsView", () => {
     it("fills the page and floats its toolbar over the canvas", async () => {
       const wrapper = await mountProjects();
       expect(wrapper.classes()).toContain("is-full-bleed");
+      expect(wrapper.find(".search-box").exists()).toBe(false);
       expect(wrapper.get(".data-table-container").attributes("data-view")).toBe("canvas");
       await wrapper.get('[aria-label="Cards"]').trigger("click");
       expect(wrapper.get(".data-table-container").attributes("data-view")).toBe("grid");

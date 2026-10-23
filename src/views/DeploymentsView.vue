@@ -4,7 +4,7 @@
       :items="listed"
       :columns="columns"
       :loading="loading"
-      :searchable="true"
+      :searchable="!birch"
       :search-placeholder="`Search ${noun}s...`"
       :search-fields="['name', 'path', 'status']"
       item-key="clusterKey"
@@ -733,10 +733,6 @@ watch(selectedServer, () => fetchDeployments());
   min-height: 0;
   border: 0;
   border-radius: 0;
-}
-
-.is-full-bleed :deep(.project-canvas .env-switch) {
-  top: calc(var(--space-3) + var(--control-h, 36px) + var(--space-3));
 }
 
 .deployments-view {
