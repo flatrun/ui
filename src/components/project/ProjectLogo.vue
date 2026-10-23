@@ -18,8 +18,18 @@ const props = withDefaults(
 );
 
 // An uploaded logo is served behind the API's auth, so it is fetched once per version and shown
-// from an object URL rather than linked directly.
-const uploads = new Map<string, Promise<string>>();
+// from an object URL rather than linked directly. A project keeps only its latest version.
+const uploads = new Map<string, { version: string; url: Promise<string> }>();
+
+function uploadedLogo(name: string, version: string): Promise<string> {
+  const cached = uploads.get(name);
+  if (cached?.version === version) return cached.url;
+  cached?.url.then((url) => URL.revokeObjectURL(url)).catch(() => undefined);
+  const url = deploymentsApi.logo(name).then((r) => URL.createObjectURL(r.data));
+  uploads.set(name, { version, url });
+  url.catch(() => uploads.get(name)?.url === url && uploads.delete(name));
+  return url;
+}
 
 const templates = useTemplateLogos();
 const logo = computed(() => projectLogo(props.deployment, templates.value));
@@ -28,22 +38,18 @@ const failed = ref(false);
 
 watch(logo, () => (failed.value = false));
 
+const uploadKey = computed(() => ("upload" in logo.value ? `${props.deployment.name}:${logo.value.upload}` : ""));
+
 watch(
-  () => ("upload" in logo.value ? `${props.deployment.name}:${logo.value.upload}` : ""),
+  uploadKey,
   async (key) => {
     uploaded.value = "";
-    if (!key) return;
-    if (!uploads.has(key)) {
-      uploads.set(
-        key,
-        deploymentsApi.logo(props.deployment.name).then((r) => URL.createObjectURL(r.data)),
-      );
-    }
+    if (!key || !("upload" in logo.value)) return;
     try {
-      uploaded.value = await uploads.get(key)!;
+      const url = await uploadedLogo(props.deployment.name, logo.value.upload);
+      if (uploadKey.value === key) uploaded.value = url;
     } catch {
-      uploads.delete(key);
-      failed.value = true;
+      if (uploadKey.value === key) failed.value = true;
     }
   },
   { immediate: true },

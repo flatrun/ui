@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import projectsFixture from "./fixtures/projects-with-logos.json";
 import templatesFixture from "./fixtures/templates-with-logos.json";
 import { apiAsset, projectLogo, templateLogos } from "./project-logo";
@@ -43,15 +43,34 @@ describe("projectLogo", () => {
     ).toEqual({ icon: "logos:nodejs-icon" });
   });
 
+  it("ignores template names that are not templates, such as object members", () => {
+    const blog = project("blog");
+    for (const name of ["constructor", "__proto__", "toString"]) {
+      expect(projectLogo({ ...blog, metadata: { ...blog.metadata!, logo: `template:${name}` } }, templates)).toEqual({
+        icon: "logos:wordpress-icon",
+      });
+      expect(projectLogo({ ...blog, metadata: { ...blog.metadata!, template: name } }, templates)).toEqual({
+        icon: "logos:wordpress-icon",
+      });
+    }
+  });
+
   it("uses the image icon before the template list has loaded", () => {
     expect(projectLogo(project("trakli"))).toEqual({ icon: "box" });
   });
 });
 
 describe("apiAsset", () => {
+  afterEach(() => vi.unstubAllEnvs());
+
   it("serves agent paths from the API's origin and leaves links alone", () => {
-    expect(import.meta.env.VITE_API_URL).toBe("http://localhost:8090/api");
+    vi.stubEnv("VITE_API_URL", "http://localhost:8090/api");
     expect(apiAsset("/api/templates/trakli/logo")).toBe("http://localhost:8090/api/templates/trakli/logo");
     expect(apiAsset("https://cdn.simpleicons.org/n8n")).toBe("https://cdn.simpleicons.org/n8n");
+  });
+
+  it("keeps agent paths on the dashboard's origin when the API is served there", () => {
+    vi.stubEnv("VITE_API_URL", "");
+    expect(apiAsset("/api/templates/trakli/logo")).toBe("/api/templates/trakli/logo");
   });
 });

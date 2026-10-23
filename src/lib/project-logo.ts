@@ -10,6 +10,9 @@ export interface TemplateLogos {
 
 export const noTemplateLogos: TemplateLogos = { byId: {}, byImage: {} };
 
+const own = (map: Record<string, string>, key: string) =>
+  Object.prototype.hasOwnProperty.call(map, key) ? map[key] : undefined;
+
 const ICON_ID = /^[a-z0-9]+(-[a-z0-9]+)*:[a-z0-9]+(-[a-z0-9]+)*$/;
 
 function imageRepo(image: string | undefined): string {
@@ -60,8 +63,8 @@ export function projectLogo(
   const logo = deployment.metadata?.logo ?? "";
   if (logo === "upload" && deployment.logo_version) return { upload: deployment.logo_version };
   if (logo.startsWith("template:")) {
-    const own = fromTemplate(templates.byId[logo.slice("template:".length)]);
-    if (own) return own;
+    const named = fromTemplate(own(templates.byId, logo.slice("template:".length)));
+    if (named) return named;
   } else if (/^https?:\/\//.test(logo)) {
     return { src: logo };
   } else if (ICON_ID.test(logo)) {
@@ -70,7 +73,7 @@ export function projectLogo(
 
   const template = deployment.metadata?.template;
   return (
-    (template ? fromTemplate(templates.byId[template]) : undefined) ??
-    fromTemplate(templates.byImage[appImage(leadService(deployment)?.image)]) ?? { icon: projectIcon(deployment) }
+    (template ? fromTemplate(own(templates.byId, template)) : undefined) ??
+    fromTemplate(own(templates.byImage, appImage(leadService(deployment)?.image))) ?? { icon: projectIcon(deployment) }
   );
 }
