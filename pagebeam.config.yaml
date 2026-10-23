@@ -137,6 +137,10 @@ tours:
         - goto: /deployments
         - wait: .deployment-card
         - shot: { name: oak-deployments, caption: "The Oak layout with its sidebar" }
+        - goto: /deployments/shop?tab=environment
+        - wait: .deployment-detail
+        - wait: 2000
+        - shot: { name: oak-variables, caption: "Variables in the Oak layout" }
     oak-dark:
       account: oak-dark
       steps: *oak

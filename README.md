@@ -11,25 +11,16 @@
 
 FlatRun brings the Railway workflow to a server you control: projects made of services, environments, deployments you can roll back, variables shared between projects, and templates for common apps. Each project is a directory with a standard Compose file, so it keeps running under plain `docker compose` if you stop using FlatRun.
 
-This repository is the **dashboard**: a Vue app that draws every project and service on a canvas and talks to the [agent](https://github.com/flatrun/agent) API.
+This repository is the **control panel**: the web UI for FlatRun, a Vue app that runs on top of the [agent](https://github.com/flatrun/agent) API.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/projects-canvas-dark.png">
   <img alt="Projects on a canvas, each card showing its logo, domain, state and services" src="docs/screenshots/projects-canvas-light.png">
 </picture>
 
-## A tour
+Every project is a card on one canvas, with its domain, whether it is online, and the services inside it. An arrow means one project reads a variable from another. Cards and table views are one click away, and the choice is remembered.
 
-### Projects
-
-A project is one Compose directory. The projects page opens on a canvas: each card shows what the project serves, its domain, whether it is online, and the services inside it. An arrow means one project reads a variable from another. Switch to cards or a table from the icons at the top right; the choice is remembered.
-
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/projects-cards-dark.png">
-  <img alt="The same projects as cards, with domains, services, databases and quick actions" src="docs/screenshots/projects-cards-light.png">
-</picture>
-
-### Inside a project
+## Inside a project
 
 Opening a project shows its services as a graph, drawn from the Compose file: what depends on what, which domain points where, how many replicas are up, and which folder each one stores its data in. The rail on the left holds deployments, logs, variables, metrics, settings, files and a terminal. **Add** opens the place where a new service, database, domain or volume is set up.
 
@@ -38,7 +29,7 @@ Opening a project shows its services as a graph, drawn from the Compose file: wh
   <img alt="A shop project: web, api and worker services above Redis, PostgreSQL and MinIO, each with its state and storage" src="docs/screenshots/project-architecture-light.png">
 </picture>
 
-### Variables, references and secrets
+## Variables, references and secrets
 
 A variable can point at another project's variable with `${{ plausible.BASE_URL }}`, and the page shows what it resolves to. Secrets are sealed: they can be replaced or rotated but never read back, and are used as `${{ secret.NAME }}`. Secrets can also come from Infisical, HashiCorp Vault or OpenBao, Doppler, or 1Password Connect, fetched again on every deploy.
 
@@ -49,12 +40,42 @@ A variable can point at another project's variable with `${{ plausible.BASE_URL 
 
 ## Layouts
 
-The tour above uses **Birch**, the default: a top bar, the workspace switcher, and projects on a canvas. **Oak** keeps a sidebar and the full set of operator screens. Switch between them from the user menu.
+Everything above uses **Birch**, the default: a top bar, the workspace switcher, and projects on a canvas. **Oak** keeps a sidebar and the full set of operator screens. Switch between them from the user menu.
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/oak-deployments-dark.png">
-  <img alt="The Oak layout: a sidebar beside every project as a card with its domain, services and actions" src="docs/screenshots/oak-deployments-light.png">
-</picture>
+<table>
+  <tr>
+    <th>Birch</th>
+    <th>Oak</th>
+  </tr>
+  <tr>
+    <td>
+      <picture>
+        <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/projects-canvas-dark.png">
+        <img alt="Projects on the Birch canvas" src="docs/screenshots/projects-canvas-light.png">
+      </picture>
+    </td>
+    <td>
+      <picture>
+        <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/oak-deployments-dark.png">
+        <img alt="The same projects as cards beside the Oak sidebar" src="docs/screenshots/oak-deployments-light.png">
+      </picture>
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <picture>
+        <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/project-variables-dark.png">
+        <img alt="A project's variables in Birch" src="docs/screenshots/project-variables-light.png">
+      </picture>
+    </td>
+    <td>
+      <picture>
+        <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/oak-variables-dark.png">
+        <img alt="The same variables in Oak" src="docs/screenshots/oak-variables-light.png">
+      </picture>
+    </td>
+  </tr>
+</table>
 
 Layouts are named after trees, so the next one has a name waiting.
 
