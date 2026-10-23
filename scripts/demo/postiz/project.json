@@ -1,4 +1,5 @@
 {
+  "logo": "https://cdn.simpleicons.org/postiz",
   "env": { "JWT_SECRET": "${{ secret.JWT_SECRET }}" },
   "secrets": { "JWT_SECRET": { "length": 48, "charset": "alphanumeric" } },
   "domains": [

@@ -62,8 +62,8 @@ function withNetwork(compose) {
 }
 
 // Each folder in scripts/demo is one project: its compose file, a project.json
-// with variables, sealed secrets, domains and whether it starts, and any other
-// files it mounts. Projects that reference another project's variables come
+// with variables, sealed secrets, domains, its logo and whether it starts, and any
+// other files it mounts. Projects that reference another project's variables come
 // after it.
 const DEMO = path.join(path.dirname(fileURLToPath(import.meta.url)), "demo");
 const FIRST = ["plausible", "shop", "trakli"];
@@ -87,6 +87,7 @@ async function readProjects() {
         env: Object.entries(spec.env ?? {}).map(([key, value]) => ({ key, value })),
         secrets: spec.secrets ?? {},
         domains: spec.domains,
+        logo: spec.logo ?? "",
         start: spec.start !== false,
         files,
       };
@@ -191,6 +192,7 @@ async function projects(list, have) {
       await must("PUT", `/secrets/${key}?scope=deployment:${p.name}`, { generate: opts });
     }
     if (p.env.length) await must("PUT", `/projects/${p.name}/env`, { env_vars: p.env });
+    await must("PUT", `/projects/${p.name}/metadata`, { logo: p.logo });
     log(`${p.name} ${exists ? "updated" : "created"}`);
   }
 }

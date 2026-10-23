@@ -205,6 +205,8 @@ apiClient.interceptors.response.use(
 export interface ServiceMetadata {
   name: string;
   type: string;
+  logo?: string;
+  template?: string;
   primary_service?: string;
   networking: {
     expose: boolean;
@@ -452,7 +454,9 @@ export const workspacesApi = {
   uploadLogo: (slug: string, file: File) => {
     const form = new FormData();
     form.append("file", file);
-    return apiClient.put<Workspace>(`/workspaces/${slug}/logo`, form);
+    return apiClient.put<Workspace>(`/workspaces/${slug}/logo`, form, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
   },
   removeLogo: (slug: string) => apiClient.delete(`/workspaces/${slug}/logo`),
   members: (slug: string) => apiClient.get<Items<WorkspaceMember>>(`/workspaces/${slug}/members`),
@@ -528,6 +532,15 @@ export const deploymentsApi = {
     ),
   rollback: (name: string, deployId: string) =>
     apiClient.post<ActionJobResponse>(`/projects/${name}/deployments/${deployId}/rollback`),
+  logo: (name: string) => apiClient.get<Blob>(`/projects/${name}/logo`, { responseType: "blob" }),
+  uploadLogo: (name: string, file: File) => {
+    const form = new FormData();
+    form.append("file", file);
+    return apiClient.put<{ logo: string; logo_version: string }>(`/projects/${name}/logo`, form, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+  },
+  removeLogo: (name: string) => apiClient.delete(`/projects/${name}/logo`),
   updateSource: (name: string, changes: { branch?: string; auto_deploy?: boolean; previews?: boolean }) =>
     apiClient.put<{ source: SourceConfig }>(`/deployments/${name}/source`, changes),
   webhook: (name: string) =>

@@ -51,7 +51,7 @@
       <template #cell-name="{ item }">
         <div class="deployment-info clickable" @click="goToDeployment(item)">
           <span class="deployment-name">
-            <Icon :name="projectIcon(item)" :size="16" />{{ item.name }}
+            <ProjectLogo :deployment="item" :size="16" />{{ item.name }}
             <span v-for="env in otherEnvironments(item)" :key="env" class="env-chip">{{ env }}</span>
           </span>
           <span class="server-badge">{{ item.server }}</span>
@@ -143,10 +143,10 @@
             :key="deployment.clusterKey"
             :name="deployment.name"
             :status="deployment.status"
-            :brand="projectIcon(deployment)"
             :clickable="true"
             @click="goToDeployment(deployment)"
           >
+            <template #brand><ProjectLogo :deployment="deployment" :size="20" /></template>
             <div v-if="otherEnvironments(deployment).length" class="env-chips">
               <Icon name="git-branch" :size="12" />
               <span v-for="env in otherEnvironments(deployment)" :key="env" class="env-chip">{{ env }}</span>
@@ -333,7 +333,7 @@ import type { Deployment } from "@/types";
 import DataTable from "@/components/DataTable.vue";
 import DeploymentCard from "@/components/DeploymentCard.vue";
 import Icon from "@/components/base/Icon.vue";
-import { projectIcon } from "@/lib/brand";
+import ProjectLogo from "@/components/project/ProjectLogo.vue";
 import { projectsFrom, type Project } from "@/model/project";
 import ProjectCanvas from "@/components/project/ProjectCanvas.vue";
 import { useTheme } from "@/composables/useTheme";

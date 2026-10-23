@@ -1267,6 +1267,25 @@
               <div v-if="activeConfigTab === 'settings'" class="settings-tab">
                 <div class="settings-list">
                   <div class="settings-row">
+                    <div class="settings-row-header" @click="toggleSettingsSection('logo')">
+                      <div class="row-title">
+                        <Icon name="image" :size="18" />
+                        <div class="row-text">
+                          <h4>Logo</h4>
+                          <p>What the project shows on its card and in lists</p>
+                        </div>
+                      </div>
+                      <div class="row-controls" @click.stop>
+                        <button class="chevron-btn" @click="toggleSettingsSection('logo')">
+                          <i class="pi" :class="openSettingsSection === 'logo' ? 'pi-chevron-up' : 'pi-chevron-down'" />
+                        </button>
+                      </div>
+                    </div>
+                    <div v-if="openSettingsSection === 'logo'" class="settings-row-body">
+                      <ProjectLogoSetting :deployment="deployment" @changed="fetchDeployment" />
+                    </div>
+                  </div>
+                  <div class="settings-row">
                     <div class="settings-row-header" @click="toggleSettingsSection('protected')">
                       <div class="row-title">
                         <i class="pi pi-lock" />
@@ -2273,6 +2292,7 @@ import OperationModal from "@/components/OperationModal.vue";
 import Popover from "@/components/base/Popover.vue";
 import DeploymentMetrics from "@/components/deployment/DeploymentMetrics.vue";
 import ServiceCanvas from "@/components/project/ServiceCanvas.vue";
+import ProjectLogoSetting from "@/components/project/ProjectLogoSetting.vue";
 import SecretsPanel from "@/components/secrets/SecretsPanel.vue";
 import { useTheme } from "@/composables/useTheme";
 import { BIRCH_SECTIONS, sectionForTab } from "@/views/deploymentSections";
@@ -6333,6 +6353,11 @@ onUnmounted(() => {
 .row-title i {
   color: var(--accent);
   font-size: 1rem;
+  margin-top: 0.15rem;
+}
+
+.row-title .app-icon {
+  color: var(--accent);
   margin-top: 0.15rem;
 }
 

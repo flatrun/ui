@@ -2,7 +2,9 @@
   <div class="canvas-card" :class="[state, { selected }]">
     <div class="body">
       <div class="head">
-        <span class="logo"><Icon :name="icon" :size="22" /></span>
+        <span class="logo"
+          ><slot name="logo"><Icon :name="icon ?? 'box'" :size="22" /></slot
+        ></span>
         <div class="titles">
           <span class="title" :title="title">{{ title }}</span>
           <a v-if="link" class="link" :href="link.href" target="_blank" rel="noopener" @click.stop>{{ link.text }}</a>
@@ -25,7 +27,7 @@ import Icon from "@/components/base/Icon.vue";
 import type { CardState } from "@/model/project";
 
 defineProps<{
-  icon: string;
+  icon?: string;
   title: string;
   subtitle?: string;
   link?: { href: string; text: string };

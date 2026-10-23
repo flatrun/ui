@@ -46,14 +46,6 @@ const LOGOS: [RegExp, string][] = [
   [/^(docker|dind)/, "logos:docker-icon"],
 ];
 
-// Matched against the image's namespace and name, for apps whose image name alone is generic.
-const APPS: [RegExp, string][] = [
-  [/(^|\/)trakli\//, "apps:trakli"],
-  [/(^|\/)gitroomhq\/postiz/, "apps:postiz"],
-  [/(^|\/)sourceant\//, "apps:sourceant"],
-  [/(^|\/)plausible\/(community-edition|analytics)/, "apps:plausible"],
-];
-
 // Images with no brand logo still say what they do.
 const KINDS: [RegExp, string][] = [
   [/^(minio|seaweedfs|garage)/, "container"],
@@ -73,9 +65,6 @@ function imageName(image: string | undefined): string {
 }
 
 export function serviceIcon(image: string | undefined): string {
-  const repo = (image ?? "").toLowerCase().split("@")[0].split(":")[0];
-  const app = APPS.find(([re]) => re.test(repo))?.[1];
-  if (app) return app;
   const name = imageName(image);
   return LOGOS.find(([re]) => re.test(name))?.[1] ?? KINDS.find(([re]) => re.test(name))?.[1] ?? "box";
 }
@@ -86,12 +75,16 @@ export function isDataService(image: string | undefined): boolean {
 
 // A project shows the logo of what it serves: its primary service, else the one a domain
 // points at, else the first that is not a database or queue, else whatever it runs.
-export function projectIcon(deployment: Pick<Deployment, "services">): string {
+export function leadService(deployment: Pick<Deployment, "services">): Service | undefined {
   const services: Service[] = deployment.services ?? [];
-  const lead =
+  return (
     services.find((s) => s.is_primary) ??
     services.find((s) => s.domains?.length) ??
     services.find((s) => !isDataService(s.image)) ??
-    services[0];
-  return serviceIcon(lead?.image);
+    services[0]
+  );
+}
+
+export function projectIcon(deployment: Pick<Deployment, "services">): string {
+  return serviceIcon(leadService(deployment)?.image);
 }

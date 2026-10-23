@@ -7,6 +7,8 @@ export interface Deployment {
   services?: Service[];
   metadata?: ServiceMetadata;
   workspace?: string;
+  // Changes whenever the uploaded logo is replaced; absent when there is none.
+  logo_version?: string;
 }
 
 export interface ServiceMount {
@@ -36,6 +38,10 @@ export interface Service {
 export interface ServiceMetadata {
   name: string;
   type: string;
+  // An icon id (simple-icons:redis), an http(s) link, "upload", or "template:<id>".
+  logo?: string;
+  // The template the project was created from.
+  template?: string;
   primary_service?: string;
   networking: NetworkingConfig;
   ssl: SSLConfig;

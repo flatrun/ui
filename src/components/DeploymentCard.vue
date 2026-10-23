@@ -2,8 +2,8 @@
   <div class="deployment-card" :class="[status, { clickable: clickable }]" @click="$emit('click')">
     <div class="card-header" :class="status">
       <div class="header-content">
-        <div v-if="brand" class="service-icon brand-tile">
-          <Icon :name="brand" :size="20" />
+        <div v-if="brand || $slots.brand" class="service-icon brand-tile">
+          <slot name="brand"><Icon :name="brand!" :size="20" /></slot>
         </div>
         <div v-else-if="logo || icon" class="service-icon" :class="iconClass">
           <img v-if="logo" :src="logo" :alt="name" class="service-logo" />

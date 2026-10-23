@@ -2,7 +2,9 @@
   <div class="dep-node" :class="[`status-${deployment.status}`, { selected }]">
     <Handle type="target" :position="Position.Left" class="dep-handle" />
     <div class="dep-node-head">
-      <span class="dep-icon"><Icon :name="icon" :size="16" /></span>
+      <span class="dep-icon"
+        ><Icon v-if="sleeping" name="moon" :size="16" /><ProjectLogo v-else :deployment="deployment" :size="16"
+      /></span>
       <span class="dep-name" :title="deployment.name">{{ deployment.name }}</span>
     </div>
     <div class="dep-node-meta">
@@ -24,7 +26,7 @@ import { computed } from "vue";
 import { Handle, Position } from "@vue-flow/core";
 import type { Deployment } from "@/types";
 import Icon from "@/components/base/Icon.vue";
-import { projectIcon } from "@/lib/brand";
+import ProjectLogo from "@/components/project/ProjectLogo.vue";
 
 const props = defineProps<{ data: { deployment: Deployment }; selected?: boolean }>();
 
@@ -33,7 +35,6 @@ const source = computed(() => deployment.value.metadata?.source);
 const sleeping = computed(() => !!deployment.value.metadata?.sleep?.sleeping);
 const revision = computed(() => source.value?.last_revision?.slice(0, 7));
 const domain = computed(() => deployment.value.metadata?.networking?.domain);
-const icon = computed(() => (sleeping.value ? "moon" : projectIcon(deployment.value)));
 </script>
 
 <style scoped>
