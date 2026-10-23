@@ -41,11 +41,15 @@ describe("WorkspaceSwitcher", () => {
     vi.mocked(workspacesApi.list).mockResolvedValue({ data: workspacesFixture } as any);
   });
 
+  it("starts in the Default workspace", async () => {
+    const wrapper = await mountSwitcher();
+    expect(wrapper.get(".crumb").text()).toContain("Default");
+    expect(workspaceHeader()).toBe("default");
+    wrapper.unmount();
+  });
+
   it("scopes requests to the picked workspace", async () => {
     const wrapper = await mountSwitcher();
-    expect(wrapper.get(".crumb").text()).toContain("All workspaces");
-    expect(workspaceHeader()).toBe("");
-
     await wrapper.get(".crumb").trigger("click");
     await flushPromises();
     expect(wrapper.findAll(".row-name").map((r) => r.text())).toEqual([
@@ -54,11 +58,26 @@ describe("WorkspaceSwitcher", () => {
       "Default",
       "admin's workspace",
     ]);
-    await wrapper.findAll(".row-main")[2].trigger("click");
+    await wrapper.findAll(".row-main")[1].trigger("click");
     await flushPromises();
 
-    expect(wrapper.get(".crumb").text()).toContain("Default");
-    expect(workspaceHeader()).toBe("default");
+    expect(wrapper.get(".crumb").text()).toContain("shots's workspace");
+    expect(workspaceHeader()).toBe("shots");
+    wrapper.unmount();
+  });
+
+  it("keeps All workspaces once it is picked", async () => {
+    let wrapper = await mountSwitcher();
+    await wrapper.get(".crumb").trigger("click");
+    await flushPromises();
+    await wrapper.findAll(".row-main")[0].trigger("click");
+    await flushPromises();
+    expect(workspaceHeader()).toBe("");
+    wrapper.unmount();
+
+    wrapper = await mountSwitcher();
+    expect(wrapper.get(".crumb").text()).toContain("All workspaces");
+    expect(workspaceHeader()).toBe("");
     wrapper.unmount();
   });
 
@@ -70,11 +89,11 @@ describe("WorkspaceSwitcher", () => {
     wrapper.unmount();
   });
 
-  it("forgets a workspace the user can no longer see", async () => {
+  it("falls back to Default for a workspace the user can no longer see", async () => {
     localStorage.setItem("flatrun.workspace", "gone");
     const wrapper = await mountSwitcher();
-    expect(useWorkspaceStore().slug).toBe("");
-    expect(wrapper.get(".crumb").text()).toContain("All workspaces");
+    expect(useWorkspaceStore().slug).toBe("default");
+    expect(wrapper.get(".crumb").text()).toContain("Default");
     wrapper.unmount();
   });
 

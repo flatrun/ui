@@ -2,7 +2,7 @@ import { defineStore } from "pinia";
 import { computed, ref } from "vue";
 import type { Workspace } from "@/types";
 import { workspacesApi } from "@/services/api";
-import { selectedWorkspace, setSelectedWorkspace } from "@/services/workspaceScope";
+import { hasChosenWorkspace, selectedWorkspace, setSelectedWorkspace } from "@/services/workspaceScope";
 
 export const useWorkspaceStore = defineStore("workspace", () => {
   const workspaces = ref<Workspace[]>([]);
@@ -18,7 +18,13 @@ export const useWorkspaceStore = defineStore("workspace", () => {
       workspaces.value = [];
     }
     loaded.value = true;
-    if (slug.value && !current.value) select("");
+    if (!hasChosenWorkspace() || (slug.value && !current.value)) selectDefault();
+  }
+
+  function selectDefault() {
+    const fallback = workspaces.value.find((w) => w.slug === "default") ?? workspaces.value[0];
+    if (fallback) select(fallback.slug);
+    else slug.value = "";
   }
 
   function select(next: string) {
