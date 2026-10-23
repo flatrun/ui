@@ -1,78 +1,5 @@
 <template>
   <div class="deployment-detail" :class="{ 'is-birch': birch }">
-    <header v-if="birch" class="birch-header">
-      <div class="birch-title">
-        <h1>{{ deployment?.name || $route.params.name }}</h1>
-        <span class="birch-status" :class="modernStatus">{{ modernStatusLabel }}</span>
-        <a v-if="primaryDomain" :href="`https://${primaryDomain}`" target="_blank" rel="noopener" class="birch-domain">
-          {{ primaryDomain }} <Icon name="arrow-up-right" :size="13" />
-        </a>
-      </div>
-      <div class="birch-actions">
-        <BaseButton size="sm" icon="stethoscope" @click="showDiagnostics = true">Diagnose</BaseButton>
-        <template v-if="canWrite && deployment">
-          <BaseButton
-            v-if="deployment.metadata?.source"
-            size="sm"
-            variant="primary"
-            icon="rocket"
-            :disabled="loading || deploymentJob.state.isRunning"
-            @click="handleOperation('redeploy')"
-          >
-            Deploy latest
-          </BaseButton>
-          <BaseButton
-            v-else-if="deployment.status !== 'running'"
-            size="sm"
-            variant="primary"
-            icon="play"
-            :disabled="loading"
-            @click="handleScopedAction('start', 'deployment')"
-          >
-            Start
-          </BaseButton>
-          <BaseButton
-            v-else
-            size="sm"
-            variant="primary"
-            icon="rotate-cw"
-            :disabled="loading"
-            @click="handleScopedAction('restart', 'deployment')"
-          >
-            Restart
-          </BaseButton>
-          <Popover align="right" width="200px">
-            <template #trigger="{ toggle }">
-              <button
-                type="button"
-                class="btn btn-secondary btn-sm birch-more"
-                aria-label="More actions"
-                @click="toggle"
-              >
-                <Icon name="ellipsis" :size="16" />
-              </button>
-            </template>
-            <template #default="{ close }">
-              <ul class="birch-menu">
-                <li v-for="action in modernActions" :key="action.id">
-                  <button
-                    type="button"
-                    :class="{ danger: action.id === 'delete' }"
-                    :disabled="action.disabled"
-                    @click="
-                      close();
-                      action.run();
-                    "
-                  >
-                    <Icon :name="action.icon" :size="14" />{{ action.label }}
-                  </button>
-                </li>
-              </ul>
-            </template>
-          </Popover>
-        </template>
-      </div>
-    </header>
     <div v-if="!birch" class="detail-header">
       <div class="header-left">
         <router-link :to="backPath" class="back-link">
@@ -167,25 +94,128 @@
       </div>
 
       <div :class="{ 'birch-body': birch }">
-        <nav v-if="birch" class="section-rail" aria-label="Deployment sections">
-          <template v-for="group in modernSectionGroups" :key="group.label">
-            <span v-if="group.label" class="rail-label">{{ group.label }}</span>
+        <nav v-if="birch" class="section-rail" aria-label="Project sections">
+          <template v-for="(group, i) in birchSectionGroups" :key="group.label">
+            <span v-if="i > 0" class="rail-divider" role="separator" />
             <button
               v-for="item in group.items"
               :key="item.id"
               type="button"
               class="rail-item"
               :class="{ active: section === item.id }"
+              :title="item.label"
+              :aria-label="item.label"
               :aria-current="section === item.id ? 'page' : undefined"
               @click="section = item.id"
             >
-              <Icon :name="item.icon" :size="15" />
-              {{ item.label }}
+              <Icon :name="item.icon" :size="18" />
             </button>
           </template>
         </nav>
-        <div class="tab-content">
-          <h2 v-if="birch" class="section-title">{{ currentSectionLabel }}</h2>
+        <div class="tab-content" :class="{ 'birch-pane': birch, 'is-canvas': birch && section === 'architecture' }">
+          <header v-if="birch" class="birch-header" :class="{ floating: section === 'architecture' }">
+            <div class="birch-title">
+              <h1 v-if="section !== 'architecture'">{{ currentSectionLabel }}</h1>
+              <span class="birch-status" :class="birchStatus">{{ birchStatusLabel }}</span>
+              <a
+                v-if="primaryDomain"
+                :href="`https://${primaryDomain}`"
+                target="_blank"
+                rel="noopener"
+                class="birch-domain"
+              >
+                {{ primaryDomain }} <Icon name="arrow-up-right" :size="13" />
+              </a>
+            </div>
+            <div class="birch-actions">
+              <BaseButton size="sm" icon="stethoscope" @click="showDiagnostics = true">Diagnose</BaseButton>
+              <template v-if="canWrite && deployment">
+                <BaseButton
+                  v-if="deployment.metadata?.source"
+                  size="sm"
+                  variant="primary"
+                  icon="rocket"
+                  :disabled="loading || deploymentJob.state.isRunning"
+                  @click="handleOperation('redeploy')"
+                >
+                  Deploy latest
+                </BaseButton>
+                <BaseButton
+                  v-else-if="deployment.status !== 'running'"
+                  size="sm"
+                  variant="primary"
+                  icon="play"
+                  :disabled="loading"
+                  @click="handleScopedAction('start', 'deployment')"
+                >
+                  Start
+                </BaseButton>
+                <BaseButton
+                  v-else
+                  size="sm"
+                  variant="primary"
+                  icon="rotate-cw"
+                  :disabled="loading"
+                  @click="handleScopedAction('restart', 'deployment')"
+                >
+                  Restart
+                </BaseButton>
+                <Popover align="right" width="200px">
+                  <template #trigger="{ toggle }">
+                    <button
+                      type="button"
+                      class="btn btn-secondary btn-sm birch-more"
+                      aria-label="More actions"
+                      @click="toggle"
+                    >
+                      <Icon name="ellipsis" :size="16" />
+                    </button>
+                  </template>
+                  <template #default="{ close }">
+                    <ul class="birch-menu">
+                      <li v-for="action in birchActions" :key="action.id">
+                        <button
+                          type="button"
+                          :class="{ danger: action.id === 'delete' }"
+                          :disabled="action.disabled"
+                          @click="
+                            close();
+                            action.run();
+                          "
+                        >
+                          <Icon :name="action.icon" :size="14" />{{ action.label }}
+                        </button>
+                      </li>
+                    </ul>
+                  </template>
+                </Popover>
+              </template>
+              <Popover v-if="canWrite && section === 'architecture'" align="right" width="260px">
+                <template #trigger="{ toggle }">
+                  <BaseButton size="sm" icon="plus" @click="toggle">Add</BaseButton>
+                </template>
+                <template #default="{ close }">
+                  <ul class="birch-menu add-menu">
+                    <li v-for="item in addOptions" :key="item.id">
+                      <button
+                        type="button"
+                        @click="
+                          close();
+                          item.run();
+                        "
+                      >
+                        <Icon :name="item.icon" :size="15" />
+                        <span>
+                          {{ item.label }}
+                          <small>{{ item.hint }}</small>
+                        </span>
+                      </button>
+                    </li>
+                  </ul>
+                </template>
+              </Popover>
+            </div>
+          </header>
           <ServiceCanvas v-if="birch && section === 'architecture'" :deployment-name="route.params.name as string" />
           <DeploymentMetrics
             v-if="birch && section === 'metrics'"
@@ -2411,7 +2441,7 @@ const section = ref<string>(initialSection());
 
 const availableTabIds = computed(() => new Set(tabBarItems.value.map((t) => t.id)));
 
-const modernSectionGroups = computed(() => {
+const birchSectionGroups = computed(() => {
   const visible = BIRCH_SECTIONS.filter((s) => !s.requiresTab || availableTabIds.value.has(s.requiresTab));
   return [
     { label: "", items: visible.filter((s) => s.group === "main") },
@@ -2426,7 +2456,7 @@ const modernSectionGroups = computed(() => {
 });
 
 const currentSectionLabel = computed(
-  () => modernSectionGroups.value.flatMap((g) => g.items).find((i) => i.id === section.value)?.label ?? "",
+  () => birchSectionGroups.value.flatMap((g) => g.items).find((i) => i.id === section.value)?.label ?? "",
 );
 
 function sectionTabs(id: string): string[] {
@@ -2474,14 +2504,54 @@ const primaryDomain = computed<string | undefined>(() => {
   return meta?.domains?.[0]?.domain || meta?.networking?.domain || undefined;
 });
 
-const modernStatus = computed(() =>
+const birchStatus = computed(() =>
   deployment.value?.metadata?.sleep?.sleeping ? "sleeping" : deployment.value?.status,
 );
-const modernStatusLabel = computed(() =>
+const birchStatusLabel = computed(() =>
   deployment.value?.metadata?.sleep?.sleeping ? "asleep" : deployment.value?.status || "loading",
 );
 
-const modernActions = computed(() => {
+function openBlock(id: string, block: string) {
+  section.value = id;
+  nextTick(() => document.querySelector(`.${block}`)?.scrollIntoView({ block: "start", behavior: "smooth" }));
+}
+
+// The canvas's Add menu points at the place each kind of addition is made.
+const addOptions = [
+  {
+    id: "service",
+    label: "Service",
+    hint: "Add it to the compose file",
+    icon: "box",
+    run: () => {
+      activeConfigTab.value = "compose";
+      openBlock("settings", "config-tab");
+    },
+  },
+  {
+    id: "database",
+    label: "Database",
+    hint: "Create one or connect a server",
+    icon: "database",
+    run: () => openBlock("settings", "databases-tab"),
+  },
+  {
+    id: "domain",
+    label: "Domain",
+    hint: "Route a hostname to a service",
+    icon: "globe",
+    run: () => (showAddDomainModal.value = true),
+  },
+  {
+    id: "volume",
+    label: "Volume",
+    hint: "Mount a folder into a service",
+    icon: "hard-drive",
+    run: () => openBlock("files", "files-tab"),
+  },
+];
+
+const birchActions = computed(() => {
   const status = deployment.value?.status;
   const actions = [
     {
@@ -6948,7 +7018,6 @@ onUnmounted(() => {
   align-items: center;
   justify-content: space-between;
   gap: var(--space-3);
-  margin-bottom: var(--space-5);
 }
 
 .birch-title {
@@ -7053,44 +7122,42 @@ onUnmounted(() => {
   color: var(--color-danger-600);
 }
 
+.deployment-detail.is-birch {
+  min-height: 0;
+  flex: 1;
+}
+
 .birch-body {
   display: grid;
-  grid-template-columns: 184px minmax(0, 1fr);
-  align-items: start;
-  gap: var(--space-6);
+  height: 100%;
+  grid-template-columns: 56px minmax(0, 1fr);
 }
 
 .section-rail {
-  position: sticky;
-  top: 64px;
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-3) 0;
+  border-right: 1px solid var(--border);
 }
 
-.rail-label {
-  margin: var(--space-4) 0 var(--space-1);
-  padding: 0 var(--space-2);
-  color: var(--text-subtle);
-  font-size: var(--text-xs);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+.rail-divider {
+  width: 24px;
+  margin: var(--space-2) 0;
+  border-top: 1px solid var(--border);
 }
 
 .rail-item {
-  display: flex;
-  height: var(--control-h-sm);
-  align-items: center;
-  gap: var(--space-2);
-  padding: 0 var(--space-2);
+  display: inline-grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
   background: transparent;
   border: 0;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   color: var(--text-muted);
   cursor: pointer;
-  font: inherit;
-  font-size: var(--text-base);
-  text-align: left;
 }
 
 .rail-item:hover {
@@ -7101,7 +7168,6 @@ onUnmounted(() => {
 .rail-item.active {
   background: var(--surface-inset);
   color: var(--text);
-  font-weight: var(--font-medium);
 }
 
 .is-birch .tab-content {
@@ -7109,34 +7175,89 @@ onUnmounted(() => {
   min-height: 0;
   flex-direction: column;
   gap: var(--space-5);
+  overflow: auto;
+  padding: var(--space-5) var(--space-6) var(--space-8);
   background: transparent;
   border: 0;
 }
 
-.section-title {
+.is-birch .tab-content.is-canvas {
+  position: relative;
+  overflow: hidden;
+  padding: 0;
+}
+
+.is-canvas :deep(.service-canvas) {
+  height: 100%;
+  min-height: 0;
+  border: 0;
+  border-radius: 0;
+}
+
+.birch-header.floating {
+  position: absolute;
+  z-index: 5;
+  top: var(--space-4);
+  right: var(--space-4);
+  left: var(--space-4);
   margin: 0;
-  font-size: var(--text-xl);
-  font-weight: var(--font-semibold);
+  pointer-events: none;
+}
+
+.birch-header.floating > * {
+  pointer-events: auto;
+}
+
+.birch-header.floating .birch-title {
+  padding: 4px var(--space-3);
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.add-menu button {
+  align-items: flex-start;
+}
+
+.add-menu span {
+  display: flex;
+  flex-direction: column;
+}
+
+.add-menu small {
+  color: var(--text-muted);
+  font-size: var(--text-xs);
 }
 
 @media (max-width: 860px) {
   .birch-body {
     grid-template-columns: minmax(0, 1fr);
-    gap: var(--space-4);
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+
+  .section-rail {
+    flex-direction: row;
+    justify-content: flex-start;
+    overflow-x: auto;
+    padding: var(--space-1) var(--space-3);
+    border-right: 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .rail-divider {
+    width: 0;
+    height: 24px;
+    margin: 0 var(--space-2);
+    border-top: 0;
+    border-left: 1px solid var(--border);
+  }
+
+  .is-birch .tab-content {
+    padding: var(--space-4);
   }
 
   .birch-title {
     flex-wrap: wrap;
-  }
-
-  .section-rail {
-    position: static;
-    flex-direction: row;
-    overflow-x: auto;
-  }
-
-  .rail-label {
-    display: none;
   }
 }
 

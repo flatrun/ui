@@ -25,6 +25,7 @@
       @node-click="(e: NodeMouseEvent) => emit('open', byName.get(e.node.id)!)"
       @node-drag-stop="(e: NodeDragEvent) => savePosition(e.node.id, e.node.position, POSITIONS_KEY)"
     >
+      <CanvasControls />
       <template #node-project="nodeProps">
         <ProjectNode v-bind="nodeProps" />
       </template>
@@ -45,6 +46,7 @@ import {
 } from "@vue-flow/core";
 import "@vue-flow/core/dist/style.css";
 import Icon from "@/components/base/Icon.vue";
+import CanvasControls from "@/components/canvas/CanvasControls.vue";
 import ProjectNode from "./ProjectNode.vue";
 import { loadEdges, type CanvasEdge } from "@/canvas/edges";
 import { PRODUCTION, layoutDeployments, readSavedPositions, savePosition } from "@/canvas/layout";

@@ -805,16 +805,21 @@ describe("DeploymentDetailView", () => {
       useTheme().setStyle("modern");
     });
 
-    const railLabels = (wrapper: ReturnType<typeof mountView>) => wrapper.findAll(".rail-item").map((b) => b.text());
+    const railLabels = (wrapper: ReturnType<typeof mountView>) =>
+      wrapper.findAll(".rail-item").map((b) => b.attributes("aria-label"));
+    const activeRail = (wrapper: ReturnType<typeof mountView>) =>
+      wrapper.get(".rail-item.active").attributes("aria-label");
 
-    it("replaces the tab bar with one primary action and a section rail", async () => {
+    it("opens on the architecture canvas with an icon rail and floating actions", async () => {
       const wrapper = mountView();
       await flushPromises();
 
       expect(wrapper.find(".detail-tabs").exists()).toBe(false);
       expect(wrapper.find(".detail-header").exists()).toBe(false);
-      expect(wrapper.get(".birch-header h1").text()).toBe("test-app");
+      expect(wrapper.get(".birch-header").classes()).toContain("floating");
+      expect(wrapper.find(".birch-header h1").exists()).toBe(false);
       expect(wrapper.get(".birch-actions .btn-primary").text()).toBe("Restart");
+      expect(wrapper.get(".birch-actions").text()).toContain("Add");
       expect(railLabels(wrapper)).toEqual([
         "Architecture",
         "Deployments",
@@ -826,7 +831,7 @@ describe("DeploymentDetailView", () => {
         "Terminal",
         "Migration",
       ]);
-      expect(wrapper.get(".rail-item.active").text()).toBe("Architecture");
+      expect(activeRail(wrapper)).toBe("Architecture");
       expect(wrapper.findComponent({ name: "ServiceCanvas" }).exists()).toBe(true);
     });
 
@@ -834,15 +839,15 @@ describe("DeploymentDetailView", () => {
       const wrapper = mountView();
       await flushPromises();
 
-      const settings = wrapper.findAll(".rail-item").find((b) => b.text() === "Settings")!;
-      await settings.trigger("click");
+      await wrapper.get('.rail-item[aria-label="Settings"]').trigger("click");
       await flushPromises();
 
       expect(wrapper.find(".overview-tab").exists()).toBe(true);
       expect(wrapper.find(".databases-tab").exists()).toBe(true);
       expect(wrapper.find(".config-tab").exists()).toBe(true);
       expect(wrapper.find(".env-tab").exists()).toBe(false);
-      expect(wrapper.get(".section-title").text()).toBe("Settings");
+      expect(wrapper.get(".birch-header h1").text()).toBe("Settings");
+      expect(wrapper.get(".birch-header").classes()).not.toContain("floating");
       expect(mockRouter.replace).toHaveBeenLastCalledWith({ query: { section: "settings", tab: undefined } });
     });
 
@@ -852,19 +857,36 @@ describe("DeploymentDetailView", () => {
       const wrapper = mountView();
       await flushPromises();
 
-      expect(wrapper.get(".rail-item.active").text()).toBe("Logs");
+      expect(activeRail(wrapper)).toBe("Logs");
       expect(wrapper.find(".logs-tab").exists()).toBe(true);
       expect(deploymentsApi.logSources).toHaveBeenCalledWith("test-app");
     });
 
-    it("opens the section that a Oak tab link points to", async () => {
+    it("opens the section that an Oak tab link points to", async () => {
       mockRoute.query = { tab: "environment" };
       const wrapper = mountView();
       await flushPromises();
 
-      expect(wrapper.get(".rail-item.active").text()).toBe("Variables");
+      expect(activeRail(wrapper)).toBe("Variables");
       expect(wrapper.find(".env-tab").exists()).toBe(true);
       expect(wrapper.find(".overview-tab").exists()).toBe(false);
+    });
+
+    it("adds to a project from the canvas", async () => {
+      const wrapper = mountView();
+      await flushPromises();
+
+      const vm = wrapper.vm as any;
+      expect(vm.addOptions.map((o: any) => o.label)).toEqual(["Service", "Database", "Domain", "Volume"]);
+
+      vm.addOptions.find((o: any) => o.id === "database").run();
+      await flushPromises();
+      expect(activeRail(wrapper)).toBe("Settings");
+      expect(wrapper.find(".databases-tab").exists()).toBe(true);
+
+      vm.addOptions.find((o: any) => o.id === "domain").run();
+      await flushPromises();
+      expect(wrapper.findComponent({ name: "DomainFormModal" }).props("visible")).toBe(true);
     });
   });
 });

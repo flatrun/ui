@@ -11,11 +11,12 @@
       :min-zoom="0.4"
       :max-zoom="1.5"
       :nodes-draggable="false"
-      fit-view-on-init
       class="flow"
+      @pane-ready="(flow: VueFlowStore) => flow.fitView({ maxZoom: 1, padding: 0.2 })"
       @node-click="(e: NodeMouseEvent) => (selected = e.node.id)"
       @pane-click="selected = null"
     >
+      <CanvasControls />
       <template #node-service="nodeProps">
         <ServiceNode v-bind="nodeProps" :selected="nodeProps.id === selected" />
       </template>
@@ -27,9 +28,10 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue";
-import { MarkerType, VueFlow, type Edge, type Node, type NodeMouseEvent } from "@vue-flow/core";
+import { MarkerType, VueFlow, type Edge, type Node, type NodeMouseEvent, type VueFlowStore } from "@vue-flow/core";
 import "@vue-flow/core/dist/style.css";
 import Icon from "@/components/base/Icon.vue";
+import CanvasControls from "@/components/canvas/CanvasControls.vue";
 import ServiceNode from "./ServiceNode.vue";
 import ServicePanel from "./ServicePanel.vue";
 import { deploymentsApi } from "@/services/api";

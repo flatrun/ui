@@ -173,7 +173,7 @@ const wizardMode = ref<NewMode | null>(null);
 
 const workspaceStore = useWorkspaceStore();
 const canSeeWorkspaces = computed(() => authStore.hasPermission("workspaces:read"));
-const fullHeight = computed(() => route.matched.some((r) => Boolean(r.meta?.fullHeight)));
+const fullHeight = computed(() => route.matched.some((r) => Boolean(r.meta?.fullHeight || r.meta?.birchFullHeight)));
 const canCreate = computed(() => authStore.hasPermission("deployments:write"));
 const items = computed(() => visibleNavItems((p) => authStore.hasPermission(p), "birch"));
 const primaryItems = computed(() => items.value.filter((i) => i.primary));
@@ -495,8 +495,10 @@ onBeforeUnmount(() => document.removeEventListener("keydown", onKeydown));
 }
 
 .birch-content.is-full-height {
+  display: flex;
   max-width: none;
   min-height: 0;
+  flex-direction: column;
   overflow: hidden;
   padding: 0;
 }

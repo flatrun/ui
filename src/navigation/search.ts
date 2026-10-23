@@ -15,7 +15,7 @@ export interface SearchItem {
 
 interface EntitySource {
   group: string;
-  modernGroup?: string;
+  birchGroup?: string;
   icon: string;
   perm: Permission;
   path: (name: string) => string;
@@ -28,7 +28,7 @@ interface EntitySource {
 const ENTITY_SOURCES: EntitySource[] = [
   {
     group: "Deployment",
-    modernGroup: "Project",
+    birchGroup: "Project",
     icon: "box",
     perm: "deployments:read",
     path: (n) => `/deployments/${n}`,
@@ -79,7 +79,7 @@ export function useSearchIndex() {
       sources.map(async (s): Promise<SearchItem[]> => {
         try {
           const labels = await s.fetch();
-          const group = current.value.layout === "birch" ? (s.modernGroup ?? s.group) : s.group;
+          const group = current.value.layout === "birch" ? (s.birchGroup ?? s.group) : s.group;
           return labels.map((label) => ({
             key: `${s.group}:${label}`,
             label,

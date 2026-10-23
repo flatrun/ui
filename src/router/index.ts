@@ -57,7 +57,7 @@ const routes: RouteRecordRaw[] = [
         alias: "projects/:name",
         name: "deployment-detail",
         component: () => import("@/views/DeploymentDetailView.vue"),
-        meta: { permission: "deployments:read" },
+        meta: { permission: "deployments:read", birchFullHeight: true },
       },
       {
         path: "containers",
