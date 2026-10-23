@@ -24,6 +24,16 @@ describe("serviceIcon", () => {
     expect(serviceIcon(image)).toBe(icon);
   });
 
+  it.each([
+    ["ghcr.io/trakli/webservice:latest", "apps:trakli"],
+    ["ghcr.io/gitroomhq/postiz-app:latest", "apps:postiz"],
+    ["ghcr.io/sourceant/sourceant:latest", "apps:sourceant"],
+    ["ghcr.io/acme/webservice:latest", "box"],
+  ])("shows the app logo for %s", (image, icon) => {
+    expect(serviceIcon(image)).toBe(icon);
+    if (icon !== "box") expect(getIcon(icon)?.body, icon).toBeTruthy();
+  });
+
   it("only names logos that are bundled", () => {
     const images = [
       "nginx",

@@ -46,6 +46,13 @@ const LOGOS: [RegExp, string][] = [
   [/^(docker|dind)/, "logos:docker-icon"],
 ];
 
+// Matched against the image's namespace and name, for apps whose image name alone is generic.
+const APPS: [RegExp, string][] = [
+  [/(^|\/)trakli\//, "apps:trakli"],
+  [/(^|\/)gitroomhq\/postiz/, "apps:postiz"],
+  [/(^|\/)sourceant\//, "apps:sourceant"],
+];
+
 // Images with no brand logo still say what they do.
 const KINDS: [RegExp, string][] = [
   [/^(minio|seaweedfs|garage)/, "container"],
@@ -65,6 +72,9 @@ function imageName(image: string | undefined): string {
 }
 
 export function serviceIcon(image: string | undefined): string {
+  const repo = (image ?? "").toLowerCase().split("@")[0].split(":")[0];
+  const app = APPS.find(([re]) => re.test(repo))?.[1];
+  if (app) return app;
   const name = imageName(image);
   return LOGOS.find(([re]) => re.test(name))?.[1] ?? KINDS.find(([re]) => re.test(name))?.[1] ?? "box";
 }
