@@ -56,4 +56,28 @@ describe("CommandPalette", () => {
     expect(toggle).toHaveBeenCalled();
     wrapper.unmount();
   });
+
+  it("lists projects as soon as it opens", async () => {
+    vi.mocked(deploymentsApi.list).mockResolvedValue({ data: deploymentsFixture } as any);
+    const router = createRouter({
+      history: createMemoryHistory(),
+      routes: [{ path: "/:p(.*)*", component: defineComponent({ template: "<div />" }) }],
+    });
+    const pinia = createTestingPinia({ createSpy: vi.fn });
+    vi.mocked(useAuthStore(pinia).hasPermission).mockImplementation((p) => p === "deployments:read");
+
+    const wrapper = mount(CommandPalette, {
+      props: { open: false, actions: [] },
+      global: { plugins: [router, pinia] },
+      attachTo: document.body,
+    });
+    await wrapper.setProps({ open: true });
+    await flushPromises();
+
+    expect(document.querySelector<HTMLInputElement>(".palette input")!.placeholder).toMatch(/projects/i);
+    const first = document.querySelector(".palette-results li .label")?.textContent;
+    const names = deploymentsFixture.deployments.map((d: { name: string }) => d.name);
+    expect(names).toContain(first);
+    wrapper.unmount();
+  });
 });

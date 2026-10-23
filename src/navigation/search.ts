@@ -75,29 +75,34 @@ export function useSearchIndex() {
     if (loaded.value || loading.value) return;
     loading.value = true;
     const sources = ENTITY_SOURCES.filter((s) => authStore.hasPermission(s.perm));
-    const lists = await Promise.all(
-      sources.map(async (s): Promise<SearchItem[]> => {
+    const lists: SearchItem[][] = sources.map(() => []);
+    // Each source joins the index as it answers, so one slow list does not hold back the rest.
+    const publish = () => {
+      const seen = new Set<string>();
+      entities.value = lists.flat().filter((e) => {
+        if (seen.has(e.key)) return false;
+        seen.add(e.key);
+        return true;
+      });
+    };
+    await Promise.all(
+      sources.map(async (s, i) => {
         try {
           const labels = await s.fetch();
           const group = current.value.layout === "birch" ? (s.birchGroup ?? s.group) : s.group;
-          return labels.map((label) => ({
+          lists[i] = labels.map((label) => ({
             key: `${s.group}:${label}`,
             label,
             path: s.path(label),
             icon: s.icon,
             group,
           }));
+          publish();
         } catch {
-          return [];
+          // A source the agent cannot list is left out of the index.
         }
       }),
     );
-    const seen = new Set<string>();
-    entities.value = lists.flat().filter((e) => {
-      if (seen.has(e.key)) return false;
-      seen.add(e.key);
-      return true;
-    });
     loaded.value = true;
     loading.value = false;
   }

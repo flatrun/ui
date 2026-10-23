@@ -7,7 +7,7 @@
           <input
             ref="input"
             v-model="query"
-            placeholder="Search deployments, pages and actions..."
+            placeholder="Search projects, pages and actions..."
             aria-label="Search"
             @keydown.down.prevent="move(1)"
             @keydown.up.prevent="move(-1)"
@@ -66,7 +66,9 @@ const results = computed<Result[]>(() => {
   const actions: Result[] = props.actions
     .filter((a) => !q || a.label.toLowerCase().includes(q))
     .map((a) => ({ key: `action:${a.key}`, label: a.label, icon: a.icon, group: "Action", path: "", run: a.run }));
-  return [...(q ? index.search(q, 12) : []), ...actions, ...(q ? [] : index.pages.value.slice(0, 6))].slice(0, 14);
+  if (q) return [...index.search(q, 12), ...actions].slice(0, 14);
+  const projects = index.entities.value.filter((e) => e.key.startsWith("Deployment:")).slice(0, 6);
+  return [...projects, ...actions, ...index.pages.value.slice(0, 6)].slice(0, 14);
 });
 
 function move(delta: number) {
@@ -104,12 +106,12 @@ watch(query, () => (active.value = 0));
   z-index: var(--z-modal);
   display: flex;
   justify-content: center;
-  padding: 12vh var(--space-4) 0;
+  padding: 8px var(--space-4) 0;
   background: rgba(0, 0, 0, 0.35);
 }
 
 .palette {
-  width: 560px;
+  width: 640px;
   max-width: 100%;
   max-height: 60vh;
   display: flex;
@@ -119,6 +121,21 @@ watch(query, () => (active.value = 0));
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-xl);
+  transform-origin: top center;
+  animation: palette-drop 140ms ease-out;
+}
+
+@keyframes palette-drop {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scaleY(0.97);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .palette {
+    animation: none;
+  }
 }
 
 .palette-input {

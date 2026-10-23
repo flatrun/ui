@@ -355,8 +355,8 @@ onBeforeUnmount(() => document.removeEventListener("keydown", onKeydown));
 
 .search-btn {
   display: inline-flex;
-  width: 320px;
-  height: var(--control-h-sm);
+  width: 400px;
+  height: 34px;
   align-items: center;
   gap: var(--space-2);
   padding: 0 var(--space-2);
