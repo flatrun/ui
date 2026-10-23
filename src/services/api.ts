@@ -1137,8 +1137,7 @@ export interface FileInfo {
 }
 
 export interface FilesInfo {
-  total_size: number;
-  file_count: number;
+  disk_usage?: number;
 }
 
 // How a deployment is serving its users, measured at the proxy every request already

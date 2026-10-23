@@ -317,9 +317,9 @@
       </div>
     </div>
 
-    <div v-if="filesInfo" class="browser-footer">
-      <span>{{ filesInfo.file_count }} items</span>
-      <span>{{ formatSize(filesInfo.total_size) }} total</span>
+    <div class="browser-footer">
+      <span>{{ files.length }} items</span>
+      <span v-if="typeof filesInfo?.disk_usage === 'number'">{{ formatSize(filesInfo.disk_usage) }} total</span>
     </div>
 
     <Teleport to="body">
@@ -730,6 +730,7 @@ import {
   type ArchiveEntry,
   type FileBrowserApi,
   type FileInfo,
+  type FilesInfo,
 } from "@/services/api";
 import { useNotificationsStore } from "@/stores/notifications";
 import { toComposeRelativePath, type ComposeMount } from "@/utils/compose";
@@ -783,7 +784,7 @@ const notifications = useNotificationsStore();
 
 const currentPath = ref(props.initialPath || "/");
 const files = ref<FileInfo[]>([]);
-const filesInfo = ref<{ total_size: number; file_count: number } | null>(null);
+const filesInfo = ref<FilesInfo | null>(null);
 const loading = ref(true);
 const error = ref("");
 const selectedFiles = ref<string[]>([]);

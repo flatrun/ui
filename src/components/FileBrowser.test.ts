@@ -7,6 +7,7 @@ import { deploymentsApi } from "@/services/api";
 import type { FileBrowserApi, FileInfo } from "@/services/api";
 import type { ComposeMount } from "@/utils/compose";
 import { useNotificationsStore } from "@/stores/notifications";
+import filesInfo from "./fixtures/files-info.json";
 
 vi.mock("@/services/api", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/services/api")>();
@@ -34,7 +35,7 @@ const mounts: ComposeMount[] = [{ service: "app", source: "./conf.d", target: "/
 
 const fakeApi = (): FileBrowserApi => ({
   list: vi.fn().mockResolvedValue({ data: { files } }),
-  getInfo: vi.fn().mockResolvedValue({ data: { total_size: 0, file_count: 0 } }),
+  getInfo: vi.fn().mockResolvedValue({ data: filesInfo }),
   upload: vi.fn(),
   download: vi.fn(),
   createDir: vi.fn(),
@@ -268,5 +269,26 @@ describe("FileBrowser operations", () => {
 
     expect(api.listArchive).toHaveBeenCalledWith("/release.tar.gz");
     expect(api.extractArchive).toHaveBeenCalledWith("/release.tar.gz", "/release");
+  });
+});
+
+describe("FileBrowser footer", () => {
+  it("counts the listed entries and shows the agent's disk usage", async () => {
+    const wrapper = mountBrowser();
+    await flushPromises();
+
+    expect(wrapper.find(".browser-footer").text()).toBe("2 items608 B total");
+  });
+
+  it("leaves out the size when the agent does not report one", async () => {
+    const api = fakeApi();
+    api.getInfo = vi.fn().mockResolvedValue({ data: { root: "/", path: "/" } });
+    const wrapper = mount(FileBrowser, {
+      props: { deploymentName: "test-app", api },
+      global: { plugins: [createTestingPinia({ createSpy: vi.fn })] },
+    });
+    await flushPromises();
+
+    expect(wrapper.find(".browser-footer").text()).toBe("2 items");
   });
 });

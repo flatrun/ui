@@ -1,0 +1,5 @@
+{
+  "deployment": "docs",
+  "disk_usage": 608,
+  "mount_path": "/var/lib/flatrun/deployments/docs"
+}
