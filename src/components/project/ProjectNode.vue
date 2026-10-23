@@ -2,7 +2,7 @@
   <div class="project-node">
     <Handle type="target" :position="Position.Left" class="handle" />
     <CanvasCard
-      :icon="icon"
+      :icon="sleeping ? 'moon' : undefined"
       :title="deployment.name"
       :link="link"
       :subtitle="subtitle"
@@ -10,6 +10,7 @@
       :label="label"
       :selected="selected"
     >
+      <template v-if="!sleeping" #logo><ProjectLogo :deployment="deployment" :size="22" /></template>
       <template v-if="services.length" #footer>
         <span class="logos">
           <Icon v-for="s in services.slice(0, 5)" :key="s.name" :name="serviceIcon(s.image)" :size="14" />
@@ -27,7 +28,8 @@ import { computed } from "vue";
 import { Handle, Position } from "@vue-flow/core";
 import Icon from "@/components/base/Icon.vue";
 import CanvasCard from "@/components/canvas/CanvasCard.vue";
-import { projectIcon, serviceIcon } from "@/lib/brand";
+import ProjectLogo from "@/components/project/ProjectLogo.vue";
+import { serviceIcon } from "@/lib/brand";
 import { projectState } from "@/model/project";
 import type { Deployment } from "@/types";
 
@@ -38,7 +40,7 @@ const services = computed(() => deployment.value.services ?? []);
 const down = computed(
   () => services.value.filter((s) => s.status && !["running", "unknown"].includes(s.status)).length,
 );
-const icon = computed(() => (deployment.value.metadata?.sleep?.sleeping ? "moon" : projectIcon(deployment.value)));
+const sleeping = computed(() => !!deployment.value.metadata?.sleep?.sleeping);
 const status = computed(() => projectState(deployment.value));
 const state = computed(() => status.value.state);
 const label = computed(() => status.value.label);
