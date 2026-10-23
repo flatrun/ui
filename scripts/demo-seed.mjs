@@ -131,14 +131,13 @@ async function workspace() {
 async function demoUser() {
   const { users } = await must("GET", "/users");
   const list = users ?? [];
-  if (!list.some((u) => u.username === DEMO_USER)) {
-    await must("POST", "/users", {
-      username: DEMO_USER,
-      email: `${DEMO_USER}@trakli.test`,
-      password: DEMO_PASSWORD,
-      role: "admin",
-    });
+  const email = `${DEMO_USER}@trakli.test`;
+  const user = list.find((u) => u.username === DEMO_USER);
+  if (!user) {
+    await must("POST", "/users", { username: DEMO_USER, email, password: DEMO_PASSWORD, role: "admin" });
     log(`user ${DEMO_USER}`);
+  } else if (user.email !== email) {
+    await must("PUT", `/users/${user.id}`, { email });
   }
   const members = await must("GET", "/workspaces/default/members");
   if (!(members.items ?? []).some((m) => m.username === DEMO_USER)) {
@@ -151,11 +150,27 @@ async function existing() {
   return new Set((deployments ?? []).map((d) => d.name));
 }
 
+// The agent names containers, reorders keys, and expands inline lists and anchors when it
+// stores a compose file, so only a change to the words themselves counts as an update.
+function fingerprint(compose) {
+  return compose
+    .split("\n")
+    .filter((line) => !line.trimStart().startsWith("container_name:"))
+    .join(" ")
+    .split(/[\s,"'[\]{}]+|(?:^|\s)-\s/)
+    .filter((word, i, words) => word && !/^[&*]/.test(word) && words.indexOf(word) === i)
+    .sort()
+    .join(" ");
+}
+
 async function projects(list, have) {
   for (const p of list) {
     const exists = have.has(p.name);
     if (exists) {
-      await must("PUT", `/projects/${p.name}`, { compose_content: withNetwork(p.compose) });
+      const current = await must("GET", `/projects/${p.name}/compose`);
+      if (fingerprint(current.content) !== fingerprint(withNetwork(p.compose))) {
+        await must("PUT", `/projects/${p.name}`, { compose_content: withNetwork(p.compose) });
+      }
     } else {
       await must("POST", "/projects", {
         name: p.name,

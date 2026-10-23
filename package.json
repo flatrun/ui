@@ -22,7 +22,7 @@
     "test": "vitest",
     "test:run": "vitest run",
     "demo:seed": "node scripts/demo-seed.mjs",
-    "shots": "DEMO_BRAND=1 npx --yes pagebeam@0.1.5 shoot --target local; status=$?; node scripts/demo-seed.mjs > /dev/null; [ $status -eq 0 ] && node scripts/publish-shots.mjs"
+    "shots": "DEMO_BRAND=1 node scripts/demo-seed.mjs > /dev/null && DEMO_BRAND=1 npx --yes pagebeam@0.1.5 shoot --target local; status=$?; node scripts/demo-seed.mjs > /dev/null; [ $status -eq 0 ] && node scripts/publish-shots.mjs"
   },
   "dependencies": {
     "@codemirror/lang-sql": "^6.10.0",
