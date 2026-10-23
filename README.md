@@ -1,10 +1,6 @@
 <p align="center">
-  <a href="https://flatrun.dev">
-    <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="https://flatrun.dev/flatrun-logo-white.svg">
-      <img src="https://flatrun.dev/flatrun-logo.svg" alt="FlatRun" width="360">
-    </picture>
-  </a>
+  <a href="https://flatrun.dev#gh-light-mode-only"><img src="docs/assets/flatrun-logo.svg" alt="FlatRun" width="360"></a>
+  <a href="https://flatrun.dev#gh-dark-mode-only"><img src="docs/assets/flatrun-logo-white.svg" alt="FlatRun" width="360"></a>
 </p>
 
 **Open source, self-hosted alternative to Railway and Render.** Deploy Docker Compose projects on your own servers.
@@ -13,10 +9,8 @@ FlatRun brings the Railway workflow to a server you control: projects made of se
 
 This repository is the **control panel**: the web UI for FlatRun, a Vue app that runs on top of the [agent](https://github.com/flatrun/agent) API.
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/projects-canvas-dark.png">
-  <img alt="Projects on a canvas, each card showing its logo, domain, state and services" src="docs/screenshots/projects-canvas-light.png">
-</picture>
+<a href="docs/screenshots/projects-canvas-light.png#gh-light-mode-only"><img alt="Projects on a canvas, each card showing its logo, domain, state and services" src="docs/screenshots/projects-canvas-light.png"></a>
+<a href="docs/screenshots/projects-canvas-dark.png#gh-dark-mode-only"><img alt="Projects on a canvas, each card showing its logo, domain, state and services" src="docs/screenshots/projects-canvas-dark.png"></a>
 
 Every project is a card on one canvas, with its domain, whether it is online, and the services inside it. An arrow means one project reads a variable from another. Cards and table views are one click away, and the choice is remembered.
 
@@ -24,19 +18,15 @@ Every project is a card on one canvas, with its domain, whether it is online, an
 
 Opening a project shows its services as a graph, drawn from the Compose file: what depends on what, which domain points where, how many replicas are up, and which folder each one stores its data in. The rail on the left holds deployments, logs, variables, metrics, settings, files and a terminal. **Add** opens the place where a new service, database, domain or volume is set up.
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/project-architecture-dark.png">
-  <img alt="A shop project: web, api and worker services above Redis, PostgreSQL and MinIO, each with its state and storage" src="docs/screenshots/project-architecture-light.png">
-</picture>
+<a href="docs/screenshots/project-architecture-light.png#gh-light-mode-only"><img alt="A shop project: web, api and worker services above Redis, PostgreSQL and MinIO, each with its state and storage" src="docs/screenshots/project-architecture-light.png"></a>
+<a href="docs/screenshots/project-architecture-dark.png#gh-dark-mode-only"><img alt="A shop project: web, api and worker services above Redis, PostgreSQL and MinIO, each with its state and storage" src="docs/screenshots/project-architecture-dark.png"></a>
 
 ## Variables, references and secrets
 
 A variable can point at another project's variable with `${{ plausible.BASE_URL }}`, and the page shows what it resolves to. Secrets are sealed: they can be replaced or rotated but never read back, and are used as `${{ secret.NAME }}`. Secrets can also come from Infisical, HashiCorp Vault or OpenBao, Doppler, or 1Password Connect, fetched again on every deploy.
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/project-variables-dark.png">
-  <img alt="A variable that references another project, shown with its resolved value, above the secrets and sources sections" src="docs/screenshots/project-variables-light.png">
-</picture>
+<a href="docs/screenshots/project-variables-light.png#gh-light-mode-only"><img alt="A variable that references another project, shown with its resolved value, above the secrets and sources sections" src="docs/screenshots/project-variables-light.png"></a>
+<a href="docs/screenshots/project-variables-dark.png#gh-dark-mode-only"><img alt="A variable that references another project, shown with its resolved value, above the secrets and sources sections" src="docs/screenshots/project-variables-dark.png"></a>
 
 ## Layouts
 
@@ -49,30 +39,22 @@ Everything above uses **Birch**, the default: a top bar, the workspace switcher,
   </tr>
   <tr>
     <td>
-      <picture>
-        <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/projects-canvas-dark.png">
-        <img alt="Projects on the Birch canvas" src="docs/screenshots/projects-canvas-light.png">
-      </picture>
+      <a href="docs/screenshots/projects-canvas-light.png#gh-light-mode-only"><img alt="Projects on the Birch canvas" src="docs/screenshots/projects-canvas-light.png"></a>
+      <a href="docs/screenshots/projects-canvas-dark.png#gh-dark-mode-only"><img alt="Projects on the Birch canvas" src="docs/screenshots/projects-canvas-dark.png"></a>
     </td>
     <td>
-      <picture>
-        <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/oak-deployments-dark.png">
-        <img alt="The same projects as cards beside the Oak sidebar" src="docs/screenshots/oak-deployments-light.png">
-      </picture>
+      <a href="docs/screenshots/oak-deployments-light.png#gh-light-mode-only"><img alt="The same projects as cards beside the Oak sidebar" src="docs/screenshots/oak-deployments-light.png"></a>
+      <a href="docs/screenshots/oak-deployments-dark.png#gh-dark-mode-only"><img alt="The same projects as cards beside the Oak sidebar" src="docs/screenshots/oak-deployments-dark.png"></a>
     </td>
   </tr>
   <tr>
     <td>
-      <picture>
-        <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/project-variables-dark.png">
-        <img alt="A project's variables in Birch" src="docs/screenshots/project-variables-light.png">
-      </picture>
+      <a href="docs/screenshots/project-variables-light.png#gh-light-mode-only"><img alt="A project's variables in Birch" src="docs/screenshots/project-variables-light.png"></a>
+      <a href="docs/screenshots/project-variables-dark.png#gh-dark-mode-only"><img alt="A project's variables in Birch" src="docs/screenshots/project-variables-dark.png"></a>
     </td>
     <td>
-      <picture>
-        <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/oak-variables-dark.png">
-        <img alt="The same variables in Oak" src="docs/screenshots/oak-variables-light.png">
-      </picture>
+      <a href="docs/screenshots/oak-variables-light.png#gh-light-mode-only"><img alt="The same variables in Oak" src="docs/screenshots/oak-variables-light.png"></a>
+      <a href="docs/screenshots/oak-variables-dark.png#gh-dark-mode-only"><img alt="The same variables in Oak" src="docs/screenshots/oak-variables-dark.png"></a>
     </td>
   </tr>
 </table>
