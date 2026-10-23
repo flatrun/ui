@@ -1,0 +1,17 @@
+{
+  "env": {
+    "API_URL": "http://shop-api:3000",
+    "NOTIFY_URL": "${{ notifications.API_URL }}",
+    "STRIPE_KEY": "${{ secret.STRIPE_KEY }}"
+  },
+  "secrets": {
+    "STRIPE_KEY": {
+      "length": 32,
+      "charset": "alphanumeric"
+    }
+  },
+  "domains": [
+    ["shop.lumen.test", "web", 80],
+    ["api.shop.lumen.test", "api", 3000]
+  ]
+}

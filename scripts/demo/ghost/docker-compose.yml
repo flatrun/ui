@@ -1,0 +1,28 @@
+services:
+  ghost:
+    image: ghost:5-alpine
+    restart: always
+    environment:
+      url: https://journal.lumen.test
+      database__client: mysql
+      database__connection__host: db
+      database__connection__user: root
+      database__connection__password: ghost
+      database__connection__database: ghost
+    volumes:
+      - ./data/content:/var/lib/ghost/content
+    depends_on:
+      db:
+        condition: service_healthy
+  db:
+    image: mysql:8.0
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ghost
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-pghost"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    volumes:
+      - ./data/mysql:/var/lib/mysql

@@ -1,0 +1,9 @@
+services:
+  metabase:
+    image: metabase/metabase:latest
+    restart: always
+    environment:
+      MB_DB_FILE: /metabase-data/metabase.db
+      JAVA_OPTS: -Xmx512m
+    volumes:
+      - ./data:/metabase-data

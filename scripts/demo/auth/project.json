@@ -1,0 +1,1 @@
+{ "start": false, "domains": [["sso.lumen.test", "keycloak", 8080]] }

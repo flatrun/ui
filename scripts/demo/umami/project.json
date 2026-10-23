@@ -1,0 +1,5 @@
+{
+  "env": { "APP_SECRET": "${{ secret.APP_SECRET }}" },
+  "secrets": { "APP_SECRET": { "length": 32, "charset": "hex" } },
+  "domains": [["analytics.lumen.test", "umami", 3000]]
+}

@@ -1,0 +1,9 @@
+services:
+  vaultwarden:
+    image: vaultwarden/server:latest
+    restart: always
+    environment:
+      DOMAIN: https://vault.lumen.test
+      SIGNUPS_ALLOWED: "false"
+    volumes:
+      - ./data:/data

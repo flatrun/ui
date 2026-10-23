@@ -1,0 +1,4 @@
+{
+  "env": { "API_URL": "http://notifications-api:8000" },
+  "domains": [["notify.lumen.test", "api", 8000]]
+}

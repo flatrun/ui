@@ -1,0 +1,127 @@
+# Screenshots for the READMEs, the docs and flatrun.dev, taken from an agent
+# filled by scripts/demo-seed.mjs. Run `npm run shots`.
+docs: { root: ., include: [README.md] }
+tours:
+  targets:
+    local: { url: http://127.0.0.1:5174 }
+
+  accounts:
+    birch-light:
+      purpose: the Lumen Labs demo owner, Birch layout in the light scheme
+      login:
+        usernameEnv: DEMO_USER
+        passwordEnv: DEMO_PASSWORD
+        form: &form { url: /login, username: "#username", password: "#password", submit: "button[type=submit]" }
+        script: scripts/pagebeam/birch-light.mjs
+      confirm: .user-chip
+      seed: &seed { command: node scripts/demo-seed.mjs }
+      requires: &requires
+        - goto: /projects
+          count: { selector: .vue-flow__node, min: 12 }
+    birch-dark:
+      purpose: the Lumen Labs demo owner, Birch layout in the dark scheme
+      confirm: .user-chip
+      seed: *seed
+      requires: *requires
+      login:
+        usernameEnv: DEMO_USER
+        passwordEnv: DEMO_PASSWORD
+        form: *form
+        script: scripts/pagebeam/birch-dark.mjs
+    oak-light:
+      purpose: the Lumen Labs demo owner, Oak layout in the light scheme
+      confirm: .user-menu
+      seed: *seed
+      login:
+        usernameEnv: DEMO_USER
+        passwordEnv: DEMO_PASSWORD
+        form: *form
+        script: scripts/pagebeam/oak-light.mjs
+
+  journeys:
+    projects-light:
+      account: birch-light
+      steps: &projects
+        - goto: /projects
+        - wait: .vue-flow__node
+        - wait: 800
+        - shot: { name: projects-canvas, caption: "Every project on one canvas" }
+        - click: '[aria-label="Cards"]'
+        - wait: .deployment-card
+        - shot: { name: projects-cards, caption: "Projects as cards" }
+        - click: '[aria-label="Table"]'
+        - wait: table
+        - shot: { name: projects-table, caption: "Projects as a table" }
+        - click: '[aria-label="Canvas"]'
+        - click: .search-btn
+        - wait: .palette
+        - shot: { name: search, caption: "Search jumps to any project, page or action" }
+    projects-dark:
+      account: birch-dark
+      steps: *projects
+
+    project-light:
+      account: birch-light
+      steps: &project
+        - goto: /projects/shop
+        - wait: .vue-flow__node
+        - wait: 800
+        - shot: { name: project-architecture, caption: "A project's services and how they connect" }
+        - goto: /projects/postiz
+        - wait: .vue-flow__node
+        - wait: 800
+        - shot: { name: postiz-architecture, caption: "Postiz with its Temporal workers, Postgres and Redis" }
+        - goto: /projects/insights?section=deploys
+        - wait: .deploys-tab
+        - shot: { name: project-deployments, caption: "Every deploy with its commit and phase" }
+        - goto: /projects/shop?section=variables
+        - wait: 1500
+        - shot: { name: project-variables, caption: "Variables, references and sealed secrets" }
+        - goto: /projects/postiz?section=logs
+        - wait: 2500
+        - shot: { name: project-logs, caption: "Logs from every service of Postiz" }
+        - goto: /projects/postiz?section=metrics
+        - wait: 40000
+        - shot: { name: project-metrics, caption: "CPU, memory and network per service" }
+        - goto: /projects/docs?section=files
+        - wait: 1500
+        - shot: { name: project-files, caption: "The project directory, as files" }
+        - goto: /projects/postiz?section=terminal
+        - click: 'button:text-is("Connect")'
+        - wait: .xterm-rows
+        - wait: 7000
+        - shot: { name: project-terminal, caption: "A shell in any container" }
+    project-dark:
+      account: birch-dark
+      steps: *project
+
+    create-light:
+      account: birch-light
+      steps: &create
+        - goto: /projects
+        - click: .topbar-right .btn-primary
+        - click: "text=Git repository"
+        - wait: .source-list
+        - fill: { selector: '[name="repo"]', value: https://github.com/lumen-labs/storefront.git }
+        - shot:
+            { name: new-project, caption: "Create a project from a repository, an image, a template or a compose file" }
+    create-dark:
+      account: birch-dark
+      steps: *create
+
+    workspace-light:
+      account: birch-light
+      steps: &workspace
+        - goto: /workspace
+        - wait: .workspace-settings
+        - shot: { name: workspace, caption: "Members, secrets and settings of a workspace" }
+    workspace-dark:
+      account: birch-dark
+      steps: *workspace
+
+    oak:
+      account: oak-light
+      steps:
+        - goto: /deployments
+        - wait: .deployment-card
+        - shot: { name: oak-deployments, caption: "The Oak layout with its sidebar" }

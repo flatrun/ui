@@ -1,0 +1,5 @@
+{
+  "env": { "SECRET_KEY_BASE": "${{ secret.SECRET_KEY_BASE }}" },
+  "secrets": { "SECRET_KEY_BASE": { "length": 64, "charset": "alphanumeric" } },
+  "domains": [["stats.lumen.test", "plausible", 8000]]
+}

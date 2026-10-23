@@ -1,0 +1,11 @@
+services:
+  api:
+    image: python:3.12-slim
+    command: python -m http.server 8000
+    depends_on: [queue, mail]
+  queue:
+    image: redis:7-alpine
+    volumes:
+      - ./data/queue:/data
+  mail:
+    image: mailhog/mailhog:latest

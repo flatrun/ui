@@ -20,7 +20,9 @@
     "format": "prettier --write src/",
     "format:check": "prettier --check src/",
     "test": "vitest",
-    "test:run": "vitest run"
+    "test:run": "vitest run",
+    "demo:seed": "node scripts/demo-seed.mjs",
+    "shots": "npx --yes pagebeam@0.1.5 shoot --target local && node scripts/publish-shots.mjs"
   },
   "dependencies": {
     "@codemirror/lang-sql": "^6.10.0",
