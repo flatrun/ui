@@ -129,7 +129,7 @@
     </main>
 
     <CommandPalette v-model:open="paletteOpen" :actions="paletteActions" />
-    <NewDeploymentPanel
+    <NewProjectModal
       :visible="!!newMode"
       :initial-mode="newMode ?? undefined"
       @close="newMode = null"
@@ -153,7 +153,7 @@ import Icon from "@/components/base/Icon.vue";
 import Popover from "@/components/base/Popover.vue";
 import UserMenu from "@/components/UserMenu.vue";
 import NewDeploymentModal from "@/components/NewDeploymentModal.vue";
-import NewDeploymentPanel from "@/components/birch/NewDeploymentPanel.vue";
+import NewProjectModal from "@/components/birch/NewProjectModal.vue";
 import DeploymentSwitcher from "@/components/birch/DeploymentSwitcher.vue";
 import WorkspaceSwitcher from "@/components/birch/WorkspaceSwitcher.vue";
 import { useWorkspaceStore } from "@/stores/workspace";

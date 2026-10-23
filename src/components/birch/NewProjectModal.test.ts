@@ -1,7 +1,7 @@
 import { flushPromises, mount } from "@vue/test-utils";
 import { createTestingPinia } from "@pinia/testing";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import NewDeploymentPanel from "./NewDeploymentPanel.vue";
+import NewProjectModal from "./NewProjectModal.vue";
 import deploymentsFixture from "./fixtures/deployments.json";
 import templatesFixture from "./fixtures/templates.json";
 import settingsFixture from "./fixtures/settings.json";
@@ -33,23 +33,23 @@ vi.mock("@/services/api", async (importOriginal) => {
 
 vi.mock("@/composables/useDeploymentJob", () => ({ rememberDeploymentJob: vi.fn() }));
 
-function mountPanel(initialMode: "git" | "image" | "easy" | "compose") {
-  return mount(NewDeploymentPanel, {
+function mountModal(initialMode: "git" | "image" | "easy" | "compose") {
+  return mount(NewProjectModal, {
     props: { visible: true, initialMode },
     global: { plugins: [createTestingPinia({ createSpy: vi.fn })], stubs: { teleport: true } },
   });
 }
 
-async function fill(wrapper: ReturnType<typeof mountPanel>, field: string, value: string) {
+async function fill(wrapper: ReturnType<typeof mountModal>, field: string, value: string) {
   await wrapper.get(`[name="${field}"]`).setValue(value);
 }
 
-async function deploy(wrapper: ReturnType<typeof mountPanel>) {
+async function deploy(wrapper: ReturnType<typeof mountModal>) {
   await wrapper.get("form").trigger("submit");
   await flushPromises();
 }
 
-describe("NewDeploymentPanel", () => {
+describe("NewProjectModal", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(deploymentsApi.list).mockResolvedValue({ data: deploymentsFixture } as any);
@@ -63,7 +63,7 @@ describe("NewDeploymentPanel", () => {
   });
 
   it("names a git deployment after its repository and starts it from the source", async () => {
-    const wrapper = mountPanel("git");
+    const wrapper = mountModal("git");
     await flushPromises();
 
     await fill(wrapper, "repo", "https://github.com/acme/Shop-API.git");
@@ -100,7 +100,7 @@ describe("NewDeploymentPanel", () => {
   });
 
   it("writes a compose file for an image on the proxy network", async () => {
-    const wrapper = mountPanel("image");
+    const wrapper = mountModal("image");
     await flushPromises();
 
     await fill(wrapper, "image", "ghcr.io/acme/web:1.4");
@@ -121,7 +121,7 @@ describe("NewDeploymentPanel", () => {
   });
 
   it("generates the compose file for a picked template with its required mounts", async () => {
-    const wrapper = mountPanel("easy");
+    const wrapper = mountModal("easy");
     await flushPromises();
 
     await fill(wrapper, "template-search", "ghost");
@@ -142,7 +142,7 @@ describe("NewDeploymentPanel", () => {
   });
 
   it("refuses a name that is already taken", async () => {
-    const wrapper = mountPanel("image");
+    const wrapper = mountModal("image");
     await flushPromises();
 
     await fill(wrapper, "image", "nginx:alpine");
@@ -155,7 +155,7 @@ describe("NewDeploymentPanel", () => {
   });
 
   it("keeps a name the user typed when the source changes", async () => {
-    const wrapper = mountPanel("image");
+    const wrapper = mountModal("image");
     await flushPromises();
 
     await fill(wrapper, "name", "front");
@@ -165,7 +165,7 @@ describe("NewDeploymentPanel", () => {
   });
 
   it("sets up a database, more domains and a registry login without the full wizard", async () => {
-    const wrapper = mountPanel("image");
+    const wrapper = mountModal("image");
     await flushPromises();
     expect(wrapper.text()).not.toContain("Open the full setup");
 
@@ -209,7 +209,7 @@ describe("NewDeploymentPanel", () => {
 
   it("clones with a saved repository credential instead of a token", async () => {
     vi.mocked(sourceCredentialsApi.list).mockResolvedValue({ data: sourceCredentialsFixture } as any);
-    const wrapper = mountPanel("git");
+    const wrapper = mountModal("git");
     await flushPromises();
 
     await fill(wrapper, "repo", "https://github.com/acme/shop.git");
@@ -219,5 +219,38 @@ describe("NewDeploymentPanel", () => {
 
     const payload = vi.mocked(deploymentsApi.create).mock.calls[0][0] as Record<string, any>;
     expect(payload.source.credential_id).toBe("2ab200de5551fc4b");
+  });
+
+  it("opens as a dialog with every source listed and GitHub marked for later", async () => {
+    const wrapper = mountModal("image");
+    await flushPromises();
+
+    expect(wrapper.find(".modal-container").exists()).toBe(true);
+    const sources = wrapper.findAll(".source-list button");
+    expect(sources.map((b) => b.get(".source-label").text())).toEqual([
+      "GitHub",
+      "Git repository",
+      "Docker image",
+      "Template",
+      "Compose file",
+    ]);
+    expect(wrapper.get('.source-list [aria-current="true"]').text()).toContain("Docker image");
+
+    await sources[0].trigger("click");
+    expect(wrapper.text()).toContain("GitHub App");
+    expect(wrapper.get('button[type="submit"]').attributes("disabled")).toBeDefined();
+    await wrapper
+      .findAll("button")
+      .find((b) => b.text() === "Use a repository URL")!
+      .trigger("click");
+    expect(wrapper.find('[name="repo"]').exists()).toBe(true);
+  });
+
+  it("sums up what will be deployed next to the button", async () => {
+    const wrapper = mountModal("image");
+    await flushPromises();
+    await fill(wrapper, "image", "ghcr.io/acme/web:1.2");
+    expect(wrapper.get(".deploy-summary").text()).toContain("web");
+    expect(wrapper.get(".deploy-summary").text()).toContain("ghcr.io/acme/web:1.2");
   });
 });
