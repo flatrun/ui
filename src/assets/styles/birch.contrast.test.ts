@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import css from "./modern.css?raw";
+import css from "./birch.css?raw";
 
 function tokens(selector: string): Record<string, string> {
   const start = css.indexOf(`${selector} {`);
@@ -20,13 +20,13 @@ function contrast(a: string, b: string): number {
   return (hi + 0.05) / (lo + 0.05);
 }
 
-const light = tokens('[data-style="modern"]');
-const dark = { ...light, ...tokens('[data-style="modern"][data-scheme="dark"]') };
+const light = tokens('[data-style="birch"]');
+const dark = { ...light, ...tokens('[data-style="birch"][data-scheme="dark"]') };
 
 describe.each([
   ["light", light],
   ["dark", dark],
-])("Modern %s scheme", (_, t) => {
+])("Birch %s scheme", (_, t) => {
   const backgrounds = ["--app-bg", "--surface", "--surface-raised", "--surface-sunken", "--surface-inset"];
 
   it.each(["--text", "--text-muted", "--text-subtle", "--sidebar-text"])(

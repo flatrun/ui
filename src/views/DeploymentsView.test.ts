@@ -103,7 +103,7 @@ describe("DeploymentsView", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockRoute = reactive({ query: {} as Record<string, string>, name: "deployments" });
-    useTheme().setStyle("classic");
+    useTheme().setStyle("oak");
   });
 
   const mountView = () => {
@@ -439,7 +439,7 @@ describe("DeploymentsView", () => {
 
   describe("Birch style", () => {
     beforeEach(() => {
-      useTheme().setStyle("modern");
+      useTheme().setStyle("birch");
     });
 
     const mountProjects = async () => {
@@ -487,7 +487,7 @@ describe("DeploymentsView", () => {
     });
 
     it("keeps cards and the New Deployment button in Oak", () => {
-      useTheme().setStyle("classic");
+      useTheme().setStyle("oak");
       const wrapper = mountView();
       expect(wrapper.get(".data-table").attributes("data-view")).toBe("grid");
       expect(wrapper.text()).toContain("New Deployment");

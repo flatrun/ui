@@ -272,11 +272,11 @@ function selectSignOut() {
   border-radius: var(--radius-xs);
 }
 
-.style-swatch[data-swatch="modern"] {
+.style-swatch[data-swatch="birch"] {
   background: linear-gradient(90deg, #0f0f10 0 30%, #fafafa 30%);
 }
 
-.style-swatch[data-swatch="classic"] {
+.style-swatch[data-swatch="oak"] {
   border-radius: var(--radius-sm);
   background: linear-gradient(90deg, #0f172a 0 30%, var(--surface-sunken) 30%);
 }

@@ -27,8 +27,8 @@ export function getStyle(id: string | null | undefined): StyleDefinition | undef
   return id ? styles.get(id) : undefined;
 }
 
-export const DEFAULT_STYLE_ID = "modern";
+export const DEFAULT_STYLE_ID = "birch";
 export const SCHEME_PREFERENCES: SchemePreference[] = ["light", "dark", "system"];
 
-registerStyle({ id: "modern", label: "Birch", description: "Top bar, projects on a canvas", layout: "birch" });
-registerStyle({ id: "classic", label: "Oak", description: "Sidebar navigation", layout: "oak" });
+registerStyle({ id: "birch", label: "Birch", description: "Top bar, projects on a canvas", layout: "birch" });
+registerStyle({ id: "oak", label: "Oak", description: "Sidebar navigation", layout: "oak" });

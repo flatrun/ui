@@ -1,4 +1,4 @@
-[data-style="modern"] {
+[data-style="birch"] {
   --font-sans: "Inter", "Geist", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-mono: "JetBrains Mono", "Geist Mono", "SF Mono", Consolas, monospace;
 
@@ -52,7 +52,7 @@
   --terminal-text: #ededed;
 }
 
-[data-style="modern"][data-scheme="dark"] {
+[data-style="birch"][data-scheme="dark"] {
   --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
   --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
   --shadow-xl: 0 12px 32px rgba(0, 0, 0, 0.6);
@@ -89,7 +89,7 @@
 }
 
 /* One control height across buttons and fields keeps rows aligned. */
-[data-style="modern"] .btn {
+[data-style="birch"] .btn {
   height: var(--control-h);
   padding: 0 var(--space-3);
   justify-content: center;
@@ -100,30 +100,30 @@
     color var(--transition-fast);
 }
 
-[data-style="modern"] .btn-sm {
+[data-style="birch"] .btn-sm {
   height: var(--control-h-sm);
   padding: 0 var(--space-2);
   font-size: var(--text-sm);
 }
 
-[data-style="modern"] .btn-secondary {
+[data-style="birch"] .btn-secondary {
   background: var(--surface);
 }
 
-[data-style="modern"] .form-input,
-[data-style="modern"] .base-input,
-[data-style="modern"] .base-select-el {
+[data-style="birch"] .form-input,
+[data-style="birch"] .base-input,
+[data-style="birch"] .base-select-el {
   min-height: var(--control-h);
   font-size: var(--text-base);
   border-color: var(--border-strong);
 }
 
-[data-style="modern"] .card:hover {
+[data-style="birch"] .card:hover {
   box-shadow: none;
   border-color: var(--border-strong);
 }
 
-:root[data-style="modern"] .view-header:has(> .tabs) {
+:root[data-style="birch"] .view-header:has(> .tabs) {
   padding: 0;
   background: transparent;
   border: 0;
@@ -131,13 +131,13 @@
   border-radius: 0;
 }
 
-:root[data-style="modern"] .tabs {
+:root[data-style="birch"] .tabs {
   gap: var(--space-1);
   overflow-x: auto;
   scrollbar-width: none;
 }
 
-:root[data-style="modern"] .tabs .tab {
+:root[data-style="birch"] .tabs .tab {
   flex-shrink: 0;
   margin-bottom: -1px;
   padding: var(--space-2) var(--space-3);
@@ -146,29 +146,29 @@
   font-size: var(--text-base);
 }
 
-:root[data-style="modern"] .tabs .tab:hover {
+:root[data-style="birch"] .tabs .tab:hover {
   background: transparent;
 }
 
-:root[data-style="modern"] .tabs .tab.active {
+:root[data-style="birch"] .tabs .tab.active {
   background: transparent;
   border-bottom-color: var(--text);
   color: var(--text);
 }
 
-:root[data-style="modern"] .user-chip {
+:root[data-style="birch"] .user-chip {
   min-height: 0;
   padding: 2px;
   background: transparent;
   border-color: transparent;
 }
 
-:root[data-style="modern"] .user-chip-copy,
-:root[data-style="modern"] .user-chip > .app-icon {
+:root[data-style="birch"] .user-chip-copy,
+:root[data-style="birch"] .user-chip > .app-icon {
   display: none;
 }
 
-:root[data-style="modern"] .user-chip-avatar {
+:root[data-style="birch"] .user-chip-avatar {
   width: 26px;
   height: 26px;
   border-radius: 50%;

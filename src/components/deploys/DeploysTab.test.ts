@@ -41,7 +41,7 @@ function mountTab(props: Record<string, unknown> = {}) {
 describe("DeploysTab", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    useTheme().setStyle("classic");
+    useTheme().setStyle("oak");
     api.deploys.mockResolvedValue({ data: deploysFixture } as any);
     api.environments.mockResolvedValue({ data: { environments: [] } } as any);
     api.webhook.mockResolvedValue({ data: webhookFixture } as any);
@@ -110,8 +110,8 @@ describe("DeploysTab", () => {
   });
 
   describe("under Birch", () => {
-    function mountModern() {
-      useTheme().setStyle("modern");
+    function mountBirch() {
+      useTheme().setStyle("birch");
       api.deploys.mockResolvedValue({ data: historyFixture } as any);
       const pinia = createTestingPinia({ createSpy: vi.fn });
       vi.mocked(useAuthStore(pinia).hasPermission).mockReturnValue(true);
@@ -122,7 +122,7 @@ describe("DeploysTab", () => {
     }
 
     it("leads with the active deploy and lists the rest as history", async () => {
-      const wrapper = mountModern();
+      const wrapper = mountBirch();
       await flushPromises();
 
       const cards = wrapper.findAll(".deploy-cards .card");
@@ -137,7 +137,7 @@ describe("DeploysTab", () => {
     });
 
     it("restarts or redeploys from the active deploy's menu", async () => {
-      const wrapper = mountModern();
+      const wrapper = mountBirch();
       await flushPromises();
 
       const lead = wrapper.get(".card.lead");
@@ -150,7 +150,7 @@ describe("DeploysTab", () => {
 
     it("opens a deploy's stored logs split into build and deploy", async () => {
       api.deployLogs.mockResolvedValue({ data: logsFixture } as any);
-      const wrapper = mountModern();
+      const wrapper = mountBirch();
       await flushPromises();
 
       await wrapper

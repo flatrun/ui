@@ -20,7 +20,7 @@ describe("router", () => {
   });
 
   describe("under Birch", () => {
-    beforeEach(() => useTheme().setStyle("modern"));
+    beforeEach(() => useTheme().setStyle("birch"));
 
     it("serves deployments as projects", async () => {
       expect(await visit("/deployments")).toBe("/projects");
@@ -47,7 +47,7 @@ describe("router", () => {
   });
 
   describe("under Oak", () => {
-    beforeEach(() => useTheme().setStyle("classic"));
+    beforeEach(() => useTheme().setStyle("oak"));
 
     it("keeps deployments and the canvas where they were", async () => {
       expect(await visit("/projects/shop")).toBe("/deployments/shop");

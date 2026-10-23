@@ -144,7 +144,7 @@ describe("DeploymentDetailView", () => {
     vi.clearAllMocks();
     vi.useFakeTimers();
     mockRoute.query = {};
-    useTheme().setStyle("classic");
+    useTheme().setStyle("oak");
   });
 
   afterEach(() => {
@@ -802,7 +802,7 @@ describe("DeploymentDetailView", () => {
 
   describe("Birch style", () => {
     beforeEach(() => {
-      useTheme().setStyle("modern");
+      useTheme().setStyle("birch");
     });
 
     const railLabels = (wrapper: ReturnType<typeof mountView>) =>

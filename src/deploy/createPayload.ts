@@ -47,7 +47,7 @@ export type RegistryLogin =
   | { credentialId: string }
   | { username: string; password: string; save: boolean; credentialName?: string };
 
-// The body POST /deployments expects, in the same shape the Classic wizard sends.
+// The body POST /deployments expects, in the same shape the Oak wizard sends.
 export function buildCreatePayload(input: CreateDeploymentInput): Record<string, any> {
   const isGit = input.mode === "git";
   const payload: Record<string, any> = {

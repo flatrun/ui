@@ -48,14 +48,20 @@ function write(key: string, value: string) {
 
 // Before styles existed a single theme id held both look and scheme.
 const LEGACY_THEMES: Record<string, { style: string; scheme: SchemePreference }> = {
-  light: { style: "classic", scheme: "light" },
-  dark: { style: "classic", scheme: "dark" },
-  flatrun: { style: "modern", scheme: "dark" },
+  light: { style: "oak", scheme: "light" },
+  dark: { style: "oak", scheme: "dark" },
+  flatrun: { style: "birch", scheme: "dark" },
 };
+
+const RENAMED_STYLES: Record<string, string> = { modern: "birch", classic: "oak" };
 
 function resolveInitial(): { style: string; scheme: SchemePreference } {
   const legacy = LEGACY_THEMES[read(LEGACY_KEY) ?? ""];
-  const storedStyle = read(STYLE_KEY);
+  let storedStyle = read(STYLE_KEY);
+  if (storedStyle && RENAMED_STYLES[storedStyle]) {
+    storedStyle = RENAMED_STYLES[storedStyle];
+    write(STYLE_KEY, storedStyle);
+  }
   const storedScheme = read(SCHEME_KEY) as SchemePreference | null;
   return {
     style: getStyle(storedStyle) ? storedStyle! : (legacy?.style ?? DEFAULT_STYLE_ID),

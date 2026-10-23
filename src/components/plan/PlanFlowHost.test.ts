@@ -36,7 +36,7 @@ describe("PlanFlowHost", () => {
   });
 
   describe("Birch", () => {
-    beforeEach(() => useTheme().setStyle("modern"));
+    beforeEach(() => useTheme().setStyle("birch"));
 
     it("holds a previewed change in a bar until it is applied", async () => {
       const wrapper = mount(PlanFlowHost, { global });
@@ -97,7 +97,7 @@ describe("PlanFlowHost", () => {
   });
 
   it("keeps the review dialog under Oak, where closing it discards", async () => {
-    useTheme().setStyle("classic");
+    useTheme().setStyle("oak");
     const wrapper = mount(PlanFlowHost, { global });
     const result = stage();
     await flushPromises();

@@ -6,7 +6,7 @@ import { listStyles } from "@/themes/registry";
 describe("UserMenu", () => {
   it("lists every style and appearance and emits the one picked", async () => {
     const wrapper = mount(UserMenu, {
-      props: { username: "admin", role: "admin", styleId: "modern", styles: listStyles(), scheme: "system" },
+      props: { username: "admin", role: "admin", styleId: "birch", styles: listStyles(), scheme: "system" },
     });
 
     await wrapper.get("summary").trigger("click");
@@ -24,7 +24,7 @@ describe("UserMenu", () => {
     await styleOptions[1].trigger("click");
     await schemeOptions[1].trigger("click");
 
-    expect(wrapper.emitted("select-style")).toEqual([["classic"]]);
+    expect(wrapper.emitted("select-style")).toEqual([["oak"]]);
     expect(wrapper.emitted("select-scheme")).toEqual([["dark"]]);
     expect(wrapper.text()).toContain("Sign out");
   });

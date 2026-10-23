@@ -7,7 +7,7 @@ import { useTheme } from "@/composables/useTheme";
 describe("AppShell", () => {
   it("renders the shell of the selected style and follows changes", async () => {
     const { setStyle } = useTheme();
-    setStyle("modern");
+    setStyle("birch");
     const wrapper = mount(AppShell, {
       global: {
         stubs: {
@@ -18,7 +18,7 @@ describe("AppShell", () => {
     });
     expect(wrapper.find(".birch").exists()).toBe(true);
 
-    setStyle("classic");
+    setStyle("oak");
     await nextTick();
     expect(wrapper.find(".oak").exists()).toBe(true);
     expect(wrapper.find(".birch").exists()).toBe(false);

@@ -235,7 +235,7 @@ const paletteActions = computed<PaletteAction[]>(() => [
     icon: scheme.value === "dark" ? "sun" : "moon",
     run: () => setScheme(scheme.value === "dark" ? "light" : "dark"),
   },
-  { key: "classic", label: "Switch to the Oak layout", icon: "panel-left", run: () => setStyle("classic") },
+  { key: "oak", label: "Switch to the Oak layout", icon: "panel-left", run: () => setStyle("oak") },
 ]);
 
 function onKeydown(e: KeyboardEvent) {
