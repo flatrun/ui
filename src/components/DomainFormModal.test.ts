@@ -169,4 +169,37 @@ describe("DomainFormModal visitor access", () => {
     const saved = wrapper.emitted("save")?.[0]?.[0] as DomainConfig;
     expect(saved.access?.allowed_emails).toEqual(["person@example.com"]);
   });
+
+  it("saves the chosen sign-in method and leaves it out for code and link", async () => {
+    mountModal({
+      id: "d1",
+      service: "web",
+      container_port: 80,
+      domain: "private.example.com",
+      ssl: { enabled: true, auto_cert: true },
+      access: {
+        enabled: true,
+        mode: "any_verified",
+        email_target_id: "smtp-primary",
+        session_hours: 24,
+        method: "code",
+      },
+    });
+    const methodSelect = Array.from(document.querySelectorAll<HTMLSelectElement>("select")).find((select) =>
+      Array.from(select.options).some((option) => option.value === "code"),
+    );
+    if (!methodSelect) throw new Error("Sign-in method select missing");
+    expect(methodSelect.value).toBe("code");
+
+    document.querySelector<HTMLButtonElement>(".btn-primary")?.click();
+    await wrapper.vm.$nextTick();
+    expect((wrapper.emitted("save")?.[0]?.[0] as DomainConfig).access?.method).toBe("code");
+
+    methodSelect.value = "";
+    methodSelect.dispatchEvent(new Event("change", { bubbles: true }));
+    await wrapper.vm.$nextTick();
+    document.querySelector<HTMLButtonElement>(".btn-primary")?.click();
+    await wrapper.vm.$nextTick();
+    expect(JSON.parse(JSON.stringify(wrapper.emitted("save")?.[1]?.[0])).access).not.toHaveProperty("method");
+  });
 });
