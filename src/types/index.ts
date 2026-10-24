@@ -137,6 +137,7 @@ export interface DomainAccessConfig {
   allowed_emails?: string[];
   email_target_id: string;
   session_hours?: number;
+  method?: "link" | "code";
 }
 
 export interface QuickAction {

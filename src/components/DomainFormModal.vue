@@ -115,7 +115,18 @@
                   />
                 </BaseField>
 
-                <BaseField label="Email delivery target" hint="FlatRun sends sign-in links through this SMTP target.">
+                <BaseField
+                  label="Sign-in method"
+                  hint="What the email contains. A code lets people read it on another device."
+                >
+                  <BaseSelect v-model="form.access.method">
+                    <option value="">Code and link</option>
+                    <option value="code">Code only</option>
+                    <option value="link">Link only</option>
+                  </BaseSelect>
+                </BaseField>
+
+                <BaseField label="Email delivery target" hint="FlatRun sends sign-in emails through this SMTP target.">
                   <BaseSelect v-model="form.access.email_target_id" required>
                     <option value="" disabled>Select an email target</option>
                     <option v-for="target in emailTargets" :key="target.id" :value="target.id">
@@ -224,6 +235,7 @@ const form = ref<{
     allowed_emails: string;
     email_target_id: string;
     session_hours: number;
+    method: "" | "link" | "code";
   };
 }>({
   domain: "",
@@ -235,7 +247,7 @@ const form = ref<{
   aliases: [],
   route_only_aliases: [],
   static_cache: false,
-  access: { enabled: false, mode: "allowlist", allowed_emails: "", email_target_id: "", session_hours: 24 },
+  access: { enabled: false, mode: "allowlist", allowed_emails: "", email_target_id: "", session_hours: 24, method: "" },
 });
 
 const emailTargets = ref<Pick<NotificationTarget, "id" | "name">[]>([]);
@@ -265,6 +277,7 @@ watch(
             allowed_emails: (props.domain.access?.allowed_emails || []).join("\n"),
             email_target_id: props.domain.access?.email_target_id || "",
             session_hours: props.domain.access?.session_hours || 24,
+            method: props.domain.access?.method || "",
           },
         };
       } else {
@@ -278,7 +291,14 @@ watch(
           aliases: [],
           route_only_aliases: [],
           static_cache: false,
-          access: { enabled: false, mode: "allowlist", allowed_emails: "", email_target_id: "", session_hours: 24 },
+          access: {
+            enabled: false,
+            mode: "allowlist",
+            allowed_emails: "",
+            email_target_id: "",
+            session_hours: 24,
+            method: "",
+          },
         };
       }
     }
@@ -348,6 +368,7 @@ function handleSubmit() {
           allowed_emails: form.value.access.mode === "allowlist" ? accessEmails() : undefined,
           email_target_id: form.value.access.email_target_id,
           session_hours: form.value.access.session_hours || 24,
+          method: form.value.access.method || undefined,
         }
       : undefined,
   };
