@@ -234,6 +234,13 @@ describe("DomainFormModal request settings", () => {
     expect(lastSaved()?.proxy_timeout).toBe(120);
   });
 
+  it("resends a limit stored in bytes exactly when it is not edited", async () => {
+    mountModal({ ...site, client_max_body_size: "1500" });
+    await submit();
+
+    expect(lastSaved()?.client_max_body_size).toBe("1500");
+  });
+
   it("sends a new limit in nginx size syntax", async () => {
     mountModal(site);
     await setField(uploadAmount(), "2");
@@ -358,6 +365,11 @@ describe("DomainFormModal proxy settings", () => {
     await submit();
     expect(wrapper.emitted("save")).toBeUndefined();
 
+    for (const entry of ["999.999.999.999", "1.2.3.4.5", "10.0.0.0/33", "cafe", "1:2:3:4:5:6:7:8:9", "2001::db8::1"]) {
+      await type(allow, entry);
+      expect(document.body.textContent).toContain(`${entry} is not an IP address or CIDR range.`);
+    }
+
     await type(allow, "203.0.113.0/24\n2001:db8::1");
     await submit();
     expect(saved()?.response_headers).toEqual({ "X-Client": "web" });
@@ -376,5 +388,26 @@ describe("DomainFormModal proxy settings", () => {
     await submit();
 
     expect(saved()?.canonical_redirect).toBe("primary");
+  });
+
+  it("drops the alias redirect once no alias is left", async () => {
+    mountModal({ ...site, aliases: ["www.shop.example.com"], canonical_redirect: "primary" });
+    await type(document.querySelector<HTMLInputElement>('input[placeholder="www.example.com"]')!, "");
+    await submit();
+
+    expect(saved()?.canonical_redirect).toBeUndefined();
+  });
+
+  it("refuses the same header twice", async () => {
+    mountModal(site);
+    await clickButton("Add header");
+    await type(input("Header 1 name"), "X-Client");
+    await type(input("Header 1 value"), "web");
+    await clickButton("Add header");
+    await type(input("Header 2 name"), "x-client");
+    await type(input("Header 2 value"), "app");
+    expect(document.body.textContent).toContain("x-client is listed twice.");
+    await submit();
+    expect(wrapper.emitted("save")).toBeUndefined();
   });
 });
