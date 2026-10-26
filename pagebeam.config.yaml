@@ -182,7 +182,7 @@ tours:
     controls-light:
       account: birch-light
       steps: &controls
-        - goto: /projects/shop?section=settings
+        - goto: /projects/shop?section=deploys
         - wait: .upload-rejections
         - shot:
             {
@@ -190,6 +190,8 @@ tours:
               caption: "Uploads the limit turned away, with the limit and a way to change it",
               focus: [.upload-rejections],
             }
+        - goto: /projects/shop?section=settings
+        - wait: .domain-row
         - click: '.domain-row:nth-child(1) button[title="Edit"]'
         - wait: .domain-form-modal
         - shot:
