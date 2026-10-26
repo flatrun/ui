@@ -68,6 +68,15 @@
           </div>
         </dl>
 
+        <ServiceSleepForm
+          :deployment-name="deploymentName"
+          :service="service.name"
+          :config="metadata?.service_sleep?.[service.name]"
+          :deployment-sleeps="!!metadata?.sleep?.enabled"
+          :can-write="canWrite"
+          @changed="emit('changed')"
+        />
+
         <ServiceSettingsForm :deployment-name="deploymentName" :service="service.name" :can-write="canWrite" />
       </div>
     </div>
@@ -79,12 +88,13 @@ import { computed, ref, watch } from "vue";
 import SlidePanel from "@/components/base/SlidePanel.vue";
 import LogViewer from "@/components/LogViewer.vue";
 import ServiceSettingsForm from "./ServiceSettingsForm.vue";
+import ServiceSleepForm from "./ServiceSleepForm.vue";
 import { deploymentsApi } from "@/services/api";
 import { useAuthStore } from "@/stores/auth";
-import type { Service } from "@/types";
+import type { Service, ServiceMetadata } from "@/types";
 
-const props = defineProps<{ deploymentName: string; service: Service | null }>();
-const emit = defineEmits<{ close: [] }>();
+const props = defineProps<{ deploymentName: string; service: Service | null; metadata?: ServiceMetadata }>();
+const emit = defineEmits<{ close: []; changed: [] }>();
 
 type Tab = "logs" | "settings";
 const tabs: { id: Tab; label: string }[] = [

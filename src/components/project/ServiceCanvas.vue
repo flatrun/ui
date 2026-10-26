@@ -22,7 +22,13 @@
       </template>
     </VueFlow>
 
-    <ServicePanel :deployment-name="deploymentName" :service="selectedService" @close="selected = null" />
+    <ServicePanel
+      :deployment-name="deploymentName"
+      :service="selectedService"
+      :metadata="metadata"
+      @close="selected = null"
+      @changed="onChanged"
+    />
   </div>
 </template>
 
@@ -36,9 +42,10 @@ import ServiceNode from "./ServiceNode.vue";
 import ServicePanel from "./ServicePanel.vue";
 import { deploymentsApi } from "@/services/api";
 import { serviceGraph } from "@/model/project";
-import type { Service } from "@/types";
+import type { Service, ServiceMetadata } from "@/types";
 
-const props = defineProps<{ deploymentName: string }>();
+const props = defineProps<{ deploymentName: string; metadata?: ServiceMetadata }>();
+const emit = defineEmits<{ changed: [] }>();
 
 const COLUMN = 330;
 const ROW = 240;
@@ -57,7 +64,7 @@ const nodes = computed<Node[]>(() => {
       id: name,
       type: "service",
       position: { x: (x + (widest - row.length) / 2) * COLUMN, y: y * ROW },
-      data: { service: services.value.find((s) => s.name === name)! },
+      data: { service: services.value.find((s) => s.name === name)!, asleep: isAsleep(name) },
     })),
   );
 });
@@ -72,6 +79,16 @@ const edges = computed<Edge[]>(() =>
     markerEnd: MarkerType.ArrowClosed,
   })),
 );
+
+function isAsleep(service: string) {
+  if (props.metadata?.sleep?.enabled) return !!props.metadata.sleep.sleeping;
+  return !!props.metadata?.service_sleep?.[service]?.sleeping;
+}
+
+async function onChanged() {
+  emit("changed");
+  await load();
+}
 
 async function load() {
   try {

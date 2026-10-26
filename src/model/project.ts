@@ -197,7 +197,8 @@ export function projectState(d: Deployment): { state: CardState; label: string }
 }
 
 // serviceState is the same reading for one compose service.
-export function serviceState(s: Service): { state: CardState; label: string } {
+export function serviceState(s: Service, asleep = false): { state: CardState; label: string } {
+  if (asleep && s.status !== "running") return { state: "asleep", label: "Asleep" };
   if (s.status === "running" && s.health === "unhealthy") return { state: "degraded", label: "Unhealthy" };
   if (s.status === "running") return { state: "online", label: "Online" };
   if (s.status === "exited" || s.status === "dead") return { state: "crashed", label: "Crashed" };

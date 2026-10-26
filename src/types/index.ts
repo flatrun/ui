@@ -59,6 +59,7 @@ export interface ServiceMetadata {
   environment?: EnvironmentInfo;
   sleep?: SleepConfig;
   service_settings?: Record<string, ServiceSettings>;
+  service_sleep?: Record<string, SleepConfig>;
 }
 
 export interface SourceConfig {
