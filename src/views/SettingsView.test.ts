@@ -60,12 +60,22 @@ vi.mock("@/services/api", () => ({
       data: { version: { version: "1.0.0" } },
     }),
   },
+  configApi: {
+    get: vi.fn((key: string) =>
+      key === "nginx.client_max_body_size"
+        ? Promise.resolve({ data: { entry: { value: "64m" } } })
+        : Promise.reject(new Error("not mocked")),
+    ),
+    set: vi.fn().mockResolvedValue({ data: {} }),
+  },
   templatesApi: {
     refresh: vi.fn().mockResolvedValue({
       data: { message: "Refreshed", count: 5 },
     }),
   },
 }));
+
+import { configApi } from "@/services/api";
 
 describe("SettingsView", () => {
   beforeEach(() => {
@@ -408,6 +418,32 @@ describe("SettingsView", () => {
         { id: "ai", label: "AI Assistant", icon: "" },
         { id: "mcp", label: "MCP Server", icon: "" },
       ]);
+    });
+  });
+
+  describe("Default upload limit", () => {
+    const saveButton = (wrapper: ReturnType<typeof mountView>) =>
+      wrapper.find("#default-upload-limit").element.parentElement!.querySelector("button")!;
+
+    it("can be saved once the current default is read", async () => {
+      const wrapper = mountView();
+      await flushPromises();
+      expect((wrapper.find("#default-upload-limit").element as HTMLInputElement).value).toBe("64m");
+      expect(saveButton(wrapper).disabled).toBe(false);
+    });
+
+    it("cannot be saved when the current default could not be read", async () => {
+      const get = configApi.get as ReturnType<typeof vi.fn>;
+      const original = get.getMockImplementation();
+      get.mockImplementation(() => Promise.reject(new Error("timeout")));
+      try {
+        const wrapper = mountView();
+        await flushPromises();
+        expect(saveButton(wrapper).disabled).toBe(true);
+        expect(wrapper.text()).toContain("The current default could not be read");
+      } finally {
+        get.mockImplementation(original!);
+      }
     });
   });
 });

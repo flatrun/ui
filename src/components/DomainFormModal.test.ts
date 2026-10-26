@@ -234,6 +234,13 @@ describe("DomainFormModal request settings", () => {
     expect(lastSaved()?.proxy_timeout).toBe(120);
   });
 
+  it("resends a limit stored in bytes exactly when it is not edited", async () => {
+    mountModal({ ...site, client_max_body_size: "1500" });
+    await submit();
+
+    expect(lastSaved()?.client_max_body_size).toBe("1500");
+  });
+
   it("sends a new limit in nginx size syntax", async () => {
     mountModal(site);
     await setField(uploadAmount(), "2");
