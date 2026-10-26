@@ -2,7 +2,7 @@
   <section class="service-sleep">
     <h4>Sleep when idle</h4>
     <p v-if="deploymentSleeps" class="hint">
-      The whole deployment sleeps when idle, which takes precedence. Turn that off on the Deploys tab to let
+      The whole deployment sleeps when idle, which takes precedence. Turn that off in the Deployments section to let
       {{ service }} sleep on its own.
     </p>
     <template v-else>
