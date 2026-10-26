@@ -1,0 +1,658 @@
+{
+  "items": [
+    {
+      "name": "blog",
+      "path": "/home/nfebe/.cache/tmp/claude-1000/-home-nfebe-work-flatrun/a411bc8b-9bca-460a-a4de-cee34211c7bb/scratchpad/demo/deployments/blog",
+      "status": "stopped",
+      "created_at": "2026-10-23T23:22:11.186914591+01:00",
+      "updated_at": "2026-10-23T23:22:11.186914591+01:00",
+      "services": [
+        {
+          "name": "mysql",
+          "container_id": "",
+          "image": "mysql:8.0",
+          "status": "unknown",
+          "is_primary": false,
+          "created_at": "0001-01-01T00:00:00Z",
+          "mounts": [
+            {
+              "type": "bind",
+              "source": "./data/mysql",
+              "target": "/var/lib/mysql"
+            }
+          ],
+          "replicas": 1,
+          "running_replicas": 0
+        },
+        {
+          "name": "wordpress",
+          "container_id": "",
+          "image": "wordpress:6.6-apache",
+          "status": "unknown",
+          "is_primary": false,
+          "created_at": "0001-01-01T00:00:00Z",
+          "mounts": [
+            {
+              "type": "bind",
+              "source": "./wordpress",
+              "target": "/var/www/html"
+            }
+          ],
+          "replicas": 1,
+          "running_replicas": 0,
+          "domains": ["blog.trakli.test"],
+          "depends_on": ["mysql"]
+        }
+      ],
+      "metadata": {
+        "name": "blog",
+        "type": "web",
+        "networking": {
+          "expose": true,
+          "domain": "blog.trakli.test",
+          "container_port": 0,
+          "protocol": "http",
+          "proxy_type": ""
+        },
+        "ssl": {
+          "enabled": true,
+          "auto_cert": true
+        },
+        "healthcheck": {
+          "path": "/",
+          "interval": "30s"
+        },
+        "domains": [
+          {
+            "id": "d0",
+            "service": "wordpress",
+            "container_port": 80,
+            "domain": "blog.trakli.test",
+            "ssl": {
+              "enabled": true,
+              "auto_cert": true
+            }
+          }
+        ]
+      },
+      "workspace": "default"
+    },
+    {
+      "name": "plausible",
+      "path": "/home/nfebe/.cache/tmp/claude-1000/-home-nfebe-work-flatrun/a411bc8b-9bca-460a-a4de-cee34211c7bb/scratchpad/demo/deployments/plausible",
+      "status": "stopped",
+      "created_at": "2026-10-23T23:22:08.959890319+01:00",
+      "updated_at": "2026-10-23T23:22:08.959890319+01:00",
+      "services": [
+        {
+          "name": "plausible",
+          "container_id": "",
+          "image": "ghcr.io/plausible/community-edition:v2.1.5",
+          "status": "unknown",
+          "is_primary": false,
+          "created_at": "0001-01-01T00:00:00Z",
+          "mounts": [
+            {
+              "type": "bind",
+              "source": "./data/plausible",
+              "target": "/var/lib/plausible"
+            }
+          ],
+          "replicas": 1,
+          "running_replicas": 0,
+          "domains": ["stats.trakli.test"],
+          "depends_on": ["plausible_db", "plausible_events_db"]
+        },
+        {
+          "name": "plausible_db",
+          "container_id": "",
+          "image": "postgres:16-alpine",
+          "status": "unknown",
+          "is_primary": false,
+          "created_at": "0001-01-01T00:00:00Z",
+          "mounts": [
+            {
+              "type": "bind",
+              "source": "./data/postgres",
+              "target": "/var/lib/postgresql/data"
+            }
+          ],
+          "replicas": 1,
+          "running_replicas": 0
+        },
+        {
+          "name": "plausible_events_db",
+          "container_id": "",
+          "image": "clickhouse/clickhouse-server:24.3-alpine",
+          "status": "unknown",
+          "is_primary": false,
+          "created_at": "0001-01-01T00:00:00Z",
+          "mounts": [
+            {
+              "type": "bind",
+              "source": "./data/clickhouse",
+              "target": "/var/lib/clickhouse"
+            },
+            {
+              "type": "bind",
+              "source": "./data/clickhouse-logs",
+              "target": "/var/log/clickhouse-server"
+            },
+            {
+              "type": "bind",
+              "source": "./clickhouse/low-resources.xml",
+              "target": "/etc/clickhouse-server/config.d/low-resources.xml",
+              "read_only": true
+            },
+            {
+              "type": "bind",
+              "source": "./clickhouse/ipv4-only.xml",
+              "target": "/etc/clickhouse-server/config.d/ipv4-only.xml",
+              "read_only": true
+            }
+          ],
+          "replicas": 1,
+          "running_replicas": 0
+        }
+      ],
+      "metadata": {
+        "name": "plausible",
+        "type": "web",
+        "logo": "simple-icons:plausibleanalytics",
+        "networking": {
+          "expose": true,
+          "domain": "stats.trakli.test",
+          "container_port": 0,
+          "protocol": "http",
+          "proxy_type": ""
+        },
+        "ssl": {
+          "enabled": true,
+          "auto_cert": true
+        },
+        "healthcheck": {
+          "path": "/",
+          "interval": "30s"
+        },
+        "domains": [
+          {
+            "id": "d0",
+            "service": "plausible",
+            "container_port": 8000,
+            "domain": "stats.trakli.test",
+            "ssl": {
+              "enabled": true,
+              "auto_cert": true
+            }
+          }
+        ]
+      },
+      "workspace": "default"
+    },
+    {
+      "name": "postiz",
+      "path": "/home/nfebe/.cache/tmp/claude-1000/-home-nfebe-work-flatrun/a411bc8b-9bca-460a-a4de-cee34211c7bb/scratchpad/demo/deployments/postiz",
+      "status": "running",
+      "created_at": "2026-10-23T23:22:13.421938951+01:00",
+      "updated_at": "2026-10-23T23:22:13.421938951+01:00",
+      "services": [
+        {
+          "name": "postgres",
+          "container_id": "",
+          "image": "postgres:17-alpine",
+          "status": "unknown",
+          "is_primary": false,
+          "created_at": "0001-01-01T00:00:00Z",
+          "mounts": [
+            {
+              "type": "bind",
+              "source": "./data/postgres",
+              "target": "/var/lib/postgresql/data"
+            }
+          ],
+          "replicas": 1,
+          "running_replicas": 0
+        },
+        {
+          "name": "postiz",
+          "container_id": "",
+          "image": "ghcr.io/gitroomhq/postiz-app:latest",
+          "status": "unknown",
+          "is_primary": false,
+          "created_at": "0001-01-01T00:00:00Z",
+          "mounts": [
+            {
+              "type": "bind",
+              "source": "./data/config",
+              "target": "/config"
+            },
+            {
+              "type": "bind",
+              "source": "./data/uploads",
+              "target": "/uploads"
+            }
+          ],
+          "replicas": 1,
+          "running_replicas": 0,
+          "domains": ["social.trakli.test"],
+          "depends_on": ["postgres", "redis", "temporal"]
+        },
+        {
+          "name": "redis",
+          "container_id": "",
+          "image": "redis:7.2",
+          "status": "unknown",
+          "is_primary": false,
+          "created_at": "0001-01-01T00:00:00Z",
+          "mounts": [
+            {
+              "type": "bind",
+              "source": "./data/redis",
+              "target": "/data"
+            }
+          ],
+          "replicas": 1,
+          "running_replicas": 0
+        },
+        {
+          "name": "temporal",
+          "container_id": "",
+          "image": "temporalio/auto-setup:1.28.1",
+          "status": "unknown",
+          "is_primary": false,
+          "created_at": "0001-01-01T00:00:00Z",
+          "mounts": [
+            {
+              "type": "bind",
+              "source": "./dynamicconfig",
+              "target": "/etc/temporal/config/dynamicconfig"
+            }
+          ],
+          "replicas": 1,
+          "running_replicas": 0,
+          "depends_on": ["temporal-elasticsearch", "temporal-postgresql"]
+        },
+        {
+          "name": "temporal-admin-tools",
+          "container_id": "4d627d79c9c3",
+          "image": "temporalio/admin-tools:1.28.1-tctl-1.18.4-cli-1.4.1",
+          "status": "running",
+          "is_primary": false,
+          "created_at": "0001-01-01T00:00:00Z",
+          "replicas": 1,
+          "running_replicas": 1,
+          "depends_on": ["temporal"]
+        },
+        {
+          "name": "temporal-elasticsearch",
+          "container_id": "",
+          "image": "elasticsearch:7.17.27",
+          "status": "unknown",
+          "is_primary": false,
+          "created_at": "0001-01-01T00:00:00Z",
+          "mounts": [
+            {
+              "type": "bind",
+              "source": "./data/elasticsearch",
+              "target": "/usr/share/elasticsearch/data"
+            }
+          ],
+          "replicas": 1,
+          "running_replicas": 0
+        },
+        {
+          "name": "temporal-postgresql",
+          "container_id": "",
+          "image": "postgres:16",
+          "status": "unknown",
+          "is_primary": false,
+          "created_at": "0001-01-01T00:00:00Z",
+          "mounts": [
+            {
+              "type": "bind",
+              "source": "./data/temporal-postgres",
+              "target": "/var/lib/postgresql/data"
+            }
+          ],
+          "replicas": 1,
+          "running_replicas": 0
+        },
+        {
+          "name": "temporal-ui",
+          "container_id": "1ec344c92343",
+          "image": "temporalio/ui:2.34.0",
+          "status": "running",
+          "is_primary": false,
+          "created_at": "0001-01-01T00:00:00Z",
+          "replicas": 1,
+          "running_replicas": 1,
+          "domains": ["workflows.social.trakli.test"],
+          "depends_on": ["temporal"]
+        }
+      ],
+      "metadata": {
+        "name": "postiz",
+        "type": "web",
+        "logo": "https://cdn.simpleicons.org/postiz",
+        "networking": {
+          "expose": true,
+          "domain": "social.trakli.test",
+          "container_port": 0,
+          "protocol": "http",
+          "proxy_type": ""
+        },
+        "ssl": {
+          "enabled": true,
+          "auto_cert": true
+        },
+        "healthcheck": {
+          "path": "/",
+          "interval": "30s"
+        },
+        "domains": [
+          {
+            "id": "d0",
+            "service": "postiz",
+            "container_port": 5000,
+            "domain": "social.trakli.test",
+            "ssl": {
+              "enabled": true,
+              "auto_cert": true
+            }
+          },
+          {
+            "id": "d1",
+            "service": "temporal-ui",
+            "container_port": 8080,
+            "domain": "workflows.social.trakli.test",
+            "ssl": {
+              "enabled": true,
+              "auto_cert": true
+            }
+          }
+        ]
+      },
+      "workspace": "default"
+    },
+    {
+      "name": "shop",
+      "path": "/home/nfebe/.cache/tmp/claude-1000/-home-nfebe-work-flatrun/a411bc8b-9bca-460a-a4de-cee34211c7bb/scratchpad/demo/deployments/shop",
+      "status": "stopped",
+      "created_at": "2026-10-23T23:26:51.931974431+01:00",
+      "updated_at": "2026-10-23T23:26:51.931974431+01:00",
+      "services": [
+        {
+          "name": "api",
+          "container_id": "",
+          "image": "node:22-alpine",
+          "status": "unknown",
+          "is_primary": false,
+          "created_at": "0001-01-01T00:00:00Z",
+          "replicas": 1,
+          "running_replicas": 0,
+          "domains": ["api.shop.trakli.test"],
+          "depends_on": ["cache", "db", "storage"]
+        },
+        {
+          "name": "cache",
+          "container_id": "",
+          "image": "redis:7-alpine",
+          "status": "unknown",
+          "is_primary": false,
+          "created_at": "0001-01-01T00:00:00Z",
+          "mounts": [
+            {
+              "type": "bind",
+              "source": "./data/redis",
+              "target": "/data"
+            }
+          ],
+          "replicas": 1,
+          "running_replicas": 0
+        },
+        {
+          "name": "db",
+          "container_id": "",
+          "image": "postgres:16-alpine",
+          "status": "unknown",
+          "is_primary": false,
+          "created_at": "0001-01-01T00:00:00Z",
+          "mounts": [
+            {
+              "type": "bind",
+              "source": "./data/postgres",
+              "target": "/var/lib/postgresql/data"
+            }
+          ],
+          "replicas": 1,
+          "running_replicas": 0
+        },
+        {
+          "name": "storage",
+          "container_id": "",
+          "image": "minio/minio:latest",
+          "status": "unknown",
+          "is_primary": false,
+          "created_at": "0001-01-01T00:00:00Z",
+          "mounts": [
+            {
+              "type": "bind",
+              "source": "./data/minio",
+              "target": "/data"
+            }
+          ],
+          "replicas": 1,
+          "running_replicas": 0
+        },
+        {
+          "name": "web",
+          "container_id": "",
+          "image": "nginx:alpine",
+          "status": "unknown",
+          "is_primary": false,
+          "created_at": "0001-01-01T00:00:00Z",
+          "replicas": 1,
+          "running_replicas": 0,
+          "domains": ["shop.trakli.test"],
+          "depends_on": ["api"]
+        },
+        {
+          "name": "worker",
+          "container_id": "",
+          "image": "node:22-alpine",
+          "status": "unknown",
+          "is_primary": false,
+          "created_at": "0001-01-01T00:00:00Z",
+          "replicas": 2,
+          "running_replicas": 0,
+          "depends_on": ["cache", "db"]
+        }
+      ],
+      "metadata": {
+        "name": "shop",
+        "type": "web",
+        "logo": ".flatrun/logo.svg",
+        "networking": {
+          "expose": true,
+          "domain": "shop.trakli.test",
+          "container_port": 0,
+          "protocol": "http",
+          "proxy_type": ""
+        },
+        "ssl": {
+          "enabled": true,
+          "auto_cert": true
+        },
+        "healthcheck": {
+          "path": "/",
+          "interval": "30s"
+        },
+        "domains": [
+          {
+            "id": "d0",
+            "service": "web",
+            "container_port": 80,
+            "domain": "shop.trakli.test",
+            "ssl": {
+              "enabled": true,
+              "auto_cert": true
+            }
+          },
+          {
+            "id": "d1",
+            "service": "api",
+            "container_port": 3000,
+            "domain": "api.shop.trakli.test",
+            "ssl": {
+              "enabled": true,
+              "auto_cert": true
+            }
+          }
+        ]
+      },
+      "workspace": "default",
+      "logo_version": "dmek9rga06cb"
+    },
+    {
+      "name": "trakli",
+      "path": "/home/nfebe/.cache/tmp/claude-1000/-home-nfebe-work-flatrun/a411bc8b-9bca-460a-a4de-cee34211c7bb/scratchpad/demo/deployments/trakli",
+      "status": "running",
+      "created_at": "2026-10-23T23:22:10.497907082+01:00",
+      "updated_at": "2026-10-23T23:22:10.497907082+01:00",
+      "services": [
+        {
+          "name": "app",
+          "container_id": "",
+          "image": "ghcr.io/trakli/webservice:latest",
+          "status": "unknown",
+          "is_primary": false,
+          "created_at": "0001-01-01T00:00:00Z",
+          "mounts": [
+            {
+              "type": "bind",
+              "source": "./storage",
+              "target": "/var/www/html/storage"
+            }
+          ],
+          "replicas": 1,
+          "running_replicas": 0,
+          "domains": ["app.trakli.test"],
+          "depends_on": ["mysql"]
+        },
+        {
+          "name": "mailhog",
+          "container_id": "9cca6dd2d957",
+          "image": "mailhog/mailhog:latest",
+          "status": "running",
+          "is_primary": false,
+          "created_at": "0001-01-01T00:00:00Z",
+          "replicas": 1,
+          "running_replicas": 1
+        },
+        {
+          "name": "mysql",
+          "container_id": "",
+          "image": "mysql:8.0",
+          "status": "unknown",
+          "is_primary": false,
+          "created_at": "0001-01-01T00:00:00Z",
+          "mounts": [
+            {
+              "type": "bind",
+              "source": "./data/mysql",
+              "target": "/var/lib/mysql"
+            }
+          ],
+          "replicas": 1,
+          "running_replicas": 0
+        },
+        {
+          "name": "phpmyadmin",
+          "container_id": "30043692bed4",
+          "image": "phpmyadmin/phpmyadmin:latest",
+          "status": "running",
+          "is_primary": false,
+          "created_at": "0001-01-01T00:00:00Z",
+          "replicas": 1,
+          "running_replicas": 1,
+          "depends_on": ["mysql"]
+        },
+        {
+          "name": "reverb",
+          "container_id": "8a2e67801044",
+          "image": "ghcr.io/trakli/webservice:latest",
+          "status": "running",
+          "health": "unhealthy",
+          "is_primary": false,
+          "created_at": "0001-01-01T00:00:00Z",
+          "replicas": 1,
+          "running_replicas": 1,
+          "depends_on": ["mysql"]
+        },
+        {
+          "name": "smartql",
+          "container_id": "",
+          "image": "ghcr.io/smartql/smartql:latest",
+          "status": "unknown",
+          "is_primary": false,
+          "created_at": "0001-01-01T00:00:00Z",
+          "mounts": [
+            {
+              "type": "bind",
+              "source": "./smartql.yml",
+              "target": "/app/smartql.yml",
+              "read_only": true
+            }
+          ],
+          "replicas": 1,
+          "running_replicas": 0,
+          "depends_on": ["mysql"]
+        },
+        {
+          "name": "worker",
+          "container_id": "dff74bb81eea",
+          "image": "ghcr.io/trakli/webservice:latest",
+          "status": "running",
+          "health": "starting",
+          "is_primary": false,
+          "created_at": "0001-01-01T00:00:00Z",
+          "replicas": 1,
+          "running_replicas": 1,
+          "depends_on": ["app"]
+        }
+      ],
+      "metadata": {
+        "name": "trakli",
+        "type": "web",
+        "networking": {
+          "expose": true,
+          "domain": "app.trakli.test",
+          "container_port": 0,
+          "protocol": "http",
+          "proxy_type": ""
+        },
+        "ssl": {
+          "enabled": true,
+          "auto_cert": true
+        },
+        "healthcheck": {
+          "path": "/",
+          "interval": "30s"
+        },
+        "domains": [
+          {
+            "id": "d0",
+            "service": "app",
+            "container_port": 80,
+            "domain": "app.trakli.test",
+            "ssl": {
+              "enabled": true,
+              "auto_cert": true
+            }
+          }
+        ]
+      },
+      "workspace": "default"
+    }
+  ]
+}

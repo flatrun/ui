@@ -1,4 +1,5 @@
 {
+  "logo": "simple-icons:plausibleanalytics",
   "env": {
     "BASE_URL": "https://stats.trakli.test",
     "SECRET_KEY_BASE": "${{ secret.SECRET_KEY_BASE }}"
@@ -9,11 +10,5 @@
       "charset": "alphanumeric"
     }
   },
-  "domains": [
-    [
-      "stats.trakli.test",
-      "plausible",
-      8000
-    ]
-  ]
+  "domains": [["stats.trakli.test", "plausible", 8000]]
 }

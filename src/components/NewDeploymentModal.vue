@@ -235,8 +235,7 @@
                       @click="selectQuickApp(app)"
                     >
                       <div class="template-icon" :class="{ 'has-logo': app.logo }">
-                        <img v-if="app.logo" :src="app.logo" :alt="app.name" class="template-logo" />
-                        <i v-else :class="app.icon || 'pi pi-box'" />
+                        <TemplateLogo :logo="app.logo" :alt="app.name" class="template-logo" />
                       </div>
                       <div class="template-info">
                         <span class="template-name">{{ app.name }}</span>
@@ -1634,6 +1633,7 @@ import {
   type SourceCredential,
 } from "@/services/api";
 import Icon from "@/components/base/Icon.vue";
+import TemplateLogo from "@/components/project/TemplateLogo.vue";
 import { rememberDeploymentJob } from "@/composables/useDeploymentJob";
 import type { RegistryCredential } from "@/types";
 import type { AssistContext } from "@/stores/assist";
@@ -1653,7 +1653,6 @@ interface QuickApp {
   id: string;
   name: string;
   description: string;
-  icon: string;
   logo?: string;
   category: string;
   priority?: number;

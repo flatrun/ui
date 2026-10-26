@@ -100,7 +100,7 @@
                   :class="{ active: templateId === t.id }"
                   @click="pickTemplate(t)"
                 >
-                  <img v-if="t.logo" :src="t.logo" alt="" width="18" height="18" loading="lazy" />
+                  <TemplateLogo :logo="t.logo" :size="18" />
                   <span class="template-name">{{ t.name }}</span>
                   <span class="template-desc">{{ t.description }}</span>
                 </button>
@@ -291,6 +291,7 @@ import BaseField from "@/components/base/BaseField.vue";
 import BaseInput from "@/components/base/BaseInput.vue";
 import BaseButton from "@/components/base/BaseButton.vue";
 import Icon from "@/components/base/Icon.vue";
+import TemplateLogo from "@/components/project/TemplateLogo.vue";
 import {
   containersApi,
   credentialsApi,

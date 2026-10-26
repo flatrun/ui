@@ -13,8 +13,7 @@
 
       <div v-else class="store-picker">
         <button v-for="t in stores" :key="t.id" type="button" class="store-option" @click="selectStore(t)">
-          <img v-if="t.logo" :src="t.logo" :alt="t.name" class="store-logo" />
-          <Icon v-else name="container" :size="20" />
+          <TemplateLogo :logo="t.logo" :alt="t.name" class="store-logo" />
           <div class="store-option-text">
             <span class="store-option-name">{{ t.name }}</span>
             <span class="store-option-desc">{{ t.description }}</span>
@@ -117,6 +116,7 @@ import BaseInput from "@/components/base/BaseInput.vue";
 import BaseSelect from "@/components/base/BaseSelect.vue";
 import BaseButton from "@/components/base/BaseButton.vue";
 import Icon from "@/components/base/Icon.vue";
+import TemplateLogo from "@/components/project/TemplateLogo.vue";
 import { templatesApi, deploymentsApi, objectStoresApi, type ObjectStoreContract } from "@/services/api";
 import { useNotificationsStore } from "@/stores/notifications";
 
