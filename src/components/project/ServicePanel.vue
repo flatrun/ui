@@ -27,54 +27,60 @@
         @refresh="loadLogs"
       />
 
-      <dl v-else class="facts">
-        <div>
-          <dt>Image</dt>
-          <dd class="mono">{{ service.image || "Built from source" }}</dd>
-        </div>
-        <div>
-          <dt>Replicas</dt>
-          <dd>{{ service.running_replicas ?? 0 }} of {{ service.replicas ?? 1 }} running</dd>
-        </div>
-        <div v-if="service.domains?.length">
-          <dt>Domains</dt>
-          <dd>
-            <a v-for="d in service.domains" :key="d" :href="`https://${d}`" target="_blank" rel="noopener">{{ d }}</a>
-          </dd>
-        </div>
-        <div v-if="service.ports?.length">
-          <dt>Ports</dt>
-          <dd class="mono">{{ service.ports?.join(", ") }}</dd>
-        </div>
-        <div v-if="service.depends_on?.length">
-          <dt>Waits for</dt>
-          <dd>{{ service.depends_on?.join(", ") }}</dd>
-        </div>
-        <div>
-          <dt>Volumes</dt>
-          <dd v-if="!service.mounts?.length" class="muted">
-            None. Data written inside the container is lost on redeploy.
-          </dd>
-          <dd v-else>
-            <ul class="mounts">
-              <li v-for="m in service.mounts" :key="m.target" class="mono">
-                {{ m.source || "(anonymous)" }} → {{ m.target }}
-                <span v-if="m.read_only" class="tag">read only</span>
-                <span v-if="m.type === 'volume'" class="tag">named volume</span>
-              </li>
-            </ul>
-          </dd>
-        </div>
-      </dl>
+      <div v-else class="settings-tab">
+        <dl class="facts">
+          <div>
+            <dt>Image</dt>
+            <dd class="mono">{{ service.image || "Built from source" }}</dd>
+          </div>
+          <div>
+            <dt>Replicas</dt>
+            <dd>{{ service.running_replicas ?? 0 }} of {{ service.replicas ?? 1 }} running</dd>
+          </div>
+          <div v-if="service.domains?.length">
+            <dt>Domains</dt>
+            <dd>
+              <a v-for="d in service.domains" :key="d" :href="`https://${d}`" target="_blank" rel="noopener">{{ d }}</a>
+            </dd>
+          </div>
+          <div v-if="service.ports?.length">
+            <dt>Ports</dt>
+            <dd class="mono">{{ service.ports?.join(", ") }}</dd>
+          </div>
+          <div v-if="service.depends_on?.length">
+            <dt>Waits for</dt>
+            <dd>{{ service.depends_on?.join(", ") }}</dd>
+          </div>
+          <div>
+            <dt>Volumes</dt>
+            <dd v-if="!service.mounts?.length" class="muted">
+              None. Data written inside the container is lost on redeploy.
+            </dd>
+            <dd v-else>
+              <ul class="mounts">
+                <li v-for="m in service.mounts" :key="m.target" class="mono">
+                  {{ m.source || "(anonymous)" }} → {{ m.target }}
+                  <span v-if="m.read_only" class="tag">read only</span>
+                  <span v-if="m.type === 'volume'" class="tag">named volume</span>
+                </li>
+              </ul>
+            </dd>
+          </div>
+        </dl>
+
+        <ServiceSettingsForm :deployment-name="deploymentName" :service="service.name" :can-write="canWrite" />
+      </div>
     </div>
   </SlidePanel>
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from "vue";
+import { computed, ref, watch } from "vue";
 import SlidePanel from "@/components/base/SlidePanel.vue";
 import LogViewer from "@/components/LogViewer.vue";
+import ServiceSettingsForm from "./ServiceSettingsForm.vue";
 import { deploymentsApi } from "@/services/api";
+import { useAuthStore } from "@/stores/auth";
 import type { Service } from "@/types";
 
 const props = defineProps<{ deploymentName: string; service: Service | null }>();
@@ -87,6 +93,12 @@ const tabs: { id: Tab; label: string }[] = [
 ];
 
 const tab = ref<Tab>("logs");
+const authStore = useAuthStore();
+const canWrite = computed(
+  () =>
+    Boolean(authStore.hasPermission("deployments:write")) &&
+    Boolean(authStore.canAccessDeployment(props.deploymentName, "write")),
+);
 const logs = ref("");
 const loadingLogs = ref(false);
 
@@ -143,6 +155,12 @@ watch(
   border-bottom-color: var(--text);
   color: var(--text);
   font-weight: var(--font-medium);
+}
+
+.settings-tab {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
 }
 
 .facts {

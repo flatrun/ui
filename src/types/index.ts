@@ -58,6 +58,7 @@ export interface ServiceMetadata {
   source?: SourceConfig;
   environment?: EnvironmentInfo;
   sleep?: SleepConfig;
+  service_settings?: Record<string, ServiceSettings>;
 }
 
 export interface SourceConfig {
@@ -143,6 +144,16 @@ export interface DomainConfig {
   basic_auth?: BasicAuthConfig;
   allow_ips?: string[];
   access?: DomainAccessConfig;
+}
+
+/** Compose settings FlatRun keeps for one service and renders into its compose overlay. */
+export interface ServiceSettings {
+  resources?: { cpus?: string; memory?: string };
+  restart?: string;
+  logging?: { max_size?: string; max_files?: number };
+  environment?: Record<string, string>;
+  command?: string[];
+  entrypoint?: string[];
 }
 
 export interface BasicAuthConfig {

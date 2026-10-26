@@ -1,0 +1,19 @@
+{
+  "service": "web",
+  "settings": {
+    "resources": {
+      "cpus": "0.5",
+      "memory": "512m"
+    },
+    "restart": "unless-stopped",
+    "logging": {
+      "max_size": "10m",
+      "max_files": 3
+    },
+    "environment": {
+      "APP_ENV": "production",
+      "WORKERS": "4"
+    },
+    "command": ["php-fpm", "-F"]
+  }
+}
