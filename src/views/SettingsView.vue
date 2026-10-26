@@ -330,8 +330,9 @@
               <div class="form-group full-width">
                 <label class="form-label" for="default-upload-limit">Default maximum upload request size</label>
                 <span class="form-hint">
-                  For every domain that does not set its own. Use a size such as 64m or 1g, or leave empty for nginx's
-                  1m. Saving regenerates every site's proxy config; a site nginx rejects keeps its previous config.
+                  For every domain that does not set its own. Use a size such as 64m or 1g, or leave empty to keep the
+                  value in nginx.conf (1m unless it is raised there). Saving regenerates every site's proxy config; a
+                  site nginx rejects keeps its previous config.
                 </span>
                 <div class="upload-default">
                   <input
@@ -340,17 +341,20 @@
                     type="text"
                     placeholder="1m"
                     class="form-input"
-                    :disabled="savingUploadDefault || !canWriteSettings"
+                    :disabled="savingUploadDefault || !canWriteSettings || !uploadDefaultLoaded"
                   />
                   <button
                     type="button"
                     class="btn btn-secondary"
-                    :disabled="savingUploadDefault || !canWriteSettings"
+                    :disabled="savingUploadDefault || !canWriteSettings || !uploadDefaultLoaded"
                     @click="saveUploadDefault"
                   >
                     Save
                   </button>
                 </div>
+                <span v-if="uploadDefaultLoadFailed" class="form-hint">
+                  The current default could not be read, so it cannot be changed here.
+                </span>
               </div>
             </div>
           </div>
@@ -1741,6 +1745,8 @@ const saveFilesSettings = async () => {
 };
 
 const uploadDefault = ref("");
+const uploadDefaultLoaded = ref(false);
+const uploadDefaultLoadFailed = ref(false);
 const savingUploadDefault = ref(false);
 
 const fetchUploadDefault = async () => {
@@ -1748,8 +1754,11 @@ const fetchUploadDefault = async () => {
     const response = await configApi.get("nginx.client_max_body_size");
     const value = response.data.entry?.value;
     uploadDefault.value = typeof value === "string" ? value : "";
+    uploadDefaultLoaded.value = true;
+    uploadDefaultLoadFailed.value = false;
   } catch {
-    // Older agents without the config key; leave the field empty.
+    uploadDefaultLoaded.value = false;
+    uploadDefaultLoadFailed.value = true;
   }
 };
 

@@ -496,6 +496,11 @@ function splitBodySize(size?: string): { upload_amount: string; upload_unit: "k"
 function bodySize(): string | undefined {
   const amount = form.value.upload_amount;
   if (amount === "") return undefined;
+  const stored = props.domain?.client_max_body_size;
+  if (stored) {
+    const shown = splitBodySize(stored);
+    if (shown.upload_amount === amount && shown.upload_unit === form.value.upload_unit) return stored;
+  }
   return amount === "0" ? "0" : `${amount}${form.value.upload_unit}`;
 }
 
@@ -576,10 +581,14 @@ const uploadLimitError = computed(() => {
 });
 
 const headersError = computed(() => {
+  const seen = new Set<string>();
   for (const header of form.value.headers) {
     if (!header.name && !header.value) continue;
     if (!/^[A-Za-z0-9-]{1,64}$/.test(header.name)) return "Header names may contain only letters, digits and dashes.";
     if (header.value.includes("$")) return `${header.name} cannot contain $.`;
+    const key = header.name.toLowerCase();
+    if (seen.has(key)) return `${header.name} is listed twice.`;
+    seen.add(key);
   }
   return "";
 });
@@ -608,8 +617,22 @@ function allowIPs() {
     .filter(Boolean);
 }
 
+const IPV4_OCTET = "(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)";
+const IPV4 = new RegExp(`^${IPV4_OCTET}(\\.${IPV4_OCTET}){3}(\\/(3[0-2]|[12]?\\d))?$`);
+const IPV6 = /^[0-9A-Fa-f:]*:[0-9A-Fa-f:]*(\/(12[0-8]|1[01]\d|[1-9]?\d))?$/;
+
+function validIPv6(entry: string) {
+  if (!IPV6.test(entry)) return false;
+  const address = entry.split("/")[0];
+  const compressed = address.split("::");
+  if (compressed.length > 2) return false;
+  const groups = address.split(":").filter(Boolean);
+  if (groups.some((g) => g.length > 4)) return false;
+  return compressed.length === 2 ? groups.length <= 7 : groups.length === 8;
+}
+
 const allowIPsError = computed(() => {
-  const bad = allowIPs().find((entry) => !/^[0-9A-Fa-f:.]+(\/\d{1,3})?$/.test(entry));
+  const bad = allowIPs().find((entry) => !IPV4.test(entry) && !validIPv6(entry));
   return bad ? `${bad} is not an IP address or CIDR range.` : "";
 });
 
@@ -680,7 +703,8 @@ function handleSubmit() {
     proxy_timeout: form.value.proxy_timeout || undefined,
     proxy_buffering: form.value.stream_responses ? false : undefined,
     response_headers: responseHeaders(),
-    canonical_redirect: form.value.canonical_redirect ? "primary" : undefined,
+    canonical_redirect:
+      form.value.canonical_redirect && form.value.aliases.some((a) => a.trim()) ? "primary" : undefined,
     basic_auth: form.value.basic_auth.enabled
       ? {
           enabled: true,
