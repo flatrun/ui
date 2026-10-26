@@ -1,9 +1,10 @@
 <template>
   <div class="logo-setting">
     <p class="row-description">
-      Use an icon id from a public set such as <code>simple-icons:redis</code>, a link to an image, an uploaded PNG,
-      WebP or SVG, or <code>template:&lt;id&gt;</code> for a template's logo. Left empty, the project shows the logo of
-      its template or an icon for the image it runs.
+      Use an icon id such as <code>logos:postgresql</code>, a link to an image, or the path of a PNG, WebP or SVG file
+      in the project, such as <code>assets/logo.svg</code>. An upload is stored in the project as
+      <code>.flatrun/logo.svg</code>. Left empty, the project shows the logo of a template running the same image, or an
+      icon for the image.
     </p>
     <div class="logo-form">
       <ProjectLogo :deployment="deployment" :size="32" />
@@ -11,7 +12,7 @@
         v-model="value"
         class="logo-input"
         type="text"
-        placeholder="simple-icons:redis or https://..."
+        placeholder="logos:postgresql, https://... or assets/logo.svg"
         :disabled="busy"
         @keyup.enter="save"
       />
@@ -70,12 +71,7 @@ function upload(event: Event) {
 }
 
 function reset() {
-  const name = props.deployment.name;
-  run(
-    () =>
-      current.value === "upload" ? deploymentsApi.removeLogo(name) : deploymentsApi.updateMetadata(name, { logo: "" }),
-    "Logo reset",
-  );
+  run(() => deploymentsApi.removeLogo(props.deployment.name), "Logo reset");
 }
 </script>
 

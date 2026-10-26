@@ -1,19 +1,16 @@
 import type { Deployment } from "@/types";
 import { leadService, projectIcon } from "./brand";
 
-export type ProjectLogo = { icon: string } | { src: string } | { upload: string };
+export type ProjectLogo = { icon: string } | { src: string } | { file: string };
 
-export interface TemplateLogos {
-  byId: Record<string, string>;
-  byImage: Record<string, string>;
-}
-
-export const noTemplateLogos: TemplateLogos = { byId: {}, byImage: {} };
+// Logos of catalog templates, keyed by the app image each one runs.
+export type ImageLogos = Record<string, string>;
 
 const own = (map: Record<string, string>, key: string) =>
   Object.prototype.hasOwnProperty.call(map, key) ? map[key] : undefined;
 
 const ICON_ID = /^[a-z0-9]+(-[a-z0-9]+)*:[a-z0-9]+(-[a-z0-9]+)*$/;
+const LINK = /^https?:\/\//;
 
 function imageRepo(image: string | undefined): string {
   const repo = (image ?? "").toLowerCase().split("@")[0];
@@ -37,43 +34,33 @@ export function apiAsset(path: string): string {
   return base + path;
 }
 
-export function templateLogos(templates: { id: string; logo?: string; content?: string }[]): TemplateLogos {
-  const logos: TemplateLogos = { byId: {}, byImage: {} };
+// A template's logo as the agent lists it: an icon id, a link, or the path serving its file.
+export function templateLogo(logo: string | undefined): ProjectLogo | undefined {
+  if (!logo) return undefined;
+  if (ICON_ID.test(logo)) return { icon: logo };
+  if (LINK.test(logo) || logo.startsWith("/api/")) return { src: apiAsset(logo) };
+  return undefined;
+}
+
+export function imageLogos(templates: { logo?: string; content?: string }[]): ImageLogos {
+  const logos: ImageLogos = {};
   for (const t of templates) {
-    if (!t.logo) continue;
-    logos.byId[t.id] = t.logo;
     const image = appImage(t.content?.match(/^\s*image:\s*["']?([^\s"'#]+)/m)?.[1]);
-    if (image && !logos.byImage[image]) logos.byImage[image] = t.logo;
+    if (t.logo && image && !own(logos, image)) logos[image] = t.logo;
   }
   return logos;
 }
 
-function fromTemplate(logo: string | undefined): ProjectLogo | undefined {
-  if (!logo) return undefined;
-  if (ICON_ID.test(logo)) return { icon: logo };
-  return { src: apiAsset(logo) };
-}
-
-// A project shows, in order: the logo it was given, the logo of the template it came from, the
-// logo of a template that runs the same app image, and an icon for the image itself.
+// A project shows, in order: the logo it was given, the logo of a template that runs the same
+// app image, and an icon for the image itself. A logo naming a file is served by the agent,
+// which reports a version for it only when the file exists.
 export function projectLogo(
   deployment: Pick<Deployment, "services" | "metadata" | "logo_version">,
-  templates: TemplateLogos = noTemplateLogos,
+  images: ImageLogos = {},
 ): ProjectLogo {
   const logo = deployment.metadata?.logo ?? "";
-  if (logo === "upload" && deployment.logo_version) return { upload: deployment.logo_version };
-  if (logo.startsWith("template:")) {
-    const named = fromTemplate(own(templates.byId, logo.slice("template:".length)));
-    if (named) return named;
-  } else if (/^https?:\/\//.test(logo)) {
-    return { src: logo };
-  } else if (ICON_ID.test(logo)) {
-    return { icon: logo };
-  }
-
-  const template = deployment.metadata?.template;
-  return (
-    (template ? fromTemplate(own(templates.byId, template)) : undefined) ??
-    fromTemplate(own(templates.byImage, appImage(leadService(deployment)?.image))) ?? { icon: projectIcon(deployment) }
-  );
+  if (ICON_ID.test(logo)) return { icon: logo };
+  if (LINK.test(logo)) return { src: logo };
+  if (logo && deployment.logo_version) return { file: deployment.logo_version };
+  return templateLogo(own(images, appImage(leadService(deployment)?.image))) ?? { icon: projectIcon(deployment) };
 }

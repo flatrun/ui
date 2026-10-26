@@ -1,62 +1,44 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import projectsFixture from "./fixtures/projects-with-logos.json";
 import templatesFixture from "./fixtures/templates-with-logos.json";
-import { apiAsset, projectLogo, templateLogos } from "./project-logo";
+import { apiAsset, imageLogos, projectLogo, templateLogo } from "./project-logo";
 import type { Deployment } from "@/types";
 
-const templates = templateLogos(templatesFixture.templates);
+const images = imageLogos(templatesFixture.templates);
 const project = (name: string) => projectsFixture.items.find((p) => p.name === name) as unknown as Deployment;
 
 describe("projectLogo", () => {
-  it("shows an icon id, a link or an uploaded file the project was given", () => {
-    expect(projectLogo(project("plausible"), templates)).toEqual({ icon: "simple-icons:plausibleanalytics" });
-    expect(projectLogo(project("postiz"), templates)).toEqual({ src: "https://cdn.simpleicons.org/postiz" });
-    expect(projectLogo(project("shop"), templates)).toEqual({ upload: project("shop").logo_version });
+  it("shows an icon id, a link or a file the project was given", () => {
+    expect(projectLogo(project("plausible"), images)).toEqual({ icon: "simple-icons:plausibleanalytics" });
+    expect(projectLogo(project("postiz"), images)).toEqual({ src: "https://cdn.simpleicons.org/postiz" });
+    expect(projectLogo(project("shop"), images)).toEqual({ file: project("shop").logo_version });
   });
 
   it("shows the logo of a template running the same app image", () => {
-    expect(projectLogo(project("trakli"), templates)).toEqual({ src: apiAsset("/api/templates/trakli/logo") });
+    expect(projectLogo(project("trakli"), images)).toEqual({ src: apiAsset("/api/templates/trakli/logo") });
   });
 
   it("does not take a template's logo for an official image several templates share", () => {
-    expect(projectLogo(project("blog"), templates)).toEqual({ icon: "logos:wordpress-icon" });
+    expect(projectLogo(project("blog"), images)).toEqual({ icon: "logos:wordpress-icon" });
   });
 
-  it("shows the logo of the template the project came from, or one it names", () => {
-    const blog = project("blog");
-    expect(projectLogo({ ...blog, metadata: { ...blog.metadata!, template: "sourceant" } }, templates)).toEqual({
-      src: apiAsset("/api/templates/sourceant/logo"),
-    });
-    expect(projectLogo({ ...blog, metadata: { ...blog.metadata!, logo: "template:wordpress" } }, templates)).toEqual({
-      src: "https://cdn.simpleicons.org/wordpress",
-    });
-  });
-
-  it("falls back when an uploaded logo or a named template is missing", () => {
+  it("falls back when the file a logo names is missing", () => {
     const shop = project("shop");
-    expect(projectLogo({ ...shop, logo_version: undefined }, templates)).toEqual({ icon: "logos:nodejs-icon" });
-    expect(
-      projectLogo(
-        { ...shop, logo_version: undefined, metadata: { ...shop.metadata!, logo: "template:gone" } },
-        templates,
-      ),
-    ).toEqual({ icon: "logos:nodejs-icon" });
-  });
-
-  it("ignores template names that are not templates, such as object members", () => {
-    const blog = project("blog");
-    for (const name of ["constructor", "__proto__", "toString"]) {
-      expect(projectLogo({ ...blog, metadata: { ...blog.metadata!, logo: `template:${name}` } }, templates)).toEqual({
-        icon: "logos:wordpress-icon",
-      });
-      expect(projectLogo({ ...blog, metadata: { ...blog.metadata!, template: name } }, templates)).toEqual({
-        icon: "logos:wordpress-icon",
-      });
-    }
+    expect(projectLogo({ ...shop, logo_version: undefined }, images)).toEqual({ icon: "logos:nodejs-icon" });
   });
 
   it("uses the image icon before the template list has loaded", () => {
     expect(projectLogo(project("trakli"))).toEqual({ icon: "box" });
+  });
+});
+
+describe("templateLogo", () => {
+  it("reads every form the agent lists", () => {
+    expect(templateLogo("logos:redis")).toEqual({ icon: "logos:redis" });
+    expect(templateLogo("https://example.com/a.svg")).toEqual({ src: "https://example.com/a.svg" });
+    expect(templateLogo(templatesFixture.templates[0].logo)).toEqual({ src: apiAsset("/api/templates/static/logo") });
+    expect(templateLogo("")).toBeUndefined();
+    expect(templateLogo("javascript:alert(1)")).toBeUndefined();
   });
 });
 

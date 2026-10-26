@@ -38,7 +38,7 @@ export interface Service {
 export interface ServiceMetadata {
   name: string;
   type: string;
-  // An icon id (simple-icons:redis), an http(s) link, "upload", or "template:<id>".
+  // An icon id (logos:postgresql), an http(s) link, or an image file inside the project.
   logo?: string;
   // The template the project was created from.
   template?: string;

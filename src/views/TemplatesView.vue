@@ -44,8 +44,7 @@
       <div v-for="template in filteredTemplates" :key="template.id" class="template-card">
         <div class="template-header">
           <div class="template-logo" :class="{ 'has-image': template.logo }">
-            <img v-if="template.logo" :src="template.logo" :alt="template.name" />
-            <i v-else :class="template.icon || 'pi pi-box'" />
+            <TemplateLogo :logo="template.logo" :alt="template.name" :size="32" />
           </div>
           <div class="template-actions">
             <span class="template-category">{{ getCategoryLabel(template.category) }}</span>
@@ -92,8 +91,7 @@
         <div class="modal-header">
           <div class="modal-title-row">
             <div class="template-logo-lg" :class="{ 'has-image': detailsTemplate?.logo }">
-              <img v-if="detailsTemplate?.logo" :src="detailsTemplate.logo" :alt="detailsTemplate.name" />
-              <i v-else :class="detailsTemplate?.icon || 'pi pi-box'" />
+              <TemplateLogo :logo="detailsTemplate?.logo" :alt="detailsTemplate?.name" :size="40" />
             </div>
             <div>
               <h2>{{ detailsTemplate?.name }}</h2>
@@ -138,12 +136,12 @@ import { ref, computed, onMounted, onUnmounted } from "vue";
 import { templatesApi, type TemplateCategory, type ObjectStoreContract } from "@/services/api";
 import { useNotificationsStore } from "@/stores/notifications";
 import NewDeploymentModal from "@/components/NewDeploymentModal.vue";
+import TemplateLogo from "@/components/project/TemplateLogo.vue";
 
 interface Template {
   id: string;
   name: string;
   description: string;
-  icon: string;
   logo?: string;
   category: string;
   object_store?: ObjectStoreContract;
@@ -264,7 +262,6 @@ const formatMetadata = (template: Template | null) => {
   if (!template) return "";
   return `name: ${template.name}
 description: ${template.description || ""}
-icon: ${template.icon || "pi pi-box"}
 logo: ${template.logo || ""}
 category: ${template.category}
 priority: ${template.priority || 0}`;

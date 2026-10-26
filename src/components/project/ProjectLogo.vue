@@ -17,39 +17,39 @@ const props = withDefaults(
   { size: 18 },
 );
 
-// An uploaded logo is served behind the API's auth, so it is fetched once per version and shown
-// from an object URL rather than linked directly. A project keeps only its latest version.
-const uploads = new Map<string, { version: string; url: Promise<string> }>();
+// A logo file is served behind the API's auth, so it is fetched once per version and shown from
+// an object URL rather than linked directly. A project keeps only its latest version.
+const files = new Map<string, { version: string; url: Promise<string> }>();
 
-function uploadedLogo(name: string, version: string): Promise<string> {
-  const cached = uploads.get(name);
+function logoFile(name: string, version: string): Promise<string> {
+  const cached = files.get(name);
   if (cached?.version === version) return cached.url;
   cached?.url.then((url) => URL.revokeObjectURL(url)).catch(() => undefined);
   const url = deploymentsApi.logo(name).then((r) => URL.createObjectURL(r.data));
-  uploads.set(name, { version, url });
-  url.catch(() => uploads.get(name)?.url === url && uploads.delete(name));
+  files.set(name, { version, url });
+  url.catch(() => files.get(name)?.url === url && files.delete(name));
   return url;
 }
 
 const templates = useTemplateLogos();
 const logo = computed(() => projectLogo(props.deployment, templates.value));
-const uploaded = ref("");
+const fetched = ref("");
 const failed = ref(false);
 
 watch(logo, () => (failed.value = false));
 
-const uploadKey = computed(() => ("upload" in logo.value ? `${props.deployment.name}:${logo.value.upload}` : ""));
+const fileKey = computed(() => ("file" in logo.value ? `${props.deployment.name}:${logo.value.file}` : ""));
 
 watch(
-  uploadKey,
+  fileKey,
   async (key) => {
-    uploaded.value = "";
-    if (!key || !("upload" in logo.value)) return;
+    fetched.value = "";
+    if (!key || !("file" in logo.value)) return;
     try {
-      const url = await uploadedLogo(props.deployment.name, logo.value.upload);
-      if (uploadKey.value === key) uploaded.value = url;
+      const url = await logoFile(props.deployment.name, logo.value.file);
+      if (fileKey.value === key) fetched.value = url;
     } catch {
-      if (uploadKey.value === key) failed.value = true;
+      if (fileKey.value === key) failed.value = true;
     }
   },
   { immediate: true },
@@ -58,7 +58,7 @@ watch(
 const src = computed(() => {
   if (failed.value) return "";
   if ("src" in logo.value) return logo.value.src;
-  return uploaded.value;
+  return fetched.value;
 });
 const icon = computed(() => ("icon" in logo.value && !failed.value ? logo.value.icon : projectIcon(props.deployment)));
 </script>

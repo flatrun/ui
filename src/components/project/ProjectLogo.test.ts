@@ -13,14 +13,14 @@ vi.mock("@/services/api", async (importOriginal) => {
 const project = (name: string) => projectsFixture.items.find((p) => p.name === name) as unknown as Deployment;
 
 describe("ProjectLogo", () => {
-  it("shows an uploaded logo, a linked one, and an icon", async () => {
+  it("shows a logo file, a linked logo, and an icon", async () => {
     const createObjectURL = vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:logo");
     vi.mocked(deploymentsApi.logo).mockResolvedValue({ data: new Blob(["svg"], { type: "image/svg+xml" }) } as any);
 
-    const uploaded = mount(ProjectLogo, { props: { deployment: project("shop") } });
+    const file = mount(ProjectLogo, { props: { deployment: project("shop") } });
     await flushPromises();
     expect(deploymentsApi.logo).toHaveBeenCalledWith("shop");
-    expect(uploaded.get("img").attributes("src")).toBe("blob:logo");
+    expect(file.get("img").attributes("src")).toBe("blob:logo");
 
     const linked = mount(ProjectLogo, { props: { deployment: project("postiz") } });
     expect(linked.get("img").attributes("src")).toBe("https://cdn.simpleicons.org/postiz");
@@ -30,7 +30,7 @@ describe("ProjectLogo", () => {
     createObjectURL.mockRestore();
   });
 
-  it("revokes the previous version of an uploaded logo when it is replaced", async () => {
+  it("revokes the previous version of a logo file when it is replaced", async () => {
     const createObjectURL = vi
       .spyOn(URL, "createObjectURL")
       .mockReturnValueOnce("blob:v1")
