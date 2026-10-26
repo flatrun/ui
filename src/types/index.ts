@@ -137,7 +137,24 @@ export interface DomainConfig {
   static_cache?: boolean;
   client_max_body_size?: string;
   upload_limit_page?: boolean;
+  proxy_buffering?: boolean;
+  response_headers?: Record<string, string>;
+  canonical_redirect?: "" | "primary";
+  basic_auth?: BasicAuthConfig;
+  allow_ips?: string[];
   access?: DomainAccessConfig;
+}
+
+export interface BasicAuthConfig {
+  enabled: boolean;
+  users?: BasicAuthUser[];
+}
+
+/** A user sent with only a username keeps the password the agent has stored. */
+export interface BasicAuthUser {
+  username: string;
+  password?: string;
+  password_hash?: string;
 }
 
 export interface UploadRejection {

@@ -146,6 +146,64 @@
             </div>
 
             <div class="form-section">
+              <h4>Responses</h4>
+
+              <div class="form-group checkbox-group">
+                <label class="checkbox-label">
+                  <input v-model="form.stream_responses" type="checkbox" />
+                  <span>Stream responses as the app writes them</span>
+                </label>
+                <span class="hint">
+                  Turns off proxy buffering. Needed for server-sent events and other streaming responses; leave it off
+                  otherwise.
+                </span>
+              </div>
+
+              <div class="form-group">
+                <label>Response headers</label>
+                <div class="aliases-input">
+                  <div v-for="(header, index) in form.headers" :key="index" class="alias-item">
+                    <input
+                      v-model.trim="header.name"
+                      type="text"
+                      class="form-input header-name"
+                      :aria-label="`Header ${index + 1} name`"
+                      placeholder="Content-Security-Policy"
+                    />
+                    <input
+                      v-model="header.value"
+                      type="text"
+                      class="form-input"
+                      :aria-label="`Header ${index + 1} value`"
+                      placeholder="default-src 'self'"
+                    />
+                    <button
+                      type="button"
+                      class="remove-btn"
+                      aria-label="Remove header"
+                      @click="form.headers.splice(index, 1)"
+                    >
+                      <Icon name="x" :size="14" />
+                    </button>
+                  </div>
+                  <button
+                    type="button"
+                    class="btn btn-sm btn-secondary"
+                    @click="form.headers.push({ name: '', value: '' })"
+                  >
+                    <Icon name="plus" :size="14" />
+                    Add header
+                  </button>
+                </div>
+                <span v-if="headersError" class="field-error">{{ headersError }}</span>
+                <span class="hint">
+                  Added to every response. A header with the same name as a default security header, such as
+                  X-Frame-Options, replaces it; the other defaults stay.
+                </span>
+              </div>
+            </div>
+
+            <div class="form-section">
               <h4>Visitor Access</h4>
 
               <div class="form-group checkbox-group">
@@ -200,6 +258,65 @@
                   <BaseInput v-model.number="form.access.session_hours" type="number" min="1" max="720" />
                 </BaseField>
               </template>
+
+              <div class="form-group checkbox-group">
+                <label class="checkbox-label">
+                  <input v-model="form.basic_auth.enabled" type="checkbox" />
+                  <span>Require a username and password</span>
+                </label>
+                <span class="hint">The browser asks for them before the request reaches the app.</span>
+              </div>
+
+              <div v-if="form.basic_auth.enabled" class="form-group">
+                <div class="aliases-input">
+                  <div v-for="(user, index) in form.basic_auth.users" :key="index" class="alias-item">
+                    <input
+                      v-model.trim="user.username"
+                      type="text"
+                      class="form-input"
+                      :aria-label="`User ${index + 1} name`"
+                      placeholder="Username"
+                      autocomplete="off"
+                    />
+                    <input
+                      v-model="user.password"
+                      type="password"
+                      class="form-input"
+                      :aria-label="`User ${index + 1} password`"
+                      :placeholder="user.stored ? 'Unchanged' : 'Password'"
+                      autocomplete="new-password"
+                    />
+                    <button
+                      type="button"
+                      class="remove-btn"
+                      aria-label="Remove user"
+                      @click="form.basic_auth.users.splice(index, 1)"
+                    >
+                      <Icon name="x" :size="14" />
+                    </button>
+                  </div>
+                  <button
+                    type="button"
+                    class="btn btn-sm btn-secondary"
+                    @click="form.basic_auth.users.push({ username: '', password: '', stored: false })"
+                  >
+                    <Icon name="plus" :size="14" />
+                    Add user
+                  </button>
+                </div>
+                <span v-if="basicAuthError" class="field-error">{{ basicAuthError }}</span>
+                <span class="hint"
+                  >Passwords are stored only as hashes. Leave a saved user's password empty to keep it.</span
+                >
+              </div>
+
+              <BaseField
+                label="Allowed IP addresses"
+                hint="One address or CIDR range per line, such as 203.0.113.4 or 10.0.0.0/8. Everyone else gets 403. Leave empty to allow everyone."
+              >
+                <BaseTextarea v-model="form.allow_ips" :rows="3" placeholder="203.0.113.4&#10;10.0.0.0/8" />
+              </BaseField>
+              <span v-if="allowIPsError" class="field-error">{{ allowIPsError }}</span>
             </div>
 
             <div class="form-group">
@@ -217,6 +334,17 @@
                 </button>
               </div>
               <span class="hint">Additional domain names that should also resolve here</span>
+            </div>
+
+            <div v-if="form.aliases.some((a) => a.trim())" class="form-group checkbox-group">
+              <label class="checkbox-label">
+                <input v-model="form.canonical_redirect" type="checkbox" />
+                <span>Redirect aliases to {{ form.domain || "the primary domain" }}</span>
+              </label>
+              <span class="hint">
+                Visitors on an alias are sent to the primary domain with a permanent redirect, keeping the path, instead
+                of seeing the app on two addresses.
+              </span>
             </div>
 
             <div class="form-group">
@@ -266,6 +394,7 @@ import BaseField from "@/components/base/BaseField.vue";
 import BaseInput from "@/components/base/BaseInput.vue";
 import BaseSelect from "@/components/base/BaseSelect.vue";
 import BaseTextarea from "@/components/base/BaseTextarea.vue";
+import Icon from "@/components/base/Icon.vue";
 
 const props = defineProps<{
   visible: boolean;
@@ -295,6 +424,11 @@ const form = ref<{
   upload_unit: "k" | "m" | "g";
   upload_limit_page: boolean;
   proxy_timeout: number | "";
+  stream_responses: boolean;
+  headers: { name: string; value: string }[];
+  canonical_redirect: boolean;
+  basic_auth: { enabled: boolean; users: { username: string; password: string; stored: boolean }[] };
+  allow_ips: string;
   access: {
     enabled: boolean;
     mode: "allowlist" | "any_verified";
@@ -326,6 +460,24 @@ function emptyRequestSettings() {
     upload_unit: "m" as const,
     upload_limit_page: false,
     proxy_timeout: "" as const,
+    stream_responses: false,
+    headers: [] as { name: string; value: string }[],
+    canonical_redirect: false,
+    basic_auth: { enabled: false, users: [] as { username: string; password: string; stored: boolean }[] },
+    allow_ips: "",
+  };
+}
+
+function storedProxySettings(domain: DomainConfig) {
+  return {
+    stream_responses: domain.proxy_buffering === false,
+    headers: Object.entries(domain.response_headers || {}).map(([name, value]) => ({ name, value })),
+    canonical_redirect: domain.canonical_redirect === "primary",
+    basic_auth: {
+      enabled: domain.basic_auth?.enabled || false,
+      users: (domain.basic_auth?.users || []).map((u) => ({ username: u.username, password: "", stored: true })),
+    },
+    allow_ips: (domain.allow_ips || []).join("\n"),
   };
 }
 
@@ -371,6 +523,7 @@ watch(
           ...splitBodySize(props.domain.client_max_body_size),
           upload_limit_page: props.domain.upload_limit_page || false,
           proxy_timeout: props.domain.proxy_timeout || "",
+          ...storedProxySettings(props.domain),
           access: {
             enabled: props.domain.access?.enabled || false,
             mode: props.domain.access?.mode || "allowlist",
@@ -422,9 +575,47 @@ const uploadLimitError = computed(() => {
   return "";
 });
 
+const headersError = computed(() => {
+  for (const header of form.value.headers) {
+    if (!header.name && !header.value) continue;
+    if (!/^[A-Za-z0-9-]{1,64}$/.test(header.name)) return "Header names may contain only letters, digits and dashes.";
+    if (header.value.includes("$")) return `${header.name} cannot contain $.`;
+  }
+  return "";
+});
+
+const basicAuthError = computed(() => {
+  const auth = form.value.basic_auth;
+  if (!auth.enabled) return "";
+  const users = auth.users.filter((u) => u.username || u.password);
+  if (users.length === 0) return "Add at least one user.";
+  const seen = new Set<string>();
+  for (const user of users) {
+    if (!/^[A-Za-z0-9._@+-]{1,64}$/.test(user.username)) {
+      return "Usernames may contain only letters, digits and . _ @ + -";
+    }
+    if (seen.has(user.username)) return `${user.username} is listed twice.`;
+    seen.add(user.username);
+    if (!user.stored && !user.password) return `Set a password for ${user.username}.`;
+  }
+  return "";
+});
+
+function allowIPs() {
+  return form.value.allow_ips
+    .split(/[\s,]+/)
+    .map((entry) => entry.trim())
+    .filter(Boolean);
+}
+
+const allowIPsError = computed(() => {
+  const bad = allowIPs().find((entry) => !/^[0-9A-Fa-f:.]+(\/\d{1,3})?$/.test(entry));
+  return bad ? `${bad} is not an IP address or CIDR range.` : "";
+});
+
 const isValid = computed(() => {
   if (form.value.domain.trim() === "") return false;
-  if (uploadLimitError.value) return false;
+  if (uploadLimitError.value || headersError.value || basicAuthError.value || allowIPsError.value) return false;
   if (!form.value.access.enabled) return true;
   if (!form.value.access.email_target_id) return false;
   if (form.value.access.session_hours < 1 || form.value.access.session_hours > 720) return false;
@@ -446,6 +637,12 @@ function accessEmails() {
     .split(/[\n,]/)
     .map((email) => email.trim().toLowerCase())
     .filter(Boolean);
+}
+
+function responseHeaders(): Record<string, string> | undefined {
+  const headers = form.value.headers.filter((h) => h.name);
+  if (headers.length === 0) return undefined;
+  return Object.fromEntries(headers.map((h) => [h.name, h.value]));
 }
 
 function addAlias() {
@@ -481,6 +678,18 @@ function handleSubmit() {
     client_max_body_size: bodySize(),
     upload_limit_page: form.value.upload_limit_page || undefined,
     proxy_timeout: form.value.proxy_timeout || undefined,
+    proxy_buffering: form.value.stream_responses ? false : undefined,
+    response_headers: responseHeaders(),
+    canonical_redirect: form.value.canonical_redirect ? "primary" : undefined,
+    basic_auth: form.value.basic_auth.enabled
+      ? {
+          enabled: true,
+          users: form.value.basic_auth.users
+            .filter((u) => u.username)
+            .map((u) => (u.password ? { username: u.username, password: u.password } : { username: u.username })),
+        }
+      : undefined,
+    allow_ips: allowIPs().length ? allowIPs() : undefined,
     access: form.value.access.enabled
       ? {
           enabled: true,
@@ -679,6 +888,10 @@ function handleSubmit() {
 
 .alias-item .form-input {
   flex: 1;
+}
+
+.alias-item .header-name {
+  flex: 0 0 40%;
 }
 
 .remove-btn {

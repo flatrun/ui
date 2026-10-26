@@ -269,3 +269,112 @@ describe("DomainFormModal request settings", () => {
     expect(document.body.textContent).toContain("post_max_size");
   });
 });
+
+describe("DomainFormModal proxy settings", () => {
+  const admin = (domainsFixture.domains as DomainConfig[]).find((d) => d.id === "admin")!;
+  const site = (domainsFixture.domains as DomainConfig[]).find((d) => d.id === "site")!;
+
+  const input = (label: string) => document.querySelector<HTMLInputElement>(`[aria-label="${label}"]`)!;
+  const type = async (el: HTMLInputElement | HTMLTextAreaElement, value: string) => {
+    el.value = value;
+    el.dispatchEvent(new Event("input", { bubbles: true }));
+    await wrapper.vm.$nextTick();
+  };
+  const toggle = async (text: string) => {
+    const label = Array.from(document.querySelectorAll("label")).find((l) => l.textContent?.includes(text));
+    const box = label?.querySelector<HTMLInputElement>("input");
+    if (!box) throw new Error(`${text} toggle missing`);
+    box.checked = !box.checked;
+    box.dispatchEvent(new Event("change", { bubbles: true }));
+    await wrapper.vm.$nextTick();
+  };
+  const clickButton = async (text: string) => {
+    Array.from(document.querySelectorAll("button"))
+      .find((b) => b.textContent?.trim() === text)
+      ?.click();
+    await wrapper.vm.$nextTick();
+  };
+  const submit = async () => {
+    document.querySelector<HTMLButtonElement>(".btn-primary")?.click();
+    await wrapper.vm.$nextTick();
+  };
+  const saved = () => {
+    const events = wrapper.emitted("save") ?? [];
+    return events[events.length - 1]?.[0] as DomainConfig | undefined;
+  };
+
+  it("keeps every stored setting and never sends the password hash back", async () => {
+    mountModal(admin);
+    await submit();
+
+    const domain = saved()!;
+    expect(domain.proxy_buffering).toBe(false);
+    expect(domain.response_headers).toEqual({ "Cache-Control": "no-store" });
+    expect(domain.canonical_redirect).toBe("primary");
+    expect(domain.allow_ips).toEqual(["203.0.113.4", "10.0.0.0/8"]);
+    expect(domain.basic_auth).toEqual({ enabled: true, users: [{ username: "alice" }] });
+  });
+
+  it("sends a new user's password and a changed one for a saved user", async () => {
+    mountModal(admin);
+    await type(input("User 1 password"), "rotated-pass");
+    await clickButton("Add user");
+    await type(input("User 2 name"), "bob");
+    await type(input("User 2 password"), "bob-pass");
+    await submit();
+
+    expect(saved()?.basic_auth?.users).toEqual([
+      { username: "alice", password: "rotated-pass" },
+      { username: "bob", password: "bob-pass" },
+    ]);
+  });
+
+  it("refuses a new user without a password", async () => {
+    mountModal(site);
+    await toggle("Require a username and password");
+    await clickButton("Add user");
+    await type(input("User 1 name"), "carol");
+
+    expect(document.body.textContent).toContain("Set a password for carol.");
+    await submit();
+    expect(wrapper.emitted("save")).toBeUndefined();
+  });
+
+  it("refuses headers and addresses the proxy would reject", async () => {
+    mountModal(site);
+    await clickButton("Add header");
+    await type(input("Header 1 name"), "X Bad");
+    expect(document.body.textContent).toContain("Header names may contain only letters, digits and dashes.");
+    await type(input("Header 1 name"), "X-Client");
+    await type(input("Header 1 value"), "$remote_addr");
+    expect(document.body.textContent).toContain("X-Client cannot contain $.");
+    await type(input("Header 1 value"), "web");
+
+    const allow = Array.from(document.querySelectorAll("textarea")).find((t) =>
+      t.placeholder.startsWith("203.0.113.4"),
+    )!;
+    await type(allow, "example.com");
+    expect(document.body.textContent).toContain("example.com is not an IP address or CIDR range.");
+    await submit();
+    expect(wrapper.emitted("save")).toBeUndefined();
+
+    await type(allow, "203.0.113.0/24\n2001:db8::1");
+    await submit();
+    expect(saved()?.response_headers).toEqual({ "X-Client": "web" });
+    expect(saved()?.allow_ips).toEqual(["203.0.113.0/24", "2001:db8::1"]);
+  });
+
+  it("offers the alias redirect only when the domain has aliases", async () => {
+    mountModal(site);
+    expect(document.body.textContent).not.toContain("Redirect aliases");
+    await clickButton("Add Alias");
+    await type(
+      document.querySelector<HTMLInputElement>('input[placeholder="www.example.com"]')!,
+      "www.shop.example.com",
+    );
+    await toggle("Redirect aliases to shop.example.com");
+    await submit();
+
+    expect(saved()?.canonical_redirect).toBe("primary");
+  });
+});
