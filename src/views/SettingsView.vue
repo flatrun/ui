@@ -327,6 +327,31 @@
                   </label>
                 </div>
               </div>
+              <div class="form-group full-width">
+                <label class="form-label" for="default-upload-limit">Default maximum upload request size</label>
+                <span class="form-hint">
+                  For every domain that does not set its own. Use a size such as 64m or 1g, or leave empty for nginx's
+                  1m. Saving regenerates every site's proxy config; a site nginx rejects keeps its previous config.
+                </span>
+                <div class="upload-default">
+                  <input
+                    id="default-upload-limit"
+                    v-model.trim="uploadDefault"
+                    type="text"
+                    placeholder="1m"
+                    class="form-input"
+                    :disabled="savingUploadDefault || !canWriteSettings"
+                  />
+                  <button
+                    type="button"
+                    class="btn btn-secondary"
+                    :disabled="savingUploadDefault || !canWriteSettings"
+                    @click="saveUploadDefault"
+                  >
+                    Save
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -1715,6 +1740,36 @@ const saveFilesSettings = async () => {
   }
 };
 
+const uploadDefault = ref("");
+const savingUploadDefault = ref(false);
+
+const fetchUploadDefault = async () => {
+  try {
+    const response = await configApi.get("nginx.client_max_body_size");
+    const value = response.data.entry?.value;
+    uploadDefault.value = typeof value === "string" ? value : "";
+  } catch {
+    // Older agents without the config key; leave the field empty.
+  }
+};
+
+const saveUploadDefault = async () => {
+  savingUploadDefault.value = true;
+  try {
+    const response = await configApi.set("nginx.client_max_body_size", uploadDefault.value);
+    if (response.data.apply_error) {
+      notifications.warning("Saved with problems", response.data.apply_error);
+    } else {
+      notifications.success("Saved", "Default upload limit applied to every site");
+    }
+  } catch (e: any) {
+    notifications.error("Error", e.response?.data?.error || "Failed to save the default upload limit");
+    await fetchUploadDefault();
+  } finally {
+    savingUploadDefault.value = false;
+  }
+};
+
 const aiSettings = reactive({ enabled: false, base_url: "", model: "", api_key: "" });
 const savingAI = ref(false);
 
@@ -1793,6 +1848,7 @@ onMounted(() => {
   fetchRegistryTypes();
   fetchAISettings();
   fetchFilesSettings();
+  fetchUploadDefault();
   fetchMcpSettings();
 });
 </script>
@@ -2138,6 +2194,15 @@ onMounted(() => {
   line-height: 1.6;
   overflow-x: auto;
   margin: 0;
+}
+
+.upload-default {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.upload-default .form-input {
+  max-width: 12rem;
 }
 
 .form-grid {

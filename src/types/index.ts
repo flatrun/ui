@@ -133,8 +133,20 @@ export interface DomainConfig {
   ssl: SSLConfig;
   aliases?: string[];
   route_only_aliases?: string[];
+  proxy_timeout?: number;
   static_cache?: boolean;
+  client_max_body_size?: string;
+  upload_limit_page?: boolean;
   access?: DomainAccessConfig;
+}
+
+export interface UploadRejection {
+  domain_id: string;
+  domain: string;
+  limit: string;
+  count: number;
+  last_at: string;
+  last_path: string;
 }
 
 export interface DomainAccessConfig {

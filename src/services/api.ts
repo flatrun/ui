@@ -17,6 +17,7 @@ import type {
   ConfigEntry,
   DeploymentSecurityConfig,
   DomainConfig,
+  UploadRejection,
   ProtectedModeConfig,
   Plan,
   PlanStatus,
@@ -660,6 +661,8 @@ export const deploymentsApi = {
     ),
   deleteDomain: (name: string, domainId: string, opts?: PlanOpts) =>
     apiClient.delete<{ message: string }>(withPlanQuery(`/deployments/${name}/domains/${domainId}`, opts)),
+  getUploadRejections: (name: string) =>
+    apiClient.get<{ rejections: UploadRejection[] }>(`/deployments/${name}/upload-rejections`),
 };
 
 export type DeploymentDiagnosticStatus = "passed" | "failed" | "warning" | "skipped";
@@ -828,7 +831,10 @@ export const configApi = {
   list: () => apiClient.get<{ config: ConfigEntry[]; runtime: Record<string, boolean> }>("/config"),
   get: (key: string) => apiClient.get<{ entry: ConfigEntry; runtime: boolean }>(`/config/${key}`),
   set: (key: string, value: unknown, opts?: PlanOpts) =>
-    apiClient.put<{ entry: ConfigEntry; applied: boolean }>(withPlanQuery(`/config/${key}`, opts), { value }),
+    apiClient.put<{ entry: ConfigEntry; applied: boolean; apply_error?: string }>(
+      withPlanQuery(`/config/${key}`, opts),
+      { value },
+    ),
 };
 
 export interface AIStatus {
