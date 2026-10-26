@@ -143,7 +143,9 @@
     <p v-if="error" class="field-error" role="alert">{{ error }}</p>
 
     <div v-if="canWrite" class="actions">
-      <BaseButton type="submit" variant="primary" :loading="saving" :disabled="!!error">Save settings</BaseButton>
+      <BaseButton type="submit" variant="primary" :loading="saving" :disabled="!!error || !!loadError"
+        >Save settings</BaseButton
+      >
       <span v-if="pendingApply && !job?.isRunning" class="pending">
         Saved. The running container keeps its old settings until it is recreated.
         <BaseButton size="sm" icon="refresh-cw" @click="applyNow">Recreate now</BaseButton>
@@ -262,7 +264,7 @@ function payload(): ServiceSettings {
 }
 
 async function save() {
-  if (error.value) return;
+  if (error.value || loadError.value) return;
   const settings = payload();
   saving.value = true;
   try {

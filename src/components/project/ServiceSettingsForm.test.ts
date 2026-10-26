@@ -92,6 +92,16 @@ describe("ServiceSettingsForm", () => {
     expect(sent.environment).toEqual({ APP_ENV: "production", WORKERS: "4" });
   });
 
+  it("cannot save after the settings failed to load", async () => {
+    api.getServiceSettings.mockRejectedValue(new Error("timeout"));
+    await mountForm();
+    expect(wrapper.text()).toContain("Could not load this service's settings.");
+
+    await wrapper.find("form").trigger("submit");
+    await flushPromises();
+    expect(api.updateServiceSettings).not.toHaveBeenCalled();
+  });
+
   it("refuses values the agent would reject", async () => {
     await mountForm();
     await wrapper.find("#svc-memory").setValue("4");
