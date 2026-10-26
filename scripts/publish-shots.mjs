@@ -68,6 +68,13 @@ const DESTINATIONS = [
       "ops-plugins": "plugins",
       "ops-cluster": "cluster",
       "ops-object-stores": "object-stores",
+      "controls-upload-limit": "domain-upload-limit",
+      "controls-upload-rejections": "upload-rejections",
+      "controls-responses": "domain-responses",
+      "controls-visitor-access": "domain-visitor-access",
+      "controls-service-settings": "service-settings",
+      "controls-service-sleep": "service-sleep",
+      "controls-canvas-asleep": "service-asleep",
     },
   },
 ];
