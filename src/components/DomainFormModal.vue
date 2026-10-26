@@ -344,6 +344,11 @@ function splitBodySize(size?: string): { upload_amount: string; upload_unit: "k"
 function bodySize(): string | undefined {
   const amount = form.value.upload_amount;
   if (amount === "") return undefined;
+  const stored = props.domain?.client_max_body_size;
+  if (stored) {
+    const shown = splitBodySize(stored);
+    if (shown.upload_amount === amount && shown.upload_unit === form.value.upload_unit) return stored;
+  }
   return amount === "0" ? "0" : `${amount}${form.value.upload_unit}`;
 }
 
