@@ -9,6 +9,8 @@
 // It only talks to the agent's API and skips what already exists, so it can run
 // again after a partial run. DEMO_NETWORK puts every project on one existing
 // Docker network, for hosts that have no address pools left for new ones.
+// DEMO_START (comma separated) starts only those projects and skips the git
+// project, for a host that already runs the others under another agent.
 // The last line printed is the demo user as JSON, which pagebeam reads.
 
 import { readdir, readFile } from "node:fs/promises";
@@ -23,6 +25,8 @@ const NETWORK = process.env.DEMO_NETWORK || "";
 const GIT_REPO = process.env.DEMO_GIT_REPO || "https://github.com/docker/awesome-compose.git";
 const GIT_SUBPATH = process.env.DEMO_GIT_SUBPATH ?? "flask/app";
 const BRAND = Boolean(process.env.DEMO_BRAND);
+const ONLY = (process.env.DEMO_START || "").split(",").filter(Boolean);
+const wanted = (name) => !ONLY.length || ONLY.includes(name);
 
 if (!TOKEN || !DEMO_PASSWORD) {
   console.error("Set FLATRUN_TOKEN (an admin API key) and DEMO_PASSWORD.");
@@ -209,7 +213,7 @@ async function workspaceSecret(have) {
 }
 
 async function staging(have) {
-  if (have.has("insights-staging")) return;
+  if (have.has("insights-staging") || !wanted("insights")) return;
   await must("POST", "/projects/insights/environments", { name: "staging", branch: "master" });
   log("insights staging environment");
 }
@@ -229,6 +233,7 @@ async function settle(project) {
 }
 
 async function gitProject(have) {
+  if (!wanted("insights")) return;
   if (!have.has("insights")) {
     const created = await must("POST", "/projects", {
       name: "insights",
@@ -254,13 +259,48 @@ async function start(names) {
   }
 }
 
+// The panel-managed controls: shop's storefront domain with an upload limit
+// and proxy tuning, a few uploads it turned away, the API's compose settings
+// and a worker that sleeps when idle. The rejections go through the hook
+// nginx calls when a request is over the limit.
+async function controls() {
+  await must("PATCH", "/projects/shop/domains/d0", {
+    aliases: ["www.shop.trakli.test"],
+    canonical_redirect: "primary",
+    client_max_body_size: "64m",
+    upload_limit_page: true,
+    proxy_timeout: 120,
+    proxy_buffering: false,
+    response_headers: { "X-Frame-Options": "DENY", "Permissions-Policy": "camera=(), microphone=()" },
+  });
+  await must("PATCH", "/projects/shop/domains/d1", {
+    basic_auth: { enabled: true, users: [{ username: "partners", password: DEMO_PASSWORD }] },
+    allow_ips: ["203.0.113.0/24", "198.51.100.7"],
+  });
+  for (const upload of ["/admin/products/import", "/admin/media", "/admin/media"]) {
+    await fetch(`${API}/hooks/too-large/shop/d0`, {
+      method: "POST",
+      headers: { "X-Original-Host": "shop.trakli.test", "X-Original-URI": upload },
+    });
+  }
+  await must("PUT", "/projects/shop/services/api/settings", {
+    resources: { cpus: "0.5", memory: "512m" },
+    restart: "unless-stopped",
+    logging: { max_size: "10m", max_files: 3 },
+    environment: { NODE_ENV: "production", LOG_LEVEL: "info" },
+  });
+  await must("PUT", "/projects/shop/services/worker/sleep", { enabled: true, idle_minutes: 5 });
+  log("shop upload limit, proxy tuning, API settings and a sleeping worker");
+}
+
 const have = await existing();
 const list = await readProjects();
 await workspace();
 await demoUser();
 await workspaceSecret(have);
 await projects(list, have);
-await start(list.filter((p) => p.start).map((p) => p.name));
+await start(list.filter((p) => p.start && wanted(p.name)).map((p) => p.name));
 await gitProject(have);
 await staging(have);
+await controls();
 console.log(JSON.stringify({ username: DEMO_USER, password: DEMO_PASSWORD }));

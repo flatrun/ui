@@ -10,6 +10,7 @@ import {
   deploysFrom,
   projectsFrom,
   serviceGraph,
+  serviceState,
   splitLog,
   variableKind,
   type PhaseStart,
@@ -109,5 +110,12 @@ describe("service graph", () => {
     ] as Service[];
     const graph = serviceGraph(cyclic);
     expect(graph.rows.flat().sort()).toEqual(["a", "b"]);
+  });
+
+  it("shows a service stopped by sleep as asleep, not crashed", () => {
+    const worker = { ...(servicesFixture.services as unknown as Service[])[0], status: "exited" };
+    expect(serviceState(worker)).toEqual({ state: "crashed", label: "Crashed" });
+    expect(serviceState(worker, true)).toEqual({ state: "asleep", label: "Asleep" });
+    expect(serviceState({ ...worker, status: "running" }, true).state).toBe("online");
   });
 });

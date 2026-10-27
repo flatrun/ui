@@ -223,7 +223,12 @@
             :can-write="canWrite"
             @updated="fetchDeployment"
           />
-          <ServiceCanvas v-if="birch && section === 'architecture'" :deployment-name="route.params.name as string" />
+          <ServiceCanvas
+            v-if="birch && section === 'architecture'"
+            :deployment-name="route.params.name as string"
+            :metadata="deployment.metadata"
+            @changed="fetchDeployment"
+          />
           <DeploymentMetrics
             v-if="birch && section === 'metrics'"
             :deployment-name="route.params.name as string"

@@ -187,6 +187,10 @@
         </BaseField>
       </div>
       <p v-if="sleep?.sleeping" class="sleeping"><Icon name="moon" :size="14" /> Asleep now</p>
+      <p class="sleep-note">
+        To stop only one service, such as a worker, turn on sleep in that service's panel instead. Those settings are
+        not used while this one is on.
+      </p>
       <template #footer>
         <BaseButton size="sm" :loading="savingSleep" :disabled="!sleepChanged" @click="saveSleep">Save</BaseButton>
       </template>
@@ -638,6 +642,12 @@ defineExpose({ load });
   align-items: center;
   margin: var(--space-3) 0 0;
   color: var(--accent);
+}
+
+.sleep-note {
+  margin: var(--space-3) 0 0;
+  font-size: var(--text-xs);
+  color: var(--text-muted);
 }
 
 @media (max-width: 720px) {

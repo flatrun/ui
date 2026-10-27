@@ -1,0 +1,89 @@
+{
+  "compose_content": "name: shop\nservices:\n    api:\n        depends_on:\n            - db\n        image: nginx\n    db:\n        image: postgres\n    web:\n        depends_on:\n            - api\n        image: nginx\n    worker:\n        depends_on:\n            - db\n        image: busybox\n",
+  "compose_filename": "docker-compose.yml",
+  "deployment": {
+    "name": "shop",
+    "path": "/var/lib/flatrun/deployments/shop",
+    "status": "stopped",
+    "created_at": "2026-10-26T17:43:38.857030133+01:00",
+    "updated_at": "2026-10-26T17:43:38.857030133+01:00",
+    "services": [
+      {
+        "name": "api",
+        "container_id": "",
+        "image": "nginx",
+        "status": "unknown",
+        "is_primary": false,
+        "created_at": "0001-01-01T00:00:00Z",
+        "replicas": 1,
+        "running_replicas": 0,
+        "depends_on": ["db"]
+      },
+      {
+        "name": "db",
+        "container_id": "",
+        "image": "postgres",
+        "status": "unknown",
+        "is_primary": false,
+        "created_at": "0001-01-01T00:00:00Z",
+        "replicas": 1,
+        "running_replicas": 0
+      },
+      {
+        "name": "web",
+        "container_id": "",
+        "image": "nginx",
+        "status": "unknown",
+        "is_primary": false,
+        "created_at": "0001-01-01T00:00:00Z",
+        "replicas": 1,
+        "running_replicas": 0,
+        "depends_on": ["api"]
+      },
+      {
+        "name": "worker",
+        "container_id": "",
+        "image": "busybox",
+        "status": "unknown",
+        "is_primary": false,
+        "created_at": "0001-01-01T00:00:00Z",
+        "replicas": 1,
+        "running_replicas": 0,
+        "depends_on": ["db"]
+      }
+    ],
+    "metadata": {
+      "name": "shop",
+      "type": "",
+      "networking": {
+        "expose": false,
+        "domain": "",
+        "container_port": 0,
+        "protocol": "http",
+        "proxy_type": "http"
+      },
+      "ssl": {
+        "enabled": false,
+        "auto_cert": false
+      },
+      "healthcheck": {
+        "path": "/",
+        "interval": "30s"
+      },
+      "service_sleep": {
+        "worker": {
+          "enabled": true,
+          "idle_minutes": 20,
+          "sleeping": true
+        }
+      }
+    }
+  },
+  "proxy_status": {
+    "deployment_name": "shop",
+    "exposed": false,
+    "virtual_host_exists": false,
+    "ssl_enabled": false,
+    "certificate_exists": false
+  }
+}

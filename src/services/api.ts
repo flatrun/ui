@@ -556,6 +556,11 @@ export const deploymentsApi = {
     apiClient.put<{ sleep: SleepConfig }>(`/deployments/${name}/sleep`, sleep),
   getJob: (name: string, jobId: string) => apiClient.get<DeploymentJob>(`/deployments/${name}/jobs/${jobId}`),
   getActiveJob: (name: string) => apiClient.get<DeploymentJob>(`/deployments/${name}/jobs/active`),
+  updateServiceSleep: (name: string, service: string, sleep: { enabled: boolean; idle_minutes: number }) =>
+    apiClient.put<{ service: string; sleep: SleepConfig; active: boolean }>(
+      `/deployments/${name}/services/${service}/sleep`,
+      sleep,
+    ),
   getServiceSettings: (name: string, service: string) =>
     apiClient.get<{ service: string; settings: ServiceSettings }>(`/deployments/${name}/services/${service}/settings`),
   updateServiceSettings: (name: string, service: string, settings: ServiceSettings, opts?: PlanOpts) =>

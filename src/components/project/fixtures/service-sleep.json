@@ -1,0 +1,9 @@
+{
+  "active": true,
+  "service": "worker",
+  "sleep": {
+    "enabled": true,
+    "idle_minutes": 20,
+    "sleeping": false
+  }
+}
