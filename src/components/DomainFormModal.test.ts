@@ -234,8 +234,10 @@ describe("DomainFormModal request settings", () => {
     expect(lastSaved()?.proxy_timeout).toBe(120);
   });
 
-  it("resends a limit stored in bytes exactly when it is not edited", async () => {
+  it("shows and resends a limit stored in bytes exactly", async () => {
     mountModal({ ...site, client_max_body_size: "1500" });
+    expect(uploadAmount().value).toBe("1500");
+    expect(uploadUnit().value).toBe("");
     await submit();
 
     expect(lastSaved()?.client_max_body_size).toBe("1500");
@@ -365,15 +367,25 @@ describe("DomainFormModal proxy settings", () => {
     await submit();
     expect(wrapper.emitted("save")).toBeUndefined();
 
-    for (const entry of ["999.999.999.999", "1.2.3.4.5", "10.0.0.0/33", "cafe", "1:2:3:4:5:6:7:8:9", "2001::db8::1"]) {
+    for (const entry of [
+      "999.999.999.999",
+      "1.2.3.4.5",
+      "10.0.0.0/33",
+      "cafe",
+      "1:2:3:4:5:6:7:8:9",
+      "2001::db8::1",
+      ":1:2:3:4:5:6:7:8",
+      ":::",
+      "::ffff:999.1.1.1",
+    ]) {
       await type(allow, entry);
       expect(document.body.textContent).toContain(`${entry} is not an IP address or CIDR range.`);
     }
 
-    await type(allow, "203.0.113.0/24\n2001:db8::1");
+    await type(allow, "203.0.113.0/24\n2001:db8::1\n::ffff:192.168.0.1");
     await submit();
     expect(saved()?.response_headers).toEqual({ "X-Client": "web" });
-    expect(saved()?.allow_ips).toEqual(["203.0.113.0/24", "2001:db8::1"]);
+    expect(saved()?.allow_ips).toEqual(["203.0.113.0/24", "2001:db8::1", "::ffff:192.168.0.1"]);
   });
 
   it("offers the alias redirect only when the domain has aliases", async () => {

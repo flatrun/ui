@@ -101,6 +101,7 @@
                     placeholder="Server default"
                   />
                   <select v-model="form.upload_unit" class="form-select" aria-label="Upload size unit">
+                    <option value="">bytes</option>
                     <option value="k">KB</option>
                     <option value="m">MB</option>
                     <option value="g">GB</option>
@@ -421,7 +422,7 @@ const form = ref<{
   route_only_aliases: string[];
   static_cache: boolean;
   upload_amount: string;
-  upload_unit: "k" | "m" | "g";
+  upload_unit: "" | "k" | "m" | "g";
   upload_limit_page: boolean;
   proxy_timeout: number | "";
   stream_responses: boolean;
@@ -481,14 +482,15 @@ function storedProxySettings(domain: DomainConfig) {
   };
 }
 
-function splitBodySize(size?: string): { upload_amount: string; upload_unit: "k" | "m" | "g" } {
+function splitBodySize(size?: string): { upload_amount: string; upload_unit: "" | "k" | "m" | "g" } {
   const match = /^(\d+)([kmg]?)$/i.exec(size || "");
   if (!match) return { upload_amount: "", upload_unit: "m" };
   if (!match[2]) {
     const bytes = Number(match[1]);
     if (bytes === 0) return { upload_amount: "0", upload_unit: "m" };
     if (bytes % 2 ** 20 === 0) return { upload_amount: String(bytes / 2 ** 20), upload_unit: "m" };
-    return { upload_amount: String(Math.ceil(bytes / 1024)), upload_unit: "k" };
+    if (bytes % 2 ** 10 === 0) return { upload_amount: String(bytes / 2 ** 10), upload_unit: "k" };
+    return { upload_amount: match[1], upload_unit: "" };
   }
   return { upload_amount: match[1], upload_unit: match[2].toLowerCase() as "k" | "m" | "g" };
 }
@@ -496,11 +498,6 @@ function splitBodySize(size?: string): { upload_amount: string; upload_unit: "k"
 function bodySize(): string | undefined {
   const amount = form.value.upload_amount;
   if (amount === "") return undefined;
-  const stored = props.domain?.client_max_body_size;
-  if (stored) {
-    const shown = splitBodySize(stored);
-    if (shown.upload_amount === amount && shown.upload_unit === form.value.upload_unit) return stored;
-  }
   return amount === "0" ? "0" : `${amount}${form.value.upload_unit}`;
 }
 
@@ -575,7 +572,7 @@ const uploadLimitError = computed(() => {
   const amount = form.value.upload_amount;
   if (amount === "") return "";
   if (!/^\d+$/.test(amount)) return "Enter a whole number, or leave it empty for the server default.";
-  const shift = { k: 10, m: 20, g: 30 }[form.value.upload_unit];
+  const shift = { "": 0, k: 10, m: 20, g: 30 }[form.value.upload_unit];
   if (Number(amount) * 2 ** shift > 10 * 2 ** 30) return "The largest limit is 10 GB.";
   return "";
 });
@@ -619,16 +616,24 @@ function allowIPs() {
 
 const IPV4_OCTET = "(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)";
 const IPV4 = new RegExp(`^${IPV4_OCTET}(\\.${IPV4_OCTET}){3}(\\/(3[0-2]|[12]?\\d))?$`);
-const IPV6 = /^[0-9A-Fa-f:]*:[0-9A-Fa-f:]*(\/(12[0-8]|1[01]\d|[1-9]?\d))?$/;
+const IPV6_PREFIX = /^(12[0-8]|1[01]\d|[1-9]?\d)$/;
 
 function validIPv6(entry: string) {
-  if (!IPV6.test(entry)) return false;
-  const address = entry.split("/")[0];
-  const compressed = address.split("::");
-  if (compressed.length > 2) return false;
-  const groups = address.split(":").filter(Boolean);
-  if (groups.some((g) => g.length > 4)) return false;
-  return compressed.length === 2 ? groups.length <= 7 : groups.length === 8;
+  const [address, prefix, ...rest] = entry.split("/");
+  if (rest.length || (prefix !== undefined && !IPV6_PREFIX.test(prefix))) return false;
+  let groupsText = address;
+  const mapped = /^(.*:)(\d+\.\d+\.\d+\.\d+)$/.exec(address);
+  if (mapped) {
+    if (!IPV4.test(mapped[2])) return false;
+    // An embedded IPv4 address fills the last two groups.
+    groupsText = `${mapped[1]}0:0`;
+  }
+  const halves = groupsText.split("::");
+  if (halves.length > 2) return false;
+  const groups = halves.map((half) => (half === "" ? [] : half.split(":")));
+  if (groups.flat().some((group) => !/^[0-9A-Fa-f]{1,4}$/.test(group))) return false;
+  const count = groups.flat().length;
+  return halves.length === 2 ? count <= 7 : count === 8;
 }
 
 const allowIPsError = computed(() => {
