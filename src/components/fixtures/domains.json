@@ -5,7 +5,10 @@
       "service": "web",
       "container_port": 80,
       "domain": "media.example.com",
-      "ssl": { "enabled": true, "auto_cert": true },
+      "ssl": {
+        "enabled": true,
+        "auto_cert": true
+      },
       "proxy_timeout": 120,
       "client_max_body_size": "64m",
       "upload_limit_page": true
@@ -15,7 +18,36 @@
       "service": "web",
       "container_port": 80,
       "domain": "shop.example.com",
-      "ssl": { "enabled": false, "auto_cert": false }
+      "ssl": {
+        "enabled": false,
+        "auto_cert": false
+      }
+    },
+    {
+      "id": "admin",
+      "service": "web",
+      "container_port": 80,
+      "domain": "admin.example.com",
+      "ssl": {
+        "enabled": false,
+        "auto_cert": false
+      },
+      "aliases": ["www.admin.example.com"],
+      "proxy_buffering": false,
+      "response_headers": {
+        "Cache-Control": "no-store"
+      },
+      "canonical_redirect": "primary",
+      "basic_auth": {
+        "enabled": true,
+        "users": [
+          {
+            "username": "alice",
+            "password_hash": "$6$H6u75dnJN2vPwI3G$0vm0abgqyPwkB0PQ8AcYbSRZRfWKguoFzv2nW.J.HUqaBesv.CoY7YKQjg8M3ItdAsUkQ4WQRkewdcQxPQrh51"
+          }
+        ]
+      },
+      "allow_ips": ["203.0.113.4", "10.0.0.0/8"]
     }
   ]
 }
