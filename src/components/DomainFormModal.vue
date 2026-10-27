@@ -84,6 +84,67 @@
               </span>
             </div>
 
+            <div ref="requestsSection" class="form-section">
+              <h4>Requests</h4>
+
+              <div class="form-group">
+                <label for="upload-limit-amount">Maximum upload request size</label>
+                <div class="size-input">
+                  <input
+                    id="upload-limit-amount"
+                    ref="uploadAmountInput"
+                    v-model.trim="form.upload_amount"
+                    type="text"
+                    inputmode="numeric"
+                    class="form-input"
+                    :class="{ invalid: uploadLimitError }"
+                    placeholder="Server default"
+                  />
+                  <select v-model="form.upload_unit" class="form-select" aria-label="Upload size unit">
+                    <option value="k">KB</option>
+                    <option value="m">MB</option>
+                    <option value="g">GB</option>
+                  </select>
+                </div>
+                <span v-if="uploadLimitError" class="field-error">{{ uploadLimitError }}</span>
+                <span class="hint">
+                  The largest request this domain accepts; larger ones are refused with HTTP 413. Set it above your
+                  app's per-file upload limit: a multipart upload wraps each file in boundaries and other form fields,
+                  so allow about 10% extra (for 100 MB files, use 110 MB). PHP apps also enforce
+                  <code>upload_max_filesize</code> and <code>post_max_size</code>. Leave empty for the server default,
+                  or enter 0 for no limit.
+                </span>
+              </div>
+
+              <div class="form-group checkbox-group">
+                <label class="checkbox-label">
+                  <input v-model="form.upload_limit_page" type="checkbox" />
+                  <span>Show the limit when an upload is refused</span>
+                </label>
+                <span class="hint">
+                  Visitors see a page stating the limit instead of the plain 413 response, and API clients get JSON.
+                  Leave this off if a client of this app expects the plain response. Errors sent by the app itself are
+                  never changed.
+                </span>
+              </div>
+
+              <div class="form-group">
+                <label for="proxy-timeout">Proxy timeout (seconds)</label>
+                <input
+                  id="proxy-timeout"
+                  v-model.number="form.proxy_timeout"
+                  type="number"
+                  class="form-input"
+                  placeholder="60"
+                  min="1"
+                  max="86400"
+                />
+                <span class="hint">
+                  How long the proxy waits for the app to answer, and how long an idle WebSocket stays open. Default 60.
+                </span>
+              </div>
+            </div>
+
             <div class="form-section">
               <h4>Visitor Access</h4>
 
@@ -198,7 +259,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from "vue";
+import { ref, computed, watch, nextTick } from "vue";
 import type { DomainConfig, Service } from "@/types";
 import { notificationsApi, type NotificationTarget } from "@/services/api";
 import BaseField from "@/components/base/BaseField.vue";
@@ -212,6 +273,7 @@ const props = defineProps<{
   services: Service[];
   deploymentName: string;
   loading?: boolean;
+  focus?: "upload-limit" | null;
 }>();
 
 const emit = defineEmits<{
@@ -229,6 +291,10 @@ const form = ref<{
   aliases: string[];
   route_only_aliases: string[];
   static_cache: boolean;
+  upload_amount: string;
+  upload_unit: "k" | "m" | "g";
+  upload_limit_page: boolean;
+  proxy_timeout: number | "";
   access: {
     enabled: boolean;
     mode: "allowlist" | "any_verified";
@@ -247,8 +313,44 @@ const form = ref<{
   aliases: [],
   route_only_aliases: [],
   static_cache: false,
+  ...emptyRequestSettings(),
   access: { enabled: false, mode: "allowlist", allowed_emails: "", email_target_id: "", session_hours: 24, method: "" },
 });
+
+const requestsSection = ref<HTMLElement | null>(null);
+const uploadAmountInput = ref<HTMLInputElement | null>(null);
+
+function emptyRequestSettings() {
+  return {
+    upload_amount: "",
+    upload_unit: "m" as const,
+    upload_limit_page: false,
+    proxy_timeout: "" as const,
+  };
+}
+
+function splitBodySize(size?: string): { upload_amount: string; upload_unit: "k" | "m" | "g" } {
+  const match = /^(\d+)([kmg]?)$/i.exec(size || "");
+  if (!match) return { upload_amount: "", upload_unit: "m" };
+  if (!match[2]) {
+    const bytes = Number(match[1]);
+    if (bytes === 0) return { upload_amount: "0", upload_unit: "m" };
+    if (bytes % 2 ** 20 === 0) return { upload_amount: String(bytes / 2 ** 20), upload_unit: "m" };
+    return { upload_amount: String(Math.ceil(bytes / 1024)), upload_unit: "k" };
+  }
+  return { upload_amount: match[1], upload_unit: match[2].toLowerCase() as "k" | "m" | "g" };
+}
+
+function bodySize(): string | undefined {
+  const amount = form.value.upload_amount;
+  if (amount === "") return undefined;
+  const stored = props.domain?.client_max_body_size;
+  if (stored) {
+    const shown = splitBodySize(stored);
+    if (shown.upload_amount === amount && shown.upload_unit === form.value.upload_unit) return stored;
+  }
+  return amount === "0" ? "0" : `${amount}${form.value.upload_unit}`;
+}
 
 const emailTargets = ref<Pick<NotificationTarget, "id" | "name">[]>([]);
 
@@ -271,6 +373,9 @@ watch(
           aliases: [...(props.domain.aliases || [])],
           route_only_aliases: [...(props.domain.route_only_aliases || [])],
           static_cache: props.domain.static_cache || false,
+          ...splitBodySize(props.domain.client_max_body_size),
+          upload_limit_page: props.domain.upload_limit_page || false,
+          proxy_timeout: props.domain.proxy_timeout || "",
           access: {
             enabled: props.domain.access?.enabled || false,
             mode: props.domain.access?.mode || "allowlist",
@@ -291,6 +396,7 @@ watch(
           aliases: [],
           route_only_aliases: [],
           static_cache: false,
+          ...emptyRequestSettings(),
           access: {
             enabled: false,
             mode: "allowlist",
@@ -301,13 +407,29 @@ watch(
           },
         };
       }
+      if (props.focus === "upload-limit") {
+        void nextTick(() => {
+          requestsSection.value?.scrollIntoView({ block: "start", behavior: "smooth" });
+          uploadAmountInput.value?.focus();
+        });
+      }
     }
   },
   { immediate: true },
 );
 
+const uploadLimitError = computed(() => {
+  const amount = form.value.upload_amount;
+  if (amount === "") return "";
+  if (!/^\d+$/.test(amount)) return "Enter a whole number, or leave it empty for the server default.";
+  const shift = { k: 10, m: 20, g: 30 }[form.value.upload_unit];
+  if (Number(amount) * 2 ** shift > 10 * 2 ** 30) return "The largest limit is 10 GB.";
+  return "";
+});
+
 const isValid = computed(() => {
   if (form.value.domain.trim() === "") return false;
+  if (uploadLimitError.value) return false;
   if (!form.value.access.enabled) return true;
   if (!form.value.access.email_target_id) return false;
   if (form.value.access.session_hours < 1 || form.value.access.session_hours > 720) return false;
@@ -361,6 +483,9 @@ function handleSubmit() {
     aliases: form.value.aliases.filter((a) => a.trim() !== ""),
     route_only_aliases: form.value.route_only_aliases.filter((a) => a.trim() !== ""),
     static_cache: form.value.static_cache || undefined,
+    client_max_body_size: bodySize(),
+    upload_limit_page: form.value.upload_limit_page || undefined,
+    proxy_timeout: form.value.proxy_timeout || undefined,
     access: form.value.access.enabled
       ? {
           enabled: true,
@@ -478,6 +603,32 @@ function handleSubmit() {
   margin-top: var(--space-1);
   font-size: var(--text-xs);
   color: var(--text-muted);
+}
+
+.hint code {
+  font-family: var(--font-mono);
+  font-size: 0.95em;
+}
+
+.size-input {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: var(--space-2);
+}
+
+.size-input .form-select {
+  width: auto;
+}
+
+.form-input.invalid {
+  border-color: var(--color-danger-500);
+}
+
+.field-error {
+  display: block;
+  margin-top: var(--space-1);
+  font-size: var(--text-xs);
+  color: var(--color-danger-500);
 }
 
 .form-row {

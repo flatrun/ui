@@ -216,6 +216,13 @@
               </Popover>
             </div>
           </header>
+          <UploadRejectionsBanner
+            v-if="!(birch && section === 'architecture')"
+            :deployment-name="deployment.name"
+            :services="deployment.services || []"
+            :can-write="canWrite"
+            @updated="fetchDeployment"
+          />
           <ServiceCanvas v-if="birch && section === 'architecture'" :deployment-name="route.params.name as string" />
           <DeploymentMetrics
             v-if="birch && section === 'metrics'"
@@ -2272,6 +2279,7 @@ import PluginSlot from "@/components/plugins/PluginSlot.vue";
 import { usePluginsStore } from "@/stores/plugins";
 import DomainsManager from "@/components/DomainsManager.vue";
 import DomainFormModal from "@/components/DomainFormModal.vue";
+import UploadRejectionsBanner from "@/components/UploadRejectionsBanner.vue";
 import ContainerResourcesModal from "@/components/ContainerResourcesModal.vue";
 import DeploymentAutoscaleCard from "@/components/DeploymentAutoscaleCard.vue";
 import DeploymentDiagnosticsModal from "@/components/DeploymentDiagnosticsModal.vue";

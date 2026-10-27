@@ -1,0 +1,12 @@
+{
+  "rejections": [
+    {
+      "domain_id": "site",
+      "domain": "shop.example.com",
+      "limit": "1m",
+      "count": 4,
+      "last_at": "2026-10-26T15:50:37.32132145Z",
+      "last_path": "/wp-admin/async-upload.php"
+    }
+  ]
+}

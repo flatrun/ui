@@ -3,6 +3,7 @@ import { flushPromises, mount, type VueWrapper } from "@vue/test-utils";
 import DomainFormModal from "./DomainFormModal.vue";
 import type { DomainConfig } from "@/types";
 import { notificationsApi } from "@/services/api";
+import domainsFixture from "./fixtures/domains.json";
 
 vi.mock("@/services/api", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/services/api")>();
@@ -201,5 +202,77 @@ describe("DomainFormModal visitor access", () => {
     document.querySelector<HTMLButtonElement>(".btn-primary")?.click();
     await wrapper.vm.$nextTick();
     expect(JSON.parse(JSON.stringify(wrapper.emitted("save")?.[1]?.[0])).access).not.toHaveProperty("method");
+  });
+});
+
+describe("DomainFormModal request settings", () => {
+  const [media, site] = domainsFixture.domains as DomainConfig[];
+
+  const uploadAmount = () => document.querySelector<HTMLInputElement>("#upload-limit-amount")!;
+  const uploadUnit = () => document.querySelector<HTMLSelectElement>('select[aria-label="Upload size unit"]')!;
+  const setField = async (el: HTMLInputElement | HTMLSelectElement, value: string) => {
+    el.value = value;
+    el.dispatchEvent(new Event(el instanceof HTMLSelectElement ? "change" : "input", { bubbles: true }));
+    await wrapper.vm.$nextTick();
+  };
+  const submit = async () => {
+    document.querySelector<HTMLButtonElement>(".btn-primary")?.click();
+    await wrapper.vm.$nextTick();
+  };
+  const lastSaved = () => {
+    const events = wrapper.emitted("save") ?? [];
+    return events[events.length - 1]?.[0] as DomainConfig | undefined;
+  };
+
+  it("keeps the upload limit, limit page and proxy timeout when a domain is saved unchanged", async () => {
+    mountModal(media);
+    expect(uploadAmount().value).toBe("64");
+    await submit();
+
+    expect(lastSaved()?.client_max_body_size).toBe("64m");
+    expect(lastSaved()?.upload_limit_page).toBe(true);
+    expect(lastSaved()?.proxy_timeout).toBe(120);
+  });
+
+  it("resends a limit stored in bytes exactly when it is not edited", async () => {
+    mountModal({ ...site, client_max_body_size: "1500" });
+    await submit();
+
+    expect(lastSaved()?.client_max_body_size).toBe("1500");
+  });
+
+  it("sends a new limit in nginx size syntax", async () => {
+    mountModal(site);
+    await setField(uploadAmount(), "2");
+    await setField(uploadUnit(), "g");
+    await submit();
+
+    expect(lastSaved()?.client_max_body_size).toBe("2g");
+  });
+
+  it("leaves the limit unset when the field is empty, so the server default applies", async () => {
+    mountModal(site);
+    await submit();
+
+    expect(lastSaved()?.client_max_body_size).toBeUndefined();
+  });
+
+  it("refuses a limit the agent would reject", async () => {
+    mountModal(site);
+    await setField(uploadAmount(), "1.5");
+    expect(document.body.textContent).toContain("Enter a whole number");
+    await setField(uploadAmount(), "11");
+    await setField(uploadUnit(), "g");
+    expect(document.body.textContent).toContain("The largest limit is 10 GB.");
+    await submit();
+
+    expect(wrapper.emitted("save")).toBeUndefined();
+  });
+
+  it("explains why the request limit needs room above the per-file limit", () => {
+    mountModal(site);
+
+    expect(document.body.textContent).toContain("allow about 10% extra");
+    expect(document.body.textContent).toContain("post_max_size");
   });
 });

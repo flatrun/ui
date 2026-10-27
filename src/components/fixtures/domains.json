@@ -1,0 +1,21 @@
+{
+  "domains": [
+    {
+      "id": "media",
+      "service": "web",
+      "container_port": 80,
+      "domain": "media.example.com",
+      "ssl": { "enabled": true, "auto_cert": true },
+      "proxy_timeout": 120,
+      "client_max_body_size": "64m",
+      "upload_limit_page": true
+    },
+    {
+      "id": "site",
+      "service": "web",
+      "container_port": 80,
+      "domain": "shop.example.com",
+      "ssl": { "enabled": false, "auto_cert": false }
+    }
+  ]
+}
