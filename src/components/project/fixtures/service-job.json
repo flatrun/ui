@@ -1,0 +1,7 @@
+{
+  "action": "start",
+  "deployment": "shop",
+  "job_id": "2dd027f3-0c9a-46b0-8283-2b2d9c70e44b",
+  "service": "web",
+  "status": "pending"
+}

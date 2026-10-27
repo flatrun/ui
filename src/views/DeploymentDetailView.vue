@@ -223,7 +223,12 @@
             :can-write="canWrite"
             @updated="fetchDeployment"
           />
-          <ServiceCanvas v-if="birch && section === 'architecture'" :deployment-name="route.params.name as string" />
+          <ServiceCanvas
+            v-if="birch && section === 'architecture'"
+            :deployment-name="route.params.name as string"
+            :metadata="deployment.metadata"
+            @changed="fetchDeployment"
+          />
           <DeploymentMetrics
             v-if="birch && section === 'metrics'"
             :deployment-name="route.params.name as string"
@@ -1524,6 +1529,13 @@
                       </template>
                     </div>
                   </div>
+                  <p v-if="servicesWithSettings.length" class="compose-overlay-note">
+                    <Icon name="layers" :size="14" />
+                    <span>
+                      Settings saved for {{ servicesWithSettings.join(", ") }} in the service panel are applied on top
+                      of this file from <code>docker-compose.flatrun.yml</code>.
+                    </span>
+                  </p>
                   <div class="config-editor" :class="{ 'with-assist': configAssistOpen }">
                     <Codemirror
                       v-model="composeConfig"
@@ -2698,6 +2710,7 @@ const composeServiceNames = computed(() => {
 });
 
 const composeMounts = computed(() => extractComposeMounts(composeConfig.value));
+const servicesWithSettings = computed(() => Object.keys(deployment.value?.metadata?.service_settings || {}).sort());
 
 const setServiceCredential = (service: string, credentialId: string) => {
   if (!credentialId) {
@@ -5220,6 +5233,20 @@ onUnmounted(() => {
 .config-actions {
   display: flex;
   gap: var(--space-2);
+}
+
+.compose-overlay-note {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-3);
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+.compose-overlay-note code {
+  font-family: var(--font-mono);
+  font-size: 0.95em;
 }
 
 .config-editor {

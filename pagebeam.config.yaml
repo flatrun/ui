@@ -178,3 +178,74 @@ tours:
     ops-dark:
       account: birch-dark
       steps: *ops
+
+    controls-light:
+      account: birch-light
+      steps: &controls
+        - goto: /projects/shop?section=deploys
+        - wait: .upload-rejections
+        - shot:
+            {
+              name: controls-upload-rejections,
+              caption: "Uploads the limit turned away, with the limit and a way to change it",
+              focus: [.upload-rejections],
+            }
+        - goto: /projects/shop?section=settings
+        - wait: .domain-row
+        - click: '.domain-row:nth-child(1) button[title="Edit"]'
+        - wait: .domain-form-modal
+        - shot:
+            {
+              name: controls-upload-limit,
+              caption: "A maximum upload request size per domain",
+              focus: ["#upload-limit-amount"],
+            }
+        - shot:
+            {
+              name: controls-responses,
+              caption: "Streaming, response headers and the alias redirect",
+              focus: ['h4:text-is("Responses")'],
+            }
+        - click: ".modal-footer .btn-secondary"
+        - click: '.domain-row:nth-child(2) button[title="Edit"]'
+        - wait: .domain-form-modal
+        - shot:
+            {
+              name: controls-visitor-access,
+              caption: "Password and IP allow-list in front of a domain",
+              focus: ['[aria-label="User 1 name"]'],
+            }
+        - click: ".modal-footer .btn-secondary"
+        - goto: /projects/shop
+        - wait: .vue-flow__node
+        - wait: 800
+        - shot: { name: controls-canvas-asleep, caption: "The worker asleep while the rest of the shop runs" }
+        - click: '.vue-flow__node:has(.title:text-is("worker"))'
+        - click: '.panel-tab:text-is("Settings")'
+        - wait: .service-sleep
+        - shot: { name: controls-service-sleep, caption: "Sleep for one service", focus: [.service-sleep] }
+        - click: .panel-close
+        - click: '.vue-flow__node:has(.title:text-is("api"))'
+        - click: '.panel-tab:text-is("Settings")'
+        - wait: "#svc-cpus"
+        - wait: 800
+        - shot:
+            {
+              name: controls-service-settings,
+              caption: "Limits, restart policy, log rotation and variables kept per service",
+              focus: ["#svc-cpus"],
+            }
+        - goto: /projects/shop?section=deploys
+        - wait: .sleep-note
+        - shot: { name: controls-deployment-sleep, caption: "Sleep for the whole deployment", focus: [.sleep-note] }
+        - goto: /settings?tab=infrastructure
+        - wait: "#default-upload-limit"
+        - shot:
+            {
+              name: controls-upload-default,
+              caption: "The upload limit every domain starts from",
+              focus: ["#default-upload-limit"],
+            }
+    controls-dark:
+      account: birch-dark
+      steps: *controls

@@ -2,6 +2,21 @@
 
 ## [Unreleased]
 
+## [0.4.0-beta.13] - 2026-10-26
+
+The version follows the agent's, so the installer pairs this dashboard with agent 0.4.0-beta.13.
+
+### Added
+- A maximum upload request size in the domain form, with guidance on sizing it for multipart uploads, and an agent-wide default in the infrastructure settings
+- A banner on the project that counts uploads refused for their size, with the limit and a button that opens the domain to change it
+- Domain settings for streaming responses, response headers, the alias redirect, a username and password, and an IP allow-list
+- A service's Settings tab edits its resource limits, restart policy, log rotation, variables, command and entrypoint, and offers to recreate the service
+- Sleep for a single service from its Settings tab; the canvas shows a sleeping service as asleep
+- The compose editor names the services whose saved settings apply on top of the file
+
+### Fixed
+- Editing a domain keeps its proxy timeout
+
 ## [0.4.0-beta.12] - 2026-10-23
 
 The version follows the agent's, so the installer pairs this dashboard with agent 0.4.0-beta.12.

@@ -34,12 +34,12 @@ import { serviceIcon } from "@/lib/brand";
 import { serviceState } from "@/model/project";
 import type { Service } from "@/types";
 
-const props = defineProps<{ data: { service: Service }; selected?: boolean }>();
+const props = defineProps<{ data: { service: Service; asleep?: boolean }; selected?: boolean }>();
 
 const service = computed(() => props.data.service);
 const domain = computed(() => service.value.domains?.[0]);
 const replicas = computed(() => service.value.replicas ?? 1);
-const status = computed(() => serviceState(service.value));
+const status = computed(() => serviceState(service.value, props.data.asleep));
 const volume = computed(() =>
   (service.value.mounts ?? []).find((m) => m.type === "volume" || m.source.startsWith("./")),
 );

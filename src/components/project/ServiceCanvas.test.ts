@@ -1,14 +1,17 @@
 import { flushPromises, mount } from "@vue/test-utils";
+import { createTestingPinia } from "@pinia/testing";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import ServiceCanvas from "./ServiceCanvas.vue";
 import ServicePanel from "./ServicePanel.vue";
 import servicesFixture from "@/model/fixtures/services.json";
 import serviceLogsFixture from "./fixtures/service-logs.json";
+import serviceSettingsFixture from "./fixtures/service-settings.json";
+import sleepingDeployment from "./fixtures/deployment-service-sleep.json";
 import { deploymentsApi } from "@/services/api";
 
 vi.mock("@/services/api", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/services/api")>();
-  return { ...actual, deploymentsApi: { getServices: vi.fn(), logs: vi.fn() } };
+  return { ...actual, deploymentsApi: { getServices: vi.fn(), logs: vi.fn(), getServiceSettings: vi.fn() } };
 });
 
 describe("ServiceCanvas", () => {
@@ -16,12 +19,13 @@ describe("ServiceCanvas", () => {
     vi.clearAllMocks();
     vi.mocked(deploymentsApi.getServices).mockResolvedValue({ data: servicesFixture } as any);
     vi.mocked(deploymentsApi.logs).mockResolvedValue({ data: serviceLogsFixture } as any);
+    vi.mocked(deploymentsApi.getServiceSettings).mockResolvedValue({ data: serviceSettingsFixture } as any);
   });
 
   it("lays out the services with entry points above what they depend on", async () => {
     const wrapper = mount(ServiceCanvas, {
       props: { deploymentName: "phase-demo" },
-      global: { stubs: { teleport: true } },
+      global: { plugins: [createTestingPinia({ createSpy: vi.fn })], stubs: { teleport: true } },
     });
     await flushPromises();
 
@@ -36,7 +40,7 @@ describe("ServiceCanvas", () => {
   it("opens a service's logs and settings", async () => {
     const wrapper = mount(ServiceCanvas, {
       props: { deploymentName: "phase-demo" },
-      global: { stubs: { teleport: true } },
+      global: { plugins: [createTestingPinia({ createSpy: vi.fn })], stubs: { teleport: true } },
     });
     await flushPromises();
     (wrapper.vm as any).selected = "db";
@@ -48,5 +52,21 @@ describe("ServiceCanvas", () => {
     expect(panel.text()).toContain("postgres:16-alpine");
     expect(panel.text()).toContain("./data → /var/lib/postgresql/data");
     expect(panel.text()).toContain("1 of 1 running");
+    await flushPromises();
+    expect(deploymentsApi.getServiceSettings).toHaveBeenCalledWith("phase-demo", "db");
+  });
+
+  it("marks a service that sleeps on its own as asleep", async () => {
+    const stopped = structuredClone(servicesFixture);
+    stopped.services.find((s: any) => s.name === "worker")!.status = "exited";
+    vi.mocked(deploymentsApi.getServices).mockResolvedValue({ data: stopped } as any);
+    const wrapper = mount(ServiceCanvas, {
+      props: { deploymentName: "shop", metadata: sleepingDeployment.deployment.metadata as any },
+      global: { plugins: [createTestingPinia({ createSpy: vi.fn })], stubs: { teleport: true } },
+    });
+    await flushPromises();
+
+    const asleep = Object.fromEntries((wrapper.vm as any).nodes.map((n: any) => [n.id, n.data.asleep]));
+    expect(asleep).toEqual({ web: false, api: false, worker: true, db: false });
   });
 });
