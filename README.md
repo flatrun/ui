@@ -28,18 +28,6 @@ A variable can point at another project's variable with `${{ plausible.BASE_URL 
 <a href="docs/screenshots/project-variables-light.png#gh-light-mode-only"><img alt="A variable that references another project, shown with its resolved value, above the secrets and sources sections" src="docs/screenshots/project-variables-light.png"></a>
 <a href="docs/screenshots/project-variables-dark.png#gh-dark-mode-only"><img alt="A variable that references another project, shown with its resolved value, above the secrets and sources sections" src="docs/screenshots/project-variables-dark.png"></a>
 
-## Domains and services
-
-Each domain sets its own maximum upload size, timeout, streaming, response headers, alias redirect, password and IP allow-list. When the limit turns uploads away, the project shows how many, with the limit and a button to change it.
-
-<a href="docs/screenshots/controls-upload-limit-light.png#gh-light-mode-only"><img alt="The domain form with the maximum upload request size set to 64 MB and the page shown for refused uploads turned on" src="docs/screenshots/controls-upload-limit-light.png"></a>
-<a href="docs/screenshots/controls-upload-limit-dark.png#gh-dark-mode-only"><img alt="The domain form with the maximum upload request size set to 64 MB and the page shown for refused uploads turned on" src="docs/screenshots/controls-upload-limit-dark.png"></a>
-
-Each service keeps its own CPU and memory limits, restart policy, log rotation, variables, command and entrypoint across redeploys. A single service, such as a worker, can sleep when idle while the rest of the project keeps running.
-
-<a href="docs/screenshots/controls-service-settings-light.png#gh-light-mode-only"><img alt="A service's settings: CPU and memory limits, restart policy, log rotation and variables" src="docs/screenshots/controls-service-settings-light.png"></a>
-<a href="docs/screenshots/controls-service-settings-dark.png#gh-dark-mode-only"><img alt="A service's settings: CPU and memory limits, restart policy, log rotation and variables" src="docs/screenshots/controls-service-settings-dark.png"></a>
-
 ## Layouts
 
 Everything above uses **Birch**, the default: a top bar, the workspace switcher, and projects on a canvas. **Oak** keeps a sidebar and the full set of operator screens. Switch between them from the user menu.
@@ -89,8 +77,6 @@ Layouts are named after trees, so the next one has a name waiting.
 - **Managed scaling**: configure compatible workloads and activate Docker Swarm or k3s scaling
 - **Notifications**: grouped incidents and delivery rules for email, webhooks and custom targets
 - **Files**: upload folders, copy or move files, browse archives and extract them in place
-- **Domain controls**: upload limits with refused-upload reports, timeouts, streaming, response headers, alias redirects, passwords and IP allow-lists
-- **Service settings**: resource limits, restart policy, log rotation, variables and command per service, plus sleep for a single service
 
 ## Tech Stack
 
