@@ -994,284 +994,293 @@
           </div>
 
           <div v-if="shows('security')" class="security-tab">
-            <div class="security-enable-bar">
-              <div class="enable-bar-left">
-                <i class="pi pi-shield" :class="{ enabled: securityConfig.enabled }" />
-                <span class="enable-bar-label">Security Protection</span>
-                <span class="enable-bar-status" :class="{ active: securityConfig.enabled }">
-                  {{ securityConfig.enabled ? "Enabled" : "Disabled" }}
-                </span>
+            <p v-if="isRemote">Security reviews are not available for remote projects from this dashboard.</p>
+            <SecurityReviewsPanel
+              v-if="deployment && !isRemote && authStore.hasPermission('security_profiles:read')"
+              :key="deploymentAccessKey"
+              :name="deployment.name"
+              :access-key="deploymentAccessKey"
+            />
+            <template v-if="canReadSecurity">
+              <div class="security-enable-bar">
+                <div class="enable-bar-left">
+                  <i class="pi pi-shield" :class="{ enabled: securityConfig.enabled }" />
+                  <span class="enable-bar-label">Security Protection</span>
+                  <span class="enable-bar-status" :class="{ active: securityConfig.enabled }">
+                    {{ securityConfig.enabled ? "Enabled" : "Disabled" }}
+                  </span>
+                </div>
+                <label class="toggle-switch">
+                  <input
+                    v-model="securityConfig.enabled"
+                    type="checkbox"
+                    :disabled="!canManageSecurity"
+                    @change="saveSecurityConfig"
+                  />
+                  <span class="toggle-slider" />
+                </label>
               </div>
-              <label class="toggle-switch">
-                <input
-                  v-model="securityConfig.enabled"
-                  type="checkbox"
-                  :disabled="!canManageSecurity"
-                  @change="saveSecurityConfig"
-                />
-                <span class="toggle-slider" />
-              </label>
-            </div>
 
-            <div class="security-summary">
-              <div class="summary-card">
-                <div class="summary-icon protected">
-                  <i class="pi pi-lock" />
-                </div>
-                <div class="summary-content">
-                  <span class="summary-value">{{
-                    (securityConfig.protected_paths || []).filter((p) => p.enabled).length
-                  }}</span>
-                  <span class="summary-label">Protected Paths</span>
-                </div>
-              </div>
-              <div class="summary-card">
-                <div class="summary-icon rate">
-                  <i class="pi pi-gauge" />
-                </div>
-                <div class="summary-content">
-                  <span class="summary-value">{{
-                    (securityConfig.rate_limits || []).filter((r) => r.enabled).length
-                  }}</span>
-                  <span class="summary-label">Rate Limits</span>
-                </div>
-              </div>
-              <div class="summary-card">
-                <div class="summary-icon events">
-                  <i class="pi pi-exclamation-triangle" />
-                </div>
-                <div class="summary-content">
-                  <span class="summary-value">{{ securityEvents.length }}</span>
-                  <span class="summary-label">Recent Events</span>
-                </div>
-              </div>
-              <router-link :to="`/security?deployment=${deployment?.name}`" class="summary-card summary-link">
-                <div class="summary-icon link">
-                  <i class="pi pi-external-link" />
-                </div>
-                <div class="summary-content">
-                  <span class="summary-label">View All Events</span>
-                  <span class="summary-hint">Global security dashboard</span>
-                </div>
-              </router-link>
-            </div>
-
-            <div class="security-grid">
-              <div class="security-section">
-                <div class="section-header">
-                  <div class="section-title">
+              <div class="security-summary">
+                <div class="summary-card">
+                  <div class="summary-icon protected">
                     <i class="pi pi-lock" />
-                    <h3>Protected Paths</h3>
                   </div>
-                  <span class="section-hint">Block access to sensitive files</span>
+                  <div class="summary-content">
+                    <span class="summary-value">{{
+                      (securityConfig.protected_paths || []).filter((p) => p.enabled).length
+                    }}</span>
+                    <span class="summary-label">Protected Paths</span>
+                  </div>
                 </div>
-                <div class="section-body">
-                  <div class="presets-section">
-                    <span class="presets-label">Quick Add:</span>
-                    <div class="presets-row">
-                      <button
-                        v-for="preset in protectedPathPresets"
-                        :key="preset.pattern"
-                        class="preset-btn"
-                        :class="{ active: isPathProtected(preset.pattern) }"
+                <div class="summary-card">
+                  <div class="summary-icon rate">
+                    <i class="pi pi-gauge" />
+                  </div>
+                  <div class="summary-content">
+                    <span class="summary-value">{{
+                      (securityConfig.rate_limits || []).filter((r) => r.enabled).length
+                    }}</span>
+                    <span class="summary-label">Rate Limits</span>
+                  </div>
+                </div>
+                <div class="summary-card">
+                  <div class="summary-icon events">
+                    <i class="pi pi-exclamation-triangle" />
+                  </div>
+                  <div class="summary-content">
+                    <span class="summary-value">{{ securityEvents.length }}</span>
+                    <span class="summary-label">Recent Events</span>
+                  </div>
+                </div>
+                <router-link :to="`/security?deployment=${deployment?.name}`" class="summary-card summary-link">
+                  <div class="summary-icon link">
+                    <i class="pi pi-external-link" />
+                  </div>
+                  <div class="summary-content">
+                    <span class="summary-label">View All Events</span>
+                    <span class="summary-hint">Global security dashboard</span>
+                  </div>
+                </router-link>
+              </div>
+
+              <div class="security-grid">
+                <div class="security-section">
+                  <div class="section-header">
+                    <div class="section-title">
+                      <i class="pi pi-lock" />
+                      <h3>Protected Paths</h3>
+                    </div>
+                    <span class="section-hint">Block access to sensitive files</span>
+                  </div>
+                  <div class="section-body">
+                    <div class="presets-section">
+                      <span class="presets-label">Quick Add:</span>
+                      <div class="presets-row">
+                        <button
+                          v-for="preset in protectedPathPresets"
+                          :key="preset.pattern"
+                          class="preset-btn"
+                          :class="{ active: isPathProtected(preset.pattern) }"
+                          :disabled="!canManageSecurity"
+                          @click="toggleProtectedPath(preset.pattern)"
+                          :title="preset.pattern"
+                        >
+                          <i :class="isPathProtected(preset.pattern) ? 'pi pi-check' : 'pi pi-plus'" />
+                          {{ preset.label }}
+                        </button>
+                      </div>
+                    </div>
+                    <div class="paths-list">
+                      <div v-if="(securityConfig.protected_paths || []).length === 0" class="empty-state">
+                        <i class="pi pi-shield" />
+                        <p>No protected paths</p>
+                        <span>Click presets above or add custom paths</span>
+                      </div>
+                      <div v-else class="items-list">
+                        <div
+                          v-for="(path, index) in securityConfig.protected_paths || []"
+                          :key="index"
+                          class="list-item"
+                          :class="{ disabled: !path.enabled }"
+                        >
+                          <code>{{ path.pattern }}</code>
+                          <div class="item-actions">
+                            <label class="toggle-switch small">
+                              <input
+                                v-model="path.enabled"
+                                type="checkbox"
+                                :disabled="!canManageSecurity"
+                                @change="saveSecurityConfig"
+                              />
+                              <span class="toggle-slider" />
+                            </label>
+                            <button
+                              class="btn btn-icon btn-sm btn-ghost"
+                              title="Remove"
+                              :disabled="!canManageSecurity"
+                              @click="removeProtectedPath(index)"
+                            >
+                              <i class="pi pi-times" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="add-form">
+                      <input
+                        v-model="newProtectedPath"
+                        type="text"
+                        class="form-input"
+                        placeholder="Custom path (e.g., /storage/*)"
                         :disabled="!canManageSecurity"
-                        @click="toggleProtectedPath(preset.pattern)"
-                        :title="preset.pattern"
+                        @keyup.enter="addProtectedPath"
+                      />
+                      <button
+                        class="btn btn-sm btn-primary"
+                        :disabled="!canManageSecurity || !newProtectedPath"
+                        @click="addProtectedPath"
                       >
-                        <i :class="isPathProtected(preset.pattern) ? 'pi pi-check' : 'pi pi-plus'" />
-                        {{ preset.label }}
+                        <i class="pi pi-plus" /> Add
                       </button>
                     </div>
                   </div>
-                  <div class="paths-list">
-                    <div v-if="(securityConfig.protected_paths || []).length === 0" class="empty-state">
-                      <i class="pi pi-shield" />
-                      <p>No protected paths</p>
-                      <span>Click presets above or add custom paths</span>
+                </div>
+
+                <div class="security-section">
+                  <div class="section-header">
+                    <div class="section-title">
+                      <i class="pi pi-gauge" />
+                      <h3>Rate Limiting</h3>
                     </div>
-                    <div v-else class="items-list">
-                      <div
-                        v-for="(path, index) in securityConfig.protected_paths || []"
-                        :key="index"
-                        class="list-item"
-                        :class="{ disabled: !path.enabled }"
-                      >
-                        <code>{{ path.pattern }}</code>
-                        <div class="item-actions">
-                          <label class="toggle-switch small">
-                            <input
-                              v-model="path.enabled"
-                              type="checkbox"
+                    <span class="section-hint">Limit requests per path</span>
+                  </div>
+                  <div class="section-body">
+                    <div class="rates-list">
+                      <div v-if="(securityConfig.rate_limits || []).length === 0" class="empty-state">
+                        <i class="pi pi-gauge" />
+                        <p>No rate limits</p>
+                        <span>Add limits to protect against abuse</span>
+                      </div>
+                      <div v-else class="items-list">
+                        <div
+                          v-for="(limit, index) in securityConfig.rate_limits || []"
+                          :key="index"
+                          class="list-item"
+                          :class="{ disabled: !limit.enabled }"
+                        >
+                          <div class="rate-info">
+                            <code>{{ limit.path }}</code>
+                            <span class="rate-config">
+                              <span class="rate-badge">{{ limit.rate }}/min</span>
+                              <span class="burst-badge">burst: {{ limit.burst }}</span>
+                            </span>
+                          </div>
+                          <div class="item-actions">
+                            <label class="toggle-switch small">
+                              <input
+                                v-model="limit.enabled"
+                                type="checkbox"
+                                :disabled="!canManageSecurity"
+                                @change="saveSecurityConfig"
+                              />
+                              <span class="toggle-slider" />
+                            </label>
+                            <button
+                              class="btn btn-icon btn-sm btn-ghost"
+                              title="Remove"
                               :disabled="!canManageSecurity"
-                              @change="saveSecurityConfig"
-                            />
-                            <span class="toggle-slider" />
-                          </label>
-                          <button
-                            class="btn btn-icon btn-sm btn-ghost"
-                            title="Remove"
-                            :disabled="!canManageSecurity"
-                            @click="removeProtectedPath(index)"
-                          >
-                            <i class="pi pi-times" />
-                          </button>
+                              @click="removeRateLimit(index)"
+                            >
+                              <i class="pi pi-times" />
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                  <div class="add-form">
-                    <input
-                      v-model="newProtectedPath"
-                      type="text"
-                      class="form-input"
-                      placeholder="Custom path (e.g., /storage/*)"
-                      :disabled="!canManageSecurity"
-                      @keyup.enter="addProtectedPath"
-                    />
-                    <button
-                      class="btn btn-sm btn-primary"
-                      :disabled="!canManageSecurity || !newProtectedPath"
-                      @click="addProtectedPath"
-                    >
-                      <i class="pi pi-plus" /> Add
-                    </button>
+                    <div class="add-form rate-form">
+                      <input
+                        v-model="newRateLimit.path"
+                        type="text"
+                        class="form-input"
+                        placeholder="Path"
+                        :disabled="!canManageSecurity"
+                      />
+                      <div class="rate-inputs">
+                        <div class="input-group">
+                          <input
+                            v-model.number="newRateLimit.rate"
+                            type="number"
+                            class="form-input"
+                            placeholder="10"
+                            :disabled="!canManageSecurity"
+                          />
+                          <span class="input-suffix">/min</span>
+                        </div>
+                        <div class="input-group">
+                          <input
+                            v-model.number="newRateLimit.burst"
+                            type="number"
+                            class="form-input"
+                            placeholder="5"
+                            :disabled="!canManageSecurity"
+                          />
+                          <span class="input-suffix">burst</span>
+                        </div>
+                      </div>
+                      <button
+                        class="btn btn-sm btn-primary"
+                        :disabled="!canManageSecurity || !newRateLimit.path"
+                        @click="addRateLimit"
+                      >
+                        <i class="pi pi-plus" /> Add
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              <div class="security-section">
+              <div class="security-section events-section">
                 <div class="section-header">
                   <div class="section-title">
-                    <i class="pi pi-gauge" />
-                    <h3>Rate Limiting</h3>
+                    <i class="pi pi-history" />
+                    <h3>Recent Security Events</h3>
                   </div>
-                  <span class="section-hint">Limit requests per path</span>
+                  <router-link :to="`/security?deployment=${deployment?.name}`" class="view-all-btn">
+                    View all <i class="pi pi-arrow-right" />
+                  </router-link>
                 </div>
                 <div class="section-body">
-                  <div class="rates-list">
-                    <div v-if="(securityConfig.rate_limits || []).length === 0" class="empty-state">
-                      <i class="pi pi-gauge" />
-                      <p>No rate limits</p>
-                      <span>Add limits to protect against abuse</span>
-                    </div>
-                    <div v-else class="items-list">
-                      <div
-                        v-for="(limit, index) in securityConfig.rate_limits || []"
-                        :key="index"
-                        class="list-item"
-                        :class="{ disabled: !limit.enabled }"
-                      >
-                        <div class="rate-info">
-                          <code>{{ limit.path }}</code>
-                          <span class="rate-config">
-                            <span class="rate-badge">{{ limit.rate }}/min</span>
-                            <span class="burst-badge">burst: {{ limit.burst }}</span>
-                          </span>
-                        </div>
-                        <div class="item-actions">
-                          <label class="toggle-switch small">
-                            <input
-                              v-model="limit.enabled"
-                              type="checkbox"
-                              :disabled="!canManageSecurity"
-                              @change="saveSecurityConfig"
-                            />
-                            <span class="toggle-slider" />
-                          </label>
-                          <button
-                            class="btn btn-icon btn-sm btn-ghost"
-                            title="Remove"
-                            :disabled="!canManageSecurity"
-                            @click="removeRateLimit(index)"
-                          >
-                            <i class="pi pi-times" />
-                          </button>
-                        </div>
-                      </div>
+                  <div v-if="securityEvents.length === 0" class="empty-state horizontal">
+                    <i class="pi pi-check-circle" />
+                    <div class="empty-text">
+                      <p>No security events</p>
+                      <span>Security events for this deployment will appear here</span>
                     </div>
                   </div>
-                  <div class="add-form rate-form">
-                    <input
-                      v-model="newRateLimit.path"
-                      type="text"
-                      class="form-input"
-                      placeholder="Path"
-                      :disabled="!canManageSecurity"
-                    />
-                    <div class="rate-inputs">
-                      <div class="input-group">
-                        <input
-                          v-model.number="newRateLimit.rate"
-                          type="number"
-                          class="form-input"
-                          placeholder="10"
-                          :disabled="!canManageSecurity"
-                        />
-                        <span class="input-suffix">/min</span>
-                      </div>
-                      <div class="input-group">
-                        <input
-                          v-model.number="newRateLimit.burst"
-                          type="number"
-                          class="form-input"
-                          placeholder="5"
-                          :disabled="!canManageSecurity"
-                        />
-                        <span class="input-suffix">burst</span>
-                      </div>
+                  <div v-else class="events-table">
+                    <div class="events-header">
+                      <span class="col-severity">Severity</span>
+                      <span class="col-type">Event</span>
+                      <span class="col-ip">Source IP</span>
+                      <span class="col-path">Path</span>
+                      <span class="col-time">Time</span>
                     </div>
-                    <button
-                      class="btn btn-sm btn-primary"
-                      :disabled="!canManageSecurity || !newRateLimit.path"
-                      @click="addRateLimit"
-                    >
-                      <i class="pi pi-plus" /> Add
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div class="security-section events-section">
-              <div class="section-header">
-                <div class="section-title">
-                  <i class="pi pi-history" />
-                  <h3>Recent Security Events</h3>
-                </div>
-                <router-link :to="`/security?deployment=${deployment?.name}`" class="view-all-btn">
-                  View all <i class="pi pi-arrow-right" />
-                </router-link>
-              </div>
-              <div class="section-body">
-                <div v-if="securityEvents.length === 0" class="empty-state horizontal">
-                  <i class="pi pi-check-circle" />
-                  <div class="empty-text">
-                    <p>No security events</p>
-                    <span>Security events for this deployment will appear here</span>
-                  </div>
-                </div>
-                <div v-else class="events-table">
-                  <div class="events-header">
-                    <span class="col-severity">Severity</span>
-                    <span class="col-type">Event</span>
-                    <span class="col-ip">Source IP</span>
-                    <span class="col-path">Path</span>
-                    <span class="col-time">Time</span>
-                  </div>
-                  <div class="events-body">
-                    <div v-for="event in securityEvents" :key="event.id" class="event-row">
-                      <span class="col-severity">
-                        <span class="severity-badge" :class="event.severity">{{ event.severity }}</span>
-                      </span>
-                      <span class="col-type">{{ formatEventType(event.event_type) }}</span>
-                      <code class="col-ip">{{ event.source_ip }}</code>
-                      <code class="col-path">{{ event.request_path || "-" }}</code>
-                      <span class="col-time">{{ formatTimeAgo(event.created_at) }}</span>
+                    <div class="events-body">
+                      <div v-for="event in securityEvents" :key="event.id" class="event-row">
+                        <span class="col-severity">
+                          <span class="severity-badge" :class="event.severity">{{ event.severity }}</span>
+                        </span>
+                        <span class="col-type">{{ formatEventType(event.event_type) }}</span>
+                        <code class="col-ip">{{ event.source_ip }}</code>
+                        <code class="col-path">{{ event.request_path || "-" }}</code>
+                        <span class="col-time">{{ formatTimeAgo(event.created_at) }}</span>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
+            </template>
           </div>
 
           <div v-if="shows('config')" class="config-tab">
@@ -2265,6 +2274,7 @@ import {
 } from "@/services/api";
 import { useNotificationsStore } from "@/stores/notifications";
 import { useAuthStore } from "@/stores/auth";
+import SecurityReviewsPanel from "@/components/SecurityReviewsPanel.vue";
 import type { AssistContext } from "@/stores/assist";
 import type {
   ProxyStatus,
@@ -2641,7 +2651,12 @@ const tabBarItems = computed(() => {
   for (const tab of tabs) {
     if (isRemote.value && tab.id === "terminal") continue;
     if (tab.id === "backups" && !canReadBackups.value) continue;
-    if (tab.id === "security" && !canReadSecurity.value) continue;
+    if (
+      tab.id === "security" &&
+      !canReadSecurity.value &&
+      !(canRead.value && authStore.hasPermission("security_profiles:read"))
+    )
+      continue;
     items.push({ ...tab, kind: "native" });
     if (tab.id === "actions") {
       for (const pt of pluginTabs.value) items.push({ ...pt, kind: "plugin" });

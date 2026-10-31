@@ -18,7 +18,8 @@ LABEL org.opencontainers.image.title="FlatRun UI" \
       org.opencontainers.image.documentation="https://github.com/flatrun/ui#readme"
 
 ENV AGENT_URL=http://host.docker.internal:8090 \
-    NGINX_ENVSUBST_FILTER=AGENT_URL
+    MANAGEMENT_LISTEN=80 \
+    NGINX_ENVSUBST_FILTER="AGENT_URL|MANAGEMENT_LISTEN"
 
 COPY --from=build /app/dist /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/templates/default.conf.template

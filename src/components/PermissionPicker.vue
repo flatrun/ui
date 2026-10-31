@@ -190,6 +190,12 @@ const permissionGroups: PermissionGroup[] = [
     permissions: [
       { value: "security:read", label: "Read", level: "read" },
       { value: "security:write", label: "Write", level: "write" },
+      { value: "security_profiles:read", label: "Read profiles", level: "read" },
+      { value: "security_profiles:write", label: "Edit profiles", level: "write" },
+      { value: "security_profiles:approve", label: "Approve profiles", level: "write" },
+      { value: "security_reviews:read", label: "Read reviews", level: "read" },
+      { value: "security_reviews:run", label: "Run reviews", level: "write" },
+      { value: "security_evidence:read", label: "Read restricted evidence", level: "read" },
     ],
   },
   {

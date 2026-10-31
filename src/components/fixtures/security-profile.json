@@ -1,0 +1,198 @@
+{
+  "baseline_version": "1.0.0",
+  "discovery": {
+    "deployment": "shop",
+    "revision": "7e08addada37ab3ec518c07340913a62ae8f22f08d43251c24ccde43b406cae9",
+    "services": [
+      { "name": "frontend", "image": "nginx:alpine", "replicas": 1, "mounts": [] },
+      { "name": "worker", "image": "python:3", "replicas": 1, "mounts": [] }
+    ],
+    "coverage": [
+      {
+        "concern": "inventory",
+        "service": "frontend",
+        "status": "unknown",
+        "reason": "Required evidence has not been collected"
+      },
+      {
+        "concern": "exposure",
+        "service": "frontend",
+        "status": "unknown",
+        "reason": "Required evidence has not been collected"
+      },
+      {
+        "concern": "identity",
+        "service": "frontend",
+        "status": "unknown",
+        "reason": "Required evidence has not been collected"
+      },
+      {
+        "concern": "privileges",
+        "service": "frontend",
+        "status": "unknown",
+        "reason": "Required evidence has not been collected"
+      },
+      {
+        "concern": "integrity",
+        "service": "frontend",
+        "status": "unknown",
+        "reason": "Required evidence has not been collected"
+      },
+      {
+        "concern": "vulnerabilities",
+        "service": "frontend",
+        "status": "unknown",
+        "reason": "Required evidence has not been collected"
+      },
+      {
+        "concern": "credentials",
+        "service": "frontend",
+        "status": "unknown",
+        "reason": "Required evidence has not been collected"
+      },
+      {
+        "concern": "data_access",
+        "service": "frontend",
+        "status": "unknown",
+        "reason": "Required evidence has not been collected"
+      },
+      {
+        "concern": "monitoring",
+        "service": "frontend",
+        "status": "unknown",
+        "reason": "Required evidence has not been collected"
+      },
+      {
+        "concern": "writable_execution_surfaces",
+        "service": "frontend",
+        "status": "unknown",
+        "reason": "Required evidence has not been collected"
+      },
+      {
+        "concern": "attachment_safety",
+        "service": "frontend",
+        "status": "unknown",
+        "reason": "Required evidence has not been collected"
+      },
+      {
+        "concern": "upload_ingress",
+        "service": "frontend",
+        "status": "unknown",
+        "reason": "Required evidence has not been collected"
+      },
+      {
+        "concern": "object_authorization",
+        "service": "frontend",
+        "status": "unknown",
+        "reason": "Required evidence has not been collected"
+      },
+      {
+        "concern": "inventory",
+        "service": "worker",
+        "status": "unknown",
+        "reason": "Required evidence has not been collected"
+      },
+      {
+        "concern": "exposure",
+        "service": "worker",
+        "status": "unknown",
+        "reason": "Required evidence has not been collected"
+      },
+      {
+        "concern": "identity",
+        "service": "worker",
+        "status": "unknown",
+        "reason": "Required evidence has not been collected"
+      },
+      {
+        "concern": "privileges",
+        "service": "worker",
+        "status": "unknown",
+        "reason": "Required evidence has not been collected"
+      },
+      {
+        "concern": "integrity",
+        "service": "worker",
+        "status": "unknown",
+        "reason": "Required evidence has not been collected"
+      },
+      {
+        "concern": "vulnerabilities",
+        "service": "worker",
+        "status": "unknown",
+        "reason": "Required evidence has not been collected"
+      },
+      {
+        "concern": "credentials",
+        "service": "worker",
+        "status": "unknown",
+        "reason": "Required evidence has not been collected"
+      },
+      {
+        "concern": "data_access",
+        "service": "worker",
+        "status": "unknown",
+        "reason": "Required evidence has not been collected"
+      },
+      {
+        "concern": "monitoring",
+        "service": "worker",
+        "status": "unknown",
+        "reason": "Required evidence has not been collected"
+      },
+      {
+        "concern": "writable_execution_surfaces",
+        "service": "worker",
+        "status": "unknown",
+        "reason": "Required evidence has not been collected"
+      },
+      {
+        "concern": "attachment_safety",
+        "service": "worker",
+        "status": "unknown",
+        "reason": "Required evidence has not been collected"
+      },
+      {
+        "concern": "upload_ingress",
+        "service": "worker",
+        "status": "unknown",
+        "reason": "Required evidence has not been collected"
+      },
+      {
+        "concern": "object_authorization",
+        "service": "worker",
+        "status": "unknown",
+        "reason": "Required evidence has not been collected"
+      }
+    ]
+  },
+  "state": { "profile": null, "revision": "", "approval": null, "status": "missing" },
+  "suggested_profile": {
+    "api_version": "flatrun.security-profile/v1",
+    "baseline_version": "1.0.0",
+    "version": "1.0.0",
+    "runtime": "unknown",
+    "targets": {
+      "frontend": { "service": "frontend", "roots": [], "metadata_sources": ["inventory"] },
+      "worker": { "service": "worker", "roots": [], "metadata_sources": ["inventory"] }
+    },
+    "reviews": {},
+    "schedule": { "incremental": "*/5 * * * *", "retrospective": "17 * * * *", "full": "0 2 * * *" },
+    "budget": {
+      "max_file_bytes": 1048576,
+      "timeout_seconds": 30,
+      "max_output_bytes": 65536,
+      "max_files": 10000,
+      "max_snapshot_bytes": 67108864,
+      "model_input_bytes": 131072,
+      "model_output_bytes": 32768
+    },
+    "access_policy": { "version": "1", "actions": {} }
+  },
+  "warnings": [
+    "Application authorization coverage is unknown until approved historical audit evidence is connected",
+    "Schedule intervals are targets pending capacity measurement",
+    "Management listens outside a private or loopback interface",
+    "Legacy listener settings are preserved; migration requires an explicit configuration change"
+  ]
+}
