@@ -80,6 +80,63 @@ describe("Security reviews", () => {
     expect(api.propose).not.toHaveBeenCalled();
     wrapper.unmount();
   });
+  it("clears old evidence when another evidence request fails", async () => {
+    api.reports.mockResolvedValue({
+      data: {
+        reports: [
+          {
+            id: "run",
+            status: "partial",
+            mode: "full",
+            requested_at: "2026-10-31T12:00:00Z",
+            completed_at: null,
+            model_status: "unavailable",
+            delivery_status: "not_configured",
+            hold: false,
+            coverage: [],
+            limitations: [],
+            findings: [
+              {
+                id: "one",
+                classification: "suspicious_condition",
+                concern: "integrity",
+                signal: "first",
+                evidence_id: "first",
+              },
+              {
+                id: "two",
+                classification: "suspicious_condition",
+                concern: "integrity",
+                signal: "second",
+                evidence_id: "second",
+              },
+            ],
+          },
+        ],
+      },
+    });
+    api.evidence
+      .mockResolvedValueOnce({ data: { evidence: { marker: "first-evidence-marker" } } })
+      .mockRejectedValueOnce(new Error("Evidence unavailable"));
+    const wrapper = mount(SecurityReviewsPanel, { props: { name: "shop" }, attachTo: document.body });
+    await flushPromises();
+    await wrapper
+      .findAll("button")
+      .find((button) => button.text() === "View report")!
+      .trigger("click");
+    await flushPromises();
+    const buttons = Array.from(document.body.querySelectorAll("button")).filter(
+      (button) => button.textContent?.trim() === "Read restricted evidence",
+    );
+    buttons[0].click();
+    await flushPromises();
+    expect(document.body.textContent).toContain("first-evidence-marker");
+    buttons[1].click();
+    await flushPromises();
+    expect(document.body.textContent).not.toContain("first-evidence-marker");
+    expect(document.body.textContent).toContain("Evidence unavailable");
+    wrapper.unmount();
+  });
   it("opens a draft editor only after explicit intent", async () => {
     controls.write = true;
     const wrapper = mount(SecurityReviewsPanel, { props: { name: "shop" }, attachTo: document.body });

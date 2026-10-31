@@ -94,7 +94,7 @@
             {{ finding.classification }}: {{ finding.concern }} ({{ finding.signal }}). Observed
             {{ finding.occurrences }} time(s).
           </p>
-          <BaseButton v-if="canReadEvidence" size="sm" @click="readFinding(finding)"
+          <BaseButton v-if="canReadEvidence" :disabled="busy" size="sm" @click="readFinding(finding)"
             >Read restricted evidence</BaseButton
           >
           <BaseButton
@@ -220,7 +220,7 @@
       </p>
       <div v-for="finding in selectedReport.findings" :key="finding.id" class="finding">
         <p>{{ finding.classification }}: {{ finding.concern }} ({{ finding.signal }})</p>
-        <BaseButton v-if="canReadEvidence" size="sm" @click="loadEvidence(finding.evidence_id)"
+        <BaseButton v-if="canReadEvidence" :disabled="busy" size="sm" @click="loadEvidence(finding.evidence_id)"
           >Read restricted evidence</BaseButton
         >
       </div>
@@ -277,6 +277,7 @@ const proposal = ref<SecurityProposal | null>(null);
 let proposalTimer: ReturnType<typeof setTimeout> | undefined;
 const selectedReport = ref<SecurityReport | null>(null);
 const evidence = ref<unknown>(null);
+let evidenceEpoch = 0;
 const editing = ref(false);
 const editor = ref("");
 const scope = computed(() => props.accessKey || props.name);
@@ -366,6 +367,7 @@ function pollProposal(id: string, name: string) {
   }, 1000);
 }
 onUnmounted(() => {
+  evidenceEpoch++;
   clearTimeout(proposalTimer);
   proposal.value = null;
 });
@@ -399,8 +401,14 @@ async function run() {
 }
 async function loadEvidence(id: string) {
   if (!selectedReport.value) return;
+  const epoch = ++evidenceEpoch;
+  const name = props.name;
+  const run = selectedReport.value.id;
+  evidence.value = null;
   await action(async () => {
-    evidence.value = (await securityReviewsApi.evidence(props.name, selectedReport.value!.id, id)).data.evidence;
+    const result = await securityReviewsApi.evidence(name, run, id);
+    if (epoch === evidenceEpoch && props.name === name && selectedReport.value?.id === run)
+      evidence.value = result.data.evidence;
   });
 }
 async function toggleHold() {
@@ -434,14 +442,24 @@ async function closeFinding() {
   if (!error.value) await refresh();
 }
 async function readFinding(finding: SecurityFinding) {
+  const epoch = ++evidenceEpoch;
+  const name = props.name;
+  evidence.value = null;
+  selectedReport.value = null;
   await action(async () => {
-    selectedReport.value = (await securityReviewsApi.report(props.name, finding.run_id)).data.report;
-    evidence.value = (await securityReviewsApi.evidence(props.name, finding.run_id, finding.evidence_id)).data.evidence;
+    const report = await securityReviewsApi.report(name, finding.run_id);
+    if (epoch !== evidenceEpoch || props.name !== name) return;
+    selectedReport.value = report.data.report;
+    const result = await securityReviewsApi.evidence(name, finding.run_id, finding.evidence_id);
+    if (epoch === evidenceEpoch && props.name === name && selectedReport.value?.id === finding.run_id)
+      evidence.value = result.data.evidence;
   });
 }
+
 watch(
   () => props.name,
   () => {
+    evidenceEpoch++;
     state.value = null;
     resolvedScope.value = [];
     proposal.value = null;
