@@ -119,6 +119,8 @@
           <dd>{{ runDuration(selected) }}</dd>
           <dt>Timeout</dt>
           <dd>{{ Math.round(selected.spec.timeout_seconds / 60) }} min</dd>
+          <dt>Runtime</dt>
+          <dd>{{ runtimeLabel(selected.runtime) }}</dd>
           <dt>Network</dt>
           <dd>{{ selected.spec.egress ? "Outbound internet" : "No network" }}</dd>
           <dt>Limits</dt>
@@ -199,6 +201,7 @@ import {
   commandText,
   isActive,
   limitsText,
+  runtimeLabel,
   outputEmptyMessage,
   runDuration,
   runStatuses,

@@ -3,12 +3,15 @@ import { mount, flushPromises } from "@vue/test-utils";
 import NewRunModal from "./NewRunModal.vue";
 import { runsApi } from "@/services/api";
 import running from "@/views/fixtures/runs/run-running.json";
+import unconfigured from "@/views/fixtures/runs/runtimes-firecracker-unconfigured.json";
+import firecrackerOnly from "@/views/fixtures/runs/runtimes-firecracker-only.json";
 
 vi.mock("@/services/api", () => ({
-  runsApi: { create: vi.fn() },
+  runsApi: { create: vi.fn(), runtimes: vi.fn() },
 }));
 
 const create = runsApi.create as unknown as ReturnType<typeof vi.fn>;
+const runtimes = runsApi.runtimes as unknown as ReturnType<typeof vi.fn>;
 
 function mountModal() {
   return mount(NewRunModal, {
@@ -33,6 +36,7 @@ describe("NewRunModal", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     create.mockResolvedValue({ data: running });
+    runtimes.mockResolvedValue({ data: unconfigured });
   });
 
   it("sends the run in the shape the agent accepts", async () => {
@@ -53,6 +57,7 @@ describe("NewRunModal", () => {
     await submit(wrapper);
 
     expect(create).toHaveBeenCalledWith({
+      runtime: "docker",
       image: "busybox:latest",
       command: ["sh", "-c", "echo waiting; sleep 30"],
       env: undefined,
@@ -122,5 +127,73 @@ describe("NewRunModal", () => {
     await submit(wrapper);
 
     expect(wrapper.find(".run-form-error").text()).toBe("timeout must be positive and at most one hour");
+  });
+
+  it("offers only the runtimes this node can run", async () => {
+    const wrapper = mountModal();
+    await flushPromises();
+
+    const options = wrapper.findAll("option").filter((o) => ["docker", "firecracker"].includes(o.attributes("value")!));
+    expect(options.map((o) => [o.text(), o.attributes("disabled") !== undefined])).toEqual([
+      ["Docker container", false],
+      ["Firecracker microVM (not set up on this node)", true],
+    ]);
+  });
+
+  it("falls back to Docker when the agent cannot list runtimes", async () => {
+    runtimes.mockRejectedValue({ response: { status: 404 } });
+    const wrapper = mountModal();
+    await flushPromises();
+    await fill(wrapper, "Image", "busybox:latest");
+    await submit(wrapper);
+
+    expect(create.mock.calls[0][0].runtime).toBe("docker");
+  });
+
+  it("asks for a runtime instead of switching to one the user did not pick", async () => {
+    runtimes.mockResolvedValue({ data: firecrackerOnly });
+    const wrapper = mountModal();
+    await flushPromises();
+    await fill(wrapper, "Image", "busybox:latest");
+    await submit(wrapper);
+    expect(wrapper.find(".run-form-error").text()).toBe("Choose a runtime.");
+    expect(create).not.toHaveBeenCalled();
+
+    await wrapper.findAll("select")[0].setValue("firecracker");
+    await submit(wrapper);
+    expect(create.mock.calls[0][0].runtime).toBe("firecracker");
+  });
+
+  it("keeps a chosen Firecracker run when the runtime list cannot be loaded again", async () => {
+    runtimes.mockResolvedValue({ data: firecrackerOnly });
+    const wrapper = mountModal();
+    await flushPromises();
+    await wrapper.findAll("select")[0].setValue("firecracker");
+
+    runtimes.mockRejectedValue({ response: { status: 500 } });
+    await wrapper.setProps({ visible: false });
+    await wrapper.setProps({ visible: true });
+    await flushPromises();
+    await fill(wrapper, "Image", "busybox:latest");
+    await submit(wrapper);
+
+    expect(create.mock.calls[0][0].runtime).toBe("firecracker");
+  });
+
+  it("asks again when the chosen runtime stops being available", async () => {
+    runtimes.mockResolvedValue({ data: firecrackerOnly });
+    const wrapper = mountModal();
+    await flushPromises();
+    await wrapper.findAll("select")[0].setValue("firecracker");
+
+    runtimes.mockResolvedValue({ data: unconfigured });
+    await wrapper.setProps({ visible: false });
+    await wrapper.setProps({ visible: true });
+    await flushPromises();
+    await fill(wrapper, "Image", "busybox:latest");
+    await submit(wrapper);
+
+    expect(wrapper.find(".run-form-error").text()).toBe("Choose a runtime.");
+    expect(create).not.toHaveBeenCalled();
   });
 });

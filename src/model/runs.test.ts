@@ -1,6 +1,17 @@
 import { describe, it, expect } from "vitest";
 import type { Run } from "@/services/api";
-import { commandText, isActive, limitsText, outputEmptyMessage, runDuration, runStatuses, statusTone } from "./runs";
+import {
+  chosenRuntime,
+  commandText,
+  isActive,
+  limitsText,
+  outputEmptyMessage,
+  runDuration,
+  runStatuses,
+  runtimeOptionLabel,
+  statusTone,
+} from "./runs";
+import unconfigured from "@/views/fixtures/runs/runtimes-firecracker-unconfigured.json";
 import running from "@/views/fixtures/runs/run-running.json";
 import succeeded from "@/views/fixtures/runs/run-succeeded.json";
 import failed from "@/views/fixtures/runs/run-failed.json";
@@ -47,5 +58,18 @@ describe("runs model", () => {
     expect(outputEmptyMessage(asRun({ status: "queued" }))).toMatch(/start/);
     expect(outputEmptyMessage(asRun({ status: "running" }))).toMatch(/Waiting for output/);
     expect(outputEmptyMessage(asRun({ status: "succeeded" }))).toMatch(/no output/);
+  });
+
+  it("never swaps a chosen runtime for another one", () => {
+    expect(chosenRuntime(unconfigured.items, "docker")).toBe("docker");
+    expect(chosenRuntime(unconfigured.items, "firecracker")).toBe("");
+    expect(chosenRuntime([], "docker")).toBe("");
+  });
+
+  it("marks runtimes the node cannot run", () => {
+    expect(unconfigured.items.map(runtimeOptionLabel)).toEqual([
+      "Docker container",
+      "Firecracker microVM (not set up on this node)",
+    ]);
   });
 });

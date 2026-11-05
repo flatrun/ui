@@ -1,0 +1,6 @@
+{
+  "items": [
+    { "type": "docker", "available": false, "reason": "runtime unavailable: docker: not configured on this node" },
+    { "type": "firecracker", "available": true }
+  ]
+}
