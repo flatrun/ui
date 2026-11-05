@@ -5,6 +5,15 @@
         <BaseInput v-model="image" placeholder="e.g. node:22-alpine" />
       </BaseField>
 
+      <BaseField label="Runtime" :hint="runtimeHint(runtime)">
+        <BaseSelect v-model="runtime">
+          <option v-if="!runtime" value="" disabled>Choose a runtime</option>
+          <option v-for="option in runtimes" :key="option.type" :value="option.type" :disabled="!option.available">
+            {{ runtimeOptionLabel(option) }}
+          </option>
+        </BaseSelect>
+      </BaseField>
+
       <BaseField label="Command" hint="Runs with sh -c. Leave empty to use the image's default command.">
         <BaseTextarea v-model="command" :rows="4" placeholder="e.g. npm ci && npm test" />
       </BaseField>
@@ -19,10 +28,10 @@
             <option value="egress">Outbound internet</option>
           </BaseSelect>
         </BaseField>
-        <BaseField label="CPUs" hint="Empty for no limit.">
+        <BaseField label="CPUs" :hint="isVm ? 'Rounded up to whole vCPUs. Empty for one.' : 'Empty for no limit.'">
           <BaseInput v-model="cpus" type="number" />
         </BaseField>
-        <BaseField label="Memory (MB)" hint="Empty for no limit.">
+        <BaseField label="Memory (MB)" :hint="isVm ? 'Empty for the node default.' : 'Empty for no limit.'">
           <BaseInput v-model="memoryMb" type="number" />
         </BaseField>
       </div>
@@ -64,7 +73,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from "vue";
+import { computed, ref, watch } from "vue";
 import BaseModal from "@/components/base/BaseModal.vue";
 import BaseField from "@/components/base/BaseField.vue";
 import BaseInput from "@/components/base/BaseInput.vue";
@@ -72,11 +81,15 @@ import BaseSelect from "@/components/base/BaseSelect.vue";
 import BaseTextarea from "@/components/base/BaseTextarea.vue";
 import BaseButton from "@/components/base/BaseButton.vue";
 import KeyValueRows, { type KeyValueRow } from "./KeyValueRows.vue";
-import { runsApi, type CreateRunRequest, type Run } from "@/services/api";
+import { runsApi, type CreateRunRequest, type Run, type RunRuntime } from "@/services/api";
+import { chosenRuntime, defaultRuntimes, runtimeHint, runtimeOptionLabel } from "@/model/runs";
 
 const props = defineProps<{ visible: boolean }>();
 const emit = defineEmits<{ close: []; created: [run: Run] }>();
 
+const runtimes = ref<RunRuntime[]>(defaultRuntimes);
+const runtime = ref("docker");
+const isVm = computed(() => runtime.value === "firecracker");
 const image = ref("");
 const command = ref("");
 const timeoutMinutes = ref<string | number>(10);
@@ -109,8 +122,21 @@ watch(
   (open) => {
     error.value = "";
     if (!open) secretEnv.value = [];
+    else loadRuntimes();
   },
+  { immediate: true },
 );
+
+async function loadRuntimes() {
+  try {
+    const res = await runsApi.runtimes();
+    if (!res.data.items.length) return;
+    runtimes.value = res.data.items;
+  } catch {
+    return;
+  }
+  runtime.value = chosenRuntime(runtimes.value, runtime.value);
+}
 
 function toMap(rows: KeyValueRow[]): Record<string, string> | undefined {
   const named = rows.filter((r) => r.key.trim() !== "");
@@ -127,6 +153,7 @@ function optionalNumber(value: string | number): number | undefined | null {
 function buildRequest(): CreateRunRequest | string {
   const reference = image.value.trim();
   if (!reference) return "Image is required.";
+  if (!runtime.value) return "Choose a runtime.";
   const minutes = Number(timeoutMinutes.value);
   if (!Number.isInteger(minutes) || minutes < 1 || minutes > 60) return "Timeout must be a whole number from 1 to 60.";
   const paths = artifactPaths.value
@@ -141,6 +168,7 @@ function buildRequest(): CreateRunRequest | string {
   if (memory === null) return "Memory must be a positive number of MB, or empty for no limit.";
   const script = command.value.trim();
   return {
+    runtime: runtime.value,
     image: reference,
     command: script ? ["sh", "-c", script] : undefined,
     env: toMap(env.value),

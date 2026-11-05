@@ -2280,7 +2280,14 @@ export interface Run {
   finished_at?: string;
 }
 
+export interface RunRuntime {
+  type: string;
+  available: boolean;
+  reason?: string;
+}
+
 export interface CreateRunRequest {
+  runtime?: string;
   image: string;
   command?: string[];
   env?: Record<string, string>;
@@ -2296,6 +2303,7 @@ export interface CreateRunRequest {
 export const runsApi = {
   list: (limit?: number) => apiClient.get<{ items: Run[] }>("/runs", { params: limit ? { limit } : undefined }),
   get: (id: string) => apiClient.get<Run>(`/runs/${encodeURIComponent(id)}`),
+  runtimes: () => apiClient.get<{ items: RunRuntime[] }>("/runs/runtimes"),
   create: (data: CreateRunRequest) => apiClient.post<Run>("/runs", data),
   cancel: (id: string) => apiClient.delete<Run>(`/runs/${encodeURIComponent(id)}`),
   logs: (id: string) =>

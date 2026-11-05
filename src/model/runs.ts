@@ -1,4 +1,4 @@
-import type { Run, RunStatus } from "@/services/api";
+import type { Run, RunRuntime, RunStatus } from "@/services/api";
 import { duration } from "@/utils/time";
 
 export const runStatuses: RunStatus[] = [
@@ -65,4 +65,33 @@ export function outputEmptyMessage(run: Run): string {
   if (run.status === "queued" || run.status === "starting") return "Waiting for the run to start...";
   if (run.status === "running") return "Waiting for output...";
   return "This run wrote no output.";
+}
+
+const runtimeNames: Record<string, string> = {
+  docker: "Docker container",
+  firecracker: "Firecracker microVM",
+};
+
+const runtimeHints: Record<string, string> = {
+  docker: "Shares the host kernel. Use it for code you trust.",
+  firecracker: "Runs in a microVM with its own kernel. Use it for code you do not trust.",
+};
+
+export const defaultRuntimes: RunRuntime[] = [{ type: "docker", available: true }];
+
+export function runtimeLabel(type: string): string {
+  return runtimeNames[type] ?? type;
+}
+
+export function runtimeOptionLabel(runtime: RunRuntime): string {
+  const name = runtimeLabel(runtime.type);
+  return runtime.available ? name : `${name} (not set up on this node)`;
+}
+
+export function runtimeHint(type: string): string {
+  return runtimeHints[type] ?? "";
+}
+
+export function chosenRuntime(runtimes: RunRuntime[], current: string): string {
+  return runtimes.some((r) => r.available && r.type === current) ? current : "";
 }
