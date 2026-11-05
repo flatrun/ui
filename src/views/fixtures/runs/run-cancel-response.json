@@ -1,0 +1,18 @@
+{
+  "artifacts": [],
+  "created_at": "2026-11-05T14:54:22.683073589Z",
+  "exit_code": null,
+  "id": "eadcc082-be60-42f7-be02-16f71f4efd45",
+  "owner_user_id": 2,
+  "owner_username": "alice",
+  "runtime": "docker",
+  "spec": {
+    "command": ["sh", "-c", "echo waiting; sleep 30"],
+    "egress": false,
+    "image": "busybox:latest",
+    "runtime": "docker",
+    "timeout_seconds": 600
+  },
+  "started_at": "2026-11-05T14:54:22.805191048Z",
+  "status": "running"
+}

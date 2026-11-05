@@ -173,6 +173,14 @@ export const NAV_ITEMS: NavItem[] = [
   },
   { id: "services", label: "Services", path: "/services", icon: "cog", group: "System", permission: "system:read" },
   {
+    id: "runs",
+    label: "Runs",
+    path: "/runs",
+    icon: "square-terminal",
+    group: "System",
+    permission: "runs:read",
+  },
+  {
     id: "cron-jobs",
     label: "Cron Jobs",
     path: "/cron-jobs",

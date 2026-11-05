@@ -2245,6 +2245,70 @@ export const schedulerApi = {
     }),
 };
 
+export type RunStatus = "queued" | "starting" | "running" | "succeeded" | "failed" | "timed_out" | "cancelled";
+
+export interface RunSpec {
+  runtime: string;
+  image: string;
+  command?: string[];
+  env?: Record<string, string>;
+  workdir?: string;
+  cpus?: number;
+  memory_bytes?: number;
+  egress: boolean;
+  timeout_seconds: number;
+  artifact_paths?: string[];
+}
+
+export interface RunArtifact {
+  name: string;
+  size: number;
+}
+
+export interface Run {
+  id: string;
+  owner_user_id: number;
+  owner_username: string;
+  runtime: string;
+  spec: RunSpec;
+  status: RunStatus;
+  exit_code: number | null;
+  error?: string;
+  artifacts: RunArtifact[];
+  created_at: string;
+  started_at?: string;
+  finished_at?: string;
+}
+
+export interface CreateRunRequest {
+  image: string;
+  command?: string[];
+  env?: Record<string, string>;
+  secret_env?: Record<string, string>;
+  workdir?: string;
+  cpus?: number;
+  memory_bytes?: number;
+  egress?: boolean;
+  timeout_seconds?: number;
+  artifact_paths?: string[];
+}
+
+export const runsApi = {
+  list: (limit?: number) => apiClient.get<{ items: Run[] }>("/runs", { params: limit ? { limit } : undefined }),
+  get: (id: string) => apiClient.get<Run>(`/runs/${encodeURIComponent(id)}`),
+  create: (data: CreateRunRequest) => apiClient.post<Run>("/runs", data),
+  cancel: (id: string) => apiClient.delete<Run>(`/runs/${encodeURIComponent(id)}`),
+  logs: (id: string) =>
+    apiClient.get<string>(`/runs/${encodeURIComponent(id)}/logs`, {
+      responseType: "text",
+      transformResponse: (d) => d,
+    }),
+  artifact: (id: string, name: string) =>
+    apiClient.get<Blob>(`/runs/${encodeURIComponent(id)}/artifacts/${encodeURIComponent(name)}`, {
+      responseType: "blob",
+    }),
+};
+
 // DNS Types
 export interface DNSCredentialField {
   name: string;
