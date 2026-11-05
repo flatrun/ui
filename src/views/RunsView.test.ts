@@ -28,12 +28,19 @@ vi.mock("@/services/api", () => ({
 
 const api = runsApi as unknown as Record<keyof typeof runsApi, ReturnType<typeof vi.fn>>;
 
+const logViewerStub = {
+  name: "LogViewer",
+  props: ["logs", "loading", "emptyMessage", "fileName", "assistContext", "initialMode"],
+  emits: ["refresh"],
+  template: '<div class="log-viewer">{{ logs || emptyMessage }}</div>',
+};
+
 function mountView(permissions: string[] = ["runs:read", "runs:write"]) {
   const pinia = createTestingPinia({ createSpy: vi.fn });
   const auth = useAuthStore(pinia);
   (auth.hasPermission as ReturnType<typeof vi.fn>).mockImplementation((p: string) => permissions.includes(p));
   const wrapper = mount(RunsView, {
-    global: { plugins: [pinia], stubs: { Teleport: true, Transition: false } },
+    global: { plugins: [pinia], stubs: { Teleport: true, Transition: false, LogViewer: logViewerStub } },
   });
   return Object.assign(wrapper, { notifications: useNotificationsStore(pinia) });
 }
@@ -103,7 +110,7 @@ describe("RunsView", () => {
     await openDetails(wrapper);
 
     expect(api.logs).toHaveBeenCalledWith(succeeded.id);
-    expect(wrapper.find(".run-logs").text()).toContain("token=[REDACTED]");
+    expect(wrapper.find(".log-viewer").text()).toContain("token=[REDACTED]");
     expect(wrapper.find(".artifact-list").text()).toContain("report.txt.tar");
     const note = wrapper.find(".run-error");
     expect(note.classes()).toContain("run-note");
@@ -132,15 +139,32 @@ describe("RunsView", () => {
 
     await openDetails(wrapper);
     expect(wrapper.text()).toContain("Could not load the output: Network Error");
-    expect(wrapper.find(".run-logs").text()).not.toContain("No output.");
+    expect(wrapper.find(".log-viewer").text()).not.toContain("token=");
 
     await wrapper
       .findAll("button")
       .find((b) => b.text() === "Retry")!
       .trigger("click");
     await flushPromises();
-    expect(wrapper.find(".run-logs").text()).toContain("token=[REDACTED]");
+    expect(wrapper.find(".log-viewer").text()).toContain("token=[REDACTED]");
     expect(wrapper.text()).not.toContain("Could not load the output");
+  });
+
+  it("shows the output in the shared log viewer and reloads it from the viewer", async () => {
+    api.list.mockResolvedValue({ data: { items: [succeeded] } });
+    const wrapper = mountView();
+    await flushPromises();
+    await openDetails(wrapper);
+
+    const viewer = wrapper.findComponent({ name: "LogViewer" });
+    expect(viewer.props("logs")).toBe(logs);
+    expect(viewer.props("initialMode")).toBe("raw");
+    expect(viewer.props("fileName")).toBe(`run-${succeeded.id.slice(0, 8)}.log`);
+    expect(api.logs).toHaveBeenCalledTimes(1);
+
+    viewer.vm.$emit("refresh");
+    await flushPromises();
+    expect(api.logs).toHaveBeenCalledTimes(2);
   });
 
   it("shows the agent's reason when output cannot be loaded", async () => {
@@ -200,7 +224,7 @@ describe("RunsView", () => {
       await flushPromises();
 
       expect(api.get).toHaveBeenCalledWith(running.id);
-      expect(wrapper.find(".panel .status-pill").text()).toBe("Cancelled");
+      expect(wrapper.find(".panel .run-status").text()).toBe("Cancelled");
     });
 
     it("does not raise an error toast on every failed poll", async () => {

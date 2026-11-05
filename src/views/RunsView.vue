@@ -31,7 +31,7 @@
       <template #filters>
         <BaseSelect v-model="statusFilter" class="status-filter" aria-label="Filter by status">
           <option value="">All statuses</option>
-          <option v-for="s in statusOrder" :key="s" :value="s">{{ statusLabel(s) }}</option>
+          <option v-for="s in runStatuses" :key="s" :value="s">{{ statusLabel(s) }}</option>
         </BaseSelect>
       </template>
       <template #empty-action>
@@ -40,7 +40,7 @@
         </BaseButton>
       </template>
       <template #cell-status="{ item }">
-        <span class="status-pill" :class="`status-${item.status}`">
+        <span class="badge run-status" :class="statusTone(item.status)">
           <Icon v-if="isActive(item)" name="loader-circle" spin :size="12" />
           {{ statusLabel(item.status) }}
         </span>
@@ -52,7 +52,7 @@
       <template #cell-created_at="{ item }">
         <span :title="item.created_at">{{ formatTime(item.created_at) }}</span>
       </template>
-      <template #cell-duration="{ item }">{{ durationText(item) }}</template>
+      <template #cell-duration="{ item }">{{ runDuration(item) }}</template>
       <template #cell-actions="{ item }">
         <div class="row-actions">
           <BaseButton size="sm" variant="ghost" icon="panel-right-open" @click="open(item)">Details</BaseButton>
@@ -79,7 +79,7 @@
       </template>
       <div v-if="selected" class="run-detail">
         <div class="detail-head">
-          <span class="status-pill" :class="`status-${selected.status}`">
+          <span class="badge run-status" :class="statusTone(selected.status)">
             <Icon v-if="isActive(selected)" name="loader-circle" spin :size="12" />
             {{ statusLabel(selected.status) }}
           </span>
@@ -116,7 +116,7 @@
           <dt>Created</dt>
           <dd>{{ formatTime(selected.created_at) }}</dd>
           <dt>Duration</dt>
-          <dd>{{ durationText(selected) }}</dd>
+          <dd>{{ runDuration(selected) }}</dd>
           <dt>Timeout</dt>
           <dd>{{ Math.round(selected.spec.timeout_seconds / 60) }} min</dd>
           <dt>Network</dt>
@@ -136,9 +136,18 @@
               Retry
             </BaseButton>
           </div>
-          <pre ref="logBox" class="run-logs">{{
-            logs || (logsLoading ? "Loading..." : logsError ? "" : "No output.")
-          }}</pre>
+          <div class="run-output">
+            <LogViewer
+              :key="selected.id"
+              :logs="logs"
+              :loading="logsLoading && !logs"
+              :empty-message="outputEmptyMessage(selected)"
+              :file-name="`run-${selected.id.slice(0, 8)}.log`"
+              :assist-context="isActive(selected) ? null : assistContext"
+              initial-mode="raw"
+              @refresh="loadLogs"
+            />
+          </div>
         </section>
 
         <section class="detail-section">
@@ -174,31 +183,32 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, nextTick, onMounted, onBeforeUnmount } from "vue";
+import { ref, computed, onMounted, onBeforeUnmount } from "vue";
 import Icon from "@/components/base/Icon.vue";
 import BaseButton from "@/components/base/BaseButton.vue";
 import BaseSelect from "@/components/base/BaseSelect.vue";
 import SlidePanel from "@/components/base/SlidePanel.vue";
 import DataTable from "@/components/DataTable.vue";
+import LogViewer from "@/components/LogViewer.vue";
 import NewRunModal from "@/components/runs/NewRunModal.vue";
-import { runsApi, type Run, type RunStatus } from "@/services/api";
+import { runsApi, type Run } from "@/services/api";
 import { useAuthStore } from "@/stores/auth";
 import { useNotificationsStore } from "@/stores/notifications";
+import type { AssistContext } from "@/stores/assist";
+import {
+  commandText,
+  isActive,
+  limitsText,
+  outputEmptyMessage,
+  runDuration,
+  runStatuses,
+  statusLabel,
+  statusTone,
+} from "@/model/runs";
 
 const auth = useAuthStore();
 const notifications = useNotificationsStore();
 const canWrite = auth.hasPermission("runs:write");
-
-const statusOrder: RunStatus[] = ["queued", "starting", "running", "succeeded", "failed", "timed_out", "cancelled"];
-const statusLabels: Record<RunStatus, string> = {
-  queued: "Queued",
-  starting: "Starting",
-  running: "Running",
-  succeeded: "Succeeded",
-  failed: "Failed",
-  timed_out: "Timed out",
-  cancelled: "Cancelled",
-};
 
 const columns = [
   { key: "status", label: "Status", width: "130px" },
@@ -224,44 +234,20 @@ let listRequest = 0;
 let runRequest = 0;
 let logsRequest = 0;
 let polling = false;
-const logBox = ref<HTMLElement | null>(null);
 let timer: ReturnType<typeof setInterval> | null = null;
 
 const runs = computed(() =>
   statusFilter.value ? allRuns.value.filter((r) => r.status === statusFilter.value) : allRuns.value,
 );
 
-function statusLabel(s: RunStatus) {
-  return statusLabels[s] ?? s;
-}
-
-function isActive(r: Run) {
-  return r.status === "queued" || r.status === "starting" || r.status === "running";
-}
-
-function commandText(r: Run) {
-  const cmd = r.spec.command ?? [];
-  if (cmd.length === 3 && cmd[0] === "sh" && cmd[1] === "-c") return cmd[2];
-  return cmd.join(" ");
-}
+const assistContext = computed<AssistContext | null>(() =>
+  selected.value
+    ? { scope: "system", subject: `run ${selected.value.id.slice(0, 8)} of ${selected.value.spec.image}` }
+    : null,
+);
 
 function formatTime(iso?: string) {
   return iso ? new Date(iso).toLocaleString() : "";
-}
-
-function durationText(r: Run) {
-  if (!r.started_at) return r.status === "queued" ? "Waiting" : "";
-  const end = r.finished_at ? new Date(r.finished_at).getTime() : Date.now();
-  const seconds = Math.max(0, Math.round((end - new Date(r.started_at).getTime()) / 1000));
-  if (seconds < 60) return `${seconds}s`;
-  return `${Math.floor(seconds / 60)}m ${seconds % 60}s`;
-}
-
-function limitsText(r: Run) {
-  const parts = [];
-  if (r.spec.cpus) parts.push(`${r.spec.cpus} CPU`);
-  if (r.spec.memory_bytes) parts.push(`${Math.round(r.spec.memory_bytes / 1024 / 1024)} MB`);
-  return parts.length ? parts.join(", ") : "None";
 }
 
 function formatSize(bytes: number) {
@@ -331,18 +317,12 @@ async function loadLogs() {
   if (!selected.value) return;
   const id = selected.value.id;
   const request = ++logsRequest;
-  const box = logBox.value;
-  const atBottom = !box || box.scrollHeight - box.scrollTop - box.clientHeight < 24;
   logsLoading.value = true;
   try {
     const res = await runsApi.logs(id);
     if (request !== logsRequest || selected.value?.id !== id) return;
     logs.value = res.data;
     logsError.value = "";
-    if (atBottom) {
-      await nextTick();
-      if (logBox.value) logBox.value.scrollTop = logBox.value.scrollHeight;
-    }
   } catch (e: any) {
     if (request !== logsRequest || selected.value?.id !== id) return;
     const detail = await errorDetail(e);
@@ -388,7 +368,7 @@ async function cancel(r: Run) {
     await runsApi.cancel(r.id);
     await load();
   } catch (e: any) {
-    notifications.error("Could not cancel run", e.response?.data?.error || e.message);
+    notifications.error("Could not cancel run", await errorDetail(e));
   } finally {
     cancelling.value = null;
   }
@@ -478,39 +458,14 @@ onBeforeUnmount(() => {
   flex: none;
 }
 
-.status-pill {
-  display: inline-flex;
-  align-items: center;
+.run-status {
   gap: 0.3rem;
-  padding: 0.1rem 0.5rem;
-  border-radius: var(--radius-full);
-  font-size: var(--text-xs);
-  font-weight: var(--font-semibold);
   white-space: nowrap;
+}
+
+.badge-neutral {
   background: var(--surface-inset);
   color: var(--text-muted);
-}
-
-.status-queued,
-.status-starting,
-.status-running {
-  background: var(--color-info-50);
-  color: var(--color-info-700);
-}
-
-.status-succeeded {
-  background: var(--color-success-50);
-  color: var(--color-success-700);
-}
-
-.status-failed {
-  background: var(--color-danger-50);
-  color: var(--color-danger-700);
-}
-
-.status-timed_out {
-  background: var(--color-warning-50);
-  color: var(--color-warning-700);
 }
 
 .run-image {
@@ -609,20 +564,10 @@ onBeforeUnmount(() => {
   color: var(--text);
 }
 
-.run-logs {
-  margin: 0;
-  min-height: 160px;
-  max-height: 420px;
-  overflow: auto;
-  padding: var(--space-3);
-  border: 1px solid var(--border);
+.run-output {
+  height: 420px;
   border-radius: var(--radius-sm);
-  background: var(--surface-sunken);
-  color: var(--text);
-  font-size: var(--text-xs);
-  line-height: 1.5;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
+  overflow: hidden;
 }
 
 .artifact-list {
