@@ -125,6 +125,14 @@ const permissionGroups: PermissionGroup[] = [
     ],
   },
   {
+    key: "runs",
+    label: "Runs",
+    permissions: [
+      { value: "runs:read", label: "Read", level: "read" },
+      { value: "runs:write", label: "Write", level: "write" },
+    ],
+  },
+  {
     key: "system",
     label: "System",
     permissions: [

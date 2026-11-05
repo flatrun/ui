@@ -1,0 +1,19 @@
+{
+  "artifacts": [],
+  "created_at": "2026-11-05T14:54:21.467967702Z",
+  "error": "instance creation failed: pull image: Error response from daemon: failed to resolve reference \"docker.io/library/busybox:flatrun-no-such-tag\": docker.io/library/busybox:flatrun-no-such-tag: not found",
+  "exit_code": null,
+  "finished_at": "2026-11-05T14:54:22.677563282Z",
+  "id": "15c3bf54-97e8-4007-92ec-1533a483df1c",
+  "owner_user_id": 2,
+  "owner_username": "alice",
+  "runtime": "docker",
+  "spec": {
+    "command": ["true"],
+    "egress": false,
+    "image": "busybox:flatrun-no-such-tag",
+    "runtime": "docker",
+    "timeout_seconds": 600
+  },
+  "status": "failed"
+}

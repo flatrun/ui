@@ -1,0 +1,35 @@
+{
+  "artifacts": [
+    {
+      "name": "report.txt.tar",
+      "size": 2048
+    }
+  ],
+  "created_at": "2026-11-05T14:54:21.167906516Z",
+  "error": "artifact collection failed: Error response from daemon: Could not find the file /out/missing.json in container 44467c981ca41818a42adc3303db75ee8c882b60146b93cecca34cef946dedf0",
+  "exit_code": 0,
+  "finished_at": "2026-11-05T14:54:21.447657327Z",
+  "id": "da3448c6-2f9f-46a8-b173-ce3255eb0a6e",
+  "owner_user_id": 2,
+  "owner_username": "alice",
+  "runtime": "docker",
+  "spec": {
+    "artifact_paths": ["/out/report.txt", "/out/missing.json"],
+    "command": [
+      "sh",
+      "-c",
+      "mkdir -p /out \u0026\u0026 echo built \u003e /out/report.txt \u0026\u0026 echo step one \u0026\u0026 echo token=$API_TOKEN \u0026\u0026 echo warning \u003e\u00262"
+    ],
+    "cpus": 1,
+    "egress": false,
+    "env": {
+      "STAGE": "test"
+    },
+    "image": "busybox:latest",
+    "memory_bytes": 268435456,
+    "runtime": "docker",
+    "timeout_seconds": 120
+  },
+  "started_at": "2026-11-05T14:54:21.346517586Z",
+  "status": "succeeded"
+}

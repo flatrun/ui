@@ -557,6 +557,8 @@ export type Permission =
   | "scheduler:read"
   | "scheduler:write"
   | "scheduler:delete"
+  | "runs:read"
+  | "runs:write"
   | "system:read"
   | "system:write"
   | "system:files"

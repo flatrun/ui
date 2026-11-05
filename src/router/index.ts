@@ -255,6 +255,12 @@ const routes: RouteRecordRaw[] = [
         meta: { permission: "security:read" },
       },
       {
+        path: "runs",
+        name: "runs",
+        component: () => import("@/views/RunsView.vue"),
+        meta: { permission: "runs:read" },
+      },
+      {
         path: "cron-jobs",
         name: "cron-jobs",
         component: () => import("@/views/CronJobsView.vue"),
