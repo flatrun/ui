@@ -171,6 +171,19 @@ describe("RunsView", () => {
     expect(wrapper.notifications.error).toHaveBeenCalledWith("Download failed", notFound.error);
   });
 
+  it("reports a failed refresh", async () => {
+    const wrapper = mountView();
+    await flushPromises();
+
+    api.list.mockRejectedValueOnce({ message: "Network Error" });
+    await wrapper
+      .findAll("button")
+      .find((b) => b.text() === "Refresh")!
+      .trigger("click");
+    await flushPromises();
+    expect(wrapper.notifications.error).toHaveBeenCalledWith("Could not load runs", "Network Error");
+  });
+
   describe("while a run is active", () => {
     beforeEach(() => vi.useFakeTimers());
     afterEach(() => vi.useRealTimers());

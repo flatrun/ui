@@ -8,7 +8,7 @@
         </p>
       </div>
       <div class="head-actions">
-        <BaseButton variant="ghost" size="sm" icon="refresh-cw" :loading="loading" @click="load">Refresh</BaseButton>
+        <BaseButton variant="ghost" size="sm" icon="refresh-cw" :loading="loading" @click="load()">Refresh</BaseButton>
         <BaseButton v-if="canWrite" variant="primary" size="sm" icon="plus" @click="showNew = true">New run</BaseButton>
       </div>
     </header>
