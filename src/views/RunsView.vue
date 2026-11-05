@@ -270,7 +270,26 @@ function formatSize(bytes: number) {
   return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
 }
 
-async function load() {
+async function errorDetail(e: any): Promise<string> {
+  const body = e?.response?.data;
+  if (body instanceof Blob) {
+    try {
+      return JSON.parse(await body.text()).error || e.message;
+    } catch {
+      return e.message;
+    }
+  }
+  if (typeof body === "string") {
+    try {
+      return JSON.parse(body).error || e.message;
+    } catch {
+      return e.message;
+    }
+  }
+  return body?.error || e?.message;
+}
+
+async function load(quiet = false) {
   const request = ++listRequest;
   loading.value = true;
   try {
@@ -286,8 +305,8 @@ async function load() {
     if (request !== listRequest) return;
     if (e.response?.status === 503) {
       unavailable.value = e.response.data?.error || "Runs are unavailable on this agent.";
-    } else {
-      notifications.error("Could not load runs", e.response?.data?.error || e.message);
+    } else if (!quiet) {
+      notifications.error("Could not load runs", await errorDetail(e));
     }
   } finally {
     if (request === listRequest) loading.value = false;
@@ -326,7 +345,9 @@ async function loadLogs() {
     }
   } catch (e: any) {
     if (request !== logsRequest || selected.value?.id !== id) return;
-    logsError.value = e.response?.data?.error || e.message || "the request failed";
+    const detail = await errorDetail(e);
+    if (request !== logsRequest || selected.value?.id !== id) return;
+    logsError.value = detail || "the request failed";
   } finally {
     if (request === logsRequest) logsLoading.value = false;
   }
@@ -351,7 +372,7 @@ async function tick() {
   if (polling || (!hadActive && !watchingActive)) return;
   polling = true;
   try {
-    await load();
+    await load(true);
     if (watchingActive) {
       await refreshSelected();
       await loadLogs();
@@ -384,7 +405,7 @@ async function download(r: Run, name: string) {
     a.click();
     URL.revokeObjectURL(url);
   } catch (e: any) {
-    notifications.error("Download failed", e.response?.data?.error || e.message);
+    notifications.error("Download failed", await errorDetail(e));
   } finally {
     downloading.value = null;
   }

@@ -3,6 +3,7 @@ import { mount, flushPromises } from "@vue/test-utils";
 import { createTestingPinia } from "@pinia/testing";
 import RunsView from "./RunsView.vue";
 import { useAuthStore } from "@/stores/auth";
+import { useNotificationsStore } from "@/stores/notifications";
 import { runsApi } from "@/services/api";
 import runsList from "./fixtures/runs/runs-list.json";
 import succeeded from "./fixtures/runs/run-succeeded.json";
@@ -11,6 +12,7 @@ import cancelResponse from "./fixtures/runs/run-cancel-response.json";
 import running from "./fixtures/runs/run-running.json";
 import cancelled from "./fixtures/runs/run-cancelled.json";
 import unavailable from "./fixtures/runs/runs-unavailable.json";
+import notFound from "./fixtures/runs/run-not-found.json";
 import logs from "./fixtures/runs/run-logs.txt?raw";
 
 vi.mock("@/services/api", () => ({
@@ -30,9 +32,10 @@ function mountView(permissions: string[] = ["runs:read", "runs:write"]) {
   const pinia = createTestingPinia({ createSpy: vi.fn });
   const auth = useAuthStore(pinia);
   (auth.hasPermission as ReturnType<typeof vi.fn>).mockImplementation((p: string) => permissions.includes(p));
-  return mount(RunsView, {
+  const wrapper = mount(RunsView, {
     global: { plugins: [pinia], stubs: { Teleport: true, Transition: false } },
   });
+  return Object.assign(wrapper, { notifications: useNotificationsStore(pinia) });
 }
 
 async function openDetails(wrapper: ReturnType<typeof mountView>) {
@@ -140,6 +143,34 @@ describe("RunsView", () => {
     expect(wrapper.text()).not.toContain("Could not load the output");
   });
 
+  it("shows the agent's reason when output cannot be loaded", async () => {
+    api.list.mockResolvedValue({ data: { items: [succeeded] } });
+    api.logs.mockRejectedValueOnce({
+      message: "Request failed with status code 404",
+      response: { status: 404, data: JSON.stringify(notFound) },
+    });
+    const wrapper = mountView();
+    await flushPromises();
+
+    await openDetails(wrapper);
+    expect(wrapper.text()).toContain(`Could not load the output: ${notFound.error}`);
+  });
+
+  it("shows the agent's reason when a kept file cannot be downloaded", async () => {
+    api.list.mockResolvedValue({ data: { items: [succeeded] } });
+    api.artifact.mockRejectedValueOnce({
+      message: "Request failed with status code 404",
+      response: { status: 404, data: new Blob([JSON.stringify(notFound)], { type: "application/json" }) },
+    });
+    const wrapper = mountView();
+    await flushPromises();
+    await openDetails(wrapper);
+
+    await wrapper.find(".artifact-list button").trigger("click");
+    await flushPromises();
+    expect(wrapper.notifications.error).toHaveBeenCalledWith("Download failed", notFound.error);
+  });
+
   describe("while a run is active", () => {
     beforeEach(() => vi.useFakeTimers());
     afterEach(() => vi.useRealTimers());
@@ -157,6 +188,20 @@ describe("RunsView", () => {
 
       expect(api.get).toHaveBeenCalledWith(running.id);
       expect(wrapper.find(".panel .status-pill").text()).toBe("Cancelled");
+    });
+
+    it("does not raise an error toast on every failed poll", async () => {
+      api.list.mockResolvedValueOnce({ data: { items: [running] } });
+      const wrapper = mountView();
+      await flushPromises();
+
+      api.list.mockRejectedValue({ message: "Network Error" });
+      await vi.advanceTimersByTimeAsync(2000);
+      await vi.advanceTimersByTimeAsync(2000);
+      await flushPromises();
+
+      expect(api.list).toHaveBeenCalledTimes(3);
+      expect(wrapper.notifications.error).not.toHaveBeenCalled();
     });
 
     it("does not start a poll while the previous one is pending", async () => {

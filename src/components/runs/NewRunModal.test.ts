@@ -103,6 +103,18 @@ describe("NewRunModal", () => {
     expect(create).not.toHaveBeenCalled();
   });
 
+  it("clears a refused run's error when the form is opened again", async () => {
+    create.mockRejectedValue({ response: { data: { error: "timeout must be positive and at most one hour" } } });
+    const wrapper = mountModal();
+    await fill(wrapper, "Image", "busybox:latest");
+    await submit(wrapper);
+    expect(wrapper.find(".run-form-error").exists()).toBe(true);
+
+    await wrapper.setProps({ visible: false });
+    await wrapper.setProps({ visible: true });
+    expect(wrapper.find(".run-form-error").exists()).toBe(false);
+  });
+
   it("shows the agent's error when the run is refused", async () => {
     create.mockRejectedValue({ response: { data: { error: "timeout must be positive and at most one hour" } } });
     const wrapper = mountModal();

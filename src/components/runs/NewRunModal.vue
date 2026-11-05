@@ -107,6 +107,7 @@ function reset() {
 watch(
   () => props.visible,
   (open) => {
+    error.value = "";
     if (!open) secretEnv.value = [];
   },
 );
